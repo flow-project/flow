@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nodes version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/nodes_file.xsd">
+<node id="n0" x="47.75" y="0.0"/>
+<node id="n1" x="45.81" y="13.45"/>
+<node id="n2" x="40.17" y="25.81"/>
+<node id="n3" x="31.27" y="36.08"/>
+<node id="n4" x="19.83" y="43.43"/>
+<node id="n5" x="6.8" y="47.26"/>
+<node id="n6" x="-6.8" y="47.26"/>
+<node id="n7" x="-19.83" y="43.43"/>
+<node id="n8" x="-31.27" y="36.08"/>
+<node id="n9" x="-40.17" y="25.81"/>
+<node id="n10" x="-45.81" y="13.45"/>
+<node id="n11" x="-47.75" y="0.0"/>
+<node id="n12" x="-45.81" y="-13.45"/>
+<node id="n13" x="-40.17" y="-25.81"/>
+<node id="n14" x="-31.27" y="-36.08"/>
+<node id="n15" x="-19.83" y="-43.43"/>
+<node id="n16" x="-6.8" y="-47.26"/>
+<node id="n17" x="6.8" y="-47.26"/>
+<node id="n18" x="19.83" y="-43.43"/>
+<node id="n19" x="31.27" y="-36.08"/>
+<node id="n20" x="40.17" y="-25.81"/>
+<node id="n21" x="45.81" y="-13.45"/>
+</nodes>
