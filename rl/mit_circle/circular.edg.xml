@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edges version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/edges_file.xsd">
+<edge from="n0" id="e0" to="n1" type="edgeType" maxSpeed="45" />
+<edge from="n1" id="e1" to="n2" type="edgeType"/>
+<edge from="n2" id="e2" to="n3" type="edgeType"/>
+<edge from="n3" id="e3" to="n4" type="edgeType"/>
+<edge from="n4" id="e4" to="n5" type="edgeType"/>
+<edge from="n5" id="e5" to="n6" type="edgeType"/>
+<edge from="n6" id="e6" to="n7" type="edgeType"/>
+<edge from="n7" id="e7" to="n8" type="edgeType"/>
+<edge from="n8" id="e8" to="n9" type="edgeType"/>
+<edge from="n9" id="e9" to="n10" type="edgeType"/>
+<edge from="n10" id="e10" to="n11" type="edgeType"/>
+<edge from="n11" id="e11" to="n12" type="edgeType"/>
+<edge from="n12" id="e12" to="n13" type="edgeType"/>
+<edge from="n13" id="e13" to="n14" type="edgeType"/>
+<edge from="n14" id="e14" to="n15" type="edgeType"/>
+<edge from="n15" id="e15" to="n16" type="edgeType"/>
+<edge from="n16" id="e16" to="n17" type="edgeType"/>
+<edge from="n17" id="e17" to="n18" type="edgeType"/>
+<edge from="n18" id="e18" to="n19" type="edgeType"/>
+<edge from="n19" id="e19" to="n20" type="edgeType"/>
+<edge from="n20" id="e20" to="n21" type="edgeType"/>
+<edge from="n21" id="e21" to="n0" type="edgeType"/>
+</edges>

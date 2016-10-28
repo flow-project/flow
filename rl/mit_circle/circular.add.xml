@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/additional_file.xsd">
+    <route id="rleft" edges="e10 e11 e12 e13 e14 e15 e16 e17 e18 e19 e20 e21 e0 e1 e2 e3 e4 e5 e6 e7 e8 e9"/>
+    <route id="rright" edges="e20 e21 e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11 e12 e13 e14 e15 e16 e17 e18 e19"/>
+    
+    <rerouter id="reroutere5" edges="e10">
+        <interval begin="0" end="100000">
+            <routeProbReroute id="rleft" />
+        </interval>
+    </rerouter>
+
+    <rerouter id="reroutere10" edges="e20">
+        <interval begin="0" end="100000">
+            <routeProbReroute id="rright" />
+        </interval>
+    </rerouter>
+
+    <vTypeProbe id="probe" type="car" freq="10" file="output.xml"/>
+
+</additional>
