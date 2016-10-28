@@ -1,7 +1,7 @@
 # random seed
 RANDOM_SEED = 23434
 
-# Number of waypoinst around circular curve
+# Number of waypoints around circular curve
 RESOLUTION = 40
 
 # the name of the sumo binary
