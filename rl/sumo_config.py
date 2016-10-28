@@ -2,6 +2,7 @@
 RANDOM_SEED = 23434
 
 # Number of waypoints around circular curve
+# update with sumo linked training environment + TRPO train script
 RESOLUTION = 40
 
 # the name of the sumo binary
