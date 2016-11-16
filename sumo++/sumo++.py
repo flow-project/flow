@@ -1,5 +1,5 @@
-from controller_interface.py import ____
-from rllab_interface.py import ____
+from controller_interface.py import HumanController, RobotController
+from rllab_interface.py import SumoEnvironment
 
 
 """
@@ -15,40 +15,17 @@ Interfaces with sumo on the other side
 """
 
 
-class SumoSimulation():
+class SumoExperiment():
+
+	self.env_params
+	self.initial_state
+
+	self.robots # Indices of robot cars
+	self.car_functions
+	self.human_policy
+
 
 	def __init__(self, params):
-		self.env_params
-		self.initial_state
+		
+		env = SumoEnvironment(env_params)
 
-		self.robots # Indices of robot cars
-		self.car_functions
-
-		traci.init(self.PORT)
-
-		self.human_policy
-
-
-
-		pass
-
-
-	def set_policy(self, updated):
-		pass # Convert actions from rllab into commands for robot cars
-		# Set functions for each car appropriately
-
-
-	def step(self, car_actions):
-		for car in self.robots:
-			pass # Call traci functions to move the cars according to policy input 
-
-		for car in self.humans:
-			pass 
-
-
-	def get_state(self):
-		pass
-
-
-	def reset(self):
-		pass # resets to initial state
