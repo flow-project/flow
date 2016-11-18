@@ -39,8 +39,11 @@ class SumoEnvironment(Env):
 	self.human_policy
 
 
-	def __init__(self, params):
+	def __init__(self, num_vehicles, env_params, vehicle_controllers, sumo_binary, sumo_params):
 		Env.__init__(self)
+        self.env_params = env_params
+        self.human_ids = [i for i in range(num_vehicles) if i in vehicle_controllers.keys()]
+
 		# Set all params above as necessary
 		traci.init(self.PORT)
 		sumoProcess = subprocess.Popen([self.sumoBinary, "-c", self.cfgfn, "--remote-port", \
@@ -51,6 +54,9 @@ class SumoEnvironment(Env):
         observation = np.copy(self._state)
         return observation        
 
+
+    def apply_action(self, car_id, action):
+        raise NotImplementedError
 
 	def step(self, car_actions):
 		"""
@@ -67,10 +73,16 @@ class SumoEnvironment(Env):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
-		for car in self.robots:
-			pass # Call traci function to move the car according to action input 
-		for car in self.humans:
-			pass #  Use controller to determine next action
+        for car_id, controller, in vehicle_controllers.items():
+            action = car_actions[car_id]
+            traci.vehicle.slowDown(self.controllable[car_id], apply_action(car_id, action), 1)
+
+
+
+		# for car in self.robots:
+		# 	pass # Call traci function to move the car according to action input 
+		# for car in self.humans:
+		# 	pass #  Use controller to determine next action
 		traci.simulationStep()
 
 		self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.controllable])
