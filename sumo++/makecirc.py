@@ -25,7 +25,6 @@ Generator for loop circle used in MIT traffic simulation.
 """
 class CircleGenerator(SumoExperiment.Generator):
 
-
     """
     Generates Net files for loop sim. Requires:
     length: length of the circle
