@@ -15,6 +15,7 @@ Interfaces with sumo on the other side
 
 """
 
+
 def ensure_dir(path):
     try:
         os.makedirs(path)
@@ -23,8 +24,8 @@ def ensure_dir(path):
             raise
     return path
 
-class Generator:
 
+class Generator:
     def __init__(self, net_path, data_path, base):
         self.net_path = net_path
         self.data_path = data_path
@@ -41,6 +42,7 @@ class Generator:
     def generatecfg(self, params):
         raise NotImplementedError
 
+
 class SumoExperiment():
     """
     env: Environment to be initialized.
@@ -52,26 +54,29 @@ class SumoExperiment():
     sumoparams: parameters to pass to sumo, e.g. step-length (can also be in sumo-cfg)
     """
 
+    def __init__(self, name, env_class, vehicle_params, sumo_binary, sumo_params, file_generator=None, net_params=None,
+                 cfg_params=None, cfg=None):
+        self.name = name
+        self.vehicle_controllers = {}
 
-def __init__(self, name, env_class, vehicle_params, sumo_binary, sumo_params, file_generator=None, net_params=None, cfg_params=None, cfg=None):
-    self.name = name
-    self.vehicle_controllers = {}
+        for vehicle_type in vehicle_params:
+            num_instances = vehicle_params[vehicle_type][0]
+            controller = vehicle_params[vehicle_type][1]
+            for i in range(num_instances):
+                veh_id = vehicle_type + "_" + str(i)
+            self.vehicle_controllers[veh_id] = controller
 
-    for vehicle_type in vehicle_params:
-        num_instances = vehicle_params[vehicle_type][0]
-        controller = vehicle_params[vehicle_type][1]
-        for i in range(num_instances):
-            veh_id = vehicle_type + "_" + str(i)
-        self.vehicle_controllers[veh_id] = controller
+        self.num_vehicles = len(self.vehicle_controllers)
+        if not cfg:
+            file_generator.generatenet(net_params)
+            self.cfg, self.outs = file_generator.generatecfg(cfg_params)
+        else:
+            self.cfg = cfg
 
-    self.num_vehicles = len(self.vehicle_controllers)
-    if not cfg:
-        file_generator.generatenet(net_params)
-        self.cfg, self.outs = file_generator.generatecfg(cfg_params)
-    else:
-        self.cfg = cfg
-
-    self.env = env_class.__init__(self.num_vehicles, self.vehicle_controllers, sumo_binary, sumo_params)
+        self.env = env_class.__init__(self.num_vehicles, self.vehicle_controllers, sumo_binary, sumo_params)
 
     def getCfg(self):
         return self.cfg
+
+    def getEnv(self):
+        return self.env
