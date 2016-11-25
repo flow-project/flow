@@ -1,6 +1,6 @@
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from traffic.speed_env import SpeedEnv
+from traffic.emission_env import EmissionEnv
 from rllab.envs.normalized_env import normalize
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.misc.instrument import stub, run_experiment_lite
@@ -9,10 +9,11 @@ stub(globals())
 
 # for ctrl in [1, 2, 3, 4, 6, 12]:
 # for aws, add "/root/code/rllab" to the path
-cfgfn = "highway_files/leah-3/leah-3.sumo.cfg"
+cfgfn = "/root/code/rllab/traffic/leah-3/leah-3.sumo.cfg"
 # Try to minimize remainder total_vehicles % ctrl
-ctrl = 12
-env = normalize(SpeedEnv(ctrl, 12, cfgfn))
+ctrl = 2
+highway_length = 700
+env = normalize(EmissionEnv(ctrl, 12, cfgfn, highway_length))
 for seed in [1, 5, 10, 73, 56]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
@@ -28,7 +29,7 @@ for seed in [1, 5, 10, 73, 56]:
         batch_size=2000,
         max_path_length=400,
         # whole_paths=True,
-        n_itr=1500,
+        n_itr=250,
         # discount=0.99,
         # step_size=0.01,
     )
@@ -44,6 +45,7 @@ for seed in [1, 5, 10, 73, 56]:
         # will be used
         seed=seed,
         mode="ec2",
-        exp_prefix="multi_agent_12"
+        # all underscores will become hyphens for the parent folder name
+        exp_prefix="emission_test_16"
         # plot=True,
     )

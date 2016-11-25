@@ -1,7 +1,7 @@
 import numpy as np
 from rllab.envs.base import Env
 from rllab.spaces import Box
-# from rllab.spaces import Product
+from rllab.spaces import Product
 from rllab.envs.base import Step
 
 from scripts.sumo_config import *
@@ -11,7 +11,7 @@ import subprocess, sys
 import traci
 import traci.constants as tc
 
-class SpeedEnv(Env):
+class EmissionEnv(Env):
     """
     Toy model, number of cars determined by SUMO config files
     Controls are just the velocity the car should go at
@@ -24,7 +24,7 @@ class SpeedEnv(Env):
     PORT = PORT
     sumoBinary = checkBinary(BINARY)
 
-    def __init__(self, num_cars, total_cars, cfgfn):
+    def __init__(self, num_cars, total_cars, cfgfn, highway_length):
         Env.__init__(self)
         self.num_cars = num_cars
         self.tot_cars = total_cars
@@ -38,6 +38,14 @@ class SpeedEnv(Env):
         # traci.simulationStep()
         # self.vehIDs = traci.vehicle.getIDList()
         self.initialized = False
+
+        self.highway_length = highway_length
+        edgelen = highway_length/4.
+        # self.edgeorder = ["left", "top", "right", "bottom"]
+        self.lanestarts = {"left": 3 * edgelen,
+                       "top": 2*edgelen,
+                       "right": edgelen,
+                       "bottom": 0}
 
     def find_controllable(self, lst, ctrl):
         lst = np.array(lst)
@@ -60,17 +68,33 @@ class SpeedEnv(Env):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
-        new_speed = self._state + action
+        new_speed = self._state[:,0] + action
         new_speed[np.where(new_speed < 0)] = 0
         for car_idx in range(self.num_cars):
             # almost instantaneous
             traci.vehicle.slowDown(self.controllable[car_idx], new_speed[car_idx], 1)
         traci.simulationStep()
+        
         self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.controllable])
-        reward = self.compute_reward(self._state)
+        next_observation = np.array([[traci.vehicle.getSpeed(vID), \
+                                self.get_lane_position(vID), \
+                                traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
+
+        # self._state = np.array([[traci.vehicle.getSpeed(vID), \
+        #                         self.get_lane_position(vID), \
+        #                         traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
+        # Horizontal concat of vertical vectors
+        # self._state = np.concatenate((velocities.reshape(len(velocities), 1).T, ), axis=1)
         # done = np.all(abs(self._state-self.GOAL_VELOCITY) < self.delta)
-        next_observation = np.copy(self._state)
+        # next_observation = np.copy(self._state)
+        
+        reward = self.compute_reward(self._state[:,0])
         return Step(observation=next_observation, reward=reward, done=False)
+
+    def get_lane_position(self, vID):
+        lanepos = traci.vehicle.getLanePosition(vID)
+        lane = traci.vehicle.getLaneID(vID).split("_")
+        return self.lanestarts[lane[0]] + lanepos
 
     def compute_reward(self, velocity):
         return -np.linalg.norm(velocity - self.GOAL_VELOCITY)
@@ -85,15 +109,27 @@ class SpeedEnv(Env):
         # self state is velocity, observation is velocity
         if self.initialized:
             traci.close()
+        
         sumoProcess = subprocess.Popen([self.sumoBinary, "-c", self.cfgfn, "--remote-port", str(self.PORT)], stdout=sys.stdout, stderr=sys.stderr)
         traci.init(self.PORT)
         traci.simulationStep()
+        
         if not self.initialized:
             self.vehIDs = traci.vehicle.getIDList()
             print("ID List in reset", self.vehIDs)
             self.initialized = True
+        
+        # self._state = np.array([[traci.vehicle.getSpeed(vID), \
+        #                         self.get_lane_position(vID), \
+        #                         traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
+        # observation = np.copy(self._state)
+
         self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.controllable])
-        observation = np.copy(self._state)
+        next_observation = np.array([[traci.vehicle.getSpeed(vID), \
+                                self.get_lane_position(vID), \
+                                traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
+
+
         return observation
 
     @property
@@ -108,10 +144,16 @@ class SpeedEnv(Env):
         """
         Returns a Space object
         """
-        return Box(low=-np.inf, high=np.inf, shape=(self.num_cars,))
+        # return Box(low=-np.inf, high=np.inf, shape=(self.num_cars,))
+        ypos = Box(low=0., high=self.highway_length, shape=(self.num_cars, ))
+        vel = Box(low=0., high=np.inf, shape=(self.num_cars, ))
+        xpos = Box(low=0., high=1., shape=(self.num_cars, ))
+        # accel = Box(low=self.min_acceleration, high=self.max_acceleration, shape=(self.num_cars, ))
+        # return vel
+        return Product([vel, ypos, xpos])
 
     def render(self):
-        print('current state/velocity:', self._state)
+        print('current state/velocity, ypos, xpos:', self._state)
 
     def close(self):
         traci.close()
