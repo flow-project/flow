@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Thu Nov 24 16:49:20 2016 by SUMO Version 0.27.1
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="highway_files/leah-3/net/loopsim-840m2l-840m2l.net.xml"/>
+        <route-files value="highway_files/leah-3/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.rou.xml"/>
+        <additional-files value="highway_files/leah-3/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.add.xml"/>
+    </input>
+
+    <output>
+        <netstate-dump value="highway_files/leah-3/data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.netstate.xml"/>
+        <emission-output value="highway_files/leah-3/data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.emission.xml"/>
+        <amitran-output value="highway_files/leah-3/data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.amitran.xml"/>
+        <lanechange-output value="highway_files/leah-3/data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.lanechange.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="3000"/>
+    </time>
+
+    <traci_server>
+        <remote-port value="8873"/>
+    </traci_server>
+
+    <gui_only>
+        <gui-settings-file value="highway_files/leah-3/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.gui.cfg"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<lanechanges>
+    <change id="10" time="2.00" from="left_0" to="left_1" dir="1" speed="23.73" reason="speedGain"/>
+    <change id="0" time="2.00" from="bottom_0" to="bottom_1" dir="1" speed="25.20" reason="speedGain"/>
+    <change id="6" time="3.00" from="top_0" to="top_1" dir="1" speed="22.60" reason="speedGain"/>
+    <change id="3" time="3.00" from="right_0" to="right_1" dir="1" speed="21.06" reason="speedGain"/>
+    <change id="2" time="5.00" from="right_0" to="right_1" dir="1" speed="21.51" reason="speedGain"/>
+    <change id="8" time="9.00" from="left_0" to="left_1" dir="1" speed="9.87" reason="speedGain"/>
+    <change id="8" time="17.00" from="left_1" to="left_0" dir="-1" speed="4.27" reason="keepRaight"/>
+    <change id="0" time="17.00" from="right_1" to="right_0" dir="-1" speed="0.00" reason="speedGain"/>
+    <change id="6" time="21.00" from="left_1" to="left_0" dir="-1" speed="9.14" reason="keepRaight"/>
+    <change id="0" time="23.00" from="right_0" to="right_1" dir="1" speed="13.47" reason="speedGain"/>
+    <change id="10" time="27.00" from="right_1" to="right_0" dir="-1" speed="0.00" reason="speedGain"/>
+    <change id="4" time="33.00" from="right_0" to="right_1" dir="1" speed="0.15" reason="speedGain"/>
+    <change id="6" time="42.00" from="bottom_0" to="bottom_1" dir="1" speed="0.00" reason="speedGain"/>
+    <change id="4" time="43.00" from="right_1" to="right_0" dir="-1" speed="0.00" reason="speedGain"/>
+    <change id="0" time="53.00" from="right_1" to="right_0" dir="-1" speed="3.96" reason="speedGain"/>
+    <change id="10" time="59.00" from="right_0" to="right_1" dir="1" speed="11.71" reason="speedGain"/>
+    <change id="0" time="61.00" from="right_0" to="right_1" dir="1" speed="0.00" reason="speedGain"/>
+    <change id="11" time="62.00" from="bottom_0" to="bottom_1" dir="1" speed="13.57" reason="speedGain"/>
+    <change id="2" time="64.00" from="right_1" to="right_0" dir="-1" speed="0.16" reason="keepRaight"/>
+    <change id="11" time="74.00" from="right_1" to="right_0" dir="-1" speed="1.10" reason="speedGain"/>
+    <change id="10" time="112.00" from="top_1" to="top_0" dir="-1" speed="1.53" reason="speedGain"/>
+    <change id="2" time="118.00" from="top_0" to="top_1" dir="1" speed="9.53" reason="speedGain"/>
+    <change id="0" time="120.00" from="top_1" to="top_0" dir="-1" speed="3.13" reason="speedGain"/>
+    <change id="5" time="128.00" from="top_0" to="top_1" dir="1" speed="20.35" reason="speedGain"/>
+    <change id="10" time="132.00" from="top_0" to="top_1" dir="1" speed="20.93" reason="speedGain"/>
+    <change id="0" time="137.00" from="top_0" to="top_1" dir="1" speed="21.66" reason="speedGain"/>
+    <change id="3" time="137.00" from="top_1" to="top_0" dir="-1" speed="13.86" reason="keepRaight"/>
+    <change id="5" time="141.00" from="left_1" to="left_0" dir="-1" speed="4.27" reason="keepRaight"/>
+    <change id="8" time="142.00" from="right_0" to="right_1" dir="1" speed="2.61" reason="speedGain"/>
+    <change id="3" time="142.00" from="top_0" to="top_1" dir="1" speed="16.28" reason="speedGain"/>
+    <change id="10" time="160.00" from="right_1" to="right_0" dir="-1" speed="0.00" reason="speedGain"/>
+    <change id="6" time="161.00" from="left_1" to="left_0" dir="-1" speed="9.32" reason="keepRaight"/>
+    <change id="5" time="174.00" from="left_0" to="left_1" dir="1" speed="8.28" reason="speedGain"/>
+    <change id="10" time="176.00" from="right_0" to="right_1" dir="1" speed="6.95" reason="speedGain"/>
+    <change id="3" time="179.00" from="right_1" to="right_0" dir="-1" speed="0.17" reason="speedGain"/>
+    <change id="5" time="181.00" from="bottom_1" to="bottom_0" dir="-1" speed="9.09" reason="keepRaight"/>
+    <change id="11" time="181.00" from="right_0" to="right_1" dir="1" speed="11.61" reason="speedGain"/>
+    <change id="3" time="184.00" from="right_0" to="right_1" dir="1" speed="5.48" reason="speedGain"/>
+    <change id="8" time="188.00" from="top_1" to="top_0" dir="-1" speed="5.36" reason="keepRaight"/>
+    <change id="11" time="191.00" from="top_1" to="top_0" dir="-1" speed="16.69" reason="keepRaight"/>
+    <change id="11" time="194.00" from="left_0" to="left_1" dir="1" speed="19.14" reason="speedGain"/>
+    <change id="0" time="195.00" from="top_1" to="top_0" dir="-1" speed="22.93" reason="keepRaight"/>
+    <change id="10" time="196.00" from="left_1" to="left_0" dir="-1" speed="1.84" reason="keepRaight"/>
+    <change id="2" time="197.00" from="left_1" to="left_0" dir="-1" speed="3.59" reason="keepRaight"/>
+    <change id="7" time="198.00" from="left_0" to="left_1" dir="1" speed="3.45" reason="speedGain"/>
+    <change id="10" time="202.00" from="left_0" to="left_1" dir="1" speed="6.92" reason="speedGain"/>
+    <change id="3" time="208.00" from="top_1" to="top_0" dir="-1" speed="0.00" reason="keepRaight"/>
+    <change id="3" time="209.00" from="top_0" to="top_1" dir="1" speed="2.13" reason="speedGain"/>
+    <change id="1" time="217.00" from="top_0" to="top_1" dir="1" speed="2.28" reason="speedGain"/>
+    <change id="8" time="218.00" from="left_0" to="left_1" dir="1" speed="0.00" reason="speedGain"/>
+    <change id="6" time="221.00" from="bottom_0" to="bottom_1" dir="1" speed="9.79" reason="speedGain"/>
+    <change id="3" time="223.00" from="top_1" to="top_0" dir="-1" speed="16.10" reason="keepRaight"/>
+    <change id="10" time="229.00" from="bottom_1" to="bottom_0" dir="-1" speed="21.52" reason="keepRaight"/>
+    <change id="6" time="242.00" from="top_1" to="top_0" dir="-1" speed="13.75" reason="keepRaight"/>
+    <change id="10" time="242.00" from="top_0" to="top_1" dir="1" speed="4.57" reason="speedGain"/>
+    <change id="3" time="243.00" from="left_0" to="left_1" dir="1" speed="0.00" reason="speedGain"/>
+    <change id="10" time="251.00" from="top_1" to="top_0" dir="-1" speed="9.19" reason="keepRaight"/>
+    <change id="8" time="255.00" from="left_1" to="left_0" dir="-1" speed="0.00" reason="speedGain"/>
+    <change id="0" time="257.00" from="left_0" to="left_1" dir="1" speed="0.00" reason="speedGain"/>
+    <change id="8" time="261.00" from="left_0" to="left_1" dir="1" speed="5.15" reason="speedGain"/>
+    <change id="10" time="263.00" from="left_0" to="left_1" dir="1" speed="4.21" reason="speedGain"/>
+    <change id="0" time="266.00" from="left_1" to="left_0" dir="-1" speed="0.00" reason="speedGain"/>
+    <change id="0" time="274.00" from="left_0" to="left_1" dir="1" speed="10.35" reason="speedGain"/>
+    <change id="11" time="274.00" from="left_1" to="left_0" dir="-1" speed="3.22" reason="speedGain"/>
+    <change id="7" time="276.00" from="left_1" to="left_0" dir="-1" speed="0.00" reason="keepRaight"/>
+    <change id="0" time="284.00" from="bottom_1" to="bottom_0" dir="-1" speed="3.64" reason="speedGain"/>
+    <change id="0" time="287.00" from="bottom_0" to="bottom_1" dir="1" speed="10.60" reason="speedGain"/>
+    <change id="3" time="291.00" from="bottom_1" to="bottom_0" dir="-1" speed="2.17" reason="speedGain"/>
+    <change id="6" time="300.00" from="left_0" to="left_1" dir="1" speed="8.29" reason="speedGain"/>
+    <change id="3" time="301.00" from="bottom_0" to="bottom_1" dir="1" speed="7.24" reason="speedGain"/>
+    <change id="10" time="302.00" from="bottom_1" to="bottom_0" dir="-1" speed="19.45" reason="keepRaight"/>
+    <change id="6" time="306.00" from="left_1" to="left_0" dir="-1" speed="0.00" reason="speedGain"/>
+    <change id="3" time="317.00" from="right_1" to="right_0" dir="-1" speed="5.20" reason="keepRaight"/>
+    <change id="11" time="318.00" from="left_0" to="left_1" dir="1" speed="0.00" reason="speedGain"/>
+    <change id="10" time="320.00" from="right_0" to="right_1" dir="1" speed="3.21" reason="speedGain"/>
+    <change id="8" time="320.00" from="right_1" to="right_0" dir="-1" speed="1.40" reason="keepRaight"/>
+    <change id="7" time="326.00" from="bottom_0" to="bottom_1" dir="1" speed="10.40" reason="speedGain"/>
+    <change id="1" time="328.00" from="left_1" to="left_0" dir="-1" speed="7.80" reason="keepRaight"/>
+    <change id="8" time="330.00" from="right_0" to="right_1" dir="1" speed="5.77" reason="speedGain"/>
+    <change id="0" time="338.00" from="bottom_1" to="bottom_0

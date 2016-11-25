@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed Nov 23 15:38:12 2016 by SUMO gui Version 0.27.1
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumo-gui.exeConfiguration.xsd">
+
+    <input>
+        <net-file value="net/loopsim-840m2l-840m2l.net.xml"/>
+        <route-files value="loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.rou.xml"/>
+        <additional-files value="loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.add.xml"/>
+    </input>
+
+    <output>
+        <netstate-dump value="data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.netstate.xml"/>
+        <emission-output value="data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.emission.xml"/>
+        <amitran-output value="data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.amitran.xml"/>
+        <lanechange-output value="data/loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.lanechange.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="3000"/>
+        <step-length value="0.041666666666666664"/>
+    </time>
+
+    <report>
+        <no-step-log value="true"/>
+    </report>
+
+    <traci_server>
+        <remote-port value="8873"/>
+    </traci_server>
+
+    <gui_only>
+        <gui-settings-file value="loopsim-840m2l-human011-fillgapmidpoint001-Sugiyama-sigma=0.900000-run=0.gui.cfg"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<snapshot version="0.27.1" time="0.00">
+    <route id="routebottom" state="1" edges="bottom right top left"/>
+    <route id="routeleft" state="1" edges="left bottom right top"/>
+    <route id="routeright" state="1" edges="right top left bottom"/>
+    <route id="routetop" state="1" edges="top left bottom right"/>
+    <delay number="12" begin="12" end="0" depart="0.00" time="0.00"/>
+    <vType id="DEFAULT_PEDTYPE" vClass="pedestrian"/>
+    <vType id="DEFAULT_VEHTYPE"/>
+    <vType id="fillgapmidpoint"/>
+    <vType id="human"/>
+    <vehicle id="fillgapmidpoint-000" depart="0.00" route="routeleft" type="fillgapmidpoint" state="0 0" pos="140.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-000" depart="0.00" route="routeright" type="human" state="0 0" pos="140.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-001" depart="0.00" route="routeright" type="human" state="0 0" pos="70.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-002" depart="0.00" route="routetop" type="human" state="0 0" pos="70.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-003" depart="0.00" route="routetop" type="human" state="0 0" pos="0.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-004" depart="0.00" route="routebottom" type="human" state="0 0" pos="70.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-005" depart="0.00" route="routebottom" type="human" state="0 0" pos="0.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-006" depart="0.00" route="routeright" type="human" state="0 0" pos="0.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-007" depart="0.00" route="routebottom" type="human" state="0 0" pos="140.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-008" depart="0.00" route="routeleft" type="human" state="0 0" pos="0.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-009" depart="0.00" route="routetop" type="human" state="0 0" pos="140.00" speed="0.00" posLat="0.00"/>
+    <vehicle id="human-010" depart="0.00" route="routeleft" type="human" state="0 0" pos="70.00" speed="0.00" posLat="0.00"/>
+    <lane id="bottom_0">
+        <vehicles value="human-005 human-004 human-007"/>
+    </lane>
+    <lane id="bottom_1">
+        <vehicles value=""/>
+    </lane>
+    <lane id="left_0">
+        <vehicles value="human-008 human-010 fillgapmidpoint-000"/>
+    </lane>
+    <lane id="left_1">
+        <vehicles value=""/>
+    </lane>
+    <lane id="right_0">
+        <vehicles value="human-006 human-001 human-000"/>
+    </lane>
+    <lane id="right_1">
+        <vehicles value=""/>
+    </lane>
+    <lane id="top_0">
+        <vehicles value="human-003 human-002 human-009"/>
+    </lane>
+    <lane id="top_1">
+        <vehicles value=""/>
+    </lane>
+</snapshot>
