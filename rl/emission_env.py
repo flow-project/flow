@@ -24,19 +24,15 @@ class EmissionEnv(Env):
     PORT = PORT
     sumoBinary = checkBinary(BINARY)
 
-    def __init__(self, num_cars, total_cars, cfgfn, highway_length):
+    def __init__(self, num_cars, total_cars, cfgfn, highway_length, fullbool=True, expandedstate=True):
         Env.__init__(self)
         self.num_cars = num_cars
         self.tot_cars = total_cars
         self.car_ids = [str(i) for i in range(total_cars)]
         # This works best if num_cars is evenly divisible to total_cars
         self.controllable = self.find_controllable(self.car_ids, self.num_cars)
+        self.ctrl_ids = [int(i) for i in self.controllable]
         self.cfgfn = cfgfn
-        # This has now been moved into the reset function
-        # sumoProcess = subprocess.Popen([self.sumoBinary, "-c", self.cfgfn, "--remote-port", str(self.PORT)], stdout=sys.stdout, stderr=sys.stderr)
-        # traci.init(self.PORT)
-        # traci.simulationStep()
-        # self.vehIDs = traci.vehicle.getIDList()
         self.initialized = False
 
         self.highway_length = highway_length
@@ -46,6 +42,9 @@ class EmissionEnv(Env):
                        "top": 2*edgelen,
                        "right": edgelen,
                        "bottom": 0}
+
+        self.fullbool = fullbool
+        self.expandedstate = expandedstate
 
     def find_controllable(self, lst, ctrl):
         lst = np.array(lst)
@@ -68,27 +67,30 @@ class EmissionEnv(Env):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
-        new_speed = self._state[:,0] + action
+        ctrl_ids = self.ctrl_ids if self.fullbool else range(self.num_cars)
+        new_speed = self._state[0, ctrl_ids] + action # self.ctrl_ids
         new_speed[np.where(new_speed < 0)] = 0
         for car_idx in range(self.num_cars):
             # almost instantaneous
             traci.vehicle.slowDown(self.controllable[car_idx], new_speed[car_idx], 1)
         traci.simulationStep()
         
-        self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.controllable])
-        next_observation = np.array([[traci.vehicle.getSpeed(vID), \
-                                self.get_lane_position(vID), \
-                                traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
+        ctrl_ids = self.car_ids if self.fullbool else self.controllable
+        if self.expandedstate:
+            self._state = np.array([[traci.vehicle.getSpeed(vID), \
+                                    self.get_lane_position(vID), \
+                                    traci.vehicle.getLaneIndex(vID)] for vID in ctrl_ids]).T
+        else:
+            self._state = np.array([[traci.vehicle.getSpeed(vID) for vID in ctrl_ids]])
 
-        # self._state = np.array([[traci.vehicle.getSpeed(vID), \
-        #                         self.get_lane_position(vID), \
-        #                         traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
+        
+        # print("IN STEP, STATE", self._state.shape)
         # Horizontal concat of vertical vectors
         # self._state = np.concatenate((velocities.reshape(len(velocities), 1).T, ), axis=1)
         # done = np.all(abs(self._state-self.GOAL_VELOCITY) < self.delta)
-        # next_observation = np.copy(self._state)
-        
-        reward = self.compute_reward(self._state[:,0])
+        next_observation = np.copy(self._state)
+
+        reward = self.compute_reward()
         return Step(observation=next_observation, reward=reward, done=False)
 
     def get_lane_position(self, vID):
@@ -96,8 +98,9 @@ class EmissionEnv(Env):
         lane = traci.vehicle.getLaneID(vID).split("_")
         return self.lanestarts[lane[0]] + lanepos
 
-    def compute_reward(self, velocity):
-        return -np.linalg.norm(velocity - self.GOAL_VELOCITY)
+    def compute_reward(self):
+        # Neg return on global (sum) fuel consumption
+        return -np.sum([traci.vehicle.getFuelConsumption(carID) for carID in self.car_ids])
 
     def reset(self):
         """
@@ -116,20 +119,20 @@ class EmissionEnv(Env):
         
         if not self.initialized:
             self.vehIDs = traci.vehicle.getIDList()
-            print("ID List in reset", self.vehIDs)
+            # print("ID List in reset", self.vehIDs)
             self.initialized = True
         
-        # self._state = np.array([[traci.vehicle.getSpeed(vID), \
-        #                         self.get_lane_position(vID), \
-        #                         traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
-        # observation = np.copy(self._state)
+        ctrl_ids = self.car_ids if self.fullbool else self.controllable
+        if self.expandedstate:
+            self._state = np.array([[traci.vehicle.getSpeed(vID), \
+                                    self.get_lane_position(vID), \
+                                    traci.vehicle.getLaneIndex(vID)] for vID in ctrl_ids]).T
+        else:
+            self._state = np.array([[traci.vehicle.getSpeed(vID) for vID in ctrl_ids]])
 
-        self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.controllable])
-        next_observation = np.array([[traci.vehicle.getSpeed(vID), \
-                                self.get_lane_position(vID), \
-                                traci.vehicle.getLaneIndex(vID)] for vID in self.controllable])
+        # print("IN RESET, STATE", self._state.shape)
 
-
+        observation = np.copy(self._state)
         return observation
 
     @property
@@ -144,13 +147,11 @@ class EmissionEnv(Env):
         """
         Returns a Space object
         """
-        # return Box(low=-np.inf, high=np.inf, shape=(self.num_cars,))
-        ypos = Box(low=0., high=self.highway_length, shape=(self.num_cars, ))
-        vel = Box(low=0., high=np.inf, shape=(self.num_cars, ))
-        xpos = Box(low=0., high=1., shape=(self.num_cars, ))
-        # accel = Box(low=self.min_acceleration, high=self.max_acceleration, shape=(self.num_cars, ))
-        # return vel
-        return Product([vel, ypos, xpos])
+        num_cars = self.tot_cars if self.fullbool else self.num_cars
+        ypos = Box(low=0., high=np.inf, shape=(num_cars, ))
+        vel = Box(low=0., high=np.inf, shape=(num_cars, ))
+        xpos = Box(low=0., high=2., shape=(num_cars, ))
+        return Product([vel, ypos, xpos]) if self.expandedstate else vel
 
     def render(self):
         print('current state/velocity, ypos, xpos:', self._state)
