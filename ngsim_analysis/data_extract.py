@@ -56,14 +56,15 @@ Output file has as its columns:
 3. Local X coordinate, 4. Local Y coordinate
 5. Global X, 6. Global Y, 7. Lane ID
 8. Preceding Vehicle, 9. Following vehicle
-10. NGSIM computed space headway, 11. NGSIM Computed time headway'''
+10. NGSIM computed space headway, 11. NGSIM Computed time headway
+11. Vehicle width '''
 
 
 def extract_cars(data_set, file_name):
     global output_folder
     f = open(output_folder + file_name, 'w')
     f.write('vehID, fID, locX, locY, globalX, globalY, laneID, PrecedeID, '
-            'followID, spaceHeadway, timeHeadway\n')
+            'followID, spaceHeadway, timeHeadway, width\n')
     print data_set.shape[0]
     for i in range(data_set.shape[0]):
         lane_id = data_set[i, 13]
@@ -72,12 +73,15 @@ def extract_cars(data_set, file_name):
                 (lane_id == 1 or lane_id == 2 or lane_id == 3)):
 
             f.write('{0}, {1}, {2}, {3}, {4}, {5}, {6},'
-                    '{7}, {8}, {9}, {10}\n'.format(
+                    '{7}, {8}, {9}, {10}, {11}\n'.format(
                 int(data_set[i, 0]), int(data_set[i, 1]), data_set[i, 4],
                 data_set[i, 5], data_set[i, 6],
                 data_set[i, 7], int(data_set[i, 13]), int(data_set[i, 14]),
-                int(data_set[i, 15]), data_set[i, 16], data_set[i, 17]))
+                int(data_set[i, 15]), data_set[i, 16], data_set[i, 17],
+                data_set[i, 9]))
     f.close()
+
+''' Just computes the number of lane changes in a data set '''
 
 
 def num_lane_changes(data_set):
@@ -97,6 +101,141 @@ def num_lane_changes(data_set):
 
     return num_lane_changes
 
+''' Computes the headway at which cars exit
+where the start time of lane changes is determined
+according to the method described in Thiemann, Kesting (2008).
+The start occurs when the left or right bumper
+enters the destination lane. Outputs histogram of headway'''
+
+
+def lane_change_exit_via_width(data_set):
+    # first loop through and store the points at which the
+    # valid lane change switches occur
+    lc_indexes = np.empty([1,6])
+    veh_id = int(data_set[0, 0])
+    lane_id = int(data_set[0, 6])
+    for i in range(1, data_set.shape[0]):
+        # if we are still on the same vehicle and it has switched lanes
+        # check that we haven't aborted the lane change within five secs
+        # check makes sure the lane change has lasted at least five s
+        if (int(data_set[i, 0]) == veh_id and
+                    lane_id != int(data_set[i, 6]) and
+                    lane_id != int(data_set[i+50, 6]) and
+                    veh_id == int(data_set[i+50, 0]) and
+                    int(data_set[i, 6]) != int(data_set[i-50, 6]) and
+                    veh_id == int(data_set[i-50, 0])):
+
+                # store the index, the frame, the vehicle id, 
+                # lane position at lane-change end, lane diff.
+                # and vehicle width
+                temp = np.array([[i, data_set[i, 1], 
+                                data_set[i, 0], data_set[i, 2], 
+                                int(data_set[i, 6]) - int(lane_id),
+                                data_set[i, 11]]])
+
+                lc_indexes = np.concatenate((lc_indexes, temp), axis=0)
+
+        veh_id = int(data_set[i, 0])
+        lane_id = int(data_set[i, 6])
+
+    np.delete(lc_indexes, 0, 0)
+
+    print 'lc_indexes'
+    print lc_indexes
+    print lc_indexes.shape[0]
+
+    # now step through and for each item find the crossover
+    # since we want to find the start we run backwards
+    lc_start = np.empty([1, 2])
+    for i in range(lc_indexes.shape[0]):
+        for j in range(int(lc_indexes[i, 0]), 0, -1):
+            # we are still on the same vehicle
+            if int(data_set[j, 0]) == int(lc_indexes[i, 2]):
+                horz_shift = data_set[j, 2] - lc_indexes[i, 3]
+                # left (right) bumper crosses lane
+                if lc_indexes[i, 4] < 0:
+                    cond = horz_shift - lc_indexes[i, 5]/2
+                else:
+                    cond = horz_shift + lc_indexes[i, 5]/2
+
+                # copy over the relevant data i.e.
+                # following vehicle, frame
+                temp = np.array([[data_set[j, 8], data_set[j, 1]]])
+
+                # lane change has started, we're done here
+                if ((lc_indexes[i,4] < 0 and cond > 0) or
+                        (lc_indexes[i,4] > 0 and cond < 0)):
+                    lc_start = np.concatenate((lc_start, temp), axis=0)
+                    break 
+            # we have switched cars
+            else:
+                break
+    np.delete(lc_start, 0, 0)
+
+    print 'lc_start'
+    print lc_start
+    print lc_start.shape[0]
+
+    # now we have the frame and the cars whose headways we want
+    headways = []
+    for i in range(lc_start.shape[0]):
+        if int(lc_start[i, 1]) != 0:
+            for j in range(data_set.shape[0]):
+                if (int(data_set[j, 0]) == int(lc_start[i, 0]) and
+                    int(data_set[j, 1]) == int(lc_start[i, 1])):
+                    headways.append(data_set[j, 9])
+
+    plt.hist(headways, bins=12)
+    plt.xlabel('headway')
+    plt.ylabel('counts')
+    plt.title('headway vs. count when lane change starts')
+    plt.show()
+
+
+''' This function computes the distribution of positions within
+a given lane so we can start computing criteria for being in 
+a given lane 
+PARAMETERS: data_set according to the format of extract_cars
+OUTPUT: histogram of average lane position for cars that
+have not changed lane '''
+
+
+def average_lane_pos(data_set):
+    lane_pos = []
+    'initialize the system'
+    veh_id = int(data_set[0, 0])
+    lane_id = int(data_set[0, 6])
+    lane_avg = []
+    lane_flag = 1
+    for i in range(1, data_set.shape[0]):
+
+        if (veh_id == int(data_set[i, 0]) 
+            and lane_id == int(data_set[i, 6])
+            and lane_flag == 1):
+            lane_avg.append(data_set[i, 2])
+        # the car has lane changed, don't add it to the average
+        elif veh_id == int(data_set[i, 0]) and lane_id != int(data_set[i, 6]):
+            lane_flag = 0
+        # we've moved onto the next car so reset everything
+        elif veh_id != int(data_set[i,0]):
+            if lane_flag == 1:
+                lane_pos.append(sum(lane_avg)/len(lane_avg))
+            lane_flag = 1
+            print 'the vehicle id is {0}'.format(veh_id)
+            print lane_avg
+            # don't lose this data point! 
+            lane_avg = [data_set[i,6]]
+
+        veh_id = int(data_set[i, 0])
+        lane_id = int(data_set[i, 6])
+
+    print lane_pos
+    plt.hist(lane_pos)
+    plt.xlabel('x-position')
+    plt.ylabel('counts')
+    plt.title('Distribution of lane positions')
+    plt.show()
+
 '''We go to the point at which the lane change is
 identified in the data, go back 3, 4, 5 seconds
 and compute the headway from the follow car at those points.
@@ -107,8 +246,7 @@ Estimating Acceleration and Lane-Changing
 Dynamics from Next Generation Simulation
 Trajectory Data
 PARAMETERS: dataset - the processed dataset from which we extract data
-OUTPUT: Three histograms of headways at time of initiated lane change
-'''
+OUTPUT: Three histograms of headways at time of initiated lane change '''
 
 
 def informal_headway_extraction(data_set):
@@ -202,8 +340,7 @@ to its predecessor at those times.
 We then plot all three sets of headways.
 Trajectory Data
 PARAMETERS: dataset - the processed dataset from which we extract data
-OUTPUT: Three histograms of headways at time of initiated lane change
-'''
+OUTPUT: Three histograms of headways at time of initiated lane change '''
 
 
 def lane_change_in_headway(data_set):
@@ -298,4 +435,6 @@ if __name__ == '__main__':
     pm_4, pm_5, pm_515 = read_processed_data()
     # print num_lane_changes(pm_4)
     # informal_headway_extraction(pm_515)
-    lane_change_in_headway(pm_5)
+    # lane_change_in_headway(pm_5)
+    # average_lane_pos(pm_4)
+    lane_change_exit_via_width(pm_4)
