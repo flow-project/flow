@@ -74,11 +74,11 @@ def extract_cars(data_set, file_name):
 
             f.write('{0}, {1}, {2}, {3}, {4}, {5}, {6},'
                     '{7}, {8}, {9}, {10}, {11}\n'.format(
-                int(data_set[i, 0]), int(data_set[i, 1]), data_set[i, 4],
-                data_set[i, 5], data_set[i, 6],
-                data_set[i, 7], int(data_set[i, 13]), int(data_set[i, 14]),
-                int(data_set[i, 15]), data_set[i, 16], data_set[i, 17],
-                data_set[i, 9]))
+                        int(data_set[i, 0]), int(data_set[i, 1]),
+                        data_set[i, 4], data_set[i, 5], data_set[i, 6],
+                        data_set[i, 7], int(data_set[i, 13]),
+                        int(data_set[i, 14]), int(data_set[i, 15]),
+                        data_set[i, 16], data_set[i, 17], data_set[i, 9]))
     f.close()
 
 ''' Just computes the number of lane changes in a data set '''
@@ -111,7 +111,7 @@ enters the destination lane. Outputs histogram of headway'''
 def lane_change_exit_via_width(data_set):
     # first loop through and store the points at which the
     # valid lane change switches occur
-    lc_indexes = np.empty([1,6])
+    lc_indexes = np.empty([1, 6])
     veh_id = int(data_set[0, 0])
     lane_id = int(data_set[0, 6])
     for i in range(1, data_set.shape[0]):
@@ -119,17 +119,17 @@ def lane_change_exit_via_width(data_set):
         # check that we haven't aborted the lane change within five secs
         # check makes sure the lane change has lasted at least five s
         if (int(data_set[i, 0]) == veh_id and
-                    lane_id != int(data_set[i, 6]) and
-                    lane_id != int(data_set[i+50, 6]) and
-                    veh_id == int(data_set[i+50, 0]) and
-                    int(data_set[i, 6]) != int(data_set[i-50, 6]) and
-                    veh_id == int(data_set[i-50, 0])):
+                lane_id != int(data_set[i, 6]) and
+                lane_id != int(data_set[i+50, 6]) and
+                veh_id == int(data_set[i+50, 0]) and
+                int(data_set[i, 6]) != int(data_set[i-50, 6]) and
+                veh_id == int(data_set[i-50, 0])):
 
-                # store the index, the frame, the vehicle id, 
+                # store the index, the frame, the vehicle id,
                 # lane position at lane-change end, lane diff.
                 # and vehicle width
-                temp = np.array([[i, data_set[i, 1], 
-                                data_set[i, 0], data_set[i, 2], 
+                temp = np.array([[i, data_set[i, 1],
+                                data_set[i, 0], data_set[i, 2],
                                 int(data_set[i, 6]) - int(lane_id),
                                 data_set[i, 11]]])
 
@@ -163,10 +163,10 @@ def lane_change_exit_via_width(data_set):
                 temp = np.array([[data_set[j, 8], data_set[j, 1]]])
 
                 # lane change has started, we're done here
-                if ((lc_indexes[i,4] < 0 and cond > 0) or
-                        (lc_indexes[i,4] > 0 and cond < 0)):
+                if ((lc_indexes[i, 4] < 0 and cond > 0) or
+                        (lc_indexes[i, 4] > 0 and cond < 0)):
                     lc_start = np.concatenate((lc_start, temp), axis=0)
-                    break 
+                    break
             # we have switched cars
             else:
                 break
@@ -182,7 +182,7 @@ def lane_change_exit_via_width(data_set):
         if int(lc_start[i, 1]) != 0:
             for j in range(data_set.shape[0]):
                 if (int(data_set[j, 0]) == int(lc_start[i, 0]) and
-                    int(data_set[j, 1]) == int(lc_start[i, 1])):
+                        int(data_set[j, 1]) == int(lc_start[i, 1])):
                     headways.append(data_set[j, 9])
 
     plt.hist(headways, bins=12)
@@ -193,8 +193,8 @@ def lane_change_exit_via_width(data_set):
 
 
 ''' This function computes the distribution of positions within
-a given lane so we can start computing criteria for being in 
-a given lane 
+a given lane so we can start computing criteria for being in
+a given lane
 PARAMETERS: data_set according to the format of extract_cars
 OUTPUT: histogram of average lane position for cars that
 have not changed lane '''
@@ -209,22 +209,22 @@ def average_lane_pos(data_set):
     lane_flag = 1
     for i in range(1, data_set.shape[0]):
 
-        if (veh_id == int(data_set[i, 0]) 
-            and lane_id == int(data_set[i, 6])
-            and lane_flag == 1):
+        if (veh_id == int(data_set[i, 0]) and
+                lane_id == int(data_set[i, 6]) and
+                lane_flag == 1):
             lane_avg.append(data_set[i, 2])
         # the car has lane changed, don't add it to the average
         elif veh_id == int(data_set[i, 0]) and lane_id != int(data_set[i, 6]):
             lane_flag = 0
         # we've moved onto the next car so reset everything
-        elif veh_id != int(data_set[i,0]):
+        elif veh_id != int(data_set[i, 0]):
             if lane_flag == 1:
                 lane_pos.append(sum(lane_avg)/len(lane_avg))
             lane_flag = 1
             print 'the vehicle id is {0}'.format(veh_id)
             print lane_avg
-            # don't lose this data point! 
-            lane_avg = [data_set[i,6]]
+            # don't lose this data point!
+            lane_avg = [data_set[i, 6]]
 
         veh_id = int(data_set[i, 0])
         lane_id = int(data_set[i, 6])
