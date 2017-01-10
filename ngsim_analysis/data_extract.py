@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import beta as beta
 
 'Change these to your desired paths to the NGSIM data!'
 input_folder = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM-Raw" \
@@ -74,11 +75,11 @@ def extract_cars(data_set, file_name):
 
             f.write('{0}, {1}, {2}, {3}, {4}, {5}, {6},'
                     '{7}, {8}, {9}, {10}, {11}\n'.format(
-                        int(data_set[i, 0]), int(data_set[i, 1]),
-                        data_set[i, 4], data_set[i, 5], data_set[i, 6],
-                        data_set[i, 7], int(data_set[i, 13]),
-                        int(data_set[i, 14]), int(data_set[i, 15]),
-                        data_set[i, 16], data_set[i, 17], data_set[i, 9]))
+                int(data_set[i, 0]), int(data_set[i, 1]), data_set[i, 4],
+                data_set[i, 5], data_set[i, 6],
+                data_set[i, 7], int(data_set[i, 13]), int(data_set[i, 14]),
+                int(data_set[i, 15]), data_set[i, 16], data_set[i, 17],
+                data_set[i, 9]))
     f.close()
 
 ''' Just computes the number of lane changes in a data set '''
@@ -101,17 +102,32 @@ def num_lane_changes(data_set):
 
     return num_lane_changes
 
-''' Computes the headway at which cars exit
+''' Computes the headway at which cars appear and disappear due to 
+lane change
 where the start time of lane changes is determined
 according to the method described in Thiemann, Kesting (2008).
 The start occurs when the left or right bumper
-enters the destination lane. Outputs histogram of headway'''
+enters the destination lane. Outputs histogram of headway
+PARAMETERS: data_set: the relevant data to work on
+            bin_number: number of bins. If bins = 0 it lets python
+            determine the best number
+            u_cutoff: if the headway at a lane change is greater than
+            this value, we ignore it
+            l_cutoff: if the headway at a lane change is less than
+            this value, we ignore it
+RETURNS: Plots of headway
+         bins - the edges of each histogram bin for car disappearing
+         headways - extracted headways for car disappearing
+         e_bins - the edges of each histogram bin for car appearing
+         e_headways - extracted headways for car appearing'''
 
 
-def lane_change_exit_via_width(data_set):
+
+def lane_change_via_width(data_set, bin_number=12, u_cutoff=400, 
+                                l_cutoff=0):
     # first loop through and store the points at which the
     # valid lane change switches occur
-    lc_indexes = np.empty([1, 6])
+    lc_indexes = np.empty([1,7])
     veh_id = int(data_set[0, 0])
     lane_id = int(data_set[0, 6])
     for i in range(1, data_set.shape[0]):
@@ -119,20 +135,19 @@ def lane_change_exit_via_width(data_set):
         # check that we haven't aborted the lane change within five secs
         # check makes sure the lane change has lasted at least five s
         if (int(data_set[i, 0]) == veh_id and
-                lane_id != int(data_set[i, 6]) and
-                lane_id != int(data_set[i+50, 6]) and
-                veh_id == int(data_set[i+50, 0]) and
-                int(data_set[i, 6]) != int(data_set[i-50, 6]) and
-                veh_id == int(data_set[i-50, 0])):
+                    lane_id != int(data_set[i, 6]) and
+                    lane_id != int(data_set[i+50, 6]) and
+                    veh_id == int(data_set[i+50, 0]) and
+                    int(data_set[i, 6]) != int(data_set[i-50, 6]) and
+                    veh_id == int(data_set[i-50, 0])):
 
-                # store the index, the frame, the vehicle id,
+                # store the index, the frame, the vehicle id, 
                 # lane position at lane-change end, lane diff.
-                # and vehicle width
-                temp = np.array([[i, data_set[i, 1],
-                                data_set[i, 0], data_set[i, 2],
+                # and vehicle width and new following vehicle
+                temp = np.array([[i, data_set[i, 1], 
+                                data_set[i, 0], data_set[i, 2], 
                                 int(data_set[i, 6]) - int(lane_id),
-                                data_set[i, 11]]])
-
+                                data_set[i, 11], data_set[i,8]]])
                 lc_indexes = np.concatenate((lc_indexes, temp), axis=0)
 
         veh_id = int(data_set[i, 0])
@@ -146,7 +161,7 @@ def lane_change_exit_via_width(data_set):
 
     # now step through and for each item find the crossover
     # since we want to find the start we run backwards
-    lc_start = np.empty([1, 2])
+    lc_start = np.empty([1, 3])
     for i in range(lc_indexes.shape[0]):
         for j in range(int(lc_indexes[i, 0]), 0, -1):
             # we are still on the same vehicle
@@ -159,14 +174,16 @@ def lane_change_exit_via_width(data_set):
                     cond = horz_shift + lc_indexes[i, 5]/2
 
                 # copy over the relevant data i.e.
-                # following vehicle, frame
-                temp = np.array([[data_set[j, 8], data_set[j, 1]]])
+                # following vehicle prior to lane change, frame, new
+                # following vehicle 
+                temp = np.array([[data_set[j, 8], data_set[j, 1], 
+                    lc_indexes[i,6]]])
 
-                # lane change has started, we're done here
-                if ((lc_indexes[i, 4] < 0 and cond > 0) or
-                        (lc_indexes[i, 4] > 0 and cond < 0)):
+                # lane change has started
+                if ((lc_indexes[i,4] < 0 and cond > 0) or
+                        (lc_indexes[i,4] > 0 and cond < 0)):
                     lc_start = np.concatenate((lc_start, temp), axis=0)
-                    break
+                    break 
             # we have switched cars
             else:
                 break
@@ -181,20 +198,56 @@ def lane_change_exit_via_width(data_set):
     for i in range(lc_start.shape[0]):
         if int(lc_start[i, 1]) != 0:
             for j in range(data_set.shape[0]):
+                # if we have the right frame, vehicle, and headway
+                # is within appropriate limits
                 if (int(data_set[j, 0]) == int(lc_start[i, 0]) and
-                        int(data_set[j, 1]) == int(lc_start[i, 1])):
+                    int(data_set[j, 1]) == int(lc_start[i, 1]) and
+                    data_set[j, 9] < u_cutoff and
+                    data_set[j, 9] > l_cutoff):
                     headways.append(data_set[j, 9])
+        print i
 
-    plt.hist(headways, bins=12)
+    if bin_number != 0:
+        n, bins, patches = plt.hist(headways, bins=bin_number)
+    else:
+        n, bins, patches = plt.hist(headways)
     plt.xlabel('headway')
     plt.ylabel('counts')
-    plt.title('headway vs. count when lane change starts')
+    plt.title('headway vs. count for car disappearing')
+    plt.show()
+
+    # now with all the info we have, lets find the headway in
+    # the other lane, when the lane change began
+    # we use lc_indexes to find the line with the frame when 
+    # the lane change started and the new following vehicles
+    e_headways = []
+    for i in range(lc_start.shape[0]):
+        for j in range(data_set.shape[0]):
+            # check that the vehicle we have found is the new following
+            # vehicle, the frame matches, and cutoffs are good 
+            if (data_set[j, 0] == lc_start[i, 2] and 
+                data_set[j, 1] == lc_start[i, 1] and
+                data_set[j, 9] < u_cutoff and
+                data_set[j, 9] > l_cutoff):
+                e_headways.append(data_set[j, 9])
+        print i
+
+    if bin_number != 0:
+        e_n, e_bins, patches = plt.hist(e_headways, bins=bin_number)
+    else:
+        e_n, e_bins, patches = plt.hist(e_headways)
+    plt.xlabel('headway')
+    plt.ylabel('counts')
+    plt.title('headway vs. count for car appearing')
     plt.show()
 
 
+    return (bins, headways, e_bins, e_headways)
+
+
 ''' This function computes the distribution of positions within
-a given lane so we can start computing criteria for being in
-a given lane
+a given lane so we can start computing criteria for being in 
+a given lane 
 PARAMETERS: data_set according to the format of extract_cars
 OUTPUT: histogram of average lane position for cars that
 have not changed lane '''
@@ -209,22 +262,22 @@ def average_lane_pos(data_set):
     lane_flag = 1
     for i in range(1, data_set.shape[0]):
 
-        if (veh_id == int(data_set[i, 0]) and
-                lane_id == int(data_set[i, 6]) and
-                lane_flag == 1):
+        if (veh_id == int(data_set[i, 0]) 
+            and lane_id == int(data_set[i, 6])
+            and lane_flag == 1):
             lane_avg.append(data_set[i, 2])
         # the car has lane changed, don't add it to the average
         elif veh_id == int(data_set[i, 0]) and lane_id != int(data_set[i, 6]):
             lane_flag = 0
         # we've moved onto the next car so reset everything
-        elif veh_id != int(data_set[i, 0]):
+        elif veh_id != int(data_set[i,0]):
             if lane_flag == 1:
                 lane_pos.append(sum(lane_avg)/len(lane_avg))
             lane_flag = 1
             print 'the vehicle id is {0}'.format(veh_id)
             print lane_avg
-            # don't lose this data point!
-            lane_avg = [data_set[i, 6]]
+            # don't lose this data point! 
+            lane_avg = [data_set[i,6]]
 
         veh_id = int(data_set[i, 0])
         lane_id = int(data_set[i, 6])
@@ -427,6 +480,90 @@ def lane_change_in_headway(data_set):
     plt.ylabel("counts")
     plt.show()
 
+''' This function makes a histogram of ALL of the headways that have
+occured throughout the data set
+PARAMETERS: Processed data set
+RETURNS: histogram bins
+         relevant headways sorted into bins'''
+def plot_headways(data_set):
+    headways = []
+    for i in range(data_set.shape[0]):
+        if int(data_set[i, 9]) != 0 and data_set[i, 9] < 400:
+            headways.append(data_set[i, 9])
+
+    #params = beta.fit(headways)
+    #print 'alpha {0} beta {1}'.format(params[0], params[1])
+    n, bins, patches = plt.hist(headways, bins='auto')
+    # plt.plot(headways, beta.pdf(headways, params[0], params[1]), 'r-')
+    plt.show()
+    return (n, bins)
+
+''' This function extracts the headways, then computes good bins
+for a histogram of this data. It uses these bins to bin the total headways 
+for the system and then use these to normalize the data 
+    PARAMETERS: bin_number - how many bins we want for the lane change 
+    extraction histogram
+                u_cutoff - cutoff on the headway values to eliminate
+                            unusually large headways
+    OUTPUT: plot of the normalized histogram for exiting lane changes'''
+def normalized_distribution(data_set, bin_number, u_cutoff=400, l_cutoff=0):
+    d_bins, d_headways, a_bins, a_headways = lane_change_via_width(
+        data_set, bin_number, u_cutoff, l_cutoff)
+    headways = []
+    for i in range(data_set.shape[0]):
+        if int(data_set[i, 9]) != 0 and (data_set[i, 9] < u_cutoff
+            and data_set[i, 9] > l_cutoff):
+            headways.append(data_set[i, 9])
+
+    # Operation for car disappearing
+    # Bin the headways
+    plt.subplot(2, 1, 1)
+    t_n, t_bins, t_patches = plt.hist(headways, bins=d_bins)
+    plt.subplot(2,1,2)
+    e_n, e_bins, e_patches = plt.hist(d_headways, bins=d_bins)
+    plt.show()
+
+    # normalize the lists
+    # If there's a more normal python way to do this, that'd be great
+    # but in lieu of that, here's some nonsense
+    div_list = [a/float(b) for a,b in zip(e_n, t_n)]
+    ind = np.arange(len(t_n))
+    fig, ax = plt.subplots()
+    width = .35
+    ax.bar(ind + width, div_list, width, color='r')
+    # create the labels
+    label_list = []
+    for i in range(len(e_bins)-1):
+        label_list.append('{:.2f}'.format(e_bins[i]))
+    ax.set_xticklabels(tuple(label_list))
+    ax.set_xticks(ind + width)
+    plt.show()
+
+    # Operation for car appearing
+    # Bin the headways
+    plt.subplot(2, 1, 1)
+    t_n, t_bins, t_patches = plt.hist(headways, bins=a_bins)
+    plt.subplot(2,1,2)
+    e_n, e_bins, e_patches = plt.hist(a_headways, bins=a_bins)
+    plt.show()
+
+    # normalize the lists
+    # If there's a more normal python way to do this, that'd be great
+    # but in lieu of that, here's some nonsense
+    div_list = [a/float(b) for a,b in zip(e_n, t_n)]
+    ind = np.arange(len(t_n))
+    fig, ax = plt.subplots()
+    width = .35
+    ax.bar(ind + width, div_list, width, color='r')
+    # create the labels
+    label_list = []
+    for i in range(len(e_bins)-1):
+        label_list.append('{:.2f}'.format(e_bins[i]))
+    ax.set_xticklabels(tuple(label_list))
+    ax.set_xticks(ind + width)
+    plt.show()
+
+
 if __name__ == '__main__':
     # pm_4, pm_5, pm_515 = read_data()
     # extract_cars(pm_4, '/4-415-Processed.txt')
@@ -437,4 +574,5 @@ if __name__ == '__main__':
     # informal_headway_extraction(pm_515)
     # lane_change_in_headway(pm_5)
     # average_lane_pos(pm_4)
-    lane_change_exit_via_width(pm_4)
+    lane_change_via_width(pm_5)
+    # normalized_distribution(pm_515, 0, 120, 10)
