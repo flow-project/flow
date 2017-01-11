@@ -1,10 +1,14 @@
+import pdb
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import beta as beta
 
 'Change these to your desired paths to the NGSIM data!'
-input_folder = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM-Raw" \
-            "/I-80-Main-Data/vehicle-trajectory-data"
+input_folder_80 = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data" \
+           "/NGSIM-Raw/I-80-Main-Data/vehicle-trajectory-data"
+# this one is for the US 101 data
+input_folder_101= "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM" \
+            "/US-101/vehicle-trajectory-data"
 output_folder = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/" \
             "NGSIM-Processed"
 
@@ -18,25 +22,25 @@ OUTPUT: pm_4: an array corresponding to all the data from 4pm
         leader_id
 '''
 
-
-def read_data():
+# This reads in the data for I 80
+def read_data_80():
     global input_folder
 
-    pm_4 = np.loadtxt(input_folder +
+    pm_4 = np.loadtxt(input_folder_80 +
                       "/0400pm-0415pm/trajectories-0400-0415.txt")
-    pm_5 = np.loadtxt(input_folder +
+    pm_5 = np.loadtxt(input_folder_80 +
                       "/0500pm-0515pm/trajectories-0500-0515.txt")
-    pm_515 = np.loadtxt(input_folder +
+    pm_515 = np.loadtxt(input_folder_80 +
                         "/0515pm-0530pm/trajectories-0515-0530.txt")
 
     return pm_4, pm_5, pm_515
 
-''' Read in data that has been processed in the format of extract_cars
+''' Read in data that has been processed in the format of extract_cars for I-80
 PARAMETERS: NONE
 OUTPUT: three sets of data corresponding to 4-4:15, 5-5:15, 5:15-5:30 '''
 
 
-def read_processed_data():
+def read_processed_data_80():
     global output_folder
 
     pm_4 = np.loadtxt(output_folder+"/4-415-Processed.txt", delimiter=',',
@@ -47,6 +51,37 @@ def read_processed_data():
                         skiprows=1)
 
     return pm_4, pm_5, pm_515
+
+# This reads in the data for I 80
+def read_data_101():
+    global input_folder
+
+    pm_750 = np.loadtxt(input_folder_101 +
+                      "/0750am-0805am/trajectories-0750am-0805am.txt")
+    pm_805 = np.loadtxt(input_folder_101 +
+                      "/0805am-0820am/trajectories-0805am-0820am.txt")
+    pm_820 = np.loadtxt(input_folder_101 +
+                        "/0820am-0835am/trajectories-0820am-0835am.txt")
+
+    return pm_750, pm_805, pm_820
+
+''' Read in data that has been processed in the format of extract_cars for I-80
+PARAMETERS: NONE
+OUTPUT: three sets of data corresponding to 4-4:15, 5-5:15, 5:15-5:30 '''
+
+
+def read_processed_data_101():
+    global output_folder
+
+    pm_750 = np.loadtxt(output_folder+"/750-Processed.txt", delimiter=',',
+                      skiprows=1)
+    pm_805 = np.loadtxt(output_folder+"/805-Processed.txt", delimiter=',',
+                      skiprows=1)
+    pm_820 = np.loadtxt(output_folder+"/820-Processed.txt", delimiter=',',
+                        skiprows=1)
+
+    return pm_750, pm_805, pm_820
+
 
 ''' Outputs a text file containing only the cars, so no motorcycles
 or trucks. We also only extract the left three lanes
@@ -129,6 +164,7 @@ def lane_change_via_width(data_set, bin_number=12, u_cutoff=400,
     lc_indexes = np.empty([1, 7])
     veh_id = int(data_set[0, 0])
     lane_id = int(data_set[0, 6])
+    print data_set.shape[0]
     for i in range(1, data_set.shape[0]):
         # if we are still on the same vehicle and it has switched lanes
         # check that we haven't aborted the lane change within five secs
@@ -151,7 +187,8 @@ def lane_change_via_width(data_set, bin_number=12, u_cutoff=400,
 
         veh_id = int(data_set[i, 0])
         lane_id = int(data_set[i, 6])
-
+        if i % 10000 == 0:
+            print i
     np.delete(lc_indexes, 0, 0)
 
     print 'lc_indexes'
@@ -242,50 +279,6 @@ def lane_change_via_width(data_set, bin_number=12, u_cutoff=400,
 
     return (bins, headways, e_bins, e_headways)
 
-
-''' This function computes the distribution of positions within
-a given lane so we can start computing criteria for being in
-a given lane
-PARAMETERS: data_set according to the format of extract_cars
-OUTPUT: histogram of average lane position for cars that
-have not changed lane '''
-
-
-def average_lane_pos(data_set):
-    lane_pos = []
-    'initialize the system'
-    veh_id = int(data_set[0, 0])
-    lane_id = int(data_set[0, 6])
-    lane_avg = []
-    lane_flag = 1
-    for i in range(1, data_set.shape[0]):
-
-        if (veh_id == int(data_set[i, 0]) and
-                lane_id == int(data_set[i, 6]) and
-                lane_flag == 1):
-            lane_avg.append(data_set[i, 2])
-        # the car has lane changed, don't add it to the average
-        elif veh_id == int(data_set[i, 0]) and lane_id != int(data_set[i, 6]):
-            lane_flag = 0
-        # we've moved onto the next car so reset everything
-        elif veh_id != int(data_set[i, 0]):
-            if lane_flag == 1:
-                lane_pos.append(sum(lane_avg)/len(lane_avg))
-            lane_flag = 1
-            print 'the vehicle id is {0}'.format(veh_id)
-            print lane_avg
-            # don't lose this data point!
-            lane_avg = [data_set[i, 6]]
-
-        veh_id = int(data_set[i, 0])
-        lane_id = int(data_set[i, 6])
-
-    print lane_pos
-    plt.hist(lane_pos)
-    plt.xlabel('x-position')
-    plt.ylabel('counts')
-    plt.title('Distribution of lane positions')
-    plt.show()
 
 '''We go to the point at which the lane change is
 identified in the data, go back 3, 4, 5 seconds
@@ -523,7 +516,6 @@ def normalized_distribution(data_set, bin_number, u_cutoff=400, l_cutoff=0):
     t_n, t_bins, t_patches = plt.hist(headways, bins=d_bins)
     plt.subplot(2, 1, 2)
     e_n, e_bins, e_patches = plt.hist(d_headways, bins=d_bins)
-    plt.show()
 
     # normalize the lists
     # If there's a more normal python way to do this, that'd be great
@@ -547,7 +539,6 @@ def normalized_distribution(data_set, bin_number, u_cutoff=400, l_cutoff=0):
     t_n, t_bins, t_patches = plt.hist(headways, bins=a_bins)
     plt.subplot(2, 1, 2)
     e_n, e_bins, e_patches = plt.hist(a_headways, bins=a_bins)
-    plt.show()
 
     # normalize the lists
     # If there's a more normal python way to do this, that'd be great
@@ -567,14 +558,20 @@ def normalized_distribution(data_set, bin_number, u_cutoff=400, l_cutoff=0):
 
 
 if __name__ == '__main__':
-    # pm_4, pm_5, pm_515 = read_data()
+    # pm_4, pm_5, pm_515 = read_data_80()
     # extract_cars(pm_4, '/4-415-Processed.txt')
     # extract_cars(pm_5, '/5-515-Processed.txt')
     # extract_cars(pm_515, '/515-530-Processed.txt')
-    pm_4, pm_5, pm_515 = read_processed_data()
+    #pm_4, pm_5, pm_515 = read_processed_data_80()
+    # pm_750, pm_805, pm_820 = read_data_101()
+    # extract_cars(pm_750, '/750-Processed.txt')
+    # extract_cars(pm_805, '/805-Processed.txt')
+    # extract_cars(pm_820, '/820-Processed.txt')
+    pm_750, pm_805, pm_820 = read_processed_data_101()
     # print num_lane_changes(pm_4)
     # informal_headway_extraction(pm_515)
     # lane_change_in_headway(pm_5)
     # average_lane_pos(pm_4)
-    #lane_change_via_width(pm_5)
-    normalized_distribution(pm_4, 10)
+    lane_change_via_width(pm_750)
+    plot_headways(pm_750)
+    # normalized_distribution(pm_515, 10, l_cutoff=10, u_cutoff=120)
