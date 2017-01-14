@@ -13,6 +13,7 @@ KD = 0.7
 KDD = 0
 H = 0.5 # seconds
 THETAS = [0, 0.15, 0.3]
+HS = [0.1, 0.3, 0.5, 1]
 
 order = 5  # pade approximation order
 
@@ -163,3 +164,72 @@ if __name__ == "__main__":
     plt.ylabel("theta_max [s]")
     plt.suptitle("Reproducing Figure 4(b) [Ploeg2014]")
     plt.savefig("lp_string_stability_4b_theta_max.png", dpi=300, deg=False, format="png")
+
+
+    print "Now we venture into new territory, exploring alternating communication delays (theta1, theta2)."
+    print "That is, for a fixed headway h, what is the admissible space of pairs of communication delays?"
+    fig = plt.figure()
+    for h in HS:
+        theta1_range = np.linspace(THETA_MIN, THETA_MAX, 30)
+        theta2_range = np.zeros(theta1_range.shape)
+
+        for i, theta1 in enumerate(theta1_range):
+            # binary search for theta
+            theta_min = THETA_MIN
+            theta_max = THETA_MAX
+            while abs(theta_min-theta_max) > 1e-3:
+                theta2 = 0.5 * (theta_min + theta_max)
+                sys1 = construct_system_block(h=h, theta=theta1, kp=KP, kd=KD, kdd=KDD, tau=TAU)
+                sys2 = construct_system_block(h=h, theta=theta2, kp=KP, kd=KD, kdd=KDD, tau=TAU)
+                sys = sys1 * sys2
+                mag, phase, omega = bode_plot(sys, dB=True, Plot=False)
+
+                Hinfty = np.max(mag)  # ||Gamma(s)||_{H_\infty}
+                if Hinfty >= 1:
+                    theta_max = theta2
+                else:
+                    theta_min = theta2
+            theta2_range[i] = theta_min
+
+        plt.plot(theta2_range, theta1_range, label="h=%s" % h)
+        plt.hold(True)
+
+    plt.xlabel("theta1 [s]")
+    plt.ylabel("theta2_max [s]")
+    plt.legend()
+    plt.suptitle("L2 admissible alternating communication delays (theta1, theta2)")
+    plt.savefig("lp_string_stability_alternating_comm_delays_L2.png", dpi=300, deg=False, format="png")
+
+
+    print "Same thing now, but with the Linfty condition."
+    fig = plt.figure()
+    for h in HS:
+        theta1_range = np.linspace(THETA_MIN, THETA_MAX, 30)
+        theta2_range = np.zeros(theta1_range.shape)
+
+        for i, theta1 in enumerate(theta1_range):
+            # binary search for theta
+            theta_min = THETA_MIN
+            theta_max = THETA_MAX
+            while abs(theta_min-theta_max) > 1e-3:
+                theta2 = 0.5 * (theta_min + theta_max)
+                sys1 = construct_system_block(h=h, theta=theta1, kp=KP, kd=KD, kdd=KDD, tau=TAU)
+                sys2 = construct_system_block(h=h, theta=theta2, kp=KP, kd=KD, kdd=KDD, tau=TAU)
+                sys = sys1 * sys2
+                T, yout = impulse_response(sys)
+                L1 = np.trapz(yout, T)  # ||gamma(t)||_L1
+
+                if L1 >= 1:
+                    theta_max = theta2
+                else:
+                    theta_min = theta2
+            theta2_range[i] = theta_min
+
+        plt.plot(theta2_range, theta1_range, label="h=%s" % h)
+        plt.hold(True)
+
+    plt.xlabel("theta1 [s]")
+    plt.ylabel("theta2_max [s]")
+    plt.legend()
+    plt.suptitle("Linfty admissible alternating communication delays (theta1, theta2)")
+    plt.savefig("lp_string_stability_alternating_comm_delays_Linfty.png", dpi=300, deg=False, format="png")
