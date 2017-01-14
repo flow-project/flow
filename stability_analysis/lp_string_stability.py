@@ -66,7 +66,9 @@ if __name__ == "__main__":
     fig.axes[0].set_ylim(bottom=-5, top=1)
     fig.axes[0].set_xlim(left=0.05, right=10)
     fig.axes[1].set_xlim(left=0.05, right=10)
+    plt.suptitle("Reproducing Figure 3(a) [Ploeg2014]")
     plt.savefig("lp_string_stability_manual_mag.png", dpi=300, format="png")
+
 
     print "Reproducing Figure 3(a) from Ploeg2014 (2): using block diagram algebra"
     fig = plt.figure()
@@ -77,6 +79,7 @@ if __name__ == "__main__":
     fig.axes[0].set_ylim(bottom=-5, top=1)
     fig.axes[0].set_xlim(left=0.05, right=10)
     fig.axes[1].set_xlim(left=0.05, right=10)
+    plt.suptitle("Reproducing Figure 3(a) [Ploeg2014]")
     plt.savefig("lp_string_stability_block_mag.png", dpi=300, deg=False, format="png")
 
     assert np.linalg.norm(mag1 - mag2) < 1e-8, "Magnitudes produced by the two methods are different"
@@ -84,6 +87,7 @@ if __name__ == "__main__":
 
     # FIXME why are the phases produced by the two attempts different?
     # assert np.linalg.norm(phase1 - phase2) < 1e-8, "Phases produced by the two methods are different"
+
 
     print "Reproducing Figure 3(b) from Ploeg2014"
     h_range = np.linspace(0, 1.5, 20)
@@ -108,5 +112,9 @@ if __name__ == "__main__":
     plt.plot(h_range, theta_range)
     plt.xlabel("h [s]")
     plt.ylabel("theta_max [s]")
+    plt.suptitle("Reproducing Figure 3(b) [Ploeg2014]")
     plt.savefig("lp_string_stability_theta_max.png", dpi=300, deg=False, format="png")
 
+
+    print "Reproducing Figure 4(a) from Ploeg2014"
+    plt.suptitle("Reproducing Figure 4(a) [Ploeg2014]")
