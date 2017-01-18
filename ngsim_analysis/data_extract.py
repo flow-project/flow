@@ -238,8 +238,8 @@ def lane_change_via_width(data_set, file_prefix):
         for j in range(data_set.shape[0]):
             # check that the vehicle we have found is the new following
             # vehicle, the frame matches, and cutoffs are good
-            if (data_set[j, 0] == lc_start[i, 2] and
-                    data_set[j, 1] == lc_start[i, 1]):
+            if (int(data_set[j, 0]) == int(lc_start[i, 2]) and
+                    int(data_set[j, 1]) == int(lc_start[i, 1])):
                 f.write('{0}\n'.format(data_set[j,9]))
         print i
     f.close()
@@ -437,30 +437,34 @@ def lane_change_in_headway(data_set):
     plt.ylabel("counts")
     plt.show()
 
-''' This function makes a histogram of ALL of the headways that have
-occured throughout the data set
-PARAMETERS: Processed data set
-RETURNS: histogram bins
-         relevant headways sorted into bins'''
-
-
-def plot_headways(data_set):
-    headways = []
-    for i in range(data_set.shape[0]):
-        if int(data_set[i, 9]) != 0 and data_set[i, 9] < 400:
-            headways.append(data_set[i, 9])
-
+''' Plots a histogram of the relevant file 
+PARAMETERS: file prefix - prefix describing which data set to plot 
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways'''
+def plot_headways(file_prefix, l_cutoff = 1, u_cutoff = 400):
+    headways = np.loadtxt(output_folder + '/' + 
+                            file_prefix)
+        # filter
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
     n, bins, patches = plt.hist(headways, bins='auto')
     plt.show()
     return (n, bins)
 
+
 ''' This function extracts the headways, then computes good bins
 for a histogram of this data. It uses these bins to bin the total headways
 for the system and then use these to normalize the data
-    PARAMETERS: bin_number - how many bins we want for the lane change
-    extraction histogram
-                u_cutoff - cutoff on the headway values to eliminate
-                            unusually large headways
+    PARAMETERS: 
+            data_set: data set you wanted normalized
+            bin_number - how many bins we want for the lane change
+            extraction histogram
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways
     OUTPUT: plot of the normalized histogram for exiting lane changes'''
 
 
@@ -529,35 +533,85 @@ def headway_fitting(headway, dist_name, u_cutoff, l_cutoff):
     dist = getattr(scipy.stats, dist_name)
     param = dist.fit(headway)
     x = np.linspace(l_cutoff, u_cutoff, 100)
-    ax.plot(x, dist.pdf(x, param[0], loc=param[1], scale=param[2]), 'r--')
+    if len(param) == 3: 
+        ax.plot(x, dist.pdf(x, param[0], loc=param[1], scale=param[2]), 'r--')
+    else:
+        ax.plot(x, dist.pdf(x, loc=param[0], scale=param[1]), 'r--')
 
     return param
 
-def fit_dist(data_set, file_prefix, dist_name, 
+
+'''This function fits the set of headways with a given distribution
+and prints the results of a Kolmogorov-Smirnov test of the fit
+PARAMETERS: file_prefix: file we want to study
+            dist_name: relevant distribution to fit
+            bin_number: number of bins for the histogram we want to plot
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways'''
+def fit_dist(file_prefix, dist_name, 
             bin_number, u_cutoff=400, l_cutoff=1):
-    d_headways = np.loadtxt(output_folder + '/' + 
+    headways = np.loadtxt(output_folder + '/' + 
                             file_prefix)
     # filter
-    d_headways = d_headways[np.where(d_headways < u_cutoff)]
-    d_headways = d_headways[np.where(d_headways > l_cutoff)]
-    s1 = headway_fitting(d_headways, dist_name, u_cutoff, l_cutoff)
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
 
+    s1 = headway_fitting(headways, dist_name, u_cutoff, l_cutoff)
+    # are these distributions the same via kolmogorov smirnov
+    print headways.shape
+    print scipy.stats.kstest(headways, dist_name, s1)
+
+    plt.show()
+
+
+'''This function fits the set of headways with a given distribution
+and tests if the data is drawn from the same distribution as the total
+headway
+PARAMETERS: data_set: total data_set for the time
+            headways: set of extracted headways
+            dist_name: relevant distribution to fit
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways'''
+def compare_with_total_headway(data_set, headways, dist_name, 
+                               u_cutoff=400, l_cutoff=1):
+    
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
+    s1 = headway_fitting(headways, dist_name, u_cutoff, l_cutoff)
     total_headways = []
-    # way too much data so don't use all of it, it'll take forever
-    for i in range(int(data_set.shape[0])):
+    for i in range(data_set.shape[0]):
         if (int(data_set[i, 9]) != 0 and data_set[i, 9] < u_cutoff and
             data_set[i, 9] > l_cutoff):
             total_headways.append(data_set[i, 9])
-    
+
+    #ks statistics
+    print scipy.stats.ks_2samp(headways, total_headways)
+
+    pdb.set_trace()
+    #fit total and compare
     s2 = headway_fitting(total_headways, dist_name, u_cutoff, l_cutoff)
+    print scipy.stats.kstest(total_headways, dist_name, s2)
     print s1, s2
 
     plt.show()
 
-    # are these distributions the same via kolmogorov smirnov
-    print scipy.stats.kstest(d_headways, dist_name, s1)
-    print scipy.stats.kstest(total_headways, dist_name, s2)
-    print scipy.stats.ks_2samp(d_headways, total_headways)
+
+''' computes the variance of the headways in the file 
+PARAMETERS: file_name: it's the file name
+            u_cutoff: maximum headway considered
+            l_cutoff: minimum headway considered
+OUTPUT: variance of the set '''
+def compute_variance(file_name, u_cutoff = 400, l_cutoff = 1):
+    headways = np.loadtxt(file_name)
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
+    print 'the variance is {0}'.format(np.var(headways))
+    print 'the mean is {0}'.format(np.mean(headways))
+
 
 if __name__ == '__main__':
     # pm_4, pm_5, pm_515 = read_data_80()
@@ -569,7 +623,7 @@ if __name__ == '__main__':
     # extract_cars(pm_750, '/750-Processed.txt')
     # extract_cars(pm_805, '/805-Processed.txt')
     # extract_cars(pm_820, '/820-Processed.txt')
-    pm_750, pm_805, pm_820 = read_processed_data_101()
+    # pm_750, pm_805, pm_820 = read_processed_data_101()
     # lane_change_in_headway(pm_5)
     # lane_change_via_width(pm_4, 'pm_4')
     # lane_change_via_width(pm_5, 'pm_5')
@@ -577,7 +631,11 @@ if __name__ == '__main__':
 
     # plot_headways(pm_750)
     # normalized_distribution(pm_515, 10, l_cutoff=10, u_cutoff=120)
-    fit_dist(pm_750, 'pm_750'+disappear_suffix, 'lognorm', 
-             0, u_cutoff=400, l_cutoff=1)
-
-    #plot_headways(pm_750)
+    #fit_dist('pm_5'+appear_suffix, 'lognorm', 
+    #         0, u_cutoff=400, l_cutoff=1)
+    # headways = np.loadtxt(output_folder + '/' + 
+    #                      'pm_515'+ appear_suffix)
+    # compare_with_total_headway(pm_515, headways, 'lognorm', 400, 1)
+    #plot_headways('pm_750'+ appear_suffix, u_cutoff = 400)
+    compute_variance(output_folder + '/pm_820' + disappear_suffix, 
+                     u_cutoff = 200)
