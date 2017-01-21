@@ -1,6 +1,3 @@
-import
-
-
 """
 This file contains methods for sumo++ interactions with custom controllers
 <Insert more thorough description>
@@ -14,7 +11,7 @@ class Controller(Object):
 		self.diffeq
 
 
-	def get_actions(self, state):
+	def get_action(self, state):
 
 
 
@@ -29,7 +26,7 @@ class HumanController(Controller):
 	def __init__(self, params):
 		pass
 
-	
+
 
 
 
