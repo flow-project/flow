@@ -1,11 +1,19 @@
+from pudb import set_trace
+import pdb
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats
 
 'Change these to your desired paths to the NGSIM data!'
-input_folder = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM-Raw" \
-            "/I-80-Main-Data/vehicle-trajectory-data"
+input_folder_80 = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data" \
+           "/NGSIM-Raw/I-80-Main-Data/vehicle-trajectory-data"
+# this one is for the US 101 data
+input_folder_101= "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM" \
+            "/US-101/vehicle-trajectory-data"
 output_folder = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/" \
             "NGSIM-Processed"
+disappear_suffix = "_disappear_headway.txt"
+appear_suffix = "_appear_headway.txt"
 
 '''Outputs the NGSIM data for each of the three times.
 OUTPUT: pm_4: an array corresponding to all the data from 4pm
@@ -17,25 +25,25 @@ OUTPUT: pm_4: an array corresponding to all the data from 4pm
         leader_id
 '''
 
-
-def read_data():
+# This reads in the data for I 80
+def read_data_80():
     global input_folder
 
-    pm_4 = np.loadtxt(input_folder +
+    pm_4 = np.loadtxt(input_folder_80 +
                       "/0400pm-0415pm/trajectories-0400-0415.txt")
-    pm_5 = np.loadtxt(input_folder +
+    pm_5 = np.loadtxt(input_folder_80 +
                       "/0500pm-0515pm/trajectories-0500-0515.txt")
-    pm_515 = np.loadtxt(input_folder +
+    pm_515 = np.loadtxt(input_folder_80 +
                         "/0515pm-0530pm/trajectories-0515-0530.txt")
 
     return pm_4, pm_5, pm_515
 
-''' Read in data that has been processed in the format of extract_cars
+''' Read in data that has been processed in the format of extract_cars for I-80
 PARAMETERS: NONE
 OUTPUT: three sets of data corresponding to 4-4:15, 5-5:15, 5:15-5:30 '''
 
 
-def read_processed_data():
+def read_processed_data_80():
     global output_folder
 
     pm_4 = np.loadtxt(output_folder+"/4-415-Processed.txt", delimiter=',',
@@ -46,6 +54,37 @@ def read_processed_data():
                         skiprows=1)
 
     return pm_4, pm_5, pm_515
+
+# This reads in the data for I 80
+def read_data_101():
+    global input_folder
+
+    pm_750 = np.loadtxt(input_folder_101 +
+                      "/0750am-0805am/trajectories-0750am-0805am.txt")
+    pm_805 = np.loadtxt(input_folder_101 +
+                      "/0805am-0820am/trajectories-0805am-0820am.txt")
+    pm_820 = np.loadtxt(input_folder_101 +
+                        "/0820am-0835am/trajectories-0820am-0835am.txt")
+
+    return pm_750, pm_805, pm_820
+
+''' Read in data that has been processed in the format of extract_cars for I-80
+PARAMETERS: NONE
+OUTPUT: three sets of data corresponding to 4-4:15, 5-5:15, 5:15-5:30 '''
+
+
+def read_processed_data_101():
+    global output_folder
+
+    pm_750 = np.loadtxt(output_folder+"/750-Processed.txt", delimiter=',',
+                      skiprows=1)
+    pm_805 = np.loadtxt(output_folder+"/805-Processed.txt", delimiter=',',
+                      skiprows=1)
+    pm_820 = np.loadtxt(output_folder+"/820-Processed.txt", delimiter=',',
+                        skiprows=1)
+
+    return pm_750, pm_805, pm_820
+
 
 ''' Outputs a text file containing only the cars, so no motorcycles
 or trucks. We also only extract the left three lanes
@@ -73,12 +112,12 @@ def extract_cars(data_set, file_name):
                 (lane_id == 1 or lane_id == 2 or lane_id == 3)):
 
             f.write('{0}, {1}, {2}, {3}, {4}, {5}, {6},'
-                    '{7}, {8}, {9}, {10}, {11}\n'.format(
-                        int(data_set[i, 0]), int(data_set[i, 1]),
-                        data_set[i, 4], data_set[i, 5], data_set[i, 6],
-                        data_set[i, 7], int(data_set[i, 13]),
-                        int(data_set[i, 14]), int(data_set[i, 15]),
-                        data_set[i, 16], data_set[i, 17], data_set[i, 9]))
+                    '{7}, {8}, {9}, {10}, {11}\n'.
+                    format(int(data_set[i, 0]), int(data_set[i, 1]),
+                           data_set[i, 4], data_set[i, 5], data_set[i, 6],
+                           data_set[i, 7], int(data_set[i, 13]),
+                           int(data_set[i, 14]), int(data_set[i, 15]),
+                           data_set[i, 16], data_set[i, 17], data_set[i, 9]))
     f.close()
 
 ''' Just computes the number of lane changes in a data set '''
@@ -101,19 +140,24 @@ def num_lane_changes(data_set):
 
     return num_lane_changes
 
-''' Computes the headway at which cars exit
+''' Computes the headway at which cars appear and disappear due to
+lane change
 where the start time of lane changes is determined
 according to the method described in Thiemann, Kesting (2008).
 The start occurs when the left or right bumper
-enters the destination lane. Outputs histogram of headway'''
+enters the destination lane. 
+PARAMETERS: data_set: the relevant data to work on
+            file_prefix: name used for output file
+RETURNS: Nothing'''
 
-
-def lane_change_exit_via_width(data_set):
+def lane_change_via_width(data_set, file_prefix):
+    global appear_suffix, disappear_suffix
     # first loop through and store the points at which the
     # valid lane change switches occur
-    lc_indexes = np.empty([1, 6])
+    lc_indexes = np.empty([1, 7])
     veh_id = int(data_set[0, 0])
     lane_id = int(data_set[0, 6])
+
     for i in range(1, data_set.shape[0]):
         # if we are still on the same vehicle and it has switched lanes
         # check that we haven't aborted the lane change within five secs
@@ -127,26 +171,22 @@ def lane_change_exit_via_width(data_set):
 
                 # store the index, the frame, the vehicle id,
                 # lane position at lane-change end, lane diff.
-                # and vehicle width
+                # and vehicle width and new following vehicle
+                print i
                 temp = np.array([[i, data_set[i, 1],
                                 data_set[i, 0], data_set[i, 2],
                                 int(data_set[i, 6]) - int(lane_id),
-                                data_set[i, 11]]])
-
+                                data_set[i, 11], data_set[i, 8]]])
                 lc_indexes = np.concatenate((lc_indexes, temp), axis=0)
 
         veh_id = int(data_set[i, 0])
         lane_id = int(data_set[i, 6])
 
-    np.delete(lc_indexes, 0, 0)
-
-    print 'lc_indexes'
-    print lc_indexes
-    print lc_indexes.shape[0]
+    lc_indexes = np.delete(lc_indexes, 0, 0)
 
     # now step through and for each item find the crossover
     # since we want to find the start we run backwards
-    lc_start = np.empty([1, 2])
+    lc_start = np.empty([1, 3])
     for i in range(lc_indexes.shape[0]):
         for j in range(int(lc_indexes[i, 0]), 0, -1):
             # we are still on the same vehicle
@@ -159,10 +199,12 @@ def lane_change_exit_via_width(data_set):
                     cond = horz_shift + lc_indexes[i, 5]/2
 
                 # copy over the relevant data i.e.
-                # following vehicle, frame
-                temp = np.array([[data_set[j, 8], data_set[j, 1]]])
+                # following vehicle prior to lane change, frame, new
+                # following vehicle
+                temp = np.array([[data_set[j, 8], data_set[j, 1],
+                                lc_indexes[i, 6]]])
 
-                # lane change has started, we're done here
+                # lane change has started
                 if ((lc_indexes[i, 4] < 0 and cond > 0) or
                         (lc_indexes[i, 4] > 0 and cond < 0)):
                     lc_start = np.concatenate((lc_start, temp), axis=0)
@@ -170,71 +212,39 @@ def lane_change_exit_via_width(data_set):
             # we have switched cars
             else:
                 break
-    np.delete(lc_start, 0, 0)
-
-    print 'lc_start'
-    print lc_start
-    print lc_start.shape[0]
+    lc_start = np.delete(lc_start, 0, 0)
 
     # now we have the frame and the cars whose headways we want
-    headways = []
+    # Write the headways to file to make this easier
+    f = open(output_folder + '/' + file_prefix + disappear_suffix, 'w')
     for i in range(lc_start.shape[0]):
         if int(lc_start[i, 1]) != 0:
             for j in range(data_set.shape[0]):
+                # if we have the right frame, vehicle, and headway
+                # is within appropriate limits
                 if (int(data_set[j, 0]) == int(lc_start[i, 0]) and
                         int(data_set[j, 1]) == int(lc_start[i, 1])):
-                    headways.append(data_set[j, 9])
-
-    plt.hist(headways, bins=12)
-    plt.xlabel('headway')
-    plt.ylabel('counts')
-    plt.title('headway vs. count when lane change starts')
-    plt.show()
+                    f.write('{0}\n'.format(data_set[j,9]))
+        print i
+    f.close()
 
 
-''' This function computes the distribution of positions within
-a given lane so we can start computing criteria for being in
-a given lane
-PARAMETERS: data_set according to the format of extract_cars
-OUTPUT: histogram of average lane position for cars that
-have not changed lane '''
+    # now with all the info we have, lets find the headway in
+    # the other lane, when the lane change began
+    # we use lc_indexes to find the line with the frame when
+    # the lane change started and the new following vehicles
+    f = open(output_folder + '/' + file_prefix + appear_suffix, 'w')
+    for i in range(lc_start.shape[0]):
+        for j in range(data_set.shape[0]):
+            # check that the vehicle we have found is the new following
+            # vehicle, the frame matches, and cutoffs are good
+            if (int(data_set[j, 0]) == int(lc_start[i, 2]) and
+                    int(data_set[j, 1]) == int(lc_start[i, 1])):
+                f.write('{0}\n'.format(data_set[j,9]))
+        print i
+    f.close()
+    return 
 
-
-def average_lane_pos(data_set):
-    lane_pos = []
-    'initialize the system'
-    veh_id = int(data_set[0, 0])
-    lane_id = int(data_set[0, 6])
-    lane_avg = []
-    lane_flag = 1
-    for i in range(1, data_set.shape[0]):
-
-        if (veh_id == int(data_set[i, 0]) and
-                lane_id == int(data_set[i, 6]) and
-                lane_flag == 1):
-            lane_avg.append(data_set[i, 2])
-        # the car has lane changed, don't add it to the average
-        elif veh_id == int(data_set[i, 0]) and lane_id != int(data_set[i, 6]):
-            lane_flag = 0
-        # we've moved onto the next car so reset everything
-        elif veh_id != int(data_set[i, 0]):
-            if lane_flag == 1:
-                lane_pos.append(sum(lane_avg)/len(lane_avg))
-            lane_flag = 1
-            print 'the vehicle id is {0}'.format(veh_id)
-            print lane_avg
-            # don't lose this data point!
-            lane_avg = [data_set[i, 6]]
-
-        veh_id = int(data_set[i, 0])
-        lane_id = int(data_set[i, 6])
-
-    print lane_pos
-    plt.hist(lane_pos)
-    plt.xlabel('x-position')
-    plt.ylabel('counts')
-    plt.title('Distribution of lane positions')
-    plt.show()
 
 '''We go to the point at which the lane change is
 identified in the data, go back 3, 4, 5 seconds
@@ -427,14 +437,205 @@ def lane_change_in_headway(data_set):
     plt.ylabel("counts")
     plt.show()
 
+''' Plots a histogram of the relevant file 
+PARAMETERS: file prefix - prefix describing which data set to plot 
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways'''
+def plot_headways(file_prefix, l_cutoff = 1, u_cutoff = 400):
+    headways = np.loadtxt(output_folder + '/' + 
+                            file_prefix)
+        # filter
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
+    n, bins, patches = plt.hist(headways, bins='auto')
+    plt.show()
+    return (n, bins)
+
+
+''' This function extracts the headways, then computes good bins
+for a histogram of this data. It uses these bins to bin the total headways
+for the system and then use these to normalize the data
+    PARAMETERS: 
+            data_set: data set you wanted normalized
+            bin_number - how many bins we want for the lane change
+            extraction histogram
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways
+    OUTPUT: plot of the normalized histogram for exiting lane changes'''
+
+
+def normalized_distribution(data_set, bin_number, u_cutoff=400, l_cutoff=0):
+    d_bins, d_headways, a_bins, a_headways = lane_change_via_width(
+        data_set, bin_number, u_cutoff, l_cutoff)
+    headways = []
+    for i in range(data_set.shape[0]):
+        if (int(data_set[i, 9]) != 0 and data_set[i, 9] < u_cutoff and
+                data_set[i, 9] > l_cutoff):
+            headways.append(data_set[i, 9])
+
+    # Operation for car disappearing
+    # Bin the headways
+    plt.subplot(2, 1, 1)
+    t_n, t_bins, t_patches = plt.hist(headways, bins=d_bins)
+    plt.subplot(2, 1, 2)
+    e_n, e_bins, e_patches = plt.hist(d_headways, bins=d_bins)
+
+    # normalize the lists
+    # If there's a more normal python way to do this, that'd be great
+    # but in lieu of that, here's some nonsense
+    div_list = [a/float(b) for a, b in zip(e_n, t_n)]
+    ind = np.arange(len(t_n))
+    fig, ax = plt.subplots()
+    width = .35
+    ax.bar(ind + width, div_list, width, color='r')
+    # create the labels
+    label_list = []
+    for i in range(len(e_bins)-1):
+        label_list.append('{:.2f}'.format(e_bins[i]))
+    ax.set_xticklabels(tuple(label_list))
+    ax.set_xticks(ind + width)
+    plt.show()
+
+    # Operation for car appearing
+    # Bin the headways
+    plt.subplot(2, 1, 1)
+    t_n, t_bins, t_patches = plt.hist(headways, bins=a_bins)
+    plt.subplot(2, 1, 2)
+    e_n, e_bins, e_patches = plt.hist(a_headways, bins=a_bins)
+
+    # normalize the lists
+    # If there's a more normal python way to do this, that'd be great
+    # but in lieu of that, here's some nonsense
+    div_list = [a/float(b) for a, b in zip(e_n, t_n)]
+    ind = np.arange(len(t_n))
+    fig, ax = plt.subplots()
+    width = .35
+    ax.bar(ind + width, div_list, width, color='r')
+    # create the labels
+    label_list = []
+    for i in range(len(e_bins)-1):
+        label_list.append('{:.2f}'.format(e_bins[i]))
+    ax.set_xticklabels(tuple(label_list))
+    ax.set_xticks(ind + width)
+    plt.show()
+
+
+''' Takes a set of headway and the name of a distribution and fits
+    it over the normalized histogram '''
+def headway_fitting(headway, dist_name, u_cutoff, l_cutoff):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.hist(headway, bins='auto', normed=True, alpha=0.2)
+    dist = getattr(scipy.stats, dist_name)
+    param = dist.fit(headway)
+    x = np.linspace(l_cutoff, u_cutoff, 100)
+    if len(param) == 3: 
+        ax.plot(x, dist.pdf(x, param[0], loc=param[1], scale=param[2]), 'r--')
+    else:
+        ax.plot(x, dist.pdf(x, loc=param[0], scale=param[1]), 'r--')
+
+    return param
+
+
+'''This function fits the set of headways with a given distribution
+and prints the results of a Kolmogorov-Smirnov test of the fit
+PARAMETERS: file_prefix: file we want to study
+            dist_name: relevant distribution to fit
+            bin_number: number of bins for the histogram we want to plot
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways'''
+def fit_dist(file_prefix, dist_name, 
+            bin_number, u_cutoff=400, l_cutoff=1):
+    headways = np.loadtxt(output_folder + '/' + 
+                            file_prefix)
+    # filter
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
+
+    s1 = headway_fitting(headways, dist_name, u_cutoff, l_cutoff)
+    # are these distributions the same via kolmogorov smirnov
+    print headways.shape
+    print scipy.stats.kstest(headways, dist_name, s1)
+
+    plt.show()
+
+
+'''This function fits the set of headways with a given distribution
+and tests if the data is drawn from the same distribution as the total
+headway
+PARAMETERS: data_set: total data_set for the time
+            headways: set of extracted headways
+            dist_name: relevant distribution to fit
+            u_cutoff - cutoff on the headway values to eliminate
+                        unusually large headways
+            l_cutoff -  cutoff on the headway values to eliminate
+                        unusually small headways'''
+def compare_with_total_headway(data_set, headways, dist_name, 
+                               u_cutoff=400, l_cutoff=1):
+    
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
+    s1 = headway_fitting(headways, dist_name, u_cutoff, l_cutoff)
+    total_headways = []
+    for i in range(data_set.shape[0]):
+        if (int(data_set[i, 9]) != 0 and data_set[i, 9] < u_cutoff and
+            data_set[i, 9] > l_cutoff):
+            total_headways.append(data_set[i, 9])
+
+    #ks statistics
+    print scipy.stats.ks_2samp(headways, total_headways)
+
+    pdb.set_trace()
+    #fit total and compare
+    s2 = headway_fitting(total_headways, dist_name, u_cutoff, l_cutoff)
+    print scipy.stats.kstest(total_headways, dist_name, s2)
+    print s1, s2
+
+    plt.show()
+
+
+''' computes the variance of the headways in the file 
+PARAMETERS: file_name: it's the file name
+            u_cutoff: maximum headway considered
+            l_cutoff: minimum headway considered
+OUTPUT: variance of the set '''
+def compute_variance(file_name, u_cutoff = 400, l_cutoff = 1):
+    headways = np.loadtxt(file_name)
+    headways = headways[np.where(headways < u_cutoff)]
+    headways = headways[np.where(headways > l_cutoff)]
+    print 'the variance is {0}'.format(np.var(headways))
+    print 'the mean is {0}'.format(np.mean(headways))
+
+
 if __name__ == '__main__':
-    # pm_4, pm_5, pm_515 = read_data()
+    # pm_4, pm_5, pm_515 = read_data_80()
     # extract_cars(pm_4, '/4-415-Processed.txt')
     # extract_cars(pm_5, '/5-515-Processed.txt')
     # extract_cars(pm_515, '/515-530-Processed.txt')
-    pm_4, pm_5, pm_515 = read_processed_data()
-    # print num_lane_changes(pm_4)
-    # informal_headway_extraction(pm_515)
+    # pm_4, pm_5, pm_515 = read_processed_data_80()
+    # pm_750, pm_805, pm_820 = read_data_101()
+    # extract_cars(pm_750, '/750-Processed.txt')
+    # extract_cars(pm_805, '/805-Processed.txt')
+    # extract_cars(pm_820, '/820-Processed.txt')
+    # pm_750, pm_805, pm_820 = read_processed_data_101()
     # lane_change_in_headway(pm_5)
-    # average_lane_pos(pm_4)
-    lane_change_exit_via_width(pm_4)
+    # lane_change_via_width(pm_4, 'pm_4')
+    # lane_change_via_width(pm_5, 'pm_5')
+    # lane_change_via_width(pm_515, 'pm_515')
+
+    # plot_headways(pm_750)
+    # normalized_distribution(pm_515, 10, l_cutoff=10, u_cutoff=120)
+    #fit_dist('pm_5'+appear_suffix, 'lognorm', 
+    #         0, u_cutoff=400, l_cutoff=1)
+    # headways = np.loadtxt(output_folder + '/' + 
+    #                      'pm_515'+ appear_suffix)
+    # compare_with_total_headway(pm_515, headways, 'lognorm', 400, 1)
+    #plot_headways('pm_750'+ appear_suffix, u_cutoff = 400)
+    compute_variance(output_folder + '/pm_820' + disappear_suffix, 
+                     u_cutoff = 200)
