@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+  <route edges="top left bottom right top" id="routetop"/>
+  <route edges="bottom right top left bottom" id="routebottom"/>
+  <route edges="right top left bottom right" id="routeright"/>
+  <route edges="left bottom right top left" id="routeleft"/>
+  <rerouter edges="bottom" id="rerouterBottom">
+    <interval begin="0" end="100000">
+      <routeProbReroute id="routebottom"/>
+    </interval>
+  </rerouter>
+  <rerouter edges="top" id="rerouterTop">
+    <interval begin="0" end="100000">
+      <routeProbReroute id="routetop"/>
+    </interval>
+  </rerouter>
+</additional>

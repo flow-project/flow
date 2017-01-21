@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Fri Jan 20 16:13:15 2017 by SUMO gui Version dev-SVN-r22644
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumo-gui.exeConfiguration.xsd">
+
+    <input>
+        <net-file value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/test-exp-200m1l.net.xml"/>
+        <route-files value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/test-exp-200m1l.rou.xml"/>
+        <additional-files value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/test-exp-200m1l.add.xml"/>
+    </input>
+
+    <output>
+        <netstate-dump value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/data/test-exp-200m1l.netstate.xml"/>
+        <emission-output value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/data/test-exp-200m1l.emission.xml"/>
+        <amitran-output value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/data/test-exp-200m1l.amitran.xml"/>
+        <lanechange-output value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/data/test-exp-200m1l.lanechange.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="3000"/>
+        <step-length value="0.1"/>
+    </time>
+
+    <traci_server>
+        <remote-port value="8873"/>
+    </traci_server>
+
+    <gui_only>
+        <gui-settings-file value="/Users/kanaad/code/research/learning-traffic/sumo/learning-traffic/cistar/debug/cfg/test-exp-200m1l.gui.cfg"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<trajectories xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/amitran/trajectories.xsd" timeStepSize="100">
+    <actorConfig id="2" vehicleClass="Passenger" fuel="Gasoline" emissionClass="Euro4" ref="rl"/>
+    <vehicle id="0" actorConfig="2" startTime="0" ref="rl_0"/>
+    <motionState vehicle="0" speed="0" time="0" acceleration="0"/>
+    <vehicle id="1" actorConfig="2" startTime="0" ref="rl_1"/>
+    <motionState vehicle="1" speed="200" time="0" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="100" acceleration="0"/>
+    <motionState vehicle="1" speed="2" time="100" acceleration="-19801"/>
+    <motionState vehicle="0" speed="2475" time="200" acceleration="247525"/>
+    <motionState vehicle="1" speed="2475" time="200" acceleration="247329"/>
+    <motionState vehicle="0" speed="2500" time="300" acceleration="2451"/>
+    <motionState vehicle="1" speed="2500" time="300" acceleration="2449"/>
+    <motionState vehicle="0" speed="2500" time="400" acceleration="24"/>
+    <motionState vehicle="1" speed="2500" time="400" acceleration="24"/>
+    <motionState vehicle="0" speed="2500" time="500" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="500" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="600" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="600" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="700" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="700" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="800" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="800" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="900" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="900" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1000" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1000" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1100" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1100" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1200" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1200" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1300" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1300" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1400" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1400" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1500" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1500" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1600" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1600" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1700" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1700" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1800" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1800" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="1900" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="1900" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="2000" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="2000" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="2100" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="2100" acceleration="0"/>
+    <motionState vehicle="0" speed="25" time="2200" acceleration="-247524"/>
+    <motionState vehicle="1" speed="25" time="2200" acceleration="-247524"/>
+    <motionState vehicle="0" speed="0" time="2300" acceleration="-2450"/>
+    <motionState vehicle="1" speed="0" time="2300" acceleration="-2450"/>
+    <motionState vehicle="0" speed="0" time="2400" acceleration="-23"/>
+    <motionState vehicle="1" speed="0" time="2400" acceleration="-23"/>
+    <motionState vehicle="0" speed="0" time="2500" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="2500" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="2600" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="2600" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="2700" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="2700" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="2800" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="2800" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="2900" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="2900" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3000" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3000" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3100" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3100" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3200" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3200" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3300" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3300" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3400" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3400" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3500" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3500" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3600" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3600" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3700" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3700" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3800" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3800" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="3900" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="3900" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="4000" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="4000" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="4100" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="4100" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="4200" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="4200" acceleration="0"/>
+    <motionState vehicle="0" speed="0" time="4300" acceleration="0"/>
+    <motionState vehicle="1" speed="0" time="4300" acceleration="0"/>
+    <motionState vehicle="0" speed="1980" time="4400" acceleration="198020"/>
+    <motionState vehicle="1" speed="1980" time="4400" acceleration="198020"/>
+    <motionState vehicle="0" speed="2000" time="4500" acceleration="1961"/>
+    <motionState vehicle="1" speed="2000" time="4500" acceleration="1961"/>
+    <motionState vehicle="0" speed="2000" time="4600" acceleration="19"/>
+    <motionState vehicle="1" speed="2000" time="4600" acceleration="19"/>
+    <motionState vehicle="0" speed="2000" time="4700" acceleration="0"/>
+    <motionState vehicle="1" speed="2000" time="4700" acceleration="0"/>
+    <motionState vehicle="0" speed="2000" time="4800" acceleration="0"/>
+    <motionState vehicle="1" speed="2000" time="4800" acceleration="0"/>
+    <motionState vehicle="0" speed="2000" time="4900" acceleration="0"/>
+    <motionState vehicle="1" speed="2000" time="4900" acceleration="0"/>
+    <motionState vehicle="0" speed="2000" time="5000" acceleration="0"/>
+    <motionState vehicle="1" speed="2000" time="5000" acceleration="0"/>
+    <motionState vehicle="0" speed="2000" time="5100" acceleration="0"/>
+    <motionState vehicle="1" speed="2000" time="5100" acceleration="0"/>
+    <motionState vehicle="0" speed="2000" time="5200" acceleration="0"/>
+    <motionState vehicle="1" speed="2000" time="5200" acceleration="0"/>
+    <motionState vehicle="0" speed="2000" time="5300" acceleration="0"/>
+    <motionState vehicle="1" speed="2000" time="5300" acceleration="0"/>
+    <motionState vehicle="0" speed="2495" time="5400" acceleration="49505"/>
+    <motionState vehicle="1" speed="2495" time="5400" acceleration="49505"/>
+    <motionState vehicle="0" speed="2500" time="5500" acceleration="490"/>
+    <motionState vehicle="1" speed="2500" time="5500" acceleration="490"/>
+    <motionState vehicle="0" speed="2500" time="5600" acceleration="5"/>
+    <motionState vehicle="1" speed="2500" time="5600" acceleration="5"/>
+    <motionState vehicle="0" speed="2500" time="5700" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="5700" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="5800" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="5800" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="5900" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="5900" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6000" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6000" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6100" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6100" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6200" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6200" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6300" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6300" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6400" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6400" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6500" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6500" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6600" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6600" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6700" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6700" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6800" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6800" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="6900" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="6900" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7000" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7000" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7100" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7100" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7200" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7200" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7300" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7300" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7400" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7400" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7500" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7500" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7600" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7600" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7700" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7700" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7800" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7800" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="7900" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="7900" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="8000" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="8000" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="8100" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="8100" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="8200" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="8200" acceleration="0"/>
+    <motionState vehicle="0" speed="2500" time="8300" acceleration="0"/>
+    <motionState vehicle="1" speed="2500" time="8300" acceleration="0"/>
+    <motionState vehicle="0" speed="25" time="8400" acceleration="-247524"/>
+    <motionState vehicle="1" speed="25" time="8400" acceleration="-247524"/>
+</trajectories>
