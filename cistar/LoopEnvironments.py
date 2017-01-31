@@ -1,4 +1,4 @@
-from rllab_interface import SumoEnvironment
+from EnvironmentBase import SumoEnvironment
 from rllab.spaces import Box
 
 import numpy as np
@@ -11,11 +11,11 @@ class SimpleVelocityEnvironment(SumoEnvironment):
 
     @property
     def action_space(self):
-        return Box(low=-5, high=5, shape=(self.num_cars,))
+        return Box(low=-5, high=5, shape=(2,))
 
     @property
     def observation_space(self):
-        return Box(low=-np.inf, high=np.inf, shape=(self.num_cars,))
+        return Box(low=-np.inf, high=np.inf, shape=(2,))
 
     def initialize_simulation(self):
         if not self.initial_config:

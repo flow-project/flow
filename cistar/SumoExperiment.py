@@ -7,7 +7,7 @@ import os
 import errno
 
 """
-Primary sumo++ file, imports API from supporting files and manages interactions 
+Primary sumo++ file, imports API from supporting files and manages in teractions
 with rllab and custom controllers.
 
 In addition to opening a traci port and running an instance of Sumo, the 

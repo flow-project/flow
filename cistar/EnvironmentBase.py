@@ -58,6 +58,10 @@ class SumoEnvironment(Env):
         self.sumo_binary = sumo_binary
         self.initial_config = initial_config
 
+        import json
+
+
+
         if "port" not in sumo_params:
             raise logging.error("SUMO port not defined")
         else:
@@ -72,13 +76,15 @@ class SumoEnvironment(Env):
         self.controlled_ids = [i for i in self.vehicle_controllers if vehicle_controllers[i] is not None]
         self.ids = [i for i in self.vehicle_controllers]
 
+
+
         # (could cause error, port occupied, should catch for exception)
         # TODO: Catch sumo/traci errors
         # TODO: Expand for start time, end time, step length
 
         logging.info(" Starting SUMO on port " + str(self.port) + "!")
         logging.debug(" Cfg file " +  str(self.cfg))
-        self.sumoProcess = subprocess.Popen([self.sumo_binary, "-c", self.cfg, "--remote-port",
+        subprocess.Popen([self.sumo_binary, "-c", self.cfg, "--remote-port",
                                         str(self.port), "--step-length", str(0.1)], stdout=sys.stdout, stderr=sys.stderr)
 
         logging.info(" Initializing TraCI on port " + str(self.port) + "!")
@@ -101,6 +107,7 @@ class SumoEnvironment(Env):
             logging.info("Car with id " + car_id + " is at index: " + str(traci.vehicle.getRouteIndex(car_id)))
 
         # may have to manually add cars here
+
         self.initialize_simulation()
 
 
@@ -110,8 +117,7 @@ class SumoEnvironment(Env):
 
         (this method can be overridden, so init never needs to be)
         """
-        raise NotImplementedError
-
+        pass
     def apply_action(self, car_id, action):
         """
         :param car_id:
