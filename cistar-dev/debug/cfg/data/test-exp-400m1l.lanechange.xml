@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed Feb  1 11:41:00 2017 by SUMO gui Version 0.27.1
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumo-gui.exeConfiguration.xsd">
+
+    <input>
+        <net-file value="debug/cfg/test-exp-400m1l.net.xml"/>
+        <route-files value="debug/cfg/test-exp-400m1l.rou.xml"/>
+        <additional-files value="debug/cfg/test-exp-400m1l.add.xml"/>
+    </input>
+
+    <output>
+        <netstate-dump value="debug/cfg/data/test-exp-400m1l.netstate.xml"/>
+        <emission-output value="debug/cfg/data/test-exp-400m1l.emission.xml"/>
+        <amitran-output value="debug/cfg/data/test-exp-400m1l.amitran.xml"/>
+        <lanechange-output value="debug/cfg/data/test-exp-400m1l.lanechange.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="3000"/>
+        <step-length value="0.1"/>
+    </time>
+
+    <traci_server>
+        <remote-port value="8873"/>
+    </traci_server>
+
+    <gui_only>
+        <gui-settings-file value="debug/cfg/test-exp-400m1l.gui.cfg"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<lanechanges>
+</lanechanges>
