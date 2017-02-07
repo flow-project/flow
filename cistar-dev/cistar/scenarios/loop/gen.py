@@ -1,26 +1,17 @@
 from cistar.core.exp import Generator
 
+from cistar.core.generator import makexml
+from cistar.core.generator import printxml
+
 import subprocess
 import sys
 
-from lxml import etree
-
 from numpy import pi, sin, cos, linspace
-import logging
 
+import logging, random
+from lxml import etree
 E = etree.Element
 
-
-def makexml(name, nsl):
-    xsi = "http://www.w3.org/2001/XMLSchema-instance"
-    ns = {"xsi": xsi}
-    attr = {"{%s}noNamespaceSchemaLocation" % xsi: nsl}
-    t = E(name, attrib=attr, nsmap=ns)
-    return t
-
-
-def printxml(t, fn):
-    etree.ElementTree(t).write(fn, pretty_print=True, encoding='UTF-8', xml_declaration=True)
 
 """
 Generator for loop circle used in MIT traffic simulation.
@@ -37,25 +28,10 @@ class CircleGenerator(Generator):
     """
     def generate_net(self, params):
 
-        if "length" not in params:
-            raise ValueError("length of circle not supplied")
-        else:
-            length = params["length"]
-
-        if "lanes" not in params:
-            raise ValueError("lanes of circle not supplied")
-        else:
-            lanes = params["lanes"]
-
-        if "speed_limit" not in params:
-            raise ValueError("speed limit of circle not supplied")
-        else:
-            speed_limit = params["speed_limit"]
-
-        if "resolution" not in params:
-            raise ValueError("resolution of circle not supplied")
-        else:
-            resolution = params["resolution"]
+        length = params["length"]
+        lanes = params["lanes"]
+        speed_limit = params["speed_limit"]
+        resolution = params["resolution"]
 
         self.name = "%s-%dm%dl" % (self.base, length, lanes)
 
@@ -113,9 +89,6 @@ class CircleGenerator(Generator):
         x.append(t)
         printxml(x, self.net_path + cfgfn)
 
-
-        logging.debug(str(self.net_path) + str(cfgfn))
-        logging.debug(str(self.cfg_path) + str(netfn))
         # netconvert -c $(cfg) --output-file=$(net)
         retcode = subprocess.call(
             ["netconvert -c " + self.net_path + cfgfn + " --output-file=" + self.cfg_path + netfn],
@@ -140,26 +113,6 @@ class CircleGenerator(Generator):
     """
     def generate_cfg(self, params):
 
-        if "type_list" not in params:
-            raise ValueError("type_list not supplied")
-        else:
-            type_list = params["type_list"]
-            num_cars = 0
-            if "num_cars" in params:
-                num_cars = params["num_cars"]
-                if "type_counts" not in params:
-                    raise ValueError("type_counts of circle not specified")
-                else:
-                    type_counts = params["type_counts"]
-                use_flows = False
-                if "use_flows" in params:
-                    use_flows = params["use_flows"]
-                    if use_flows:
-                        if "period" not in params:
-                            raise ValueError("period of cars being added to flow not specified")
-                        else:
-                            period = params["period"]
-
         if "start_time" not in params:
             raise ValueError("start_time of circle not supplied")
         else:
@@ -170,10 +123,7 @@ class CircleGenerator(Generator):
         else:
             end_time = params["end_time"]
 
-
-
-
-        roufn = "%s.rou.xml" % self.name
+        self.roufn = "%s.rou.xml" % self.name
         addfn = "%s.add.xml" % self.name
         cfgfn = "%s.sumo.cfg" % self.name
         guifn = "%s.gui.cfg" % self.name
@@ -185,86 +135,17 @@ class CircleGenerator(Generator):
             t.append(i)
             return t
 
-        def vtype(name, maxSpeed=30, accel=1.5, decel=4.5, length=5, **kwargs):
-            return E("vType", accel=repr(accel), decel=repr(decel), id=name, length=repr(length),
-                     maxSpeed=repr(maxSpeed), **kwargs)
-
-        def flow(name, number, vtype, route, **kwargs):
-            return E("flow", id=name, number=repr(number), route=route, type=vtype, **kwargs)
-
-        def vehicle(type, number, route, **kwargs):
-            return E("vehicle", type=type, id=type+"_"+str(number), route=route, **kwargs)
-
-        def inputs(name, net=None, rou=None, add=None, gui=None):
-            inp = E("input")
-            if net is not False:
-                if net is None:
-                    inp.append(E("net-file", value="%s.net.xml" % name))
-                else:
-                    inp.append(E("net-file", value=net))
-            if rou is not False:
-                if rou is None:
-                    inp.append(E("route-files", value="%s.rou.xml" % name))
-                else:
-                    inp.append(E("route-files", value=rou))
-            if add is not False:
-                if add is None:
-                    inp.append(E("additional-files", value="%s.add.xml" % name))
-                else:
-                    inp.append(E("additional-files", value=add))
-            if gui is not False:
-                if gui is None:
-                    inp.append(E("gui-settings-file", value="%s.gui.xml" % name))
-                else:
-                    inp.append(E("gui-settings-file", value=gui))
-            return inp
-
-        def outputs(name):
-            t = E("output")
-            outs = {"netstate": "dump",
-                    "amitran": "output",
-                    "lanechange": "output",
-                    "emission": "output", }
-
-            for (key, val) in outs.items():
-                fn = self.data_prefix + "%s.%s.xml" % (name, key)
-                t.append(E("%s-%s" % (key, val), value=fn))
-                outs[key] = fn
-            return t, outs
-
-        rts = {"top": "top left bottom right",
+        self.rts = {"top": "top left bottom right",
                "left": "left bottom right top",
                "bottom": "bottom right top left",
                "right": "right top left bottom"}
 
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
-        for (rt, edge) in rts.items():
+        for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
         add.append(rerouter("rerouterBottom", "bottom", "routebottom"))
         add.append(rerouter("rerouterTop", "top", "routetop"))
         printxml(add, self.cfg_path + addfn)
-
-        if type_list:
-            routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-            for tp in type_list:
-                routes.append(E("vType", id=tp))
-            if num_cars > 0:
-                ##TODO: either flows + "flowId.runningNumber" or vehicles placed at the same location
-                # not sure how either will interact with cistar
-                for type in type_counts:
-                    type_count = type_counts[type]
-                    if use_flows:
-                        logging.warning("Using flows!")
-                        for rt in rts:
-                            routes.append(flow(str(type)+ str(rt), int(type_count / len(rts)), type, "route%s" % rt,
-                                               begin="0", period=str(period), departPos="free"))
-                    else:
-                        if num_cars > 4:
-                            logging.warning("The number of cars is greater than the number of routes")
-                        for i in range(type_count):
-                            routes.append(vehicle(type, i, "route%s" % list(rts.keys())[i % len(rts)], depart="0", departSpeed="0", color="1,0.0,0.0"))
-
-            printxml(routes, self.cfg_path + roufn)
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
@@ -274,8 +155,8 @@ class CircleGenerator(Generator):
 
         logging.debug(self.netfn)
 
-        cfg.append(inputs(self.name, net=self.netfn, add=addfn, rou=roufn, gui=guifn))
-        t, outs = outputs(self.name)
+        cfg.append(self.inputs(self.name, net=self.netfn, add=addfn, rou=self.roufn, gui=guifn))
+        t, outs = self.outputs(self.name)
         cfg.append(t)
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
@@ -284,3 +165,32 @@ class CircleGenerator(Generator):
 
         printxml(cfg, self.cfg_path + cfgfn)
         return cfgfn, outs
+
+    def makeRoutes(self, scenario, initial_params, params):
+
+        type_params = scenario.type_params
+        type_list = scenario.type_params.keys()
+        num_cars = scenario.num_vehicles
+        if type_list:
+            routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
+            for tp in type_list:
+                routes.append(E("vType", id=tp))
+
+            vehicle_ids = []
+            if num_cars > 0:
+                for type in type_params:
+                    type_count = type_params[type][0]
+                    for i in range(type_count):
+                        vehicle_ids.append((type, type + "_" + str(i)))
+
+            if initial_params["shuffle"]:
+                random.shuffle(vehicle_ids)  # randomly
+
+            positions = initial_params["positions"]
+            print(positions)
+            for i, (type, id) in enumerate(vehicle_ids):
+                route, pos = positions[i]
+                routes.append(self.vehicle(type, "route" + route, depart="0",
+                             departSpeed="0", departPos=str(pos), id=id, color="1,0.0,0.0"))
+
+            printxml(routes, self.cfg_path + self.roufn)

@@ -1,12 +1,11 @@
+import logging
+
+from cistar.core.exp import SumoExperiment
+from cistar.envs.velocity import SimpleVelocityEnvironment
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.envs.normalized_env import normalize
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
-
-from cistar.core.exp import SumoExperiment
-from cistar.envs.velocity import SimpleVelocityEnvironment
-
-import logging
 
 logging.basicConfig(level=logging.WARNING)
 

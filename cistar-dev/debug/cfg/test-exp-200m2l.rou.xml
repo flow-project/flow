@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
-  <vType id="rl"/>
-  <flow begin="0" departPos="free" id="rlright" number="4" period="1" route="routeright" type="rl"/>
-  <flow begin="0" departPos="free" id="rlleft" number="4" period="1" route="routeleft" type="rl"/>
-  <flow begin="0" departPos="free" id="rltop" number="4" period="1" route="routetop" type="rl"/>
-  <flow begin="0" departPos="free" id="rlbottom" number="4" period="1" route="routebottom" type="rl"/>
-</routes>

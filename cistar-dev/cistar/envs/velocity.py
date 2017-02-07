@@ -5,6 +5,7 @@ from rllab.spaces import Box
 import traci
 
 import numpy as np
+import random
 import logging
 
 
@@ -17,11 +18,6 @@ class SimpleVelocityEnvironment(SumoEnvironment):
     @property
     def observation_space(self):
         return Box(low=-np.inf, high=np.inf, shape=(2,))
-
-
-    def terminate(self):
-        super(SimpleVelocityEnvironment, self).terminate()
-        traci.close()
 
     def compute_reward(self, velocity):
         return -np.linalg.norm(velocity - self.env_params["target_velocity"])
