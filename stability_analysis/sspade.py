@@ -322,6 +322,7 @@ class PadeExponential(object):
         return zpk2ss_realmodal(self.zeros, self.poles, self.k, self.residuals,
                              imag_limit=imag_limit)
     @property
+    # See Ploeg2014 for the notation and variable naming used here. "inv" indicates inverse.
     def lti_ssrealmodal(self):
         return self.get_lti_realmodal()
 
