@@ -14,7 +14,7 @@ env = gym.make('Walker2d-v1')  # Requires Mujoco
 env.reset()
 random_episodes = 0
 reward_sum = 0
-while random_episodes < 10:
+while random_episodes < 5:
     env.render()
     observation, reward, done, _ = env.step(np.random.randint(0, 2))
     reward_sum += reward
@@ -32,7 +32,9 @@ learning_rate = 1e-2  # feel free to play with this to train faster or more
 gamma = 0.99  # discount factor for reward
 
 # D = 4  # input dimensionality
-D = 17
+D = env.observation_space.shape[0]
+Out = env.action_space.shape[0]
+print("Size of obs and action spaces: ", D, Out)
 
 # goal_reward = 200
 goal_reward = 1000
@@ -46,7 +48,7 @@ observations = tf.placeholder(tf.float32, [None, D], name="input_x")
 W1 = tf.get_variable("W1", shape=[D, H],
                      initializer=tf.contrib.layers.xavier_initializer())
 layer1 = tf.nn.relu(tf.matmul(observations, W1))
-W2 = tf.get_variable("W2", shape=[H, 1],
+W2 = tf.get_variable("W2", shape=[H, Out],
                      initializer=tf.contrib.layers.xavier_initializer())
 score = tf.matmul(layer1, W2)
 probability = tf.nn.sigmoid(score)
@@ -54,12 +56,13 @@ probability = tf.nn.sigmoid(score)
 # From here we define the parts of the network needed for learning a good
 # policy.
 tvars = tf.trainable_variables()
-input_y = tf.placeholder(tf.float32, [None, 1], name="input_y")
+input_y = tf.placeholder(tf.float32, [None, Out], name="input_y")
 advantages = tf.placeholder(tf.float32, name="reward_signal")
 
 # The loss function. This sends the weights in the direction of making actions
 # that gave good advantage (reward over time) more likely, and actions that
 # didn't less likely.
+# TODO what's a reasonable reward function?
 loglik = tf.log(
     input_y * (input_y - probability) + (1 - input_y) * (input_y + probability))
 loss = -tf.reduce_mean(loglik * advantages)
@@ -120,11 +123,13 @@ with tf.Session() as sess:
         # Run the policy network and get an action to take.
         tfprob = sess.run(probability, feed_dict={observations: x})
         # action = 1 if np.random.uniform() < tfprob else 0
-        action = tfprob
+        # action = tfprob
+        action = 5 * (tfprob - 0.5)
+        print(action)
 
         xs.append(x)  # observation
-        y = 1 if action == 0 else 0  # a "fake label"
-        ys.append(y)
+        # y = 1 if action == 0 else 0  # a "fake label"
+        ys.append(action)
 
         # step the environment and get new measurements
         observation, reward, done, info = env.step(action)
@@ -166,6 +171,8 @@ with tf.Session() as sess:
                                                  W2Grad: gradBuffer[1]})
                 for ix, grad in enumerate(gradBuffer):
                     gradBuffer[ix] = grad * 0
+
+                # TODO compute Q_hat here (leaving off here)
 
                 # Give a summary of how well our network is doing for each
                 # batch of episodes.
