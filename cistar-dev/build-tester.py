@@ -33,9 +33,9 @@ exp = SumoExperiment(SimpleVelocityEnvironment, env_params, sumo_binary, sumo_pa
 
 logging.info("Experiment Set Up complete")
 
-for _ in range(50):
+for _ in range(10):
     exp.env.step([25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25])
-exp.env.reset()
+print(exp.env.get_cars("rl_1", num_back=1, num_forward=1))
 for _ in range(20):
     exp.env.step(
         [25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25,

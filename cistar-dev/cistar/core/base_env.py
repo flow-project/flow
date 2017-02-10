@@ -51,7 +51,10 @@ class SumoEnvironment(Env):
         self.env_params = env_params
         self.type_params = type_params
         self.sumo_binary = sumo_binary
+        self.scenario = scenario
         self.initial_state = {}
+        self.vehicles = {}
+
 
         if "port" not in sumo_params:
             raise ValueError("SUMO port not defined")
@@ -66,8 +69,13 @@ class SumoEnvironment(Env):
 
         logging.info(" Starting SUMO on port " + str(self.port) + "!")
         logging.debug(" Cfg file " +  str(self.cfg))
+
+        self.time_step = 0.1
+        if "time_step" in sumo_params:
+            self.time_step = sumo_params["time_step"]
+
         subprocess.Popen([self.sumo_binary, "-c", self.cfg, "--remote-port",
-                                        str(self.port), "--step-length", str(0.1)], stdout=sys.stdout, stderr=sys.stderr)
+                                        str(self.port), "--step-length", str(self.time_step)], stdout=sys.stdout, stderr=sys.stderr)
 
         logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
         traci.init(self.port)
@@ -79,7 +87,16 @@ class SumoEnvironment(Env):
         self.rl_ids = [i for i in self.ids if traci.vehicle.getTypeID(i) == "rl"]
 
         for index, car_id in enumerate(self.ids):
+            vehicle = {}
+            vehicle["id"] = car_id
+            vehicle["type"] = traci.vehicle.getTypeID(car_id)
+            vehicle["edge"] = traci.vehicle.getRoadID(car_id)
+            vehicle["position"] = traci.vehicle.getLanePosition(car_id)
+            vehicle["lane"] = traci.vehicle.getLaneIndex(car_id)
+            vehicle["speed"] = traci.vehicle.getSpeed(car_id)
+            self.vehicles[car_id] = vehicle
             traci.vehicle.setSpeedMode(car_id, 0)
+
             logging.debug("Car with id " + car_id + " is on route " + str(traci.vehicle.getRouteID(car_id)))
             logging.debug("Car with id " + car_id + " is on edge " + str(traci.vehicle.getLaneID(car_id)))
             logging.debug("Car with id " + car_id + " has valid route: " + str(traci.vehicle.isRouteValid(car_id)))
@@ -98,10 +115,8 @@ class SumoEnvironment(Env):
 
         (this method can and should be overridden for different initializations )
         """
-        print("there are " +  str(traci.vehicle.getIDCount()) + " cars loaded")
         while traci.vehicle.getIDCount() < self.num_vehicles:
             traci.simulationStep()
-            print("there are " + str(traci.vehicle.getIDCount()) + " cars loaded")
             for car_id in traci.vehicle.getIDList():
                 # IMPORTANT FOR FINE GRAIN CONTROL OF VEHICLE SPEED
                 traci.vehicle.setSpeedMode(car_id, 0)
@@ -158,14 +173,12 @@ class SumoEnvironment(Env):
 
         traci.simulationStep()
 
-        for index, car_id in enumerate(self.rl_ids):
-            logging.debug("Car with id " + car_id + " is on route " + str(traci.vehicle.getRouteID(car_id)))
-            logging.debug("Car with id " + car_id + " is on edge " + str(traci.vehicle.getLaneID(car_id)))
-            logging.debug("Car with id " + car_id + " has valid route: " + str(traci.vehicle.isRouteValid(car_id)))
-            logging.debug("Car with id " + car_id + " has speed: " + str(traci.vehicle.getSpeed(car_id)))
-            logging.debug("Car with id " + car_id + " has pos: " + str(traci.vehicle.getPosition(car_id)))
-            logging.debug("Car with id " + car_id + " has route: " + str(traci.vehicle.getRoute(car_id)))
-            logging.debug("Car with id " + car_id + " is at index: " + str(traci.vehicle.getRouteIndex(car_id)))
+        for index, car_id in enumerate(self.ids):
+            self.vehicles[car_id]["type"] = traci.vehicle.getTypeID(car_id)
+            self.vehicles[car_id]["edge"] = traci.vehicle.getRoadID(car_id)
+            self.vehicles[car_id]["position"] = traci.vehicle.getLanePosition(car_id)
+            self.vehicles[car_id]["lane"] = traci.vehicle.getLaneIndex(car_id)
+            self.vehicles[car_id]["speed"] = traci.vehicle.getSpeed(car_id)
 
         self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.controlled_ids])
         reward = self.compute_reward(self._state)
@@ -187,9 +200,17 @@ class SumoEnvironment(Env):
             traci.vehicle.remove(car_id)
             traci.vehicle.addFull(car_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
-            traci.vehicle.setSpeedMode(car_id, 0)
+
 
         traci.simulationStep()
+
+        for index, car_id in enumerate(self.ids):
+            traci.vehicle.setSpeedMode(car_id, 0)
+            self.vehicles[car_id]["type"] = traci.vehicle.getTypeID(car_id)
+            self.vehicles[car_id]["edge"] = traci.vehicle.getRoadID(car_id)
+            self.vehicles[car_id]["position"] = traci.vehicle.getLanePosition(car_id)
+            self.vehicles[car_id]["lane"] = traci.vehicle.getLaneIndex(car_id)
+            self.vehicles[car_id]["speed"] = traci.vehicle.getSpeed(car_id)
 
     @property
     def action_space(self):

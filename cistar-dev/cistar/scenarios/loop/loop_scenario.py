@@ -32,7 +32,7 @@ class LoopScenario(Scenario):
         edgelen = self.length/4
         self.edgestarts = [("bottom", 0),("right", edgelen), ("top", 2*edgelen),( "left", 3*edgelen)]
 
-        self.initial_config["positions"] = self.getEvenSpacedStartPositions()
+        self.initial_config["positions"] = self.gen_even_start_positions()
         self.initial_config["shuffle"] = True
         if not cfg:
             self.cfg = self.generate()
@@ -47,9 +47,13 @@ class LoopScenario(Scenario):
         return starte, startx
 
     def get_x(self, edge, position):
-        return position + self.edgestarts[edge]
+        for edge_tuple in self.edgestarts:
+            if edge_tuple[0] == edge:
+                edge_start = edge_tuple[1]
+                break
+        return position + edge_start
 
-    def getEvenSpacedStartPositions(self):
+    def gen_even_start_positions(self):
         startpositions = []
         increment = self.length/self.num_vehicles
 
@@ -60,8 +64,4 @@ class LoopScenario(Scenario):
             x += increment
 
         return startpositions
-
-
-
-
 
