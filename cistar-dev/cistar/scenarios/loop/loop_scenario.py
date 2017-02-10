@@ -33,7 +33,7 @@ class LoopScenario(Scenario):
         self.edgestarts = [("bottom", 0),("right", edgelen), ("top", 2*edgelen),( "left", 3*edgelen)]
 
         self.initial_config["positions"] = self.gen_even_start_positions()
-        self.initial_config["shuffle"] = True
+        self.initial_config["shuffle"] = False
         if not cfg:
             self.cfg = self.generate()
 

@@ -14,7 +14,7 @@ sumo_params = {"port": 8873}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"cfm": (num_cars, makecfm())}
+type_params = {"cfm-25": (5, makecfm(s=30)), "cfm-10": (5, makecfm(s=19))}
 
 env_params = {"target_velocity": 25}
 
@@ -32,9 +32,8 @@ exp = SumoExperiment(SimpleVelocityEnvironment, env_params, sumo_binary, sumo_pa
 
 logging.info("Experiment Set Up complete")
 
-for _ in range(10):
+for _ in range(100):
     exp.env.step([25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25])
-print(exp.env.get_cars("rl_1", num_back=1, num_forward=1))
 for _ in range(20):
     exp.env.step(
         [25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25,

@@ -1,3 +1,5 @@
+import random
+
 def makecfm(k_d=1, k_v=1, s=1):
     # k_d = proportional gain
     # k_v = derivative gain
@@ -5,16 +7,20 @@ def makecfm(k_d=1, k_v=1, s=1):
 
     def cfm(carID, env):
         leadID = env.get_leading_car(carID)
+        print(carID, leadID)
         leadPos = env.get_x_by_id(leadID)
         leadVel = env.vehicles[leadID]['speed']
 
         thisPos = env.get_x_by_id(carID)
         thisVel = env.vehicles[carID]['speed']
 
-        acc = k_d*(leadPos - thisPos - s) + k_v*(leadVel - thisVel)
+        headway = (leadPos - thisPos) % env.scenario.length
+
+        acc = k_d*(headway - s) + k_v*(leadVel - thisVel)
         return acc
 
     return cfm
+
 
 def makebcm(k_d=1, k_v=1, s=1):
     # k_d = proportional gain
@@ -33,7 +39,13 @@ def makebcm(k_d=1, k_v=1, s=1):
         trailPos = env.get_x_by_id(trailID)
         trailVel = env.vehicles[trailID]['speed']
 
-        acc = 0.5*k_d*((leadPos - thisPos) - (thisPos - trailPos)) + \
+        headway = (leadPos - thisPos) % env.scenario.length
+
+        footway = (thisPos - trailPos) % env.scenario.length
+
+        print(carID, headway, footway)
+
+        acc = 0.5*k_d*((headway) - (footway)) + \
             0.5*k_v*((leadVel - thisVel) - (thisVel - trailVel))
         return acc
 

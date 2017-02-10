@@ -26,6 +26,7 @@ class SimpleVelocityEnvironment(SumoEnvironment):
 
         thisSpeed = self.vehicles[car_id]['speed']
         nextVel = thisSpeed + action * self.time_step
+        nextVel = max(0, nextVel)
         traci.vehicle.slowDown(car_id, nextVel, 1)
 
     def render(self):
@@ -35,37 +36,27 @@ class SimpleVelocityEnvironment(SumoEnvironment):
     def get_x_by_id(self, id):
         return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])
 
-
-    def get_cars(self, id, num_back=None, num_forward=None,
-                 distance_back=None, distance_forward=None,
-                 lane=None):
-        ret = []
+    def get_leading_car(self, id):
         target_pos = self.get_x_by_id(id)
 
+        frontdists = []
         for i in self.ids:
             if i != id:
                 c = self.vehicles[i]
-                if (distance_back is not None and (target_pos - self.get_x_by_id(i)) % self.length > distance_back) or \
-                        (num_back is not None and len(ret) >= num_back):
-                    break
-                if (lane is None or c["lane"] == lane):
-                    ret.insert(0, c["id"])
+                distto = (self.get_x_by_id(i) - target_pos) % self.scenario.length
+                frontdists.append((c["id"], distto))
 
-            count = len(ret)
-
-        for i in self.ids:
-            if i != id:
-                c = self.vehicles[i]
-                if (distance_forward is not None and (self.get_x_by_id(i) - target_pos) % self.scenario.length > distance_forward) or \
-                        (num_forward is not None and (len(ret) - count) >= num_forward):
-                    break
-                if (lane is None or c["lane"] == lane):
-                    ret.append(c["id"])
-
-        return ret
-
-    def get_leading_car(self, id):
-        return self.get_cars(id, num_forward=1, lane=self.vehicles["lane"])
+        return min(frontdists, key=(lambda x:x[1]))[0]
 
     def get_trailing_car(self, id):
-        return self.get_cars(id, num_back=1, lane=self.vehicles["lane"])
+        target_pos = self.get_x_by_id(id)
+
+        backdists = []
+        for i in self.ids:
+            if i != id:
+                c = self.vehicles[i]
+                distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
+                backdists.append((c["id"], distto))
+
+        return min(backdists, key=(lambda x:x[1]))[0]
+
