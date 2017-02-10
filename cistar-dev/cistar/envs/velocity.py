@@ -23,7 +23,11 @@ class SimpleVelocityEnvironment(SumoEnvironment):
         return -np.linalg.norm(velocity - self.env_params["target_velocity"])
 
     def apply_action(self, car_id, action):
-        traci.vehicle.slowDown(car_id, action, 1)
+        '''Action is an acceleration here. Gets locally linearized to find velocity.'''
+
+        thisSpeed = float(traci.vehicle.getSpeed(car_id))
+        nextVel = thisSpeed + action * self.timestep
+        traci.vehicle.slowDown(car_id, nextVel, 1)
 
     def render(self):
         pass
