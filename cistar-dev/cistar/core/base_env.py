@@ -163,7 +163,7 @@ class SumoEnvironment(Env):
         logging.debug("================= performing step =================")
         for car_id in self.controlled_ids:
             car_type = traci.vehicle.getTypeID(car_id)
-            action = self.type_params[car_type][1]()
+            action = self.type_params[car_type][1](self)
             self.apply_action(car_id, action=action)
             logging.debug("Car with id " + car_id + " is on route " + str(traci.vehicle.getRouteID(car_id)))
 
@@ -200,7 +200,6 @@ class SumoEnvironment(Env):
             traci.vehicle.remove(car_id)
             traci.vehicle.addFull(car_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
-
 
         traci.simulationStep()
 
