@@ -25,7 +25,7 @@ class SimpleVelocityEnvironment(SumoEnvironment):
         '''Action is an acceleration here. Gets locally linearized to find velocity.'''
 
         thisSpeed = float(traci.vehicle.getSpeed(car_id))
-        nextVel = thisSpeed + action * self.timestep
+        nextVel = thisSpeed + action * self.time_step
         traci.vehicle.slowDown(car_id, nextVel, 1)
 
     def render(self):
