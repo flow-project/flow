@@ -15,8 +15,8 @@ This file contains methods for sumo++ interactions with rllab
 Most notably, it has the SumoEnvironment class, which serves as the environment
 that gets passed in to rllab's algorithm (it's basically an MDP)
 
-When defining a SumoEnvironment, one must still implement the action space, 
-observation space, reward, etc. (properties of the MDP). This class is meant to 
+When defining a SumoEnvironment, one must still implement the action space,
+observation space, reward, etc. (properties of the MDP). This class is meant to
 serve as a parent.
 
 """
@@ -163,7 +163,7 @@ class SumoEnvironment(Env):
         logging.debug("================= performing step =================")
         for car_id in self.controlled_ids:
             car_type = traci.vehicle.getTypeID(car_id)
-            action = self.type_params[car_type][1](self)
+            action = self.type_params[car_type][1](car_id, self)
             self.apply_action(car_id, action=action)
             logging.debug("Car with id " + car_id + " is on route " + str(traci.vehicle.getRouteID(car_id)))
 
@@ -232,5 +232,3 @@ class SumoEnvironment(Env):
 
     def terminate(self):
         traci.close()
-
-

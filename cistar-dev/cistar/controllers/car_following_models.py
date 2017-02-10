@@ -1,25 +1,40 @@
+def makecfm(k_d=1, k_v=1, s=1):
+    # k_d = proportional gain
+    # k_v = derivative gain
+    # s = safe distance
 
-def makecfm(id, k_d=1, k_v=1, s=1):
-    # proportional gain
-    # derivative gain
-    # safe distance
-    def cfm(environment):
-        environment.getLeadingCar()
-        leadPos, leadVel = lead[0], lead[1]
-        thisPos, thisVel = thisCar[0], thisCar[1]
+    def cfm(carID, env):
+        leadID = env.get_leading_car(carID)
+        leadPos = env.get_x_by_id(leadID)
+        leadVel = env.vehicles[leadID]['speed']
+
+        thisPos = env.get_x_by_id(carID)
+        thisVel = env.vehicles[carID]['speed']
 
         acc = k_d*(leadPos - thisPos - s) + k_v*(leadVel - thisVel)
         return acc
 
-def bcm(lead, thisCar, follow):
-    leadPos, leadVel = lead[0], lead[1]
-    thisPos, thisVel = thisCar[0], thisCar[1]
-    followPos, followVel = follow[0], follow[1]
+    return cfm
 
-    k_d = 1 # proportional gain
-    k_v = 1 # derivative gain
-    s = 1 # safe distance
+def makebcm(k_d=1, k_v=1, s=1):
+    # k_d = proportional gain
+    # k_v = derivative gain
+    # s = safe distance
 
-    acc = 0.5*k_d*((leadPos - thisPos) - (thisPos - followPos)) + \
-        0.5*k_v*((leadVel - thisVel) - (thisVel - followVel))
-    return acc
+    def bcm(carID, env):
+        leadID = env.get_leading_car(carID)
+        leadPos = env.get_x_by_id(leadID)
+        leadVel = env.vehicles[leadID]['speed']
+
+        thisPos = env.get_x_by_id(carID)
+        thisVel = env.vehicles[carID]['speed']
+
+        trailID = env.get_trailing_car(carID)
+        trailPos = env.get_x_by_id(trailID)
+        trailVel = env.vehicles[trailID]['speed']
+
+        acc = 0.5*k_d*((leadPos - thisPos) - (thisPos - trailPos)) + \
+            0.5*k_v*((leadVel - thisVel) - (thisVel - trailVel))
+        return acc
+
+    return bcm
