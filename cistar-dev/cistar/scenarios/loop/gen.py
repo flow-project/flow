@@ -187,7 +187,6 @@ class CircleGenerator(Generator):
                 random.shuffle(vehicle_ids)  # randomly
 
             positions = initial_params["positions"]
-            print(positions)
             for i, (type, id) in enumerate(vehicle_ids):
                 route, pos = positions[i]
                 routes.append(self.vehicle(type, "route" + route, depart="0",

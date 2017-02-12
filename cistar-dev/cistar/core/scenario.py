@@ -8,7 +8,9 @@ class Scenario:
     def __init__(self, name, num_vehicles, type_params, cfg_params, net_params, initial_params=None, cfg=None, generator_class=None):
         self.num_vehicles = num_vehicles
         self.type_params = type_params
-        self.num_rl_vehicles = type_params["rl"][0]
+        self.num_rl_vehicles = 0
+        if "rl" in type_params:
+            self.num_rl_vehicles = type_params["rl"][0]
         self.cfg_params = cfg_params
         self.net_params = net_params
         self.name = name

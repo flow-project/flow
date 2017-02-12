@@ -4,18 +4,17 @@ from cistar.core.exp import SumoExperiment
 from cistar.envs.velocity import SimpleVelocityEnvironment
 from cistar.scenarios.loop.gen import CircleGenerator
 from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.car_following_models import *
+
 logging.basicConfig(level=logging.WARNING)
 
 num_cars = 10
-num_rl = 5
 
 sumo_params = {"port": 8873}
 
-def constant_vel(**kwargs):
-    return 15
 sumo_binary = "sumo-gui"
 
-type_params = {"rl": (num_rl, None), "slow": (5, constant_vel)}
+type_params = {"cfm-25": (5, makecfm(s=30)), "cfm-10": (5, makecfm(s=19))}
 
 env_params = {"target_velocity": 25}
 
@@ -33,9 +32,8 @@ exp = SumoExperiment(SimpleVelocityEnvironment, env_params, sumo_binary, sumo_pa
 
 logging.info("Experiment Set Up complete")
 
-for _ in range(50):
+for _ in range(100):
     exp.env.step([25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25])
-exp.env.reset()
 for _ in range(20):
     exp.env.step(
         [25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25,
