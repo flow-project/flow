@@ -8,30 +8,18 @@ Adapted from:
 https://gist.github.com/awjuliani/86ae316a231bceb96a3e2ab3ac8e646a#file-rl-tutorial-2-ipynb
 """
 
-# env = gym.make('CartPole-v0')
 env = gym.make('Walker2d-v1')  # Requires Mujoco
 
-env.reset()
-random_episodes = 0
-reward_sum = 0
-while random_episodes < 5:
-    env.render()
-    observation, reward, done, _ = env.step(np.random.randint(0, 2))
-    reward_sum += reward
-    if done:
-        random_episodes += 1
-        print("Reward for this episode was:", reward_sum)
-        reward_sum = 0
-        env.reset()
+SHOW_THRESH = 0
+SHOW_EVERY = 300
 
 # hyperparameters
-H = 10  # number of hidden layer neurons
-batch_size = 5  # every how many episodes to do a param update?
+H = 32  # number of hidden layer neurons
+batch_size = 100  # every how many episodes to do a param update?
 learning_rate = 1e-2  # feel free to play with this to train faster or more
 # stably.
 gamma = 0.99  # discount factor for reward
 
-# D = 4  # input dimensionality
 D = env.observation_space.shape[0]
 Out = env.action_space.shape[0]
 print("Size of obs and action spaces: ", D, Out)
@@ -48,7 +36,7 @@ observations = tf.placeholder(tf.float32, [None, D], name="input_x")
 W1 = tf.get_variable("W1", shape=[D, H],
                      initializer=tf.contrib.layers.xavier_initializer())
 layer1 = tf.nn.relu(tf.matmul(observations, W1))
-W2 = tf.get_variable("W2", shape=[H, Out],
+W2 = tf.get_variable("W2", shape=[H, Out * 2],
                      initializer=tf.contrib.layers.xavier_initializer())
 score = tf.matmul(layer1, W2)
 probability = tf.nn.sigmoid(score)
@@ -59,13 +47,26 @@ tvars = tf.trainable_variables()
 input_y = tf.placeholder(tf.float32, [None, Out], name="input_y")
 advantages = tf.placeholder(tf.float32, name="reward_signal")
 
+# FIXME this doesn't work as a deep copy
+score_old = tf.identity(score, name="score_old")
+
 # The loss function. This sends the weights in the direction of making actions
 # that gave good advantage (reward over time) more likely, and actions that
 # didn't less likely.
-# TODO what's a reasonable reward function?
-loglik = tf.log(
-    input_y * (input_y - probability) + (1 - input_y) * (input_y + probability))
-loss = -tf.reduce_mean(loglik * advantages)
+# Log likelihood: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
+# #Likelihood_function
+stds = tf.abs(score[0][Out:])
+stds_old = tf.abs(score_old[0][Out:])
+zs = (input_y - tf.abs(score[0][:Out])) / stds
+zs_old = (input_y - tf.abs(score_old[0][:Out])) / stds_old
+loglik_old = -0.5 * (tf.reduce_sum(tf.log(stds_old), axis=-1) + tf.reduce_sum(
+    tf.square(zs_old), axis=-1) + Out * tf.log(2 * np.pi))
+loglik_new = -0.5 * (tf.reduce_sum(tf.log(stds), axis=-1) + tf.reduce_sum(
+    tf.square(zs), axis=-1) + Out * tf.log(2 * np.pi))
+# FIXME understand surrogate loss for Gaussian MLP
+# likratio = tf.exp(loglik_new - loglik_old)
+# loss = -tf.reduce_mean(likratio * advantages)
+loss = -tf.reduce_mean(loglik_new * advantages)
 newGrads = tf.gradients(loss, tvars)
 
 # Once we have collected a series of gradients from multiple episodes,
@@ -96,6 +97,7 @@ episode_number = 1
 total_episodes = 10000
 init = tf.global_variables_initializer()
 
+
 # Launch the graph
 with tf.Session() as sess:
     rendering = False
@@ -113,7 +115,8 @@ with tf.Session() as sess:
 
         # Rendering the environment slows things down,
         # so let's only look at it once our agent is doing a good job.
-        if reward_sum / batch_size > 100 or rendering == True:
+        if (reward_sum / batch_size > SHOW_THRESH or rendering == True) and\
+                                episode_number % SHOW_EVERY == 0:
             env.render()
             rendering = True
 
@@ -121,14 +124,11 @@ with tf.Session() as sess:
         x = np.reshape(observation, [1, D])
 
         # Run the policy network and get an action to take.
-        tfprob = sess.run(probability, feed_dict={observations: x})
-        # action = 1 if np.random.uniform() < tfprob else 0
-        # action = tfprob
-        action = 5 * (tfprob - 0.5)
-        print(action)
+        tfscore = sess.run(score, feed_dict={observations: x})
+        action = np.random.normal(loc=tfscore[0][:Out],
+                                  scale=np.abs(tfscore[0][Out:]))
 
         xs.append(x)  # observation
-        # y = 1 if action == 0 else 0  # a "fake label"
         ys.append(action)
 
         # step the environment and get new measurements
@@ -158,6 +158,15 @@ with tf.Session() as sess:
             discounted_epr /= np.std(discounted_epr)
 
             # Get the gradient for this episode, and save it in the gradBuffer
+            tLoglik_old = sess.run(loglik_old,
+                               feed_dict={observations: epx, input_y: epy,
+                                          advantages: discounted_epr})
+            tLoglik_new = sess.run(loglik_new,
+                               feed_dict={observations: epx, input_y: epy,
+                                          advantages: discounted_epr})
+            # FIXME currently, the following are equal, but should be different
+            # print(tLoglik_old[0], tLoglik_new[0])
+            # print(tLoglik.shape, discounted_epr.shape)
             tGrad = sess.run(newGrads,
                              feed_dict={observations: epx, input_y: epy,
                                         advantages: discounted_epr})
@@ -169,6 +178,7 @@ with tf.Session() as sess:
             if episode_number % batch_size == 0:
                 sess.run(updateGrads, feed_dict={W1Grad: gradBuffer[0],
                                                  W2Grad: gradBuffer[1]})
+                sess.run(score_old, feed_dict={observations: x})
                 for ix, grad in enumerate(gradBuffer):
                     gradBuffer[ix] = grad * 0
 
