@@ -47,26 +47,31 @@ tvars = tf.trainable_variables()
 input_y = tf.placeholder(tf.float32, [None, Out], name="input_y")
 advantages = tf.placeholder(tf.float32, name="reward_signal")
 
-# FIXME this doesn't work as a deep copy
-score_old = tf.identity(score, name="score_old")
+score_old = tf.placeholder(tf.float32, [None, Out * 2], name="score_old")
 
 # The loss function. This sends the weights in the direction of making actions
 # that gave good advantage (reward over time) more likely, and actions that
 # didn't less likely.
 # Log likelihood: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
 # #Likelihood_function
-stds = tf.abs(score[0][Out:])
+stds = tf.abs(score[0][Out:])  # TODO Use log_std instead
+means = tf.abs(score[0][:Out])
 stds_old = tf.abs(score_old[0][Out:])
-zs = (input_y - tf.abs(score[0][:Out])) / stds
-zs_old = (input_y - tf.abs(score_old[0][:Out])) / stds_old
-loglik_old = -0.5 * (tf.reduce_sum(tf.log(stds_old), axis=-1) + tf.reduce_sum(
-    tf.square(zs_old), axis=-1) + Out * tf.log(2 * np.pi))
-loglik_new = -0.5 * (tf.reduce_sum(tf.log(stds), axis=-1) + tf.reduce_sum(
-    tf.square(zs), axis=-1) + Out * tf.log(2 * np.pi))
-# FIXME understand surrogate loss for Gaussian MLP
-# likratio = tf.exp(loglik_new - loglik_old)
-# loss = -tf.reduce_mean(likratio * advantages)
-loss = -tf.reduce_mean(loglik_new * advantages)
+means_old = tf.abs(score_old[0][:Out])
+zs = (input_y - means) / stds
+zs_old = (input_y - means_old) / stds_old
+loglik_old = -0.5 * (
+    tf.reduce_sum(tf.log(stds_old), axis=-1) + tf.reduce_sum(tf.square(zs_old),
+                                                             axis=-1) + Out * tf.log(
+        2 * np.pi))
+loglik_new = -0.5 * (
+    tf.reduce_sum(tf.log(stds), axis=-1) + tf.reduce_sum(tf.square(zs),
+                                                         axis=-1) + Out * tf.log(
+        2 * np.pi))
+# FIXME this is giving nan values :(
+likratio = tf.exp(loglik_new - loglik_old)
+loss = -tf.reduce_mean(likratio * advantages)
+# loss = -tf.reduce_mean(loglik_new * advantages)
 newGrads = tf.gradients(loss, tvars)
 
 # Once we have collected a series of gradients from multiple episodes,
@@ -97,7 +102,6 @@ episode_number = 1
 total_episodes = 10000
 init = tf.global_variables_initializer()
 
-
 # Launch the graph
 with tf.Session() as sess:
     rendering = False
@@ -111,12 +115,15 @@ with tf.Session() as sess:
     for ix, grad in enumerate(gradBuffer):
         gradBuffer[ix] = grad * 0
 
+    x = np.reshape(observation, [1, D])
+    old_score = score.eval(feed_dict={observations: x})
+
     while episode_number <= total_episodes:
 
         # Rendering the environment slows things down,
         # so let's only look at it once our agent is doing a good job.
-        if (reward_sum / batch_size > SHOW_THRESH or rendering == True) and\
-                                episode_number % SHOW_EVERY == 0:
+        if (
+                    reward_sum / batch_size > SHOW_THRESH or rendering == True) and episode_number % SHOW_EVERY == 0:
             env.render()
             rendering = True
 
@@ -142,7 +149,7 @@ with tf.Session() as sess:
         if done:
             episode_number += 1
             # stack together all inputs, hidden states, action gradients,
-            # and  rewards for this episode
+            # and rewards for this episode
             epx = np.vstack(xs)
             epy = np.vstack(ys)
             epr = np.vstack(drs)
@@ -152,24 +159,35 @@ with tf.Session() as sess:
 
             # compute the discounted reward backwards through time
             discounted_epr = discount_rewards(epr)
+
+            # Variance
+            variance = np.mean(np.sum(np.square(discounted_epr))) - np.square(
+                np.mean(discounted_epr))
             # size the rewards to be unit normal (helps control the gradient
             #  estimator variance)
             discounted_epr -= np.mean(discounted_epr)
             discounted_epr /= np.std(discounted_epr)
 
+            variance_vbaseline = np.mean(
+                np.sum(np.square(discounted_epr))) - np.square(
+                np.mean(discounted_epr))
+
+            # print("Variance: ", variance, variance_vbaseline)
+
             # Get the gradient for this episode, and save it in the gradBuffer
             tLoglik_old = sess.run(loglik_old,
-                               feed_dict={observations: epx, input_y: epy,
-                                          advantages: discounted_epr})
+                                   feed_dict={observations: epx, input_y: epy,
+                                              advantages: discounted_epr,
+                                              score_old: old_score})
             tLoglik_new = sess.run(loglik_new,
-                               feed_dict={observations: epx, input_y: epy,
-                                          advantages: discounted_epr})
-            # FIXME currently, the following are equal, but should be different
+                                   feed_dict={observations: epx, input_y: epy,
+                                              advantages: discounted_epr})
+
             # print(tLoglik_old[0], tLoglik_new[0])
-            # print(tLoglik.shape, discounted_epr.shape)
             tGrad = sess.run(newGrads,
                              feed_dict={observations: epx, input_y: epy,
-                                        advantages: discounted_epr})
+                                        advantages: discounted_epr,
+                                        score_old: old_score})
             for ix, grad in enumerate(tGrad):
                 gradBuffer[ix] += grad
 
@@ -178,7 +196,8 @@ with tf.Session() as sess:
             if episode_number % batch_size == 0:
                 sess.run(updateGrads, feed_dict={W1Grad: gradBuffer[0],
                                                  W2Grad: gradBuffer[1]})
-                sess.run(score_old, feed_dict={observations: x})
+                # sess.run(score_old, feed_dict={observations: x})
+                old_score = score.eval(feed_dict={observations: x})
                 for ix, grad in enumerate(gradBuffer):
                     gradBuffer[ix] = grad * 0
 
