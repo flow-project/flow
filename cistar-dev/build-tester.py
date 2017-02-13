@@ -8,13 +8,13 @@ from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.WARNING)
 
-num_cars = 10
+num_cars = 17
 
 sumo_params = {"port": 8873}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"cfm-25": (5, makecfm(s=30)), "cfm-10": (5, makecfm(s=19))}
+type_params = {"bcm-15": (10, make_better_cfm(v_des = 15, k_c=2.0)), "bcm-10": (7, make_better_cfm(v_des = 10, k_c=2.0))}
 
 env_params = {"target_velocity": 25}
 
