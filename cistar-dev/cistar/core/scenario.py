@@ -5,7 +5,7 @@ from cistar.core.generator import Generator
 
 class Scenario:
 
-    def __init__(self, name, num_vehicles, type_params, cfg_params, net_params, initial_params=None, cfg=None, generator_class=None):
+    def __init__(self, name, num_vehicles, type_params, cfg_params, net_params, initial_config=None, cfg=None, generator_class=None):
         self.num_vehicles = num_vehicles
         self.type_params = type_params
         self.num_rl_vehicles = 0
@@ -15,10 +15,10 @@ class Scenario:
         self.net_params = net_params
         self.name = name
 
-        if not initial_params:
+        if not initial_config:
             self.initial_config = {}
         else:
-            self.initial_config = initial_params
+            self.initial_config = initial_config
 
         if net_params is None:
             logging.error("No network params specified!")
