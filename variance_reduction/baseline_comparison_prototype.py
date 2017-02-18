@@ -15,7 +15,7 @@ SHOW_EVERY = 300
 
 # hyperparameters for main function approximator
 H = 32  # number of hidden layer neurons
-batch_size = 100  # every how many episodes to do a param update?
+batch_size = 300  # every how many episodes to do a param update?
 learning_rate = 1e-2  # feel free to play with this to train faster or more
 # stably.
 gamma = 0.99  # discount factor for reward
@@ -48,7 +48,7 @@ W2 = tf.get_variable("W2", shape=[H, Out],
 W3 = tf.get_variable("W3", shape=[H, Out],
                      initializer=tf.truncated_normal_initializer(
                          mean=0, stddev=0.01))
-score = tf.concat(1, [tf.matmul(layer1, W2), tf.matmul(layer1, W3)])
+output = tf.concat(1, [tf.matmul(layer1, W2), tf.matmul(layer1, W3)])
 
 # From here we define the parts of the network needed for learning a good
 # policy.
@@ -63,8 +63,8 @@ score_old = tf.placeholder(tf.float32, [None, Out * 2], name="score_old")
 # didn't less likely.
 # Log likelihood: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
 # #Likelihood_function
-means = score[0][:Out]
-log_stds = score[0][Out:]
+means = output[0][:Out]
+log_stds = output[0][Out:]
 zs = (input_y - means) / tf.exp(log_stds)
 loglik_new = - tf.reduce_sum(log_stds,
                              reduction_indices=-1) - 0.5 * tf.reduce_sum(
@@ -140,8 +140,8 @@ xs, hs, dlogps, drs, ys, tfps = [], [], [], [], [], []
 epxs, epys, discounted_eprs = [], [], []
 running_reward = None
 reward_sum = 0
-episode_number = 1
-total_episodes = 10000
+episode_number = 0
+total_episodes = 30000
 init = tf.global_variables_initializer()
 
 # Launch the graph
@@ -158,9 +158,9 @@ with tf.Session() as sess:
         gradBuffer[ix] = grad * 0
 
     x = (np.reshape(observation, [1, D]) - obs_mean) / obs_std
-    old_score = score.eval(feed_dict={observations: x})
+    old_score = output.eval(feed_dict={observations: x})
 
-    while episode_number <= total_episodes:
+    while episode_number < total_episodes:
 
         # Rendering the environment slows things down,
         # so let's only look at it once our agent is doing a good job.
@@ -173,7 +173,7 @@ with tf.Session() as sess:
         x = (np.reshape(observation, [1, D]) - obs_mean) / obs_std
 
         # Run the policy network and get an action to take.
-        tfscore = sess.run(score, feed_dict={observations: x})
+        tfscore = sess.run(output, feed_dict={observations: x})
         action = np.exp(tfscore[0][Out:]) * np.random.normal(size=Out) + \
                  tfscore[0][:Out]
         # print("Action:", tfscore[0][:Out], np.exp(tfscore[0][Out:]), action)
@@ -221,34 +221,6 @@ with tf.Session() as sess:
             epys.append(epy)
             discounted_eprs.append(discounted_epr)
 
-            # TODO(cathywu) Kill the rest of this chunk of code
-            # Get the gradient for this episode, and save it in the gradBuffer
-            tBlah0 = sess.run(loglik_new,
-                              feed_dict={observations: epx, input_y: epy,
-                                         advantages: discounted_epr,
-                                         score_old: old_score})
-            tBlah1 = sess.run(loglik_old,
-                              feed_dict={observations: epx, input_y: epy,
-                                         advantages: discounted_epr,
-                                         score_old: old_score})
-            tBlah2 = sess.run(likratio,
-                              feed_dict={observations: epx, input_y: epy,
-                                         advantages: discounted_epr,
-                                         score_old: old_score})
-            # print("Log likelihood ratio:", tBlah0, tBlah1, tBlah2)
-
-            # print(tLoglik_old[0], tLoglik_new[0])
-            tGrad = sess.run(newGrads,
-                             feed_dict={observations: epx, input_y: epy,
-                                        advantages: discounted_epr,
-                                        score_old: old_score})
-            for ix, grad in enumerate(tGrad):
-                gradBuffer[ix] += grad
-
-            # TODO(cathywu) (intermediate) collect Q_hat values (and everything
-            # else) for a bunch of rollouts, then compute the gradients with
-            # all the information together.
-
             # If we have completed enough episodes, then update the policy
             # network with our gradients.
             if episode_number % batch_size == 0:
@@ -264,14 +236,14 @@ with tf.Session() as sess:
                 # Get the gradient for each episode, and save it in the
                 # gradBuffer
                 # TODO(cathywu) compute gradients here
-                # for epx, epy, discounted_epr in zip(epxs, epys,
-                #                                     discounted_eprs):
-                #     tGrad = sess.run(newGrads,
-                #                      feed_dict={observations: epx, input_y: epy,
-                #                                 advantages: discounted_epr,
-                #                                 score_old: old_score})
-                #     for ix, grad in enumerate(tGrad):
-                #         gradBuffer[ix] += grad
+                for epx, epy, discounted_epr in zip(epxs, epys,
+                                                    discounted_eprs):
+                    tGrad = sess.run(newGrads,
+                                     feed_dict={observations: epx, input_y: epy,
+                                                advantages: discounted_epr,
+                                                score_old: old_score})
+                    for ix, grad in enumerate(tGrad):
+                        gradBuffer[ix] += grad
 
                 # TODO(cathywu) compute gradients with V baseline
 
@@ -280,7 +252,7 @@ with tf.Session() as sess:
                 sess.run(updateGrads, feed_dict={W1Grad: gradBuffer[0],
                                                  W2Grad: gradBuffer[1],
                                                  W3Grad: gradBuffer[2]})
-                old_score = score.eval(feed_dict={observations: x})
+                old_score = output.eval(feed_dict={observations: x})
 
                 # Clear buffers and temporary batch storage lists
                 epxs, epys, discounted_eprs = [], [], []
