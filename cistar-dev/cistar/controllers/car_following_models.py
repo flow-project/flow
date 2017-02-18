@@ -1,4 +1,7 @@
 import random
+import math
+import numpy as np
+import collections
 
 def makecfm(k_d=1, k_v=1, s=1):
     # k_d = proportional gain
@@ -125,3 +128,33 @@ def make_better_bcm(k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8):
         return acc
 
     return bcm
+
+def make_ovm(alpha = 1, beta = 1, h_st = 5, h_go = 10, v_max = 30, dt = .1, tau = 0):
+    # first for tau = 0, then implement delays
+    accelQueue = collections.deque()
+
+    def ovm(carID, env):
+        leadID = env.get_leading_car(carID)
+        leadPos = env.get_x_by_id(leadID)
+        leadVel = env.vehicles[leadID]['speed']
+
+        thisPos = env.get_x_by_id(carID)
+        thisVel = env.vehicles[carID]['speed']
+
+        h = (leadPos - thisPos) % env.scenario.length
+        h_dot = leadVel - thisVel
+
+        # V function here - input: h, output : Vh
+        if h <= h_st:
+            Vh = 0
+        elif h_st < h < h_go:
+            Vh = v_max / 2 * (1 - math.cos(math.pi * (h - h_st) / (h_go - h_st)))
+        else:
+            Vh = v_max
+
+        acc = alpha*(Vh - thisVel) + beta*(h_dot)
+
+        while len(accelQueue) <= tau/dt:
+            accelQueue.appendleft(acc)
+
+        return accelQueue.pop()
