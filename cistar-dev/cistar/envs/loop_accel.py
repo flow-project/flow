@@ -8,7 +8,7 @@ import numpy as np
 
 
 
-class SimpleVelocityEnvironment(SumoEnvironment):
+class SimpleAccelerationEnvironment(SumoEnvironment):
 
     @property
     def action_space(self):
@@ -23,7 +23,6 @@ class SimpleVelocityEnvironment(SumoEnvironment):
 
     def apply_action(self, car_id, action):
         '''Action is an acceleration here. Gets locally linearized to find velocity.'''
-
         thisSpeed = self.vehicles[car_id]['speed']
         nextVel = thisSpeed + action * self.time_step
         nextVel = max(0, nextVel)
@@ -32,6 +31,8 @@ class SimpleVelocityEnvironment(SumoEnvironment):
     def render(self):
         pass
 
+    def get_last_x_by_id(self, id):
+        return self.scenario.get_x(self.last_step[id]["edge"], self.last_step[id]["position"])
 
     def get_x_by_id(self, id):
         return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])

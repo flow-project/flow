@@ -1,47 +1,49 @@
 from cistar.core.scenario import Scenario
-from cistar.core.generator import Generator
+from cistar.scenarios.loop.gen import CircleGenerator
 
-import logging
 import numpy as np
 
 class LoopScenario(Scenario):
 
-    def __init__(self, name, num_vehicles, type_params, cfg_params, net_params, initial_config=None, cfg=None,
-                 generator_class=None):
-        super().__init__(name, num_vehicles, type_params, cfg_params, net_params, initial_config, cfg, generator_class)
+    def __init__(self, name, type_params, net_params, cfg_params, initial_config=None, cfg=None):
+        """
+        Initialize a loop scenario.
+        :param net_params:
+            Must include: length, lanes, speed_limit_resolution
+        :param initial_config:
+            Can include: positions, shuffle
+        :param generator_class:
+        """
+        super().__init__(name, type_params, net_params, cfg_params, initial_config, cfg, CircleGenerator)
 
-        if "length" not in net_params:
+        if "length" not in self.net_params:
             raise ValueError("length of circle not supplied")
-        else:
-            self.length = net_params["length"]
+        self.length = self.net_params["length"]
 
-        if "lanes" not in net_params:
+        if "lanes" not in self.net_params:
             raise ValueError("lanes of circle not supplied")
-        else:
-            self.lanes = net_params["lanes"]
+        self.lanes = self.net_params["lanes"]
 
-        if "speed_limit" not in net_params:
+        if "speed_limit" not in self.net_params:
             raise ValueError("speed limit of circle not supplied")
-        else:
-            self.speed_limit = net_params["speed_limit"]
+        self.speed_limit = self.net_params["speed_limit"]
 
-        if "resolution" not in net_params:
+        if "resolution" not in self.net_params:
             raise ValueError("resolution of circle not supplied")
-        else:
-            self.resolution = net_params["resolution"]
+        self.resolution = self.net_params["resolution"]
 
         edgelen = self.length/4
         self.edgestarts = [("bottom", 0),("right", edgelen), ("top", 2*edgelen),( "left", 3*edgelen)]
 
         if "positions" not in self.initial_config:
-            self.initial_config["positions"] = self.gen_random_start_pos()
+            self.initial_config["positions"] = self.gen_even_start_positions()
         self.initial_config["shuffle"] = True
         if not cfg:
-            self.cfg = self.generate()
-
-
+            self.cfg, self.outs = self.generate()
 
     def get_edge(self, x):
+        starte = ""
+        startx = 0
         for (e, s) in self.edgestarts:
             if x >= s:
                 starte = e
@@ -49,7 +51,7 @@ class LoopScenario(Scenario):
         return starte, startx
 
     def get_x(self, edge, position):
-        print(edge, position)
+        edge_start = 0
         for edge_tuple in self.edgestarts:
             if edge_tuple[0] == edge:
                 edge_start = edge_tuple[1]
@@ -58,7 +60,7 @@ class LoopScenario(Scenario):
 
     def gen_even_start_positions(self):
         startpositions = []
-        increment = self.length/self.num_vehicles
+        increment = (self.length-10)/self.num_vehicles
 
         x = 1
         for i in range(self.num_vehicles):

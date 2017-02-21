@@ -4,15 +4,7 @@ import datetime
 from cistar.core.generator import Generator
 
 """
-Primary sumo++ file, imports API from supporting files and manages in teractions
-with rllab and custom controllers.
-
-In addition to opening a traci port and running an instance of Sumo, the 
-simulation class should store the controllers for both the manual and the 
-autonomous vehicles, which it will use implement actions on the vehicles.
-
-Interfaces with sumo on the other side
-
+Acts as a runner for a scenario and environment.
 """
 class SumoExperiment():
 
@@ -35,9 +27,6 @@ class SumoExperiment():
         sumo_binary : path to sumo executable
         sumo_params : parameters to pass to sumo, e.g. step-length (can also be in sumo-cfg)
         file_generator : Child of Generator that will create the net, cfg files
-        net_params : Dict for parameters for netgenerator
-            i.e. for loops, includes, numlanes, length
-        cfg_params : params to be passed to the environement class upon initialization
         cfg : specify a configuration, rather than create a new one
         """
         self.name = scenario.name
@@ -50,10 +39,16 @@ class SumoExperiment():
 
         logging.info("initializing environment.")
 
-        self.env = env_class(self.env_params, self.type_params, sumo_binary, sumo_params, scenario)
+        self.env = env_class(self.env_params, sumo_binary, sumo_params, scenario)
 
     def getCfg(self):
         return self.cfg
 
     def getEnv(self):
         return self.env
+
+    def run(self, num_runs, num_steps, rl_actions=[]):
+        for i in range(num_runs):
+            for j in range(num_steps):
+                self.env.step(rl_actions)
+            self.env.reset()

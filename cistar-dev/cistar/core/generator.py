@@ -25,6 +25,10 @@ def ensure_dir(path):
     return path
 
 
+
+"""
+Generator base class for creating 
+"""
 class Generator:
 
     CFG_PATH = "./"
