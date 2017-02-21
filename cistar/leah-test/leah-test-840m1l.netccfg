@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+  <input>
+    <node-files value="leah-test-840m1l.nod.xml"/>
+    <edge-files value="leah-test-840m1l.edg.xml"/>
+    <type-files value="leah-test-840m1l.typ.xml"/>
+  </input>
+  <output>
+    <output-file value="leah-test-840m1l.net.xml"/>
+  </output>
+  <processing>
+    <no-internal-links value="true"/>
+    <no-turnarounds value="true"/>
+  </processing>
+</configuration>

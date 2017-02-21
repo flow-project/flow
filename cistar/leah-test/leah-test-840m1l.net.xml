@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Thu Feb  2 11:58:13 2017 by SUMO netconvert Version 0.27.1
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <node-files value="./leah-test-840m1l.nod.xml"/>
+        <edge-files value="./leah-test-840m1l.edg.xml"/>
+        <type-files value="./leah-test-840m1l.typ.xml"/>
+    </input>
+
+    <output>
+        <output-file value="./leah-test-840m1l.net.xml"/>
+    </output>
+
+    <processing>
+        <no-internal-links value="true"/>
+        <no-turnarounds value="true"/>
+    </processing>
+
+</configuration>
+-->
+
+<net version="0.27" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="267.38,267.38" convBoundary="0.00,0.00,534.76,534.76" origBoundary="-267.38,-267.38,267.38,267.38" projParameter="!"/>
+
+    <type id="edgeType" numLanes="1" speed="35.00"/>
+
+    <edge id="bottom" from="bottom" to="right" priority="-1" type="edgeType" length="210.00" shape="267.38,0.00 401.07,35.82 498.94,133.69 534.76,267.38">
+        <lane id="bottom_0" index="0" speed="35.00" length="210.00" shape="267.79,-1.60 401.92,34.34 500.42,132.84 536.36,266.97"/>
+    </edge>
+    <edge id="left" from="left" to="bottom" priority="-1" type="edgeType" length="210.00" shape="0.00,267.38 35.82,133.69 133.69,35.82 267.38,0.00">
+        <lane id="left_0" index="0" speed="35.00" length="210.00" shape="-1.60,266.97 34.34,132.84 132.84,34.34 266.97,-1.60"/>
+    </edge>
+    <edge id="right" from="right" to="top" priority="-1" type="edgeType" length="210.00" shape="534.76,267.38 498.94,401.07 401.07,498.94 267.38,534.76">
+        <lane id="right_0" index="0" speed="35.00" length="210.00" shape="536.36,267.79 500.42,401.92 401.92,500.42 267.79,536.36"/>
+    </edge>
+    <edge id="top" from="top" to="left" priority="-1" type="edgeType" length="210.00" shape="267.38,534.76 133.69,498.94 35.82,401.07 0.00,267.38">
+        <lane id="top_0" index="0" speed="35.00" length="210.00" shape="266.97,536.36 132.84,500.42 34.34,401.92 -1.60,267.79"/>
+    </edge>
+
+    <junction id="bottom" type="priority" x="267.38" y="0.00" incLanes="left_0" intLanes="" shape="267.38,-0.05 268.21,-3.14 266.55,-3.14 267.38,-0.05">
+        <request index="0" response="0" foes="0"/>
+    </junction>
+    <junction id="left" type="priority" x="0.00" y="267.38" incLanes="top_0" intLanes="" shape="-3.14,268.21 -0.05,267.38 -3.14,266.55">
+        <request index="0" response="0" foes="0"/>
+    </junction>
+    <junction id="right" type="priority" x="534.76" y="267.38" incLanes="bottom_0" intLanes="" shape="537.90,266.55 534.81,267.38 537.90,268.21">
+        <request index="0" response="0" foes="0"/>
+    </junction>
+    <junction id="top" type="priority" x="267.38" y="534.76" incLanes="right_0" intLanes="" shape="268.21,537.90 267.38,534.81 266.55,537.90">
+        <request index="0" response="0" foes="0"/>
+    </junction>
+
+    <connection from="bottom" to="right" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="left" to="bottom" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="right" to="top" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="top" to="left" fromLane="0" toLane="0" dir="s" state="M"/>
+
+</net>
