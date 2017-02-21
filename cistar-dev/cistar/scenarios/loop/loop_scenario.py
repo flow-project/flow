@@ -35,7 +35,7 @@ class LoopScenario(Scenario):
 
         if "positions" not in self.initial_config:
             self.initial_config["positions"] = self.gen_random_start_pos()
-        self.initial_config["shuffle"] = True
+        # self.initial_config["shuffle"] = True
         if not cfg:
             self.cfg = self.generate()
 
