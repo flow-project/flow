@@ -8,20 +8,21 @@ Adapted from:
 https://gist.github.com/awjuliani/86ae316a231bceb96a3e2ab3ac8e646a#file-rl-tutorial-2-ipynb
 """
 
+slim = tf.contrib.slim
 env = gym.make('Walker2d-v1')  # Requires Mujoco
 
 SHOW_THRESH = 0
-SHOW_EVERY = 300
+SHOW_EVERY = 600
 
 # hyperparameters for main function approximator
 H = 32  # number of hidden layer neurons
-batch_size = 100  # every how many episodes to do a param update?
+batch_size = 300  # every how many episodes to do a param update?
 learning_rate = 1e-2  # feel free to play with this to train faster or more
 # stably.
 gamma = 0.99  # discount factor for reward
 
 # hyperparameters for baselines
-H_BASELINE = 32  # number of hidden layer neurons
+H_BASELINE = 128  # number of hidden layer neurons
 
 D = env.observation_space.shape[0]
 Out = env.action_space.shape[0]
@@ -43,12 +44,11 @@ W1 = tf.get_variable("W1", shape=[D, H],
 # layer1 = tf.matmul(observations, W1)
 layer1 = tf.nn.relu(tf.matmul(observations, W1))
 W2 = tf.get_variable("W2", shape=[H, Out],
-                     initializer=tf.truncated_normal_initializer(
-                         stddev=0.01))
+                     initializer=tf.truncated_normal_initializer(stddev=0.01))
 W3 = tf.get_variable("W3", shape=[H, Out],
-                     initializer=tf.truncated_normal_initializer(
-                         mean=0, stddev=0.01))
-score = tf.concat(1, [tf.matmul(layer1, W2), tf.matmul(layer1, W3)])
+                     initializer=tf.truncated_normal_initializer(mean=0,
+                                                                 stddev=0.01))
+output = tf.concat(1, [tf.matmul(layer1, W2), tf.matmul(layer1, W3)])
 
 # From here we define the parts of the network needed for learning a good
 # policy.
@@ -63,8 +63,8 @@ score_old = tf.placeholder(tf.float32, [None, Out * 2], name="score_old")
 # didn't less likely.
 # Log likelihood: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
 # #Likelihood_function
-means = score[0][:Out]
-log_stds = score[0][Out:]
+means = output[0][:Out]
+log_stds = output[0][Out:]
 zs = (input_y - means) / tf.exp(log_stds)
 loglik_new = - tf.reduce_sum(log_stds,
                              reduction_indices=-1) - 0.5 * tf.reduce_sum(
@@ -97,20 +97,48 @@ updateGrads = adam.apply_gradients(zip(batchGrad, tvars))
 
 # TODO(cathywu) function approximator for V(s) baseline
 Q_hats = tf.placeholder(tf.float32, [None, 1], name="Q_hats")
-baseline_W1 = tf.get_variable("baseline_W1", shape=[D, H_BASELINE],
-                              initializer=tf.contrib.layers.xavier_initializer())
-baseline_layer1 = tf.matmul(observations, baseline_W1)
-baseline_W2 = tf.get_variable("baseline_W2", shape=[H_BASELINE, 1],
-                              initializer=tf.truncated_normal_initializer(
-                                  stddev=0.01))
-vBaseline = tf.matmul(baseline_layer1, baseline_W2)
-baseline_loss = -tf.reduce_sum(tf.square(vBaseline - Q_hats))
-# FIXME(cathywu) use of tvars here? Trainable variables?
-baseline_newGrads = tf.gradients(baseline_loss, tvars)
+# Batch normalization
+# with slim.arg_scope([slim.fully_connected], normalizer_fn=slim.batch_norm,
+#                     normalizer_params={"scale": True, "is_training": True}):
+bfc1 = slim.fully_connected(observations, H_BASELINE, scope="bfc1",
+                            activation_fn=tf.nn.relu)
+bfc2 = slim.fully_connected(bfc1, H_BASELINE, scope="bfc2",
+                            activation_fn=tf.nn.relu)
+bfc3 = slim.fully_connected(bfc2, H_BASELINE, scope="bfc3",
+                            activation_fn=tf.nn.relu)
+bfc4 = slim.fully_connected(bfc3, H_BASELINE, scope="bfc4",
+                            activation_fn=tf.nn.relu)
+vBaseline = slim.fully_connected(bfc4, 1, scope="vBaseline", activation_fn=None)
+baseline_loss = tf.reduce_mean(tf.square(vBaseline - Q_hats))
+
+global_step = tf.Variable(0, trainable=False)
+starter_learning_rate = 1e-2
+learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step,
+                                           100, 0.96, staircase=True)
+adam1 = tf.train.AdamOptimizer(learning_rate=learning_rate)
+train_op = adam1.minimize(baseline_loss, global_step=global_step)
 
 # TODO(cathywu) function approximator for \sum_i Q(s,-i) baseline
 # TODO(cathywu) How to programmatically generate tensors and refer to them?
-# aBaseline =
+actions = tf.placeholder(tf.float32, [None, Out], name="actions")
+obs_actions = tf.concat(1, [observations, actions])
+afc1 = slim.fully_connected(obs_actions, H_BASELINE, scope="afc1",
+                            activation_fn=tf.nn.relu)
+afc2 = slim.fully_connected(afc1, H_BASELINE, scope="afc2",
+                            activation_fn=tf.nn.relu)
+afc3 = slim.fully_connected(afc2, H_BASELINE, scope="afc3",
+                            activation_fn=tf.nn.relu)
+afc4 = slim.fully_connected(afc3, H_BASELINE, scope="afc4",
+                            activation_fn=tf.nn.relu)
+aBaseline = slim.fully_connected(afc4, 1, scope="aBaseline", activation_fn=None)
+abaseline_loss = tf.reduce_mean(tf.square(aBaseline - Q_hats))
+
+global_step = tf.Variable(0, trainable=False)
+starter_learning_rate = 1e-2
+learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step,
+                                           100, 0.96, staircase=True)
+adam2 = tf.train.AdamOptimizer(learning_rate=learning_rate)
+train_op2 = adam2.minimize(abaseline_loss, global_step=global_step)
 
 # Normalize the observations, important because the distribution of the
 # observations changes over time.
@@ -140,8 +168,8 @@ xs, hs, dlogps, drs, ys, tfps = [], [], [], [], [], []
 epxs, epys, discounted_eprs = [], [], []
 running_reward = None
 reward_sum = 0
-episode_number = 1
-total_episodes = 10000
+episode_number = 0
+total_episodes = 30000
 init = tf.global_variables_initializer()
 
 # Launch the graph
@@ -158,9 +186,9 @@ with tf.Session() as sess:
         gradBuffer[ix] = grad * 0
 
     x = (np.reshape(observation, [1, D]) - obs_mean) / obs_std
-    old_score = score.eval(feed_dict={observations: x})
+    old_score = output.eval(feed_dict={observations: x})
 
-    while episode_number <= total_episodes:
+    while episode_number < total_episodes:
 
         # Rendering the environment slows things down,
         # so let's only look at it once our agent is doing a good job.
@@ -173,7 +201,7 @@ with tf.Session() as sess:
         x = (np.reshape(observation, [1, D]) - obs_mean) / obs_std
 
         # Run the policy network and get an action to take.
-        tfscore = sess.run(score, feed_dict={observations: x})
+        tfscore = sess.run(output, feed_dict={observations: x})
         action = np.exp(tfscore[0][Out:]) * np.random.normal(size=Out) + \
                  tfscore[0][:Out]
         # print("Action:", tfscore[0][:Out], np.exp(tfscore[0][Out:]), action)
@@ -204,16 +232,16 @@ with tf.Session() as sess:
             discounted_epr = discount_rewards(epr)
 
             # Variance
-            variance = np.mean(np.sum(np.square(discounted_epr))) - np.square(
-                np.mean(discounted_epr))
+            # variance = np.mean(np.sum(np.square(discounted_epr))) - np.square(
+            #     np.mean(discounted_epr))
             # size the rewards to be unit normal (helps control the gradient
             #  estimator variance)
             discounted_epr -= np.mean(discounted_epr)
             discounted_epr /= np.std(discounted_epr)
 
-            variance_avgbaseline = np.mean(
-                np.sum(np.square(discounted_epr))) - np.square(
-                np.mean(discounted_epr))
+            # variance_avgbaseline = np.mean(
+            #     np.sum(np.square(discounted_epr))) - np.square(
+            #     np.mean(discounted_epr))
 
             # print("Variance: ", variance, variance_avgbaseline)
 
@@ -221,57 +249,55 @@ with tf.Session() as sess:
             epys.append(epy)
             discounted_eprs.append(discounted_epr)
 
-            # TODO(cathywu) Kill the rest of this chunk of code
-            # Get the gradient for this episode, and save it in the gradBuffer
-            tBlah0 = sess.run(loglik_new,
-                              feed_dict={observations: epx, input_y: epy,
-                                         advantages: discounted_epr,
-                                         score_old: old_score})
-            tBlah1 = sess.run(loglik_old,
-                              feed_dict={observations: epx, input_y: epy,
-                                         advantages: discounted_epr,
-                                         score_old: old_score})
-            tBlah2 = sess.run(likratio,
-                              feed_dict={observations: epx, input_y: epy,
-                                         advantages: discounted_epr,
-                                         score_old: old_score})
-            # print("Log likelihood ratio:", tBlah0, tBlah1, tBlah2)
-
-            # print(tLoglik_old[0], tLoglik_new[0])
-            tGrad = sess.run(newGrads,
-                             feed_dict={observations: epx, input_y: epy,
-                                        advantages: discounted_epr,
-                                        score_old: old_score})
-            for ix, grad in enumerate(tGrad):
-                gradBuffer[ix] += grad
-
-            # TODO(cathywu) (intermediate) collect Q_hat values (and everything
-            # else) for a bunch of rollouts, then compute the gradients with
-            # all the information together.
-
             # If we have completed enough episodes, then update the policy
             # network with our gradients.
             if episode_number % batch_size == 0:
                 batch_Qhats = np.vstack(discounted_eprs)
                 batch_obs = np.vstack(epxs)
                 batch_actions = np.vstack(epys)
+                n_obs = batch_obs.shape[0]
+
+                # perm = np.random.permutation(n_obs)
+                # batch_Qhats = batch_Qhats[perm]
+                # batch_obs = batch_obs[perm]
+
                 # TODO(cathywu) compute V(s) here using Q_hat, s
+                # Our optimizer
+                for i in range(150):
+                    for j in range(int(n_obs / 100)):
+                        sess.run([train_op], feed_dict={
+                            observations: batch_obs[j * 100:j * 100 + 100],
+                            Q_hats: batch_Qhats[j * 100:j * 100 + 100]})
 
+                    (tvBaseline, tbaseline_loss) = sess.run(
+                        [vBaseline, baseline_loss],
+                        feed_dict={observations: batch_obs,
+                                   Q_hats: batch_Qhats})
+                    print("Loss:", i, batch_obs.shape, tbaseline_loss)
 
+                batch_Qhats_vBaseline = batch_Qhats - tvBaseline
+                variance = np.mean(
+                    np.sum(np.square(batch_Qhats))) - np.square(
+                    np.mean(batch_Qhats))
+                variance_vbaseline = np.mean(
+                    np.sum(np.square(batch_Qhats_vBaseline))) - np.square(
+                    np.mean(batch_Qhats_vBaseline))
+                print(
+                "Variance", variance, variance_vbaseline)
 
                 # TODO(cathywu) compute \sum_i Q(s,-i) here using Q_hat, s, -i
 
                 # Get the gradient for each episode, and save it in the
                 # gradBuffer
                 # TODO(cathywu) compute gradients here
-                # for epx, epy, discounted_epr in zip(epxs, epys,
-                #                                     discounted_eprs):
-                #     tGrad = sess.run(newGrads,
-                #                      feed_dict={observations: epx, input_y: epy,
-                #                                 advantages: discounted_epr,
-                #                                 score_old: old_score})
-                #     for ix, grad in enumerate(tGrad):
-                #         gradBuffer[ix] += grad
+                for epx, epy, discounted_epr in zip(epxs, epys,
+                                                    discounted_eprs):
+                    tGrad = sess.run(newGrads,
+                                     feed_dict={observations: epx, input_y: epy,
+                                                advantages: discounted_epr,
+                                                score_old: old_score})
+                    for ix, grad in enumerate(tGrad):
+                        gradBuffer[ix] += grad
 
                 # TODO(cathywu) compute gradients with V baseline
 
@@ -280,7 +306,7 @@ with tf.Session() as sess:
                 sess.run(updateGrads, feed_dict={W1Grad: gradBuffer[0],
                                                  W2Grad: gradBuffer[1],
                                                  W3Grad: gradBuffer[2]})
-                old_score = score.eval(feed_dict={observations: x})
+                old_score = output.eval(feed_dict={observations: x})
 
                 # Clear buffers and temporary batch storage lists
                 epxs, epys, discounted_eprs = [], [], []
