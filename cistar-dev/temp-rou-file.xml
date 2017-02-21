@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+  <vType id="rl"/>
+  <vehicle id="rl_0" type="rl" route="routebottom" depart="0" departSpeed="0" color="1,0.0,0.0"/>
+  <vehicle id="rl_1" type="rl" route="routeright" depart="0" departSpeed="0" color="1,0.0,0.0"/>
+  <vehicle id="rl_2" type="rl" route="routetop" depart="0" departSpeed="0" color="1,0.0,0.0"/>
+  <vehicle id="rl_3" type="rl" route="routeleft" depart="0" departSpeed="0" color="1,0.0,0.0"/>
+  <vehicle id="rl_3" type="rl" route="routeleft" depart="0" departSpeed="0" color="1,0.0,0.0"/>
+
+
+</routes>

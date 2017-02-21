@@ -10,6 +10,8 @@ input_folder_80 = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data" \
 # this one is for the US 101 data
 input_folder_101= "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM" \
             "/US-101/vehicle-trajectory-data"
+input_folder_80_proto = "/Users/eugenevinitsky/Box Sync/Research" \
+            "/Bayen/Data/NGSIM/I-80prototype/vehicle-trajectory-data"
 output_folder = "/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/" \
             "NGSIM-Processed"
 disappear_suffix = "_disappear_headway.txt"
@@ -85,6 +87,23 @@ def read_processed_data_101():
 
     return pm_750, pm_805, pm_820
 
+# This reads in the data for I 80 prototype
+def read_data_80_proto():
+    global input_folder
+
+    pm_230 = np.loadtxt(input_folder_80_proto + 
+                        "/headwayadded-trajectory.txt")
+
+    return pm_230
+
+def read_processed_data_80_proto():
+    global output_folder
+
+    pm_230 = np.loadtxt(output_folder+"/230-Processed.txt", delimiter=',',
+                      skiprows=1)
+
+    return pm_230
+
 
 ''' Outputs a text file containing only the cars, so no motorcycles
 or trucks. We also only extract the left three lanes
@@ -108,7 +127,7 @@ def extract_cars(data_set, file_name):
     for i in range(data_set.shape[0]):
         lane_id = data_set[i, 13]
         # check that we are in the left 3 lanes and that we have a car
-        if ((data_set[i, 10] == 2) and
+        if (((data_set[i, 10] == 2) or data_set[i,10]=='Auto') and
                 (lane_id == 1 or lane_id == 2 or lane_id == 3)):
 
             f.write('{0}, {1}, {2}, {3}, {4}, {5}, {6},'
@@ -216,6 +235,7 @@ def lane_change_via_width(data_set, file_prefix):
 
     # now we have the frame and the cars whose headways we want
     # Write the headways to file to make this easier
+    print 'size of lane changes is {0}'.format(lc_start.shape[0])
     f = open(output_folder + '/' + file_prefix + disappear_suffix, 'w')
     for i in range(lc_start.shape[0]):
         if int(lc_start[i, 1]) != 0:
@@ -233,6 +253,7 @@ def lane_change_via_width(data_set, file_prefix):
     # the other lane, when the lane change began
     # we use lc_indexes to find the line with the frame when
     # the lane change started and the new following vehicles
+    print 'size of lane changes is {0}'.format(lc_start.shape[0])
     f = open(output_folder + '/' + file_prefix + appear_suffix, 'w')
     for i in range(lc_start.shape[0]):
         for j in range(data_set.shape[0]):
@@ -449,7 +470,7 @@ def plot_headways(file_prefix, l_cutoff = 1, u_cutoff = 400):
         # filter
     headways = headways[np.where(headways < u_cutoff)]
     headways = headways[np.where(headways > l_cutoff)]
-    n, bins, patches = plt.hist(headways, bins='auto')
+    n, bins, patches = plt.hist(headways, bins='auto', normed='True')
     plt.show()
     return (n, bins)
 
@@ -527,14 +548,31 @@ def normalized_distribution(data_set, bin_number, u_cutoff=400, l_cutoff=0):
 ''' Takes a set of headway and the name of a distribution and fits
     it over the normalized histogram '''
 def headway_fitting(headway, dist_name, u_cutoff, l_cutoff):
+    # set up the figure
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.hist(headway, bins='auto', normed=True, alpha=0.2)
     dist = getattr(scipy.stats, dist_name)
-    param = dist.fit(headway)
-    x = np.linspace(l_cutoff, u_cutoff, 100)
+
+    param = [0, 0, 0]
+    # do the fit manually for lognorm distributions
+    if dist_name == 'lognorm':
+        log_h = np.log(headway)
+        param[0] = log_h.std(ddof=0)
+        param[1] = 0 
+        param[2] = np.exp(log_h.mean())
+    else:
+        param = dist.fit(headway)
+
+    # get the space over which we should plot
+    xt = plt.xticks()[0]  
+    xmin, xmax = min(xt), max(xt)  
+    x = np.linspace(xmin, xmax, 100)  
+
+    #plot  
     if len(param) == 3: 
-        ax.plot(x, dist.pdf(x, param[0], loc=param[1], scale=param[2]), 'r--')
+        ax.plot(x, dist.pdf(x, *param[:-2], loc=0, 
+                scale=param[-1]), 'r--')
     else:
         ax.plot(x, dist.pdf(x, loc=param[0], scale=param[1]), 'r--')
 
@@ -561,7 +599,7 @@ def fit_dist(file_prefix, dist_name,
     s1 = headway_fitting(headways, dist_name, u_cutoff, l_cutoff)
     # are these distributions the same via kolmogorov smirnov
     print headways.shape
-    print scipy.stats.kstest(headways, dist_name, s1)
+    print scipy.stats.kstest(headways, dist_name, args=s1)
 
     plt.show()
 
@@ -589,15 +627,25 @@ def compare_with_total_headway(data_set, headways, dist_name,
             total_headways.append(data_set[i, 9])
 
     #ks statistics
+    print 'the ks_statistic comparing total headway to lane change headway is' 
     print scipy.stats.ks_2samp(headways, total_headways)
 
-    pdb.set_trace()
     #fit total and compare
     s2 = headway_fitting(total_headways, dist_name, u_cutoff, l_cutoff)
     print scipy.stats.kstest(total_headways, dist_name, s2)
     print s1, s2
 
     plt.show()
+
+
+''' Computes a lognormal fit without using scipy as a check'''
+def lognfit(file_prefix):
+    headways = np.loadtxt(output_folder + '/' + 
+                        file_prefix)
+    log_h = np.log(headways)
+    mu = log_h.mean()
+    sig = log_h.std(ddof=0)
+    print mu, sig
 
 
 ''' computes the variance of the headways in the file 
@@ -613,6 +661,26 @@ def compute_variance(file_name, u_cutoff = 400, l_cutoff = 1):
     print 'the mean is {0}'.format(np.mean(headways))
 
 
+''' Performs a z-test on data that is assumed to be log-normal
+PARAMETERS: filename_headway: filename of a set of headways at lane changes
+            filename_total: filename of the total set of headways
+Returns the 2-sided p-value. '''
+def ztest_lognormal(filename_headway, filename_total):
+    data1 = np.log(np.loadtxt(filename1, ','))
+    data2 = np.log(np.loadtxt(filename2, ','))
+    total_headways = []
+    for i in range(data2.shape[0]):
+        if (int(data2[i, 9]) != 0 and data2[i, 9] < u_cutoff and
+            data2[i, 9] > l_cutoff):
+            total_headways.append(data2[i, 9])
+    headway_mean = np.mean(data1)
+    tot_mean = np.mean(total_headways)
+    headway_var = np.var(data1)/data1.shape[0]
+    tot_var = np.var(total_headways)/total_headways.shape[0]
+    z = (headway_mean - tot_mean)/np.sqrt(tot_var + headway_var)
+    pval = 2*(norm.sf(abs(z)))
+    print pval
+
 if __name__ == '__main__':
     # pm_4, pm_5, pm_515 = read_data_80()
     # extract_cars(pm_4, '/4-415-Processed.txt')
@@ -624,18 +692,26 @@ if __name__ == '__main__':
     # extract_cars(pm_805, '/805-Processed.txt')
     # extract_cars(pm_820, '/820-Processed.txt')
     # pm_750, pm_805, pm_820 = read_processed_data_101()
+    # pm_230 = read_data_80_proto()
+    # extract_cars(pm_230, '/230-Processed.txt')
+    pm_230 = read_processed_data_80_proto()
+    # lane_change_via_width(pm_230, 'pm_230')
     # lane_change_in_headway(pm_5)
     # lane_change_via_width(pm_4, 'pm_4')
     # lane_change_via_width(pm_5, 'pm_5')
     # lane_change_via_width(pm_515, 'pm_515')
 
-    # plot_headways(pm_750)
     # normalized_distribution(pm_515, 10, l_cutoff=10, u_cutoff=120)
-    #fit_dist('pm_5'+appear_suffix, 'lognorm', 
-    #         0, u_cutoff=400, l_cutoff=1)
-    # headways = np.loadtxt(output_folder + '/' + 
-    #                      'pm_515'+ appear_suffix)
-    # compare_with_total_headway(pm_515, headways, 'lognorm', 400, 1)
-    #plot_headways('pm_750'+ appear_suffix, u_cutoff = 400)
-    compute_variance(output_folder + '/pm_820' + disappear_suffix, 
-                     u_cutoff = 200)
+    file_set = 'pm_230'
+    h_string = file_set + disappear_suffix
+    dist = 'lognorm'
+    # lognfit(h_string)
+    # plot_headways(h_string, u_cutoff = 400)
+    # fit_dist(h_string, dist, 0, u_cutoff=400, l_cutoff=1)
+    # pdb.set_trace()
+    # headways = np.loadtxt(output_folder + '/' + h_string)
+    # compare_with_total_headway(pm_230, headways, dist, 400, 1)
+    # compute_variance(output_folder + '/pm_820' + disappear_suffix, 
+    #                 u_cutoff = 200)
+    ztest_lognormal(output_folder+ h_string, 
+                    output_folder + '/230-Processed.txt')
