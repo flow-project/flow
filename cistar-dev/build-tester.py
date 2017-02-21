@@ -14,22 +14,23 @@ from rllab.misc.instrument import stub, run_experiment_lite
 
 logging.basicConfig(level=logging.WARNING)
 
-num_cars = 12
+tot_cars = 12
 
 auton_cars = 2
+human_cars = tot_cars - auton_cars
 
 sumo_params = {"port": 8873}
 
 sumo_binary = "sumo"
 
 # type_params = {"bcm-15": (10, make_better_cfm(v_des = 15, k_c=2.0)), "bcm-10": (7, make_better_cfm(v_des = 10, k_c=2.0))}
-type_params = {"bcm-15": (num_cars, make_better_cfm(v_des = 15, k_c = 2.0))}
+type_params = {"rl":(auton_cars, None), "bcm-15": (human_cars, make_better_cfm(v_des = 15, k_c = 2.0))}
 
 env_params = {"target_velocity": 25}
 
 net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 4, "net_path":"leah/net/"}
 
-cfg_params = {"type_list": ["rl"], "start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/", "num_cars":num_cars, "type_counts":{"rl": auton_cars}, "use_flows":True, "period":"1"}
+cfg_params = {"type_list": ["rl"], "start_time": 0, "end_time":3000, "cfg_path":"leah/cfg/", "num_cars":tot_cars, "type_counts":{"rl": auton_cars}, "use_flows":True, "period":"1"}
 
 initial_positions = [("top", 0), ("top", 70), ("top", 140), \
                     ("left", 0), ("left", 70), ("left", 140), \
@@ -37,7 +38,7 @@ initial_positions = [("top", 0), ("top", 70), ("top", 140), \
                     ("right", 0), ("right", 70), ("right", 140)]
 initial_config = {"positions": initial_positions, "shuffle": False}
 
-scenario = LoopScenario("test-exp", num_cars, type_params, cfg_params, net_params, initial_config=initial_config, generator_class=CircleGenerator)
+scenario = LoopScenario("test-exp", tot_cars, type_params, cfg_params, net_params, initial_config=initial_config, generator_class=CircleGenerator)
 
 ##data path needs to be relative to cfg location
 
@@ -49,10 +50,10 @@ print("experiment initialized")
 
 env = normalize(exp.env)
 
-for seed in [1, 5, 10, 73, 56]:
+for seed in [1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(16,)
+        hidden_sizes=(32,32)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -80,7 +81,7 @@ for seed in [1, 5, 10, 73, 56]:
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="test-exp"
+        exp_prefix="leah-test-exp"
         # plot=True,
     )
 

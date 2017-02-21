@@ -180,7 +180,7 @@ class SumoEnvironment(Env):
             self.vehicles[car_id]["lane"] = traci.vehicle.getLaneIndex(car_id)
             self.vehicles[car_id]["speed"] = traci.vehicle.getSpeed(car_id)
 
-        self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.controlled_ids])
+        self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.ids])
         reward = self.compute_reward(self._state)
         next_observation = np.copy(self._state)
         return Step(observation=next_observation, reward=reward, done=False)
@@ -210,6 +210,10 @@ class SumoEnvironment(Env):
             self.vehicles[car_id]["position"] = traci.vehicle.getLanePosition(car_id)
             self.vehicles[car_id]["lane"] = traci.vehicle.getLaneIndex(car_id)
             self.vehicles[car_id]["speed"] = traci.vehicle.getSpeed(car_id)
+
+        self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.ids])
+        observation = np.copy(self._state)
+        return observation
 
     @property
     def action_space(self):

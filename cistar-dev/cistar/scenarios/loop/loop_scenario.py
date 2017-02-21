@@ -39,8 +39,6 @@ class LoopScenario(Scenario):
         if not cfg:
             self.cfg = self.generate()
 
-
-
     def get_edge(self, x):
         for (e, s) in self.edgestarts:
             if x >= s:
@@ -49,7 +47,6 @@ class LoopScenario(Scenario):
         return starte, startx
 
     def get_x(self, edge, position):
-        print(edge, position)
         for edge_tuple in self.edgestarts:
             if edge_tuple[0] == edge:
                 edge_start = edge_tuple[1]
