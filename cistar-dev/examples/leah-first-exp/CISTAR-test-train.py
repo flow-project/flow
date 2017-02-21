@@ -1,7 +1,7 @@
 import logging
 
 from cistar.core.exp import SumoExperiment
-from cistar.envs.velocity import SimpleVelocityEnvironment
+from cistar.envs.loop_velocity import SimpleVelocityEnvironment
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.envs.normalized_env import normalize

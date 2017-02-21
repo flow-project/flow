@@ -7,32 +7,30 @@ import numpy as np
 
 import subprocess, sys
 
+import copy
 import traci
 
 
 """
-This file contains methods for sumo++ interactions with rllab
-Most notably, it has the SumoEnvironment class, which serves as the environment
-that gets passed in to rllab's algorithm (it's basically an MDP)
+This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
+start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
+reset the simulation to an initial configuration.
 
-When defining a SumoEnvironment, one must still implement the action space,
-observation space, reward, etc. (properties of the MDP). This class is meant to
-serve as a parent.
+This class cannot be used as is, as you must extend it to implement an action applicator method, and
+properties to define the MDP if you choose to use it with RLLab.
 
 """
 
 
 class SumoEnvironment(Env):
 
-    def __init__(self,env_params, type_params, sumo_binary, sumo_params, scenario):
+    def __init__(self,env_params, sumo_binary, sumo_params, scenario):
         """
         Initialize the Sumo Environment, by starting SUMO, setting up TraCI and initializing vehicles
         Input
         -----
-        num_vehicles : total number of vehicles, RL and controller based
         env_params   : use this dictionary to pass in parameters relevant to the environment
-                     (i.e. shape, size of simulatiomn; constants for step functions, etc. )
-        type_params : dictionary of car -> (count, controller) assignments
+                     (i.e. target velocities, constants for step function)
         sumo_binary : SUMO library to start
         sumo_params : port, config file, out, error etc.
 
@@ -49,12 +47,11 @@ class SumoEnvironment(Env):
         self.num_vehicles = scenario.num_vehicles
         self.num_rl_vehicles = scenario.num_rl_vehicles
         self.env_params = env_params
-        self.type_params = type_params
+        self.type_params = scenario.type_params
         self.sumo_binary = sumo_binary
         self.scenario = scenario
         self.initial_state = {}
         self.vehicles = {}
-
 
         if "port" not in sumo_params:
             raise ValueError("SUMO port not defined")
@@ -63,14 +60,10 @@ class SumoEnvironment(Env):
 
         self.cfg = scenario.cfg
 
-        # (could cause error, port occupied, should catch for exception)
-        # TODO: Catch sumo/traci errors
-        # TODO: Expand for start time, end time, step length
-
         logging.info(" Starting SUMO on port " + str(self.port) + "!")
         logging.debug(" Cfg file " +  str(self.cfg))
 
-        self.time_step = 0.1
+        self.time_step = 0.01
         if "time_step" in sumo_params:
             self.time_step = sumo_params["time_step"]
 
@@ -86,6 +79,7 @@ class SumoEnvironment(Env):
         self.controlled_ids = [i for i in self.ids if not traci.vehicle.getTypeID(i) == "rl"]
         self.rl_ids = [i for i in self.ids if traci.vehicle.getTypeID(i) == "rl"]
 
+
         for index, car_id in enumerate(self.ids):
             vehicle = {}
             vehicle["id"] = car_id
@@ -94,6 +88,7 @@ class SumoEnvironment(Env):
             vehicle["position"] = traci.vehicle.getLanePosition(car_id)
             vehicle["lane"] = traci.vehicle.getLaneIndex(car_id)
             vehicle["speed"] = traci.vehicle.getSpeed(car_id)
+            vehicle["length"] = traci.vehicle.getLength(car_id)
             self.vehicles[car_id] = vehicle
             traci.vehicle.setSpeedMode(car_id, 0)
 
@@ -172,6 +167,8 @@ class SumoEnvironment(Env):
             self.apply_action(car_id, action=action)
 
         traci.simulationStep()
+
+        self.last_step = copy.deepcopy(self.vehicles)
 
         for index, car_id in enumerate(self.ids):
             self.vehicles[car_id]["type"] = traci.vehicle.getTypeID(car_id)

@@ -1,25 +1,18 @@
 import logging
 
 from cistar.core.exp import SumoExperiment
-from cistar.envs.velocity import SimpleVelocityEnvironment
-from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.envs.loop_velocity import SimpleVelocityEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.car_following_models import *
+from cistar.controllers.velocity_controllers import *
 
-from rllab.algos.trpo import TRPO
-from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from rllab.envs.normalized_env import normalize
-from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
-from rllab.misc.instrument import stub, run_experiment_lite
-
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
 tot_cars = 12
 
 auton_cars = 2
 human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873}
+sumo_params = {"port": 8873, "time_step":0.1}
 
 sumo_binary = "sumo"
 
@@ -28,9 +21,9 @@ type_params = {"rl":(auton_cars, None), "bcm-15": (human_cars, make_better_cfm(v
 
 env_params = {"target_velocity": 25}
 
-net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 4, "net_path":"leah/net/"}
+net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
-cfg_params = {"type_list": ["rl"], "start_time": 0, "end_time":3000, "cfg_path":"leah/cfg/", "num_cars":tot_cars, "type_counts":{"rl": auton_cars}, "use_flows":True, "period":"1"}
+cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"leah/cfg/"}
 
 initial_positions = [("top", 0), ("top", 70), ("top", 140), \
                     ("left", 0), ("left", 70), ("left", 140), \
@@ -39,8 +32,6 @@ initial_positions = [("top", 0), ("top", 70), ("top", 140), \
 initial_config = {"positions": initial_positions, "shuffle": False}
 
 scenario = LoopScenario("test-exp", tot_cars, type_params, cfg_params, net_params, initial_config=initial_config, generator_class=CircleGenerator)
-
-##data path needs to be relative to cfg location
 
 exp = SumoExperiment(SimpleVelocityEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
@@ -85,16 +76,4 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         # plot=True,
     )
 
-# for _ in range(100):
-#     exp.env.step([25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25])
-# for _ in range(20):
-#     exp.env.step(
-#         [25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25,
-#          25, 25, 25, 25])
-# exp.env.reset()
-# for _ in range(10):
-#     exp.env.step(
-#         [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
-#          15, 15, 15, 15])
-
-# exp.env.terminate()
+exp.env.terminate()

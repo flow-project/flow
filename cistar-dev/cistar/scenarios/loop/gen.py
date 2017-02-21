@@ -27,7 +27,6 @@ class CircleGenerator(Generator):
 
     """
     def generate_net(self, params):
-
         length = params["length"]
         lanes = params["lanes"]
         speed_limit = params["speed_limit"]
@@ -93,7 +92,6 @@ class CircleGenerator(Generator):
         retcode = subprocess.call(
             ["netconvert -c " + self.net_path + cfgfn + " --output-file=" + self.cfg_path + netfn],
             stdout=sys.stdout, stderr=sys.stderr, shell=True)
-        print(retcode)
         self.netfn = netfn
 
         return self.net_path + netfn
@@ -174,7 +172,7 @@ class CircleGenerator(Generator):
         if type_list:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
-                routes.append(E("vType", id=tp))
+                routes.append(E("vType", id=tp, minGap="0"))
 
             vehicle_ids = []
             if num_cars > 0:
