@@ -52,6 +52,7 @@ class SumoEnvironment(Env):
         self.scenario = scenario
         self.initial_state = {}
         self.vehicles = {}
+        self.timer = 0
 
         if "port" not in sumo_params:
             raise ValueError("SUMO port not defined")
@@ -89,6 +90,7 @@ class SumoEnvironment(Env):
             vehicle["lane"] = traci.vehicle.getLaneIndex(car_id)
             vehicle["speed"] = traci.vehicle.getSpeed(car_id)
             vehicle["length"] = traci.vehicle.getLength(car_id)
+            vehicle["max_speed"] = traci.vehicle.getMaxSpeed(car_id)
             self.vehicles[car_id] = vehicle
             traci.vehicle.setSpeedMode(car_id, 0)
 
@@ -167,6 +169,16 @@ class SumoEnvironment(Env):
             self.apply_action(car_id, action=action)
 
         traci.simulationStep()
+        self.timer += 1
+        # if it's been long enough
+        # try and change lanes
+        if self.timer == 80:
+            print(' ')
+            print(' ')
+            self.timer = 0
+            for car_id in self.controlled_ids:
+                car_type = traci.vehicle.getTypeID(car_id)
+                self.type_params[car_type][2](car_id, self)
 
         self.last_step = copy.deepcopy(self.vehicles)
 

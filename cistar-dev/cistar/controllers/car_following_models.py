@@ -17,7 +17,6 @@ def makecfm(k_d=1, k_v=1, s=1, max_accel=3.5):
         thisPos = env.get_x_by_id(carID)
         thisVel = env.vehicles[carID]['speed']
 
-
         headway = (leadPos - leadLength - thisPos) % env.scenario.length
 
         acc = k_d*(headway - s) + k_v*(leadVel - thisVel)

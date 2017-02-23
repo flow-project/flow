@@ -34,27 +34,34 @@ class SimpleVelocityEnvironment(SumoEnvironment):
     def get_x_by_id(self, id):
         return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])
 
-    def get_leading_car(self, id):
-        target_pos = self.get_x_by_id(id)
+    def get_leading_car(self, car_id, lane = None):
+        target_pos = self.get_x_by_id(car_id)
 
         frontdists = []
         for i in self.ids:
-            if i != id:
+            if i != car_id:
                 c = self.vehicles[i]
-                distto = (self.get_x_by_id(i) - target_pos) % self.scenario.length
-                frontdists.append((c["id"], distto))
+                if lane is None or c['lane'] == lane:
+                    distto = (self.get_x_by_id(i) - target_pos) % self.scenario.length
+                    frontdists.append((c["id"], distto))
 
-        return min(frontdists, key=(lambda x:x[1]))[0]
+        if frontdists:
+            return min(frontdists, key=(lambda x:x[1]))[0]
+        else:
+            return None
 
-    def get_trailing_car(self, id):
-        target_pos = self.get_x_by_id(id)
+    def get_trailing_car(self, car_id, lane = None):
+        target_pos = self.get_x_by_id(car_id)
 
         backdists = []
         for i in self.ids:
-            if i != id:
+            if i != car_id:
                 c = self.vehicles[i]
-                distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
-                backdists.append((c["id"], distto))
+                if lane is None or c['lane'] == lane:
+                    distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
+                    backdists.append((c["id"], distto))
 
-        return min(backdists, key=(lambda x:x[1]))[0]
-
+        if backdists:
+            return min(backdists, key=(lambda x:x[1]))[0]
+        else:
+            return None
