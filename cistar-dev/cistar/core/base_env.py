@@ -7,6 +7,8 @@ import numpy as np
 
 import subprocess, sys
 
+import random
+
 import copy
 import traci
 
@@ -20,6 +22,8 @@ This class cannot be used as is, as you must extend it to implement an action ap
 properties to define the MDP if you choose to use it with RLLab.
 
 """
+
+COLORS = [(255,0,0,0),(0, 255,0,0),(0, 0, 255,0), (255, 255,0,0),(0, 255,255,0),(255, 0,255,0), (255, 255,255,0)]
 
 
 class SumoEnvironment(Env):
@@ -168,7 +172,6 @@ class SumoEnvironment(Env):
             action = rl_actions[index]
             self.apply_action(car_id, action=action)
 
-        traci.simulationStep()
         self.timer += 1
         # if it's been long enough
         # try and change lanes
@@ -178,9 +181,10 @@ class SumoEnvironment(Env):
             self.timer = 0
             for car_id in self.controlled_ids:
                 car_type = traci.vehicle.getTypeID(car_id)
-                self.type_params[car_type][2](car_id, self)
+                newlane = self.type_params[car_type][2](car_id, self)
+                traci.vehicle.changeLane(car_id, newlane, 10000)
 
-        self.last_step = copy.deepcopy(self.vehicles)
+        traci.simulationStep()
 
         for index, car_id in enumerate(self.ids):
             self.vehicles[car_id]["type"] = traci.vehicle.getTypeID(car_id)
@@ -189,10 +193,18 @@ class SumoEnvironment(Env):
             self.vehicles[car_id]["lane"] = traci.vehicle.getLaneIndex(car_id)
             self.vehicles[car_id]["speed"] = traci.vehicle.getSpeed(car_id)
 
-        self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.ids])
+        self._state = self.getState()
         reward = self.compute_reward(self._state)
         next_observation = np.copy(self._state)
         return Step(observation=next_observation, reward=reward, done=False)
+
+    def getState(self):
+        """
+        returns the state of the simulation, can change based on RL input.
+        :return:
+        """
+        raise NotImplementedError
+
 
     def reset(self):
         """
@@ -201,7 +213,7 @@ class SumoEnvironment(Env):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-
+        color = random.sample(COLORS, 1)[0]
         for car_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[car_id]
 
@@ -209,7 +221,7 @@ class SumoEnvironment(Env):
             traci.vehicle.remove(car_id)
             traci.vehicle.addFull(car_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
-
+            traci.vehicle.setColor(car_id, color)
         traci.simulationStep()
 
         for index, car_id in enumerate(self.ids):
@@ -222,6 +234,7 @@ class SumoEnvironment(Env):
 
         self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.ids])
         observation = np.copy(self._state)
+
         return observation
 
     @property

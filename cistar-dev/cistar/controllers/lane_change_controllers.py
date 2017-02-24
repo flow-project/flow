@@ -2,6 +2,14 @@ import numpy as np
 import random
 import traci
 
+def never_change_lanes_controller():
+
+    def controller(carID, env):
+        return env.vehicles[carID]["lane"]
+
+    return controller
+
+
 def stochastic_lane_changer(speedThreshold = 5, prob = 0.5,
                             dxBack = 0, dxForward = 60,
                             gapBack = 10, gapForward = 5):
@@ -16,8 +24,6 @@ def stochastic_lane_changer(speedThreshold = 5, prob = 0.5,
     :return: carFn to input to a carParams
     """
     def controller(carID, env):
-        print('tryna change lanes', carID)
-
         num_lanes = env.scenario.lanes
         v = [0] * env.scenario.lanes
         for lane in range(num_lanes):
@@ -48,7 +54,6 @@ def stochastic_lane_changer(speedThreshold = 5, prob = 0.5,
             # but then why is there setting v[lane] to 0? too packed to merge
 
             other_car_ids = env.get_cars(carID, dxBack = dxBack, dxForward = dxForward, lane = lane)
-            print(len(other_car_ids))
 
             if len(other_car_ids) > 0:
                 v[lane] = np.mean([env.vehicles[other_id]["speed"] for other_id in other_car_ids])
@@ -61,6 +66,7 @@ def stochastic_lane_changer(speedThreshold = 5, prob = 0.5,
         if maxl != env.vehicles[carID]['lane'] and \
            (maxv - myv) > speedThreshold and \
            random.random() < prob:
-            traci.vehicle.changeLane(carID, maxl, 10000)
+           return maxl
+        return env.vehicles[carID]['lane']
 
     return controller

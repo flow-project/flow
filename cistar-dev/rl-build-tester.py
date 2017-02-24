@@ -13,18 +13,18 @@ from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
-tot_cars = 12
+tot_cars = 1
 
-auton_cars = 2
+auton_cars = 1
 human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873, "time_step":0.1}
+sumo_params = {"port": 8873, "time_step":1.0}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
-type_params = {"rl":(auton_cars, None), "bcm-15": (human_cars, make_better_cfm(v_des = 15, k_c = 2.0))}
+type_params = {"rl":(auton_cars, None)}
 
-env_params = {"target_velocity": 25}
+env_params = {"target_velocity": 8}
 
 net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
@@ -62,8 +62,8 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=2000,
-        max_path_length=400,
+        batch_size=200,
+        max_path_length=30,
         # whole_paths=True,
         n_itr=1500,
         # discount=0.99,

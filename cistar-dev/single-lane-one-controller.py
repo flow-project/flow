@@ -8,15 +8,15 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step":0.1}
+sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
-type_params = {"cfm_slow": (10, make_better_cfm(v_des=8), stochastic_lane_changer(prob=0.5))}
+type_params = {"cfm_slow": (5, make_better_cfm(v_des=8), never_change_lanes_controller())}
 
 env_params = {"target_velocity": 25}
 
-net_params = {"length": 200, "lanes": 2, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
+net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
 
@@ -30,6 +30,6 @@ exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sum
 
 logging.info("Experiment Set Up complete")
 
-exp.run(150, 1000)
+exp.run(400, 1000)
 
 exp.env.terminate()
