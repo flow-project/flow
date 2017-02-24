@@ -66,9 +66,9 @@ class SumoEnvironment(Env):
         self.cfg = scenario.cfg
 
         logging.info(" Starting SUMO on port " + str(self.port) + "!")
-        logging.debug(" Cfg file " +  str(self.cfg))
+        logging.debug(" Cfg file " + str(self.cfg))
 
-        self.time_step = 0.01
+        self.time_step = 0.01  # Default time step
         if "time_step" in sumo_params:
             self.time_step = sumo_params["time_step"]
 
