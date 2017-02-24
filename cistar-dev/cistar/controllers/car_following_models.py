@@ -72,6 +72,8 @@ def make_jank_cfm(k_d=1, k_v=1, s=1):
 def make_better_cfm(k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15):
     # k_d = proportional gain
     # k_v = derivative gain
+    # v_des = desired velociy
+    # acc_max = max acceleration
     # s = safe distance
 
     def cfm(carID, env):

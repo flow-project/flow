@@ -1,4 +1,4 @@
-from cistar.core.base_env import SumoEnvironment
+from cistar.envs.loop import LoopEnvironment
 
 from rllab.spaces import Box
 
@@ -8,7 +8,7 @@ import numpy as np
 
 
 
-class SimpleVelocityEnvironment(SumoEnvironment):
+class SimpleVelocityEnvironment(LoopEnvironment):
 
     @property
     def action_space(self):
@@ -27,41 +27,3 @@ class SimpleVelocityEnvironment(SumoEnvironment):
 
     def render(self):
         pass
-
-    def get_last_x_by_id(self, id):
-        return self.scenario.get_x(self.last_step[id]["edge"], self.last_step[id]["position"])
-
-    def get_x_by_id(self, id):
-        return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])
-
-    def get_leading_car(self, car_id, lane = None):
-        target_pos = self.get_x_by_id(car_id)
-
-        frontdists = []
-        for i in self.ids:
-            if i != car_id:
-                c = self.vehicles[i]
-                if lane is None or c['lane'] == lane:
-                    distto = (self.get_x_by_id(i) - target_pos) % self.scenario.length
-                    frontdists.append((c["id"], distto))
-
-        if frontdists:
-            return min(frontdists, key=(lambda x:x[1]))[0]
-        else:
-            return None
-
-    def get_trailing_car(self, car_id, lane = None):
-        target_pos = self.get_x_by_id(car_id)
-
-        backdists = []
-        for i in self.ids:
-            if i != car_id:
-                c = self.vehicles[i]
-                if lane is None or c['lane'] == lane:
-                    distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
-                    backdists.append((c["id"], distto))
-
-        if backdists:
-            return min(backdists, key=(lambda x:x[1]))[0]
-        else:
-            return None

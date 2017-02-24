@@ -1,9 +1,15 @@
 import logging
 
+from rllab.envs.normalized_env import normalize
+from rllab.misc.instrument import run_experiment_lite
+from rllab.algos.trpo import TRPO
+from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
+from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+
 from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_velocity import SimpleVelocityEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.velocity_controllers import *
+from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -16,7 +22,6 @@ sumo_params = {"port": 8873, "time_step":0.1}
 
 sumo_binary = "sumo"
 
-# type_params = {"bcm-15": (10, make_better_cfm(v_des = 15, k_c=2.0)), "bcm-10": (7, make_better_cfm(v_des = 10, k_c=2.0))}
 type_params = {"rl":(auton_cars, None), "bcm-15": (human_cars, make_better_cfm(v_des = 15, k_c = 2.0))}
 
 env_params = {"target_velocity": 25}
@@ -25,13 +30,17 @@ net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "ne
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"leah/cfg/"}
 
-initial_positions = [("top", 0), ("top", 70), ("top", 140), \
-                    ("left", 0), ("left", 70), ("left", 140), \
-                    ("bottom", 0), ("bottom", 70), ("bottom", 140), \
-                    ("right", 0), ("right", 70), ("right", 140)]
-initial_config = {"positions": initial_positions, "shuffle": False}
 
-scenario = LoopScenario("test-exp", tot_cars, type_params, cfg_params, net_params, initial_config=initial_config, generator_class=CircleGenerator)
+# initial_positions = [("top", 0), ("top", 70), ("top", 140), \
+#                     ("left", 0), ("left", 70), ("left", 140), \
+#                     ("bottom", 0), ("bottom", 70), ("bottom", 140), \
+#                     ("right", 0), ("right", 70), ("right", 140)]
+
+
+
+initial_config = {"shuffle": False}
+
+scenario = LoopScenario("test-exp", type_params, net_params, cfg_params)#, initial_config=initial_config)
 
 exp = SumoExperiment(SimpleVelocityEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
