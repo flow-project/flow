@@ -52,4 +52,5 @@ Implemented car following models:
 
 Lane changing models:
 
+- No lane changing
 - Stochastic lane changer
