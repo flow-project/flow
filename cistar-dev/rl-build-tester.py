@@ -18,9 +18,9 @@ tot_cars = 1
 auton_cars = 1
 human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873, "time_step":1.0}
+sumo_params = {"port": 8873, "time_step":0.001}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = {"rl":(auton_cars, None)}
 
@@ -63,9 +63,9 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         policy=policy,
         baseline=baseline,
         batch_size=200,
-        max_path_length=30,
+        max_path_length=100,
         # whole_paths=True,
-        n_itr=1500,
+        n_itr=150,
         # discount=0.99,
         # step_size=0.01,
     )

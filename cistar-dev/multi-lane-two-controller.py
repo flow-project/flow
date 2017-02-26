@@ -8,7 +8,7 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step":0.1}
+sumo_params = {"port": 8873, "time_step":1.0}
 
 sumo_binary = "sumo-gui"
 
@@ -30,6 +30,6 @@ exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sum
 
 logging.info("Experiment Set Up complete")
 
-exp.run(150, 1000)
+exp.run(150, 100)
 
 exp.env.terminate()
