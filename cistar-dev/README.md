@@ -34,12 +34,13 @@ Configuration (Cfg) Params:
 
 Vehicle Params:
 
+- Dictionary of car type tag -> (count, car following controller, lane changing controller) assignments, where controller is a method.
 - Specifies number of cars for each type
 - "Type" : (Number of cars, Car Following Model, Lane Changing Model)
 - "rl": No car following model, action determined by RL algorithm
 - All other types can have arbitrary names because their actions/updates are determined by the models (other functions in the tuple)
 - Suggestion: instead of having "rl" be specific, we could have it such that None or a RL HOF are recognized as "rl vehicles"; Other suggestion: specifying controlled_vehicle_params and rl_params
-
+- TODO(cathywu) include an example here
 
 ### Vehicle Params
 
