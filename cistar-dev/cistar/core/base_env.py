@@ -66,7 +66,7 @@ class SumoEnvironment(Env):
         cfg_file = self.scenario.cfg
         if "mode" in env_params and env_params["mode"] == "ec2":
             cfg_file = "/root/code/rllab/" + cfg_file
-        subprocess.Popen([self.sumo_binary, "-c", self.scenario.cfg, "--remote-port",
+        subprocess.Popen([self.sumo_binary, "-c", cfg_file, "--remote-port",
                                         str(sumo_params["port"]), "--step-length", str(self.time_step)], stdout=sys.stdout, stderr=sys.stderr)
 
         logging.debug(" Initializing TraCI on port " + str(sumo_params["port"]) + "!")
