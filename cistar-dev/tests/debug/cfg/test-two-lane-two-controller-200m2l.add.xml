@@ -2,8 +2,11 @@
 <additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
   <route edges="top left bottom right" id="routetop"/>
   <route edges="left bottom right top" id="routeleft"/>
-  <route edges="bottom right top left" id="routebottom"/>
   <route edges="right top left bottom" id="routeright"/>
+<<<<<<< HEAD
+=======
+  <route edges="bottom right top left" id="routebottom"/>
+>>>>>>> f63c990... added xml files to gitignore
   <rerouter edges="bottom" id="rerouterBottom">
     <interval begin="0" end="100000">
       <routeProbReroute id="routebottom"/>

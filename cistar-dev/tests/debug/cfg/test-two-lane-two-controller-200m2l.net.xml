@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<<<<<<< HEAD
 <!-- generated on Mon Feb 27 13:48:59 2017 by SUMO netconvert Version 0.29.0
+=======
+<!-- generated on Mon Feb 27 13:04:34 2017 by SUMO netconvert Version 0.29.0
+>>>>>>> f63c990... added xml files to gitignore
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">

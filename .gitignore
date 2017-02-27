@@ -88,4 +88,6 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# Don't add xml
+.xml
 .DS_Store
