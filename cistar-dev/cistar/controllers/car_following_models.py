@@ -15,7 +15,7 @@ Each controller includes functions
         old actions based on old states.
 """
 
-class CFMController:
+class CFMController(BaseController):
     """Basic car-following model. Only looks ahead.
     """
 
@@ -36,6 +36,8 @@ class CFMController:
             dt {number} -- [timestep] (default: {0.1})
         """
 
+        controller_params = {"delay": tau/dt, "max_deaccel": acc_max}
+        BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.k_d = k_d
         self.k_v = k_v
@@ -43,7 +45,6 @@ class CFMController:
         self.d_des = d_des
         self.v_des = v_des
         self.acc_max = acc_max
-        self.delay = tau/dt
         self.accel_queue = collections.deque()
 
     def get_action(self, env):
@@ -72,7 +73,7 @@ class CFMController:
     def reset_delay(self):
         self.accel_queue.clear()
 
-class BCMController:
+class BCMController(BaseController):
     """Bilateral car-following model. Looks ahead and behind.
     
     [description]
@@ -97,6 +98,8 @@ class BCMController:
             dt {number} -- [timestep] (default: {0.1})
         """
 
+        controller_params = {"delay": tau/dt, "max_deaccel": acc_max}
+        BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.k_d = k_d
         self.k_v = k_v
@@ -104,7 +107,6 @@ class BCMController:
         self.d_des = d_des
         self.v_des = v_des
         self.acc_max = acc_max
-        self.delay = tau/dt
         self.accel_queue = collections.deque()
 
     def get_action(self, env):
@@ -147,7 +149,7 @@ class BCMController:
     def reset_delay():
         self.accel_queue.clear()
 
-class OVMController:
+class OVMController(BaseController):
     """Optimal Vehicle Model, per Gabor
     
     [description]
@@ -173,6 +175,8 @@ class OVMController:
             dt {number} -- [timestep] (default: {0.1})
         """
 
+        controller_params = {"delay": tau/dt, "max_deaccel": deacc_max}
+        BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.alpha = alpha
         self.beta = beta
@@ -182,8 +186,6 @@ class OVMController:
         self.dt = dt
         self.tau = tau
         self.acc_max = acc_max
-        self.deacc_max = deacc_max
-        self.delay = tau/dt
         self.accel_queue = collections.deque()
 
     def get_action(self, env):

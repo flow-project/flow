@@ -15,21 +15,21 @@ class BaseController:
         Arguments:
             veh_id {string} -- ID of the vehicle this controller is used for
             controller_params {Dictionary} -- Dictionary that optionally 
-            contains 'tau', the delay, and must contain 
-            'max_accel', the maximum acceleration as well as all 
+            contains 'delay', the delay, and must contain 
+            'max_deaccel', the maximum deacceleration as well as all 
             other parameters that dictate the driving behavior. 
         """
         self.veh_id = veh_id
         self.controller_params = controller_params
-        if not controller_params['tau']:
-            self.tau = 0
+        if not controller_params['delay']:
+            self.delay = 0
         else:
-            self.tau = controller_params['tau']
-        self.max_accel = controller_params['max_accel']
-        self.acc_queue = collections.dequeue()  
+            self.delay = controller_params['delay']
+        self.max_deaccel = controller_params['max_deaccel']
+        self.acc_queue = collections.deque() 
 
-    def reset(self, env):
-        self.acc_queue.clear()
+    def reset_delay(self, env):
+        raise NotImplementedError
 
     def get_action(self, env):
         """ Returns the acceleration of the controller """
@@ -65,6 +65,6 @@ class BaseController:
         this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
 
-        d = (this_pos + lead_length) - lead_pos - np.power((lead_vel),2)/(2*self.max_accel)
-        v_safe = (-self.max_accel*self.tau + 
-                np.sqrt(self.max_accel)*np.sqrt(-2*d+self.max_accel*self.tau**2))
+        d = (this_pos + lead_length) - lead_pos - np.power((lead_vel),2)/(2*self.max_deaccel)
+        v_safe = (-self.max_deaccel*self.delay + 
+                np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))

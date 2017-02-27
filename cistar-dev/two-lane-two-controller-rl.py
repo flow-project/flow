@@ -9,7 +9,7 @@ from cistar.controllers.lane_change_controllers import *
 
 env_params = {"target_velocity" : 8}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 sumo_params = {"port" : 8873, "time_step" : 0.1}
 
