@@ -63,6 +63,9 @@ class SumoEnvironment(Env):
         logging.debug(" Cfg file " + str(self.scenario.cfg))
 
         # Opening the I/O thread to SUMO
+        cfg_file = self.scenario.cfg
+        if "mode" in env_params and env_params["mode"] == "ec2":
+            cfg_file = "/root/code/rllab/" + cfg_file
         subprocess.Popen([self.sumo_binary, "-c", self.scenario.cfg, "--remote-port",
                                         str(sumo_params["port"]), "--step-length", str(self.time_step)], stdout=sys.stdout, stderr=sys.stderr)
 
