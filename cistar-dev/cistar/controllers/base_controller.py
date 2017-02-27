@@ -37,9 +37,18 @@ class BaseController:
 
     def safe_action(self, env):
         """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
-        Prevents crashes. 
+        Checks if the computed acceleration would put us above safe velocity.
+        If it would, output the acceleration that would put at to safe velocity. 
         """
-        return min(self.get_action(env), self.safe_velocity(env))
+        safe_velocity = self.safe_velocity(env)
+        this_lane = env.vehicles[self.veh_id]['lane']
+        this_vel = env.vehicles[self.veh_id]['speed']
+        time_step = env.time_step 
+        if this_vel + self.get_action(env)*time_step > safe_velocity:
+            return (safe_velocity - this_vel)/time_step
+        else:
+            return self.get_action(env)
+
 
     def safe_velocity(self, env):
         """Finds maximum velocity such that if the lead vehicle breaks
