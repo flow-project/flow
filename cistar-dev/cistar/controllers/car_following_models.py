@@ -3,198 +3,221 @@ import math
 
 import collections
 
-def makecfm(k_d=1, k_v=1, s=1, max_accel=3.5):
-    # k_d = proportional gain
-    # k_v = derivative gain
-    # s = safe distance
+"""Contains a bunch of car-following control models for CISTAR.
+Controllers can have their output delayed by some duration.
+Each controller includes functions
+    get_action(self, env) -> acc
+        - using the current state of the world and existing parameters,
+        uses the control model to return a vehicle acceleration.
+    reset_delay(self) -> None
+        - clears the queue of acceleration outputs used to generate
+        delayed output. used when the experiment is reset to clear out 
+        old actions based on old states.
+"""
 
-    def cfm(carID, env):
-        leadID = env.get_leading_car(carID)
-        leadPos = env.get_x_by_id(leadID)
-        leadVel = env.vehicles[leadID]['speed']
-        leadLength = env.vehicles[leadID]['length']
+class CFMController:
+    """Basic car-following model. Only looks ahead.
+    """
 
-        thisPos = env.get_x_by_id(carID)
-        thisVel = env.vehicles[carID]['speed']
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15, tau = 0, dt = 0.1):
+        """Instantiates a CFM controller
+        
+        Arguments:
+            veh_id -- Vehicle ID for SUMO identification
+        
+        Keyword Arguments:
+            k_d {number} -- [headway gain] (default: {1})
+            k_v {number} -- [gain on difference between lead velocity and current] (default: {1})
+            k_c {number} -- [gain on difference from desired velocity to current] (default: {1})
+            d_des {number} -- [desired headway] (default: {1})
+            v_des {number} -- [desired velocity] (default: {8})
+            acc_max {number} -- [max acceleration] (default: {15})
+            tau {number} -- [time delay] (default: {0})
+            dt {number} -- [timestep] (default: {0.1})
+        """
 
-        headway = (leadPos - leadLength - thisPos) % env.scenario.length
+        self.veh_id = veh_id
+        self.k_d = k_d
+        self.k_v = k_v
+        self.k_c = k_c
+        self.d_des = d_des
+        self.v_des = v_des
+        self.acc_max = acc_max
+        self.delay = tau/dt
+        self.accel_queue = collections.deque()
 
-        acc = k_d*(headway - s) + k_v*(leadVel - thisVel)
+    def get_action(self, env):
+        this_lane = env.vehicles[self.veh_id]['lane']
 
-        return max(0, min(acc, max_accel))
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if not lead_id: # no car ahead
+            return self.acc_max
 
-    return cfm
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
 
-def make_delayed_cfm(k_d=1, k_v=1, s=7, max_accel=3.5, min_accel=-10.0, dt = .1, tau = 0):
-    accelQueue = collections.deque()
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
 
-    while len(accelQueue) <= (tau / dt):
-        accelQueue.appendleft(0)
+        d_l = (lead_pos - this_pos) % env.scenario.length
 
-    def cfm(carID, env):
+        acc = self.k_d*(d_l - self.d_des) + self.k_v*(lead_vel - this_vel) + self.k_c*(self.v_des - this_vel)
 
-        leadID = env.get_leading_car(carID)
-        leadPos = env.get_x_by_id(leadID)
-        leadVel = env.vehicles[leadID]['speed']
-        leadLength = env.vehicles[leadID]['length']
+        while len(self.accel_queue) <= self.delay:
+            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            self.accel_queue.appendleft(acc)
 
-        thisPos = env.get_x_by_id(carID)
-        thisVel = env.vehicles[carID]['speed']
+        return min(self.accel_queue.pop(), self.acc_max)
 
-        headway = (leadPos - leadLength - thisPos) % env.scenario.length
-        acc = k_d*(headway - s) + k_v*(leadVel - thisVel)
+    def reset_delay(self):
+        self.accel_queue.clear()
 
-        return max(min_accel, min(acc, max_accel))
+class BCMController:
+    """Bilateral car-following model. Looks ahead and behind.
+    
+    [description]
+    
+    Variables:
+    """
 
-    return cfm
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15, tau = 0, dt = 0.1):
+        """Instantiates a BCM controller
+        
+        Arguments:
+            veh_id -- Vehicle ID for SUMO identification
+        
+        Keyword Arguments:
+            k_d {number} -- [gain on distances to lead/following cars] (default: {1})
+            k_v {number} -- [gain on vehicle velocity differences] (default: {1})
+            k_c {number} -- [gain on difference from desired velocity to current] (default: {1})
+            d_des {number} -- [desired headway] (default: {1})
+            v_des {number} -- [desired velocity] (default: {8})
+            acc_max {number} -- [max acceleration] (default: {15})
+            tau {number} -- [time delay] (default: {0})
+            dt {number} -- [timestep] (default: {0.1})
+        """
 
+        self.veh_id = veh_id
+        self.k_d = k_d
+        self.k_v = k_v
+        self.k_c = k_c
+        self.d_des = d_des
+        self.v_des = v_des
+        self.acc_max = acc_max
+        self.delay = tau/dt
+        self.accel_queue = collections.deque()
 
-def make_jank_cfm(k_d=1, k_v=1, s=1):
-    # k_d = proportional gain
-    # k_v = derivative gain
-    # s = safe distance
-
-    def cfm(carID, env):
-        leadID = env.get_leading_car(carID)
-        leadPos = env.get_x_by_id(leadID)
-        leadVel = env.vehicles[leadID]['speed']
-
-        thisPos = env.get_x_by_id(carID)
-        thisVel = env.vehicles[carID]['speed']
-
-        headway = (leadPos - thisPos) % env.scenario.length
-
-        acc = k_d*(headway - s) + k_v*(leadVel - thisVel)
-        return acc + (random.random()-0.5)/5
-
-    return cfm
-
-def make_better_cfm(k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15):
-    # k_d = proportional gain
-    # k_v = derivative gain
-    # v_des = desired velociy
-    # acc_max = max acceleration
-    # s = safe distance
-
-    def cfm(carID, env):
-        this_lane = env.vehicles[carID]['lane']
-
-        leadID = env.get_leading_car(carID, this_lane)
-        if not leadID: # no car ahead
-            return acc_max
-
-        leadPos = env.get_x_by_id(leadID)
-        leadVel = env.vehicles[leadID]['speed']
-
-        thisPos = env.get_x_by_id(carID)
-        thisVel = env.vehicles[carID]['speed']
-
-        d_l = (leadPos - thisPos) % env.scenario.length
-
-        acc = k_d*(d_l - d_des) + k_v*(leadVel - thisVel) + k_c*(v_des - thisVel)
-        return acc
-
-    return cfm
-
-def make_jank_bcm(k_d=1, k_v=1, s=1):
-    # k_d = proportional gain
-    # k_v = derivative gain
-    # s = safe distance
-
-    def bcm(carID, env):
-        leadID = env.get_leading_car(carID)
-        leadPos = env.get_x_by_id(leadID)
-        leadVel = env.vehicles[leadID]['speed']
-
-        thisPos = env.get_x_by_id(carID)
-        thisVel = env.vehicles[carID]['speed']
-
-        trailID = env.get_trailing_car(carID)
-        trailPos = env.get_x_by_id(trailID)
-        trailVel = env.vehicles[trailID]['speed']
-
-        headway = (leadPos - thisPos) % env.scenario.length
-
-        footway = (thisPos - trailPos) % env.scenario.length
-
-        acc = 0.5*k_d*((headway) - (footway)) + \
-            0.5*k_v*((leadVel - thisVel) - (thisVel - trailVel))
-        return acc
-
-    return bcm
-
-def make_better_bcm(k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15):
-    # k_d = proportional gain
-    # k_v = derivative gain
-
-    def bcm(carID, env):
-        this_lane = env.vehicles[carID]['lane']
-
-        leadID = env.get_leading_car(carID, this_lane)
-        if not leadID: # no car ahead
-            return acc_max
-
-        leadPos = env.get_x_by_id(leadID)
-        leadVel = env.vehicles[leadID]['speed']
-
-        thisPos = env.get_x_by_id(carID)
-        thisVel = env.vehicles[carID]['speed']
-
-        trailID = env.get_trailing_car(carID, this_lane)
-        trailPos = env.get_x_by_id(trailID)
-        trailVel = env.vehicles[trailID]['speed']
-
-        headway = (leadPos - thisPos) % env.scenario.length # d_l
-
-        footway = (thisPos - trailPos) % env.scenario.length # d_f
-
-        acc = k_d * (headway - footway) + \
-            k_v * ((leadVel - thisVel) - (thisVel - trailVel)) + \
-            k_c * (v_des - thisVel)
-
+    def get_action(self, env):
+        # From the paper: 
         # There would also be additional control rules that take
         # into account minimum safe separation, relative speeds,
         # speed limits, weather and lighting conditions, traffic density
         # and traffic advisories
 
-        return acc
+        this_lane = env.vehicles[self.veh_id]['lane']
 
-    return bcm
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if not lead_id: # no car ahead
+            return self.acc_max
 
-def make_ovm(alpha = 1, beta = 1, h_st = 5, h_go = 15, v_max = 35, dt = .1, tau = 0, acc_max = 15, deacc_max=-5):
-    # first for tau = 0, then implement delays
-    accelQueue = collections.deque()
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
 
-    def ovm(carID, env):
-        this_lane = env.vehicles[carID]['lane']
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
 
-        leadID = env.get_leading_car(carID, this_lane)
-        if not leadID: # no car ahead
+        trail_id = env.get_trailing_car(self.veh_id, this_lane)
+        trail_pos = env.get_x_by_id(trail_id)
+        trail_vel = env.vehicles[trail_id]['speed']
+
+        headway = (lead_pos - this_pos) % env.scenario.length # d_l
+
+        footway = (this_pos - trail_pos) % env.scenario.length # d_f
+
+        acc = self.k_d * (headway - footway) + \
+            self.k_v * ((lead_vel - this_vel) - (this_vel - trail_vel)) + \
+            self.k_c * (self.v_des - this_vel)
+
+        while len(self.accel_queue) <= self.delay:
+            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            self.accel_queue.appendleft(acc)
+
+        return min(self.accel_queue.pop(), self.acc_max)
+
+    def reset_delay():
+        self.accel_queue.clear()
+
+class OVMController:
+    """Optimal Vehicle Model, per Gabor
+    
+    [description]
+    
+    Variables:
+    """
+
+    def __init__(self, veh_id, alpha = 1, beta = 1, h_st = 5, h_go = 15, v_max = 35, acc_max = 15, deacc_max=-5, tau = 0, dt = 0.1):
+        """Instantiates an OVM controller
+        
+         Arguments:
+            veh_id -- Vehicle ID for SUMO identification
+        
+        Keyword Arguments:
+            alpha {number} -- [gain on desired velocity to current velocity difference] (default: {1})
+            beta {number} -- [gain on lead car velocity and self velocity difference] (default: {1})
+            h_st {number} -- [headway for stopping] (default: {5})
+            h_go {number} -- [headway for full speed] (default: {15})
+            v_max {number} -- [max velocity] (default: {35})
+            acc_max {number} -- [max acceleration] (default: {15})
+            deacc_max {number} -- [max deceleration] (default: {-5})
+            tau {number} -- [time delay] (default: {0})
+            dt {number} -- [timestep] (default: {0.1})
+        """
+
+        self.veh_id = veh_id
+        self.alpha = alpha
+        self.beta = beta
+        self.h_st = h_st
+        self.h_go = h_go
+        self.v_max = v_max
+        self.dt = dt
+        self.tau = tau
+        self.acc_max = acc_max
+        self.deacc_max = deacc_max
+        self.delay = tau/dt
+        self.accel_queue = collections.deque()
+
+    def get_action(self, env):
+        this_lane = env.vehicles[self.veh_id]['lane']
+
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if not lead_id: # no car ahead
             return acc_max
 
-        leadPos = env.get_x_by_id(leadID)
-        leadVel = env.vehicles[leadID]['speed']
-        leadLength = env.vehicles[leadID]['length']
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
+        lead_length = env.vehicles[lead_id]['length']
 
-        thisPos = env.get_x_by_id(carID)
-        thisVel = env.vehicles[carID]['speed']
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
 
-        h = (leadPos -leadLength - thisPos) % env.scenario.length
-        h_dot = leadVel - thisVel
+        h = (lead_pos - lead_length - this_pos) % env.scenario.length
+        h_dot = lead_vel - this_vel
 
         # V function here - input: h, output : Vh
-        if h <= h_st:
+        if h <= self.h_st:
             Vh = 0
-        elif h_st < h < h_go:
-            Vh = v_max / 2 * (1 - math.cos(math.pi * (h - h_st) / (h_go - h_st)))
+        elif self.h_st < h < self.h_go:
+            Vh = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) / (self.h_go - self.h_st)))
         else:
-            Vh = v_max
+            Vh = self.v_max
 
-        acc = alpha*(Vh - thisVel) + beta*(h_dot)
+        acc = self.alpha*(Vh - this_vel) + self.beta*(h_dot)
 
-        while len(accelQueue) <= tau/dt:
-            accelQueue.appendleft(acc)
+        while len(self.accel_queue) <= self.delay:
+            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            self.accel_queue.appendleft(acc)
 
-        return max(min(accelQueue.pop(), acc_max), deacc_max)
+        return max(min(self.accel_queue.pop(), self.acc_max), self.deacc_max)
 
-    return ovm
+    def reset_delay(self):
+        self.accel_queue.clear()

@@ -8,11 +8,11 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"port": 8873, "time_step":0.1}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
-type_params = {"cfm_slow": (5, make_better_cfm(v_des=8), never_change_lanes_controller(), 0)}
+type_params = {"cfm_slow": (5, (CFMController, {}), never_change_lanes_controller(), 0)}
 
 env_params = {"target_velocity": 25}
 

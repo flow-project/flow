@@ -17,7 +17,7 @@ Env Params:
 
 Net Params:
 
-- For each environment, you should determine which net params are relevant. 
+- For each environment, you should determine which net params are relevant.
 - Used in Generator files that are specific to each scenario?
 - "length" : length of the track
 - "lanes" : number of lanes
@@ -48,10 +48,19 @@ Vehicle Params:
 
 Implemented car following models:
 
-- bcm-10
-- bcm-15
-- make_better_cfm: cfm with max acceleration
-	- Needs v_des (destination velocity) specified
+- Basic Car Following Model
+	- per [Horn 2013](http://ieeexplore.ieee.org/abstract/document/6728204/)
+	- Only considers vehicle ahead.
+	- Terms for desired velocity and headway gap
+- Bilateral Control Model
+	- per [Horn 2013](http://ieeexplore.ieee.org/abstract/document/6728204/)
+	- Considers vehicle ahead and vehicle behind.
+	- Term for desired velocity. Another term to place self halfway between car ahead and car behind.
+- Optimal Vehicle Model
+	- per [Jin & Gabor 2014](http://www-personal.umich.edu/~orosz/articles/CDC_2014_Jin.pdf)
+	- Only considers vehicle ahead.
+	- Desired velocity term is a function of headway. Also seeks to match velocity of car ahead.
+
 
 Lane changing models:
 
