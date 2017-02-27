@@ -12,6 +12,8 @@ import random
 import copy
 import traci
 
+from cistar.controllers.car_following_models import *
+
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
@@ -97,13 +99,18 @@ class SumoEnvironment(Env):
         for veh_id in self.ids:
             vehicle = {}
             vehicle["id"] = veh_id
-            vehicle["type"] = traci.vehicle.getTypeID(veh_id)
+            veh_type = traci.vehicle.getTypeID(veh_id)
+            vehicle["type"] = veh_type
             vehicle["edge"] = traci.vehicle.getRoadID(veh_id)
             vehicle["position"] = traci.vehicle.getLanePosition(veh_id)
             vehicle["lane"] = traci.vehicle.getLaneIndex(veh_id)
             vehicle["speed"] = traci.vehicle.getSpeed(veh_id)
             vehicle["length"] = traci.vehicle.getLength(veh_id)
             vehicle["max_speed"] = traci.vehicle.getMaxSpeed(veh_id)
+
+            # implement flexibility in controller
+            controller_params = self.scenario.type_params[veh_type][1]
+            vehicle['controller'] = controller_params[0](veh_id = veh_id, **controller_params[1])
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
 
@@ -142,8 +149,8 @@ class SumoEnvironment(Env):
         logging.debug("================= performing step =================")
         for veh_id in self.controlled_ids:
             car_type = traci.vehicle.getTypeID(veh_id)
-            action = self.scenario.type_params[car_type][1](veh_id, self)
-            self.apply_action(veh_id, action=action)
+            class_action = self.vehicles[veh_id]['controller'].get_action(self)
+            self.apply_action(veh_id, action=class_action)
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
@@ -185,6 +192,9 @@ class SumoEnvironment(Env):
         color = random.sample(COLORS, 1)[0]
         for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
+
+            # clears controller acceleration queue
+            self.vehicles[veh_id]['controller'].reset_delay()
 
             logging.debug("Moving car " + veh_id + " from " + str(traci.vehicle.getPosition(veh_id)) + " to " + str(pos))
             traci.vehicle.remove(veh_id)
