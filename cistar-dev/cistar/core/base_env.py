@@ -69,6 +69,8 @@ class SumoEnvironment(Env):
         logging.debug(" Initializing TraCI on port " + str(sumo_params["port"]) + "!")
         traci.init(sumo_params["port"])
 
+        traci.simulationStep()
+
         self.ids = traci.vehicle.getIDList()
 
         self.controlled_ids, self.rl_ids = [], []
