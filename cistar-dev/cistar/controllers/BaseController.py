@@ -1,0 +1,61 @@
+import numpy as np
+import collections
+
+"""Base class for controllers. 
+
+Instantiates a controller and forces the user to pass a 
+maximum acceleration to the controller. Provides the method
+safe_action to ensure that controls are never made that could
+cause the system to crash. 
+
+"""
+class BaseController:
+    def __init__(self, veh_id, controller_params):
+        """
+        Arguments:
+            veh_id {string} -- ID of the vehicle this controller is used for
+            controller_params {Dictionary} -- Dictionary that optionally 
+            contains 'tau', the delay, and must contain 
+            'max_accel', the maximum acceleration as well as all 
+            other parameters that dictate the driving behavior. 
+        """
+        self.veh_id = veh_id
+        self.controller_params = controller_params
+        if not controller_params['tau']:
+            self.tau = 0
+        else:
+            self.tau = controller_params['tau']
+        self.max_accel = controller_params['max_accel']
+        self.acc_queue = collections.dequeue()  
+
+    def reset(self, env):
+        self.acc_queue.clear()
+
+    def get_action(self, env):
+        """ Returns the acceleration of the controller """
+        raise NotImplementedError
+
+    def safe_action(self, env):
+        """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
+        Prevents crashes. 
+        """
+        return min(self.get_action(env), self.safe_velocity(env))
+
+    def safe_velocity(self, env):
+        """Finds maximum velocity such that if the lead vehicle breaks
+        with max acceleration, we can bring the following vehicle to rest
+        at the point at which the headway is zero.
+        """
+        this_lane = env.vehicles[self.veh_id]['lane']
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
+        lead_length = env.vehicles[lead_id]['length']
+
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
+
+        d = (this_pos + lead_length) - lead_pos - np.power((lead_vel),2)/(2*self.max_accel)
+        v_safe = (-self.max_accel*self.tau + 
+                np.sqrt(self.max_accel)*np.sqrt(-2*d+self.max_accel*self.tau**2))
