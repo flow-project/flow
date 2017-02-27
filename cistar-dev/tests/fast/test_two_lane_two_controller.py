@@ -16,9 +16,9 @@ class TestTwoLaneTwoController(unittest.TestCase):
         self.sumo_params = {"port": 8873, "time_step": 0.01}
         self.sumo_binary = "sumo"
         self.type_params = {"cfm-slow": (
-        6, make_better_cfm(v_des=6), never_change_lanes_controller()), \
+        6, make_better_cfm(v_des=6), never_change_lanes_controller(), 0), \
                             "cfm-fast": (6, make_better_cfm(v_des=10),
-                                         stochastic_lane_changer())}
+                                         stochastic_lane_changer(), 0)}
         self.env_params = {"target_velocity": 8}
         self.net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
                            "resolution": 40, "net_path": "tests/debug/net/"}

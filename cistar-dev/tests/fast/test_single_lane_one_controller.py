@@ -16,7 +16,7 @@ class TestSingleLaneOneController(unittest.TestCase):
         self.sumo_params = {"port": 8873, "time_step": 0.01}
         self.sumo_binary = "sumo"
         self.type_params = {"cfm_slow": (
-            5, make_better_cfm(v_des=8), never_change_lanes_controller())}
+            5, make_better_cfm(v_des=8), never_change_lanes_controller(), 0)}
         self.env_params = {"target_velocity": 25}
         self.net_params = {"length": 200, "lanes": 1, "speed_limit": 35,
                            "resolution": 40, "net_path": "tests/debug/net/"}
