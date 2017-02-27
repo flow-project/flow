@@ -53,7 +53,7 @@ class Generator:
     def generate_cfg(self, cfg_params):
         raise NotImplementedError
 
-    def makeRoutes(self, scenario, initial_params, params):
+    def make_routes(self, scenario, initial_config, cfg_params):
         raise NotImplementedError
 
 

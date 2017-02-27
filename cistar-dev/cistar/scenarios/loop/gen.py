@@ -183,7 +183,7 @@ class CircleGenerator(Generator):
         printxml(cfg, self.cfg_path + cfgfn)
         return cfgfn, outs
 
-    def makeRoutes(self, scenario, initial_params, params):
+    def make_routes(self, scenario, initial_config, cfg_params):
 
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
@@ -200,13 +200,14 @@ class CircleGenerator(Generator):
                     for i in range(type_count):
                         vehicle_ids.append((type, type + "_" + str(i)))
 
-            if initial_params["shuffle"]:
-                random.shuffle(vehicle_ids)  # randomly
+            if initial_config["shuffle"]:
+                random.shuffle(vehicle_ids)
 
-            positions = initial_params["positions"]
+            positions = initial_config["positions"]
             for i, (type, id) in enumerate(vehicle_ids):
                 route, pos = positions[i]
+                type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",
-                             departSpeed="0", departPos=str(pos), id=id, color="1,0.0,0.0"))
+                             departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
 
             printxml(routes, self.cfg_path + self.roufn)

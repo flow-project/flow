@@ -39,7 +39,8 @@ class LoopScenario(Scenario):
 
         if "positions" not in self.initial_config:
             self.initial_config["positions"] = self.gen_even_start_positions()
-        self.initial_config["shuffle"] = True
+        if "shuffle" not in self.initial_config:
+            self.initial_config["shuffle"] = False
         if not cfg:
             # FIXME(cathywu) Resolve this inconsistency. Base class does not
             # call generate, but child class does. What is the convention?
@@ -86,6 +87,7 @@ class LoopScenario(Scenario):
 
         x = 1
         for i in range(self.num_vehicles):
+            # pos is a tuple (route, departPos)
             pos = self.get_edge(x)
             startpositions.append(pos)
             x += increment

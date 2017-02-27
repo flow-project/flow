@@ -82,7 +82,7 @@ class Scenario:
         cfg_name, outs = generator.generate_cfg(self.cfg_params)
         # Note that self (the whole scenario instance) is passed on here,
         # so this is where self.type_params (for instance) is used.
-        generator.makeRoutes(self, self.initial_config, self.cfg_params)
+        generator.make_routes(self, self.initial_config, self.cfg_params)
         return generator.cfg_path + cfg_name, outs
 
     def __str__(self):

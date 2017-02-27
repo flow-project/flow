@@ -12,7 +12,7 @@ sumo_params = {"port": 8873, "time_step":0.01}
 
 sumo_binary = "sumo"
 
-type_params = {"cfm_slow": (5, make_better_cfm(v_des=8), never_change_lanes_controller())}
+type_params = {"cfm_slow": (5, make_better_cfm(v_des=8), never_change_lanes_controller(), 0)}
 
 env_params = {"target_velocity": 25}
 

@@ -12,7 +12,7 @@ sumo_params = {"port": 8873, "time_step":1.0}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"cfm_slow": (10, make_better_cfm(v_des=8), stochastic_lane_changer(prob=0.5))}
+type_params = {"cfm_slow": (10, make_better_cfm(v_des=8), stochastic_lane_changer(prob=0.5), 0)}
 
 env_params = {"target_velocity": 25}
 
