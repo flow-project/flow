@@ -8,7 +8,8 @@ import sys
 
 from numpy import pi, sin, cos, linspace
 
-import logging, random
+import logging
+import random
 from lxml import etree
 E = etree.Element
 
@@ -24,7 +25,6 @@ class CircleGenerator(Generator):
     lanes: number of lanes in the circle
     speed_limit: max speed limit of the circle
     resolution: number of nodes resolution
-
     """
     def generate_net(self, params):
         length = params["length"]
@@ -43,6 +43,10 @@ class CircleGenerator(Generator):
         r = length / pi
         edgelen = length / 4.
 
+        # xml file for nodes
+        # contains nodes for the boundary points
+        # with respect to the x and y axes
+        # titled: bottom, right, top, left
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
         x.append(E("node", id="bottom", x=repr(0), y=repr(-r)))
         x.append(E("node", id="right", x=repr(r), y=repr(0)))
@@ -50,6 +54,9 @@ class CircleGenerator(Generator):
         x.append(E("node", id="left", x=repr(-r), y=repr(0)))
         printxml(x, self.net_path + nodfn)
 
+        # xml file for edges
+        # creates circular arcs that connect the created nodes
+        # space between points in the edge is defined by the "resolution" variable
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
         x.append(E("edge", attrib={"id": "bottom", "from": "bottom", "to": "right", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
@@ -69,10 +76,16 @@ class CircleGenerator(Generator):
                                    "length": repr(edgelen)}))
         printxml(x, self.net_path + edgfn)
 
+        # xml file for types
+        # contains the the number of lanes and the speed limit for the lanes
         x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
         x.append(E("type", id="edgeType", numLanes=repr(lanes), speed=repr(speed_limit)))
         printxml(x, self.net_path + typfn)
 
+        # xml file for configuration
+        # - specifies the location of all files of interest for sumo
+        # - specifies output net file
+        # - specifies processing parameters for no internal links and no turnarounds
         x = makexml("configuration", "http://sumo.dlr.de/xsd/netconvertConfiguration.xsd")
         t = E("input")
         t.append(E("node-files", value=nodfn))
@@ -95,7 +108,6 @@ class CircleGenerator(Generator):
         self.netfn = netfn
 
         return self.net_path + netfn
-
 
     """
     Generates .sumo.cfg files using net files and netconvert.
@@ -127,6 +139,13 @@ class CircleGenerator(Generator):
         guifn = "%s.gui.cfg" % self.name
 
         def rerouter(name, frm, to):
+            '''
+
+            :param name:
+            :param frm:
+            :param to:
+            :return:
+            '''
             t = E("rerouter", id=name, edges=frm)
             i = E("interval", begin="0", end="100000")
             i.append(E("routeProbReroute", id=to))
