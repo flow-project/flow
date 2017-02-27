@@ -30,6 +30,7 @@ Configuration (Cfg) Params:
 
 - "start_time" : 0
 - "end_time" : When the simulation ends, so pick a reasonably large number
+- TODO(cathywu) what are the units of start/end time?
 - "cfg_path" : path for the folder where the cfg XML files will be saved: add.xml, gui.cfg, net.xml, rou.xml, sumo.cfg
 
 Vehicle Params:

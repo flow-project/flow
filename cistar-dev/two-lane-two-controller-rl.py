@@ -14,9 +14,9 @@ sumo_binary = "sumo-gui"
 sumo_params = {"port" : 8873, "time_step" : 0.1}
 
 type_params = { "cfm-slow": (6, make_better_cfm(v_des=6),  never_change_lanes_controller()),\
- "cfm-fast": (6, make_better_cfm(v_des=10), never_change_lanes_controller())}
+ "cfm-fast": (6, make_better_cfm(v_des=10), stochastic_lane_changer())}
 
-net_params = {"length": 200, "lanes": 1, "speed_limit":35,\
+net_params = {"length": 200, "lanes": 2, "speed_limit":35,\
  "resolution": 40, "net_path":"debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
