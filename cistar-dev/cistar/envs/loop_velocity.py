@@ -12,7 +12,7 @@ class SimpleVelocityEnvironment(LoopEnvironment):
 
     @property
     def action_space(self):
-        return Box(low=0, high=13, shape=(self.num_rl_vehicles,))
+        return Box(low=0, high=15, shape=(self.num_rl_vehicles,))
 
     @property
     def observation_space(self):
