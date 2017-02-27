@@ -1,6 +1,6 @@
 import random
 import math
-
+from cistar.controllers.base_controller import BaseController
 import collections
 
 """Contains a bunch of car-following control models for CISTAR.
