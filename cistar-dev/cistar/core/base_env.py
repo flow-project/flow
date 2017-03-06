@@ -110,7 +110,8 @@ class SumoEnvironment(Env):
 
             # implement flexibility in controller
             controller_params = self.scenario.type_params[veh_type][1]
-            vehicle['controller'] = controller_params[0](veh_id = veh_id, **controller_params[1])
+            if not veh_type == 'rl':
+                vehicle['controller'] = controller_params[0](veh_id = veh_id, **controller_params[1])
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
 
@@ -148,7 +149,6 @@ class SumoEnvironment(Env):
         """
         logging.debug("================= performing step =================")
         for veh_id in self.controlled_ids:
-            car_type = traci.vehicle.getTypeID(veh_id)
             class_action = self.vehicles[veh_id]['controller'].get_action(self)
             self.apply_action(veh_id, action=class_action)
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
@@ -194,7 +194,8 @@ class SumoEnvironment(Env):
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
             # clears controller acceleration queue
-            self.vehicles[veh_id]['controller'].reset_delay()
+            if not self.vehicles[veh_id]['type'] == 'rl':
+                self.vehicles[veh_id]['controller'].reset_delay()
 
             logging.debug("Moving car " + veh_id + " from " + str(traci.vehicle.getPosition(veh_id)) + " to " + str(pos))
             traci.vehicle.remove(veh_id)
