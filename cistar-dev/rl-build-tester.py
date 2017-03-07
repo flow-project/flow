@@ -13,9 +13,9 @@ from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
-tot_cars = 1
+tot_cars = 4
 
-auton_cars = 1
+auton_cars = 4
 human_cars = tot_cars - auton_cars
 
 sumo_params = {"port": 8873, "time_step":0.001}
