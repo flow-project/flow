@@ -19,7 +19,7 @@ class CFMController(BaseController):
     """Basic car-following model. Only looks ahead.
     """
 
-    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15, tau = 0, dt = 0.1):
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 20, tau = 0, dt = 0.1):
         """Instantiates a CFM controller
         
         Arguments:
@@ -146,7 +146,7 @@ class BCMController(BaseController):
 
         return min(self.accel_queue.pop(), self.acc_max)
 
-    def reset_delay():
+    def reset_delay(self):
         self.accel_queue.clear()
 
 class OVMController(BaseController):
@@ -193,7 +193,7 @@ class OVMController(BaseController):
 
         lead_id = env.get_leading_car(self.veh_id, this_lane)
         if not lead_id: # no car ahead
-            return acc_max
+            return self.acc_max
 
         lead_pos = env.get_x_by_id(lead_id)
         lead_vel = env.vehicles[lead_id]['speed']

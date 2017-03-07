@@ -9,8 +9,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_velocity import SimpleVelocityEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.car_following_models import *
-
+from cistar.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.INFO)
 
 tot_cars = 4
@@ -18,11 +17,11 @@ tot_cars = 4
 auton_cars = 4
 human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873, "time_step":0.001}
+sumo_params = {"port": 8873, "time_step":0.1}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
-type_params = {"rl":(auton_cars, None, None, 0)}
+type_params = {"rl":(auton_cars, (RLController, {}), None, 0)}
 
 env_params = {"target_velocity": 8}
 
@@ -63,7 +62,7 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         policy=policy,
         baseline=baseline,
         batch_size=200,
-        max_path_length=100,
+        max_path_length=1000,
         # whole_paths=True,
         n_itr=150,
         # discount=0.99,

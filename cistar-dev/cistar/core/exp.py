@@ -9,12 +9,14 @@ Acts as a runner for a scenario and environment.
 class SumoExperiment():
 
     def __init__(self, env_class, env_params, sumo_binary, sumo_params, scenario):
+
+        # TODO: NEEDS TO BE UPDATED
         """
         name : tag to associate experiment with
         env_class : Environment to be initialized
         num_vehicles : number of total vehicles in the simulation
         num_rl_vehicles :  these vehicles do not have a controller assigned to them
-        vehicle_params : vehicle type string -> controller (method that takes in state, returns action)
+        type_params : vehicle type string -> controller (method that takes in state, returns action)
             example:
              num_rl_vehicles=4
              num_vehicles=10

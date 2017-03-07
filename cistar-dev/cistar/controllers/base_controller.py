@@ -35,19 +35,23 @@ class BaseController:
         """ Returns the acceleration of the controller """
         raise NotImplementedError
 
-    def safe_action(self, env):
+    def safe_action(self, env, action):
         """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
         Checks if the computed acceleration would put us above safe velocity.
         If it would, output the acceleration that would put at to safe velocity. 
         """
         safe_velocity = self.safe_velocity(env)
+
+        #this is not being used?
         this_lane = env.vehicles[self.veh_id]['lane']
+
         this_vel = env.vehicles[self.veh_id]['speed']
-        time_step = env.time_step 
-        if this_vel + self.get_action(env)*time_step > safe_velocity:
+        time_step = env.time_step
+
+        if this_vel + action*time_step > safe_velocity:
             return (safe_velocity - this_vel)/time_step
         else:
-            return self.get_action(env)
+            return action
 
 
     def safe_velocity(self, env):
@@ -63,8 +67,13 @@ class BaseController:
         lead_length = env.vehicles[lead_id]['length']
 
         this_pos = env.get_x_by_id(self.veh_id)
+
+        #This is not being used?
         this_vel = env.vehicles[self.veh_id]['speed']
 
         d = (this_pos + lead_length) - lead_pos - np.power((lead_vel),2)/(2*self.max_deaccel)
-        v_safe = (-self.max_deaccel*self.delay + 
+
+        v_safe = (-self.max_deaccel*self.delay +
                 np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))
+
+        return v_safe
