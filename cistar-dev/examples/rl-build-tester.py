@@ -26,9 +26,9 @@ type_params = {"rl":(auton_cars, None, None, 0)}
 
 env_params = {"target_velocity": 8}
 
-net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
+net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"leah/cfg/"}
+cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
 
 # initial_positions = [("top", 0), ("top", 70), ("top", 140), \
@@ -40,7 +40,7 @@ cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"leah/cfg/"}
 
 initial_config = {"shuffle": False}
 
-scenario = LoopScenario("test-exp", type_params, net_params, cfg_params)#, initial_config=initial_config)
+scenario = LoopScenario("rl-test", type_params, net_params, cfg_params)#, initial_config=initial_config)
 
 exp = SumoExperiment(SimpleVelocityEnvironment, env_params, sumo_binary, sumo_params, scenario)
 

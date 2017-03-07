@@ -21,7 +21,7 @@ net_params = {"length": 200, "lanes": 2, "speed_limit":35,\
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
 
-scenario = LoopScenario("tutorial-experiment", type_params, net_params, cfg_params)
+scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params)
 
 exp = SumoExperiment(SimpleAccelerationEnvironment, env_params,\
  sumo_binary, sumo_params, scenario)
