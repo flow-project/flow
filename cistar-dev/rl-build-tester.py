@@ -22,7 +22,7 @@ sumo_params = {"port": 8873, "time_step":0.001}
 
 sumo_binary = "sumo"
 
-type_params = {"rl":(auton_cars, None)}
+type_params = {"rl":(auton_cars, None, None, 0)}g
 
 env_params = {"target_velocity": 8}
 
