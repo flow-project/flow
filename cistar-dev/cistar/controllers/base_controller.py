@@ -25,7 +25,8 @@ class BaseController:
             self.delay = 0
         else:
             self.delay = controller_params['delay']
-        self.max_deaccel = controller_params['max_deaccel']
+        # max deaccel should always be a positive
+        self.max_deaccel = np.abs(controller_params['max_deaccel'])
         self.acc_queue = collections.deque() 
 
     def reset_delay(self, env):
@@ -68,10 +69,12 @@ class BaseController:
 
         this_pos = env.get_x_by_id(self.veh_id)
 
-        #This is not being used?
-        this_vel = env.vehicles[self.veh_id]['speed']
-
-        d = (this_pos + lead_length) - lead_pos - np.power((lead_vel),2)/(2*self.max_deaccel)
+        # need to account for the position being reset around the length
+        if lead_pos > this_pos: 
+            d = (this_pos + lead_length) - lead_pos - np.power((lead_vel),2)/(2*self.max_deaccel)
+        else:
+            loop_length = env.scenario.net_params["length"]
+            d = (this_pos + lead_length) - (lead_pos + loop_length) - np.power((lead_vel),2)/(2*self.max_deaccel)
 
         v_safe = (-self.max_deaccel*self.delay +
                 np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))
