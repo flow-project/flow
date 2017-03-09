@@ -36,7 +36,7 @@ class BaseController:
         """ Returns the acceleration of the controller """
         raise NotImplementedError
 
-    def safe_action(self, env, action):
+    def get_safe_action(self, env, action):
         """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
         Checks if the computed acceleration would put us above safe velocity.
         If it would, output the acceleration that would put at to safe velocity. 
@@ -54,7 +54,6 @@ class BaseController:
         else:
             return action
 
-
     def safe_velocity(self, env):
         """Finds maximum velocity such that if the lead vehicle breaks
         with max acceleration, we can bring the following vehicle to rest
@@ -71,10 +70,10 @@ class BaseController:
 
         # need to account for the position being reset around the length
         if lead_pos > this_pos: 
-            d = (this_pos + lead_length) - lead_pos - np.power((lead_vel),2)/(2*self.max_deaccel)
+            d = (this_pos + lead_length * 3) - lead_pos - np.power((lead_vel),2)/(2*self.max_deaccel)
         else:
             loop_length = env.scenario.net_params["length"]
-            d = (this_pos + lead_length) - (lead_pos + loop_length) - np.power((lead_vel),2)/(2*self.max_deaccel)
+            d = (this_pos + lead_length * 3) - (lead_pos + loop_length) - np.power((lead_vel),2)/(2*self.max_deaccel)
 
         v_safe = (-self.max_deaccel*self.delay +
                 np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))

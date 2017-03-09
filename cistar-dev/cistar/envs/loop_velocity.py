@@ -17,7 +17,7 @@ class SimpleVelocityEnvironment(LoopEnvironment):
         :return:
         """
         #TODO: max and min are parameters
-        return Box(low=0, high=15, shape=(self.scenario.num_rl_vehicles,))
+        return Box(low=self.env_params["min-vel"], high=self.env_params["max-vel"], shape=(self.scenario.num_rl_vehicles,))
 
     @property
     def observation_space(self):

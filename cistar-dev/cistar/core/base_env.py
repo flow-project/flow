@@ -150,13 +150,13 @@ class SumoEnvironment(Env):
         logging.debug("================= performing step =================")
         for veh_id in self.controlled_ids:
             action = self.vehicles[veh_id]['controller'].get_action(self)
-            safe_action = self.vehicles[veh_id]['controller'].safe_action(self, action)
+            safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
             action = rl_actions[index]
-            safe_action = self.vehicles[veh_id]['controller'].safe_action(self, action)
+            safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
 
         self.timer += 1

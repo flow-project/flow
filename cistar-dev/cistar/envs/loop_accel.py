@@ -22,7 +22,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         :return:
         """
         #TODO: max and min are parameters
-        return Box(low=-5, high=5, shape=(self.scenario.num_rl_vehicles, ))
+        return Box(low=self.env_params["max-deacc"], high=self.env_params["max-acc"], shape=(self.scenario.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
