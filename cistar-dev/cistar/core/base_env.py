@@ -15,7 +15,6 @@ import traci
 from cistar.controllers.car_following_models import *
 from cistar.controllers.rlcontroller import RLController
 
-
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
 start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
@@ -264,3 +263,4 @@ class SumoEnvironment(Env):
         Must be in Environment because the environment opens the TraCI connection.
         """
         traci.close()
+        
