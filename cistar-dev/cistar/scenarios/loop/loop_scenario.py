@@ -38,7 +38,18 @@ class LoopScenario(Scenario):
                            ("top", 2 * edgelen), ("left", 3 * edgelen)]
 
         if "positions" not in self.initial_config:
-            self.initial_config["positions"] = self.gen_even_start_positions()
+            if "spacing" in self.initial_config:
+                if self.initial_config["spacing"] == "gaussian":
+                    downscale = 5
+                    if "downscale" in self.initial_config:
+                        downscale = self.initial_config["downscale"]
+                    self.initial_config["positions"] = self.gen_random_start_pos(downscale)
+            else:
+                bunch_factor = 0
+                if "bunching" in self.initial_config:
+                    bunch_factor = self.initial_config["bunching"]
+                self.initial_config["positions"] = self.gen_even_start_positions(bunch_factor)
+
         if "shuffle" not in self.initial_config:
             self.initial_config["shuffle"] = False
         if not cfg:
@@ -76,14 +87,14 @@ class LoopScenario(Scenario):
                 break
         return position + edge_start
 
-    def gen_even_start_positions(self):
+    def gen_even_start_positions(self, bunching):
         """
         Generate uniformly spaced start positions.
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
         # FIXME(cathywu) Remove this arbitrary "- 10"?
-        increment = (self.length - 10) / self.num_vehicles
+        increment = (self.length - bunching) / self.num_vehicles
 
         x = 1
         for i in range(self.num_vehicles):

@@ -12,15 +12,15 @@ sumo_params = {"port": 8873, "time_step":0.01}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"ovm": (22, (OVMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"ovm": (12, (OVMController, {}), never_change_lanes_controller(), 0)}
 
 env_params = {"target_velocity": 25}
 
-net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
+net_params = {"length": 500, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
 
-initial_config = {"shuffle":False}
+initial_config = {"shuffle":False, "bunching":200}
 
 scenario = LoopScenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
 ##data path needs to be relative to cfg location

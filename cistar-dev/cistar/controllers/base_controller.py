@@ -44,11 +44,6 @@ class BaseController:
         """
         safe_velocity = self.safe_velocity(env)
 
-        if self.veh_id == "ovm_7":
-            if safe_velocity < env.vehicles[self.veh_id]["speed"]:
-                print(safe_velocity, env.vehicles[self.veh_id]["speed"])
-
-
         #this is not being used?
         this_lane = env.vehicles[self.veh_id]['lane']
 
@@ -56,7 +51,6 @@ class BaseController:
         time_step = env.time_step
 
         if this_vel + action*time_step > safe_velocity:
-
             return (safe_velocity - this_vel)/time_step
         else:
             return action
@@ -84,12 +78,11 @@ class BaseController:
         self.last_d = self.d
         d = dist - np.power((lead_vel - self.max_deaccel * env.time_step),2)/(2*self.max_deaccel)
         self.d = d
-        if -2*d+self.max_deaccel*self.delay**2 < 0:
-            print("d = " + str(d))
-            print("last d = " + str(self.last_d))
-            print("Inherently Unsafe Situation")
 
-        v_safe = (-self.max_deaccel*self.delay +
+        if -2*d+self.max_deaccel*self.delay**2 < 0:
+            v_safe = 0
+        else:
+            v_safe = (-self.max_deaccel*self.delay +
                 np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))
 
         return v_safe
