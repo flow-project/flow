@@ -12,7 +12,7 @@ sumo_params = {"port": 8873, "time_step":0.1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"cfm": (20, (CFMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"ovm": (15, (OVMController, {}), never_change_lanes_controller(), 0)}
 
 env_params = {"target_velocity": 25}
 
