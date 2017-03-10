@@ -5,20 +5,20 @@ class ConstantVelocityController(BaseController):
     """Base velocity controller (assumes acceleration by Default)
     """
 
-    def __init__(self, veh_id, deacc_max=15, tau=0, dt=0.1, constant_speed=15):
+    def __init__(self, veh_id, max_deaccel=15, tau=0, dt=0.1, constant_speed=15):
         """Instantiates a velocity controller
 
         Arguments:
             veh_id -- Vehicle ID for SUMO identification
 
         Keyword Arguments:
-            deacc_max {number} -- [max deacceleration] (default: {15})
+            max_deaccel {number} -- [max deacceleration] (default: {15})
             tau {number} -- [time delay] (default: {0})
             dt {number} -- [timestep] (default: {0.1})
             constant_speed {number} -- [target constant velocity] (default: {15})
         """
 
-        controller_params = {"delay": tau/dt, "max_deaccel": deacc_max}
+        controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel}
         BaseController.__init__(self, veh_id, controller_params)
         self.constant_speed = constant_speed
 

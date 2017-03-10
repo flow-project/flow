@@ -157,7 +157,7 @@ class OVMController(BaseController):
     Variables:
     """
 
-    def __init__(self, veh_id, alpha = 1, beta = 1, h_st = 2, h_go = 15, v_max = 30, acc_max = 15, max_deaccel=-5, tau = 0, dt = 0.1):
+    def __init__(self, veh_id, alpha = 1, beta = 1, h_st = 2, h_go = 15, v_max = 30, acc_max = 15, max_deaccel=5, tau = 0, dt = 0.1):
         """Instantiates an OVM controller
         
          Arguments:
@@ -170,7 +170,7 @@ class OVMController(BaseController):
             h_go {number} -- [headway for full speed] (default: {15})
             v_max {number} -- [max velocity] (default: {35})
             acc_max {number} -- [max acceleration] (default: {15})
-            deacc_max {number} -- [max deceleration] (default: {-5})
+            max_deacc {number} -- [max deceleration] (default: {-5})
             tau {number} -- [time delay] (default: {0})
             dt {number} -- [timestep] (default: {0.1})
         """

@@ -6,7 +6,7 @@ class RLController(BaseController):
     """Base Rl Controller (assumes acceleration by Default)
     """
 
-    def __init__(self, veh_id, deacc_max=15, tau=0, dt=0.1):
+    def __init__(self, veh_id, max_deacc=15, tau=0, dt=0.1):
         """Instantiates a CFM controller
 
         Arguments:
@@ -18,5 +18,5 @@ class RLController(BaseController):
             dt {number} -- [timestep] (default: {0.1})
         """
 
-        controller_params = {"delay": tau/dt, "max_deaccel": deacc_max}
+        controller_params = {"delay": tau/dt, "max_deaccel": max_deacc}
         BaseController.__init__(self, veh_id, controller_params)
