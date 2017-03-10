@@ -178,7 +178,7 @@ class OVMController(BaseController):
         controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel}
         BaseController.__init__(self, veh_id, controller_params)
         self.accel_queue = collections.deque()
-        self.deacc_max = max_deaccel
+        self.max_deaccel = max_deaccel
         self.acc_max = acc_max
         self.veh_id = veh_id
         self.v_max = v_max
