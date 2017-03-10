@@ -70,7 +70,7 @@ class CFMController(BaseController):
 
         return min(self.accel_queue.pop(), self.acc_max)
 
-    def reset_delay(self):
+    def reset_delay(self, env):
         self.accel_queue.clear()
 
 class BCMController(BaseController):
@@ -146,7 +146,7 @@ class BCMController(BaseController):
 
         return min(self.accel_queue.pop(), self.acc_max)
 
-    def reset_delay(self):
+    def reset_delay(self, env):
         self.accel_queue.clear()
 
 class OVMController(BaseController):
@@ -157,7 +157,7 @@ class OVMController(BaseController):
     Variables:
     """
 
-    def __init__(self, veh_id, alpha = 1, beta = 1, h_st = 5, h_go = 15, v_max = 35, acc_max = 15, deacc_max=-5, tau = 0, dt = 0.1):
+    def __init__(self, veh_id, alpha = 1, beta = 1, h_st = 2, h_go = 15, v_max = 30, acc_max = 15, max_deaccel=-5, tau = 0, dt = 0.1):
         """Instantiates an OVM controller
         
          Arguments:
@@ -175,7 +175,7 @@ class OVMController(BaseController):
             dt {number} -- [timestep] (default: {0.1})
         """
 
-        controller_params = {"delay": tau/dt, "max_deaccel": deacc_max}
+        controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel}
         BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.alpha = alpha
@@ -219,7 +219,7 @@ class OVMController(BaseController):
             # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
             self.accel_queue.appendleft(acc)
 
-        return max(min(self.accel_queue.pop(), self.acc_max), self.deacc_max)
+        return max(min(self.accel_queue.pop(), self.acc_max), -1 * self.max_deaccel)
 
-    def reset_delay(self):
+    def reset_delay(self, env):
         self.accel_queue.clear()

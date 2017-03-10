@@ -197,7 +197,7 @@ class SumoEnvironment(Env):
 
             # clears controller acceleration queue
             if not self.vehicles[veh_id]['type'] == 'rl':
-                self.vehicles[veh_id]['controller'].reset_delay()
+                self.vehicles[veh_id]['controller'].reset_delay(self)
 
             logging.debug("Moving car " + veh_id + " from " + str(traci.vehicle.getPosition(veh_id)) + " to " + str(pos))
             traci.vehicle.remove(veh_id)

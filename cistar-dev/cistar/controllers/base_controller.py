@@ -70,10 +70,15 @@ class BaseController:
 
         # need to account for the position being reset around the length
         if lead_pos > this_pos: 
-            d = (this_pos + lead_length * 3) - lead_pos - np.power((lead_vel),2)/(2*self.max_deaccel)
+            dist = (this_pos + lead_length) - lead_pos
         else:
             loop_length = env.scenario.net_params["length"]
-            d = (this_pos + lead_length * 3) - (lead_pos + loop_length) - np.power((lead_vel),2)/(2*self.max_deaccel)
+            dist = (this_pos + lead_length) - (lead_pos + loop_length)
+
+        d = dist - np.power((lead_vel - self.max_deaccel * env.time_step),2)/(2*self.max_deaccel)
+
+        if -2*d+self.max_deaccel*self.delay**2 < 0:
+            print("Inherently Unsafe Situation")
 
         v_safe = (-self.max_deaccel*self.delay +
                 np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))
