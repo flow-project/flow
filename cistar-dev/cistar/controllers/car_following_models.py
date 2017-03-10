@@ -164,30 +164,31 @@ class OVMController(BaseController):
             veh_id -- Vehicle ID for SUMO identification
         
         Keyword Arguments:
-            alpha {number} -- [gain on desired velocity to current velocity difference] (default: {1})
-            beta {number} -- [gain on lead car velocity and self velocity difference] (default: {1})
+            alpha {number} -- [gain on desired velocity to current velocity difference] (default: {0.6})
+            beta {number} -- [gain on lead car velocity and self velocity difference] (default: {0.9})
             h_st {number} -- [headway for stopping] (default: {5})
-            h_go {number} -- [headway for full speed] (default: {15})
-            v_max {number} -- [max velocity] (default: {35})
+            h_go {number} -- [headway for full speed] (default: {35})
+            v_max {number} -- [max velocity] (default: {30})
             acc_max {number} -- [max acceleration] (default: {15})
             deacc_max {number} -- [max deceleration] (default: {-5})
-            tau {number} -- [time delay] (default: {0})
+            tau {number} -- [time delay] (default: {0.4})
             dt {number} -- [timestep] (default: {0.1})
         """
 
         controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel}
         BaseController.__init__(self, veh_id, controller_params)
+        self.accel_queue = collections.deque()
+        self.deacc_max = deacc_max
+        self.acc_max = acc_max
         self.veh_id = veh_id
+        self.v_max = v_max
         self.alpha = alpha
         self.beta = beta
         self.h_st = h_st
         self.h_go = h_go
-        self.v_max = v_max
-        self.dt = dt
         self.tau = tau
-        self.acc_max = acc_max
-        self.accel_queue = collections.deque()
-
+        self.dt = dt
+        
     def get_action(self, env):
         this_lane = env.vehicles[self.veh_id]['lane']
 

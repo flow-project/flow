@@ -12,7 +12,7 @@ sumo_params = {"port": 8873, "time_step":0.1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"cfm_slow": (15, (CFMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"cfm": (20, (CFMController, {}), never_change_lanes_controller(), 0)}
 
 env_params = {"target_velocity": 25}
 
@@ -30,6 +30,6 @@ exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sum
 
 logging.info("Experiment Set Up complete")
 
-exp.run(400, 1000)
+exp.run(1, 1000)
 
 exp.env.terminate()
