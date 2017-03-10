@@ -30,7 +30,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        return Box(low=-np.inf, high=np.inf, shape=(len(self.ids), ))
+        return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles, ))
 
     def apply_action(self, car_id, action):
         """
