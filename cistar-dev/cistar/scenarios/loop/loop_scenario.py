@@ -38,16 +38,17 @@ class LoopScenario(Scenario):
                            ("top", 2 * edgelen), ("left", 3 * edgelen)]
 
         if "positions" not in self.initial_config:
+            bunch_factor = 0
+            if "bunching" in self.initial_config:
+                bunch_factor = self.initial_config["bunching"]
+
             if "spacing" in self.initial_config:
                 if self.initial_config["spacing"] == "gaussian":
                     downscale = 5
                     if "downscale" in self.initial_config:
                         downscale = self.initial_config["downscale"]
-                    self.initial_config["positions"] = self.gen_random_start_pos(downscale)
+                    self.initial_config["positions"] = self.gen_random_start_pos(downscale, bunch_factor)
             else:
-                bunch_factor = 0
-                if "bunching" in self.initial_config:
-                    bunch_factor = self.initial_config["bunching"]
                 self.initial_config["positions"] = self.gen_even_start_positions(bunch_factor)
 
         if "shuffle" not in self.initial_config:
@@ -105,7 +106,7 @@ class LoopScenario(Scenario):
 
         return startpositions
 
-    def gen_random_start_pos(self, downscale=5):
+    def gen_random_start_pos(self, downscale=5, bunching=0):
         """
         Generate random start positions via additive Gaussian.
 
@@ -114,7 +115,7 @@ class LoopScenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
-        mean = self.length / self.num_vehicles
+        mean = (self.length - bunching) / self.num_vehicles
 
         # FIXME(cathywu) Why is x=1 the start, instead of x=0?
         x = 1
