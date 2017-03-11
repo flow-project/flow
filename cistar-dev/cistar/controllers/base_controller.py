@@ -42,18 +42,40 @@ class BaseController:
         Checks if the computed acceleration would put us above safe velocity.
         If it would, output the acceleration that would put at to safe velocity. 
         """
-        safe_velocity = self.safe_velocity(env)
-
-        #this is not being used?
         this_lane = env.vehicles[self.veh_id]['lane']
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
+        lead_length = env.vehicles[lead_id]['length']
 
+        this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
         time_step = env.time_step
 
-        if this_vel + action*time_step > safe_velocity:
-            return (safe_velocity - this_vel)/time_step
+
+        h = (lead_pos - lead_length - this_pos) % env.scenario.length
+
+        # need to account for the position being reset around the length
+
+        if h < 1:
+            print(self.veh_id, 'distance too small: dist = ', h)
+            return -this_vel / time_step
         else:
             return action
+
+
+        # safe_velocity = self.safe_velocity(env)
+
+        # #this is not being used?
+        # this_lane = env.vehicles[self.veh_id]['lane']
+
+        # this_vel = env.vehicles[self.veh_id]['speed']
+        # time_step = env.time_step
+
+        # if this_vel + action*time_step > safe_velocity:
+        #     return (safe_velocity - this_vel)/time_step
+        # else:
+        #     return action
 
     def safe_velocity(self, env):
         """Finds maximum velocity such that if the lead vehicle breaks
