@@ -22,6 +22,11 @@ class BaseController:
         self.d = 0
         self.veh_id = veh_id
         self.controller_params = controller_params
+
+        self.stopping_distance = 1
+        if "stopping_distance" in controller_params:
+            self.stopping_distance = controller_params["stopping_distance"]
+
         if not controller_params['delay']:
             self.delay = 0
         else:
@@ -37,15 +42,16 @@ class BaseController:
         """ Returns the acceleration of the controller """
         raise NotImplementedError
 
-    def get_safe_action(self, env, action):
-        """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
-        Checks if the computed acceleration would put us above safe velocity.
-        If it would, output the acceleration that would put at to safe velocity. 
+    def get_safe_action_instantaneous(self, env, action):
+        """
+        Instantaneously stops the car if the distance is less than a certain distance
+        :param env:
+        :param action:
+        :return:
         """
         this_lane = env.vehicles[self.veh_id]['lane']
         lead_id = env.get_leading_car(self.veh_id, this_lane)
         lead_pos = env.get_x_by_id(lead_id)
-        lead_vel = env.vehicles[lead_id]['speed']
         lead_length = env.vehicles[lead_id]['length']
 
         this_pos = env.get_x_by_id(self.veh_id)
@@ -57,25 +63,29 @@ class BaseController:
 
         # need to account for the position being reset around the length
 
-        if h < 1:
+        if h < self.stopping_distance:
             print(self.veh_id, 'distance too small: dist = ', h)
             return -this_vel / time_step
         else:
             return action
 
+    def get_safe_action(self, env, action):
+        """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
+        Checks if the computed acceleration would put us above safe velocity.
+        If it would, output the acceleration that would put at to safe velocity. 
+        """
+        safe_velocity = self.safe_velocity(env)
 
-        # safe_velocity = self.safe_velocity(env)
+        #this is not being used?
+        this_lane = env.vehicles[self.veh_id]['lane']
 
-        # #this is not being used?
-        # this_lane = env.vehicles[self.veh_id]['lane']
+        this_vel = env.vehicles[self.veh_id]['speed']
+        time_step = env.time_step
 
-        # this_vel = env.vehicles[self.veh_id]['speed']
-        # time_step = env.time_step
-
-        # if this_vel + action*time_step > safe_velocity:
-        #     return (safe_velocity - this_vel)/time_step
-        # else:
-        #     return action
+        if this_vel + action*time_step > safe_velocity:
+            return (safe_velocity - this_vel)/time_step
+        else:
+            return action
 
     def safe_velocity(self, env):
         """Finds maximum velocity such that if the lead vehicle breaks
