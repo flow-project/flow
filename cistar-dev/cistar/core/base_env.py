@@ -215,6 +215,7 @@ class SumoEnvironment(Env):
             self.vehicles[veh_id]["position"] = traci.vehicle.getLanePosition(veh_id)
             self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
+            self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
 
         self._state = self.getState(True)
         observation = np.copy(self._state)

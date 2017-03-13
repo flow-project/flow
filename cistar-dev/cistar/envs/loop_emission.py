@@ -19,7 +19,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         #TODO: max and min are parameters
         #TODO: Make more realistic
-        return Box(low=-5, high=5, shape=(self.scenario.num_rl_vehicles, ))
+        return Box(low=0, high=5, shape=(self.scenario.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
@@ -40,18 +40,18 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         See parent class
         TODO(Leah): Fill in documentation
         """
-        destination = self.highway_length * 4
+        destination = 840 * 4
         return -np.sum(0.1*state[2] + 0.9*(destination - state[3]))
 
-    def get_lane_position(self, vehicle):
+    def get_lane_position(self, vID):
         #TODO: Don't hardcode lanestarts in this function
+        edgelen = 840/4.
         lanestarts = {"left": 3 * edgelen,
                        "top": 2*edgelen,
                        "right": edgelen,
                        "bottom": 0}
 
-        vID = vehicle["id"]
-        lanepos = vehicle["position"]
+        lanepos = self.vehicles[vID]["position"]
         lane = traci.vehicle.getLaneID(vID).split("_")
         return lanestarts[lane[0]] + lanepos
 
@@ -64,26 +64,26 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         # new_speed = np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
         if reset:
-            return np.array([[self.vehicles[vehicle]["speed"], \
-                            self.get_lane_position(vehicle), \
-                            self.vehicles[vehicle]["fuel"], \
-                            0] for vehicle in self.vehicles]).T
+            return np.array([[self.vehicles[veh_id]["speed"], \
+                            self.get_lane_position(veh_id), \
+                            self.vehicles[veh_id]["fuel"], \
+                            0] for veh_id in self.vehicles]).T
 
 
         last_dist = np.copy(self._state[3])
         old_pos = -np.copy(self._state[1])
 
-        self._state = np.array([[self.vehicles[vehicle]["speed"], \
-                                self.get_lane_position(vehicle), \
-                                self.vehicles[vehicle]["fuel"], \
-                                0] for vehicle in self.vehicles]).T
+        self._state = np.array([[self.vehicles[veh_id]["speed"], \
+                                self.get_lane_position(veh_id), \
+                                self.vehicles[veh_id]["fuel"], \
+                                0] for veh_id in self.vehicles]).T
 
         # Delta position change (distance travelled in last timestep)
         self._state[3] += self._state[1] + old_pos
         # If delta position is negative, that means you circled the loop
-        self._state[3, self._state[3] < 0] += self.highway_length
+        #TODO: get length of loop
+        self._state[3, self._state[3] < 0] += 840
         self._state[3] += last_dist
-        print("STATE", self._state.shape)
         return self._state
 
     def apply_action(self, car_id, action):
