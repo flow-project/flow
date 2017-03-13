@@ -179,7 +179,7 @@ class SumoEnvironment(Env):
 
         # TODO: Can self._state be initialized, saved and updated so that we can
         # exploit numpy speed
-        self._state = self.getState()
+        self._state = self.getState(False)
         reward = self.compute_reward(self._state)
         # TODO: Allow for partial observability
         next_observation = np.copy(self._state)
@@ -216,7 +216,7 @@ class SumoEnvironment(Env):
             self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
 
-        self._state = np.array([traci.vehicle.getSpeed(vID) for vID in self.ids])
+        self._state = self.getState(True)
         observation = np.copy(self._state)
 
         return observation

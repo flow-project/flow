@@ -55,7 +55,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         lane = traci.vehicle.getLaneID(vID).split("_")
         return lanestarts[lane[0]] + lanepos
 
-    def getState(self):
+    def getState(self, reset):
         """
         Acts as updateState
         TODO(Leah): Fill in documentation
@@ -63,6 +63,13 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         Cumulative distance = last cumulative dist + new pos - last pos
         """
         # new_speed = np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
+        if reset:
+            return np.array([[self.vehicles[vehicle]["speed"], \
+                            self.get_lane_position(vehicle), \
+                            self.vehicles[vehicle]["fuel"], \
+                            0] for vehicle in self.vehicles]).T
+
+
         last_dist = np.copy(self._state[3])
         old_pos = -np.copy(self._state[1])
 
@@ -76,6 +83,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         # If delta position is negative, that means you circled the loop
         self._state[3, self._state[3] < 0] += self.highway_length
         self._state[3] += last_dist
+        print("STATE", self._state.shape)
         return self._state
 
     def apply_action(self, car_id, action):
