@@ -1,0 +1,4 @@
+lxml
+theano
+pyprind
+lasagne
