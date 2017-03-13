@@ -1,6 +1,7 @@
 from cistar.envs.loop import LoopEnvironment
 
 from rllab.spaces import Box
+from rllab.spaces import Product
 
 import traci
 
@@ -18,7 +19,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         #TODO: max and min are parameters
         #TODO: Make more realistic
-        return Box(low=-5, high=5, shape=(self.num_cars, ))
+        return Box(low=-5, high=5, shape=(self.scenario.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
@@ -27,7 +28,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         TODO(Leah): Fill in documentation
         """
         # num_cars = self.tot_cars if self.fullbool else self.num_cars
-        num_cars = self.num_cars
+        num_cars = self.scenario.num_vehicles
         ypos = Box(low=0., high=np.inf, shape=(num_cars, ))
         vel = Box(low=0., high=np.inf, shape=(num_cars, ))
         xpos = Box(low=0., high=np.inf, shape=(num_cars, ))

@@ -99,7 +99,8 @@ class SumoEnvironment(Env):
         for veh_id in self.ids:
             vehicle = {}
             vehicle["id"] = veh_id
-            vehicle["type"] = traci.vehicle.getTypeID(veh_id)
+            veh_type = traci.vehicle.getTypeID(veh_id)
+            vehicle["type"] = veh_type
             vehicle["edge"] = traci.vehicle.getRoadID(veh_id)
             vehicle["position"] = traci.vehicle.getLanePosition(veh_id)
             vehicle["lane"] = traci.vehicle.getLaneIndex(veh_id)
