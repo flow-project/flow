@@ -9,23 +9,23 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_velocity import SimpleVelocityEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLVelocityController
+from cistar.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.INFO)
 
-tot_cars = 4
+tot_cars = 12
 
-auton_cars = 4
+auton_cars = 12
 human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873, "time_step":0.1}
+sumo_params = {"port": 8873, "time_step":0.001}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
-type_params = {"rl":(auton_cars, (RLVelocityController, {}), None, 0)}
+type_params = {"rl":(auton_cars, (RLController, {}), None, 0)}
 
-env_params = {"target_velocity": 8, "max-vel":15, "min-vel":0}
+env_params = {"target_velocity": 25, "max-vel":35, "min-vel":0}
 
-net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
+net_params = {"length": 840, "lanes": 1, "speed_limit":50, "resolution": 40, "net_path":"debug/rl/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
@@ -39,7 +39,7 @@ cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-scenario = LoopScenario("rl-test", type_params, net_params, cfg_params)#, initial_config=initial_config)
+scenario = LoopScenario("rl-velocity-test", type_params, net_params, cfg_params)#, initial_config=initial_config)
 
 exp = SumoExperiment(SimpleVelocityEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
@@ -52,7 +52,7 @@ env = normalize(exp.env)
 for seed in [1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,32)
+        hidden_sizes=(16,)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -61,8 +61,8 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=200,
-        max_path_length=1000,
+        batch_size=2000,
+        max_path_length=100,
         # whole_paths=True,
         n_itr=150,
         # discount=0.99,
@@ -80,7 +80,7 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="leah-test-exp"
+        exp_prefix="rl-velocity-test"
         # plot=True,
     )
 
