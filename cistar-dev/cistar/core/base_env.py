@@ -2,6 +2,7 @@ import logging
 
 from rllab.envs.base import Env
 from rllab.envs.base import Step
+from rllab.core.serializable import Serializable
 
 import numpy as np
 
@@ -28,7 +29,7 @@ properties to define the MDP if you choose to use it with RLLab.
 COLORS = [(255,0,0,0),(0, 255,0,0),(0, 0, 255,0), (255, 255,0,0),(0, 255,255,0),(255, 0,255,0), (255, 255,255,0)]
 
 
-class SumoEnvironment(Env):
+class SumoEnvironment(Env, Serializable):
 
     def __init__(self,env_params, sumo_binary, sumo_params, scenario):
         """[summary]
@@ -46,9 +47,12 @@ class SumoEnvironment(Env):
         Raises:
             ValueError -- Raised if a SUMO port not provided
         """
+        Serializable.quick_init(self, locals())
+
         self.env_params = env_params
         self.sumo_binary = sumo_binary
         self.scenario = scenario
+        self.sumo_params = sumo_params
         
         # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         self.vehicles = {}
@@ -68,9 +72,11 @@ class SumoEnvironment(Env):
         cfg_file = self.scenario.cfg
         if "mode" in env_params and env_params["mode"] == "ec2":
             cfg_file = "/root/code/rllab/" + cfg_file
-        subprocess.Popen([self.sumo_binary, "-c", cfg_file, "--remote-port",
-                                        str(sumo_params["port"]), "--step-length", str(self.time_step)], stdout=sys.stdout, stderr=sys.stderr)
 
+        subprocess.Popen([self.sumo_binary, "-c", cfg_file, "--remote-port",
+                          str(sumo_params["port"]), "--step-length",
+                          str(self.time_step)], stdout=sys.stdout,
+                         stderr=sys.stderr)
         logging.debug(" Initializing TraCI on port " + str(sumo_params["port"]) + "!")
         traci.init(sumo_params["port"])
 
@@ -265,4 +271,7 @@ class SumoEnvironment(Env):
         Must be in Environment because the environment opens the TraCI connection.
         """
         traci.close()
+
+    def close(self):
+        self.terminate()
         

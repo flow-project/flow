@@ -41,7 +41,8 @@ class SumoExperiment():
 
         logging.info("initializing environment.")
 
-        self.env = env_class(self.env_params, sumo_binary, sumo_params, scenario)
+        self.env = env_class(self.env_params, sumo_binary, sumo_params,
+                             scenario)
 
     def getCfg(self):
         return self.cfg

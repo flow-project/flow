@@ -1,31 +1,34 @@
 import logging
 
 from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import run_experiment_lite
+from rllab.misc.instrument import stub, run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from cistar.core.exp import SumoExperiment
+# from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.INFO)
+
+stub(globals())
 
 tot_cars = 4
 
 auton_cars = 4
 human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873, "time_step":0.1}
+sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = {"rl":(auton_cars, (RLController, {}), None, 0)}
 
-env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3}
+env_params = {"target_velocity": 25, "max-deacc":3, "max-acc":3}
 
-net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
+net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40,
+              "net_path":"debug/rl/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
@@ -37,18 +40,23 @@ initial_config = {"shuffle": False, "positions":initial_positions}
 
 scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
 
-exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary,
+                   sumo_params, scenario)
+
+# exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary,
+#  sumo_params, scenario)
 
 logging.info("Experiment Set Up complete")
 
 print("experiment initialized")
 
-env = normalize(exp.env)
+env = normalize(env)
 
-for seed in [1]: # [1, 5, 10, 73, 56]
+
+for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,32)
+        hidden_sizes=(16,)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -57,10 +65,10 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=200,
-        max_path_length=1000,
+        batch_size=2000,
+        max_path_length=400,
         # whole_paths=True,
-        n_itr=150,
+        n_itr=10,  # 1000
         # discount=0.99,
         # step_size=0.01,
     )
@@ -76,8 +84,6 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="leah-test-exp"
+        exp_prefix="leah-test-exp",
         # plot=True,
     )
-
-exp.env.terminate()

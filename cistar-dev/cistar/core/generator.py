@@ -2,6 +2,9 @@ import os
 import errno
 
 from lxml import etree
+
+from rllab.core.serializable import Serializable
+
 E = etree.Element
 
 
@@ -29,13 +32,15 @@ def ensure_dir(path):
 """
 Generator base class for creating 
 """
-class Generator:
+class Generator(Serializable):
 
     CFG_PATH = "./"
     NET_PATH = "./"
     DATA_PREFIX = "data/"
 
     def __init__(self, net_path, cfg_path, data_prefix, base):
+        Serializable.quick_init(self, locals())
+
         self.net_path = net_path
         self.cfg_path = cfg_path
         self.data_prefix = data_prefix
