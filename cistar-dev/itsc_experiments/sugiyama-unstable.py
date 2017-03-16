@@ -10,9 +10,9 @@ logging.basicConfig(level=logging.INFO)
 
 sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
-type_params = {"ovm": (22, (BCMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"ovm": (22, (OVMController, {}), never_change_lanes_controller(), 0)}
 
 env_params = {"target_velocity": 25}
 
@@ -22,7 +22,7 @@ cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
 
 initial_config = {"shuffle":False, "bunching":40, "spacing":"gaussian"}
 
-scenario = LoopScenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
+scenario = LoopScenario("sugiyama-unstable-ovm", type_params, net_params, cfg_params, initial_config)
 ##data path needs to be relative to cfg location
 leah_sumo_params = {"port": 8873}
 
