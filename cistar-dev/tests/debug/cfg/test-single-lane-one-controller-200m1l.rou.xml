@@ -1,9 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
-  <vType id="cfm_slow" minGap="0"/>
-  <vehicle color="1,0.0,0.0" depart="0" departPos="1" departSpeed="0" id="cfm_slow_0" route="routebottom" type="cfm_slow"/>
-  <vehicle color="1,0.0,0.0" depart="0" departPos="41.0" departSpeed="0" id="cfm_slow_1" route="routebottom" type="cfm_slow"/>
-  <vehicle color="1,0.0,0.0" depart="0" departPos="31.0" departSpeed="0" id="cfm_slow_2" route="routeright" type="cfm_slow"/>
-  <vehicle color="1,0.0,0.0" depart="0" departPos="21.0" departSpeed="0" id="cfm_slow_3" route="routetop" type="cfm_slow"/>
-  <vehicle color="1,0.0,0.0" depart="0" departPos="11.0" departSpeed="0" id="cfm_slow_4" route="routeleft" type="cfm_slow"/>
-</routes>

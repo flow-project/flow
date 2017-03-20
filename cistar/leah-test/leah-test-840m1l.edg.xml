@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<edges xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/edges_file.xsd">
-  <edge from="bottom" id="bottom" length="210.0" shape="0.00,-267.38 133.69,-231.56 231.56,-133.69 267.38,0.00" to="right" type="edgeType"/>
-  <edge from="right" id="right" length="210.0" shape="267.38,0.00 231.56,133.69 133.69,231.56 0.00,267.38" to="top" type="edgeType"/>
-  <edge from="top" id="top" length="210.0" shape="0.00,267.38 -133.69,231.56 -231.56,133.69 -267.38,0.00" to="left" type="edgeType"/>
-  <edge from="left" id="left" length="210.0" shape="-267.38,0.00 -231.56,-133.69 -133.69,-231.56 -0.00,-267.38" to="bottom" type="edgeType"/>
-</edges>
