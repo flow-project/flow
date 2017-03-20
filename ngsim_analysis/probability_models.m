@@ -39,7 +39,7 @@ plot_trans(trans)
 %xi(13) = 1; 
 xi = ones(size(trans,1),1)/size(trans,1);
 trans_temp = trans;
-for i = 1:800000
+for i = 1:200000
     xi = trans*xi;
     trans_temp = trans_temp*trans;
 end
@@ -71,7 +71,7 @@ function [pa, pd] = probability_headway(h)
     % these data points correspond to the 70 dataset
     global beta delta_t
     %mu_appear = 3;
-    mu_appear = 3.2;
+    mu_appear = 3.1;
     mu_disappear = 2.79;
     mu_tot = 2.95;
     sig_appear = .3642;
@@ -82,8 +82,10 @@ function [pa, pd] = probability_headway(h)
     c_disappear = normalization_constant(mu_disappear, sig_disappear, mu_tot, sig_tot);
     p_appear = exp(((log(h) - mu_tot).^2)/(2*sig_tot^2) - ((log(h) - mu_appear).^2)/(2*sig_appear^2));
     p_disappear = exp(((log(h) - mu_tot).^2)/(2*sig_tot^2) - ((log(h) - mu_disappear).^2)/(2*sig_disappear^2));
-     pa = c_appear*p_appear*(delta_t/beta);
-     pd = c_disappear*p_disappear*(delta_t/beta); 
+     %pa = c_appear*p_appear*(delta_t/beta);
+     %pd = c_disappear*p_disappear*(delta_t/beta); 
+    pa = c_appear*p_appear;
+     pd = c_disappear*p_disappear; 
 
 end
 
