@@ -1,8 +1,8 @@
 function time_headway
 close all
 cd '/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM-Processed'
-extract_flag = 1; 
-temp_string = 'pm_4_';
+extract_flag = 0; 
+temp_string = 'pm_805_';
 dist_string = 'lognormal'
 
 if extract_flag == 0
@@ -10,7 +10,7 @@ if extract_flag == 0
     headway = .3048*data(:, 10); 
     velocity = data(:, 14);
 else
-    data = dlmread(strcat(temp_string,'disappear_headway_velocity.txt'),...
+    data = dlmread(strcat(temp_string,'appear_headway_velocity.txt'),...
     ',', 1, 0);
     headway = .3048*data(:, 1); 
     velocity = data(:, 2);

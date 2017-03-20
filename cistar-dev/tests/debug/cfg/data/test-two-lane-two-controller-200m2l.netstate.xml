@@ -1,0 +1,3474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Sun Mar 12 03:17:10 2017 by SUMO Version 0.29.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="tests/debug/cfg/test-two-lane-two-controller-200m2l.net.xml"/>
+        <route-files value="tests/debug/cfg/test-two-lane-two-controller-200m2l.rou.xml"/>
+        <additional-files value="tests/debug/cfg/test-two-lane-two-controller-200m2l.add.xml"/>
+    </input>
+
+    <output>
+        <netstate-dump value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.netstate.xml"/>
+        <emission-output value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.emission.xml"/>
+        <amitran-output value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.amitran.xml"/>
+        <lanechange-output value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.lanechange.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="1000"/>
+        <step-length value="0.01"/>
+    </time>
+
+    <traci_server>
+        <remote-port value="8873"/>
+    </traci_server>
+
+    <gui_only>
+        <gui-settings-file value="tests/debug/cfg/test-two-lane-two-controller-200m2l.gui.cfg"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<netstate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netstate_file.xsd">
+    <timestep time="0.00">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.00" speed="0.00"/>
+                <vehicle id="cfm-slow_1" pos="17.67" speed="0.00"/>
+                <vehicle id="cfm-slow_2" pos="34.33" speed="0.00"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.00" speed="0.00"/>
+                <vehicle id="cfm-fast_4" pos="17.67" speed="0.00"/>
+                <vehicle id="cfm-fast_5" pos="34.33" speed="0.00"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.00" speed="0.00"/>
+                <vehicle id="cfm-slow_4" pos="17.67" speed="0.00"/>
+                <vehicle id="cfm-slow_5" pos="34.33" speed="0.00"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.00" speed="0.00"/>
+                <vehicle id="cfm-fast_1" pos="17.67" speed="0.00"/>
+                <vehicle id="cfm-fast_2" pos="34.33" speed="0.00"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.01">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.00" speed="0.18"/>
+                <vehicle id="cfm-slow_1" pos="17.67" speed="0.18"/>
+                <vehicle id="cfm-slow_2" pos="34.34" speed="0.18"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.00" speed="0.18"/>
+                <vehicle id="cfm-fast_4" pos="17.67" speed="0.18"/>
+                <vehicle id="cfm-fast_5" pos="34.34" speed="0.18"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.00" speed="0.18"/>
+                <vehicle id="cfm-slow_4" pos="17.67" speed="0.18"/>
+                <vehicle id="cfm-slow_5" pos="34.34" speed="0.18"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.00" speed="0.18"/>
+                <vehicle id="cfm-fast_1" pos="17.67" speed="0.18"/>
+                <vehicle id="cfm-fast_2" pos="34.34" speed="0.18"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.02">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.01" speed="0.36"/>
+                <vehicle id="cfm-slow_1" pos="17.67" speed="0.36"/>
+                <vehicle id="cfm-slow_2" pos="34.34" speed="0.36"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.01" speed="0.36"/>
+                <vehicle id="cfm-fast_4" pos="17.67" speed="0.36"/>
+                <vehicle id="cfm-fast_5" pos="34.34" speed="0.36"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.01" speed="0.36"/>
+                <vehicle id="cfm-slow_4" pos="17.67" speed="0.36"/>
+                <vehicle id="cfm-slow_5" pos="34.34" speed="0.36"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.01" speed="0.36"/>
+                <vehicle id="cfm-fast_1" pos="17.67" speed="0.36"/>
+                <vehicle id="cfm-fast_2" pos="34.34" speed="0.36"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.03">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.01" speed="0.55"/>
+                <vehicle id="cfm-slow_1" pos="17.68" speed="0.55"/>
+                <vehicle id="cfm-slow_2" pos="34.34" speed="0.55"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.01" speed="0.55"/>
+                <vehicle id="cfm-fast_4" pos="17.68" speed="0.55"/>
+                <vehicle id="cfm-fast_5" pos="34.34" speed="0.55"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.01" speed="0.55"/>
+                <vehicle id="cfm-slow_4" pos="17.68" speed="0.55"/>
+                <vehicle id="cfm-slow_5" pos="34.34" speed="0.55"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.01" speed="0.55"/>
+                <vehicle id="cfm-fast_1" pos="17.68" speed="0.55"/>
+                <vehicle id="cfm-fast_2" pos="34.34" speed="0.55"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.04">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.02" speed="0.73"/>
+                <vehicle id="cfm-slow_1" pos="17.68" speed="0.73"/>
+                <vehicle id="cfm-slow_2" pos="34.35" speed="0.73"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.02" speed="0.73"/>
+                <vehicle id="cfm-fast_4" pos="17.68" speed="0.73"/>
+                <vehicle id="cfm-fast_5" pos="34.35" speed="0.73"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.02" speed="0.73"/>
+                <vehicle id="cfm-slow_4" pos="17.68" speed="0.73"/>
+                <vehicle id="cfm-slow_5" pos="34.35" speed="0.73"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.02" speed="0.73"/>
+                <vehicle id="cfm-fast_1" pos="17.68" speed="0.73"/>
+                <vehicle id="cfm-fast_2" pos="34.35" speed="0.73"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.05">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.03" speed="0.91"/>
+                <vehicle id="cfm-slow_1" pos="17.69" speed="0.91"/>
+                <vehicle id="cfm-slow_2" pos="34.36" speed="0.91"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.03" speed="0.91"/>
+                <vehicle id="cfm-fast_4" pos="17.69" speed="0.91"/>
+                <vehicle id="cfm-fast_5" pos="34.36" speed="0.91"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.03" speed="0.91"/>
+                <vehicle id="cfm-slow_4" pos="17.69" speed="0.91"/>
+                <vehicle id="cfm-slow_5" pos="34.36" speed="0.91"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.03" speed="0.91"/>
+                <vehicle id="cfm-fast_1" pos="17.69" speed="0.91"/>
+                <vehicle id="cfm-fast_2" pos="34.36" speed="0.91"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.06">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.04" speed="1.09"/>
+                <vehicle id="cfm-slow_1" pos="17.70" speed="1.09"/>
+                <vehicle id="cfm-slow_2" pos="34.37" speed="1.09"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.04" speed="1.09"/>
+                <vehicle id="cfm-fast_4" pos="17.70" speed="1.09"/>
+                <vehicle id="cfm-fast_5" pos="34.37" speed="1.09"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.04" speed="1.09"/>
+                <vehicle id="cfm-slow_4" pos="17.70" speed="1.09"/>
+                <vehicle id="cfm-slow_5" pos="34.37" speed="1.09"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.04" speed="1.09"/>
+                <vehicle id="cfm-fast_1" pos="17.70" speed="1.09"/>
+                <vehicle id="cfm-fast_2" pos="34.37" speed="1.09"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.07">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.05" speed="1.27"/>
+                <vehicle id="cfm-slow_1" pos="17.72" speed="1.27"/>
+                <vehicle id="cfm-slow_2" pos="34.38" speed="1.27"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.05" speed="1.27"/>
+                <vehicle id="cfm-fast_4" pos="17.72" speed="1.27"/>
+                <vehicle id="cfm-fast_5" pos="34.38" speed="1.27"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.05" speed="1.27"/>
+                <vehicle id="cfm-slow_4" pos="17.72" speed="1.27"/>
+                <vehicle id="cfm-slow_5" pos="34.38" speed="1.27"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.05" speed="1.27"/>
+                <vehicle id="cfm-fast_1" pos="17.72" speed="1.27"/>
+                <vehicle id="cfm-fast_2" pos="34.38" speed="1.27"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.08">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.07" speed="1.45"/>
+                <vehicle id="cfm-slow_1" pos="17.73" speed="1.45"/>
+                <vehicle id="cfm-slow_2" pos="34.40" speed="1.45"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.07" speed="1.45"/>
+                <vehicle id="cfm-fast_4" pos="17.73" speed="1.45"/>
+                <vehicle id="cfm-fast_5" pos="34.40" speed="1.45"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.07" speed="1.45"/>
+                <vehicle id="cfm-slow_4" pos="17.73" speed="1.45"/>
+                <vehicle id="cfm-slow_5" pos="34.40" speed="1.45"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.07" speed="1.45"/>
+                <vehicle id="cfm-fast_1" pos="17.73" speed="1.45"/>
+                <vehicle id="cfm-fast_2" pos="34.40" speed="1.45"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.09">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.08" speed="1.64"/>
+                <vehicle id="cfm-slow_1" pos="17.75" speed="1.64"/>
+                <vehicle id="cfm-slow_2" pos="34.42" speed="1.64"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.08" speed="1.64"/>
+                <vehicle id="cfm-fast_4" pos="17.75" speed="1.64"/>
+                <vehicle id="cfm-fast_5" pos="34.42" speed="1.64"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.08" speed="1.64"/>
+                <vehicle id="cfm-slow_4" pos="17.75" speed="1.64"/>
+                <vehicle id="cfm-slow_5" pos="34.42" speed="1.64"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.08" speed="1.64"/>
+                <vehicle id="cfm-fast_1" pos="17.75" speed="1.64"/>
+                <vehicle id="cfm-fast_2" pos="34.42" speed="1.64"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.10">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.10" speed="1.82"/>
+                <vehicle id="cfm-slow_1" pos="17.77" speed="1.82"/>
+                <vehicle id="cfm-slow_2" pos="34.43" speed="1.82"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.10" speed="1.82"/>
+                <vehicle id="cfm-fast_4" pos="17.77" speed="1.82"/>
+                <vehicle id="cfm-fast_5" pos="34.43" speed="1.82"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.10" speed="1.82"/>
+                <vehicle id="cfm-slow_4" pos="17.77" speed="1.82"/>
+                <vehicle id="cfm-slow_5" pos="34.43" speed="1.82"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.10" speed="1.82"/>
+                <vehicle id="cfm-fast_1" pos="17.77" speed="1.82"/>
+                <vehicle id="cfm-fast_2" pos="34.43" speed="1.82"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.11">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.12" speed="2.00"/>
+                <vehicle id="cfm-slow_1" pos="17.79" speed="2.00"/>
+                <vehicle id="cfm-slow_2" pos="34.45" speed="2.00"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.12" speed="2.00"/>
+                <vehicle id="cfm-fast_4" pos="17.79" speed="2.00"/>
+                <vehicle id="cfm-fast_5" pos="34.45" speed="2.00"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.12" speed="2.00"/>
+                <vehicle id="cfm-slow_4" pos="17.79" speed="2.00"/>
+                <vehicle id="cfm-slow_5" pos="34.45" speed="2.00"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.12" speed="2.00"/>
+                <vehicle id="cfm-fast_1" pos="17.79" speed="2.00"/>
+                <vehicle id="cfm-fast_2" pos="34.45" speed="2.00"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.12">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.14" speed="2.18"/>
+                <vehicle id="cfm-slow_1" pos="17.81" speed="2.18"/>
+                <vehicle id="cfm-slow_2" pos="34.48" speed="2.18"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.14" speed="2.18"/>
+                <vehicle id="cfm-fast_4" pos="17.81" speed="2.18"/>
+                <vehicle id="cfm-fast_5" pos="34.48" speed="2.18"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.14" speed="2.18"/>
+                <vehicle id="cfm-slow_4" pos="17.81" speed="2.18"/>
+                <vehicle id="cfm-slow_5" pos="34.48" speed="2.18"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.14" speed="2.18"/>
+                <vehicle id="cfm-fast_1" pos="17.81" speed="2.18"/>
+                <vehicle id="cfm-fast_2" pos="34.48" speed="2.18"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.13">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.17" speed="2.35"/>
+                <vehicle id="cfm-slow_1" pos="17.83" speed="2.35"/>
+                <vehicle id="cfm-slow_2" pos="34.50" speed="2.35"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.17" speed="2.36"/>
+                <vehicle id="cfm-fast_4" pos="17.83" speed="2.36"/>
+                <vehicle id="cfm-fast_5" pos="34.50" speed="2.36"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.17" speed="2.35"/>
+                <vehicle id="cfm-slow_4" pos="17.83" speed="2.35"/>
+                <vehicle id="cfm-slow_5" pos="34.50" speed="2.35"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.17" speed="2.36"/>
+                <vehicle id="cfm-fast_1" pos="17.83" speed="2.36"/>
+                <vehicle id="cfm-fast_2" pos="34.50" speed="2.36"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.14">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.19" speed="2.53"/>
+                <vehicle id="cfm-slow_1" pos="17.86" speed="2.53"/>
+                <vehicle id="cfm-slow_2" pos="34.52" speed="2.53"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.19" speed="2.55"/>
+                <vehicle id="cfm-fast_4" pos="17.86" speed="2.55"/>
+                <vehicle id="cfm-fast_5" pos="34.52" speed="2.55"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.19" speed="2.53"/>
+                <vehicle id="cfm-slow_4" pos="17.86" speed="2.53"/>
+                <vehicle id="cfm-slow_5" pos="34.52" speed="2.53"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.19" speed="2.55"/>
+                <vehicle id="cfm-fast_1" pos="17.86" speed="2.55"/>
+                <vehicle id="cfm-fast_2" pos="34.52" speed="2.55"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.15">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.22" speed="2.70"/>
+                <vehicle id="cfm-slow_1" pos="17.88" speed="2.70"/>
+                <vehicle id="cfm-slow_2" pos="34.55" speed="2.70"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.22" speed="2.73"/>
+                <vehicle id="cfm-fast_4" pos="17.88" speed="2.73"/>
+                <vehicle id="cfm-fast_5" pos="34.55" speed="2.73"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.22" speed="2.70"/>
+                <vehicle id="cfm-slow_4" pos="17.88" speed="2.70"/>
+                <vehicle id="cfm-slow_5" pos="34.55" speed="2.70"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.22" speed="2.73"/>
+                <vehicle id="cfm-fast_1" pos="17.88" speed="2.73"/>
+                <vehicle id="cfm-fast_2" pos="34.55" speed="2.73"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.16">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.25" speed="2.88"/>
+                <vehicle id="cfm-slow_1" pos="17.91" speed="2.88"/>
+                <vehicle id="cfm-slow_2" pos="34.58" speed="2.88"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.25" speed="2.91"/>
+                <vehicle id="cfm-fast_4" pos="17.91" speed="2.91"/>
+                <vehicle id="cfm-fast_5" pos="34.58" speed="2.91"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.25" speed="2.88"/>
+                <vehicle id="cfm-slow_4" pos="17.91" speed="2.88"/>
+                <vehicle id="cfm-slow_5" pos="34.58" speed="2.88"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.25" speed="2.91"/>
+                <vehicle id="cfm-fast_1" pos="17.91" speed="2.91"/>
+                <vehicle id="cfm-fast_2" pos="34.58" speed="2.91"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.17">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.28" speed="3.05"/>
+                <vehicle id="cfm-slow_1" pos="17.94" speed="3.05"/>
+                <vehicle id="cfm-slow_2" pos="34.61" speed="3.05"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.28" speed="3.09"/>
+                <vehicle id="cfm-fast_4" pos="17.94" speed="3.09"/>
+                <vehicle id="cfm-fast_5" pos="34.61" speed="3.09"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.28" speed="3.05"/>
+                <vehicle id="cfm-slow_4" pos="17.94" speed="3.05"/>
+                <vehicle id="cfm-slow_5" pos="34.61" speed="3.05"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.28" speed="3.09"/>
+                <vehicle id="cfm-fast_1" pos="17.94" speed="3.09"/>
+                <vehicle id="cfm-fast_2" pos="34.61" speed="3.09"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.18">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.31" speed="3.22"/>
+                <vehicle id="cfm-slow_1" pos="17.98" speed="3.22"/>
+                <vehicle id="cfm-slow_2" pos="34.64" speed="3.22"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.31" speed="3.27"/>
+                <vehicle id="cfm-fast_4" pos="17.98" speed="3.27"/>
+                <vehicle id="cfm-fast_5" pos="34.64" speed="3.27"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.31" speed="3.22"/>
+                <vehicle id="cfm-slow_4" pos="17.98" speed="3.22"/>
+                <vehicle id="cfm-slow_5" pos="34.64" speed="3.22"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.31" speed="3.27"/>
+                <vehicle id="cfm-fast_1" pos="17.98" speed="3.27"/>
+                <vehicle id="cfm-fast_2" pos="34.64" speed="3.27"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.19">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.34" speed="3.38"/>
+                <vehicle id="cfm-slow_1" pos="18.01" speed="3.38"/>
+                <vehicle id="cfm-slow_2" pos="34.68" speed="3.38"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.35" speed="3.45"/>
+                <vehicle id="cfm-fast_4" pos="18.01" speed="3.45"/>
+                <vehicle id="cfm-fast_5" pos="34.68" speed="3.45"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.34" speed="3.38"/>
+                <vehicle id="cfm-slow_4" pos="18.01" speed="3.38"/>
+                <vehicle id="cfm-slow_5" pos="34.68" speed="3.39"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.35" speed="3.45"/>
+                <vehicle id="cfm-fast_1" pos="18.01" speed="3.45"/>
+                <vehicle id="cfm-fast_2" pos="34.68" speed="3.45"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.20">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.38" speed="3.55"/>
+                <vehicle id="cfm-slow_1" pos="18.05" speed="3.55"/>
+                <vehicle id="cfm-slow_2" pos="34.71" speed="3.55"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.38" speed="3.64"/>
+                <vehicle id="cfm-fast_4" pos="18.05" speed="3.64"/>
+                <vehicle id="cfm-fast_5" pos="34.72" speed="3.64"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.38" speed="3.55"/>
+                <vehicle id="cfm-slow_4" pos="18.05" speed="3.55"/>
+                <vehicle id="cfm-slow_5" pos="34.71" speed="3.55"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.38" speed="3.64"/>
+                <vehicle id="cfm-fast_1" pos="18.05" speed="3.64"/>
+                <vehicle id="cfm-fast_2" pos="34.72" speed="3.64"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.21">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.42" speed="3.72"/>
+                <vehicle id="cfm-slow_1" pos="18.08" speed="3.72"/>
+                <vehicle id="cfm-slow_2" pos="34.75" speed="3.72"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.42" speed="3.82"/>
+                <vehicle id="cfm-fast_4" pos="18.09" speed="3.82"/>
+                <vehicle id="cfm-fast_5" pos="34.75" speed="3.82"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.42" speed="3.72"/>
+                <vehicle id="cfm-slow_4" pos="18.08" speed="3.72"/>
+                <vehicle id="cfm-slow_5" pos="34.75" speed="3.72"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.42" speed="3.82"/>
+                <vehicle id="cfm-fast_1" pos="18.09" speed="3.82"/>
+                <vehicle id="cfm-fast_2" pos="34.75" speed="3.82"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.22">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.45" speed="3.88"/>
+                <vehicle id="cfm-slow_1" pos="18.12" speed="3.88"/>
+                <vehicle id="cfm-slow_2" pos="34.79" speed="3.88"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.46" speed="4.00"/>
+                <vehicle id="cfm-fast_4" pos="18.13" speed="4.00"/>
+                <vehicle id="cfm-fast_5" pos="34.79" speed="4.00"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.45" speed="3.88"/>
+                <vehicle id="cfm-slow_4" pos="18.12" speed="3.88"/>
+                <vehicle id="cfm-slow_5" pos="34.79" speed="3.88"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.46" speed="4.00"/>
+                <vehicle id="cfm-fast_1" pos="18.13" speed="4.00"/>
+                <vehicle id="cfm-fast_2" pos="34.79" speed="4.00"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.23">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.49" speed="4.04"/>
+                <vehicle id="cfm-slow_1" pos="18.16" speed="4.04"/>
+                <vehicle id="cfm-slow_2" pos="34.83" speed="4.04"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.50" speed="4.18"/>
+                <vehicle id="cfm-fast_4" pos="18.17" speed="4.18"/>
+                <vehicle id="cfm-fast_5" pos="34.84" speed="4.18"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.49" speed="4.04"/>
+                <vehicle id="cfm-slow_4" pos="18.16" speed="4.04"/>
+                <vehicle id="cfm-slow_5" pos="34.83" speed="4.05"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.50" speed="4.18"/>
+                <vehicle id="cfm-fast_1" pos="18.17" speed="4.18"/>
+                <vehicle id="cfm-fast_2" pos="34.84" speed="4.18"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.24">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.54" speed="4.20"/>
+                <vehicle id="cfm-slow_1" pos="18.20" speed="4.20"/>
+                <vehicle id="cfm-slow_2" pos="34.87" speed="4.20"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.55" speed="4.36"/>
+                <vehicle id="cfm-fast_4" pos="18.21" speed="4.36"/>
+                <vehicle id="cfm-fast_5" pos="34.88" speed="4.36"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.54" speed="4.20"/>
+                <vehicle id="cfm-slow_4" pos="18.20" speed="4.20"/>
+                <vehicle id="cfm-slow_5" pos="34.87" speed="4.21"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.55" speed="4.36"/>
+                <vehicle id="cfm-fast_1" pos="18.21" speed="4.36"/>
+                <vehicle id="cfm-fast_2" pos="34.88" speed="4.36"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.25">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.58" speed="4.36"/>
+                <vehicle id="cfm-slow_1" pos="18.25" speed="4.36"/>
+                <vehicle id="cfm-slow_2" pos="34.91" speed="4.36"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.59" speed="4.55"/>
+                <vehicle id="cfm-fast_4" pos="18.26" speed="4.55"/>
+                <vehicle id="cfm-fast_5" pos="34.92" speed="4.55"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.58" speed="4.36"/>
+                <vehicle id="cfm-slow_4" pos="18.25" speed="4.36"/>
+                <vehicle id="cfm-slow_5" pos="34.91" speed="4.37"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.59" speed="4.55"/>
+                <vehicle id="cfm-fast_1" pos="18.26" speed="4.55"/>
+                <vehicle id="cfm-fast_2" pos="34.92" speed="4.55"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.26">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.63" speed="4.52"/>
+                <vehicle id="cfm-slow_1" pos="18.29" speed="4.52"/>
+                <vehicle id="cfm-slow_2" pos="34.96" speed="4.52"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.64" speed="4.73"/>
+                <vehicle id="cfm-fast_4" pos="18.30" speed="4.73"/>
+                <vehicle id="cfm-fast_5" pos="34.97" speed="4.73"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.63" speed="4.52"/>
+                <vehicle id="cfm-slow_4" pos="18.29" speed="4.52"/>
+                <vehicle id="cfm-slow_5" pos="34.96" speed="4.53"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.64" speed="4.73"/>
+                <vehicle id="cfm-fast_1" pos="18.30" speed="4.73"/>
+                <vehicle id="cfm-fast_2" pos="34.97" speed="4.73"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.27">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.67" speed="4.67"/>
+                <vehicle id="cfm-slow_1" pos="18.34" speed="4.67"/>
+                <vehicle id="cfm-slow_2" pos="35.01" speed="4.67"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.69" speed="4.91"/>
+                <vehicle id="cfm-fast_4" pos="18.35" speed="4.91"/>
+                <vehicle id="cfm-fast_5" pos="35.02" speed="4.91"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.67" speed="4.67"/>
+                <vehicle id="cfm-slow_4" pos="18.34" speed="4.67"/>
+                <vehicle id="cfm-slow_5" pos="35.01" speed="4.68"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.69" speed="4.91"/>
+                <vehicle id="cfm-fast_1" pos="18.35" speed="4.91"/>
+                <vehicle id="cfm-fast_2" pos="35.02" speed="4.91"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.28">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.72" speed="4.83"/>
+                <vehicle id="cfm-slow_1" pos="18.39" speed="4.83"/>
+                <vehicle id="cfm-slow_2" pos="35.05" speed="4.83"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.74" speed="5.09"/>
+                <vehicle id="cfm-fast_4" pos="18.40" speed="5.09"/>
+                <vehicle id="cfm-fast_5" pos="35.07" speed="5.09"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.72" speed="4.83"/>
+                <vehicle id="cfm-slow_4" pos="18.39" speed="4.83"/>
+                <vehicle id="cfm-slow_5" pos="35.05" speed="4.84"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.74" speed="5.09"/>
+                <vehicle id="cfm-fast_1" pos="18.40" speed="5.09"/>
+                <vehicle id="cfm-fast_2" pos="35.07" speed="5.09"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.29">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.77" speed="4.98"/>
+                <vehicle id="cfm-slow_1" pos="18.44" speed="4.98"/>
+                <vehicle id="cfm-slow_2" pos="35.10" speed="4.98"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.79" speed="5.27"/>
+                <vehicle id="cfm-fast_4" pos="18.46" speed="5.27"/>
+                <vehicle id="cfm-fast_5" pos="35.12" speed="5.27"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.77" speed="4.98"/>
+                <vehicle id="cfm-slow_4" pos="18.44" speed="4.98"/>
+                <vehicle id="cfm-slow_5" pos="35.10" speed="5.00"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.79" speed="5.27"/>
+                <vehicle id="cfm-fast_1" pos="18.46" speed="5.27"/>
+                <vehicle id="cfm-fast_2" pos="35.12" speed="5.27"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.30">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.82" speed="5.13"/>
+                <vehicle id="cfm-slow_1" pos="18.49" speed="5.13"/>
+                <vehicle id="cfm-slow_2" pos="35.15" speed="5.13"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.85" speed="5.45"/>
+                <vehicle id="cfm-fast_4" pos="18.51" speed="5.45"/>
+                <vehicle id="cfm-fast_5" pos="35.18" speed="5.45"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.82" speed="5.13"/>
+                <vehicle id="cfm-slow_4" pos="18.49" speed="5.13"/>
+                <vehicle id="cfm-slow_5" pos="35.16" speed="5.15"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.85" speed="5.45"/>
+                <vehicle id="cfm-fast_1" pos="18.51" speed="5.45"/>
+                <vehicle id="cfm-fast_2" pos="35.18" speed="5.45"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.31">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.87" speed="5.28"/>
+                <vehicle id="cfm-slow_1" pos="18.54" speed="5.28"/>
+                <vehicle id="cfm-slow_2" pos="35.21" speed="5.28"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.90" speed="5.64"/>
+                <vehicle id="cfm-fast_4" pos="18.57" speed="5.64"/>
+                <vehicle id="cfm-fast_5" pos="35.24" speed="5.64"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.87" speed="5.28"/>
+                <vehicle id="cfm-slow_4" pos="18.54" speed="5.28"/>
+                <vehicle id="cfm-slow_5" pos="35.21" speed="5.30"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.90" speed="5.64"/>
+                <vehicle id="cfm-fast_1" pos="18.57" speed="5.64"/>
+                <vehicle id="cfm-fast_2" pos="35.24" speed="5.64"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.32">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.93" speed="5.43"/>
+                <vehicle id="cfm-slow_1" pos="18.60" speed="5.43"/>
+                <vehicle id="cfm-slow_2" pos="35.26" speed="5.43"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="1.96" speed="5.82"/>
+                <vehicle id="cfm-fast_4" pos="18.63" speed="5.82"/>
+                <vehicle id="cfm-fast_5" pos="35.29" speed="5.81"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.93" speed="5.43"/>
+                <vehicle id="cfm-slow_4" pos="18.60" speed="5.43"/>
+                <vehicle id="cfm-slow_5" pos="35.26" speed="5.46"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="1.96" speed="5.82"/>
+                <vehicle id="cfm-fast_1" pos="18.63" speed="5.82"/>
+                <vehicle id="cfm-fast_2" pos="35.29" speed="5.82"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.33">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="1.98" speed="5.58"/>
+                <vehicle id="cfm-slow_1" pos="18.65" speed="5.58"/>
+                <vehicle id="cfm-slow_2" pos="35.32" speed="5.58"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.02" speed="6.00"/>
+                <vehicle id="cfm-fast_4" pos="18.69" speed="6.00"/>
+                <vehicle id="cfm-fast_5" pos="35.35" speed="5.99"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="1.98" speed="5.58"/>
+                <vehicle id="cfm-slow_4" pos="18.65" speed="5.58"/>
+                <vehicle id="cfm-slow_5" pos="35.32" speed="5.61"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.02" speed="6.00"/>
+                <vehicle id="cfm-fast_1" pos="18.69" speed="6.00"/>
+                <vehicle id="cfm-fast_2" pos="35.35" speed="6.00"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.34">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.04" speed="5.72"/>
+                <vehicle id="cfm-slow_1" pos="18.71" speed="5.72"/>
+                <vehicle id="cfm-slow_2" pos="35.38" speed="5.72"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.08" speed="6.18"/>
+                <vehicle id="cfm-fast_4" pos="18.75" speed="6.18"/>
+                <vehicle id="cfm-fast_5" pos="35.41" speed="6.17"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.04" speed="5.72"/>
+                <vehicle id="cfm-slow_4" pos="18.71" speed="5.73"/>
+                <vehicle id="cfm-slow_5" pos="35.38" speed="5.76"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.08" speed="6.18"/>
+                <vehicle id="cfm-fast_1" pos="18.75" speed="6.18"/>
+                <vehicle id="cfm-fast_2" pos="35.42" speed="6.18"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.35">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.10" speed="5.87"/>
+                <vehicle id="cfm-slow_1" pos="18.77" speed="5.87"/>
+                <vehicle id="cfm-slow_2" pos="35.43" speed="5.87"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.15" speed="6.35"/>
+                <vehicle id="cfm-fast_4" pos="18.81" speed="6.35"/>
+                <vehicle id="cfm-fast_5" pos="35.48" speed="6.34"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.10" speed="5.87"/>
+                <vehicle id="cfm-slow_4" pos="18.77" speed="5.87"/>
+                <vehicle id="cfm-slow_5" pos="35.44" speed="5.90"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.15" speed="6.35"/>
+                <vehicle id="cfm-fast_1" pos="18.81" speed="6.35"/>
+                <vehicle id="cfm-fast_2" pos="35.48" speed="6.35"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.36">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.16" speed="6.01"/>
+                <vehicle id="cfm-slow_1" pos="18.83" speed="6.01"/>
+                <vehicle id="cfm-slow_2" pos="35.49" speed="6.01"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.21" speed="6.53"/>
+                <vehicle id="cfm-fast_4" pos="18.88" speed="6.53"/>
+                <vehicle id="cfm-fast_5" pos="35.54" speed="6.51"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.16" speed="6.01"/>
+                <vehicle id="cfm-slow_4" pos="18.83" speed="6.02"/>
+                <vehicle id="cfm-slow_5" pos="35.50" speed="6.05"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.21" speed="6.53"/>
+                <vehicle id="cfm-fast_1" pos="18.88" speed="6.53"/>
+                <vehicle id="cfm-fast_2" pos="35.54" speed="6.53"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.37">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.22" speed="6.16"/>
+                <vehicle id="cfm-slow_1" pos="18.89" speed="6.16"/>
+                <vehicle id="cfm-slow_2" pos="35.56" speed="6.16"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.28" speed="6.70"/>
+                <vehicle id="cfm-fast_4" pos="18.94" speed="6.70"/>
+                <vehicle id="cfm-fast_5" pos="35.61" speed="6.68"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.22" speed="6.16"/>
+                <vehicle id="cfm-slow_4" pos="18.89" speed="6.16"/>
+                <vehicle id="cfm-slow_5" pos="35.56" speed="6.20"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.28" speed="6.70"/>
+                <vehicle id="cfm-fast_1" pos="18.94" speed="6.70"/>
+                <vehicle id="cfm-fast_2" pos="35.61" speed="6.70"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.38">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.29" speed="6.30"/>
+                <vehicle id="cfm-slow_1" pos="18.95" speed="6.30"/>
+                <vehicle id="cfm-slow_2" pos="35.62" speed="6.30"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.35" speed="6.88"/>
+                <vehicle id="cfm-fast_4" pos="19.01" speed="6.88"/>
+                <vehicle id="cfm-fast_5" pos="35.68" speed="6.85"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.29" speed="6.30"/>
+                <vehicle id="cfm-slow_4" pos="18.95" speed="6.30"/>
+                <vehicle id="cfm-slow_5" pos="35.62" speed="6.34"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.35" speed="6.88"/>
+                <vehicle id="cfm-fast_1" pos="19.01" speed="6.88"/>
+                <vehicle id="cfm-fast_2" pos="35.68" speed="6.88"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.39">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.35" speed="6.44"/>
+                <vehicle id="cfm-slow_1" pos="19.02" speed="6.44"/>
+                <vehicle id="cfm-slow_2" pos="35.68" speed="6.44"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.42" speed="7.05"/>
+                <vehicle id="cfm-fast_4" pos="19.08" speed="7.05"/>
+                <vehicle id="cfm-fast_5" pos="35.75" speed="7.01"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.35" speed="6.44"/>
+                <vehicle id="cfm-slow_4" pos="19.02" speed="6.44"/>
+                <vehicle id="cfm-slow_5" pos="35.69" speed="6.49"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.42" speed="7.05"/>
+                <vehicle id="cfm-fast_1" pos="19.08" speed="7.05"/>
+                <vehicle id="cfm-fast_2" pos="35.75" speed="7.05"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.40">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.42" speed="6.57"/>
+                <vehicle id="cfm-slow_1" pos="19.08" speed="6.57"/>
+                <vehicle id="cfm-slow_2" pos="35.75" speed="6.57"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.49" speed="7.22"/>
+                <vehicle id="cfm-fast_4" pos="19.16" speed="7.22"/>
+                <vehicle id="cfm-fast_5" pos="35.82" speed="7.18"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.42" speed="6.58"/>
+                <vehicle id="cfm-slow_4" pos="19.08" speed="6.58"/>
+                <vehicle id="cfm-slow_5" pos="35.75" speed="6.63"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.49" speed="7.22"/>
+                <vehicle id="cfm-fast_1" pos="19.16" speed="7.22"/>
+                <vehicle id="cfm-fast_2" pos="35.82" speed="7.22"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.41">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.48" speed="6.71"/>
+                <vehicle id="cfm-slow_1" pos="19.15" speed="6.71"/>
+                <vehicle id="cfm-slow_2" pos="35.82" speed="6.71"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.56" speed="7.38"/>
+                <vehicle id="cfm-fast_4" pos="19.23" speed="7.38"/>
+                <vehicle id="cfm-fast_5" pos="35.89" speed="7.34"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.48" speed="6.71"/>
+                <vehicle id="cfm-slow_4" pos="19.15" speed="6.72"/>
+                <vehicle id="cfm-slow_5" pos="35.82" speed="6.78"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.56" speed="7.38"/>
+                <vehicle id="cfm-fast_1" pos="19.23" speed="7.38"/>
+                <vehicle id="cfm-fast_2" pos="35.90" speed="7.38"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.42">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.55" speed="6.85"/>
+                <vehicle id="cfm-slow_1" pos="19.22" speed="6.85"/>
+                <vehicle id="cfm-slow_2" pos="35.88" speed="6.85"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.64" speed="7.55"/>
+                <vehicle id="cfm-fast_4" pos="19.30" speed="7.55"/>
+                <vehicle id="cfm-fast_5" pos="35.97" speed="7.50"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.55" speed="6.85"/>
+                <vehicle id="cfm-slow_4" pos="19.22" speed="6.85"/>
+                <vehicle id="cfm-slow_5" pos="35.89" speed="6.92"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.64" speed="7.55"/>
+                <vehicle id="cfm-fast_1" pos="19.31" speed="7.55"/>
+                <vehicle id="cfm-fast_2" pos="35.97" speed="7.55"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.43">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.62" speed="6.98"/>
+                <vehicle id="cfm-slow_1" pos="19.29" speed="6.98"/>
+                <vehicle id="cfm-slow_2" pos="35.95" speed="6.98"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.72" speed="7.72"/>
+                <vehicle id="cfm-fast_4" pos="19.38" speed="7.71"/>
+                <vehicle id="cfm-fast_5" pos="36.05" speed="7.66"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.62" speed="6.98"/>
+                <vehicle id="cfm-slow_4" pos="19.29" speed="6.99"/>
+                <vehicle id="cfm-slow_5" pos="35.96" speed="7.06"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.72" speed="7.72"/>
+                <vehicle id="cfm-fast_1" pos="19.38" speed="7.72"/>
+                <vehicle id="cfm-fast_2" pos="36.05" speed="7.72"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.44">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.69" speed="7.12"/>
+                <vehicle id="cfm-slow_1" pos="19.36" speed="7.12"/>
+                <vehicle id="cfm-slow_2" pos="36.03" speed="7.12"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.79" speed="7.88"/>
+                <vehicle id="cfm-fast_4" pos="19.46" speed="7.88"/>
+                <vehicle id="cfm-fast_5" pos="36.12" speed="7.81"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.69" speed="7.12"/>
+                <vehicle id="cfm-slow_4" pos="19.36" speed="7.12"/>
+                <vehicle id="cfm-slow_5" pos="36.03" speed="7.20"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.79" speed="7.88"/>
+                <vehicle id="cfm-fast_1" pos="19.46" speed="7.88"/>
+                <vehicle id="cfm-fast_2" pos="36.13" speed="7.88"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.45">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.76" speed="7.25"/>
+                <vehicle id="cfm-slow_1" pos="19.43" speed="7.25"/>
+                <vehicle id="cfm-slow_2" pos="36.10" speed="7.25"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.87" speed="8.04"/>
+                <vehicle id="cfm-fast_4" pos="19.54" speed="8.04"/>
+                <vehicle id="cfm-fast_5" pos="36.20" speed="7.97"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.76" speed="7.25"/>
+                <vehicle id="cfm-slow_4" pos="19.43" speed="7.26"/>
+                <vehicle id="cfm-slow_5" pos="36.11" speed="7.34"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.87" speed="8.04"/>
+                <vehicle id="cfm-fast_1" pos="19.54" speed="8.04"/>
+                <vehicle id="cfm-fast_2" pos="36.21" speed="8.04"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.46">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.84" speed="7.38"/>
+                <vehicle id="cfm-slow_1" pos="19.50" speed="7.38"/>
+                <vehicle id="cfm-slow_2" pos="36.17" speed="7.38"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="2.96" speed="8.20"/>
+                <vehicle id="cfm-fast_4" pos="19.62" speed="8.20"/>
+                <vehicle id="cfm-fast_5" pos="36.28" speed="8.12"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.84" speed="7.38"/>
+                <vehicle id="cfm-slow_4" pos="19.51" speed="7.39"/>
+                <vehicle id="cfm-slow_5" pos="36.18" speed="7.47"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="2.96" speed="8.20"/>
+                <vehicle id="cfm-fast_1" pos="19.62" speed="8.20"/>
+                <vehicle id="cfm-fast_2" pos="36.29" speed="8.20"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.47">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.91" speed="7.51"/>
+                <vehicle id="cfm-slow_1" pos="19.58" speed="7.51"/>
+                <vehicle id="cfm-slow_2" pos="36.25" speed="7.51"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.04" speed="8.36"/>
+                <vehicle id="cfm-fast_4" pos="19.71" speed="8.35"/>
+                <vehicle id="cfm-fast_5" pos="36.37" speed="8.27"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.91" speed="7.51"/>
+                <vehicle id="cfm-slow_4" pos="19.58" speed="7.52"/>
+                <vehicle id="cfm-slow_5" pos="36.26" speed="7.61"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.04" speed="8.36"/>
+                <vehicle id="cfm-fast_1" pos="19.71" speed="8.36"/>
+                <vehicle id="cfm-fast_2" pos="36.37" speed="8.36"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.48">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="2.99" speed="7.64"/>
+                <vehicle id="cfm-slow_1" pos="19.66" speed="7.64"/>
+                <vehicle id="cfm-slow_2" pos="36.32" speed="7.64"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.13" speed="8.52"/>
+                <vehicle id="cfm-fast_4" pos="19.79" speed="8.51"/>
+                <vehicle id="cfm-fast_5" pos="36.45" speed="8.42"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="2.99" speed="7.64"/>
+                <vehicle id="cfm-slow_4" pos="19.66" speed="7.65"/>
+                <vehicle id="cfm-slow_5" pos="36.33" speed="7.75"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.13" speed="8.52"/>
+                <vehicle id="cfm-fast_1" pos="19.79" speed="8.52"/>
+                <vehicle id="cfm-fast_2" pos="36.46" speed="8.52"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.49">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.07" speed="7.77"/>
+                <vehicle id="cfm-slow_1" pos="19.73" speed="7.77"/>
+                <vehicle id="cfm-slow_2" pos="36.40" speed="7.77"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.21" speed="8.67"/>
+                <vehicle id="cfm-fast_4" pos="19.88" speed="8.67"/>
+                <vehicle id="cfm-fast_5" pos="36.54" speed="8.57"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.07" speed="7.77"/>
+                <vehicle id="cfm-slow_4" pos="19.73" speed="7.78"/>
+                <vehicle id="cfm-slow_5" pos="36.41" speed="7.88"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.21" speed="8.67"/>
+                <vehicle id="cfm-fast_1" pos="19.88" speed="8.67"/>
+                <vehicle id="cfm-fast_2" pos="36.55" speed="8.67"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.50">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.15" speed="7.89"/>
+                <vehicle id="cfm-slow_1" pos="19.81" speed="7.89"/>
+                <vehicle id="cfm-slow_2" pos="36.48" speed="7.89"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.30" speed="8.83"/>
+                <vehicle id="cfm-fast_4" pos="19.97" speed="8.82"/>
+                <vehicle id="cfm-fast_5" pos="36.62" speed="8.72"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.15" speed="7.89"/>
+                <vehicle id="cfm-slow_4" pos="19.81" speed="7.90"/>
+                <vehicle id="cfm-slow_5" pos="36.49" speed="8.01"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.30" speed="8.83"/>
+                <vehicle id="cfm-fast_1" pos="19.97" speed="8.83"/>
+                <vehicle id="cfm-fast_2" pos="36.63" speed="8.83"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.51">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.23" speed="8.02"/>
+                <vehicle id="cfm-slow_1" pos="19.89" speed="8.02"/>
+                <vehicle id="cfm-slow_2" pos="36.56" speed="8.02"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.39" speed="8.98"/>
+                <vehicle id="cfm-fast_4" pos="20.06" speed="8.97"/>
+                <vehicle id="cfm-fast_5" pos="36.71" speed="8.86"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.23" speed="8.02"/>
+                <vehicle id="cfm-slow_4" pos="19.89" speed="8.03"/>
+                <vehicle id="cfm-slow_5" pos="36.57" speed="8.15"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.39" speed="8.98"/>
+                <vehicle id="cfm-fast_1" pos="20.06" speed="8.98"/>
+                <vehicle id="cfm-fast_2" pos="36.72" speed="8.98"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.52">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.31" speed="8.14"/>
+                <vehicle id="cfm-slow_1" pos="19.97" speed="8.14"/>
+                <vehicle id="cfm-slow_2" pos="36.64" speed="8.14"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.48" speed="9.13"/>
+                <vehicle id="cfm-fast_4" pos="20.15" speed="9.12"/>
+                <vehicle id="cfm-fast_5" pos="36.80" speed="9.01"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.31" speed="8.14"/>
+                <vehicle id="cfm-slow_4" pos="19.98" speed="8.15"/>
+                <vehicle id="cfm-slow_5" pos="36.66" speed="8.28"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.48" speed="9.13"/>
+                <vehicle id="cfm-fast_1" pos="20.15" speed="9.13"/>
+                <vehicle id="cfm-fast_2" pos="36.81" speed="9.13"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.53">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.39" speed="8.26"/>
+                <vehicle id="cfm-slow_1" pos="20.06" speed="8.26"/>
+                <vehicle id="cfm-slow_2" pos="36.72" speed="8.26"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.57" speed="9.28"/>
+                <vehicle id="cfm-fast_4" pos="20.24" speed="9.27"/>
+                <vehicle id="cfm-fast_5" pos="36.89" speed="9.15"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.39" speed="8.27"/>
+                <vehicle id="cfm-slow_4" pos="20.06" speed="8.28"/>
+                <vehicle id="cfm-slow_5" pos="36.74" speed="8.41"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.57" speed="9.28"/>
+                <vehicle id="cfm-fast_1" pos="20.24" speed="9.28"/>
+                <vehicle id="cfm-fast_2" pos="36.91" speed="9.28"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.54">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.47" speed="8.39"/>
+                <vehicle id="cfm-slow_1" pos="20.14" speed="8.39"/>
+                <vehicle id="cfm-slow_2" pos="36.81" speed="8.39"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.67" speed="9.43"/>
+                <vehicle id="cfm-fast_4" pos="20.33" speed="9.42"/>
+                <vehicle id="cfm-fast_5" pos="36.99" speed="9.29"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.47" speed="8.39"/>
+                <vehicle id="cfm-slow_4" pos="20.14" speed="8.40"/>
+                <vehicle id="cfm-slow_5" pos="36.83" speed="8.54"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.67" speed="9.43"/>
+                <vehicle id="cfm-fast_1" pos="20.34" speed="9.43"/>
+                <vehicle id="cfm-fast_2" pos="37.00" speed="9.43"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.55">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.56" speed="8.51"/>
+                <vehicle id="cfm-slow_1" pos="20.23" speed="8.51"/>
+                <vehicle id="cfm-slow_2" pos="36.89" speed="8.51"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.76" speed="9.58"/>
+                <vehicle id="cfm-fast_4" pos="20.43" speed="9.57"/>
+                <vehicle id="cfm-fast_5" pos="37.08" speed="9.43"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.56" speed="8.51"/>
+                <vehicle id="cfm-slow_4" pos="20.23" speed="8.52"/>
+                <vehicle id="cfm-slow_5" pos="36.91" speed="8.67"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.76" speed="9.58"/>
+                <vehicle id="cfm-fast_1" pos="20.43" speed="9.58"/>
+                <vehicle id="cfm-fast_2" pos="37.10" speed="9.58"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.56">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.65" speed="8.63"/>
+                <vehicle id="cfm-slow_1" pos="20.31" speed="8.63"/>
+                <vehicle id="cfm-slow_2" pos="36.98" speed="8.63"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.86" speed="9.72"/>
+                <vehicle id="cfm-fast_4" pos="20.53" speed="9.71"/>
+                <vehicle id="cfm-fast_5" pos="37.18" speed="9.57"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.65" speed="8.63"/>
+                <vehicle id="cfm-slow_4" pos="20.31" speed="8.64"/>
+                <vehicle id="cfm-slow_5" pos="37.00" speed="8.80"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.86" speed="9.72"/>
+                <vehicle id="cfm-fast_1" pos="20.53" speed="9.72"/>
+                <vehicle id="cfm-fast_2" pos="37.20" speed="9.72"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.57">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.73" speed="8.75"/>
+                <vehicle id="cfm-slow_1" pos="20.40" speed="8.75"/>
+                <vehicle id="cfm-slow_2" pos="37.07" speed="8.75"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="3.96" speed="9.87"/>
+                <vehicle id="cfm-fast_4" pos="20.63" speed="9.85"/>
+                <vehicle id="cfm-fast_5" pos="37.27" speed="9.70"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.73" speed="8.75"/>
+                <vehicle id="cfm-slow_4" pos="20.40" speed="8.76"/>
+                <vehicle id="cfm-slow_5" pos="37.09" speed="8.92"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="3.96" speed="9.87"/>
+                <vehicle id="cfm-fast_1" pos="20.63" speed="9.87"/>
+                <vehicle id="cfm-fast_2" pos="37.29" speed="9.87"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.58">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.82" speed="8.86"/>
+                <vehicle id="cfm-slow_1" pos="20.49" speed="8.86"/>
+                <vehicle id="cfm-slow_2" pos="37.16" speed="8.86"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.06" speed="10.01"/>
+                <vehicle id="cfm-fast_4" pos="20.73" speed="10.00"/>
+                <vehicle id="cfm-fast_5" pos="37.37" speed="9.84"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.82" speed="8.86"/>
+                <vehicle id="cfm-slow_4" pos="20.49" speed="8.88"/>
+                <vehicle id="cfm-slow_5" pos="37.18" speed="9.05"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.06" speed="10.01"/>
+                <vehicle id="cfm-fast_1" pos="20.73" speed="10.01"/>
+                <vehicle id="cfm-fast_2" pos="37.39" speed="10.01"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.59">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="3.91" speed="8.98"/>
+                <vehicle id="cfm-slow_1" pos="20.58" speed="8.98"/>
+                <vehicle id="cfm-slow_2" pos="37.24" speed="8.98"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.16" speed="10.15"/>
+                <vehicle id="cfm-fast_4" pos="20.83" speed="10.14"/>
+                <vehicle id="cfm-fast_5" pos="37.47" speed="9.97"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="3.91" speed="8.98"/>
+                <vehicle id="cfm-slow_4" pos="20.58" speed="9.00"/>
+                <vehicle id="cfm-slow_5" pos="37.27" speed="9.18"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.16" speed="10.16"/>
+                <vehicle id="cfm-fast_1" pos="20.83" speed="10.16"/>
+                <vehicle id="cfm-fast_2" pos="37.50" speed="10.16"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.60">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.00" speed="9.09"/>
+                <vehicle id="cfm-slow_1" pos="20.67" speed="9.09"/>
+                <vehicle id="cfm-slow_2" pos="37.34" speed="9.09"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.27" speed="10.30"/>
+                <vehicle id="cfm-fast_4" pos="20.93" speed="10.28"/>
+                <vehicle id="cfm-fast_5" pos="37.57" speed="10.10"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.00" speed="9.10"/>
+                <vehicle id="cfm-slow_4" pos="20.67" speed="9.12"/>
+                <vehicle id="cfm-slow_5" pos="37.37" speed="9.30"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.27" speed="10.30"/>
+                <vehicle id="cfm-fast_1" pos="20.93" speed="10.30"/>
+                <vehicle id="cfm-fast_2" pos="37.60" speed="10.30"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.61">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.09" speed="9.21"/>
+                <vehicle id="cfm-slow_1" pos="20.76" speed="9.21"/>
+                <vehicle id="cfm-slow_2" pos="37.43" speed="9.21"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.37" speed="10.43"/>
+                <vehicle id="cfm-fast_4" pos="21.03" speed="10.41"/>
+                <vehicle id="cfm-fast_5" pos="37.68" speed="10.23"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.09" speed="9.21"/>
+                <vehicle id="cfm-slow_4" pos="20.76" speed="9.23"/>
+                <vehicle id="cfm-slow_5" pos="37.46" speed="9.42"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.37" speed="10.44"/>
+                <vehicle id="cfm-fast_1" pos="21.04" speed="10.44"/>
+                <vehicle id="cfm-fast_2" pos="37.70" speed="10.44"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.62">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.19" speed="9.32"/>
+                <vehicle id="cfm-slow_1" pos="20.85" speed="9.32"/>
+                <vehicle id="cfm-slow_2" pos="37.52" speed="9.32"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.48" speed="10.57"/>
+                <vehicle id="cfm-fast_4" pos="21.14" speed="10.55"/>
+                <vehicle id="cfm-fast_5" pos="37.78" speed="10.36"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.19" speed="9.32"/>
+                <vehicle id="cfm-slow_4" pos="20.86" speed="9.35"/>
+                <vehicle id="cfm-slow_5" pos="37.56" speed="9.55"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.48" speed="10.57"/>
+                <vehicle id="cfm-fast_1" pos="21.14" speed="10.57"/>
+                <vehicle id="cfm-fast_2" pos="37.81" speed="10.57"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.63">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.28" speed="9.43"/>
+                <vehicle id="cfm-slow_1" pos="20.95" speed="9.43"/>
+                <vehicle id="cfm-slow_2" pos="37.62" speed="9.43"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.58" speed="10.71"/>
+                <vehicle id="cfm-fast_4" pos="21.25" speed="10.69"/>
+                <vehicle id="cfm-fast_5" pos="37.88" speed="10.49"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.28" speed="9.44"/>
+                <vehicle id="cfm-slow_4" pos="20.95" speed="9.46"/>
+                <vehicle id="cfm-slow_5" pos="37.65" speed="9.67"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.58" speed="10.71"/>
+                <vehicle id="cfm-fast_1" pos="21.25" speed="10.71"/>
+                <vehicle id="cfm-fast_2" pos="37.92" speed="10.71"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.64">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.38" speed="9.55"/>
+                <vehicle id="cfm-slow_1" pos="21.04" speed="9.55"/>
+                <vehicle id="cfm-slow_2" pos="37.71" speed="9.55"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.69" speed="10.85"/>
+                <vehicle id="cfm-fast_4" pos="21.35" speed="10.82"/>
+                <vehicle id="cfm-fast_5" pos="37.99" speed="10.61"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.38" speed="9.55"/>
+                <vehicle id="cfm-slow_4" pos="21.05" speed="9.58"/>
+                <vehicle id="cfm-slow_5" pos="37.75" speed="9.79"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.69" speed="10.85"/>
+                <vehicle id="cfm-fast_1" pos="21.36" speed="10.85"/>
+                <vehicle id="cfm-fast_2" pos="38.02" speed="10.85"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.65">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.47" speed="9.66"/>
+                <vehicle id="cfm-slow_1" pos="21.14" speed="9.66"/>
+                <vehicle id="cfm-slow_2" pos="37.81" speed="9.66"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.80" speed="10.98"/>
+                <vehicle id="cfm-fast_4" pos="21.46" speed="10.95"/>
+                <vehicle id="cfm-fast_5" pos="38.10" speed="10.74"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.47" speed="9.66"/>
+                <vehicle id="cfm-slow_4" pos="21.14" speed="9.69"/>
+                <vehicle id="cfm-slow_5" pos="37.85" speed="9.91"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.80" speed="10.98"/>
+                <vehicle id="cfm-fast_1" pos="21.47" speed="10.98"/>
+                <vehicle id="cfm-fast_2" pos="38.13" speed="10.98"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.66">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.57" speed="9.76"/>
+                <vehicle id="cfm-slow_1" pos="21.24" speed="9.76"/>
+                <vehicle id="cfm-slow_2" pos="37.91" speed="9.76"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="4.91" speed="11.11"/>
+                <vehicle id="cfm-fast_4" pos="21.58" speed="11.09"/>
+                <vehicle id="cfm-fast_5" pos="38.21" speed="10.86"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.57" speed="9.77"/>
+                <vehicle id="cfm-slow_4" pos="21.24" speed="9.80"/>
+                <vehicle id="cfm-slow_5" pos="37.95" speed="10.03"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="4.91" speed="11.12"/>
+                <vehicle id="cfm-fast_1" pos="21.58" speed="11.12"/>
+                <vehicle id="cfm-fast_2" pos="38.25" speed="11.12"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.67">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.67" speed="9.87"/>
+                <vehicle id="cfm-slow_1" pos="21.34" speed="9.87"/>
+                <vehicle id="cfm-slow_2" pos="38.00" speed="9.87"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.02" speed="11.25"/>
+                <vehicle id="cfm-fast_4" pos="21.69" speed="11.22"/>
+                <vehicle id="cfm-fast_5" pos="38.32" speed="10.98"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.67" speed="9.88"/>
+                <vehicle id="cfm-slow_4" pos="21.34" speed="9.91"/>
+                <vehicle id="cfm-slow_5" pos="38.05" speed="10.15"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.02" speed="11.25"/>
+                <vehicle id="cfm-fast_1" pos="21.69" speed="11.25"/>
+                <vehicle id="cfm-fast_2" pos="38.36" speed="11.25"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.68">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.77" speed="9.98"/>
+                <vehicle id="cfm-slow_1" pos="21.44" speed="9.98"/>
+                <vehicle id="cfm-slow_2" pos="38.10" speed="9.98"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.14" speed="11.38"/>
+                <vehicle id="cfm-fast_4" pos="21.80" speed="11.34"/>
+                <vehicle id="cfm-fast_5" pos="38.43" speed="11.10"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.77" speed="9.98"/>
+                <vehicle id="cfm-slow_4" pos="21.44" speed="10.02"/>
+                <vehicle id="cfm-slow_5" pos="38.15" speed="10.26"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.14" speed="11.38"/>
+                <vehicle id="cfm-fast_1" pos="21.80" speed="11.38"/>
+                <vehicle id="cfm-fast_2" pos="38.47" speed="11.38"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.69">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.87" speed="10.09"/>
+                <vehicle id="cfm-slow_1" pos="21.54" speed="10.09"/>
+                <vehicle id="cfm-slow_2" pos="38.20" speed="10.09"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.25" speed="11.51"/>
+                <vehicle id="cfm-fast_4" pos="21.92" speed="11.47"/>
+                <vehicle id="cfm-fast_5" pos="38.54" speed="11.22"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.87" speed="10.09"/>
+                <vehicle id="cfm-slow_4" pos="21.54" speed="10.13"/>
+                <vehicle id="cfm-slow_5" pos="38.26" speed="10.38"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.25" speed="11.51"/>
+                <vehicle id="cfm-fast_1" pos="21.92" speed="11.51"/>
+                <vehicle id="cfm-fast_2" pos="38.59" speed="11.51"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.70">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="4.97" speed="10.19"/>
+                <vehicle id="cfm-slow_1" pos="21.64" speed="10.19"/>
+                <vehicle id="cfm-slow_2" pos="38.31" speed="10.19"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.37" speed="11.63"/>
+                <vehicle id="cfm-fast_4" pos="22.03" speed="11.60"/>
+                <vehicle id="cfm-fast_5" pos="38.65" speed="11.34"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="4.97" speed="10.20"/>
+                <vehicle id="cfm-slow_4" pos="21.65" speed="10.24"/>
+                <vehicle id="cfm-slow_5" pos="38.36" speed="10.50"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.37" speed="11.64"/>
+                <vehicle id="cfm-fast_1" pos="22.04" speed="11.64"/>
+                <vehicle id="cfm-fast_2" pos="38.70" speed="11.64"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.71">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.08" speed="10.30"/>
+                <vehicle id="cfm-slow_1" pos="21.74" speed="10.30"/>
+                <vehicle id="cfm-slow_2" pos="38.41" speed="10.30"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.49" speed="11.76"/>
+                <vehicle id="cfm-fast_4" pos="22.15" speed="11.72"/>
+                <vehicle id="cfm-fast_5" pos="38.77" speed="11.46"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.08" speed="10.30"/>
+                <vehicle id="cfm-slow_4" pos="21.75" speed="10.34"/>
+                <vehicle id="cfm-slow_5" pos="38.47" speed="10.61"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.49" speed="11.77"/>
+                <vehicle id="cfm-fast_1" pos="22.15" speed="11.77"/>
+                <vehicle id="cfm-fast_2" pos="38.82" speed="11.77"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.72">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.18" speed="10.40"/>
+                <vehicle id="cfm-slow_1" pos="21.85" speed="10.40"/>
+                <vehicle id="cfm-slow_2" pos="38.51" speed="10.40"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.61" speed="11.89"/>
+                <vehicle id="cfm-fast_4" pos="22.27" speed="11.85"/>
+                <vehicle id="cfm-fast_5" pos="38.88" speed="11.57"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.18" speed="10.40"/>
+                <vehicle id="cfm-slow_4" pos="21.85" speed="10.45"/>
+                <vehicle id="cfm-slow_5" pos="38.58" speed="10.73"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.61" speed="11.89"/>
+                <vehicle id="cfm-fast_1" pos="22.27" speed="11.89"/>
+                <vehicle id="cfm-fast_2" pos="38.94" speed="11.89"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.73">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.28" speed="10.50"/>
+                <vehicle id="cfm-slow_1" pos="21.95" speed="10.50"/>
+                <vehicle id="cfm-slow_2" pos="38.62" speed="10.50"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.73" speed="12.01"/>
+                <vehicle id="cfm-fast_4" pos="22.39" speed="11.97"/>
+                <vehicle id="cfm-fast_5" pos="39.00" speed="11.69"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.29" speed="10.51"/>
+                <vehicle id="cfm-slow_4" pos="21.96" speed="10.55"/>
+                <vehicle id="cfm-slow_5" pos="38.68" speed="10.84"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.73" speed="12.02"/>
+                <vehicle id="cfm-fast_1" pos="22.39" speed="12.02"/>
+                <vehicle id="cfm-fast_2" pos="39.06" speed="12.02"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.74">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.39" speed="10.60"/>
+                <vehicle id="cfm-slow_1" pos="22.06" speed="10.60"/>
+                <vehicle id="cfm-slow_2" pos="38.72" speed="10.60"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.85" speed="12.14"/>
+                <vehicle id="cfm-fast_4" pos="22.51" speed="12.09"/>
+                <vehicle id="cfm-fast_5" pos="39.12" speed="11.80"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.39" speed="10.61"/>
+                <vehicle id="cfm-slow_4" pos="22.07" speed="10.66"/>
+                <vehicle id="cfm-slow_5" pos="38.79" speed="10.95"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.85" speed="12.14"/>
+                <vehicle id="cfm-fast_1" pos="22.51" speed="12.14"/>
+                <vehicle id="cfm-fast_2" pos="39.18" speed="12.14"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.75">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.50" speed="10.70"/>
+                <vehicle id="cfm-slow_1" pos="22.16" speed="10.70"/>
+                <vehicle id="cfm-slow_2" pos="38.83" speed="10.70"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="5.97" speed="12.26"/>
+                <vehicle id="cfm-fast_4" pos="22.63" speed="12.21"/>
+                <vehicle id="cfm-fast_5" pos="39.24" speed="11.91"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.50" speed="10.71"/>
+                <vehicle id="cfm-slow_4" pos="22.17" speed="10.76"/>
+                <vehicle id="cfm-slow_5" pos="38.90" speed="11.06"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="5.97" speed="12.26"/>
+                <vehicle id="cfm-fast_1" pos="22.64" speed="12.26"/>
+                <vehicle id="cfm-fast_2" pos="39.30" speed="12.26"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.76">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.61" speed="10.80"/>
+                <vehicle id="cfm-slow_1" pos="22.27" speed="10.80"/>
+                <vehicle id="cfm-slow_2" pos="38.94" speed="10.80"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.09" speed="12.38"/>
+                <vehicle id="cfm-fast_4" pos="22.75" speed="12.33"/>
+                <vehicle id="cfm-fast_5" pos="39.36" speed="12.02"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.61" speed="10.81"/>
+                <vehicle id="cfm-slow_4" pos="22.28" speed="10.86"/>
+                <vehicle id="cfm-slow_5" pos="39.02" speed="11.17"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.09" speed="12.39"/>
+                <vehicle id="cfm-fast_1" pos="22.76" speed="12.39"/>
+                <vehicle id="cfm-fast_2" pos="39.43" speed="12.39"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.77">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.72" speed="10.90"/>
+                <vehicle id="cfm-slow_1" pos="22.38" speed="10.90"/>
+                <vehicle id="cfm-slow_2" pos="39.05" speed="10.90"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.22" speed="12.50"/>
+                <vehicle id="cfm-fast_4" pos="22.88" speed="12.45"/>
+                <vehicle id="cfm-fast_5" pos="39.48" speed="12.13"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.72" speed="10.91"/>
+                <vehicle id="cfm-slow_4" pos="22.39" speed="10.97"/>
+                <vehicle id="cfm-slow_5" pos="39.13" speed="11.28"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.22" speed="12.51"/>
+                <vehicle id="cfm-fast_1" pos="22.89" speed="12.51"/>
+                <vehicle id="cfm-fast_2" pos="39.55" speed="12.51"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.78">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.83" speed="11.00"/>
+                <vehicle id="cfm-slow_1" pos="22.49" speed="11.00"/>
+                <vehicle id="cfm-slow_2" pos="39.16" speed="11.00"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.34" speed="12.62"/>
+                <vehicle id="cfm-fast_4" pos="23.00" speed="12.57"/>
+                <vehicle id="cfm-fast_5" pos="39.60" speed="12.24"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.83" speed="11.01"/>
+                <vehicle id="cfm-slow_4" pos="22.50" speed="11.07"/>
+                <vehicle id="cfm-slow_5" pos="39.24" speed="11.39"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.35" speed="12.63"/>
+                <vehicle id="cfm-fast_1" pos="23.01" speed="12.63"/>
+                <vehicle id="cfm-fast_2" pos="39.68" speed="12.63"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.79">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="5.94" speed="11.10"/>
+                <vehicle id="cfm-slow_1" pos="22.60" speed="11.10"/>
+                <vehicle id="cfm-slow_2" pos="39.27" speed="11.10"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.47" speed="12.74"/>
+                <vehicle id="cfm-fast_4" pos="23.13" speed="12.68"/>
+                <vehicle id="cfm-fast_5" pos="39.72" speed="12.35"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="5.94" speed="11.11"/>
+                <vehicle id="cfm-slow_4" pos="22.61" speed="11.17"/>
+                <vehicle id="cfm-slow_5" pos="39.36" speed="11.50"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.47" speed="12.75"/>
+                <vehicle id="cfm-fast_1" pos="23.14" speed="12.75"/>
+                <vehicle id="cfm-fast_2" pos="39.81" speed="12.74"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.80">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.05" speed="11.19"/>
+                <vehicle id="cfm-slow_1" pos="22.71" speed="11.19"/>
+                <vehicle id="cfm-slow_2" pos="39.38" speed="11.19"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.60" speed="12.85"/>
+                <vehicle id="cfm-fast_4" pos="23.26" speed="12.80"/>
+                <vehicle id="cfm-fast_5" pos="39.85" speed="12.45"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.05" speed="11.20"/>
+                <vehicle id="cfm-slow_4" pos="22.73" speed="11.27"/>
+                <vehicle id="cfm-slow_5" pos="39.47" speed="11.61"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.60" speed="12.86"/>
+                <vehicle id="cfm-fast_1" pos="23.27" speed="12.86"/>
+                <vehicle id="cfm-fast_2" pos="39.93" speed="12.86"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.81">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.16" speed="11.29"/>
+                <vehicle id="cfm-slow_1" pos="22.83" speed="11.29"/>
+                <vehicle id="cfm-slow_2" pos="39.49" speed="11.29"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.73" speed="12.97"/>
+                <vehicle id="cfm-fast_4" pos="23.39" speed="12.91"/>
+                <vehicle id="cfm-fast_5" pos="39.97" speed="12.56"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.16" speed="11.30"/>
+                <vehicle id="cfm-slow_4" pos="22.84" speed="11.36"/>
+                <vehicle id="cfm-slow_5" pos="39.59" speed="11.72"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.73" speed="12.98"/>
+                <vehicle id="cfm-fast_1" pos="23.40" speed="12.98"/>
+                <vehicle id="cfm-fast_2" pos="40.06" speed="12.98"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.82">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.27" speed="11.38"/>
+                <vehicle id="cfm-slow_1" pos="22.94" speed="11.38"/>
+                <vehicle id="cfm-slow_2" pos="39.61" speed="11.38"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.86" speed="13.09"/>
+                <vehicle id="cfm-fast_4" pos="23.52" speed="13.02"/>
+                <vehicle id="cfm-fast_5" pos="40.10" speed="12.66"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.28" speed="11.39"/>
+                <vehicle id="cfm-slow_4" pos="22.96" speed="11.46"/>
+                <vehicle id="cfm-slow_5" pos="39.71" speed="11.82"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.86" speed="13.09"/>
+                <vehicle id="cfm-fast_1" pos="23.53" speed="13.09"/>
+                <vehicle id="cfm-fast_2" pos="40.20" speed="13.09"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.83">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.39" speed="11.48"/>
+                <vehicle id="cfm-slow_1" pos="23.06" speed="11.48"/>
+                <vehicle id="cfm-slow_2" pos="39.72" speed="11.48"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="6.99" speed="13.20"/>
+                <vehicle id="cfm-fast_4" pos="23.65" speed="13.13"/>
+                <vehicle id="cfm-fast_5" pos="40.23" speed="12.76"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.39" speed="11.49"/>
+                <vehicle id="cfm-slow_4" pos="23.07" speed="11.56"/>
+                <vehicle id="cfm-slow_5" pos="39.83" speed="11.93"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="6.99" speed="13.21"/>
+                <vehicle id="cfm-fast_1" pos="23.66" speed="13.21"/>
+                <vehicle id="cfm-fast_2" pos="40.33" speed="13.21"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.84">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.51" speed="11.57"/>
+                <vehicle id="cfm-slow_1" pos="23.17" speed="11.57"/>
+                <vehicle id="cfm-slow_2" pos="39.84" speed="11.57"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="7.13" speed="13.31"/>
+                <vehicle id="cfm-fast_4" pos="23.78" speed="13.24"/>
+                <vehicle id="cfm-fast_5" pos="40.36" speed="12.86"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.51" speed="11.58"/>
+                <vehicle id="cfm-slow_4" pos="23.19" speed="11.65"/>
+                <vehicle id="cfm-slow_5" pos="39.95" speed="12.03"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="7.13" speed="13.32"/>
+                <vehicle id="cfm-fast_1" pos="23.79" speed="13.32"/>
+                <vehicle id="cfm-fast_2" pos="40.46" speed="13.32"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.85">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.62" speed="11.66"/>
+                <vehicle id="cfm-slow_1" pos="23.29" speed="11.66"/>
+                <vehicle id="cfm-slow_2" pos="39.96" speed="11.66"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="7.26" speed="13.42"/>
+                <vehicle id="cfm-fast_4" pos="23.91" speed="13.35"/>
+                <vehicle id="cfm-fast_5" pos="40.49" speed="12.96"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.62" speed="11.67"/>
+                <vehicle id="cfm-slow_4" pos="23.30" speed="11.75"/>
+                <vehicle id="cfm-slow_5" pos="40.07" speed="12.14"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="7.26" speed="13.43"/>
+                <vehicle id="cfm-fast_1" pos="23.93" speed="13.43"/>
+                <vehicle id="cfm-fast_2" pos="40.60" speed="13.43"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.86">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.74" speed="11.75"/>
+                <vehicle id="cfm-slow_1" pos="23.41" speed="11.75"/>
+                <vehicle id="cfm-slow_2" pos="40.07" speed="11.75"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="7.40" speed="13.53"/>
+                <vehicle id="cfm-fast_4" pos="24.05" speed="13.46"/>
+                <vehicle id="cfm-fast_5" pos="40.62" speed="13.06"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.74" speed="11.76"/>
+                <vehicle id="cfm-slow_4" pos="23.42" speed="11.84"/>
+                <vehicle id="cfm-slow_5" pos="40.19" speed="12.24"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="7.40" speed="13.55"/>
+                <vehicle id="cfm-fast_1" pos="24.06" speed="13.55"/>
+                <vehicle id="cfm-fast_2" pos="40.73" speed="13.54"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.87">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.86" speed="11.84"/>
+                <vehicle id="cfm-slow_1" pos="23.52" speed="11.84"/>
+                <vehicle id="cfm-slow_2" pos="40.19" speed="11.84"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="7.53" speed="13.64"/>
+                <vehicle id="cfm-fast_4" pos="24.18" speed="13.56"/>
+                <vehicle id="cfm-fast_5" pos="40.75" speed="13.16"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.86" speed="11.86"/>
+                <vehicle id="cfm-slow_4" pos="23.54" speed="11.94"/>
+                <vehicle id="cfm-slow_5" pos="40.32" speed="12.34"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="7.53" speed="13.66"/>
+                <vehicle id="cfm-fast_1" pos="24.20" speed="13.66"/>
+                <vehicle id="cfm-fast_2" pos="40.87" speed="13.65"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.88">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="6.98" speed="11.93"/>
+                <vehicle id="cfm-slow_1" pos="23.64" speed="11.93"/>
+                <vehicle id="cfm-slow_2" pos="40.31" speed="11.93"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="7.67" speed="13.75"/>
+                <vehicle id="cfm-fast_4" pos="24.32" speed="13.67"/>
+                <vehicle id="cfm-fast_5" pos="40.88" speed="13.26"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="6.98" speed="11.95"/>
+                <vehicle id="cfm-slow_4" pos="23.66" speed="12.03"/>
+                <vehicle id="cfm-slow_5" pos="40.44" speed="12.45"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="7.67" speed="13.76"/>
+                <vehicle id="cfm-fast_1" pos="24.34" speed="13.76"/>
+                <vehicle id="cfm-fast_2" pos="41.00" speed="13.76"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.89">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.10" speed="12.02"/>
+                <vehicle id="cfm-slow_1" pos="23.76" speed="12.02"/>
+                <vehicle id="cfm-slow_2" pos="40.43" speed="12.02"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="7.81" speed="13.86"/>
+                <vehicle id="cfm-fast_4" pos="24.46" speed="13.77"/>
+                <vehicle id="cfm-fast_5" pos="41.02" speed="13.35"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.10" speed="12.04"/>
+                <vehicle id="cfm-slow_4" pos="23.78" speed="12.12"/>
+                <vehicle id="cfm-slow_5" pos="40.57" speed="12.55"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="7.81" speed="13.87"/>
+                <vehicle id="cfm-fast_1" pos="24.48" speed="13.87"/>
+                <vehicle id="cfm-fast_2" pos="41.14" speed="13.87"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.90">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.22" speed="12.11"/>
+                <vehicle id="cfm-slow_1" pos="23.88" speed="12.11"/>
+                <vehicle id="cfm-slow_2" pos="40.55" speed="12.11"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="7.95" speed="13.97"/>
+                <vehicle id="cfm-fast_4" pos="24.60" speed="13.88"/>
+                <vehicle id="cfm-fast_5" pos="41.15" speed="13.45"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.22" speed="12.12"/>
+                <vehicle id="cfm-slow_4" pos="23.91" speed="12.22"/>
+                <vehicle id="cfm-slow_5" pos="40.69" speed="12.65"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="7.95" speed="13.98"/>
+                <vehicle id="cfm-fast_1" pos="24.62" speed="13.98"/>
+                <vehicle id="cfm-fast_2" pos="41.28" speed="13.98"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.91">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.34" speed="12.19"/>
+                <vehicle id="cfm-slow_1" pos="24.01" speed="12.19"/>
+                <vehicle id="cfm-slow_2" pos="40.67" speed="12.20"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="8.09" speed="14.07"/>
+                <vehicle id="cfm-fast_4" pos="24.74" speed="13.98"/>
+                <vehicle id="cfm-fast_5" pos="41.29" speed="13.54"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.34" speed="12.21"/>
+                <vehicle id="cfm-slow_4" pos="24.03" speed="12.31"/>
+                <vehicle id="cfm-slow_5" pos="40.82" speed="12.75"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="8.09" speed="14.09"/>
+                <vehicle id="cfm-fast_1" pos="24.76" speed="14.09"/>
+                <vehicle id="cfm-fast_2" pos="41.42" speed="14.08"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.92">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.46" speed="12.28"/>
+                <vehicle id="cfm-slow_1" pos="24.13" speed="12.28"/>
+                <vehicle id="cfm-slow_2" pos="40.80" speed="12.28"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="8.23" speed="14.18"/>
+                <vehicle id="cfm-fast_4" pos="24.88" speed="14.08"/>
+                <vehicle id="cfm-fast_5" pos="41.42" speed="13.63"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.47" speed="12.30"/>
+                <vehicle id="cfm-slow_4" pos="24.15" speed="12.40"/>
+                <vehicle id="cfm-slow_5" pos="40.95" speed="12.84"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="8.23" speed="14.19"/>
+                <vehicle id="cfm-fast_1" pos="24.90" speed="14.19"/>
+                <vehicle id="cfm-fast_2" pos="41.57" speed="14.19"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.93">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.59" speed="12.37"/>
+                <vehicle id="cfm-slow_1" pos="24.25" speed="12.37"/>
+                <vehicle id="cfm-slow_2" pos="40.92" speed="12.37"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="8.37" speed="14.28"/>
+                <vehicle id="cfm-fast_4" pos="25.02" speed="14.18"/>
+                <vehicle id="cfm-fast_5" pos="41.56" speed="13.72"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.59" speed="12.38"/>
+                <vehicle id="cfm-slow_4" pos="24.28" speed="12.49"/>
+                <vehicle id="cfm-slow_5" pos="41.08" speed="12.94"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="8.38" speed="14.30"/>
+                <vehicle id="cfm-fast_1" pos="25.04" speed="14.30"/>
+                <vehicle id="cfm-fast_2" pos="41.71" speed="14.29"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.94">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.71" speed="12.45"/>
+                <vehicle id="cfm-slow_1" pos="24.38" speed="12.45"/>
+                <vehicle id="cfm-slow_2" pos="41.04" speed="12.45"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="8.52" speed="14.38"/>
+                <vehicle id="cfm-fast_4" pos="25.16" speed="14.28"/>
+                <vehicle id="cfm-fast_5" pos="41.70" speed="13.81"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.71" speed="12.47"/>
+                <vehicle id="cfm-slow_4" pos="24.40" speed="12.57"/>
+                <vehicle id="cfm-slow_5" pos="41.21" speed="13.04"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="8.52" speed="14.40"/>
+                <vehicle id="cfm-fast_1" pos="25.19" speed="14.40"/>
+                <vehicle id="cfm-fast_2" pos="41.85" speed="14.40"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.95">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.84" speed="12.53"/>
+                <vehicle id="cfm-slow_1" pos="24.50" speed="12.53"/>
+                <vehicle id="cfm-slow_2" pos="41.17" speed="12.54"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="8.66" speed="14.48"/>
+                <vehicle id="cfm-fast_4" pos="25.31" speed="14.38"/>
+                <vehicle id="cfm-fast_5" pos="41.84" speed="13.90"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.84" speed="12.55"/>
+                <vehicle id="cfm-slow_4" pos="24.53" speed="12.66"/>
+                <vehicle id="cfm-slow_5" pos="41.34" speed="13.14"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="8.66" speed="14.50"/>
+                <vehicle id="cfm-fast_1" pos="25.33" speed="14.50"/>
+                <vehicle id="cfm-fast_2" pos="42.00" speed="14.50"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.96">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="7.96" speed="12.62"/>
+                <vehicle id="cfm-slow_1" pos="24.63" speed="12.62"/>
+                <vehicle id="cfm-slow_2" pos="41.30" speed="12.62"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="8.81" speed="14.58"/>
+                <vehicle id="cfm-fast_4" pos="25.45" speed="14.47"/>
+                <vehicle id="cfm-fast_5" pos="41.98" speed="13.99"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="7.97" speed="12.64"/>
+                <vehicle id="cfm-slow_4" pos="24.66" speed="12.75"/>
+                <vehicle id="cfm-slow_5" pos="41.47" speed="13.23"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="8.81" speed="14.60"/>
+                <vehicle id="cfm-fast_1" pos="25.48" speed="14.60"/>
+                <vehicle id="cfm-fast_2" pos="42.14" speed="14.60"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.97">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="8.09" speed="12.70"/>
+                <vehicle id="cfm-slow_1" pos="24.76" speed="12.70"/>
+                <vehicle id="cfm-slow_2" pos="41.42" speed="12.70"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="8.95" speed="14.68"/>
+                <vehicle id="cfm-fast_4" pos="25.60" speed="14.57"/>
+                <vehicle id="cfm-fast_5" pos="42.12" speed="14.08"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="8.09" speed="12.72"/>
+                <vehicle id="cfm-slow_4" pos="24.79" speed="12.84"/>
+                <vehicle id="cfm-slow_5" pos="41.61" speed="13.33"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="8.96" speed="14.70"/>
+                <vehicle id="cfm-fast_1" pos="25.62" speed="14.70"/>
+                <vehicle id="cfm-fast_2" pos="42.29" speed="14.70"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.98">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="8.22" speed="12.78"/>
+                <vehicle id="cfm-slow_1" pos="24.88" speed="12.78"/>
+                <vehicle id="cfm-slow_2" pos="41.55" speed="12.78"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="9.10" speed="14.78"/>
+                <vehicle id="cfm-fast_4" pos="25.74" speed="14.67"/>
+                <vehicle id="cfm-fast_5" pos="42.26" speed="14.17"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="8.22" speed="12.80"/>
+                <vehicle id="cfm-slow_4" pos="24.92" speed="12.92"/>
+                <vehicle id="cfm-slow_5" pos="41.74" speed="13.42"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="9.11" speed="14.80"/>
+                <vehicle id="cfm-fast_1" pos="25.77" speed="14.80"/>
+                <vehicle id="cfm-fast_2" pos="42.44" speed="14.80"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="0.99">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="8.35" speed="12.86"/>
+                <vehicle id="cfm-slow_1" pos="25.01" speed="12.86"/>
+                <vehicle id="cfm-slow_2" pos="41.68" speed="12.86"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="9.25" speed="14.88"/>
+                <vehicle id="cfm-fast_4" pos="25.89" speed="14.76"/>
+                <vehicle id="cfm-fast_5" pos="42.40" speed="14.25"/>
+            </lane>
+            <lane id="left_1"/>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="8.35" speed="12.89"/>
+                <vehicle id="cfm-slow_4" pos="25.05" speed="13.01"/>
+                <vehicle id="cfm-slow_5" pos="41.88" speed="13.52"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="9.26" speed="14.90"/>
+                <vehicle id="cfm-fast_1" pos="25.92" speed="14.90"/>
+                <vehicle id="cfm-fast_2" pos="42.59" speed="14.90"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+    <timestep time="1.00">
+        <edge id="bottom">
+            <lane id="bottom_0">
+                <vehicle id="cfm-slow_0" pos="8.48" speed="12.94"/>
+                <vehicle id="cfm-slow_1" pos="25.14" speed="12.94"/>
+                <vehicle id="cfm-slow_2" pos="41.81" speed="12.95"/>
+            </lane>
+            <lane id="bottom_1"/>
+        </edge>
+        <edge id="left">
+            <lane id="left_0">
+                <vehicle id="cfm-fast_3" pos="9.40" speed="14.98"/>
+                <vehicle id="cfm-fast_4" pos="26.04" speed="14.85"/>
+            </lane>
+            <lane id="left_1">
+                <vehicle id="cfm-fast_5" pos="42.54" speed="14.34"/>
+            </lane>
+        </edge>
+        <edge id="right">
+            <lane id="right_0">
+                <vehicle id="cfm-slow_3" pos="8.48" speed="12.97"/>
+                <vehicle id="cfm-slow_4" pos="25.18" speed="13.09"/>
+                <vehicle id="cfm-slow_5" pos="42.01" speed="13.61"/>
+            </lane>
+            <lane id="right_1"/>
+        </edge>
+        <edge id="top">
+            <lane id="top_0">
+                <vehicle id="cfm-fast_0" pos="9.41" speed="15.00"/>
+                <vehicle id="cfm-fast_1" pos="26.07" speed="15.00"/>
+                <vehicle id="cfm-fast_2" pos="42.74" speed="15.00"/>
+            </lane>
+            <lane id="top_1"/>
+        </edge>
+    </timestep>
+</netstate>

@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+  <vType id="cfm-slow" minGap="0"/>
+  <vType id="cfm-fast" minGap="0"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="1" departSpeed="0" id="cfm-slow_0" route="routebottom" type="cfm-slow"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="17.666666666666668" departSpeed="0" id="cfm-slow_1" route="routebottom" type="cfm-slow"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="34.333333333333336" departSpeed="0" id="cfm-slow_2" route="routebottom" type="cfm-slow"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="1.0" departSpeed="0" id="cfm-slow_3" route="routeright" type="cfm-slow"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="17.66666666666667" departSpeed="0" id="cfm-slow_4" route="routeright" type="cfm-slow"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="34.33333333333334" departSpeed="0" id="cfm-slow_5" route="routeright" type="cfm-slow"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="1.0000000000000142" departSpeed="0" id="cfm-fast_0" route="routetop" type="cfm-fast"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="17.666666666666686" departSpeed="0" id="cfm-fast_1" route="routetop" type="cfm-fast"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="34.33333333333334" departSpeed="0" id="cfm-fast_2" route="routetop" type="cfm-fast"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="1.0" departSpeed="0" id="cfm-fast_3" route="routeleft" type="cfm-fast"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="17.666666666666657" departSpeed="0" id="cfm-fast_4" route="routeleft" type="cfm-fast"/>
+  <vehicle color="1,0.0,0.0" depart="0" departPos="34.333333333333314" departSpeed="0" id="cfm-fast_5" route="routeleft" type="cfm-fast"/>
+</routes>
