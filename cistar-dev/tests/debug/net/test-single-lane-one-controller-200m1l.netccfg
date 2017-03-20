@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+  <input>
+    <node-files value="test-single-lane-one-controller-200m1l.nod.xml"/>
+    <edge-files value="test-single-lane-one-controller-200m1l.edg.xml"/>
+    <type-files value="test-single-lane-one-controller-200m1l.typ.xml"/>
+  </input>
+  <output>
+    <output-file value="test-single-lane-one-controller-200m1l.net.xml"/>
+  </output>
+  <processing>
+    <no-internal-links value="true"/>
+    <no-turnarounds value="true"/>
+  </processing>
+</configuration>

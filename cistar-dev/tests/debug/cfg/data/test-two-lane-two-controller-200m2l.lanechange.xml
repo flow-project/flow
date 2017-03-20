@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Sun Mar 12 03:17:10 2017 by SUMO Version 0.29.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="tests/debug/cfg/test-two-lane-two-controller-200m2l.net.xml"/>
+        <route-files value="tests/debug/cfg/test-two-lane-two-controller-200m2l.rou.xml"/>
+        <additional-files value="tests/debug/cfg/test-two-lane-two-controller-200m2l.add.xml"/>
+    </input>
+
+    <output>
+        <netstate-dump value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.netstate.xml"/>
+        <emission-output value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.emission.xml"/>
+        <amitran-output value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.amitran.xml"/>
+        <lanechange-output value="tests/debug/cfg/data/test-two-lane-two-controller-200m2l.lanechange.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="1000"/>
+        <step-length value="0.01"/>
+    </time>
+
+    <traci_server>
+        <remote-port value="8873"/>
+    </traci_server>
+
+    <gui_only>
+        <gui-settings-file value="tests/debug/cfg/test-two-lane-two-controller-200m2l.gui.cfg"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<lanechanges>
+    <change id="cfm-fast_5" time="1.00" from="left_0" to="left_1" dir="1" speed="14.34" reason="traci|urgent"/>
+</lanechanges>
