@@ -1,10 +1,12 @@
 import logging
 
+from rllab.core.serializable import Serializable
+
 from cistar.core.generator import Generator
 
 # TODO(cathywu) Make this an abstract class
 
-class Scenario:
+class Scenario(Serializable):
     def __init__(self, name, type_params, net_params, cfg_params=None,
                  initial_config=None, cfg=None, generator_class=None):
         """
@@ -27,6 +29,8 @@ class Scenario:
         :param generator_class: Class for generating a configuration files
         and net files with placed vehicles, e.g. CircleGenerator
         """
+        Serializable.quick_init(self, locals())
+
         self.name = name
         # x[1] gets the value (number of cars, car following model,
         # lane changing model); x[1][0] gets the number of cars.

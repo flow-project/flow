@@ -13,12 +13,7 @@ sumo_params = {"port": 8873, "time_step":0.01}
 
 sumo_binary = "sumo"
 
-# type_params = {"ovm": (12, (OVMController, {'h_go': 6}), never_change_lanes_controller(), 0), 
-# 			   'const': (2, (ConstantVelocityController, {'constant_speed': 28}), never_change_lanes_controller(), 0)}
-# # h_go = 11.8 with OVM: gets you 8.29 m/s
-# # h_go = 13.2 with OVM: gets you 6.48 m/s
-
-type_params = {"ovm": (22, (OVMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"bcm": (22, (BCMController, {}), never_change_lanes_controller(), 0)}
 
 env_params = {"target_velocity": 25, "perturbation_at":900, "perturbation_length":150,  "max-deacc":-5, "max-acc":5, 'safety':'eugene'}
 
@@ -28,7 +23,7 @@ cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
 
 initial_config = {"shuffle": False}
 
-scenario_name = 'sugiyama-perturbation-ovm'
+scenario_name = 'sugiyama-perturbation-bcm'
 
 scenario = LoopScenario(scenario_name, type_params, net_params, cfg_params, initial_config)
 # data path needs to be relative to cfg location

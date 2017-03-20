@@ -86,6 +86,7 @@ function [pa, pd] = probability_headway(h)
      %pd = c_disappear*p_disappear*(delta_t/beta); 
     pa = c_appear*p_appear;
      pd = c_disappear*p_disappear; 
+
 end
 
 % the 1 index corresponds to the appear/disappear

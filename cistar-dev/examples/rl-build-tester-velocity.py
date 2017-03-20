@@ -19,7 +19,7 @@ human_cars = tot_cars - auton_cars
 
 sumo_params = {"port": 8873, "time_step":0.1}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = {"rl":(auton_cars, (RLVelocityController, {}), None, 0)}
 
@@ -52,7 +52,7 @@ env = normalize(exp.env)
 for seed in [1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,32)
+        hidden_sizes=(16,)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -61,7 +61,7 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=200,
+        batch_size=2000,
         max_path_length=1000,
         # whole_paths=True,
         n_itr=150,
