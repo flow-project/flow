@@ -25,7 +25,7 @@ sumo_binary = "sumo"
 
 type_params = {"rl":(auton_cars, (RLController, {}), None, 0)}
 
-env_params = {"target_velocity": 25, "max-deacc":3, "max-acc":3}
+env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3}
 
 net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40,
               "net_path":"debug/rl/net/"}
@@ -68,7 +68,7 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         batch_size=2000,
         max_path_length=400,
         # whole_paths=True,
-        n_itr=10,  # 1000
+        n_itr=1000,  # 1000
         # discount=0.99,
         # step_size=0.01,
     )

@@ -2,3 +2,4 @@ lxml
 theano
 pyprind
 lasagne
+tensorflow
