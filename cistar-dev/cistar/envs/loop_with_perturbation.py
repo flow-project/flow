@@ -23,7 +23,7 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
         if "perturbed_id" in env_params:
             self.perturbed_id = env_params["perturbed_id"]
         else:
-            self.perturbed_id = list(self.vehicles.keys())[random.randint(0, len(self.vehicles.keys()))]
+            self.perturbed_id = list(self.vehicles.keys())[random.randint(0, len(self.vehicles.keys())-1)]
 
     def step(self, rl_actions):
         """
@@ -45,13 +45,13 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
         logging.debug("================= performing step =================")
         for veh_id in self.controlled_ids:
             action = self.vehicles[veh_id]['controller'].get_action(self)
-            safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
+            safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
             action = rl_actions[index]
-            safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
+            safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
 
         self.timer += 1

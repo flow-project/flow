@@ -81,7 +81,7 @@ class BCMController(BaseController):
     Variables:
     """
 
-    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15, tau = 0, dt = 0.1):
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15, deacc_max = -5, tau = 0, dt = 0.1):
         """Instantiates a BCM controller
         
         Arguments:
@@ -98,7 +98,7 @@ class BCMController(BaseController):
             dt {number} -- [timestep] (default: {0.1})
         """
 
-        controller_params = {"delay": tau/dt, "max_deaccel": acc_max}
+        controller_params = {"delay": tau/dt, "max_deaccel": deacc_max}
         BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.k_d = k_d

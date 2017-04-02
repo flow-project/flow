@@ -64,7 +64,6 @@ class BaseController:
         # need to account for the position being reset around the length
 
         if h < self.stopping_distance:
-            print(self.veh_id, 'distance too small: dist = ', h)
             return -this_vel / time_step
         else:
             return action
