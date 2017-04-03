@@ -80,6 +80,5 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="leah-test-exp",
-        python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
         # plot=True,
     )
