@@ -65,6 +65,11 @@ class SumoEnvironment(Env, Serializable):
         if "port" not in sumo_params:
             raise ValueError("SUMO port not defined")
 
+        if 'fail-safe' in env_params:
+            self.fail_safe = env_params['fail-safe']
+        else:
+            self.fail_safe = 'instantaneous'
+
         logging.info(" Starting SUMO on port " + str(sumo_params["port"]))
         logging.debug(" Cfg file " + str(self.scenario.cfg))
 
@@ -155,13 +160,19 @@ class SumoEnvironment(Env, Serializable):
         logging.debug("================= performing step =================")
         for veh_id in self.controlled_ids:
             action = self.vehicles[veh_id]['controller'].get_action(self)
-            safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+            if self.fail_safe == 'instantaneous':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
+            else:
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
             action = rl_actions[index]
-            safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+            if self.fail_safe == 'instantaneous':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
+            else:
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
 
         self.timer += 1

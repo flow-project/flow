@@ -14,27 +14,23 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-tot_cars = 4
+tot_cars = 6
 
-auton_cars = 4
+auton_cars = 6
 human_cars = tot_cars - auton_cars
 
 sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 type_params = {"rl":(auton_cars, (RLController, {}), None, 0)}
 
-env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3}
+env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "fail-safe":'instantaneous'}
 
-net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40,
+net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
               "net_path":"debug/rl/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
-
-
-initial_positions = [("top", 0), ("top", 20), ("top", 40), \
-                    ("left", 0)]
 
 initial_config = {"shuffle": False, "positions":initial_positions}
 
@@ -52,7 +48,6 @@ print("experiment initialized")
 
 env = normalize(env)
 
-
 for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
@@ -66,7 +61,7 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         policy=policy,
         baseline=baseline,
         batch_size=2000,
-        max_path_length=400,
+        max_path_length=1000,
         # whole_paths=True,
         n_itr=1000,  # 1000
         # discount=0.99,
@@ -85,5 +80,6 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="leah-test-exp",
+        python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
         # plot=True,
     )
