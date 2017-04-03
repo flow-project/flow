@@ -1,20 +1,17 @@
 function time_headway
 close all
 cd '/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM-Processed'
-extract_flag = 0; 
-temp_string = 'pm_805_';
+temp_string = 'pm_750_';
 dist_string = 'lognormal'
 
-if extract_flag == 0
-    data = dlmread(strcat(temp_string,'velocity_filter.txt'), ',', 1, 0);
-    headway = .3048*data(:, 10); 
-    velocity = data(:, 14);
-else
-    data = dlmread(strcat(temp_string,'appear_headway_velocity.txt'),...
+data_tot = dlmread(strcat(temp_string,'velocity_filter.txt'), ',', 1, 0);
+headway_tot = .3048*data_tot(:, 10); 
+velocity_tot = data_tot(:, 14);
+    
+data_lc = dlmread(strcat(temp_string,'appear_headway_velocity.txt'),...
     ',', 1, 0);
-    headway = .3048*data(:, 1); 
-    velocity = data(:, 2);
-end
+headway_lc = .3048*data_lc(:, 1); 
+velocity_lc = data_lc(:, 2);
 
 if strcmp(temp_string, 'pm_230_')
     u_v = 50;
@@ -29,25 +26,67 @@ sample_num = 50000;
 l_h = 1;
 l_v = 1; 
 
-temp_mask_l = bitand(headway > l_h, velocity > l_v);
-temp_mask_u = bitand(headway < u_h, velocity < u_v);  
+temp_mask_l = bitand(headway_tot > l_h, velocity_tot > l_v);
+temp_mask_u = bitand(headway_tot < u_h, velocity_tot < u_v);  
 temp_mask = bitand(temp_mask_l, temp_mask_u);
-headway = headway(temp_mask);
-velocity = velocity(temp_mask);
+headway_tot = headway_tot(temp_mask);
+velocity_tot = velocity_tot(temp_mask);
 
-time_h = headway./velocity;
+temp_mask_l = bitand(headway_lc > l_h, velocity_lc > l_v);
+temp_mask_u = bitand(headway_lc < u_h, velocity_lc < u_v);  
+temp_mask = bitand(temp_mask_l, temp_mask_u);
+headway_lc = headway_lc(temp_mask);
+velocity_lc = velocity_lc(temp_mask);
 
+time_h_tot = headway_tot./velocity_tot;
+time_h_lc = headway_lc./velocity_lc;
+
+
+% headway fit
+pd = fitdist(headway_lc, dist_string);
+disp('ks test is')
+[h, p] = kstest(headway_lc, 'Alpha', 0.05, 'CDF', pd)
+[h2, p2] = kstest(headway_tot, 'Alpha', .05, 'CDF', pd)
+
+% Make histogram of both headway sets w/ overlaid fit
+x_vals = 0.01:.2:max(headway_tot);
+pd = fitdist(headway_tot, dist_string);
+y = pdf(pd, x_vals);
 figure()
-[f,xi] = ksdensity(time_h);
+ax1 = subplot(2,1,1);
+hold on
+h = histogram(headway_tot, 'Normalization', 'pdf');
+h.FaceColor = [.1, 0, 1.0];
+plot(x_vals, y, 'LineWidth', 2)
+xlabel('headway (meters)')
+ylabel('normalized counts')
+%axis([0, 80, 0, .06])
+
+% lc plot
+ax2 = subplot(2,1,2);
+x_vals = 0.01:.2:max(headway_tot);
+pd = fitdist(headway_lc, dist_string);
+y = pdf(pd, x_vals);
+hold on
+h = histogram(headway_lc, 'Normalization', 'pdf');
+h.FaceColor = [.1, 0, 1.0];
+plot(x_vals, y, 'LineWidth', 2)
+xlabel('headway (meters)')
+ylabel('normalized counts')
+%axis([0, 80, 0, .035])
+
+% ks_density of time headway total
+figure()
+[f,xi] = ksdensity(time_h_tot);
 plot(xi,f)
 
 % Overlay fit onto histogram of time headway
 figure()
-histfit(time_h, [], dist_string)
+histfit(time_h_tot, [], dist_string)
 
 % Overlay fit onto ks_density of time headway
-x_vals = 0.01:.2:max(time_h);
-pd = fitdist(time_h, dist_string);
+x_vals = 0.01:.2:max(time_h_tot);
+pd = fitdist(time_h_tot, dist_string);
 y = pdf(pd, x_vals);
 figure()
 plot(xi,f)
