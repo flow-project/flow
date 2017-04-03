@@ -14,7 +14,7 @@ plot(h, pd)
 legend('appear', 'disappear')
 trapz(h, pa)
 
-n = 3:1:100;
+n = 2:1:100;
 h = L./n;
 [pa,pd] = probability_headway(h);
 figure()
@@ -25,7 +25,7 @@ legend('appear', 'disappear')
 
 trapz(n, pa)
 
-n = 4:1:50;
+n = 2:1:50;
 trans = compute_transition_mat(min(n), max(n))
 % normalize the transition_matrix
 for i = 1:max(size(trans))
@@ -71,7 +71,7 @@ function [pa, pd] = probability_headway(h)
     % these data points correspond to the 70 dataset
     global beta delta_t
     %mu_appear = 3;
-    mu_appear = 3.1;
+    mu_appear = 3.05;
     mu_disappear = 2.79;
     mu_tot = 2.95;
     sig_appear = .3642;
