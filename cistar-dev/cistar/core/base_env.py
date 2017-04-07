@@ -122,6 +122,11 @@ class SumoEnvironment(Env, Serializable):
             # implement flexibility in controller
             controller_params = self.scenario.type_params[veh_type][1]
             vehicle['controller'] = controller_params[0](veh_id = veh_id, **controller_params[1])
+
+            # initializes lane-changing controller
+            lane_changer_params = self.scenario.type_params[veh_type][2]
+            vehicle['lane_changer'] = lane_changer_params[0](veh_id = veh_id, **lane_changer_params[1])
+
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
 
@@ -180,8 +185,10 @@ class SumoEnvironment(Env, Serializable):
         # if it's been long enough try and change lanes
         if self.timer % 100 == 0:
             for veh_id in self.controlled_ids:
-                car_type = self.vehicles[veh_id]["type"]
-                newlane = self.scenario.type_params[car_type][2](veh_id, self)
+                # car_type = self.vehicles[veh_id]["type"]
+                # newlane = self.scenario.type_params[car_type][2](veh_id, self)
+
+                newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
                 traci.vehicle.changeLane(veh_id, newlane, 10000)
 
         traci.simulationStep()

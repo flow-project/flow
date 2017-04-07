@@ -9,12 +9,16 @@ from cistar.controllers.lane_change_controllers import *
 
 env_params = {"target_velocity" : 8}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 sumo_params = {"port" : 8873, "time_step" : 0.1}
 
-type_params = { "cfm-slow": (6, (CFMController, {'v_des': 6}), never_change_lanes_controller(), 0),\
- "cfm-fast": (6, (CFMController, {'v_des': 10}), never_change_lanes_controller(), 0)}
+# type_params = { "cfm-slow": (6, (CFMController, {'v_des': 6}), never_change_lanes_controller(), 0),\
+#  "cfm-fast": (6, (CFMController, {'v_des': 10}), never_change_lanes_controller(), 0)}
+
+type_params = { "cfm-slow": (6, (CFMController, {'v_des': 6}), (StaticLaneChanger, {}), 0),\
+ "cfm-fast": (6, (CFMController, {'v_des': 10}), (StochasticLaneChanger, {}), 0)}
+
 
 net_params = {"length": 200, "lanes": 2, "speed_limit":35,\
  "resolution": 40, "net_path":"debug/net/"}
