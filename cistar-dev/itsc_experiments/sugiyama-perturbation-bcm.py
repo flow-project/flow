@@ -4,16 +4,15 @@ from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_with_perturbation import PerturbationAccelerationLoop
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.car_following_models import *
-from cistar.controllers.velocity_controllers import *
 from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
 sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
-type_params = {"bcm": (22, (BCMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"bcm": (22, (BCMController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25, "perturbation_at":900, "perturbation_length":150,  "max-deacc":-5, "max-acc":5, 'safety':'eugene'}
 

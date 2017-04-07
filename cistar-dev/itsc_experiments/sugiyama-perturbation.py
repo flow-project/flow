@@ -18,7 +18,7 @@ sumo_binary = "sumo"
 # # h_go = 11.8 with OVM: gets you 8.29 m/s
 # # h_go = 13.2 with OVM: gets you 6.48 m/s
 
-type_params = {"ovm": (22, (OVMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"ovm": (22, (OVMController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25, "perturbation_at":900, "perturbation_length":150,  "max-deacc":-5, "max-acc":5, 'safety':'eugene'}
 

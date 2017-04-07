@@ -12,7 +12,7 @@ sumo_params = {"port": 8873, "time_step":0.01}
 
 sumo_binary = "sumo"
 
-type_params = {"BCM": (22, (BCMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"BCM": (22, (BCMController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25}
 

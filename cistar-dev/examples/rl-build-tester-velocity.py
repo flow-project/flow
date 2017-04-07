@@ -6,7 +6,7 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from cistar.core.exp import SumoExperiment
+from cistar.controllers.lane_change_controllers import *
 from cistar.envs.loop_velocity import SimpleVelocityEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
@@ -23,7 +23,7 @@ human_cars = tot_cars - auton_cars
 sumo_params = {"port": 8873, "time_step": 0.01}
 sumo_binary = "sumo"
 
-type_params = {"rl": (auton_cars, (RLController, {}), None, 0)}
+type_params = {"rl": (auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25, "max-vel": 40, "min-vel": 0, "fail-safe":'instantaneous'}
 

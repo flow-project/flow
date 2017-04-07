@@ -12,8 +12,8 @@ sumo_params = {"port": 8873, "time_step":0.1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"cfm-slow": (2, (CFMController, {"v_des":8}), never_change_lanes_controller(), 0),
-               "cfm-fast": (2, (CFMController, {"v_des":15}), never_change_lanes_controller(), 0)}
+type_params = {"cfm-slow": (2, (CFMController, {"v_des":8}), (StaticLaneChanger, {}), 0),
+               "cfm-fast": (2, (CFMController, {"v_des":15}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25}
 

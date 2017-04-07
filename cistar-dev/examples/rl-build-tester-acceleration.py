@@ -6,7 +6,7 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-# from cistar.core.exp import SumoExperiment
+from cistar.controllers.lane_change_controllers import *
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
@@ -23,7 +23,7 @@ sumo_params = {"port": 8873, "time_step":0.01}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"rl":(auton_cars, (RLController, {}), None, 0)}
+type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "fail-safe":'instantaneous'}
 
@@ -32,7 +32,7 @@ net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
-initial_config = {"shuffle": False, "positions":initial_positions}
+initial_config = {"shuffle": False}
 
 scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -79,6 +79,6 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="leah-test-exp",
+        exp_prefix="rl-acceleration",
         # plot=True,
     )
