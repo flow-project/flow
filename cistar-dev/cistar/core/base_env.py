@@ -107,6 +107,7 @@ class SumoEnvironment(Env):
             vehicle["speed"] = traci.vehicle.getSpeed(veh_id)
             vehicle["length"] = traci.vehicle.getLength(veh_id)
             vehicle["max_speed"] = traci.vehicle.getMaxSpeed(veh_id)
+            vehicle["distance"] = traci.vehicle.getDistance(veh_id)
 
             # implement flexibility in controller
             controller_params = self.scenario.type_params[veh_type][1]
@@ -176,10 +177,11 @@ class SumoEnvironment(Env):
             self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
+            self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
 
         # TODO: Can self._state be initialized, saved and updated so that we can
         # exploit numpy speed
-        self._state = self.getState(False)
+        self._state = self.getState()
         reward = self.compute_reward(self._state)
         # TODO: Allow for partial observability
         next_observation = np.copy(self._state)
@@ -216,8 +218,9 @@ class SumoEnvironment(Env):
             self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
+            self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
 
-        self._state = self.getState(True)
+        self._state = self.getState()
         observation = np.copy(self._state)
 
         return observation
