@@ -71,7 +71,7 @@ function [pa, pd] = probability_headway(h)
     % these data points correspond to the 70 dataset
     global beta delta_t
     %mu_appear = 3;
-    mu_appear = 3.05;
+    mu_appear = 3.1;
     mu_disappear = 2.79;
     mu_tot = 2.95;
     sig_appear = .3642;
