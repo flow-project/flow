@@ -1,7 +1,7 @@
 function time_headway
 close all
 cd '/Users/eugenevinitsky/Box Sync/Research/Bayen/Data/NGSIM-Processed'
-temp_string = 'pm_750_';
+temp_string = 'pm_820_';
 dist_string = 'lognormal'
 
 data_tot = dlmread(strcat(temp_string,'velocity_filter.txt'), ',', 1, 0);
