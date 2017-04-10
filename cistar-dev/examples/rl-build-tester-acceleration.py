@@ -21,7 +21,7 @@ human_cars = tot_cars - auton_cars
 
 sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
@@ -60,8 +60,8 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=2000,
-        max_path_length=1000,
+        batch_size=400,
+        max_path_length=10000,
         # whole_paths=True,
         n_itr=1000,  # 1000
         # discount=0.99,

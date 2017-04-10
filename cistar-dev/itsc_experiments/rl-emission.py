@@ -67,10 +67,10 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=200,
-        max_path_length=100,
+        batch_size=400,
+        max_path_length=10000,
         # whole_paths=True,
-        n_itr=10,
+        n_itr=1000,
         # discount=0.99,
         # step_size=0.01,
     )
@@ -86,7 +86,7 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="emission-test"
+        exp_prefix="rl-emission"
         # plot=True,
     )
 

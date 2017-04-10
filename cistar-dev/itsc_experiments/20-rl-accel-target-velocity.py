@@ -52,10 +52,10 @@ for num_cars in [10, 12, 15, 17, 20, 22, 25]:
             env=env,
             policy=policy,
             baseline=baseline,
-            batch_size=5,
-            max_path_length=10,
+            batch_size=400,
+            max_path_length=10000,
+            n_itr=500,  # 1000
             # whole_paths=True,
-            n_itr=1,  # 1000
             # discount=0.99,
             # step_size=0.01,
         )
