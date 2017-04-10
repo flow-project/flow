@@ -16,68 +16,61 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-tot_cars = 20
-
-auton_cars = 20
-human_cars = tot_cars - auton_cars
-
 sumo_params = {"port": 8873, "time_step":0.01}
+sumo_binary = "sumo"
 
-sumo_binary = "sumo-gui"
+env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "fail-safe": 'instantaneous'}
 
-type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
+net_params = {"length": 220, "lanes": 1, "speed_limit": 35, "resolution": 40,
+              "net_path": "debug/rl/net/"}
 
-env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "fail-safe":'instantaneous'}
-
-net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
-              "net_path":"debug/rl/net/"}
-
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
+for num_cars in [10, 12, 15, 17, 20, 22, 25]:
 
-env = SimpleAccelerationEnvironment(env_params, sumo_binary,
-                   sumo_params, scenario)
+    exp_tag = str(num_cars) + '-car-rl'
 
-logging.info("Experiment Set Up complete")
+    type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
-print("experiment initialized")
+    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = normalize(env)
+    env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
-for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
-    policy = GaussianMLPPolicy(
-        env_spec=env.spec,
-        hidden_sizes=(16,)
-    )
+    env = normalize(env)
 
-    baseline = LinearFeatureBaseline(env_spec=env.spec)
+    for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+        policy = GaussianMLPPolicy(
+            env_spec=env.spec,
+            hidden_sizes=(16,)
+        )
 
-    algo = TRPO(
-        env=env,
-        policy=policy,
-        baseline=baseline,
-        batch_size=2000,
-        max_path_length=1000,
-        # whole_paths=True,
-        n_itr=1000,  # 1000
-        # discount=0.99,
-        # step_size=0.01,
-    )
-    # algo.train()
+        baseline = LinearFeatureBaseline(env_spec=env.spec)
 
-    run_experiment_lite(
-        algo.train(),
-        # Number of parallel workers for sampling
-        n_parallel=1,
-        # Only keep the snapshot parameters for the last iteration
-        snapshot_mode="last",
-        # Specifies the seed for the experiment. If this is not provided, a random seed
-        # will be used
-        seed=seed,
-        mode="local",
-        exp_prefix="leah-test-exp",
-        # plot=True,
-    )
+        algo = TRPO(
+            env=env,
+            policy=policy,
+            baseline=baseline,
+            batch_size=5,
+            max_path_length=10,
+            # whole_paths=True,
+            n_itr=1,  # 1000
+            # discount=0.99,
+            # step_size=0.01,
+        )
+        # algo.train()
+
+        run_experiment_lite(
+            algo.train(),
+            # Number of parallel workers for sampling
+            n_parallel=1,
+            # Only keep the snapshot parameters for the last iteration
+            snapshot_mode="last",
+            # Specifies the seed for the experiment. If this is not provided, a random seed
+            # will be used
+            seed=seed,
+            mode="local",
+            exp_prefix=exp_tag,
+            # plot=True,
+gi        )
