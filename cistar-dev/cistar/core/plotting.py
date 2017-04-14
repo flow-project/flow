@@ -79,19 +79,10 @@ def space_time_diagram(filename, edgestarts, save = False):
         indx_car = np.where([data['id'][i] == car for i in range(l)])[0]
         
         unique_car_time = [data['timestep'][i] for i in indx_car]
-        unique_edge = [data['lane'][i][:-2] for i in indx_car]
         unique_car_pos = []
-        try:
-            for i in indx_car:
-                unique_car_pos.append(data['pos'][i] + edgestarts[unique_edge[i//22]])
-            # unique_car_pos = [data['pos'][i] + edgestarts[unique_edge[i//22]] for i in indx_car]
-        except IndexError:
-            print('INDEX ERROR OCCURRED')
-            print(len(data['pos']))
-            print(unique_edge)
-            print(i)
-            print(i//22)
-            print(' ')
+        for i in indx_car:
+            unique_car_pos.append(data['pos'][i] + edgestarts[data['lane'][i][:-2]])
+
 
         # discontinuity from wraparound
         disc = np.where(np.abs(np.diff(unique_car_pos)) >= 0.5)[0]+1
