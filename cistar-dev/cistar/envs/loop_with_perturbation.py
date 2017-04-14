@@ -59,9 +59,6 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
         # if it's been long enough try and change lanes
         if self.timer % 100 == 0:
             for veh_id in self.controlled_ids:
-                # car_type = self.vehicles[veh_id]["type"]
-                # newlane = self.scenario.type_params[car_type][2](veh_id, self)
-
                 newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
                 traci.vehicle.changeLane(veh_id, newlane, 10000)
 

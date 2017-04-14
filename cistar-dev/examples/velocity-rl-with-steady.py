@@ -11,7 +11,7 @@ from cistar.envs.loop_velocity import SimpleVelocityEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.velocity_controllers import ConstantVelocityController
-from cistar.controllers.lane_change_controllers import never_change_lanes_controller
+from cistar.controllers.lane_change_controllers import *
 logging.basicConfig(level=logging.INFO)
 
 tot_cars = 2
@@ -26,8 +26,8 @@ sumo_binary = "sumo-gui"
 
 
 
-type_params = {"rl":(auton_cars, (RLController, {}), never_change_lanes_controller(), 0),
-               "steady":(human_cars, (ConstantVelocityController, {"constant_speed":10}), never_change_lanes_controller(), 0)}
+type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0),
+               "steady":(human_cars, (ConstantVelocityController, {"constant_speed":10}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 8, "max-vel":15, "min-vel":0}
 

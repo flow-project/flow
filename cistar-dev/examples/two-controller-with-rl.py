@@ -11,7 +11,7 @@ from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import never_change_lanes_controller
+from cistar.controllers.lane_change_controllers import *
 logging.basicConfig(level=logging.INFO)
 
 tot_cars = 8
@@ -23,8 +23,8 @@ sumo_params = {"port": 8873, "time_step":0.1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"rl":(auton_cars, (RLController, {}), None, 0),
-               "cfm":(human_cars, (BCMController, {"v_des":10}), never_change_lanes_controller(), 0)}
+type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0),
+               "cfm":(human_cars, (BCMController, {"v_des":10}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3}
 
