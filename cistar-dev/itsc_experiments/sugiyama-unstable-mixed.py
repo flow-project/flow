@@ -15,10 +15,10 @@ sumo_binary = "sumo"
 total_cars = 22
 num_bcm = 11
 
-type_params = {"bcm": (num_bcm, (BCMController, {}), never_change_lanes_controller(), 0),
-			   "ovm": (total_cars - num_bcm, (OVMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"bcm": (num_bcm, (BCMController, {}), (StaticLaneChanger, {}), 0),
+			   "ovm": (total_cars - num_bcm, (OVMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25}
+env_params = {"target_velocity": 25, 'fail-safe':'eugene'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 

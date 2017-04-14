@@ -13,9 +13,9 @@ sumo_params = {"port": 8873, "time_step":0.01}
 
 sumo_binary = "sumo"
 
-type_params = {"bcm": (22, (BCMController, {}), never_change_lanes_controller(), 0)}
+type_params = {"bcm": (22, (BCMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "perturbation_at":900, "perturbation_length":150,  "max-deacc":-5, "max-acc":5, 'safety':'eugene'}
+env_params = {"target_velocity": 25, "perturbation_at":4500, "perturbation_length":150,  "max-deacc":-5, "max-acc":5, 'fail-safe':'eugene'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
