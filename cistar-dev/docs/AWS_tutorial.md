@@ -18,6 +18,7 @@
   - Log into AWS via: https://cathywu.signin.aws.amazon.com/console
   - If you don’t see the instance you just launched (give it a few minutes) running on AWS, then make sure your region is correct (go to top right and change to `US West (N. California)` 
 
+## Notes
 
 - When we run experiments on AWS, we create a new instance for each seed and use the Docker image I created as the VM. Built into the rllab script for running experiments in EC2 mode, we upload the rllab root directory to AWS. This way, the AWS instance has access to all files it might need to successfully run the experiment. Editing that code is pretty complicated, so Cathy and I have decided on the following workflow:
   - All code modification will happen in the learning-traffic directory
