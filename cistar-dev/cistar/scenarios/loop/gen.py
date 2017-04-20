@@ -1,7 +1,7 @@
 from cistar.core.exp import Generator
 
-from cistar.core.generator import makexml
-from cistar.core.generator import printxml
+from cistar.core.util import makexml
+from cistar.core.util import printxml
 
 import subprocess
 import sys

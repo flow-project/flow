@@ -2,6 +2,7 @@ import errno
 import os
 
 from lxml import etree
+from cistar.core.util import ensure_dir
 
 from rllab.core.serializable import Serializable
 
@@ -25,8 +26,8 @@ class Generator(Serializable):
         self.name = base
         self.netfn = ""
 
-        Generator.ensure_dir("%s" % self.net_path)
-        Generator.ensure_dir("%s" % self.cfg_path)
+        ensure_dir("%s" % self.net_path)
+        ensure_dir("%s" % self.cfg_path)
 
     def generate_net(self, net_params):
         raise NotImplementedError

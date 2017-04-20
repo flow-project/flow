@@ -67,8 +67,7 @@ class SumoEnvironment(Env, Serializable):
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
             ensure_dir(data_folder)
-            data_folder += "emission.xml"
-            
+            self.emission_out = data_folder + "emission.xml"
         else:
             self.emission_out = None
 
@@ -93,6 +92,7 @@ class SumoEnvironment(Env, Serializable):
                      "--step-length", str(self.time_step)]
 
         if self.emission_out:
+            sumo_call.append("--emission-output")
             sumo_call.append(self.emission_out)
 
         subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
@@ -221,7 +221,7 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-        color = np.random.choice(COLORS)
+        color = COLORS[np.random.choice(len(COLORS))]
         for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
