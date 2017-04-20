@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = {"ovm": (22, (OVMController, {}), (StaticLaneChanger, {}), 0)}
 

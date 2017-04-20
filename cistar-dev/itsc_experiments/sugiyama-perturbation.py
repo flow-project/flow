@@ -31,7 +31,7 @@ initial_config = {"shuffle": False}
 scenario_name = 'sugiyama-perturbation-ovm'
 
 scenario = LoopScenario(scenario_name, type_params, net_params, cfg_params, initial_config)
-# data path needs to be relative to cfg location
+
 leah_sumo_params = {"port": 8873}
 
 exp = SumoExperiment(PerturbationAccelerationLoop, env_params, sumo_binary, sumo_params, scenario)
