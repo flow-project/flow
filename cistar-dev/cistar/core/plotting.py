@@ -56,7 +56,7 @@ def extract_xml_data(filename):
     return out_data
 
 
-def space_time_diagram(filename, edgestarts, save = False):
+def space_time_diagram(filename, edgestarts, show = True, save = False):
     ''' Produces space_time diagram
 
     :param filename: location of the xml file with the data needed to be represented
@@ -73,25 +73,17 @@ def space_time_diagram(filename, edgestarts, save = False):
     fig = plt.figure(figsize=(16, 8))
     ax = plt.axes()
     
-    norm = plt.Normalize(min(data['speed']), max(data['speed']))
+    # norm = plt.Normalize(min(data['speed']), max(data['speed']))
+    norm = plt.Normalize(0, 28) # TODO: Make this less modular
     cols = []
     for car in unique_id:
         indx_car = np.where([data['id'][i] == car for i in range(l)])[0]
         
         unique_car_time = [data['timestep'][i] for i in indx_car]
-        unique_edge = [data['lane'][i][:-2] for i in indx_car]
         unique_car_pos = []
-        try:
-            for i in indx_car:
-                unique_car_pos.append(data['pos'][i] + edgestarts[unique_edge[i//22]])
-            # unique_car_pos = [data['pos'][i] + edgestarts[unique_edge[i//22]] for i in indx_car]
-        except IndexError:
-            print('INDEX ERROR OCCURRED')
-            print(len(data['pos']))
-            print(unique_edge)
-            print(i)
-            print(i//22)
-            print(' ')
+        for i in indx_car:
+            unique_car_pos.append(data['pos'][i] + edgestarts[data['lane'][i][:-2]])
+
 
         # discontinuity from wraparound
         disc = np.where(np.abs(np.diff(unique_car_pos)) >= 0.5)[0]+1
@@ -121,7 +113,8 @@ def space_time_diagram(filename, edgestarts, save = False):
     
     ax.set_xlim(xmin - xbuffer, xmax + xbuffer)
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
-    plt.show()
+    if show:
+        plt.show()
     if save:
         fig.savefig('debug/img/' + filename[15:-13] + ".png")
 
@@ -138,4 +131,7 @@ length = int(args[1][-6:-3])
 edgelen = length/4
 edgestarts = dict([("bottom", 0), ("right", edgelen), ("top", 2 * edgelen), ("left", 3 * edgelen)])
 
-space_time_diagram(fname, edgestarts, save = False)
+show = False if args[2] == 'False' else True
+save = False if args[3] == 'False' else True
+
+space_time_diagram(fname, edgestarts, show = show, save = save)
