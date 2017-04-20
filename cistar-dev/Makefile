@@ -3,6 +3,7 @@
 
 prepare: 
 	rm -rf $(RLLABDIR)/debug
+	rm -rf $(RLLABDIR)/cistar
 	cp -r cistar $(RLLABDIR)
 
 clean:
