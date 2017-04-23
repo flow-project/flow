@@ -82,11 +82,9 @@ class SumoEnvironment(Env, Serializable):
             self.fail_safe = 'instantaneous'
 
         self._start_sumo()
-        self.restart_sumo(sumo_params)
         self.setup_initial_state()
 
     def restart_sumo(self, sumo_params):
-        print("Restarting Sumo!!! ~~~~~~")
         traci.close(False)
         if "port" in sumo_params:
             self.port = sumo_params['port']
@@ -100,7 +98,6 @@ class SumoEnvironment(Env, Serializable):
         self.setup_initial_state()
 
     def _start_sumo(self):
-        print("Starting Sumo ~~~~~~")
         logging.info(" Starting SUMO on port " + str(self.port))
         logging.debug(" Cfg file " + str(self.scenario.cfg))
         logging.debug(" Emission file: " + str(self.emission_out))
