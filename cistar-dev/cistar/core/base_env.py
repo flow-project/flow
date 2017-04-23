@@ -52,6 +52,10 @@ class SumoEnvironment(Env, Serializable):
         self.sumo_params = sumo_params
         self.timer = 0  # Represents number of steps taken
         self.vehicles = {}  # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
+        # Initial state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
+        self.initial_state = {}
+        self.ids = []
+        self.controlled_ids, self.rl_ids = [], []
 
         # SUMO Params
         if "port" not in sumo_params:
@@ -77,13 +81,35 @@ class SumoEnvironment(Env, Serializable):
         else:
             self.fail_safe = 'instantaneous'
 
-        logging.info(" Starting SUMO on port " + str(sumo_params["port"]))
+        self._start_sumo()
+        self.restart_sumo(sumo_params)
+        self.setup_initial_state()
+
+    def restart_sumo(self, sumo_params):
+        print("Restarting Sumo!!! ~~~~~~")
+        traci.close(False)
+        if "port" in sumo_params:
+            self.port = sumo_params['port']
+
+        if "emission_path" in sumo_params:
+            data_folder = sumo_params['emission_path']
+            ensure_dir(data_folder)
+            self.emission_out = data_folder + "emission.xml"
+
+        self._start_sumo()
+        self.setup_initial_state()
+
+    def _start_sumo(self):
+        print("Starting Sumo ~~~~~~")
+        logging.info(" Starting SUMO on port " + str(self.port))
         logging.debug(" Cfg file " + str(self.scenario.cfg))
+        logging.debug(" Emission file: " + str(self.emission_out))
+        logging.debug(" Time step: " + str(self.time_step))
 
         # TODO: find a better way to do this
         # Opening the I/O thread to SUMO
         cfg_file = self.scenario.cfg
-        if "mode" in env_params and env_params["mode"] == "ec2":
+        if "mode" in self.env_params and self.env_params["mode"] == "ec2":
             cfg_file = "/root/code/rllab/" + cfg_file
 
         sumo_call = [self.sumo_binary,
@@ -103,25 +129,23 @@ class SumoEnvironment(Env, Serializable):
 
         traci.simulationStep()
 
-        self.ids = traci.vehicle.getIDList()
-
-        self.controlled_ids, self.rl_ids = [], []
-        for i in self.ids:
-            if traci.vehicle.getTypeID(i) == "rl":
-                self.rl_ids.append(i)
-            else:
-                self.controlled_ids.append(i)
-
-        # Initial state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
-        self.initial_state = {}
-        self.setup_initial_state()
-
     def setup_initial_state(self):
         """
         Store initial state so that simulation can be reset at the end.
         TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
+
+        self.ids = traci.vehicle.getIDList()
+        self.controlled_ids.clear()
+        self.rl_ids.clear()
+        self.vehicles.clear()
+        for i in self.ids:
+            if traci.vehicle.getTypeID(i) == "rl":
+                self.rl_ids.append(i)
+            else:
+                self.controlled_ids.append(i)
+
         for veh_id in self.ids:
             vehicle = dict()
             vehicle["id"] = veh_id
