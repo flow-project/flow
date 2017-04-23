@@ -1,7 +1,7 @@
 from cistar.core.exp import Generator
 
-from cistar.core.generator import makexml
-from cistar.core.generator import printxml
+from cistar.core.util import makexml
+from cistar.core.util import printxml
 
 import subprocess
 import sys
@@ -173,15 +173,13 @@ class CircleGenerator(Generator):
         logging.debug(self.netfn)
 
         cfg.append(self.inputs(self.name, net=self.netfn, add=addfn, rou=self.roufn, gui=guifn))
-        t, outs = self.outputs(self.name)
-        cfg.append(t)
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
         t.append(E("end", value=repr(end_time)))
         cfg.append(t)
 
         printxml(cfg, self.cfg_path + cfgfn)
-        return cfgfn, outs
+        return cfgfn
 
     def make_routes(self, scenario, initial_config, cfg_params):
 
