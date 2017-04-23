@@ -168,8 +168,10 @@ class SumoEnvironment(Env, Serializable):
             action = self.vehicles[veh_id]['controller'].get_action(self)
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
-            else:
+            elif self.fail_safe == 'eugene':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+            else:
+                safe_action = action
             self.apply_action(veh_id, action=safe_action)
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
@@ -177,8 +179,10 @@ class SumoEnvironment(Env, Serializable):
             action = rl_actions[index]
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
-            else:
+            elif self.fail_safe == 'eugene':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+            else:
+                safe_action = action
             self.apply_action(veh_id, action=safe_action)
 
         self.timer += 1
@@ -193,6 +197,8 @@ class SumoEnvironment(Env, Serializable):
                 traci.vehicle.changeLane(veh_id, newlane, 10000)
 
         traci.simulationStep()
+
+
 
         for veh_id in self.ids:
             self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
@@ -209,7 +215,14 @@ class SumoEnvironment(Env, Serializable):
         reward = self.compute_reward(self._state)
         # TODO: Allow for partial observability
         next_observation = np.copy(self._state)
-        return Step(observation=next_observation, reward=reward, done=False)
+        if traci.simulation.getEndingTeleportNumber() != 0:
+            # Crash has occurred, end rollout
+            if self.fail_safe == "None":
+                return Step(observation=next_observation, reward=reward, done=True)
+            else:
+                print("Crash has occurred! Check failsafes!")
+        else:
+            return Step(observation=next_observation, reward=reward, done=False)
 
     def reset(self):
         """
