@@ -74,7 +74,8 @@ def space_time_diagram(filename, edgestarts, show = True, save = False):
     ax = plt.axes()
     
     # norm = plt.Normalize(min(data['speed']), max(data['speed']))
-    norm = plt.Normalize(0, 28) # TODO: Make this less modular
+    norm = plt.Normalize(0, 28) # TODO: Make this more modular
+    # norm = plt.Normalize(0, max(data['speed']))
     cols = []
     for car in unique_id:
         indx_car = np.where([data['id'][i] == car for i in range(l)])[0]
@@ -101,7 +102,8 @@ def space_time_diagram(filename, edgestarts, show = True, save = False):
         lc.set_linewidth(1.75)
         cols = np.append(cols, lc)
     for col in cols: line = ax.add_collection(col)
-    fig.colorbar(line, ax = ax)
+    cbar = fig.colorbar(line, ax = ax)
+    cbar.set_label('Velocity (m/s)', fontsize = 15)
     plt.title('Space-Time Diagram', fontsize=20)
     plt.ylabel('Ring Position (m)', fontsize=15)
     plt.xlabel('Time (s)', fontsize=15)    

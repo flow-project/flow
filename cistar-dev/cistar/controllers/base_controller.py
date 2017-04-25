@@ -51,6 +51,10 @@ class BaseController:
         """
         this_lane = env.vehicles[self.veh_id]['lane']
         lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if lead_id is None:
+            print('')
+            print('no lead car for car', self.veh_id, 'in lane', this_lane)
+            return None
         lead_pos = env.get_x_by_id(lead_id)
         lead_length = env.vehicles[lead_id]['length']
 

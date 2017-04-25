@@ -126,7 +126,10 @@ class SumoEnvironment(Env, Serializable):
 
             # initializes lane-changing controller
             lane_changer_params = self.scenario.type_params[veh_type][2]
-            vehicle['lane_changer'] = lane_changer_params[0](veh_id = veh_id, **lane_changer_params[1])
+            if lane_changer_params is not None:
+                vehicle['lane_changer'] = lane_changer_params[0](veh_id = veh_id, **lane_changer_params[1])
+            else:
+                vehicle['lane_changer'] = None
 
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
@@ -170,7 +173,12 @@ class SumoEnvironment(Env, Serializable):
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
             else:
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
-            self.apply_action(veh_id, action=safe_action)
+            if safe_action is None:
+                print('')
+                print('safe action is None')
+                pass
+            else:
+                self.apply_action(veh_id, action=safe_action)
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
@@ -189,14 +197,19 @@ class SumoEnvironment(Env, Serializable):
                 # car_type = self.vehicles[veh_id]["type"]
                 # newlane = self.scenario.type_params[car_type][2](veh_id, self)
 
-                newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                traci.vehicle.changeLane(veh_id, newlane, 10000)
+                # newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                # traci.vehicle.changeLane(veh_id, newlane, 10000)
+                print(traci.vehicle.getLaneID(veh_id))
 
         traci.simulationStep()
 
         for veh_id in self.ids:
             self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
-            self.vehicles[veh_id]["edge"] = traci.vehicle.getRoadID(veh_id)
+            this_edge = traci.vehicle.getRoadID(veh_id)
+            if this_edge is None:
+                print('Null edge for vehicle:', veh_id)
+            else:
+                self.vehicles[veh_id]["edge"] = this_edge
             self.vehicles[veh_id]["position"] = traci.vehicle.getLanePosition(veh_id)
             self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)

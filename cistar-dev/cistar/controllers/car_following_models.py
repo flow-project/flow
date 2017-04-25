@@ -224,3 +224,86 @@ class OVMController(BaseController):
 
     def reset_delay(self, env):
         self.accel_queue.clear()
+
+class LinearOVM(BaseController):
+    """Optimal Vehicle Model, 
+    sources: 
+        "Quantitative explanation of circuit experiments... using OVM", Nakayama
+        _Traffic Flow Dynamics_ (a textbook), Treiber & Kesting
+            like pg 170
+            includes a caveat about this OVM - is this a deal-breaker for use in experiments?
+            
+    
+    [description]
+    
+    Variables:
+    """
+
+    def __init__(self, veh_id, v_max = 30, acc_max = 15, max_deaccel=5, adaptation = 0.65, delay_time = 0, dt = 0.1):
+        """Instantiates an OVM controller
+        
+         Arguments:
+            veh_id -- Vehicle ID for SUMO identification
+        
+        Keyword Arguments:
+            alpha {number} -- [gain on desired velocity to current velocity difference] (default: {0.6})
+            beta {number} -- [gain on lead car velocity and self velocity difference] (default: {0.9})
+            h_st {number} -- [headway for stopping] (default: {5})
+            h_go {number} -- [headway for full speed] (default: {35})
+            v_max {number} -- [max velocity] (default: {30})
+            acc_max {number} -- [max acceleration] (default: {15})
+            deacc_max {number} -- [max deceleration] (default: {-5})
+            tau {number} -- [time delay] (default: {0.4})
+            dt {number} -- [timestep] (default: {0.1})
+        """
+
+        controller_params = {"delay": delay_time/dt, "max_deaccel": max_deaccel}
+        BaseController.__init__(self, veh_id, controller_params)
+        self.accel_queue = collections.deque()
+        self.max_deaccel = max_deaccel
+        self.acc_max = acc_max
+        self.veh_id = veh_id
+        self.v_max = v_max # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
+        self.adaptation = adaptation # TAU in Traffic Flow Dynamics textbook
+        self.delay_time = delay_time
+        self.dt = dt
+
+        
+    def get_action(self, env):
+        this_lane = env.vehicles[self.veh_id]['lane']
+
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if not lead_id: # no car ahead
+            return self.acc_max
+
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
+        lead_length = env.vehicles[lead_id]['length']
+
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
+
+        h = (lead_pos - lead_length - this_pos) % env.scenario.length
+        h_dot = lead_vel - this_vel
+
+        # V function here - input: h, output : Vh
+        alpha = 1.689 # the average value from Nakayama paper
+        if h < 5:
+            Vh = 0
+        elif 5 <= h <= 5 + self.v_max/alpha:
+            Vh = alpha * (h - 5)
+        else:
+            Vh = self.v_max
+
+
+        acc = (Vh - this_vel) / self.adaptation
+
+        while len(self.accel_queue) <= self.delay:
+            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            self.accel_queue.appendleft(acc)
+
+        return max(min(self.accel_queue.pop(), self.acc_max), -1 * self.max_deaccel)
+
+    def reset_delay(self, env):
+        self.accel_queue.clear()
+
