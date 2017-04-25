@@ -128,10 +128,10 @@ class CircleGenerator(Generator):
         else:
             start_time = params["start_time"]
 
-        if "end_time" not in params:
-            raise ValueError("end_time of circle not supplied")
-        else:
+        if "end_time" in params:
             end_time = params["end_time"]
+        else:
+            end_time = None
 
         self.roufn = "%s.rou.xml" % self.name
         addfn = "%s.add.xml" % self.name
@@ -175,7 +175,8 @@ class CircleGenerator(Generator):
         cfg.append(self.inputs(self.name, net=self.netfn, add=addfn, rou=self.roufn, gui=guifn))
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
-        t.append(E("end", value=repr(end_time)))
+        if end_time:
+            t.append(E("end", value=repr(end_time)))
         cfg.append(t)
 
         printxml(cfg, self.cfg_path + cfgfn)
