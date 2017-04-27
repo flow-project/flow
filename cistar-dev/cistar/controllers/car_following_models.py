@@ -228,7 +228,7 @@ class OVMController(BaseController):
 class LinearOVM(BaseController):
     """Optimal Vehicle Model, 
     sources: 
-        "Quantitative explanation of circuit experiments... using OVM", Nakayama
+        "Metastability in the formation of an experimental traffic jam", Nakayama
         _Traffic Flow Dynamics_ (a textbook), Treiber & Kesting
             like pg 170
             includes a caveat about this OVM - is this a deal-breaker for use in experiments?

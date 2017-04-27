@@ -56,7 +56,7 @@ def extract_xml_data(filename):
     return out_data
 
 
-def space_time_diagram(filename, edgestarts, show = True, save = False):
+def space_time_diagram(filename, edgestarts, show = True, save = False, savename = None):
     ''' Produces space_time diagram
 
     :param filename: location of the xml file with the data needed to be represented
@@ -117,23 +117,29 @@ def space_time_diagram(filename, edgestarts, show = True, save = False):
     ax.set_ylim(ymin - ybuffer, ymax + ybuffer)
     if show:
         plt.show()
-    if save:
-        fig.savefig('debug/img/' + filename[15:-13] + ".png")
+    if save and savename:
+        fig.savefig(savename + ".png")
 
 
 args = sys.argv
-fname = 'debug/cfg/data/' + args[1] + '.emission.xml'
+fname = args[1]
+# fname = 'debug/cfg/data/' + args[1] + '.emission.xml'
     # example filename:
     # debug/cfg/data/sugiyama_test_eugene-230m1l.emission.xml
     # so command line input would be 
     # sugiyama_test_eugene-230m1l
 
 # length is 230, automatically pulled out of filename
-length = int(args[1][-6:-3])
+length = int(args[2])
 edgelen = length/4
 edgestarts = dict([("bottom", 0), ("right", edgelen), ("top", 2 * edgelen), ("left", 3 * edgelen)])
 
-show = False if args[2] == 'False' else True
-save = False if args[3] == 'False' else True
+show = False if args[3] == 'False' else True
+save = False if args[4] == 'False' else True
 
-space_time_diagram(fname, edgestarts, show = show, save = save)
+if len(args) > 5:
+    savename = args[5]
+else:
+    savename = None
+
+space_time_diagram(fname, edgestarts, show = show, save = save, savename = savename)

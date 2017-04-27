@@ -101,6 +101,11 @@ class SumoEnvironment(Env, Serializable):
         self.initial_state = {}
         self.setup_initial_state()
 
+
+        # Density = num vehicles / length (in meters)
+        # so density in vehicles/km would be 1000 * self.density
+        self.density = self.scenario.num_vehicles / self.scenario.net_params['length']
+
     def setup_initial_state(self):
         """
         Store initial state so that simulation can be reset at the end.
@@ -179,6 +184,7 @@ class SumoEnvironment(Env, Serializable):
                 pass
             else:
                 self.apply_action(veh_id, action=safe_action)
+                # pass
             logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
@@ -189,20 +195,21 @@ class SumoEnvironment(Env, Serializable):
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
 
-        self.timer += 1
-        # TODO: Turn 100 into a hyperparameter
+        self.timer += self.time_step
+
+        # TODO: Turn 10 into a hyperparameter
         # if it's been long enough try and change lanes
-        if self.timer % 100 == 0:
-            for veh_id in self.controlled_ids:
+        # if self.timer % 10 == 0: # every ten seconds
+            # for veh_id in self.controlled_ids:
                 # car_type = self.vehicles[veh_id]["type"]
                 # newlane = self.scenario.type_params[car_type][2](veh_id, self)
 
                 # newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
                 # traci.vehicle.changeLane(veh_id, newlane, 10000)
-                print(traci.vehicle.getLaneID(veh_id))
 
         traci.simulationStep()
 
+        speeds = []
         for veh_id in self.ids:
             self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
             this_edge = traci.vehicle.getRoadID(veh_id)
@@ -212,9 +219,16 @@ class SumoEnvironment(Env, Serializable):
                 self.vehicles[veh_id]["edge"] = this_edge
             self.vehicles[veh_id]["position"] = traci.vehicle.getLanePosition(veh_id)
             self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
-            self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
+            veh_speed = traci.vehicle.getSpeed(veh_id)
+            self.vehicles[veh_id]["speed"] = veh_speed
+            speeds.append(veh_speed)
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
+
+        if round(self.timer, 1) == round(self.timer, 3):
+            mean_speed = np.mean(speeds)
+            print('time:', round(self.timer,1), '; avg speed:', mean_speed, '; flow (cars/km):', mean_speed * self.density * 3600)
+            print('')
 
         # TODO: Can self._state be initialized, saved and updated so that we can
         # exploit numpy speed
