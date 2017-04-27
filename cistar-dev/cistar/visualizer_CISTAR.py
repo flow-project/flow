@@ -34,8 +34,9 @@ if __name__ == "__main__":
     policy = data['policy']
     env = data['env']
 
-    env.restart_sumo()
-
+    sumo_params = env._wrapped_env.sumo_params
+    sumo_params['emission_path'] = "./test_time_rollout/"
+    env._wrapped_env.restart_sumo(sumo_params, sumo_binary='sumo-gui')
     # Hacky way to recreate scenario
     tot_cars, auton_cars = 4, 4
 

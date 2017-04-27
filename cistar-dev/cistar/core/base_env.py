@@ -84,8 +84,10 @@ class SumoEnvironment(Env, Serializable):
         self._start_sumo()
         self.setup_initial_state()
 
-    def restart_sumo(self, sumo_params):
+    def restart_sumo(self, sumo_params, sumo_binary=None):
         traci.close(False)
+        if sumo_binary:
+            self.sumo_binary = sumo_binary
         if "port" in sumo_params:
             self.port = sumo_params['port']
 
