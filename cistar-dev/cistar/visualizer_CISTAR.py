@@ -46,6 +46,11 @@ if __name__ == "__main__":
     flat_obs = env._wrapped_env.observation_space.flat_dim
     num_obs_var = flat_obs / tot_cars
 
+    # Kanaad and Eugene's Video stuff + Emission output stuff
+    sumo_params = env._wrapped_env.sumo_params
+    sumo_params['emission_path'] = "./test_time_rollout/"
+    env._wrapped_env.restart_sumo(sumo_params, sumo_binary='sumo-gui')
+
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
     all_rewards = np.zeros((args.num_rollouts, max_path_length))
@@ -59,6 +64,7 @@ if __name__ == "__main__":
     
 
     # TODO: savefig doesn't like making new directories
+    # Make a separate figure for each observation variable
     for obs_var_idx in range(len(obs_vars)):
         obs_var = obs_vars[obs_var_idx]
         plt.figure()
@@ -75,6 +81,7 @@ if __name__ == "__main__":
         plt.legend(loc=0)
         plt.savefig("visualizer/{0}_{1}.png".format(args.plotname, obs_var), bbox="tight")
 
+    # Make a figure for the mean rewards over the course of the rollout
     plt.figure()
     # print(path["rewards"].shape)
     plt.plot(range(max_path_length), np.mean(all_rewards, axis=0), lw=2.0)
