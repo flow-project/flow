@@ -24,6 +24,8 @@ if __name__ == "__main__":
                         help='Number of rollouts we will average over')
     parser.add_argument('--plotname', type=str, default="traffic_plot",
                         help='Prefix for all generated plots')
+    parser.add_argument('--use_sumogui', type=boolean, default=True,
+                        help='Flag for using sumo-gui vs sumo binary')
     args = parser.parse_args()
 
     # Max Path Length should match max path length of original experiment
@@ -49,7 +51,8 @@ if __name__ == "__main__":
     # Kanaad and Eugene's Video stuff + Emission output stuff
     sumo_params = env._wrapped_env.sumo_params
     sumo_params['emission_path'] = "./test_time_rollout/"
-    env._wrapped_env.restart_sumo(sumo_params, sumo_binary='sumo-gui')
+    sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
+    env._wrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
 
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
@@ -83,11 +86,10 @@ if __name__ == "__main__":
 
     # Make a figure for the mean rewards over the course of the rollout
     plt.figure()
-    # print(path["rewards"].shape)
     plt.plot(range(max_path_length), np.mean(all_rewards, axis=0), lw=2.0)
     plt.ylabel("Reward", fontsize=15)
     plt.xlabel("Rollout/Path Length", fontsize=15)
     plt.title("Cars {0} / {1} Itr {2}".format(rl_cars, tot_cars, num_itr), fontsize=16)
     plt.savefig("visualizer/{0}_reward.png".format(args.plotname), bbox="tight")
-    # print('Total reward: ', sum(path["rewards"]))
+    # print('Total reward: ', sum(np.mean(all_rewards, axis=0)))
     env.terminate()
