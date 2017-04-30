@@ -227,7 +227,6 @@ class SumoEnvironment(Env, Serializable):
                 safe_action = action
             self.apply_action(veh_id, action=safe_action)
 
-<<<<<<< HEAD
         self.timer += self.time_step
 
         # TODO: Turn 10 into a hyperparameter
@@ -243,21 +242,7 @@ class SumoEnvironment(Env, Serializable):
         traci.simulationStep()
 
         speeds = []
-=======
 
-        # TODO: Fix Lane Changing
-        self.timer += 1
-        if self.timer % 100 == 0:
-            # if it's been long enough try and change lanes
-            for veh_id in self.controlled_ids:
-                newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                traci.vehicle.changeLane(veh_id, newlane, 10000)
-
-        traci.simulationStep()
-
-
-
->>>>>>> e93b2d8034d4efaaf45e3c0edad91a0beef6c0db
         for veh_id in self.ids:
             self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
             this_edge = traci.vehicle.getRoadID(veh_id)
