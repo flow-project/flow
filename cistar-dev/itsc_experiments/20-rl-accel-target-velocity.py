@@ -72,6 +72,5 @@ for num_cars in [10, 12, 15, 17, 20, 22, 25]:
             seed=seed,
             mode="local",
             exp_prefix=exp_tag,
-            python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
             # plot=True,
         )
