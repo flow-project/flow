@@ -16,10 +16,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str,
                         help='path to the snapshot file')
-    # parser.add_argument('--max_path_length', type=int, default=1,
-    #                     help='Max length of rollout')
-    # parser.add_argument('--speedup', type=float, default=1,
-    #                     help='Speedup')
     parser.add_argument('--num_rollouts', type=int, default=100, 
                         help='Number of rollouts we will average over')
     parser.add_argument('--plotname', type=str, default="traffic_plot",
@@ -27,10 +23,6 @@ if __name__ == "__main__":
     parser.add_argument('--use_sumogui', type=boolean, default=True,
                         help='Flag for using sumo-gui vs sumo binary')
     args = parser.parse_args()
-
-    # Max Path Length should match max path length of original experiment
-    # if not max_path_length:
-        # raise ValueError("Max Path Length not provided, please match max path length of original experiment")
 
     # Input
     obs_vars = ["Velocity", "Fuel", "Distance"]
@@ -92,4 +84,5 @@ if __name__ == "__main__":
     plt.title("Cars {0} / {1} Itr {2}".format(rl_cars, tot_cars, num_itr), fontsize=16)
     plt.savefig("visualizer/{0}_reward.png".format(args.plotname), bbox="tight")
     # print('Total reward: ', sum(np.mean(all_rewards, axis=0)))
-    env.terminate()
+
+    # env.terminate()

@@ -10,7 +10,7 @@ from cistar.controllers.lane_change_controllers import *
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 stub(globals())
 
@@ -44,7 +44,8 @@ env = SimpleAccelerationEnvironment(env_params, sumo_binary,
 
 logging.info("Experiment Set Up complete")
 
-print("experiment initialized")
+env.restart_sumo(sumo_params)
+
 
 env = normalize(env)
 
@@ -60,10 +61,10 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=400,
-        max_path_length=10000,
+        batch_size=40,
+        max_path_length=10,
         # whole_paths=True,
-        n_itr=1000,  # 1000
+        n_itr=10,  # 1000
         # discount=0.99,
         # step_size=0.01,
     )
@@ -80,5 +81,6 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="rl-acceleration",
+        python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
         # plot=True,
     )

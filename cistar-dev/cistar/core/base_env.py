@@ -1,37 +1,34 @@
 import logging
-
-from rllab.envs.base import Env
-from rllab.envs.base import Step
-from rllab.core.serializable import Serializable
+import subprocess
+import sys
 
 import numpy as np
 
-import subprocess, sys
-
-import random
-
-import copy
 import traci
+from rllab.core.serializable import Serializable
+from rllab.envs.base import Env
+from rllab.envs.base import Step
 
-from cistar.controllers.car_following_models import *
-from cistar.controllers.rlcontroller import RLController
+from cistar.core.util import ensure_dir
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
 start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
 reset the simulation to an initial configuration.
 
+SumoEnv must be be Serializable to allow for pickling of the policy.
+
 This class cannot be used as is: you must extend it to implement an action applicator method, and
 properties to define the MDP if you choose to use it with RLLab.
 
 """
 
-COLORS = [(255,0,0,0),(0, 255,0,0),(0, 0, 255,0), (255, 255,0,0),(0, 255,255,0),(255, 0,255,0), (255, 255,255,0)]
+COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 255, 255, 0), (255, 0, 255, 0),
+          (255, 255, 255, 0)]
 
 
 class SumoEnvironment(Env, Serializable):
-
-    def __init__(self,env_params, sumo_binary, sumo_params, scenario):
+    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
         """[summary]
         
         [description]
@@ -53,53 +50,83 @@ class SumoEnvironment(Env, Serializable):
         self.sumo_binary = sumo_binary
         self.scenario = scenario
         self.sumo_params = sumo_params
-        
-        # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
-        self.vehicles = {}
+        self.timer = 0  # Represents number of steps taken
+        self.vehicles = {}  # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
+        # Initial state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
+        self.initial_state = {}
+        self.ids = []
+        self.controlled_ids, self.rl_ids = [], []
 
-        # Represents number of steps taken
-        self.timer = 0
-        # 0.01 = default time step for our research
-        self.time_step = sumo_params["time_step"] if "time_step" in sumo_params else 0.01
-
+        # SUMO Params
         if "port" not in sumo_params:
             raise ValueError("SUMO port not defined")
+        else:
+            self.port = sumo_params['port']
 
+        if "time_step" in sumo_params:
+            self.time_step = sumo_params["time_step"]
+        else:
+            self.time_step = 0.01  # 0.01 = default time step for our research
+
+        if "emission_path" in sumo_params:
+            data_folder = sumo_params['emission_path']
+            ensure_dir(data_folder)
+            self.emission_out = data_folder + "emission.xml"
+        else:
+            self.emission_out = None
+
+        # Env Params
         if 'fail-safe' in env_params:
             self.fail_safe = env_params['fail-safe']
         else:
             self.fail_safe = 'instantaneous'
 
-        logging.info(" Starting SUMO on port " + str(sumo_params["port"]))
-        logging.debug(" Cfg file " + str(self.scenario.cfg))
+        self._start_sumo()
+        self.setup_initial_state()
 
+    def restart_sumo(self, sumo_params, sumo_binary=None):
+        traci.close(False)
+        if sumo_binary:
+            self.sumo_binary = sumo_binary
+        if "port" in sumo_params:
+            self.port = sumo_params['port']
+
+        if "emission_path" in sumo_params:
+            data_folder = sumo_params['emission_path']
+            ensure_dir(data_folder)
+            self.emission_out = data_folder + "emission.xml"
+
+        self._start_sumo()
+        self.setup_initial_state()
+
+    def _start_sumo(self):
+        logging.info(" Starting SUMO on port " + str(self.port))
+        logging.debug(" Cfg file " + str(self.scenario.cfg))
+        logging.debug(" Emission file: " + str(self.emission_out))
+        logging.debug(" Time step: " + str(self.time_step))
+
+        # TODO: find a better way to do this
         # Opening the I/O thread to SUMO
         cfg_file = self.scenario.cfg
-        if "mode" in env_params and env_params["mode"] == "ec2":
+        if "mode" in self.env_params and self.env_params["mode"] == "ec2":
             cfg_file = "/root/code/rllab/" + cfg_file
 
-        subprocess.Popen([self.sumo_binary, "-c", cfg_file, "--remote-port",
-                          str(sumo_params["port"]), "--step-length",
-                          str(self.time_step)], stdout=sys.stdout,
-                         stderr=sys.stderr)
-        logging.debug(" Initializing TraCI on port " + str(sumo_params["port"]) + "!")
-        traci.init(sumo_params["port"])
+        sumo_call = [self.sumo_binary,
+                     "-c", cfg_file,
+                     "--remote-port", str(self.port),
+                     "--step-length", str(self.time_step)]
+
+        if self.emission_out:
+            sumo_call.append("--emission-output")
+            sumo_call.append(self.emission_out)
+
+        subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
+
+        logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
+
+        traci.init(self.port)
 
         traci.simulationStep()
-
-        self.ids = traci.vehicle.getIDList()
-
-        self.controlled_ids, self.rl_ids = [], []
-        for i in self.ids:
-            if traci.vehicle.getTypeID(i) == "rl":
-                self.rl_ids.append(i)
-            else:
-                self.controlled_ids.append(i)
-
-        # TODO: could possibly be handled in sumo experiment
-        # Initial state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos) 
-        self.initial_state = {}
-        self.setup_initial_state()
 
     def setup_initial_state(self):
         """
@@ -107,8 +134,19 @@ class SumoEnvironment(Env, Serializable):
         TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
+
+        self.ids = traci.vehicle.getIDList()
+        self.controlled_ids.clear()
+        self.rl_ids.clear()
+        self.vehicles.clear()
+        for i in self.ids:
+            if traci.vehicle.getTypeID(i) == "rl":
+                self.rl_ids.append(i)
+            else:
+                self.controlled_ids.append(i)
+
         for veh_id in self.ids:
-            vehicle = {}
+            vehicle = dict()
             vehicle["id"] = veh_id
             veh_type = traci.vehicle.getTypeID(veh_id)
             vehicle["type"] = veh_type
@@ -122,11 +160,11 @@ class SumoEnvironment(Env, Serializable):
 
             # implement flexibility in controller
             controller_params = self.scenario.type_params[veh_type][1]
-            vehicle['controller'] = controller_params[0](veh_id = veh_id, **controller_params[1])
+            vehicle['controller'] = controller_params[0](veh_id=veh_id, **controller_params[1])
 
             # initializes lane-changing controller
             lane_changer_params = self.scenario.type_params[veh_type][2]
-            vehicle['lane_changer'] = lane_changer_params[0](veh_id = veh_id, **lane_changer_params[1])
+            vehicle['lane_changer'] = lane_changer_params[0](veh_id=veh_id, **lane_changer_params[1])
 
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
@@ -134,17 +172,9 @@ class SumoEnvironment(Env, Serializable):
             # Saving initial state
             route_id = traci.vehicle.getRouteID(veh_id)
             pos = traci.vehicle.getPosition(veh_id)
-            # TODO: Should we save some of the arguments as strings so we don't
-            # have to repeatedly call str() in reset()
-            self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"], vehicle["position"], vehicle["speed"], pos)
 
-            logging.debug("Car with id " + veh_id + " is on route " + str(route_id))
-            logging.debug("Car with id " + veh_id + " is on edge " + str(traci.vehicle.getLaneID(veh_id)))
-            logging.debug("Car with id " + veh_id + " has valid route: " + str(traci.vehicle.isRouteValid(veh_id)))
-            logging.debug("Car with id " + veh_id + " has speed: " + str(vehicle["speed"]))
-            logging.debug("Car with id " + veh_id + " has absolute position: " + str(pos))
-            logging.debug("Car with id " + veh_id + " has route: " + str(traci.vehicle.getRoute(veh_id)))
-            logging.debug("Car with id " + veh_id + " is at route index: " + str(traci.vehicle.getRouteIndex(veh_id)))
+            self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"],
+                                          vehicle["position"], vehicle["speed"], pos)
 
     def step(self, rl_actions):
         """
@@ -163,36 +193,38 @@ class SumoEnvironment(Env, Serializable):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
-        logging.debug("================= performing step =================")
         for veh_id in self.controlled_ids:
             action = self.vehicles[veh_id]['controller'].get_action(self)
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
-            else:
+            elif self.fail_safe == 'eugene':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+            else:
+                safe_action = action
             self.apply_action(veh_id, action=safe_action)
-            logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
             action = rl_actions[index]
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
-            else:
+            elif self.fail_safe == 'eugene':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+            else:
+                safe_action = action
             self.apply_action(veh_id, action=safe_action)
 
-        self.timer += 1
-        # TODO: Turn 100 into a hyperparameter
-        # if it's been long enough try and change lanes
-        if self.timer % 100 == 0:
-            for veh_id in self.controlled_ids:
-                # car_type = self.vehicles[veh_id]["type"]
-                # newlane = self.scenario.type_params[car_type][2](veh_id, self)
 
+        # TODO: Fix Lane Changing
+        self.timer += 1
+        if self.timer % 100 == 0:
+            # if it's been long enough try and change lanes
+            for veh_id in self.controlled_ids:
                 newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
                 traci.vehicle.changeLane(veh_id, newlane, 10000)
 
         traci.simulationStep()
+
+
 
         for veh_id in self.ids:
             self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
@@ -209,7 +241,14 @@ class SumoEnvironment(Env, Serializable):
         reward = self.compute_reward(self._state)
         # TODO: Allow for partial observability
         next_observation = np.copy(self._state)
-        return Step(observation=next_observation, reward=reward, done=False)
+        if traci.simulation.getEndingTeleportNumber() != 0:
+            # Crash has occurred, end rollout
+            if self.fail_safe == "None":
+                return Step(observation=next_observation, reward=reward, done=True)
+            else:
+                print("Crash has occurred! Check failsafes!")
+        else:
+            return Step(observation=next_observation, reward=reward, done=False)
 
     def reset(self):
         """
@@ -218,7 +257,7 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-        color = random.sample(COLORS, 1)[0]
+        color = COLORS[np.random.choice(len(COLORS))]
         for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
@@ -226,11 +265,11 @@ class SumoEnvironment(Env, Serializable):
             if not self.vehicles[veh_id]['type'] == 'rl':
                 self.vehicles[veh_id]['controller'].reset_delay(self)
 
-            logging.debug("Moving car " + veh_id + " from " + str(traci.vehicle.getPosition(veh_id)) + " to " + str(pos))
             traci.vehicle.remove(veh_id)
             traci.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
             traci.vehicle.setColor(veh_id, color)
+
         traci.simulationStep()
 
         # TODO: Replace these traci calls with initial_state accesses
@@ -269,6 +308,7 @@ class SumoEnvironment(Env, Serializable):
         Returns an action space object
         """
         raise NotImplementedError
+
     @property
     def observation_space(self):
         """
@@ -296,4 +336,3 @@ class SumoEnvironment(Env, Serializable):
 
     def close(self):
         self.terminate()
-        

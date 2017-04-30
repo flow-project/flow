@@ -14,7 +14,7 @@ sumo_binary = "sumo"
 
 type_params = {"BCM": (22, (BCMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25}
+env_params = {"target_velocity": 25, 'fail-safe':'eugene'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 

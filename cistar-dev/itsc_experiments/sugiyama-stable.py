@@ -10,11 +10,11 @@ logging.basicConfig(level=logging.INFO)
 
 sumo_params = {"port": 8873, "time_step":0.01}
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = {"ovm": (22, (OVMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25}
+env_params = {"target_velocity": 25, 'fail-safe':'eugene'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 

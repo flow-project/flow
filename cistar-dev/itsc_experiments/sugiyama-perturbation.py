@@ -20,7 +20,7 @@ sumo_binary = "sumo"
 
 type_params = {"ovm": (22, (OVMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "perturbation_at":900, "perturbation_length":150,  "max-deacc":-5, "max-acc":5, 'safety':'eugene'}
+env_params = {"target_velocity": 25, "perturbation_at":4500, "perturbation_length":150,  "max-deacc":-5, "max-acc":5, 'fail-safe':'eugene'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
@@ -31,7 +31,7 @@ initial_config = {"shuffle": False}
 scenario_name = 'sugiyama-perturbation-ovm'
 
 scenario = LoopScenario(scenario_name, type_params, net_params, cfg_params, initial_config)
-# data path needs to be relative to cfg location
+
 leah_sumo_params = {"port": 8873}
 
 exp = SumoExperiment(PerturbationAccelerationLoop, env_params, sumo_binary, sumo_params, scenario)
