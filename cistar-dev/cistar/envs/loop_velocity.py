@@ -25,6 +25,7 @@ class SimpleVelocityEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
+        self.obs_var_labels = ["Velocity"]
         return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
 
     def compute_reward(self, velocity):

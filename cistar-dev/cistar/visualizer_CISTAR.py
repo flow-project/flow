@@ -24,13 +24,16 @@ if __name__ == "__main__":
                         help='Flag for using sumo-gui vs sumo binary')
     args = parser.parse_args()
 
-    # Input
-    obs_vars = ["Velocity", "Fuel", "Distance"]
-
     data = joblib.load(args.file)
     policy = data['policy']
     env = data['env']
     algo = data['algo']
+
+    # Input
+    if env._wrapped_env.obs_var_labels:
+        obs_vars = env._wrapped_env.obs_var_labels
+    else:
+        obs_vars = ["Velocity"] # , "Fuel", "Distance"
 
     # Recreate experiment params
     tot_cars = env._wrapped_env.scenario.num_vehicles
