@@ -19,7 +19,7 @@ stub(globals())
 sumo_params = {"port": 8873, "time_step":0.01}
 sumo_binary = "sumo"
 
-env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "fail-safe": 'instantaneous'}
+env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "fail-safe": 'None'}
 
 net_params = {"length": 220, "lanes": 1, "speed_limit": 35, "resolution": 40,
               "net_path": "debug/rl/net/"}
@@ -52,9 +52,9 @@ for num_cars in [10, 12, 15, 17, 20, 22, 25]:
             env=env,
             policy=policy,
             baseline=baseline,
-            batch_size=400,
-            max_path_length=10000,
-            n_itr=500,  # 1000
+            batch_size=4000,
+            max_path_length=1000,
+            n_itr=50000,  # 1000
             # whole_paths=True,
             # discount=0.99,
             # step_size=0.01,

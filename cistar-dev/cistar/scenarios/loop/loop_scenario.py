@@ -56,7 +56,7 @@ class LoopScenario(Scenario):
         if not cfg:
             # FIXME(cathywu) Resolve this inconsistency. Base class does not
             # call generate, but child class does. What is the convention?
-            self.cfg, self.outs = self.generate()
+            self.cfg = self.generate()
 
     def get_edge(self, x):
         """

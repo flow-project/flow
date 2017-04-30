@@ -71,23 +71,20 @@ class Scenario(Serializable):
         # Default scenario parameters
         net_path = Generator.NET_PATH
         cfg_path = Generator.CFG_PATH
-        data_prefix = Generator.DATA_PREFIX
 
         if "net_path" in self.net_params:
             net_path = self.net_params["net_path"]
         if "cfg_path" in self.cfg_params:
             cfg_path = self.cfg_params["cfg_path"]
-        if "data_prefix" in self.cfg_params:
-            data_prefix = self.cfg_params["data_prefix"]
 
-        generator = self.generator_class(net_path, cfg_path, data_prefix,
+        generator = self.generator_class(net_path, cfg_path,
                                          self.name)
         generator.generate_net(self.net_params)
-        cfg_name, outs = generator.generate_cfg(self.cfg_params)
+        cfg_name = generator.generate_cfg(self.cfg_params)
         # Note that self (the whole scenario instance) is passed on here,
         # so this is where self.type_params (for instance) is used.
         generator.make_routes(self, self.initial_config, self.cfg_params)
-        return generator.cfg_path + cfg_name, outs
+        return generator.cfg_path + cfg_name
 
     def __str__(self):
         # TODO(cathywu) return the parameters too.

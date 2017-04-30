@@ -66,6 +66,7 @@ def space_time_diagram(filename, edgestarts, show = True, save = False, savename
     :return: Space Time Diagram
     '''
     data = extract_xml_data(filename)
+    print('Mean speed:', np.mean(data['speed']), 'm/s')
 
     unique_id = np.unique(data['id'])
     l = len(data['id'])

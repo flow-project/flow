@@ -1,7 +1,7 @@
 from cistar.core.exp import Generator
 
-from cistar.core.generator import makexml
-from cistar.core.generator import printxml
+from cistar.core.util import makexml
+from cistar.core.util import printxml
 
 import subprocess
 import sys
@@ -128,10 +128,10 @@ class CircleGenerator(Generator):
         else:
             start_time = params["start_time"]
 
-        if "end_time" not in params:
-            raise ValueError("end_time of circle not supplied")
-        else:
+        if "end_time" in params:
             end_time = params["end_time"]
+        else:
+            end_time = None
 
         self.roufn = "%s.rou.xml" % self.name
         addfn = "%s.add.xml" % self.name
@@ -173,15 +173,14 @@ class CircleGenerator(Generator):
         logging.debug(self.netfn)
 
         cfg.append(self.inputs(self.name, net=self.netfn, add=addfn, rou=self.roufn, gui=guifn))
-        t, outs = self.outputs(self.name)
-        cfg.append(t)
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
-        t.append(E("end", value=repr(end_time)))
+        if end_time:
+            t.append(E("end", value=repr(end_time)))
         cfg.append(t)
 
         printxml(cfg, self.cfg_path + cfgfn)
-        return cfgfn, outs
+        return cfgfn
 
     def make_routes(self, scenario, initial_config, cfg_params):
 
