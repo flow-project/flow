@@ -55,10 +55,10 @@ print("experiment initialized")
 
 env = normalize(env)
 
-for seed in [1, 5, 10, 73, 56]: # 
-    policy = GaussianMLPPolicy(
+for seed in [1, 5, 10, 73, 56]: # what is seed?
+    policy = GaussianMLPPolicy( # 
         env_spec=env.spec,
-        hidden_sizes=(32,32)
+        hidden_sizes=(32,32) # 2 layers
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
