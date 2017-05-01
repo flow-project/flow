@@ -27,7 +27,7 @@ class SimpleVelocityEnvironment(LoopEnvironment):
         """
         return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
 
-    def compute_reward(self, velocity):
+    def compute_reward(self, velocity, action):
         """
         See parent class
         """

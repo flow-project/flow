@@ -1,7 +1,7 @@
 from cistar.envs.loop import LoopEnvironment
 
 from rllab.spaces import Box
-
+from rllab.spaces import Product
 import traci
 
 import numpy as np
@@ -12,7 +12,7 @@ Fully functional environment. Takes in an *acceleration* as an action. Reward fu
 difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
 velocities for each vehicle.
 """
-class SimpleAccelerationEnvironment(LoopEnvironment):
+class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
 
     @property
@@ -22,7 +22,13 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         :return:
         """
         #TODO: max and min are parameters
-        return Box(low=self.env_params["max-deacc"], high=self.env_params["max-acc"], shape=(self.scenario.num_rl_vehicles, ))
+        # accelerations = Box(low=, high=self.env_params["max-acc"], shape=(self.scenario.num_rl_vehicles, ))
+        # lc_threshold = Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles, ))
+        # left_right_threshold = Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles, ))
+
+        lb = [self.env_params["max-deacc"], -1, -1] * self.scenario.num_rl_vehicles
+        ub = [self.env_params["max-deacc"], 1, 1] * self.scenario.num_rl_vehicles
+        return Box(np.array(lb), np.array(ub))
 
     @property
     def observation_space(self):
@@ -35,7 +41,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
     def apply_action(self, car_id, action):
         """
         See parent class (base_env)
-        Given an acceleration, set instantaneous velocity given that acceleration.
+         Given an acceleration, set instantaneous velocity given that acceleration.
         """
         thisSpeed = self.vehicles[car_id]['speed']
         nextVel = thisSpeed + action * self.time_step
@@ -44,7 +50,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         traci.vehicle.slowDown(car_id, nextVel, 1)
 
-    def compute_reward(self, velocity, rl_actions):
+    def compute_reward(self, velocity, action):
         """
         See parent class
         """
@@ -60,3 +66,23 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
 
     def render(self):
         print('current state/velocity:', self.state)
+
+    def apply_rl_actions(self, actions):
+        for i ,veh_id in enumerate(self.rl_ids):
+            lc_threshold = actions[3 * i + 1]
+            direction = actions[3 * i + 2]
+            if lc_threshold > 0:
+                if direction > 0:
+                    # lane change right
+                    self.vehicles[veh_id][]
+                else:
+                    # lane change left
+
+            acceleration = actions[3*i]
+            if self.fail_safe == 'instantaneous':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
+            elif self.fail_safe == 'eugene':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
+            else:
+                safe_action = acceleration
+            self.apply_action(veh_id, action=safe_action)

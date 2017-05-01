@@ -56,6 +56,8 @@ class SumoEnvironment(Env, Serializable):
         self.initial_state = {}
         self.ids = []
         self.controlled_ids, self.rl_ids = [], []
+        self.state = None
+
 
         # SUMO Params
         if "port" not in sumo_params:
@@ -81,7 +83,7 @@ class SumoEnvironment(Env, Serializable):
         else:
             self.fail_safe = 'instantaneous'
 
-        self._start_sumo()
+        self.start_sumo()
         self.setup_initial_state()
 
     def restart_sumo(self, sumo_params, sumo_binary=None):
@@ -96,10 +98,10 @@ class SumoEnvironment(Env, Serializable):
             ensure_dir(data_folder)
             self.emission_out = data_folder + "emission.xml"
 
-        self._start_sumo()
+        self.start_sumo()
         self.setup_initial_state()
 
-    def _start_sumo(self):
+    def start_sumo(self):
         logging.info(" Starting SUMO on port " + str(self.port))
         logging.debug(" Cfg file " + str(self.scenario.cfg))
         logging.debug(" Emission file: " + str(self.emission_out))
@@ -193,6 +195,8 @@ class SumoEnvironment(Env, Serializable):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
+        self.timer += 1
+
         for veh_id in self.controlled_ids:
             action = self.vehicles[veh_id]['controller'].get_action(self)
             if self.fail_safe == 'instantaneous':
@@ -202,29 +206,15 @@ class SumoEnvironment(Env, Serializable):
             else:
                 safe_action = action
             self.apply_action(veh_id, action=safe_action)
-
-        for index, veh_id in enumerate(self.rl_ids):
-            action = rl_actions[index]
-            if self.fail_safe == 'instantaneous':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
-            elif self.fail_safe == 'eugene':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
-            else:
-                safe_action = action
-            self.apply_action(veh_id, action=safe_action)
-
-
-        # TODO: Fix Lane Changing
-        self.timer += 1
-        if self.timer % 100 == 0:
-            # if it's been long enough try and change lanes
-            for veh_id in self.controlled_ids:
+            if self.timer % 100 == 0:
                 newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
                 traci.vehicle.changeLane(veh_id, newlane, 10000)
 
+        self.apply_rl_actions(rl_actions)
+
+        self.additional_command()
+
         traci.simulationStep()
-
-
 
         for veh_id in self.ids:
             self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
@@ -235,12 +225,13 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
 
-        # TODO: Can self._state be initialized, saved and updated so that we can
-        # exploit numpy speed
-        self._state = self.getState()
-        reward = self.compute_reward(self._state)
+        # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
+        self.state = self.getState()
+        reward = self.compute_reward(self.state, rl_actions)
+
         # TODO: Allow for partial observability
-        next_observation = np.copy(self._state)
+        next_observation = np.copy(self.state)
+
         if traci.simulation.getEndingTeleportNumber() != 0:
             # Crash has occurred, end rollout
             if self.fail_safe == "None":
@@ -283,10 +274,24 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
 
-        self._state = self.getState()
-        observation = np.copy(self._state)
+        self.state = self.getState()
+        observation = np.copy(self.state)
 
         return observation
+
+    def additional_command(self):
+        pass
+
+    def apply_rl_actions(self, rl_actions):
+        for index, veh_id in enumerate(self.rl_ids):
+            action = rl_actions[index]
+            if self.fail_safe == 'instantaneous':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
+            elif self.fail_safe == 'eugene':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+            else:
+                safe_action = action
+            self.apply_action(veh_id, action=safe_action)
 
     def apply_action(self, veh_id, action):
         """
@@ -316,7 +321,7 @@ class SumoEnvironment(Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state):
+    def compute_reward(self, state, actions):
         """Reward function for RL.
         
         Arguments:
