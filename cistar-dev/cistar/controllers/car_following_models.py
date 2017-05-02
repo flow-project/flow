@@ -239,7 +239,7 @@ class LinearOVM(BaseController):
     Variables:
     """
 
-    def __init__(self, veh_id, v_max = 30, acc_max = 15, max_deaccel=5, adaptation = 0.65, delay_time = 0, dt = 0.1):
+    def __init__(self, veh_id, v_max = 30, acc_max = 15, max_deaccel=5, adaptation = 0.65, h_st = 5, delay_time = 0, dt = 0.1):
         """Instantiates an OVM controller
         
          Arguments:
@@ -265,6 +265,7 @@ class LinearOVM(BaseController):
         self.veh_id = veh_id
         self.v_max = v_max # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
         self.adaptation = adaptation # TAU in Traffic Flow Dynamics textbook
+        self.h_st = h_st
         self.delay_time = delay_time
         self.dt = dt
 
@@ -272,26 +273,24 @@ class LinearOVM(BaseController):
     def get_action(self, env):
         this_lane = env.vehicles[self.veh_id]['lane']
 
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
-        if not lead_id: # no car ahead
-            return self.acc_max
-
-        lead_pos = env.get_x_by_id(lead_id)
-        lead_vel = env.vehicles[lead_id]['speed']
-        lead_length = env.vehicles[lead_id]['length']
-
         this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
 
-        h = (lead_pos - lead_length - this_pos) % env.scenario.length
-        h_dot = lead_vel - this_vel
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if not lead_id: # no car ahead
+            h = float('inf')
+        else:        
+            lead_pos = env.get_x_by_id(lead_id)
+            lead_vel = env.vehicles[lead_id]['speed']
+            lead_length = env.vehicles[lead_id]['length']
+            h = (lead_pos - lead_length - this_pos) % env.scenario.length
 
         # V function here - input: h, output : Vh
         alpha = 1.689 # the average value from Nakayama paper
-        if h < 5:
+        if h < self.h_st:
             Vh = 0
-        elif 5 <= h <= 5 + self.v_max/alpha:
-            Vh = alpha * (h - 5)
+        elif self.h_st <= h <= self.h_st + self.v_max/alpha:
+            Vh = alpha * (h - self.h_st)
         else:
             Vh = self.v_max
 

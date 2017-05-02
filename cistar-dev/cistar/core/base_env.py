@@ -210,7 +210,7 @@ class SumoEnvironment(Env, Serializable):
             else:
                 safe_action = action
             if safe_action is None:
-                print('')
+                # print('')
                 print('safe action is None')
                 pass
             else:
@@ -258,9 +258,9 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
 
-        if round(self.timer, 1) == round(self.timer, 3):
+        if round(self.timer) == round(self.timer, 3):
             mean_speed = np.mean(speeds)
-            print('time:', round(self.timer,1), '; avg speed:', mean_speed, '; flow (cars/km):', mean_speed * self.density * 3600)
+            print('time:', round(self.timer), 's; avg speed:', mean_speed, 'm/s; flow:', mean_speed * self.density * 3600, '(cars/km)')
             print('')
 
         # TODO: Can self._state be initialized, saved and updated so that we can
