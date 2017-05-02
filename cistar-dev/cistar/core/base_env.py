@@ -130,6 +130,11 @@ class SumoEnvironment(Env, Serializable):
 
         traci.simulationStep()
 
+
+        # Density = num vehicles / length (in meters)
+        # so density in vehicles/km would be 1000 * self.density
+        self.density = self.scenario.num_vehicles / self.scenario.net_params['length']
+
     def setup_initial_state(self):
         """
         Store initial state so that simulation can be reset at the end.
@@ -166,7 +171,10 @@ class SumoEnvironment(Env, Serializable):
 
             # initializes lane-changing controller
             lane_changer_params = self.scenario.type_params[veh_type][2]
-            vehicle['lane_changer'] = lane_changer_params[0](veh_id=veh_id, **lane_changer_params[1])
+            if lane_changer_params is not None:
+                vehicle['lane_changer'] = lane_changer_params[0](veh_id = veh_id, **lane_changer_params[1])
+            else:
+                vehicle['lane_changer'] = None
 
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
@@ -205,7 +213,12 @@ class SumoEnvironment(Env, Serializable):
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             else:
                 safe_action = action
-            self.apply_action(veh_id, action=safe_action)
+            if safe_action is None:
+                print('safe action is None')
+                pass
+            else:
+                self.apply_action(veh_id, action=safe_action)
+
             if self.timer % 100 == 0:
                 newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
                 traci.vehicle.changeLane(veh_id, newlane, 10000)
@@ -216,19 +229,30 @@ class SumoEnvironment(Env, Serializable):
 
         traci.simulationStep()
 
+        speeds = []
         for veh_id in self.ids:
             self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
-            self.vehicles[veh_id]["edge"] = traci.vehicle.getRoadID(veh_id)
+            this_edge = traci.vehicle.getRoadID(veh_id)
+            if this_edge is None:
+                print('Null edge for vehicle:', veh_id)
+            else:
+                self.vehicles[veh_id]["edge"] = this_edge
             self.vehicles[veh_id]["position"] = traci.vehicle.getLanePosition(veh_id)
             self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
-            self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
+            veh_speed = traci.vehicle.getSpeed(veh_id)
+            self.vehicles[veh_id]["speed"] = veh_speed
+            speeds.append(veh_speed)
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
+
+        if round(self.timer) == round(self.timer, 3):
+            mean_speed = np.mean(speeds)
+            print('time:', round(self.timer), 's; avg speed:', mean_speed, 'm/s; flow:', mean_speed * self.density * 3600, '(cars/km)')
+            print('')
 
         # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
         self.state = self.getState()
         reward = self.compute_reward(self.state, rl_actions)
-
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
 
