@@ -15,6 +15,15 @@ velocities for each vehicle.
 class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
 
+    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+        super().__init__(env_params, sumo_binary, sumo_params, scenario)
+        if "lane_change_duration" in self.env_params:
+            self.lane_change_duration = self.env_params['lane_change_duration']
+        else:
+            self.lane_change_duration = self.time_step * 100
+
+        self.last_lc = -1 * self.lane_change_duration
+
     @property
     def action_space(self):
         """
@@ -67,22 +76,74 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
     def render(self):
         print('current state/velocity:', self.state)
 
+
+    def change_lanes(self, veh_id, direction):
+        """
+        Makes the traci call to change an rl-vehicles lane based on a direction
+        :param veh_id: vehicle to apply the lane change to
+        :param direction: double between -1 and 1, -1 to the left 1 to the right
+        :return: (1, timer) for successful lane change, 0 for unsuccessful but possible lane changing
+        (i.e. may be vaild, but unsafe), -1 for impossible lane change
+        """
+
+        if self.scenario.lanes == 1:
+            print("Uh oh, single lane track.")
+            return -1
+        else:
+            curr_lane = self.vehicles[veh_id]['lane']
+            if direction > 0:
+                # lane change right
+                print("right")
+                if curr_lane > 0:
+                    traci.vehicle.changeLane(veh_id, int(curr_lane - 1), int(self.lane_change_duration)) # might be flipped??
+                    self.last_lc = self.timer
+                    return 1
+                else:
+                    return -1
+            else:
+                # lane change left
+                print("left")
+                if curr_lane < self.scenario.lanes - 1:
+                    traci.vehicle.changeLane(veh_id, int(curr_lane + 1), int(self.lane_change_duration))  # might be flipped??
+                    self.last_lc = self.timer
+                    return 1
+                else:
+                    return -1
+
+
+
     def apply_rl_actions(self, actions):
+        """
+        Takes a tuple and applies a lane change or acceleration. if a lane change is applied,
+        don't issue any commands for the duration of the lane change and return negative rewards
+        for actions during that lane change. if a lane change isn't applied, and sufficient time
+        has passed, issue an acceleration like normal
+        :param actions: (acceleraton, lc_threshold, direction)
+        :return: 1 if successful + other actions are ok, -1 if unsucessful / bad actions.
+        """
         for i ,veh_id in enumerate(self.rl_ids):
             lc_threshold = actions[3 * i + 1]
             direction = actions[3 * i + 2]
-            if lc_threshold > 0:
-                if direction > 0:
-                    # lane change right
-                    self.vehicles[veh_id][]
-                else:
-                    # lane change left
+            successful_lc = 0
 
-            acceleration = actions[3*i]
-            if self.fail_safe == 'instantaneous':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
-            elif self.fail_safe == 'eugene':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
+            if self.timer > self.lane_change_duration + self.last_lc:
+                # enough time has passed, change lanes
+                if lc_threshold > 0:
+                    successful_lc = self.change_lanes(veh_id, direction)
+
+                if not successful_lc == 1:
+                    # failed to lane change, or did not attempt a lane change
+                    acceleration = actions[3*i]
+                    if self.fail_safe == 'instantaneous':
+                        safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
+                    elif self.fail_safe == 'eugene':
+                        safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
+                    else:
+                        safe_action = acceleration
+                    self.apply_action(veh_id, action=safe_action)
+                    return 1 # something positive to add to reward fn
+                elif successful_lc == 1:
+                    # changed lanes
+                    return -1 # something negative to add to reward fn if desired acceleration is large
             else:
-                safe_action = acceleration
-            self.apply_action(veh_id, action=safe_action)
+                return -1 # something negative to add to reward fn
