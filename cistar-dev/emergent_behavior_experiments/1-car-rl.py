@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"port": 8820, "time_step":0.01}
 sumo_binary = "sumo"
 
 env_params = {"target_velocity": 20, "max-deacc": 0, "max-acc": 3, "fail-safe": 'instantaneous'}
@@ -35,7 +35,7 @@ num_tot = 2
 num_auto = 2
 
 #exp_tag = str(num_auto) + '-car-rl' +'-deaccel'
-exp_tag = '2-car-only-rl-16x16-extended'
+exp_tag = str(num_auto) + '-car-only-rl-16x16-extended'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0)}
                 #, "ovm": (num_tot-num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
