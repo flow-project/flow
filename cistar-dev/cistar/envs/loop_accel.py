@@ -35,7 +35,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
     def apply_action(self, car_id, action):
         """
         See parent class (base_env)
-         Given an acceleration, set instantaneous velocity given that acceleration.
+        Given an acceleration, set instantaneous velocity given that acceleration.
         """
         thisSpeed = self.vehicles[car_id]['speed']
         nextVel = thisSpeed + action * self.time_step
@@ -45,7 +45,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         traci.vehicle.slowDown(car_id, nextVel, 1)
 
-    def compute_reward(self, velocity):
+    def compute_reward(self, velocity, rl_actions):
         """
         See parent class
         """
@@ -60,4 +60,4 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         return np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
 
     def render(self):
-        print('current state/velocity:', self._state)
+        print('current state/velocity:', self.state)
