@@ -35,7 +35,7 @@ num_tot = 2
 num_auto = 2
 
 #exp_tag = str(num_auto) + '-car-rl' +'-deaccel'
-exp_tag = '2-car-only-rl-16x16'
+exp_tag = '2-car-only-rl-16x16-extended'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0)}
                 #, "ovm": (num_tot-num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
