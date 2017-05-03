@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"port": 8821, "time_step":0.01}
+sumo_params = {"time_step":0.01}
 sumo_binary = "sumo"
 
 env_params = {"target_velocity": 20, "max-deacc": -3, "max-acc": 3, "fail-safe": 'instantaneous'}
@@ -37,7 +37,7 @@ type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = ExtendedAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
@@ -53,9 +53,9 @@ for seed in [15]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=10000,
+        batch_size=4000,
         max_path_length=1000,
-        n_itr=750,  # 1000
+        n_itr=2,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
