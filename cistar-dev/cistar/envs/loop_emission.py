@@ -53,7 +53,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         Action is an acceleration here. Gets locally linearized to find velocity.
         """
         not_zero = max(0, action)
-        traci.vehicle.slowDown(car_id, not_zero, 1)
+        self.traci_connection.vehicle.slowDown(car_id, not_zero, 1)
 
     def render(self):
         print('current velocity, fuel, distance:', self._state)

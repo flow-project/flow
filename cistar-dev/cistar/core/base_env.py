@@ -5,6 +5,7 @@ import sys
 import numpy as np
 
 import traci
+import sumolib
 from rllab.core.serializable import Serializable
 from rllab.envs.base import Env
 from rllab.envs.base import Step
@@ -59,7 +60,7 @@ class SumoEnvironment(Env, Serializable):
 
         # SUMO Params
         if "port" not in sumo_params:
-            raise ValueError("SUMO port not defined")
+            self.port = sumolib.miscutils.getFreeSocketPort()
         else:
             self.port = sumo_params['port']
 
@@ -85,7 +86,7 @@ class SumoEnvironment(Env, Serializable):
         self.setup_initial_state()
 
     def restart_sumo(self, sumo_params, sumo_binary=None):
-        traci.close(False)
+        self.traci_connection.close(False)
         if sumo_binary:
             self.sumo_binary = sumo_binary
         if "port" in sumo_params:
@@ -115,7 +116,7 @@ class SumoEnvironment(Env, Serializable):
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step)]
-
+        print("Traci on port: ", self.port)
         if self.emission_out:
             sumo_call.append("--emission-output")
             sumo_call.append(self.emission_out)
@@ -124,9 +125,9 @@ class SumoEnvironment(Env, Serializable):
 
         logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
 
-        traci.init(self.port)
+        self.traci_connection = traci.connect(self.port)
 
-        traci.simulationStep()
+        self.traci_connection.simulationStep()
 
     def setup_initial_state(self):
         """
@@ -135,12 +136,12 @@ class SumoEnvironment(Env, Serializable):
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
 
-        self.ids = traci.vehicle.getIDList()
+        self.ids = self.traci_connection.vehicle.getIDList()
         self.controlled_ids.clear()
         self.rl_ids.clear()
         self.vehicles.clear()
         for i in self.ids:
-            if traci.vehicle.getTypeID(i) == "rl":
+            if self.traci_connection.vehicle.getTypeID(i) == "rl":
                 self.rl_ids.append(i)
             else:
                 self.controlled_ids.append(i)
@@ -148,15 +149,15 @@ class SumoEnvironment(Env, Serializable):
         for veh_id in self.ids:
             vehicle = dict()
             vehicle["id"] = veh_id
-            veh_type = traci.vehicle.getTypeID(veh_id)
+            veh_type = self.traci_connection.vehicle.getTypeID(veh_id)
             vehicle["type"] = veh_type
-            vehicle["edge"] = traci.vehicle.getRoadID(veh_id)
-            vehicle["position"] = traci.vehicle.getLanePosition(veh_id)
-            vehicle["lane"] = traci.vehicle.getLaneIndex(veh_id)
-            vehicle["speed"] = traci.vehicle.getSpeed(veh_id)
-            vehicle["length"] = traci.vehicle.getLength(veh_id)
-            vehicle["max_speed"] = traci.vehicle.getMaxSpeed(veh_id)
-            vehicle["distance"] = traci.vehicle.getDistance(veh_id)
+            vehicle["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
+            vehicle["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
+            vehicle["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            vehicle["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
+            vehicle["length"] = self.traci_connection.vehicle.getLength(veh_id)
+            vehicle["max_speed"] = self.traci_connection.vehicle.getMaxSpeed(veh_id)
+            vehicle["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
             # implement flexibility in controller
             controller_params = self.scenario.type_params[veh_type][1]
@@ -167,11 +168,11 @@ class SumoEnvironment(Env, Serializable):
             vehicle['lane_changer'] = lane_changer_params[0](veh_id=veh_id, **lane_changer_params[1])
 
             self.vehicles[veh_id] = vehicle
-            traci.vehicle.setSpeedMode(veh_id, 0)
+            self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
 
             # Saving initial state
-            route_id = traci.vehicle.getRouteID(veh_id)
-            pos = traci.vehicle.getPosition(veh_id)
+            route_id = self.traci_connection.vehicle.getRouteID(veh_id)
+            pos = self.traci_connection.vehicle.getPosition(veh_id)
 
             self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"],
                                           vehicle["position"], vehicle["speed"], pos)
@@ -220,20 +221,20 @@ class SumoEnvironment(Env, Serializable):
             # if it's been long enough try and change lanes
             for veh_id in self.controlled_ids:
                 newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                traci.vehicle.changeLane(veh_id, newlane, 10000)
+                self.traci_connection.vehicle.changeLane(veh_id, newlane, 10000)
 
-        traci.simulationStep()
+        self.traci_connection.simulationStep()
 
 
 
         for veh_id in self.ids:
-            self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
-            self.vehicles[veh_id]["edge"] = traci.vehicle.getRoadID(veh_id)
-            self.vehicles[veh_id]["position"] = traci.vehicle.getLanePosition(veh_id)
-            self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
-            self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
-            self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
-            self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
+            self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
+            self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
+            self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
+            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
+            self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
+            self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
         # TODO: Can self._state be initialized, saved and updated so that we can
         # exploit numpy speed
@@ -241,7 +242,7 @@ class SumoEnvironment(Env, Serializable):
         reward = self.compute_reward(self._state)
         # TODO: Allow for partial observability
         next_observation = np.copy(self._state)
-        if traci.simulation.getEndingTeleportNumber() != 0:
+        if self.traci_connection.simulation.getEndingTeleportNumber() != 0:
             # Crash has occurred, end rollout
             if self.fail_safe == "None":
                 return Step(observation=next_observation, reward=reward, done=True)
@@ -265,23 +266,23 @@ class SumoEnvironment(Env, Serializable):
             if not self.vehicles[veh_id]['type'] == 'rl':
                 self.vehicles[veh_id]['controller'].reset_delay(self)
 
-            traci.vehicle.remove(veh_id)
-            traci.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
+            self.traci_connection.vehicle.remove(veh_id)
+            self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
-            traci.vehicle.setColor(veh_id, color)
+            self.traci_connection.vehicle.setColor(veh_id, color)
 
-        traci.simulationStep()
+        self.traci_connection.simulationStep()
 
         # TODO: Replace these traci calls with initial_state accesses
         for veh_id in self.ids:
-            traci.vehicle.setSpeedMode(veh_id, 0)
-            self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
-            self.vehicles[veh_id]["edge"] = traci.vehicle.getRoadID(veh_id)
-            self.vehicles[veh_id]["position"] = traci.vehicle.getLanePosition(veh_id)
-            self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
-            self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
-            self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
-            self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
+            self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
+            self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
+            self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
+            self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
+            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
+            self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
+            self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
         self._state = self.getState()
         observation = np.copy(self._state)
@@ -332,7 +333,7 @@ class SumoEnvironment(Env, Serializable):
         """Closes the TraCI I/O connection. Should be done at end of every experiment.
         Must be in Environment because the environment opens the TraCI connection.
         """
-        traci.close()
+        self.traci_connection.close()
 
     def close(self):
         self.terminate()
