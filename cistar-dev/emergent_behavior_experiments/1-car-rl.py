@@ -8,6 +8,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 # from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.envs.loop_accel_pos_vel import ExtendedAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
@@ -28,15 +29,15 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 1
+num_cars = 2
 
-exp_tag = str(num_cars) + '-car-rl-longrun16x16'
+exp_tag = str(num_cars) + '-car-rl-longrun32x32'
 
 type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = ExtendedAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
