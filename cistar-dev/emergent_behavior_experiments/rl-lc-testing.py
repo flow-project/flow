@@ -22,11 +22,11 @@ num_cars = 8
 
 exp_tag = str(num_cars) + '-car-rl'
 
-type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"rl":(num_cars, (RLController, {}), None, 0)}
 
-env_params = {"target_velocity" : 8, "max-deacc": -3, "max-acc": 3, "lane_change_duration": 3, "fail-safe":None}
+env_params = {"target_velocity" : 8, "max-deacc": -3, "max-acc": 3, "lane_change_duration": 0, "fail-safe":None}
 
-net_params = {"length": 200, "lanes": 2, "speed_limit":35,\
+net_params = {"length": 200, "lanes": 2, "speed_limit":0,\
  "resolution": 40, "net_path":"debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}

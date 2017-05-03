@@ -178,7 +178,8 @@ class SumoEnvironment(Env, Serializable):
 
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
-            traci.vehicle.setLaneChangeMode(veh_id, 512)
+            if veh_id in self.rl_ids:
+                traci.vehicle.setLaneChangeMode(veh_id, 768)
 
             # Saving initial state
             route_id = traci.vehicle.getRouteID(veh_id)

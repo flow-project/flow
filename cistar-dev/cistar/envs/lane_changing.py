@@ -53,6 +53,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         See parent class (base_env)
          Given an acceleration, set instantaneous velocity given that acceleration.
         """
+        if car_id == "rl_1":
+            print(action)
         thisSpeed = self.vehicles[car_id]['speed']
         nextVel = thisSpeed + action * self.time_step
         nextVel = max(0, nextVel)
@@ -94,19 +96,19 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
             curr_lane = self.vehicles[veh_id]['lane']
             if direction > 0:
                 # lane change right
-                print("right")
+                # print("right")
                 if curr_lane > 0:
                     traci.vehicle.changeLane(veh_id, int(curr_lane - 1), int(self.lane_change_duration)) # might be flipped??
-                    self.last_lc = self.timer
+                    self.vehicles[veh_id]['last_lc'] = self.timer
                     return 1
                 else:
                     return -1
             else:
                 # lane change left
-                print("left")
+                # print("left")
                 if curr_lane < self.scenario.lanes - 1:
                     traci.vehicle.changeLane(veh_id, int(curr_lane + 1), int(self.lane_change_duration))  # might be flipped??
-                    self.last_lc = self.timer
+                    self.vehicles[veh_id]['last_lc'] = self.timer
                     return 1
                 else:
                     return -1
@@ -126,8 +128,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         resulting_behaviors =  []
 
         for i ,veh_id in enumerate(self.rl_ids):
-            if veh_id == "rl_1":
-                print(actions[3*i], actions[3*i+1], actions[3*i+2])
+            # if veh_id == "rl_1":
+            #     print(actions[3*i], actions[3*i+1], actions[3*i+2])
             lc_value = actions[3 * i + 1]
             direction = actions[3 * i + 2]
             successful_lc = 0
@@ -136,14 +138,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                 # enough time has passed, change lanes
                 if lc_value > 0:
                     successful_lc = self.change_lanes(veh_id, direction)
-                else:
-                    traci.vehicle.changeLane(veh_id, self.vehicles[veh_id]['lane'], 1)
 
                 if successful_lc != 1:
-                    # failed to lane change, or did not attempt a lane change
-                    traci.vehicle.changeLane(veh_id, self.vehicles[veh_id]['lane'], 1)
-
-
                     acceleration = actions[3*i]
                     if self.fail_safe == 'instantaneous':
                         safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
@@ -157,6 +153,14 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                     # changed lanes
                     resulting_behaviors.append(-1) # something negative to add to reward fn if desired acceleration is large
             else:
+                acceleration = actions[3 * i]
+                if self.fail_safe == 'instantaneous':
+                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
+                elif self.fail_safe == 'eugene':
+                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
+                else:
+                    safe_action = acceleration
+                self.apply_action(veh_id, action=safe_action)
                 resulting_behaviors.append(-1) # something negative to add to reward fn
 
         return resulting_behaviors
