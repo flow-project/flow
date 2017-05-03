@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"port": 8877, "time_step":0.01}
+sumo_params = {"port": 8820, "time_step":0.01}
 sumo_binary = "sumo"
 
 env_params = {"target_velocity": 20, "max-deacc": -3, "max-acc": 3, "fail-safe": 'instantaneous'}
@@ -30,7 +30,7 @@ initial_config = {"shuffle": False}
 
 num_cars = 1
 
-exp_tag = str(num_cars) + '-car-rl'
+exp_tag = str(num_cars) + '-car-rl-longrun16x16'
 
 type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
@@ -43,7 +43,7 @@ env = normalize(env)
 for seed in [15]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(16,)
+        hidden_sizes=(32,32)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -52,12 +52,12 @@ for seed in [15]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=300,
-        max_path_length=1500,
-        n_itr=750,  # 1000
+        batch_size=8000,
+        max_path_length=1000,
+        n_itr=40,  # 1000
         # whole_paths=True,
-        # discount=0.99,
-        # step_size=0.01,
+        discount=0.999,
+        step_size=0.01,
     )
     # algo.train()
 
