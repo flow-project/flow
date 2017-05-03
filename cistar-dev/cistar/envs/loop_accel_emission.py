@@ -42,7 +42,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         nextVel = max(0, nextVel)
         # if we're being completely mathematically correct, 1 should be replaced by int(self.time_step * 1000)
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
-        traci.vehicle.slowDown(car_id, nextVel, 1)
+        self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
     def compute_reward(self, velocity):
         """

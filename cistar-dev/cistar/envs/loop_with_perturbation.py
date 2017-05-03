@@ -12,18 +12,21 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
         super().__init__(env_params, sumo_binary, sumo_params, scenario)
 
-        if "perturbation_at" not in env_params:
-            raise ValueError("Time for perturbation not specified")
-        self.perturbation_at = env_params["perturbation_at"]
+        if "perturbations" not in env_params:
+            raise ValueError("Perturbation not specified")
+        self.perturbations = env_params["perturbations"]
+        self.num_perturbations = 0
+        # self.perturbation_at = env_params["perturbation_at"]
 
-        if "perturbation_length" not in env_params:
-            raise ValueError("Time for perturbation not specified")
-        self.perturbation_length = env_params["perturbation_length"]
+        # if "perturbation_length" not in env_params:
+        #     raise ValueError("Time for perturbation not specified")
+        # self.perturbation_length = env_params["perturbation_length"]
 
         if "perturbed_id" in env_params:
             self.perturbed_id = env_params["perturbed_id"]
         else:
             self.perturbed_id = list(self.vehicles.keys())[random.randint(0, len(self.vehicles.keys())-1)]
+        self.traci_connection.vehicle.setColor(self.perturbed_id, (0, 255, 255, 0))
 
     def step(self, rl_actions):
         """
@@ -47,7 +50,7 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
             action = self.vehicles[veh_id]['controller'].get_action(self)
             safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             self.apply_action(veh_id, action=safe_action)
-            logging.debug("Car with id " + veh_id + " is on route " + str(traci.vehicle.getRouteID(veh_id)))
+            logging.debug("Car with id " + veh_id + " is on route " + str(self.traci_connection.vehicle.getRouteID(veh_id)))
 
         for index, veh_id in enumerate(self.rl_ids):
             action = rl_actions[index]
@@ -60,19 +63,23 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
         if self.timer % 100 == 0:
             for veh_id in self.controlled_ids:
                 newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                traci.vehicle.changeLane(veh_id, newlane, 10000)
+                self.traci_connection.vehicle.changeLane(veh_id, newlane, 10000)
 
-        if self.timer > self.perturbation_at and self.timer < (self.perturbation_at + self.perturbation_length):
-            self.apply_action(self.perturbed_id, self.env_params["max-deacc"])
+        if self.num_perturbations < len(self.perturbations):
+            if self.timer > self.perturbations[self.num_perturbations][0] \
+                and self.timer < (self.perturbations[self.num_perturbations][0] + self.perturbations[self.num_perturbations][1]):
+                self.apply_action(self.perturbed_id, self.env_params["max-deacc"])
+            if self.timer > (self.perturbations[self.num_perturbations][0] + self.perturbations[self.num_perturbations][1]):
+                self.num_perturbations += 1
 
-        traci.simulationStep()
+        self.traci_connection.simulationStep()
 
         for veh_id in self.ids:
-            self.vehicles[veh_id]["type"] = traci.vehicle.getTypeID(veh_id)
-            self.vehicles[veh_id]["edge"] = traci.vehicle.getRoadID(veh_id)
-            self.vehicles[veh_id]["position"] = traci.vehicle.getLanePosition(veh_id)
-            self.vehicles[veh_id]["lane"] = traci.vehicle.getLaneIndex(veh_id)
-            self.vehicles[veh_id]["speed"] = traci.vehicle.getSpeed(veh_id)
+            self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
+            self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
+            self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
+            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
 
         # TODO: Can self._state be initialized, saved and updated so that we can
         # exploit numpy speed

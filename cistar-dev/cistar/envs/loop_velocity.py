@@ -47,7 +47,7 @@ class SimpleVelocityEnvironment(LoopEnvironment):
         Action is an velocity here.
         """
         not_zero = max(0, action)
-        traci.vehicle.slowDown(car_id, not_zero, 1)
+        self.traci_connection.vehicle.slowDown(car_id, not_zero, 1)
 
     def render(self):
         pass
