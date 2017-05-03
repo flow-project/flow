@@ -178,6 +178,7 @@ class SumoEnvironment(Env, Serializable):
 
             self.vehicles[veh_id] = vehicle
             traci.vehicle.setSpeedMode(veh_id, 0)
+            traci.vehicle.setLaneChangeMode(veh_id, 512)
 
             # Saving initial state
             route_id = traci.vehicle.getRouteID(veh_id)
@@ -220,8 +221,10 @@ class SumoEnvironment(Env, Serializable):
                 self.apply_action(veh_id, action=safe_action)
 
             if self.timer % 100 == 0:
-                newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                traci.vehicle.changeLane(veh_id, newlane, 10000)
+                if self.vehicles[veh_id]['lane_changer']:
+                    newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                    traci.vehicle.changeLane(veh_id, newlane, 10000)
+
 
         self.apply_rl_actions(rl_actions)
 
@@ -245,10 +248,10 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = traci.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = traci.vehicle.getDistance(veh_id)
 
-        if round(self.timer) == round(self.timer, 3):
-            mean_speed = np.mean(speeds)
-            print('time:', round(self.timer), 's; avg speed:', mean_speed, 'm/s; flow:', mean_speed * self.density * 3600, '(cars/km)')
-            print('')
+        # if round(self.timer) == round(self.timer, 3):
+        #     mean_speed = np.mean(speeds)
+        #     print('time:', round(self.timer), 's; avg speed:', mean_speed, 'm/s; flow:', mean_speed * self.density * 3600, '(cars/km)')
+        #     print('')
 
         # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
         self.state = self.getState()

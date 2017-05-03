@@ -21,8 +21,8 @@ sumo_params = {"port" : 8873, "time_step" : 0.1}
 # type_params = { "cfm-slow": (6, (CFMController, {'v_des': 3}), (StaticLaneChanger, {}), 0),\
 #  "cfm-fast": (6, (CFMController, {'v_des': 20}), (StochasticLaneChanger, {}), 0)}
 
-type_params = { "cfm-slow": (6, (CFMController, {'v_des': 3}), None, 0),\
- "cfm-fast": (6, (CFMController, {'v_des': 20}), None, 0)}
+type_params = { "cfm-slow": (6, (LinearOVM, {'v_max': 5}), None, 0),\
+ "cfm-fast": (6, (LinearOVM, {'v_max': 20}), None, 0)}
 
 # type_params = { "cfm-slow": (6, (ConstantVelocityController, {}), None, 0),\
 #  "cfm-fast": (6, (ConstantVelocityController, {}), None, 0)}
