@@ -53,8 +53,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         See parent class (base_env)
          Given an acceleration, set instantaneous velocity given that acceleration.
         """
-        if car_id == "rl_1":
-            print(action)
         thisSpeed = self.vehicles[car_id]['speed']
         nextVel = thisSpeed + action * self.time_step
         nextVel = max(0, nextVel)
