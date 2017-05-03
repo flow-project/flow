@@ -35,7 +35,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         fuelconsump = Box(low=0., high=np.inf, shape=(num_cars, ))
         return Product([vel, fuelconsump, ypos])
 
-    def compute_reward(self, state):
+    def compute_reward(self, state, action):
         """
         See parent class
         TODO(Leah): Fill in documentation
@@ -56,4 +56,4 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         self.traci_connection.vehicle.slowDown(car_id, not_zero, 1)
 
     def render(self):
-        print('current velocity, fuel, distance:', self._state)
+        print('current velocity, fuel, distance:', self.state)

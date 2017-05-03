@@ -44,7 +44,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
-    def compute_reward(self, velocity):
+    def compute_reward(self, velocity, action):
         """
         See parent class
         """
@@ -59,4 +59,4 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         return np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
 
     def render(self):
-        print('current state/velocity:', self._state)
+        print('current state/velocity:', self.state)

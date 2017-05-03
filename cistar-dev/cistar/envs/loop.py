@@ -22,6 +22,13 @@ class LoopEnvironment(SumoEnvironment):
         """
         if self.vehicles[id]["edge"] == '':
             print("This vehicle teleported and its edge is now empty", id)
+        # try:
+        #     if self.vehicles[id]["edge"] == '':
+        #         print("This vehicle teleported and its edge is now empty", id)
+        # except KeyError:
+        #     print('')
+        #     print('keyerror when fetching a vehicle\'s edge')
+        #     print('vehicle id:', id)
         return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])
 
     def get_leading_car(self, car_id, lane = None):
@@ -44,6 +51,12 @@ class LoopEnvironment(SumoEnvironment):
         if front_dists:
             return min(front_dists, key=(lambda x:x[1]))[0]
         else:
+            # print('')
+            # print('no lead cars, printing other cars and their lanes')
+            # for i in self.ids:
+            #     if i != car_id:
+            #         c = self.vehicles[i]
+                    # print('id:', i,'lane:', c['lane'])
             return None
 
     def get_trailing_car(self, car_id, lane = None):
