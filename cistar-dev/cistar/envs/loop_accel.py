@@ -5,6 +5,7 @@ from rllab.spaces import Box
 import traci
 
 import numpy as np
+import pdb
 
 
 """
@@ -49,6 +50,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
+        #print('speed: {0}, reward:{1}'.format(velocity, -np.linalg.norm(velocity - self.env_params["target_velocity"])))
         return -np.linalg.norm(velocity - self.env_params["target_velocity"])
 
     def getState(self):
