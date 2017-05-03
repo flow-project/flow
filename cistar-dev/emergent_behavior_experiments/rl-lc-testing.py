@@ -17,14 +17,14 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 sumo_params = {"port": 8873, "time_step":0.01}
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 num_cars = 8
 
 exp_tag = str(num_cars) + '-car-rl'
 
 type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity" : 8, "max-deacc": -3, "max-acc": 3}
+env_params = {"target_velocity" : 8, "max-deacc": -3, "max-acc": 3, "lane_change_duration": 3, "fail-safe":None}
 
 net_params = {"length": 200, "lanes": 2, "speed_limit":35,\
  "resolution": 40, "net_path":"debug/net/"}

@@ -18,11 +18,12 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
         super().__init__(env_params, sumo_binary, sumo_params, scenario)
         if "lane_change_duration" in self.env_params:
-            self.lane_change_duration = self.env_params['lane_change_duration']
+            self.lane_change_duration = self.env_params['lane_change_duration'] / self.time_step
         else:
-            self.lane_change_duration = self.time_step * 100
+            self.lane_change_duration = 5 / self.time_step
 
-        self.last_lc = -1 * self.lane_change_duration
+        for rl_id in self.rl_ids:
+            self.vehicles[rl_id]['last_lc'] = -1 * self.lane_change_duration
 
     @property
     def action_space(self):
@@ -36,7 +37,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         # left_right_threshold = Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles, ))
 
         lb = [self.env_params["max-deacc"], -1, -1] * self.scenario.num_rl_vehicles
-        ub = [self.env_params["max-deacc"], 1, 1] * self.scenario.num_rl_vehicles
+        ub = [self.env_params["max-acc"], 1, 1] * self.scenario.num_rl_vehicles
         return Box(np.array(lb), np.array(ub))
 
     @property
@@ -118,21 +119,31 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         don't issue any commands for the duration of the lane change and return negative rewards
         for actions during that lane change. if a lane change isn't applied, and sufficient time
         has passed, issue an acceleration like normal
-        :param actions: (acceleraton, lc_threshold, direction)
-        :return: 1 if successful + other actions are ok, -1 if unsucessful / bad actions.
+        :param actions: (acceleraton, lc_value, direction)
+        :return: array of resulting actions: 1 if successful + other actions are ok, -1 if unsucessful / bad actions.
         """
+
+        resulting_behaviors =  []
+
         for i ,veh_id in enumerate(self.rl_ids):
-            lc_threshold = actions[3 * i + 1]
+            if veh_id == "rl_1":
+                print(actions[3*i], actions[3*i+1], actions[3*i+2])
+            lc_value = actions[3 * i + 1]
             direction = actions[3 * i + 2]
             successful_lc = 0
 
-            if self.timer > self.lane_change_duration + self.last_lc:
+            if self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']:
                 # enough time has passed, change lanes
-                if lc_threshold > 0:
+                if lc_value > 0:
                     successful_lc = self.change_lanes(veh_id, direction)
+                else:
+                    traci.vehicle.changeLane(veh_id, self.vehicles[veh_id]['lane'], 1)
 
-                if not successful_lc == 1:
+                if successful_lc != 1:
                     # failed to lane change, or did not attempt a lane change
+                    traci.vehicle.changeLane(veh_id, self.vehicles[veh_id]['lane'], 1)
+
+
                     acceleration = actions[3*i]
                     if self.fail_safe == 'instantaneous':
                         safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
@@ -141,9 +152,11 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                     else:
                         safe_action = acceleration
                     self.apply_action(veh_id, action=safe_action)
-                    return 1 # something positive to add to reward fn
+                    resulting_behaviors.append(1) # something positive to add to reward fn
                 elif successful_lc == 1:
                     # changed lanes
-                    return -1 # something negative to add to reward fn if desired acceleration is large
+                    resulting_behaviors.append(-1) # something negative to add to reward fn if desired acceleration is large
             else:
-                return -1 # something negative to add to reward fn
+                resulting_behaviors.append(-1) # something negative to add to reward fn
+
+        return resulting_behaviors
