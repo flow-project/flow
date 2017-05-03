@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"port": 8820, "time_step":0.01}
+sumo_params = {"port": 8821, "time_step":0.01}
 sumo_binary = "sumo"
 
 env_params = {"target_velocity": 20, "max-deacc": -3, "max-acc": 3, "fail-safe": 'instantaneous'}
@@ -29,7 +29,7 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 2
+num_cars = 1
 
 exp_tag = str(num_cars) + '-car-rl-longrun32x32'
 
@@ -53,9 +53,9 @@ for seed in [15]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=8000,
+        batch_size=10000,
         max_path_length=1000,
-        n_itr=40,  # 1000
+        n_itr=750,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -65,7 +65,7 @@ for seed in [15]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=2,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
