@@ -3,6 +3,7 @@ import logging
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import stub, run_experiment_lite
 from rllab.algos.trpo import TRPO
+from rllab.algos.vpg import VPG
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
@@ -48,17 +49,23 @@ for seed in [15]:
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
 
-    algo = TRPO(
-        env=env,
-        policy=policy,
-        baseline=baseline,
-        batch_size=300,
-        max_path_length=1500,
-        n_itr=750,  # 1000
-        # whole_paths=True,
-        # discount=0.99,
-        # step_size=0.01,
-    )
+    #algo = TRPO(
+    #    env=env,
+    #    policy=policy,
+    #    baseline=baseline,
+    #    batch_size=300,
+    #    max_path_length=1500,
+    #    n_itr=750,  # 1000
+    #    # whole_paths=True,
+    #    # discount=0.99,
+    #    # step_size=0.01,
+    #)
+    algo = VPG(env=env,
+            policy=policy,
+            baseline=baseline,
+            n_itr=750,
+            batch_size=500,
+            max_path_length=2000)
     # algo.train()
 
     run_experiment_lite(
