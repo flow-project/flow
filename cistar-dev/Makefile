@@ -1,6 +1,4 @@
 
-	RLLABDIR = ../../rllab
-
 prepare: 
 	rm -rf $(RLLABDIR)/debug
 	rm -rf $(RLLABDIR)/cistar
