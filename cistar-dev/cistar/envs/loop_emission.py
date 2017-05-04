@@ -33,6 +33,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         vel = Box(low=0., high=np.inf, shape=(num_cars, ))
         xpos = Box(low=0., high=np.inf, shape=(num_cars, ))
         fuelconsump = Box(low=0., high=np.inf, shape=(num_cars, ))
+        self.obs_var_labels = ["Velocity", "Fuel", "Distance"]
         return Product([vel, fuelconsump, ypos])
 
     def compute_reward(self, state, action):

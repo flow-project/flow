@@ -58,7 +58,7 @@ class SumoEnvironment(Env, Serializable):
         self.ids = []
         self.controlled_ids, self.rl_ids = [], []
         self.state = None
-
+        self.obs_var_labels = []
 
         # SUMO Params
         if "port" not in sumo_params:

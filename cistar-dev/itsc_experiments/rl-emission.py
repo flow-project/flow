@@ -21,13 +21,13 @@ tot_cars = 12
 auton_cars = 12
 human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"port": 8873, "time_step":1}
 
 sumo_binary = "sumo"
 
-type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 20)}
 
-env_params = {"target_velocity": 25, "max-vel":35, "min-vel":0}
+env_params = {"fail-safe": "None", "target_velocity": 25, "max-vel":35, "min-vel":0}
 
 net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"emission/rl/net/"}
 
@@ -55,7 +55,7 @@ print("experiment initialized")
 
 env = normalize(env)
 
-for seed in [1]: # [1, 5, 10, 73, 56]
+for seed in [1, 5, 10, 73, 56]: # 
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(32,32)
@@ -67,8 +67,8 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=400,
-        max_path_length=10000,
+        batch_size=2000,
+        max_path_length=100,
         # whole_paths=True,
         n_itr=1000,
         # discount=0.99,
