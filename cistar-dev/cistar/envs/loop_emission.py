@@ -43,7 +43,8 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         TODO(Leah): Fill in documentation
         """
         destination = 840 * 4
-        return -np.sum(0.1*state[1] + 0.4*(destination - state[2]))
+        #return -np.sum(0.1*state[1] + 0.4*(destination - state[2]))
+        return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
 
     def getState(self):
         return np.array([[self.vehicles[veh_id]["speed"], \

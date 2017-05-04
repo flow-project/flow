@@ -10,6 +10,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 # from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.envs.loop_accel_pos_vel import ExtendedAccelerationEnvironment
+from cistar.envs.loop_emission import SimpleEmissionEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
@@ -38,7 +39,7 @@ type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = ExtendedAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
@@ -56,7 +57,7 @@ for seed in [15]:
         baseline=baseline,
         batch_size=4000,
         max_path_length=1000,
-        n_itr=4000,  # 1000
+        n_itr=1,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -77,13 +78,13 @@ for seed in [15]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         #mode="ec2",
         exp_prefix=exp_tag
         # plot=True,
