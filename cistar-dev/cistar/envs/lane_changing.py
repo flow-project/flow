@@ -125,40 +125,42 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
         resulting_behaviors =  []
 
-        for i ,veh_id in enumerate(self.rl_ids):
+        for i, veh_id in enumerate(self.rl_ids):
             # if veh_id == "rl_1":
             #     print(actions[3*i], actions[3*i+1], actions[3*i+2])
             lc_value = actions[3 * i + 1]
             direction = actions[3 * i + 2]
+
+            acceleration = actions[3 * i]
+            if self.fail_safe == 'instantaneous':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
+            elif self.fail_safe == 'eugene':
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
+            else:
+                safe_action = acceleration
+            self.apply_action(veh_id, action=safe_action)
+
             successful_lc = 0
 
-            if self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']:
-                # enough time has passed, change lanes
-                if lc_value > 0:
+            if lc_value > 0:
+                # desired lc
+                if self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']:
+                    # enough time has passed, change lanes
                     successful_lc = self.change_lanes(veh_id, direction)
 
-                if successful_lc != 1:
-                    acceleration = actions[3*i]
-                    if self.fail_safe == 'instantaneous':
-                        safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
-                    elif self.fail_safe == 'eugene':
-                        safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
-                    else:
-                        safe_action = acceleration
-                    self.apply_action(veh_id, action=safe_action)
-                    resulting_behaviors.append(1) # something positive to add to reward fn
-                elif successful_lc == 1:
-                    # changed lanes
-                    resulting_behaviors.append(-1) # something negative to add to reward fn if desired acceleration is large
-            else:
-                acceleration = actions[3 * i]
-                if self.fail_safe == 'instantaneous':
-                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
-                elif self.fail_safe == 'eugene':
-                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
                 else:
-                    safe_action = acceleration
-                self.apply_action(veh_id, action=safe_action)
-                resulting_behaviors.append(-1) # something negative to add to reward fn
+                    # desired lane change but duration has not completed
+                    resulting_behaviors.append(-1)  # something negative to add to reward fn
+
+
+            if successful_lc != 1:
+                resulting_behaviors.append(1)  # something positive to add to reward fn
+            elif successful_lc == 1:
+                # changed lanes
+                resulting_behaviors.append(
+                    -1)  # something negative to add to reward fn if desired acceleration is large
+
+
+
 
         return resulting_behaviors
