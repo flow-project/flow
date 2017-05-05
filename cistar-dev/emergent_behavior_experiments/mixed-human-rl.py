@@ -69,7 +69,7 @@ for seed in [15]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=100,
+        n_parallel=32,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
