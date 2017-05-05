@@ -31,7 +31,7 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 22
+num_cars = 8
 num_auto = 1
 
 exp_tag = str(num_cars) + '-car-mixed-longrun32x32'
@@ -45,7 +45,7 @@ env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
-for seed in [15, 22, 37, 49, 50]:
+for seed in [15]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(32,32)
@@ -57,9 +57,9 @@ for seed in [15, 22, 37, 49, 50]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=32000,
-        max_path_length=4000,
-        n_itr=750,  # 1000
+        batch_size=60000,
+        max_path_length=1500,
+        n_itr=20000,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -75,7 +75,7 @@ for seed in [15, 22, 37, 49, 50]:
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         #mode="ec2",
         exp_prefix=exp_tag
         # plot=True,
