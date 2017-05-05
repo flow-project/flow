@@ -44,9 +44,15 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         destination = 840 * 4
         #return -np.sum(0.1*state[1] + 0.4*(destination - state[2]))
+        print(-np.linalg.norm(state[0] - self.env_params["target_velocity"]))
+        print (np.array([[self.vehicles[veh_id]["speed"], \
+                        self.vehicles[veh_id]["fuel"], \
+                        self.get_headway(veh_id)] for veh_id in self.vehicles]).T)
+        pdb.set_trace() 
         return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
 
     def getState(self):
+
         return np.array([[self.vehicles[veh_id]["speed"], \
                             self.vehicles[veh_id]["fuel"], \
                             self.get_headway(veh_id)] for veh_id in self.vehicles]).T

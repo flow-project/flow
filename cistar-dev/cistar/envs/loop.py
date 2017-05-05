@@ -84,7 +84,7 @@ class LoopEnvironment(SumoEnvironment):
             else:
                 loop_length = self.scenario.net_params["length"]
                 dist = (this_pos + lead_length) - (lead_pos + loop_length)
-            return dist
+            return np.abs(dist)
         # if there's only one car, return the loop length minus car length
         else: 
             return self.scenario.net_params["length"] - self.vehicles[lead_id]['length']

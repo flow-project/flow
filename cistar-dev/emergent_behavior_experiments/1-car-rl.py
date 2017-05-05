@@ -26,11 +26,11 @@ env_params = {"target_velocity": 20, "max-deacc": -3, "max-acc": 3, "fail-safe":
 net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40,
               "net_path": "debug/rl/net/"}
 
-cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 100000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 8
+num_cars = 2
 num_workers = 8
 
 exp_tag = str(num_cars) + '-car-rl-32x32-parallel-' + str(num_workers) 
@@ -39,7 +39,7 @@ type_params = {"rl":(num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
@@ -55,12 +55,12 @@ for seed in [15]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,
-        max_path_length=2000,
+        batch_size=32000,
+        max_path_length=1000,
         n_itr=750,  # 1000
         # whole_paths=True,
         discount=0.999,
-        step_size=0.01,
+        step_size=.01,
     )
     # algo.train()
 
@@ -74,8 +74,6 @@ for seed in [15]:
         # will be used
         seed=seed,
         mode="local",
-        #mode="ec2",
-        exp_prefix=exp_tag,
-        periodic_sync_interval=1
+        exp_prefix=exp_tag
         # plot=True,
     )

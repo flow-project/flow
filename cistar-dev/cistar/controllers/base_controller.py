@@ -114,6 +114,7 @@ class BaseController:
         else:
             loop_length = env.scenario.net_params["length"]
             dist = (this_pos + lead_length) - (lead_pos + loop_length)
+        dist = np.abs(dist)
         self.last_d = self.d
         d = dist - np.power((lead_vel - self.max_deaccel * env.time_step),2)/(2*self.max_deaccel)
         self.d = d
