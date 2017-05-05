@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 import matplotlib.colors as colors
 import sys
+import argparse
 
 
 cdict = {
@@ -122,25 +123,32 @@ def space_time_diagram(filename, edgestarts, show = True, save = False, savename
         fig.savefig(savename + ".png")
 
 
-args = sys.argv
-fname = args[1]
-# fname = 'debug/cfg/data/' + args[1] + '.emission.xml'
-    # example filename:
-    # debug/cfg/data/sugiyama_test_eugene-230m1l.emission.xml
-    # so command line input would be 
-    # sugiyama_test_eugene-230m1l
+if __name__ == "__main__":
 
-# length is 230, automatically pulled out of filename
-length = int(args[2])
-edgelen = length/4
-edgestarts = dict([("bottom", 0), ("right", edgelen), ("top", 2 * edgelen), ("left", 3 * edgelen)])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', type=str,
+                        help='path to the emission.xml file')
+    parser.add_argument('length', type=int,
+                        help='Length of ring road')
+    parser.add_argument('--show', type=str, default='True', 
+                        help='Boolean flag to show plot')
+    parser.add_argument('--save', type=str, default='False', 
+                        help='Boolean flag to save plot')
+    parser.add_argument('--imgname', type=str,
+                        help='Name for saved image (".png" automatically added)')
+    args = parser.parse_args()
 
-show = False if args[3] == 'False' else True
-save = False if args[4] == 'False' else True
 
-if len(args) > 5:
-    savename = args[5]
-else:
-    savename = None
+    length = args.length
+    edgelen = length/4
+    edgestarts = dict([("bottom", 0), ("right", edgelen), ("top", 2 * edgelen), ("left", 3 * edgelen)])
 
-space_time_diagram(fname, edgestarts, show = show, save = save, savename = savename)
+    show = False if args.show == 'False' else True
+    save = False if args.save == 'False' else True
+
+    if save:
+        savename = args.imgname
+    else:
+        savename = None
+
+    space_time_diagram(args.file, edgestarts, show = show, save = save, savename = savename)
