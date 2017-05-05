@@ -31,10 +31,10 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 8
+num_cars = 22
 num_auto = 1
 
-exp_tag = str(num_cars) + '-car-mixed-longrun32x32'
+exp_tag = str(num_cars) + '-car-mixed-longrun32x32-emissionpolicy'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                "ovm": (num_cars - num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
@@ -57,8 +57,8 @@ for seed in [15]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=60000,
-        max_path_length=1500,
+        batch_size=80000,
+        max_path_length=4000,
         n_itr=20000,  # 1000
         # whole_paths=True,
         discount=0.999,
