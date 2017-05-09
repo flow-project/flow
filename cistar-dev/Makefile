@@ -1,4 +1,7 @@
 
+
+	RLLABDIR = /Users/eugenevinitsky/Documents/Modules/rllab
+
 prepare: 
 	rm -rf $(RLLABDIR)/debug
 	rm -rf $(RLLABDIR)/cistar
@@ -6,4 +9,4 @@ prepare:
 
 clean:
 	rm -rf $(RLLABDIR)/debug
-	rm $(RLLABDIR)/*.xml
+	find $(RLLABDIR) -name "*.xml" -type f -delete

@@ -58,37 +58,49 @@ class BaseController:
         lead_pos = env.get_x_by_id(lead_id)
         lead_length = env.vehicles[lead_id]['length']
 
-        this_pos = env.get_x_by_id(self.veh_id)
-        this_vel = env.vehicles[self.veh_id]['speed']
-        time_step = env.time_step
-
-
-        h = (lead_pos - lead_length - this_pos) % env.scenario.length
-
-        # need to account for the position being reset around the length
-
-        if h < self.stopping_distance:
-            return -this_vel / time_step
-        else:
+        if len(env.vehicles) == 1:
             return action
+        else:
+            this_lane = env.vehicles[self.veh_id]['lane']
+            lead_id = env.get_leading_car(self.veh_id, this_lane)
+            lead_pos = env.get_x_by_id(lead_id)
+            lead_length = env.vehicles[lead_id]['length']
+
+            this_pos = env.get_x_by_id(self.veh_id)
+            this_vel = env.vehicles[self.veh_id]['speed']
+            time_step = env.time_step
+
+
+            h = (lead_pos - lead_length - this_pos) % env.scenario.length
+
+            # need to account for the position being reset around the length
+
+            if h < self.stopping_distance:
+                return -this_vel / time_step
+            else:
+                return action
 
     def get_safe_action(self, env, action):
         """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
         Checks if the computed acceleration would put us above safe velocity.
         If it would, output the acceleration that would put at to safe velocity. 
         """
-        safe_velocity = self.safe_velocity(env)
-
-        #this is not being used?
-        this_lane = env.vehicles[self.veh_id]['lane']
-
-        this_vel = env.vehicles[self.veh_id]['speed']
-        time_step = env.time_step
-
-        if this_vel + action*time_step > safe_velocity:
-            return (safe_velocity - this_vel)/time_step
-        else:
+        
+        if len(env.vehicles) == 1:
             return action
+        else:
+            safe_velocity = self.safe_velocity(env)
+
+            #this is not being used?
+            this_lane = env.vehicles[self.veh_id]['lane']
+
+            this_vel = env.vehicles[self.veh_id]['speed']
+            time_step = env.time_step
+
+            if this_vel + action*time_step > safe_velocity:
+                return (safe_velocity - this_vel)/time_step
+            else:
+                return action
 
     def safe_velocity(self, env):
         """Finds maximum velocity such that if the lead vehicle breaks
@@ -110,6 +122,7 @@ class BaseController:
         else:
             loop_length = env.scenario.net_params["length"]
             dist = (this_pos + lead_length) - (lead_pos + loop_length)
+        dist = np.abs(dist)
         self.last_d = self.d
         d = dist - np.power((lead_vel - self.max_deaccel * env.time_step),2)/(2*self.max_deaccel)
         self.d = d

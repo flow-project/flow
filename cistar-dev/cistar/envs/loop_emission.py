@@ -6,6 +6,7 @@ from rllab.spaces import Product
 import traci
 
 import numpy as np
+import pdb
 
 
 
@@ -42,12 +43,13 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         TODO(Leah): Fill in documentation
         """
         destination = 840 * 4
-        return -np.sum(0.1*state[1] + 0.9*(destination - state[2]))
+        return -np.sum(0.1*state[1] + 0.4*(destination - state[2]))
 
     def getState(self):
+
         return np.array([[self.vehicles[veh_id]["speed"], \
                             self.vehicles[veh_id]["fuel"], \
-                            self.vehicles[veh_id]["distance"]] for veh_id in self.vehicles]).T
+                            self.get_headway(veh_id)] for veh_id in self.vehicles]).T
 
     def apply_action(self, car_id, action):
         """
