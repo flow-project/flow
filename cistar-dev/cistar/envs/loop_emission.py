@@ -11,6 +11,14 @@ import pdb
 
 
 class SimpleEmissionEnvironment(LoopEnvironment):
+    '''Environment subclass
+    
+    This class has a state space that is on velocity, fuel, and headway
+    between cars. 
+    
+    Extends:
+        LoopEnvironment
+    '''
 
     @property
     def action_space(self):
@@ -43,7 +51,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         TODO(Leah): Fill in documentation
         """
         destination = 840 * 4
-        return -np.sum(0.1*state[1] + 0.4*(destination - state[2]))
+        return -np.sum(0.1*state[1] + 2.0*(destination - state[2]))
 
     def getState(self):
 

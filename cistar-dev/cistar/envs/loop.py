@@ -5,6 +5,7 @@ from rllab.spaces import Box
 import traci
 
 import numpy as np
+import pdb
 
 
 
@@ -93,14 +94,15 @@ class LoopEnvironment(SumoEnvironment):
 
             # need to account for the position being reset around the length
             if lead_pos > this_pos: 
-                dist = (this_pos + lead_length) - lead_pos
+                dist = lead_pos - (this_pos + lead_length) 
             else:
                 loop_length = self.scenario.net_params["length"]
-                dist = (this_pos + lead_length) - (lead_pos + loop_length)
+                dist = (lead_pos + loop_length) - (this_pos + lead_length) 
+
             return np.abs(dist)
         # if there's only one car, return the loop length minus car length
         else: 
-            return self.scenario.net_params["length"] - self.vehicles[lead_id]['length']
+            return self.scenario.net_params["length"] - self.vehicles[car_id]['length']
 
     def get_cars(self, car_id, dxBack, dxForward, lane = None, dx = None):
         #TODO: correctly implement this method, and add documentation
