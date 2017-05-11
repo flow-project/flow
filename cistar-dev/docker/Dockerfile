@@ -1,5 +1,4 @@
 FROM maven:3
-# FROM ubuntu:16.04
 
 # ========== Anaconda ==========
 # https://github.com/ContinuumIO/docker-images/blob/master/anaconda/Dockerfile
@@ -22,16 +21,10 @@ ENV PATH /opt/conda/bin:$PATH
 # http://bugs.python.org/issue19846
 # > At the moment, setting "LANG=C" on a Linux system *fundamentally breaks Python 3*, and that's not OK.
 ENV LANG C.UTF-8
-# ENTRYPOINT [  ]
 
 # ========== Upgrade pip ==========
 RUN pip install --upgrade pip
 RUN apt-get -y install git make cmake unzip apt-utils
-
-# Install XML processing dependencies
-# RUN apt-get update && apt-get -y install libxml2-dev libxslt-dev python-dev
-# RUN apt-get update && apt-get -y install python3-lxml
-# RUN pip install lxml
 
 # ========== SUMO ==========
 ENV SUMO_VERSION 0.27.1

@@ -21,10 +21,53 @@ ENV PATH /opt/conda/bin:$PATH
 # http://bugs.python.org/issue19846
 # > At the moment, setting "LANG=C" on a Linux system *fundamentally breaks Python 3*, and that's not OK.
 ENV LANG C.UTF-8
-ENTRYPOINT [ "/usr/bin/tini", "--" ]
+
+# ========== Upgrade pip ==========
+RUN pip install --upgrade pip
+RUN apt-get -y install git make cmake unzip apt-utils
+
+# ========== SUMO ==========
+ENV SUMO_VERSION 0.27.1
+ENV SUMO_SRC sumo-src-$SUMO_VERSION
+ENV SUMO_HOME /opt/sumo
+
+# Install system dependencies.
+RUN apt-get update && apt-get -y install -qq \
+    g++ libxerces-c3.1 libxerces-c3-dev \
+    libproj-dev proj-bin proj-data libtool libgdal1-dev \
+    libfox-1.6-0 libfox-1.6-dev
+
+# Download and extract source code
+RUN wget http://downloads.sourceforge.net/project/sumo/sumo/version%20$SUMO_VERSION/sumo-src-$SUMO_VERSION.tar.gz
+RUN tar xzf sumo-src-$SUMO_VERSION.tar.gz && \
+    mv sumo-$SUMO_VERSION $SUMO_HOME && \
+    rm sumo-src-$SUMO_VERSION.tar.gz
+
+# Apply patch file
+RUN cd $SUMO_HOME && wget https://www.dropbox.com/s/23dam05ugg73jny/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
+
+# Configure and build from source.
+RUN cd $SUMO_HOME && ./configure && make install
+
+# RUN echo "export PYTHONPATH=\"/opt/sumo/sumo-$SUMO_VERSION/tools\"" >> /root/.bashrc
+ENV PYTHONPATH $SUMO_HOME/tools:$PYTHONPATH
+
+# Ensure the installation works. If this call fails, the whole build will fail.
+RUN sumo
+
+# Download and compile traci4j library, not sure if necessary
+# RUN apt-get install -qq -y ssh-client git
+# RUN mkdir -p /opt/traci4j 
+# WORKDIR /opt/traci4j
+# RUN git clone https://github.com/egueli/TraCI4J.git /opt/traci4j && mvn package -Dmaven.test.skip=true
+
+# Expose a port so that SUMO can be started with --remote-port 8873 to be controlled from outside Docker
+EXPOSE 8873
+
+# CMD ["--help"]
+ENTRYPOINT [ "/usr/bin/tini", "--" ] # "sumo"
 
 # ========== Special Deps ==========
-RUN apt-get -y install git make cmake unzip
 RUN pip install awscli
 # ALE requires zlib
 RUN apt-get -y install zlib1g-dev
@@ -34,7 +77,6 @@ RUN apt-get -y install libxrandr2 libxinerama-dev libxi6 libxcursor-dev
 # copied from requirements.txt
 #RUN pip install imageio tabulate nose
 RUN apt-get install -y vim ack-grep
-RUN pip install --upgrade pip
 # usual pip install pygame will fail
 RUN apt-get build-dep -y python-pygame
 RUN pip install Pillow
