@@ -51,7 +51,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         TODO(Leah): Fill in documentation
         """
         destination = 840 * 4
-        return -np.sum(0.1*state[1] + 2.0*(destination - state[2]))
+        return -np.sum(0.1*state[1] + 3.0*(destination - state[2]))
 
     def getState(self):
 

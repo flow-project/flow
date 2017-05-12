@@ -34,7 +34,7 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 1
+num_cars = 22
 num_auto = 1
 
 exp_tag = str(num_cars) + 'ec2-testing'
@@ -51,7 +51,7 @@ env = normalize(env)
 for seed in [15]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,32)
+        hidden_sizes=(64,64)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -60,9 +60,9 @@ for seed in [15]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=4000,
-        max_path_length=4000,
-        n_itr=1,  # 1000
+        batch_size=30000,
+        max_path_length=1500,
+        n_itr=10,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -72,7 +72,7 @@ for seed in [15]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
