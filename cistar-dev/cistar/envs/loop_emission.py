@@ -52,6 +52,8 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         destination = 840 * 4
         return -np.sum(0.1*state[1] + 3.0*(destination - state[2]))
+        #return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
+
 
     def getState(self):
 

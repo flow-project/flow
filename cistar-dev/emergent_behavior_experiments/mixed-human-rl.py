@@ -37,7 +37,7 @@ initial_config = {"shuffle": False}
 num_cars = 22
 num_auto = 1
 
-exp_tag = str(num_cars) + 'ec2-testing'
+exp_tag = str(num_cars) + 'emissioncost-3multiplier'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                "ovm": (num_cars - num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
@@ -48,7 +48,7 @@ env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
-for seed in [15]:
+for seed in [16, 20, 21, 22]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(64,64)
@@ -62,7 +62,7 @@ for seed in [15]:
         baseline=baseline,
         batch_size=30000,
         max_path_length=1500,
-        n_itr=10,  # 1000
+        n_itr=400,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
