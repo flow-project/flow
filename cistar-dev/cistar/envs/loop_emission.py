@@ -48,10 +48,11 @@ class SimpleEmissionEnvironment(LoopEnvironment):
     def compute_reward(self, state, action):
         """
         See parent class
-        TODO(Leah): Fill in documentation
+        TODO(Leah): Fill in documentations
         """
         destination = 840 * 4
-        return -np.sum(0.1*state[1] + 3.0*(destination - state[2]))
+        #return -np.sum(0.1*state[1] + 3.0*(destination - state[2]))
+        return -np.sum(destination - state[3])
         #return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
 
 
@@ -59,7 +60,8 @@ class SimpleEmissionEnvironment(LoopEnvironment):
 
         return np.array([[self.vehicles[veh_id]["speed"], \
                             self.vehicles[veh_id]["fuel"], \
-                            self.get_headway(veh_id)] for veh_id in self.vehicles]).T
+                            self.get_headway(veh_id), \
+                            self.vehicles[veh_id]["distance"]] for veh_id in self.vehicles]).T
 
     def apply_action(self, car_id, action):
         """
