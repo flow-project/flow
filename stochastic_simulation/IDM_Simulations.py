@@ -189,7 +189,7 @@ class RingRoad:
         num_exits = np.zeros(len(t))
         num_enters = np.zeros(len(t))
 
-        for i in range(int(t_final / t_lc)):
+        for i in range(int(t_final/t_lc)):
 
             # calculate next position and velocity of current cars in lane
 
@@ -228,19 +228,19 @@ class RingRoad:
             exit = np.logical_and(exit, np.logical_not(np.in1d(ind_cars, np.arange(n_cars_const))))
 
             # adjust headways of after vehicles exit
-
             if sum(exit) > 0:
                 ind_exit = np.where(exit)[0]
 
-                # add headways to lagging vehicle of exited vehicles
-                for j in range(len(ind_exit)):
-                    if ind_cars[ind_exit[j]] == ind_cars[-1]:
-                        headway[t_max - 1, ind_cars[0]] += headway[t_max - 1, ind_cars[-1]]
-                    else:
-                        headway[t_max - 1, ind_cars[ind_exit[j] + 1]] += headway[t_max - 1, ind_cars[ind_exit[j]]]
+                # # add headways to lagging vehicle of exited vehicles
+                # for j in range(len(ind_exit)):
+                #     if ind_cars[ind_exit[j]] == ind_cars[-1]:
+                #         headway[t_max-1, ind_cars[0]] += headway[t_max-1, ind_cars[-1]]
+                #         headway[t_max-1, ind_cars[-1]] = 0
+                #     else:
+                #         headway[t_max-1, ind_cars[ind_exit[j]+1]] += headway[t_max-1, ind_cars[ind_exit[j]]]
+                #         headway[t_max-1, ind_cars[ind_exit[j]]] = 0
 
             # update variables given cars that enter and/or exit
-
             if sum(enter) > 0:
                 ind = np.where(enter)[0]
 
@@ -250,14 +250,14 @@ class RingRoad:
                                       sol[t_max - 1, ind_cars[0]]], [1/2 * (sol[t_max - 1, ind_cars[ind[1:]]] +
                                                                             sol[t_max - 1, ind_cars[ind[1:] - 1]])])
                 else:
-                    x_new = 1 / 2 * (sol[t_max - 1, ind_cars[ind]] + sol[t_max - 1, ind_cars[ind - 1]])
+                    x_new = 1/2 * (sol[t_max - 1, ind_cars[ind]] + sol[t_max - 1, ind_cars[ind - 1]])
 
                 # calculate the velocity of the new vehicle ()
                 v_new = sol[t_max - 1, ind_cars[ind] + n_cars_tot]
 
                 # calculate the headway of the new vehicle and the vehicle behind it
-                h_new = 0.5 * headway[t_max - 1, ind_cars[ind]]
-                h_lag_new = 0.5 * headway[t_max - 1, ind_cars[ind]]
+                # h_new = 0.5 * headway[t_max-1, ind_cars[ind]]
+                # h_lag_new = 0.5 * headway[t_max-1, ind_cars[ind]]
 
                 # add columns to sol to compensate for the presence of new vehicles
                 sol = np.insert(sol, [n_cars_const], np.zeros((sol.shape[0], sum(enter))), axis=1)
@@ -272,8 +272,8 @@ class RingRoad:
                 headway = np.insert(headway, [n_cars_const], np.zeros((headway.shape[0], sum(enter))), axis=1)
 
                 # update data in headway matrix to account for changes
-                headway[t_max - 1, np.arange(sum(enter)) + n_cars_const] = h_new
-                headway[t_max - 1, ind_cars[ind]] = h_lag_new
+                # headway[t_max - 1, np.arange(sum(enter)) + n_cars_const] = h_new
+                # headway[t_max - 1, ind_cars[ind]] = h_lag_new
 
             # update indices (whether change occurred or not), and add cars (if change occured)
             exit = np.logical_or(exit, np.in1d(ind_cars, np.arange(n_cars_const)))
@@ -312,7 +312,7 @@ if __name__ == '__main__':
     dt = 0.025      # update time [s]
     t_final = 2000  # simulation time [s]
     lane_change_step = 2  # must be a multiple of dt
-    num_simulations = 10  # number of simulations to perform
+    num_simulations = 1  # number of simulations to perform
     show_statistics = True
     export_data = True
 
