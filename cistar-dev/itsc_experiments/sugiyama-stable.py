@@ -8,7 +8,7 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"port": 8805, "time_step":0.01}
 
 sumo_binary = "sumo"
 

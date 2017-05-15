@@ -37,7 +37,7 @@ initial_config = {"shuffle": False}
 num_cars = 22
 num_auto = 1
 
-exp_tag = str(num_cars) + 'emissioncost-3multiplier'
+exp_tag = str(num_cars) + 'emissioncost-nofueld'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                "ovm": (num_cars - num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
@@ -51,7 +51,7 @@ env = normalize(env)
 for seed in [16, 20, 21, 22]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(64,64)
+        hidden_sizes=(32,32)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -60,9 +60,9 @@ for seed in [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,
-        max_path_length=1500,
-        n_itr=400,  # 1000
+        batch_size=300,
+        max_path_length=15,
+        n_itr=1,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -78,7 +78,7 @@ for seed in [16, 20, 21, 22]:
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local_docker",
         #mode="ec2",
         exp_prefix=exp_tag
         # plot=True,
