@@ -16,7 +16,7 @@ def prob_enter(headway, vel, density, beta=.9825):
 
     th = headway  # np.divide(headway,vel)  # time headway
 
-    mu_lc = 3.1
+    mu_lc = 3.25
     sigma_lc = .3642
 
     mu_th = 2.9512
@@ -60,7 +60,10 @@ def prob_exit(headway, vel, density, beta=.9825):
     p_disappear = C * np.exp(
         (np.log(th) - mu_th) ** 2 / (2 * sigma_th ** 2) - (np.log(th) - mu_lc) ** 2 / (2 * sigma_lc ** 2))
 
-    return np.random.rand(len(headway)) < p_disappear
+    if len(headway) <= 4:
+        return [False]*len(headway)
+    else:
+        return np.random.rand(len(headway)) < p_disappear
 
 
 def car_following(y, t, params):
@@ -162,6 +165,9 @@ class RingRoad:
         self.ind_cars_const = ind_cars_const
 
     def simulate(self, dt, t_final, t_lc=0):
+        headway_disappear = np.array([])
+        gap_appear = np.array([])
+
         tlc = min(t_lc, dt)
         n_cars_const = len(self.ind_cars_const)
 
@@ -229,31 +235,34 @@ class RingRoad:
 
             # adjust headways of after vehicles exit
             if sum(exit) > 0:
-                ind_exit = np.where(exit)[0]
+                headway_disappear = np.append(headway_disappear, headway_cur[exit])
 
-                # # add headways to lagging vehicle of exited vehicles
-                # for j in range(len(ind_exit)):
-                #     if ind_cars[ind_exit[j]] == ind_cars[-1]:
-                #         headway[t_max-1, ind_cars[0]] += headway[t_max-1, ind_cars[-1]]
-                #         headway[t_max-1, ind_cars[-1]] = 0
-                #     else:
-                #         headway[t_max-1, ind_cars[ind_exit[j]+1]] += headway[t_max-1, ind_cars[ind_exit[j]]]
-                #         headway[t_max-1, ind_cars[ind_exit[j]]] = 0
+            #     ind_exit = np.where(exit)[0]
+            #
+            #     # add headways to lagging vehicle of exited vehicles
+            #     for j in range(len(ind_exit)):
+            #         if ind_cars[ind_exit[j]] == ind_cars[-1]:
+            #             headway[t_max-1, ind_cars[0]] += headway[t_max-1, ind_cars[-1]]
+            #             headway[t_max-1, ind_cars[-1]] = 0
+            #         else:
+            #             headway[t_max-1, ind_cars[ind_exit[j]+1]] += headway[t_max-1, ind_cars[ind_exit[j]]]
+            #             headway[t_max-1, ind_cars[ind_exit[j]]] = 0
 
             # update variables given cars that enter and/or exit
             if sum(enter) > 0:
+                gap_appear = np.append(gap_appear, headway_cur[enter])
                 ind = np.where(enter)[0]
 
                 # calculate the position of the new vehicle (halfway point of the gap)
                 if enter[0]:
-                    x_new = np.append([1/2 * (sol[t_max - 1, ind_cars[-1]] - sol[t_max - 1, ind_cars[0]] + self.lr) +
-                                      sol[t_max - 1, ind_cars[0]]], [1/2 * (sol[t_max - 1, ind_cars[ind[1:]]] +
-                                                                            sol[t_max - 1, ind_cars[ind[1:] - 1]])])
+                    x_new = np.append([1/2 * (sol[t_max-1, ind_cars[-1]] - sol[t_max-1, ind_cars[0]] + self.lr) +
+                                      sol[t_max - 1, ind_cars[0]]], [1/2 * (sol[t_max-1, ind_cars[ind[1:]]] +
+                                                                            sol[t_max-1, ind_cars[ind[1:]-1]])])
                 else:
-                    x_new = 1/2 * (sol[t_max - 1, ind_cars[ind]] + sol[t_max - 1, ind_cars[ind - 1]])
+                    x_new = 1/2 * (sol[t_max-1, ind_cars[ind]] + sol[t_max - 1, ind_cars[ind - 1]])
 
-                # calculate the velocity of the new vehicle ()
-                v_new = sol[t_max - 1, ind_cars[ind] + n_cars_tot]
+                # calculate the velocity of the new vehicle (velocity of lagging vehicle)
+                v_new = sol[t_max-1, ind_cars[ind]+n_cars_tot]
 
                 # calculate the headway of the new vehicle and the vehicle behind it
                 # h_new = 0.5 * headway[t_max-1, ind_cars[ind]]
@@ -290,6 +299,11 @@ class RingRoad:
         pos_absolute = sol[:, :int(sol.shape[1] / 2)]  # absolute position of every car, in meters
         vel = sol[:, int(sol.shape[1] / 2):]  # velocity of every car at every point in time, 0 if car is not available
 
+        # print('Mean disappearing headway:', np.mean(headway_disappear))
+        # print('Std disappearing headway:', np.std(headway_disappear))
+        # print('Mean appearing gap:', np.mean(gap_appear))
+        # print('Std appearing gap:', np.std(gap_appear))
+
         return pos_absolute, pos_rad, vel, headway, n_cars_cur, num_exits, num_enters
 
 
@@ -312,9 +326,9 @@ if __name__ == '__main__':
     dt = 0.025      # update time [s]
     t_final = 2000  # simulation time [s]
     lane_change_step = 2  # must be a multiple of dt
-    num_simulations = 1  # number of simulations to perform
+    num_simulations = 30  # number of simulations to perform
     show_statistics = True
-    export_data = True
+    export_data = False
 
     avg_car_num = np.zeros(num_simulations)
     avg_vel = np.zeros(num_simulations)
