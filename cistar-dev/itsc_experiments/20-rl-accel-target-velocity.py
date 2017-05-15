@@ -54,7 +54,7 @@ for num_cars in [10]:
             baseline=baseline,
             batch_size=4000,
             max_path_length=1000,
-            n_itr=200,  # 1000
+            n_itr=2,  # 1000
             # whole_paths=True,
             # discount=0.99,
             # step_size=0.01,
@@ -70,8 +70,7 @@ for num_cars in [10]:
             # Specifies the seed for the experiment. If this is not provided, a random seed
             # will be used
             seed=seed,
-            mode="local",
-            exp_prefix=exp_tag,
+            mode="local_docker",
+            exp_prefix=exp_tag
             # plot=True,
-            python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
         )

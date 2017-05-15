@@ -11,6 +11,7 @@ from rllab.envs.base import Env
 from rllab.envs.base import Step
 
 from cistar.core.util import ensure_dir
+import pdb
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
@@ -276,7 +277,9 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-        color = COLORS[np.random.choice(len(COLORS))]
+        color_choice = np.random.choice(len(COLORS))
+        color = COLORS[color_choice]
+        color_rl = COLORS[(color_choice+1)%len(COLORS)]
         for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
@@ -287,7 +290,10 @@ class SumoEnvironment(Env, Serializable):
             self.traci_connection.vehicle.remove(veh_id)
             self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
-            self.traci_connection.vehicle.setColor(veh_id, color)
+            if self.vehicles[veh_id]['type'] == 'rl':
+                self.traci_connection.vehicle.setColor(veh_id, color_rl)
+            else:
+                self.traci_connection.vehicle.setColor(veh_id, color)
 
         self.traci_connection.simulationStep()
 

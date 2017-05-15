@@ -5,6 +5,7 @@ from rllab.spaces import Box
 import traci
 
 import numpy as np
+import pdb
 
 
 
@@ -80,6 +81,28 @@ class LoopEnvironment(SumoEnvironment):
             return min(backdists, key=(lambda x:x[1]))[0]
         else:
             return None
+
+    def get_headway(self, car_id, lane = None):
+        lead_id = self.get_leading_car(car_id, lane)
+        # if there's more than one car
+        if lead_id:
+            lead_pos = self.get_x_by_id(lead_id)
+            lead_vel = self.vehicles[lead_id]['speed']
+            lead_length = self.vehicles[lead_id]['length']
+
+            this_pos = self.get_x_by_id(car_id)
+
+            # need to account for the position being reset around the length
+            if lead_pos > this_pos: 
+                dist = lead_pos - (this_pos + lead_length) 
+            else:
+                loop_length = self.scenario.net_params["length"]
+                dist = (lead_pos + loop_length) - (this_pos + lead_length) 
+
+            return np.abs(dist)
+        # if there's only one car, return the loop length minus car length
+        else: 
+            return self.scenario.net_params["length"] - self.vehicles[car_id]['length']
 
     def get_cars(self, car_id, dxBack, dxForward, lane = None, dx = None):
         #TODO: correctly implement this method, and add documentation

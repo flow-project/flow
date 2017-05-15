@@ -20,7 +20,7 @@ if __name__ == "__main__":
                         help='Number of rollouts we will average over')
     parser.add_argument('--plotname', type=str, default="traffic_plot",
                         help='Prefix for all generated plots')
-    parser.add_argument('--use_sumogui', type=boolean, default=True,
+    parser.add_argument('--use_sumogui', type=bool, default=True,
                         help='Flag for using sumo-gui vs sumo binary')
     args = parser.parse_args()
 

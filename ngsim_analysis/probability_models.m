@@ -14,7 +14,7 @@ plot(h, pd)
 legend('appear', 'disappear')
 trapz(h, pa)
 
-n = 2:1:100;
+n = 2:1:50;
 h = L./n;
 [pa,pd] = probability_headway(h);
 figure()
@@ -63,7 +63,7 @@ end
 
 function plot_trans(trans_map)
 figure()
-imagesc(trans_map)
+imagesc(log(trans_map))
 colorbar()
 end
 
