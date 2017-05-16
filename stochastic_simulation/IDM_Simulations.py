@@ -16,7 +16,7 @@ def prob_enter(headway, vel, density, beta=.9825):
 
     th = headway  # np.divide(headway,vel)  # time headway
 
-    mu_lc = 3.05
+    mu_lc = 3.0
     sigma_lc = .3642
 
     mu_th = 2.9512
@@ -190,13 +190,10 @@ class RingRoad:
         n_cars_tot = self.n_cars  # total number of cars to be in the lane
         n_cars_cur = np.append(self.n_cars, np.zeros(len(t)-1))  # current number of cars in the lane
         ind_cars = np.arange(self.n_cars)
-        print(ind_cars)
         ind_cars = ind_cars[np.argsort(y0[:int(len(y0)/2)][::-1])]  # indeces of the cars currently in the lane
         # organized in decreasing order of position
         num_exits = np.zeros(len(t))
         num_enters = np.zeros(len(t))
-
-        print(ind_cars)
 
         for i in range(int(t_final/t_lc)):
 
@@ -328,8 +325,8 @@ if __name__ == '__main__':
     # simulation parameters
     dt = 0.025      # update time [s]
     t_final = 2000  # simulation time [s]
-    lane_change_step = 2000  # must be a multiple of dt
-    num_simulations = 1  # number of simulations to perform
+    lane_change_step = 5  # must be a multiple of dt
+    num_simulations = 10  # number of simulations to perform
     show_statistics = True
     export_data = True
 
