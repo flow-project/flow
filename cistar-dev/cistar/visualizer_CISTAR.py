@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 
 import plotly.offline as po
 import plotly.graph_objs as go
+import pdb
 
 if __name__ == "__main__":
 
@@ -22,6 +23,8 @@ if __name__ == "__main__":
                         help='Prefix for all generated plots')
     parser.add_argument('--use_sumogui', type=bool, default=True,
                         help='Flag for using sumo-gui vs sumo binary')
+    parser.add_argument('--run_long', type=int, default=1,
+                        help='Number by which to increase max_path_length')
     args = parser.parse_args()
 
     data = joblib.load(args.file)
@@ -39,7 +42,7 @@ if __name__ == "__main__":
     tot_cars = env._wrapped_env.scenario.num_vehicles
     rl_cars = env._wrapped_env.scenario.num_rl_vehicles
     num_itr = algo.n_itr
-    max_path_length = algo.max_path_length
+    max_path_length = int(np.floor(algo.max_path_length*args.run_long))
     flat_obs = env._wrapped_env.observation_space.flat_dim
     num_obs_var = flat_obs / tot_cars
 
@@ -78,6 +81,16 @@ if __name__ == "__main__":
         plt.title("Cars {0} / {1} Itr {2}".format(rl_cars, tot_cars, num_itr), fontsize=16)
         plt.legend(loc=0)
         plt.savefig("visualizer/{0}_{1}.png".format(args.plotname, obs_var), bbox="tight")
+
+        # plot mean values across all cars
+        car_mean = np.mean(np.mean(all_obs[:, :, tot_cars*obs_var_idx:tot_cars*(obs_var_idx + 1)], 
+                        axis=0), axis = 1)
+        plt.figure()
+        plt.plot(range(max_path_length), car_mean)
+        plt.ylabel(obs_var, fontsize=15)
+        plt.xlabel("Rollout/Path Length", fontsize=15)
+        plt.title("Cars {0} / {1} Itr {2}".format(rl_cars, tot_cars, num_itr), fontsize=16)
+        plt.savefig("visualizer/{0}_{1}_mean.png".format(args.plotname, obs_var), bbox="tight")
 
     # Make a figure for the mean rewards over the course of the rollout
     plt.figure()

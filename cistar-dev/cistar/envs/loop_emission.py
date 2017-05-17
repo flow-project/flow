@@ -28,7 +28,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         #TODO: max and min are parameters
         #TODO: Make more realistic
-        return Box(low=0, high=5, shape=(self.scenario.num_rl_vehicles, ))
+        return Box(low=0, high=5.0, shape=(self.scenario.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
@@ -40,10 +40,10 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         num_cars = self.scenario.num_vehicles
         ypos = Box(low=0., high=np.inf, shape=(num_cars, ))
         vel = Box(low=0., high=np.inf, shape=(num_cars, ))
-        xpos = Box(low=0., high=np.inf, shape=(num_cars, ))
+        headway = Box(low=0., high=np.inf, shape=(num_cars, ))
         fuelconsump = Box(low=0., high=np.inf, shape=(num_cars, ))
-        self.obs_var_labels = ["Velocity", "Fuel", "Distance"]
-        return Product([vel, fuelconsump, ypos])
+        self.obs_var_labels = ["Velocity", "Fuel", "Headway", "ypos"]
+        return Product([vel, fuelconsump, headway, ypos])
 
     def compute_reward(self, state, action):
         """
@@ -52,9 +52,9 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         destination = 840 * 4
         #return -np.sum(0.1*state[1] + 3.0*(destination - state[2]))
-        return -np.sum(destination - state[3])
+        #return -np.sum(destination - state[3])
         #return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
-
+        return np.mean(state[0] - self.env_params["target_velocity"])
 
     def getState(self):
 
@@ -71,4 +71,4 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         self.traci_connection.vehicle.slowDown(car_id, not_zero, 1)
 
     def render(self):
-        print('current velocity, fuel, distance:', self.state)
+        print('current velocity, fuel, headway, distance:', self.state)

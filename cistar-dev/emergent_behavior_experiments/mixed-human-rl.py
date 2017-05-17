@@ -22,22 +22,22 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step":0.01}
+sumo_params = {"time_step":0.1}
 sumo_binary = "sumo"
 
-env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": 'instantaneous'}
+env_params = {"target_velocity": 20, "max-deacc": 0, "max-acc": 3, "fail-safe": 'instantaneous'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40,
               "net_path": "debug/rl/net/"}
 
-cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
 num_cars = 22
 num_auto = 1
 
-exp_tag = str(num_cars) + 'emissioncost-nofueld'
+exp_tag = str(num_cars) + 'target-velocity-mean'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                "ovm": (num_cars - num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
@@ -51,7 +51,7 @@ env = normalize(env)
 for seed in [16, 20, 21, 22]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,32)
+        hidden_sizes=(100, 50, 25)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -60,9 +60,9 @@ for seed in [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=300,
-        max_path_length=15,
-        n_itr=1,  # 1000
+        batch_size=30000,
+        max_path_length=1500,
+        n_itr=400,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -78,7 +78,7 @@ for seed in [16, 20, 21, 22]:
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local_docker",
+        mode="ec2",
         #mode="ec2",
         exp_prefix=exp_tag
         # plot=True,

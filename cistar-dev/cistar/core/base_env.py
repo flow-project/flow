@@ -75,7 +75,7 @@ class SumoEnvironment(Env, Serializable):
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
             ensure_dir(data_folder)
-            self.emission_out = data_folder + "emission.xml"
+            self.emission_out = data_folder + "{0}-emission.xml".format(self.scenario.name)
         else:
             self.emission_out = None
 
@@ -98,7 +98,7 @@ class SumoEnvironment(Env, Serializable):
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
             ensure_dir(data_folder)
-            self.emission_out = data_folder + "emission.xml"
+            self.emission_out = data_folder +  "{0}-emission.xml".format(self.scenario.name)
 
         self.start_sumo()
         self.setup_initial_state()
