@@ -9,7 +9,7 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"port": 8873, "time_step":0.01, "emission_path": "./test_time_rollout"}
 
 sumo_binary = "sumo-gui"
 
@@ -20,7 +20,7 @@ sumo_binary = "sumo-gui"
 
 type_params = {"ovm": (22, (OVMController, {'v_max': 15}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "perturbations": [(500, 150), (1000, 150), (1500, 150)],  "max-deacc":-5, "max-acc":5, 'fail-safe':'eugene'}
+env_params = {"target_velocity": 25, "perturbations": [(500, 150), (1000, 150), (1500, 150)],  "max-deacc":-5, "max-acc":5, 'fail-safe':'instantaneous'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 

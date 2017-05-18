@@ -12,6 +12,7 @@ from rllab.envs.base import Step
 
 from cistar.core.util import ensure_dir
 import pdb
+import collections
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
@@ -53,7 +54,7 @@ class SumoEnvironment(Env, Serializable):
         self.scenario = scenario
         self.sumo_params = sumo_params
         self.timer = 0  # Represents number of steps taken
-        self.vehicles = {}  # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
+        self.vehicles = collections.OrderedDict()  # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Initial state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
         self.initial_state = {}
         self.ids = []
@@ -75,7 +76,7 @@ class SumoEnvironment(Env, Serializable):
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
             ensure_dir(data_folder)
-            self.emission_out = data_folder + "emission.xml"
+            self.emission_out = data_folder + "{0}-emission.xml".format(self.scenario.name)
         else:
             self.emission_out = None
 
@@ -98,7 +99,7 @@ class SumoEnvironment(Env, Serializable):
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
             ensure_dir(data_folder)
-            self.emission_out = data_folder + "emission.xml"
+            self.emission_out = data_folder +  "{0}-emission.xml".format(self.scenario.name)
 
         self.start_sumo()
         self.setup_initial_state()

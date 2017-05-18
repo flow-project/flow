@@ -5,6 +5,7 @@ import pickle
 
 import warnings
 warnings.filterwarnings('ignore')
+import pdb
 
 
 def prob_enter(headway, vel, density, beta=.9825):
@@ -16,7 +17,7 @@ def prob_enter(headway, vel, density, beta=.9825):
 
     th = headway  # np.divide(headway,vel)  # time headway
 
-    mu_lc = 3.0
+    mu_lc = 3.00
     sigma_lc = .3642
 
     mu_th = 2.9512
@@ -312,23 +313,28 @@ if __name__ == '__main__':
     params = {'v0': 30, 'T': 1.5, 'a': 1, 'b': 3, 'delta': 4, 'lc': 0, 's0': 2, 's1': 3, 'lr': 230, 'tau': 0.4, }
 
     # specify initial conditions
-    n_cars = 15  # number of cars
+    n_cars = 11  # number of cars
     x_init = t = np.linspace(0, float(params['lr']) - float(params['lr']) / n_cars, n_cars)  # initial position of cars
     v_init = 10 * np.ones(n_cars)  # initial velocity of cars
 
     # indices of cars that do not change lanes
     ind_cars_const = np.array([])
 
-    # initialize model
-    model = RingRoad(params, n_cars, x_init, v_init, ind_cars_const)
 
     # simulation parameters
     dt = 0.025      # update time [s]
     t_final = 2000  # simulation time [s]
-    lane_change_step = 5  # must be a multiple of dt
-    num_simulations = 10  # number of simulations to perform
+    #lane_change_step = 8  # must be a multiple of dt
+    lane_change_step = 2000
+    num_simulations = 1  # number of simulations to perform
     show_statistics = True
     export_data = True
+
+    if lane_change_step > 100:
+        x_init = x_init + (6*np.random.rand(n_cars) - 3)
+
+    # initialize model
+    model = RingRoad(params, n_cars, x_init, v_init, ind_cars_const)
 
     avg_car_num = np.zeros(num_simulations)
     avg_vel = np.zeros(num_simulations)

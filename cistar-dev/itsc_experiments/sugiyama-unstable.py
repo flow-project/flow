@@ -8,13 +8,13 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"time_step":0.01, "emission_path": "./test_time_rollout/"}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 type_params = {"ovm": (22, (OVMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, 'fail-safe':'eugene'}
+env_params = {"target_velocity": 25, 'fail-safe':'instantaneous'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
@@ -24,13 +24,12 @@ initial_config = {"shuffle":False, "bunching":40, "spacing":"gaussian"}
 
 scenario = LoopScenario("sugiyama-unstable-ovm", type_params, net_params, cfg_params, initial_config)
 ##data path needs to be relative to cfg location
-leah_sumo_params = {"port": 8873}
 
 exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 10000)
+exp.run(1, 2000)
 
 exp.env.terminate()
 

@@ -117,12 +117,12 @@ class BaseController:
         this_pos = env.get_x_by_id(self.veh_id)
 
         # need to account for the position being reset around the length
+        self.max_deaccel = np.abs(self.max_deaccel)
         if lead_pos > this_pos: 
             dist = lead_pos - (this_pos + lead_length) 
         else:
             loop_length = env.scenario.net_params["length"]
-            dist = (lead_pos + loop_length) - (this_pos + lead_length) 
-        dist = np.abs(dist)
+            dist =  (this_pos + lead_length) - (lead_pos + loop_length)
         self.last_d = self.d
         d = dist - np.power((lead_vel - self.max_deaccel * env.time_step),2)/(2*self.max_deaccel)
         self.d = d
