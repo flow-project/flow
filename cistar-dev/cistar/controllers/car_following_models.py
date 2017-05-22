@@ -2,6 +2,7 @@ import random
 import math
 from cistar.controllers.base_controller import BaseController
 import collections
+import numpy as np
 
 """Contains a bunch of car-following control models for CISTAR.
 Controllers can have their output delayed by some duration.
@@ -14,6 +15,7 @@ Each controller includes functions
         delayed output. used when the experiment is reset to clear out 
         old actions based on old states.
 """
+
 
 class CFMController(BaseController):
     """Basic car-following model. Only looks ahead.
@@ -149,6 +151,7 @@ class BCMController(BaseController):
     def reset_delay(self, env):
         self.accel_queue.clear()
 
+
 class OVMController(BaseController):
     """Optimal Vehicle Model, per Gabor
     
@@ -225,6 +228,7 @@ class OVMController(BaseController):
     def reset_delay(self, env):
         self.accel_queue.clear()
 
+
 class LinearOVM(BaseController):
     """Optimal Vehicle Model, 
     sources: 
@@ -269,7 +273,6 @@ class LinearOVM(BaseController):
         self.delay_time = delay_time
         self.dt = dt
 
-        
     def get_action(self, env):
         this_lane = env.vehicles[self.veh_id]['lane']
 
@@ -306,3 +309,61 @@ class LinearOVM(BaseController):
     def reset_delay(self, env):
         self.accel_queue.clear()
 
+
+class IDMController(BaseController):
+    """Intelligent Driver Model, per (blank)
+
+    [description]
+
+    Variables:
+    """
+
+    def __init__(self, veh_id, v0=30, T=1, a=1, b=1.5, delta=4, s0=2, s1=0, max_deaccel=-5, dt=0.1):
+        """Instantiates an IDM controller
+
+         Arguments:
+            veh_id -- Vehicle ID for SUMO identification
+
+        Keyword Arguments:
+            v0 {number} -- [desirable velocity, in m/s] (default: {30})
+            T {number} -- [safe time headway, in s] (default: {1})
+            a {number} -- [maximum acceleration [m/s2] (default: {1})
+            b {number} -- [comfortable decceleration [m/s2] (default: {1.5})
+            delta {number} -- [acceleration exponent] (default: {4})
+            s0 {number} -- [linear jam distance, in m] (default: {2})
+            s1 {number} -- [nonlinear jam distance, in m] (default:  {0})
+            deacc_max {number} -- [max deceleration, in m/s2] (default: {-5})
+            dt {number} -- [timestep, in s] (default: {0.1})
+        """
+        tau = T  # the time delay is taken to be the safe time headway
+        controller_params = {"delay": tau / dt, "max_deaccel": max_deaccel}
+        BaseController.__init__(self, veh_id, controller_params)
+        self.v0 = v0
+        self.T = T
+        self.a = a
+        self.b = b
+        self.delta = delta
+        self.s0 = s0
+        self.s1 = s1
+        self.max_deaccel = max_deaccel
+        self.dt = dt
+
+    def get_action(self, env):
+        this_lane = env.vehicles[self.veh_id]['lane']
+
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if lead_id is None:  # no car ahead
+            return self.a
+
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
+        lead_length = env.vehicles[lead_id]['length']
+
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
+
+        h = (lead_pos - lead_length - this_pos) % env.scenario.length
+
+        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (h * np.sqrt(self.a * self.b))])
+
+        return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)

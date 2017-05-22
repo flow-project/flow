@@ -23,6 +23,7 @@ class BaseController:
         self.veh_id = veh_id
         self.controller_params = controller_params
 
+        # TODO: with the modifications to the failsafe, we don't need this parameter anymore
         self.stopping_distance = 1
         if "stopping_distance" in controller_params:
             self.stopping_distance = controller_params["stopping_distance"]
@@ -44,7 +45,7 @@ class BaseController:
 
     def get_safe_action_instantaneous(self, env, action):
         """
-        Instantaneously stops the car if the distance is less than a certain distance
+        Instantaneously stops the car if there is a change of colliding into the leading vehicle in the next step
         :param env:
         :param action:
         :return:
@@ -70,12 +71,9 @@ class BaseController:
             this_vel = env.vehicles[self.veh_id]['speed']
             time_step = env.time_step
 
-
             h = (lead_pos - lead_length - this_pos) % env.scenario.length
 
-            # need to account for the position being reset around the length
-
-            if h < self.stopping_distance:
+            if h/(this_vel+action*time_step) < time_step:
                 return -this_vel / time_step
             else:
                 return action
