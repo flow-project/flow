@@ -14,9 +14,9 @@ velocities for each vehicle.
 """
 class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
-
     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
         super().__init__(env_params, sumo_binary, sumo_params, scenario)
+
         if "lane_change_duration" in self.env_params:
             self.lane_change_duration = self.env_params['lane_change_duration'] / self.time_step
         else:
@@ -31,12 +31,12 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         Actions are a set of accelerations from 0 to 15m/s
         :return:
         """
-        #TODO: max and min are parameters
+        # TODO: max and min are parameters
         # accelerations = Box(low=, high=self.env_params["max-acc"], shape=(self.scenario.num_rl_vehicles, ))
         # lc_threshold = Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles, ))
         # left_right_threshold = Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles, ))
 
-        lb = [self.env_params["max-deacc"], -1, -1] * self.scenario.num_rl_vehicles
+        lb = [-abs(self.env_params["max-deacc"]), -1, -1] * self.scenario.num_rl_vehicles
         ub = [self.env_params["max-acc"], 1, 1] * self.scenario.num_rl_vehicles
         return Box(np.array(lb), np.array(ub))
 
@@ -46,41 +46,60 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles, ))
+        return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
 
-    def apply_action(self, car_id, action):
+    def apply_action(self, veh_id, action):
         """
         See parent class (base_env)
          Given an acceleration, set instantaneous velocity given that acceleration.
         """
-        thisSpeed = self.vehicles[car_id]['speed']
+        thisSpeed = self.vehicles[veh_id]['speed']
         nextVel = thisSpeed + action * self.time_step
         nextVel = max(0, nextVel)
         # if we're being completely mathematically correct, 1 should be replaced by int(self.time_step * 1000)
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
-        self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
+        self.traci_connection.vehicle.slowDown(veh_id, nextVel, 1)
 
     def compute_reward(self, velocity, action):
         """
         See parent class
         """
-        return -np.linalg.norm(velocity - self.env_params["target_velocity"])
+        # upper bound used to ensure the reward is always positive
+        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
+
+        # cost associated with being away from target velocity
+        # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
+        cost = velocity - self.env_params["target_velocity"]
+        cost = np.linalg.norm(cost)
+
+        ##############################################
+        if any(velocity < 0):
+            print('------------------------------')
+            print(velocity)
+            print(np.array(self.rl_ids)[np.array(velocity) < 0])
+            print('------------------------------')
+        ##############################################
+
+        return max_cost - cost
+
+        # return np.linalg.norm(np.array([0]*len(velocity)) - np.array([50]*len(velocity))) - \
+        #     np.linalg.norm(velocity - self.env_params["target_velocity"])
 
     def getState(self):
         """
-       See parent class
-       The state is an array the velocities for each vehicle
-       :return: an array of vehicle speed for each vehicle
-       """
+        See parent class
+        The state is an array the velocities for each vehicle
+        :return: an array of vehicle speed for each vehicle
+        """
         return np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
 
     def render(self):
         print('current state/velocity:', self.state)
 
-
     def change_lanes(self, veh_id, direction):
         """
-        Makes the traci call to change an rl-vehicles lane based on a direction
+        Makes the traci call to change an rl-vehicle's lane based on a direction
         :param veh_id: vehicle to apply the lane change to
         :param direction: double between -1 and 1, -1 to the left 1 to the right
         :return: (1, timer) for successful lane change, 0 for unsuccessful but possible lane changing
@@ -96,7 +115,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                 # lane change right
                 # print("right")
                 if curr_lane > 0:
-                    self.traci_connection.vehicle.changeLane(veh_id, int(curr_lane - 1), int(self.lane_change_duration)) # might be flipped??
+                    self.traci_connection.vehicle.changeLane(veh_id, int(curr_lane-1), int(self.lane_change_duration)) # might be flipped??
                     self.vehicles[veh_id]['last_lc'] = self.timer
                     return 1
                 else:
@@ -105,13 +124,11 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                 # lane change left
                 # print("left")
                 if curr_lane < self.scenario.lanes - 1:
-                    self.traci_connection.vehicle.changeLane(veh_id, int(curr_lane + 1), int(self.lane_change_duration))  # might be flipped??
+                    self.traci_connection.vehicle.changeLane(veh_id, int(curr_lane+1), int(self.lane_change_duration))  # might be flipped??
                     self.vehicles[veh_id]['last_lc'] = self.timer
                     return 1
                 else:
                     return -1
-
-
 
     def apply_rl_actions(self, actions):
         """
@@ -123,7 +140,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         :return: array of resulting actions: 1 if successful + other actions are ok, -1 if unsucessful / bad actions.
         """
 
-        resulting_behaviors =  []
+        resulting_behaviors = []
 
         for i, veh_id in enumerate(self.rl_ids):
             # if veh_id == "rl_1":
@@ -147,11 +164,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                 if self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']:
                     # enough time has passed, change lanes
                     successful_lc = self.change_lanes(veh_id, direction)
-
                 else:
                     # desired lane change but duration has not completed
                     resulting_behaviors.append(-1)  # something negative to add to reward fn
-
 
             if successful_lc != 1:
                 resulting_behaviors.append(1)  # something positive to add to reward fn
@@ -160,7 +175,43 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                 resulting_behaviors.append(
                     -1)  # something negative to add to reward fn if desired acceleration is large
 
-
-
-
         return resulting_behaviors
+
+
+class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
+
+    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+        super().__init__(env_params, sumo_binary, sumo_params, scenario)
+
+        # index of aggressive vehicles
+        self.ind_aggressive = env_params["ind_aggressive"]
+
+        # index of non-aggressive vehicles
+        ind_nonaggressive = np.arange(self.scenario.num_vehicles)
+        ind_nonaggressive = ind_nonaggressive[np.array([ind_nonaggressive[i] not in self.ind_aggressive
+                                                        for i in range(len(ind_nonaggressive))])]
+        self.ind_nonaggressive = ind_nonaggressive
+
+    def compute_reward(self, velocity, action):
+        """
+        See parent class
+        """
+        # upper bound used to ensure the reward is always positive
+        max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
+                             np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
+        max_cost = np.linalg.norm(max_cost)
+
+        # cost associated with being away from target velocity
+        # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
+        cost = np.append(velocity[self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
+                         self.env_params["target_velocity_aggressive"],
+                         velocity[self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
+                         self.env_params["target_velocity"])
+        cost = np.linalg.norm(cost)
+
+        #######################################
+        if any(velocity < 0):
+            print(velocity)
+        #######################################
+
+        return max_cost - cost

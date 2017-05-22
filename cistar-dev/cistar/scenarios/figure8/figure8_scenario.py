@@ -44,13 +44,15 @@ class Figure8Scenario(Scenario):
         intersection_edgelen = 2*self.radius_ring
 
         self.edgestarts = [("bottom_lower_ring", 0),
-                           ("right_lower_ring", ring_edgelen),
-                           ("left_upper_ring", ring_edgelen + intersection_edgelen),
-                           ("top_upper_ring", 2 * ring_edgelen + intersection_edgelen),
-                           ("right_upper_ring", 3 * ring_edgelen + intersection_edgelen),
-                           ("bottom_upper_ring", 4 * ring_edgelen + intersection_edgelen),
-                           ("top_lower_ring", 4 * ring_edgelen + 2 * intersection_edgelen),
-                           ("left_lower_ring", 5 * ring_edgelen + 2 * intersection_edgelen)]
+                           ("right_lower_ring_in", ring_edgelen),
+                           ("right_lower_ring_out", 2 * ring_edgelen),
+                           ("left_upper_ring", 3 * ring_edgelen),
+                           ("top_upper_ring", 4 * ring_edgelen),
+                           ("right_upper_ring", 5 * ring_edgelen),
+                           ("bottom_upper_ring_in", 6 * ring_edgelen),
+                           ("bottom_upper_ring_out", 7 * ring_edgelen),
+                           ("top_lower_ring", 8 * ring_edgelen),
+                           ("left_lower_ring", 9 * ring_edgelen)]
 
         if "positions" not in self.initial_config:
             bunch_factor = 0

@@ -35,16 +35,16 @@ class Figure8Generator(Generator):
         resolution = params["resolution"]
 
         # vehicles on sections with a lower priority value are given priority in crossing
-        priority_top_bottom = 1
-        priority_left_right = 1
+        priority_top_bottom = 46
+        priority_left_right = 46
         if not params["priority"]:
             pass
         elif params["priority"] == "top_bottom":
-            priority_top_bottom = 1
-            priority_left_right = 2
+            priority_top_bottom = 46
+            priority_left_right = 78
         elif params["priority"] == "left_right":
-            priority_top_bottom = 2
-            priority_left_right = 1
+            priority_top_bottom = 78
+            priority_left_right = 46
 
         ring_edgelen = r * pi/2.
         intersection_edgelen = 2*r
@@ -53,6 +53,7 @@ class Figure8Generator(Generator):
 
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
+        confn = "%s.con.xml" % self.name
         typfn = "%s.typ.xml" % self.name
         cfgfn = "%s.netccfg" % self.name
         netfn = "%s.net.xml" % self.name
@@ -65,14 +66,14 @@ class Figure8Generator(Generator):
         #         top_upper_ring, bottom_upper_ring, left_upper_ring, right_upper_ring
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
         x.append(E("node", id="center_intersection", x=repr(0), y=repr(0)))
-        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r)))
-        x.append(E("node", id="bottom_upper_ring", x=repr(r), y=repr(0)))
-        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r)))
-        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r)))
-        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0)))
-        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r)))
-        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r)))
-        x.append(E("node", id="right_lower_ring", x=repr(0), y=repr(-r)))
+        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type="priority"))
+        x.append(E("node", id="bottom_upper_ring", x=repr(r), y=repr(0), type="priority"))
+        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r), type="priority"))
+        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r), type="priority"))
+        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0), type="priority"))
+        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r), type="priority"))
+        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r), type="priority"))
+        x.append(E("node", id="right_lower_ring", x=repr(0), y=repr(-r), type="priority"))
 
         printxml(x, self.net_path + nodfn)
 
@@ -82,46 +83,58 @@ class Figure8Generator(Generator):
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
 
         # intersection edges
-        x.append(E("edge", attrib={"id": "right_lower_ring",
-                                   "from": "right_lower_ring", "to": "left_upper_ring", "type": "edgeType",
+        x.append(E("edge", attrib={"id": "right_lower_ring_in",  # "width": "5",
+                                   "from": "right_lower_ring", "to": "center_intersection", "type": "edgeType",
                                    "length": repr(intersection_edgelen), "priority": repr(priority_top_bottom)}))
-        x.append(E("edge", attrib={"id": "bottom_upper_ring",
-                                   "from": "bottom_upper_ring", "to": "top_lower_ring", "type": "edgeType",
+        x.append(E("edge", attrib={"id": "right_lower_ring_out",  # "width": "5",
+                                   "from": "center_intersection", "to": "left_upper_ring", "type": "edgeType",
+                                   "length": repr(intersection_edgelen), "priority": repr(priority_top_bottom)}))
+        x.append(E("edge", attrib={"id": "bottom_upper_ring_in",  # "width": "5",
+                                   "from": "bottom_upper_ring", "to": "center_intersection", "type": "edgeType",
+                                   "length": repr(intersection_edgelen), "priority": repr(priority_left_right)}))
+        x.append(E("edge", attrib={"id": "bottom_upper_ring_out",  # "width": "5",
+                                   "from": "center_intersection", "to": "top_lower_ring", "type": "edgeType",
                                    "length": repr(intersection_edgelen), "priority": repr(priority_left_right)}))
 
         # ring edges
-        x.append(E("edge", attrib={"id": "left_upper_ring",
+        x.append(E("edge", attrib={"id": "left_upper_ring",  # "width": "5",
                                    "from": "left_upper_ring", "to": "top_upper_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 - cos(t)), r * (1 + sin(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "top_upper_ring",
+        x.append(E("edge", attrib={"id": "top_upper_ring",  # "width": "5",
                                    "from": "top_upper_ring", "to": "right_upper_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 + sin(t)), r * (1 + cos(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "right_upper_ring",
+        x.append(E("edge", attrib={"id": "right_upper_ring",  # "width": "5",
                                    "from": "right_upper_ring", "to": "bottom_upper_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 + cos(t)), r * (1 - sin(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "top_lower_ring",
+        x.append(E("edge", attrib={"id": "top_lower_ring",  # "width": "5",
                                    "from": "top_lower_ring", "to": "left_lower_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), -r + r * sin(t))
                                                       for t in linspace(pi/2, pi, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "left_lower_ring",
+        x.append(E("edge", attrib={"id": "left_lower_ring",  # "width": "5",
                                    "from": "left_lower_ring", "to": "bottom_lower_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), - r + r * sin(t))
                                                       for t in linspace(pi, 3*pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "bottom_lower_ring",
+        x.append(E("edge", attrib={"id": "bottom_lower_ring",  # "width": "5",
                                    "from": "bottom_lower_ring", "to": "right_lower_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), - r + r * sin(t))
                                                       for t in linspace(-pi/2, 0, resolution)]),
                                    "length": repr(ring_edgelen)}))
 
         printxml(x, self.net_path + edgfn)
+
+        # xml for connections
+        x = makexml("connections", "http://sumo.dlr.de/xsd/connections_file.xsd")
+        x.append(E("connection", attrib={"from": "right_lower_ring_in", "to": "right_lower_ring_out"}))
+        x.append(E("connection", attrib={"from": "bottom_upper_ring_in", "to": "bottom_upper_ring_out"}))
+        printxml(x, self.net_path + confn)
 
         # xml file for types
         # contains the the number of lanes and the speed limit for the lanes
@@ -137,6 +150,7 @@ class Figure8Generator(Generator):
         t = E("input")
         t.append(E("node-files", value=nodfn))
         t.append(E("edge-files", value=edgfn))
+        t.append(E("connection-files", value=confn))
         t.append(E("type-files", value=typfn))
         x.append(t)
         t = E("output")
@@ -199,28 +213,50 @@ class Figure8Generator(Generator):
             t.append(i)
             return t
 
-        self.rts = {"bottom_lower_ring": "bottom_lower_ring right_lower_ring left_upper_ring top_upper_ring "
-                                         "right_upper_ring bottom_upper_ring top_lower_ring left_lower_ring",
-                    "right_lower_ring":  "right_lower_ring left_upper_ring top_upper_ring right_upper_ring "
-                                         "bottom_upper_ring top_lower_ring left_lower_ring bottom_lower_ring",
-                    "left_upper_ring":   "left_upper_ring top_upper_ring right_upper_ring bottom_upper_ring "
-                                         "top_lower_ring left_lower_ring bottom_lower_ring right_lower_ring",
-                    "top_upper_ring":    "top_upper_ring right_upper_ring bottom_upper_ring top_lower_ring "
-                                         "left_lower_ring bottom_lower_ring right_lower_ring left_upper_ring",
-                    "right_upper_ring":  "right_upper_ring bottom_upper_ring top_lower_ring left_lower_ring "
-                                         "bottom_lower_ring right_lower_ring left_upper_ring top_upper_ring",
-                    "bottom_upper_ring": "bottom_upper_ring top_lower_ring left_lower_ring bottom_lower_ring "
-                                         "right_lower_ring left_upper_ring top_upper_ring right_upper_ring",
-                    "top_lower_ring":    "top_lower_ring left_lower_ring bottom_lower_ring right_lower_ring "
-                                         "left_upper_ring top_upper_ring right_upper_ring bottom_upper_ring",
-                    "left_lower_ring":   "left_lower_ring bottom_lower_ring right_lower_ring left_upper_ring "
-                                         "top_upper_ring right_upper_ring bottom_upper_ring top_lower_ring"}
+        self.rts = {"bottom_lower_ring":     "bottom_lower_ring right_lower_ring_in right_lower_ring_out "
+                                             "left_upper_ring top_upper_ring right_upper_ring bottom_upper_ring_in "
+                                             "bottom_upper_ring_out top_lower_ring left_lower_ring",
+                    "right_lower_ring_in":   "right_lower_ring_in right_lower_ring_out left_upper_ring top_upper_ring "
+                                             "right_upper_ring bottom_upper_ring_in bottom_upper_ring_out "
+                                             "top_lower_ring left_lower_ring bottom_lower_ring",
+                    "right_lower_ring_out":  "right_lower_ring_out left_upper_ring top_upper_ring right_upper_ring "
+                                             "bottom_upper_ring_in bottom_upper_ring_out top_lower_ring "
+                                             "left_lower_ring bottom_lower_ring right_lower_ring_in",
+                    "left_upper_ring":       "left_upper_ring top_upper_ring right_upper_ring bottom_upper_ring_in "
+                                             "bottom_upper_ring_out top_lower_ring left_lower_ring bottom_lower_ring "
+                                             "right_lower_ring_in right_lower_ring_out",
+                    "top_upper_ring":        "top_upper_ring right_upper_ring bottom_upper_ring_in "
+                                             "bottom_upper_ring_out top_lower_ring left_lower_ring bottom_lower_ring "
+                                             "right_lower_ring_in right_lower_ring_out left_upper_ring",
+                    "right_upper_ring":      "right_upper_ring bottom_upper_ring_in bottom_upper_ring_out "
+                                             "top_lower_ring left_lower_ring bottom_lower_ring right_lower_ring_in "
+                                             "right_lower_ring_out left_upper_ring top_upper_ring",
+                    "bottom_upper_ring_in":  "bottom_upper_ring_in bottom_upper_ring_out top_lower_ring "
+                                             "left_lower_ring bottom_lower_ring right_lower_ring_in "
+                                             "right_lower_ring_out left_upper_ring top_upper_ring right_upper_ring",
+                    "bottom_upper_ring_out": "bottom_upper_ring_out top_lower_ring left_lower_ring "
+                                             "bottom_lower_ring right_lower_ring_in right_lower_ring_out "
+                                             "left_upper_ring top_upper_ring right_upper_ring bottom_upper_ring_in",
+                    "top_lower_ring":        "top_lower_ring left_lower_ring bottom_lower_ring right_lower_ring_in "
+                                             "right_lower_ring_out left_upper_ring top_upper_ring "
+                                             "right_upper_ring bottom_upper_ring_in bottom_upper_ring_out",
+                    "left_lower_ring":       "left_lower_ring bottom_lower_ring right_lower_ring_in "
+                                             "right_lower_ring_out left_upper_ring top_upper_ring right_upper_ring "
+                                             "bottom_upper_ring_in bottom_upper_ring_out top_lower_ring"}
 
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
-        add.append(rerouter("rerouterBottom", "bottom_lower_ring", "routebottom_lower_ring"))
-        add.append(rerouter("rerouterTop", "top_upper_ring", "routetop_upper_ring"))
+        add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routebottom_lower_ring"))
+        add.append(rerouter("rerouterRight_lower_ring_in", "right_lower_ring_in", "routeright_lower_ring_in"))
+        add.append(rerouter("rerouterRight_lower_ring_out", "right_lower_ring_out", "routeright_lower_ring_out"))
+        add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeleft_upper_ring"))
+        add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routetop_upper_ring"))
+        add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeright_upper_ring"))
+        add.append(rerouter("rerouterBottom_upper_ring_in", "bottom_upper_ring_in", "routebottom_upper_ring_in"))
+        add.append(rerouter("rerouterBottom_upper_ring_out", "bottom_upper_ring_out", "routebottom_upper_ring_out"))
+        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routetop_lower_ring"))
+        add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeleft_lower_ring"))
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")
