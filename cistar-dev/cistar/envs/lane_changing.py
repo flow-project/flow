@@ -3,7 +3,7 @@ from cistar.envs.loop import LoopEnvironment
 from rllab.spaces import Box
 from rllab.spaces import Product
 import traci
-
+import pdb
 import numpy as np
 
 
@@ -46,7 +46,10 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes, shape=(self.scenario.num_vehicles,))
+        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, headway])
 
     def apply_action(self, veh_id, action):
         """
@@ -60,42 +63,32 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         self.traci_connection.vehicle.slowDown(veh_id, nextVel, 1)
 
-    def compute_reward(self, velocity, action):
+    def compute_reward(self, state, action):
         """
         See parent class
         """
-        # upper bound used to ensure the reward is always positive
+        if any(state[0] < 0):
+            return -20.0
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 
-        # cost associated with being away from target velocity
-        # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
-        cost = velocity - self.env_params["target_velocity"]
+        cost = state[0] - self.env_params["target_velocity"]
         cost = np.linalg.norm(cost)
-
-        ##############################################
-        if any(velocity < 0):
-            print('------------------------------')
-            print(velocity)
-            print(np.array(self.rl_ids)[np.array(velocity) < 0])
-            print('------------------------------')
-        ##############################################
-
         return max_cost - cost
-
-        # return np.linalg.norm(np.array([0]*len(velocity)) - np.array([50]*len(velocity))) - \
-        #     np.linalg.norm(velocity - self.env_params["target_velocity"])
+        #return -np.linalg.norm(velocity - self.env_params["target_velocity"])
 
     def getState(self):
         """
-        See parent class
-        The state is an array the velocities for each vehicle
-        :return: an array of vehicle speed for each vehicle
-        """
-        return np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
+       See parent class
+       The state is an array the velocities for each vehicle
+       :return: an array of vehicle speed for each vehicle
+       """
+        return np.array([[self.vehicles[vehicle]["speed"],
+                          self.vehicles[vehicle]["lane"],  # TODO: what if we have more than 10 lanes?
+                          self.get_headway(vehicle)]for vehicle in self.vehicles]).T
 
     def render(self):
-        print('current state/velocity:', self.state)
+        print('current velocity, lane, headway:', self.state)
 
     def change_lanes(self, veh_id, direction):
         """
