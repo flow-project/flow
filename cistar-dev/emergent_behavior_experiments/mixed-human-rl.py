@@ -22,8 +22,8 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step":0.01, "traci_control": 0}
-sumo_binary = "sumo"
+sumo_params = {"time_step":0.1, "traci_control": 0}
+sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 20, "max-deacc": 0, "max-acc": 3, "fail-safe": 'instantaneous'}
 
@@ -34,10 +34,10 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False, "spacing":"gaussian"}
 
-num_cars = 10
+num_cars = 22
 num_auto = 1
 
-exp_tag = str(num_cars) + 'target-velocity-norm'
+exp_tag = str(num_cars) + 'target-velocity-norm-pos-reward'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                "ovm": (num_cars - num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
@@ -60,9 +60,9 @@ for seed in [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=20000,
-        max_path_length=200,
-        n_itr=100,  # 1000
+        batch_size=30000,
+        max_path_length=300,
+        n_itr=400,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -72,7 +72,7 @@ for seed in [16, 20, 21, 22]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
