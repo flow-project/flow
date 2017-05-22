@@ -15,24 +15,88 @@ E = etree.Element
 
 
 """
-Generator for loop circle used in MIT traffic simulation.
+Generator for intersections.
 """
-class CircleGenerator(Generator):
+class IntersectionGenerator(Generator):
 
     """
-    Generates Net files for loop sim. Requires:
-    length: length of the circle
-    lanes: number of lanes in the circle
-    speed_limit: max speed limit of the circle
-    resolution: number of nodes resolution
+    Generates Net files for intersection sim. Requires:
+    - length_top: length of the top portion of the intersection, in meters
+    - length_bottom: length of the bottom portion of the intersection, in meters
+    - length_left: length of the left portion of the intersection, in meters
+    - length_right: length of the right portion of the intersection, in meters
+    - lanes_top: number of lanes of the top section
+    - lanes_bottom: number of lanes of the bottom section
+    - lanes_left: number of lanes of the left section
+    - lanes_right: number of lanes of the right section
+    - speed_limit_top: max speed limit of the top section, in m/s
+    - speed_limit_bottom: max speed limit of the bottom section, in m/s
+    - speed_limit_left: max speed limit of the left section, in m/s
+    - speed_limit_right: max speed limit of the right section, in m/s
+    - direction_top_bottom: direction vehicles move on the vertical section (may be "up" or down")
+    - direction_left_right: direction vehicles move on the horizontal section (may be "left" or "right")
+    - angle: clockwise rotation of the intersection, in radians (default=0)
+    - priority: specifies which portion of the intersection receives priority; can be "top_bottom", "left_right",
+                or "None" (default="None"). If no priority is specified, vehicles may crash at the intersection.
+    - resolution: number of nodes resolution
     """
     def generate_net(self, params):
-        length = params["length"]
-        lanes = params["lanes"]
-        speed_limit = params["speed_limit"]
+        length_top = params["length_top"]
+        length_bottom = params["length_top"]
+        length_left = params["length_top"]
+        length_right = params["length_top"]
+        lanes_top = params["lanes_top"]
+        lanes_bottom = params["lanes_bottom"]
+        lanes_left = params["lanes_left"]
+        lanes_right = params["lanes_right"]
+        speed_limit_top = params["speed_limit_top"]
+        speed_limit_bottom = params["speed_limit_bottom"]
+        speed_limit_left = params["speed_limit_left"]
+        speed_limit_right = params["speed_limit_right"]
+
+        # TODO: what if we want vehicle to move in both directions (for different lanes)?
+        # direction the vehicles will move on the vertical section
+        if params["direction_top_bottom"] != "up" and params["direction_top_bottom"] != "down":
+            # print error message
+            angle = 1
+        else:
+            direction_top_bottom = params["direction_top_bottom"]
+
+        # direction the vehicles will move on the horizontal section
+        if params["direction_left_right"] != "left" and params["direction_left_right"] != "right":
+            # print error message
+            angle = 1
+        else:
+            direction_left_right = params["direction_left_right"]
+
+        # the intersection will be rotated by this angle
+        if not params["angle"]:
+            angle = 0
+        elif params["angle"] >= pi/2:
+            # print warning
+            angle = 0
+        else:
+            angle = params["angle"]
+
+        # vehicles on sections with a lower priority value are given priority in crossing
+        if not params["priority"]:
+            priority_top_bottom = 1
+            priority_left_right = 1
+        elif params["priority"] == "None":
+            priority_top_bottom = 1
+            priority_left_right = 1
+        elif params["priority"] == "top_bottom":
+            priority_top_bottom = 1
+            priority_left_right = 2
+        elif params["priority"] == "left_right":
+            priority_top_bottom = 2
+            priority_left_right = 1
+
         resolution = params["resolution"]
 
-        self.name = "%s-%dm%dl" % (self.base, length, lanes)
+        self.name = "%s-%dm,%dl_%dm,%dl_%dm,%dl_%dm,%dl" % (self.base, length_top, lanes_top, length_bottom,
+                                                            lanes_bottom, length_left, lanes_left, length_right,
+                                                            lanes_right)
 
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -40,40 +104,40 @@ class CircleGenerator(Generator):
         cfgfn = "%s.netccfg" % self.name
         netfn = "%s.net.xml" % self.name
 
-        r = length / pi
-        edgelen = length / 4.
-
         # xml file for nodes
-        # contains nodes for the boundary points
+        # contains nodes for the boundary points, as well as the center point
         # with respect to the x and y axes
-        # titled: bottom, right, top, left
+        # titled: center, top, bottom, left, right
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
-        x.append(E("node", id="bottom", x=repr(0), y=repr(-r)))
-        x.append(E("node", id="right", x=repr(r), y=repr(0)))
-        x.append(E("node", id="top", x=repr(0), y=repr(r)))
-        x.append(E("node", id="left", x=repr(-r), y=repr(0)))
+        x.append(E("node", id="center", x=repr(0), y=repr(0)))
+        x.append(E("node", id="top", x=repr(-length_top*sin(angle)), y=repr(length_top*cos(angle))))
+        x.append(E("node", id="bottom", x=repr(length_bottom*sin(angle)), y=repr(-length_bottom*cos(angle))))
+        x.append(E("node", id="left", x=repr(-length_left*cos(angle)), y=repr(-length_left*sin(angle))))
+        x.append(E("node", id="right", x=repr(length_right*cos(angle)), y=repr(length_right*sin(angle))))
         printxml(x, self.net_path + nodfn)
 
         # xml file for edges
         # creates circular arcs that connect the created nodes
         # space between points in the edge is defined by the "resolution" variable
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
-        x.append(E("edge", attrib={"id": "bottom", "from": "bottom", "to": "right", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(-pi / 2, 0, resolution)]),
-                                   "length": repr(edgelen)}))
-        x.append(E("edge", attrib={"id": "right", "from": "right", "to": "top", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(0, pi / 2, resolution)]),
-                                   "length": repr(edgelen)}))
-        x.append(E("edge", attrib={"id": "top", "from": "top", "to": "left", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(pi / 2, pi, resolution)]),
-                                   "length": repr(edgelen)}))
-        x.append(E("edge", attrib={"id": "left", "from": "left", "to": "bottom", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(pi, 3 * pi / 2, resolution)]),
-                                   "length": repr(edgelen)}))
+        if direction_top_bottom == "up":
+            from_top_bottom = "bottom"
+            to_top_bottom = "top"
+        elif direction_top_bottom == "down":
+            from_top_bottom = "top"
+            to_top_bottom = "bottom"
+
+        if direction_left_right == "left":
+            from_left_right = "right"
+            to_left_right = "left"
+        elif direction_left_right == "right":
+            from_left_right = "left"
+            to_left_right = "right"
+
+        x.append(E("edge", attrib={"id": "top_bottom", "from": from_top_bottom, "to": to_top_bottom,
+                                   "type": "edgeType", "length": repr(length_top+length_bottom)}))
+        x.append(E("edge", attrib={"id": "left_right", "from": from_left_right, "to": to_left_right,
+                                   "type": "edgeType", "length": repr(length_left+length_right)}))
         printxml(x, self.net_path + edgfn)
 
         # xml file for types
@@ -160,10 +224,8 @@ class CircleGenerator(Generator):
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
-        add.append(rerouter("rerouterTop", "top", "routebottom"))
-        add.append(rerouter("rerouterBottom", "bottom", "routetop"))
-        add.append(rerouter("rerouterLeft", "left", "routeright"))
-        add.append(rerouter("rerouterRight", "right", "routeleft"))
+        add.append(rerouter("rerouterBottom", "bottom", "routebottom"))
+        add.append(rerouter("rerouterTop", "top", "routetop"))
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")
@@ -209,6 +271,6 @@ class CircleGenerator(Generator):
                 route, pos = positions[i]
                 type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",
-                             departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
+                              departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
 
             printxml(routes, self.cfg_path + self.roufn)

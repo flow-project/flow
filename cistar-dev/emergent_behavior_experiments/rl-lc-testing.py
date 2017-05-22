@@ -1,3 +1,9 @@
+"""
+Script used to test the incorporation of lane changing into rl vehicles.
+
+
+"""
+
 import logging
 
 from rllab.envs.normalized_env import normalize
@@ -6,30 +12,28 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-# from cistar.core.exp import SumoExperiment
 from cistar.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"port": 8873, "time_step": 0.1, "traci_control": 0}
 sumo_binary = "sumo-gui"
-num_cars = 8
+num_cars = 22
 
-exp_tag = str(num_cars) + '-car-rl'
+exp_tag = str(num_cars) + '-car-rl-lane_change'
 
-type_params = {"rl":(num_cars, (RLController, {}), None, 0)}
+type_params = {"rl": (num_cars, (RLController, {}), None, 0)}
 
-env_params = {"target_velocity" : 8, "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5, "fail-safe":None}
+env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5,
+              "fail-safe": "None"}
 
-net_params = {"length": 200, "lanes": 2, "speed_limit":0,\
- "resolution": 40, "net_path":"debug/net/"}
+net_params = {"length": 200, "lanes": 2, "speed_limit": 0, "resolution": 40, "net_path": "debug/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params)
 
@@ -37,7 +41,7 @@ env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_pa
 
 env = normalize(env)
 
-for seed in [10]:#[5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(16,)
@@ -49,7 +53,7 @@ for seed in [10]:#[5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=4000,
+        batch_size=8000,
         max_path_length=1000,
         n_itr=50000,  # 1000
         # whole_paths=True,
@@ -69,6 +73,6 @@ for seed in [10]:#[5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        python_command="/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5"
+        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )
