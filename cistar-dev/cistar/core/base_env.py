@@ -211,24 +211,25 @@ class SumoEnvironment(Env, Serializable):
         """
         self.timer += 1
 
-        for veh_id in self.controlled_ids:
-            action = self.vehicles[veh_id]['controller'].get_action(self)
-            if self.fail_safe == 'instantaneous':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
-            elif self.fail_safe == 'eugene':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
-            else:
-                safe_action = action
-            if safe_action is None:
-                print('safe action is None')
-                pass
-            else:
-                self.apply_action(veh_id, action=safe_action)
+        if self.sumo_params["traci_control"]:
+            for veh_id in self.controlled_ids:
+                action = self.vehicles[veh_id]['controller'].get_action(self)
+                if self.fail_safe == 'instantaneous':
+                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
+                elif self.fail_safe == 'eugene':
+                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+                else:
+                    safe_action = action
+                if safe_action is None:
+                    print('safe action is None')
+                    pass
+                else:
+                    self.apply_action(veh_id, action=safe_action)
 
-            if self.timer % 100 == 0:
-                if self.vehicles[veh_id]['lane_changer']:
-                    newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                    self.traci_connection.vehicle.changeLane(veh_id, newlane, 10000)
+                if self.timer % 100 == 0:
+                    if self.vehicles[veh_id]['lane_changer']:
+                        newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                        self.traci_connection.vehicle.changeLane(veh_id, newlane, 10000)
 
         self.apply_rl_actions(rl_actions)
 

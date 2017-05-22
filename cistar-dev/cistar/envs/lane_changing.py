@@ -60,16 +60,16 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
-    def compute_reward(self, velocity, action):
+    def compute_reward(self, state, action):
         """
         See parent class
         """
-        if any(velocity < 0):
+        if any(state[0] < 0):
             return -20.0
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 
-        cost = velocity - self.env_params["target_velocity"]
+        cost = state[0] - self.env_params["target_velocity"]
         cost = np.linalg.norm(cost)
         return max_cost - cost
         #return -np.linalg.norm(velocity - self.env_params["target_velocity"])
@@ -80,10 +80,12 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
        The state is an array the velocities for each vehicle
        :return: an array of vehicle speed for each vehicle
        """
-        return np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
+        return np.array([[self.vehicles[vehicle]["speed"],  
+                          self.vehicles[vehicle]["lane"],
+                          self.get_headway(veh_id)]for vehicle in self.vehicles])
 
     def render(self):
-        print('current state/velocity:', self.state)
+        print('current velocity, lane, headway:', self.state)
 
 
     def change_lanes(self, veh_id, direction):

@@ -38,12 +38,12 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         # num_cars = self.tot_cars if self.fullbool else self.num_cars
         num_cars = self.scenario.num_vehicles
-        ypos = Box(low=0., high=np.inf, shape=(num_cars, ))
+        #ypos = Box(low=0., high=np.inf, shape=(num_cars, ))
         vel = Box(low=0., high=np.inf, shape=(num_cars, ))
         headway = Box(low=0., high=np.inf, shape=(num_cars, ))
         fuelconsump = Box(low=0., high=np.inf, shape=(num_cars, ))
-        self.obs_var_labels = ["Velocity", "Fuel", "Headway", "ypos"]
-        return Product([vel, fuelconsump, headway, ypos])
+        self.obs_var_labels = ["Velocity", "Fuel", "Headway"]
+        return Product([vel, fuelconsump, headway])
 
     def compute_reward(self, state, action):
         """
@@ -53,22 +53,26 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         destination = 840 * 4
         #return -np.sum(0.1*state[1] + 3.0*(destination - state[2]))
         #return -np.sum(destination - state[3])
-        #return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
-        return np.mean(state[0] - self.env_params["target_velocity"])
+        return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
+        #return np.mean(state[0] - self.env_params["target_velocity"])
 
     def getState(self):
 
         return np.array([[self.vehicles[veh_id]["speed"], \
                             self.vehicles[veh_id]["fuel"], \
-                            self.get_headway(veh_id), \
-                            self.vehicles[veh_id]["distance"]] for veh_id in self.vehicles]).T
+                            self.get_headway(veh_id)] for veh_id in self.vehicles]).T
 
     def apply_action(self, car_id, action):
         """
-        Action is an acceleration here. Gets locally linearized to find velocity.
+        See parent class (base_env)
+         Given an acceleration, set instantaneous velocity given that acceleration.
         """
-        not_zero = max(0, action)
-        self.traci_connection.vehicle.slowDown(car_id, not_zero, 1)
+        thisSpeed = self.vehicles[car_id]['speed']
+        nextVel = thisSpeed + action * self.time_step
+        nextVel = max(0, nextVel)
+        # if we're being completely mathematically correct, 1 should be replaced by int(self.time_step * 1000)
+        # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
+        self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
     def render(self):
-        print('current velocity, fuel, headway, distance:', self.state)
+        print('current velocity, fuel, headway', self.state)

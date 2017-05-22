@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step":0.1}
+sumo_params = {"time_step":0.01, "traci_control": 0}
 sumo_binary = "sumo"
 
 env_params = {"target_velocity": 20, "max-deacc": 0, "max-acc": 3, "fail-safe": 'instantaneous'}
@@ -32,12 +32,12 @@ net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40,
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": False}
+initial_config = {"shuffle": False, "spacing":"gaussian"}
 
-num_cars = 22
+num_cars = 10
 num_auto = 1
 
-exp_tag = str(num_cars) + 'target-velocity-mean'
+exp_tag = str(num_cars) + 'target-velocity-norm'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                "ovm": (num_cars - num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
@@ -60,9 +60,9 @@ for seed in [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,
-        max_path_length=1500,
-        n_itr=400,  # 1000
+        batch_size=20000,
+        max_path_length=200,
+        n_itr=100,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -78,7 +78,7 @@ for seed in [16, 20, 21, 22]:
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         #mode="ec2",
         exp_prefix=exp_tag
         # plot=True,
