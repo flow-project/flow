@@ -56,6 +56,7 @@ class SumoEnvironment(Env, Serializable):
         self.timer = 0  # Represents number of steps taken
         self.vehicles = collections.OrderedDict()  # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Initial state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
+        # Ordered dictionary used to keep neural net inputs in order
         self.initial_state = {}
         self.ids = []
         self.controlled_ids, self.rl_ids = [], []
@@ -251,10 +252,16 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
+            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or 
+                self.traci_connection.vehicle.getSpeed(veh_id) < 0):
+                print("Traci is returning error codes for some of your values\n")
+                print(veh_id)
+
         # if round(self.timer) == round(self.timer, 3):
         #     mean_speed = np.mean(speeds)
         #     print('time:', round(self.timer), 's; avg speed:', mean_speed, 'm/s; flow:', mean_speed * self.density * 3600, '(cars/km)')
         #     print('')
+
 
         # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
         self.state = self.getState()
@@ -262,7 +269,8 @@ class SumoEnvironment(Env, Serializable):
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
 
-        if self.traci_connection.simulation.getEndingTeleportNumber() != 0:
+        if (self.traci_connection.simulation.getEndingTeleportNumber() != 0
+            or self.traci_connection.simulation.getStartingTeleportNumber() != 0):
             # Crash has occurred, end rollout
             if self.fail_safe == "None":
                 return Step(observation=next_observation, reward=reward, done=True)

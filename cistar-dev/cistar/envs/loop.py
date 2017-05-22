@@ -23,6 +23,7 @@ class LoopEnvironment(SumoEnvironment):
         """
         if self.vehicles[id]["edge"] == '':
             print("This vehicle teleported and its edge is now empty", id)
+            return 0.
         # try:
         #     if self.vehicles[id]["edge"] == '':
         #         print("This vehicle teleported and its edge is now empty", id)

@@ -3,7 +3,7 @@ from cistar.envs.loop import LoopEnvironment
 from rllab.spaces import Box
 from rllab.spaces import Product
 import traci
-
+import pdb
 import numpy as np
 
 
@@ -64,7 +64,15 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        return -np.linalg.norm(velocity - self.env_params["target_velocity"])
+        if any(velocity < 0):
+            return -20.0
+        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
+
+        cost = velocity - self.env_params["target_velocity"]
+        cost = np.linalg.norm(cost)
+        return max_cost - cost
+        #return -np.linalg.norm(velocity - self.env_params["target_velocity"])
 
     def getState(self):
         """
