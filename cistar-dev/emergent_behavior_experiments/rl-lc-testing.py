@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"port": 8873, "time_step": 0.01}
+sumo_params = {"port": 8873, "time_step": 0.1, "traci_control": 0}
 sumo_binary = "sumo-gui"
 num_cars = 22
 

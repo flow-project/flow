@@ -3,6 +3,7 @@ import logging
 from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
+from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.car_following_models import *
 from cistar.controllers.lane_change_controllers import *
 
@@ -14,16 +15,16 @@ sumo_binary = "sumo-gui"
 
 type_params = {"ovm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25}
+env_params = {"target_velocity": 25}  # , "failsafe": "instantaneous"}
 
-net_params = {"radius_ring": 50, "lanes": 1, "priority": "top_bottom", "speed_limit": 35, "resolution": 40,
-              "net_path": "debug/net/", "length": 50*5*np.pi}
+net_params = {"radius_ring": 20, "lanes": 1, "priority": "top_bottom", "speed_limit": 35, "resolution": 40,
+              "net_path": "debug/net/", "length": 20*5*np.pi}
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"shuffle": False, "bunching": 200}
+initial_config = {"shuffle": False, "bunching": 20}
 
-scenario = Figure8Scenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
+scenario = LoopScenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
 
 leah_sumo_params = {"port": 8873}
 
@@ -31,7 +32,7 @@ exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sum
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 1000)
+exp.run(1, 10000)
 
 exp.env.terminate()
 

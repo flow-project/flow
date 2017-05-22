@@ -160,8 +160,8 @@ class CircleGenerator(Generator):
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
-        add.append(rerouter("rerouterBottom", "bottom", "routetop"))
         add.append(rerouter("rerouterTop", "top", "routebottom"))
+        add.append(rerouter("rerouterBottom", "bottom", "routetop"))
         add.append(rerouter("rerouterLeft", "left", "routeright"))
         add.append(rerouter("rerouterRight", "right", "routeleft"))
         printxml(add, self.cfg_path + addfn)
