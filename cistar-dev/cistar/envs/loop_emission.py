@@ -53,8 +53,18 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         destination = 840 * 4
         #return -np.sum(0.1*state[1] + 3.0*(destination - state[2]))
         #return -np.sum(destination - state[3])
-        return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
+        #return -np.linalg.norm(state[0] - self.env_params["target_velocity"])
         #return np.mean(state[0] - self.env_params["target_velocity"])
+
+        if any(state[0] < 0):
+            print('crashed and neg value')
+            return -20.0
+        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
+
+        cost = state[0] - self.env_params["target_velocity"]
+        cost = np.linalg.norm(cost)
+        return max_cost - cost
 
     def getState(self):
 
