@@ -28,7 +28,8 @@ RUN apt-get -y install git make cmake unzip apt-utils
 
 # ========== SUMO ==========
 ENV SUMO_VERSION 0.27.1
-ENV SUMO_SRC sumo-src-$SUMO_VERSION
+# ENV SUMO_SRC sumo-src-$SUMO_VERSION
+ENV SUMO_SRC sumo
 ENV SUMO_HOME /opt/sumo
 
 # Install system dependencies.
@@ -38,10 +39,15 @@ RUN apt-get update && apt-get -y install -qq \
     libfox-1.6-0 libfox-1.6-dev
 
 # Download and extract source code
-RUN wget http://downloads.sourceforge.net/project/sumo/sumo/version%20$SUMO_VERSION/sumo-src-$SUMO_VERSION.tar.gz
-RUN tar xzf sumo-src-$SUMO_VERSION.tar.gz && \
-    mv sumo-$SUMO_VERSION $SUMO_HOME && \
-    rm sumo-src-$SUMO_VERSION.tar.gz
+# Download latest stable SUMO
+# RUN wget http://downloads.sourceforge.net/project/sumo/sumo/version%20$SUMO_VERSION/sumo-src-$SUMO_VERSION.tar.gz
+# RUN tar xzf sumo-src-$SUMO_VERSION.tar.gz && \
+#    mv sumo-$SUMO_VERSION $SUMO_HOME && \#
+#    rm sumo-src-$SUMO_VERSION.tar.gz
+
+# Download SUMO nightly build
+RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo
+RUN mv SUMO_SRC $SUMO_HOME
 
 # Apply patch file
 RUN cd $SUMO_HOME && wget https://www.dropbox.com/s/23dam05ugg73jny/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
