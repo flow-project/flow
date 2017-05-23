@@ -10,6 +10,8 @@ RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
     /bin/bash /Anaconda2-2.5.0-Linux-x86_64.sh -b -p /opt/conda && \
     rm /Anaconda2-2.5.0-Linux-x86_64.sh
 
+RUN apt-get update --fix-missing && apt-get -y install autotools-dev autoconf
+
 RUN apt-get install -y curl grep sed dpkg && \
     TINI_VERSION=`curl https://github.com/krallin/tini/releases/latest | grep -o "/v.*\"" | sed 's:^..\(.*\).$:\1:'` && \
     curl -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.deb" > tini.deb && \
@@ -47,13 +49,13 @@ RUN apt-get update && apt-get -y install -qq \
 
 # Download SUMO nightly build
 RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo
-RUN mv SUMO_SRC $SUMO_HOME
+RUN mv $SUMO_SRC $SUMO_HOME
 
 # Apply patch file
-RUN cd $SUMO_HOME && wget https://www.dropbox.com/s/23dam05ugg73jny/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
+RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
 
-# Configure and build from source.
-RUN cd $SUMO_HOME && ./configure && make install
+# Install SUMO
+RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make && make install
 
 # RUN echo "export PYTHONPATH=\"/opt/sumo/sumo-$SUMO_VERSION/tools\"" >> /root/.bashrc
 ENV PYTHONPATH $SUMO_HOME/tools:$PYTHONPATH
