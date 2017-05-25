@@ -46,6 +46,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
+        # TODO: add adjacent lane data
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes, shape=(self.scenario.num_vehicles,))
         headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
@@ -67,6 +68,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
+        # TODO: try penalizing small time headways
         if any(state[0] < 0):
             return -20.0
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
@@ -84,7 +86,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
        :return: an array of vehicle speed for each vehicle
        """
         return np.array([[self.vehicles[vehicle]["speed"],
-                          self.vehicles[vehicle]["lane"],  # TODO: what if we have more than 10 lanes?
+                          self.vehicles[vehicle]["lane"],
                           self.get_headway(vehicle)]for vehicle in self.vehicles]).T
 
     def render(self):
@@ -185,10 +187,13 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
                                                         for i in range(len(ind_nonaggressive))])]
         self.ind_nonaggressive = ind_nonaggressive
 
-    def compute_reward(self, velocity, action):
+    def compute_reward(self, state, action):
         """
         See parent class
         """
+        if any(state[0] < 0):
+            return -20.0
+
         # upper bound used to ensure the reward is always positive
         max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
                              np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
@@ -196,15 +201,10 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
 
         # cost associated with being away from target velocity
         # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
-        cost = np.append(velocity[self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
+        cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
                          self.env_params["target_velocity_aggressive"],
-                         velocity[self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
+                         state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
                          self.env_params["target_velocity"])
         cost = np.linalg.norm(cost)
-
-        #######################################
-        if any(velocity < 0):
-            print(velocity)
-        #######################################
 
         return max_cost - cost
