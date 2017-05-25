@@ -100,7 +100,7 @@ class SumoEnvironment(Env, Serializable):
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
             ensure_dir(data_folder)
-            self.emission_out = data_folder +  "{0}-emission.xml".format(self.scenario.name)
+            self.emission_out = data_folder + "{0}-emission.xml".format(self.scenario.name)
 
         self.start_sumo()
         self.setup_initial_state()
@@ -133,7 +133,6 @@ class SumoEnvironment(Env, Serializable):
         self.traci_connection = traci.connect(self.port)
 
         self.traci_connection.simulationStep()
-
 
         # Density = num vehicles / length (in meters)
         # so density in vehicles/km would be 1000 * self.density
@@ -176,7 +175,7 @@ class SumoEnvironment(Env, Serializable):
             # initializes lane-changing controller
             lane_changer_params = self.scenario.type_params[veh_type][2]
             if lane_changer_params is not None:
-                vehicle['lane_changer'] = lane_changer_params[0](veh_id = veh_id, **lane_changer_params[1])
+                vehicle['lane_changer'] = lane_changer_params[0](veh_id=veh_id, **lane_changer_params[1])
             else:
                 vehicle['lane_changer'] = None
 
@@ -253,9 +252,9 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
-            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or 
-                self.traci_connection.vehicle.getSpeed(veh_id) < 0):
-                print("Traci is returning error codes for some of your values\n")
+            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
+                        self.traci_connection.vehicle.getSpeed(veh_id) < 0):
+                print("Traci is returning error codes for some of your values")
                 print(veh_id)
 
         # if round(self.timer) == round(self.timer, 3):
@@ -271,7 +270,8 @@ class SumoEnvironment(Env, Serializable):
         next_observation = np.copy(self.state)
 
         if (self.traci_connection.simulation.getEndingTeleportNumber() != 0
-            or self.traci_connection.simulation.getStartingTeleportNumber() != 0):
+            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+            or any(self.state.flatten() == -1001)):
             # Crash has occurred, end rollout
             if self.fail_safe == "None":
                 return Step(observation=next_observation, reward=reward, done=True)
@@ -289,7 +289,7 @@ class SumoEnvironment(Env, Serializable):
         """
         color_choice = np.random.choice(len(COLORS))
         color = COLORS[color_choice]
-        color_rl = COLORS[(color_choice+1)%len(COLORS)]
+        color_rl = COLORS[(color_choice + 1) % len(COLORS)]
         for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
@@ -299,7 +299,7 @@ class SumoEnvironment(Env, Serializable):
 
             self.traci_connection.vehicle.remove(veh_id)
             self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
-                                  departPos=str(lane_pos), departSpeed=str(speed))
+                                                  departPos=str(lane_pos), departSpeed=str(speed))
             if self.vehicles[veh_id]['type'] == 'rl':
                 self.traci_connection.vehicle.setColor(veh_id, color_rl)
             else:
