@@ -147,7 +147,7 @@ class CircleGenerator(Generator):
             :return:
             '''
             t = E("rerouter", id=name, edges=frm)
-            i = E("interval", begin="0", end="100000")
+            i = E("interval", begin="0", end="10000000")
             i.append(E("routeProbReroute", id=to))
             t.append(i)
             return t
