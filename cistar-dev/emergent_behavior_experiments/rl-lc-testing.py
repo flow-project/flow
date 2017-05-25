@@ -1,7 +1,6 @@
 """
 Script used to test the incorporation of lane changing into rl vehicles.
-
-
+Vehicles are trained to travel at a target velocity while avoiding collisions.
 """
 
 import logging
@@ -22,7 +21,7 @@ stub(globals())
 
 sumo_params = {"port": 8873, "time_step": 0.1, "traci_control": 0}
 sumo_binary = "sumo-gui"
-num_cars = 22
+num_cars = 12
 
 exp_tag = str(num_cars) + '-car-rl-lane_change'
 
@@ -44,7 +43,7 @@ env = normalize(env)
 for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(16,)
+        hidden_sizes=(150, 25)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -53,9 +52,9 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=8000,
-        max_path_length=1000,
-        n_itr=50000,  # 1000
+        batch_size=30000,
+        max_path_length=1500,
+        n_itr=1000,  # 50000
         # whole_paths=True,
         # discount=0.99,
         # step_size=0.01,

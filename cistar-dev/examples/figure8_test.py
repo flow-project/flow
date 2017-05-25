@@ -9,7 +9,7 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step": 0.1, "emission_path": "./data/"}
+sumo_params = {"port": 8873, "time_step": 0.1, "emission_path": "./data/", "traci_control": 1}
 
 sumo_binary = "sumo-gui"
 
@@ -17,14 +17,15 @@ type_params = {"ovm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25}  # , "failsafe": "instantaneous"}
 
-net_params = {"radius_ring": 20, "lanes": 1, "priority": "top_bottom", "speed_limit": 35, "resolution": 40,
-              "net_path": "debug/net/", "length": 20*5*np.pi}
+ring_radius = 50
+net_params = {"radius_ring": ring_radius, "lanes": 1, "priority": "top_bottom", "speed_limit": 35, "resolution": 40,
+              "net_path": "debug/net/", "length": ring_radius * (3*np.pi + 4)}
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 initial_config = {"shuffle": False, "bunching": 20}
 
-scenario = LoopScenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
+scenario = Figure8Scenario("figure8", type_params, net_params, cfg_params, initial_config)
 
 leah_sumo_params = {"port": 8873}
 

@@ -33,10 +33,10 @@ sumo_binary = "sumo-gui"
 
 test_type = 'rl'    # type of test being implemented (see comment at start of file)
 num_aggressive = 1  # number of aggressive drivers
-num_cars = 8        # total number of cars in simulation
+num_cars = 22       # total number of cars in simulation
 num_human = 0       # number of uncontrollable (human) vehicles
-num_auto = 0        # number of controllable (rl) vehicles
-ind_aggressive = [0, 2]  # location of aggressive cars
+num_auto = 22       # number of controllable (rl) vehicles
+ind_aggressive = [0, 2, 4]  # index of aggressive cars
 
 if test_type == 'rl':
     num_human = 0
@@ -63,10 +63,10 @@ env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
-for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+for seed in [5]:  # [5, 10, 73, 56, 1]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(16,)
+        hidden_sizes=(150, 25)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -75,9 +75,9 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=8000,  # 4000
-        max_path_length=1000,
-        n_itr=50000,  # 1000
+        batch_size=30000,  # 4000
+        max_path_length=1500,
+        n_itr=1000,  # 50000
         # whole_paths=True,
         # discount=0.99,
         # step_size=0.01,
