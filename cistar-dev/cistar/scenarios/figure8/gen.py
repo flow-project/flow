@@ -35,14 +35,17 @@ class Figure8Generator(Generator):
         resolution = params["resolution"]
 
         # vehicles on sections with a lower priority value are given priority in crossing
-        priority_top_bottom = 46
-        priority_left_right = 46
+        intersection_type = "unregulated"
+        priority_top_bottom = 0
+        priority_left_right = 0
         if not params["priority"]:
             pass
         elif params["priority"] == "top_bottom":
+            intersection_type = "priority"
             priority_top_bottom = 46
             priority_left_right = 78
         elif params["priority"] == "left_right":
+            intersection_type = "priority"
             priority_top_bottom = 78
             priority_left_right = 46
 
@@ -53,7 +56,6 @@ class Figure8Generator(Generator):
 
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
-        confn = "%s.con.xml" % self.name
         typfn = "%s.typ.xml" % self.name
         cfgfn = "%s.netccfg" % self.name
         netfn = "%s.net.xml" % self.name
@@ -66,14 +68,14 @@ class Figure8Generator(Generator):
         #         top_upper_ring, bottom_upper_ring, left_upper_ring, right_upper_ring
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
         x.append(E("node", id="center_intersection", x=repr(0), y=repr(0)))
-        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type="priority"))
-        x.append(E("node", id="bottom_upper_ring", x=repr(r), y=repr(0), type="priority"))
-        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r), type="priority"))
-        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r), type="priority"))
-        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0), type="priority"))
-        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r), type="priority"))
-        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r), type="priority"))
-        x.append(E("node", id="right_lower_ring", x=repr(0), y=repr(-r), type="priority"))
+        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type=intersection_type))
+        x.append(E("node", id="bottom_upper_ring", x=repr(r), y=repr(0), type=intersection_type))
+        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r), type=intersection_type))
+        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r), type=intersection_type))
+        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0), type=intersection_type))
+        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r), type=intersection_type))
+        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r), type=intersection_type))
+        x.append(E("node", id="right_lower_ring", x=repr(0), y=repr(-r), type=intersection_type))
 
         printxml(x, self.net_path + nodfn)
 
@@ -82,19 +84,23 @@ class Figure8Generator(Generator):
         # space between points in the edge is defined by the "resolution" variable
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
 
-        # intersection edges
+        # # intersection edges
         x.append(E("edge", attrib={"id": "right_lower_ring_in",  # "width": "5",
                                    "from": "right_lower_ring", "to": "center_intersection", "type": "edgeType",
-                                   "length": repr(intersection_edgelen), "priority": repr(priority_top_bottom)}))
+                                   "length": repr(intersection_edgelen/2),
+                                   "priority": repr(priority_top_bottom)}))
         x.append(E("edge", attrib={"id": "right_lower_ring_out",  # "width": "5",
                                    "from": "center_intersection", "to": "left_upper_ring", "type": "edgeType",
-                                   "length": repr(intersection_edgelen), "priority": repr(priority_top_bottom)}))
+                                   "length": repr(intersection_edgelen/2),
+                                   "priority": repr(priority_top_bottom)}))
         x.append(E("edge", attrib={"id": "bottom_upper_ring_in",  # "width": "5",
                                    "from": "bottom_upper_ring", "to": "center_intersection", "type": "edgeType",
-                                   "length": repr(intersection_edgelen), "priority": repr(priority_left_right)}))
+                                   "length": repr(intersection_edgelen/2),
+                                   "priority": repr(priority_left_right)}))
         x.append(E("edge", attrib={"id": "bottom_upper_ring_out",  # "width": "5",
                                    "from": "center_intersection", "to": "top_lower_ring", "type": "edgeType",
-                                   "length": repr(intersection_edgelen), "priority": repr(priority_left_right)}))
+                                   "length": repr(intersection_edgelen/2),
+                                   "priority": repr(priority_left_right)}))
 
         # ring edges
         x.append(E("edge", attrib={"id": "left_upper_ring",  # "width": "5",
@@ -130,12 +136,6 @@ class Figure8Generator(Generator):
 
         printxml(x, self.net_path + edgfn)
 
-        # xml for connections
-        x = makexml("connections", "http://sumo.dlr.de/xsd/connections_file.xsd")
-        x.append(E("connection", attrib={"from": "right_lower_ring_in", "to": "right_lower_ring_out"}))
-        x.append(E("connection", attrib={"from": "bottom_upper_ring_in", "to": "bottom_upper_ring_out"}))
-        printxml(x, self.net_path + confn)
-
         # xml file for types
         # contains the the number of lanes and the speed limit for the lanes
         x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
@@ -150,7 +150,6 @@ class Figure8Generator(Generator):
         t = E("input")
         t.append(E("node-files", value=nodfn))
         t.append(E("edge-files", value=edgfn))
-        t.append(E("connection-files", value=confn))
         t.append(E("type-files", value=typfn))
         x.append(t)
         t = E("output")
@@ -163,9 +162,9 @@ class Figure8Generator(Generator):
         printxml(x, self.net_path + cfgfn)
 
         # netconvert -c $(cfg) --output-file=$(net)
-        retcode = subprocess.call(
-            ["netconvert -c " + self.net_path + cfgfn + " --output-file=" + self.cfg_path + netfn],
-            stdout=sys.stdout, stderr=sys.stderr, shell=True)
+        retcode = subprocess.call(["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
+                                   self.cfg_path + netfn + ' --no-internal-links="false"'],
+                                  stdout=sys.stdout, stderr=sys.stderr, shell=True)
         self.netfn = netfn
 
         return self.net_path + netfn
@@ -208,7 +207,7 @@ class Figure8Generator(Generator):
             :return:
             '''
             t = E("rerouter", id=name, edges=frm)
-            i = E("interval", begin="0", end="100000")
+            i = E("interval", begin="0", end="10000000")
             i.append(E("routeProbReroute", id=to))
             t.append(i)
             return t
@@ -247,21 +246,17 @@ class Figure8Generator(Generator):
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
-        add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routebottom_lower_ring"))
-        add.append(rerouter("rerouterRight_lower_ring_in", "right_lower_ring_in", "routeright_lower_ring_in"))
-        add.append(rerouter("rerouterRight_lower_ring_out", "right_lower_ring_out", "routeright_lower_ring_out"))
-        add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeleft_upper_ring"))
-        add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routetop_upper_ring"))
-        add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeright_upper_ring"))
-        add.append(rerouter("rerouterBottom_upper_ring_in", "bottom_upper_ring_in", "routebottom_upper_ring_in"))
-        add.append(rerouter("rerouterBottom_upper_ring_out", "bottom_upper_ring_out", "routebottom_upper_ring_out"))
-        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routetop_lower_ring"))
-        add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeleft_lower_ring"))
+        add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routetop_upper_ring"))
+        add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeright_lower_ring_in"))
+        add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routebottom_lower_ring"))
+        add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
+        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routetop_upper_ring"))
+        add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeright_upper_ring"))
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
-        printxml(gui, self.cfg_path +guifn)
+        printxml(gui, self.cfg_path + guifn)
 
         cfg = makexml("configuration", "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
 

@@ -20,7 +20,7 @@ class Figure8Scenario(Scenario):
         if "radius_ring" not in self.net_params:
             raise ValueError("radius of ring not supplied")
         self.radius_ring = self.net_params["radius_ring"]
-        self.length = self.radius_ring * 5 * np.pi
+        self.length = self.radius_ring * (3 * np.pi + 4)
 
         if "lanes" not in self.net_params:
             raise ValueError("number of lanes not supplied")
@@ -40,19 +40,24 @@ class Figure8Scenario(Scenario):
             raise ValueError("resolution of circle not supplied")
         self.resolution = self.net_params["resolution"]
 
-        ring_edgelen = self.radius_ring * np.pi/2.
-        intersection_edgelen = 2*self.radius_ring
+        ring_edgelen = self.radius_ring * np.pi / 2.
+        intersection_edgelen = 2 * self.radius_ring
 
         self.edgestarts = [("bottom_lower_ring", 0),
                            ("right_lower_ring_in", ring_edgelen),
-                           ("right_lower_ring_out", 2 * ring_edgelen),
-                           ("left_upper_ring", 3 * ring_edgelen),
-                           ("top_upper_ring", 4 * ring_edgelen),
-                           ("right_upper_ring", 5 * ring_edgelen),
-                           ("bottom_upper_ring_in", 6 * ring_edgelen),
-                           ("bottom_upper_ring_out", 7 * ring_edgelen),
-                           ("top_lower_ring", 8 * ring_edgelen),
-                           ("left_lower_ring", 9 * ring_edgelen)]
+                           ("right_lower_ring_out", ring_edgelen + intersection_edgelen / 2),
+                           ("left_upper_ring", ring_edgelen + intersection_edgelen),
+                           ("top_upper_ring", 2 * ring_edgelen + intersection_edgelen),
+                           ("right_upper_ring", 3 * ring_edgelen + intersection_edgelen),
+                           ("bottom_upper_ring_in", 4 * ring_edgelen + intersection_edgelen),
+                           ("bottom_upper_ring_out", 4 * ring_edgelen + 3 / 2 * intersection_edgelen),
+                           ("top_lower_ring", 4 * ring_edgelen + 2 * intersection_edgelen),
+                           ("left_lower_ring", 5 * ring_edgelen + 2 * intersection_edgelen)]
+
+        self.junctionstarts = [(":right_lower_ring", ring_edgelen),
+                               (":center_intersection_2", ring_edgelen + intersection_edgelen / 2),
+                               ("bottom_upper_ring", 4 * ring_edgelen + intersection_edgelen),
+                               (":center_intersection_1", 4 * ring_edgelen + 3 / 2 * intersection_edgelen)]
 
         if "positions" not in self.initial_config:
             bunch_factor = 0
@@ -99,11 +104,17 @@ class Figure8Scenario(Scenario):
         :param position: relative position on edge
         :return:
         """
+        # check it the vehicle is in a lane
         for edge_tuple in self.edgestarts:
-            if edge_tuple[0] == edge:
-                edge_start = edge_tuple[1]
-                break
-        return position + edge_start
+            if edge_tuple[0] in edge:
+                edgestart = edge_tuple[1]
+                return position + edgestart
+
+        # if the vehicle is not in a lane, check if it is on a junction
+        for junction_tuple in self.junctionstarts:
+            if junction_tuple[0] in edge:
+                edgestart = junction_tuple[1]
+                return position + edgestart
 
     def gen_even_start_positions(self, bunching):
         """
@@ -111,7 +122,6 @@ class Figure8Scenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
-        # FIXME(cathywu) Remove this arbitrary "- 10"?
         increment = (self.length - bunching) / self.num_vehicles
 
         x = 1
@@ -134,7 +144,6 @@ class Figure8Scenario(Scenario):
         startpositions = []
         mean = (self.length - bunching) / self.num_vehicles
 
-        # FIXME(cathywu) Why is x=1 the start, instead of x=0?
         x = 1
         for i in range(self.num_vehicles):
             pos = self.get_edge(x)
