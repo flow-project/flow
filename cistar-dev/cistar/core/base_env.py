@@ -318,6 +318,7 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
+
         self.state = self.getState()
         observation = np.copy(self.state)
 

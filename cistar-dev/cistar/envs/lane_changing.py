@@ -22,9 +22,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         else:
             self.lane_change_duration = 5 / self.time_step
 
-        for rl_id in self.rl_ids:
-            self.vehicles[rl_id]['last_lc'] = -1 * self.lane_change_duration
-
     @property
     def action_space(self):
         """
@@ -140,7 +137,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
             #     print(actions[3*i], actions[3*i+1], actions[3*i+2])
             lc_value = actions[3 * i + 1]
             direction = actions[3 * i + 2]
-
             acceleration = actions[3 * i]
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
@@ -170,6 +166,13 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
         return resulting_behaviors
 
+    def reset(self):
+        observation = super().reset()
+        pdb.set_trace()
+        for veh_id in self.rl_ids:
+            self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
+        return observation
+
 
 class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
 
@@ -185,26 +188,28 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
                                                         for i in range(len(ind_nonaggressive))])]
         self.ind_nonaggressive = ind_nonaggressive
 
-    def compute_reward(self, velocity, action):
+    def compute_reward(self, state, action):
         """
         See parent class
         """
         # upper bound used to ensure the reward is always positive
+        if np.any(state < 0):
+            return -20.0
         max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
                              np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
         max_cost = np.linalg.norm(max_cost)
 
         # cost associated with being away from target velocity
         # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
-        cost = np.append(velocity[self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
+        cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
                          self.env_params["target_velocity_aggressive"],
-                         velocity[self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
+                         state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
                          self.env_params["target_velocity"])
         cost = np.linalg.norm(cost)
 
         #######################################
-        if any(velocity < 0):
-            print(velocity)
+        if np.any(state < 0):
+            print(state)
         #######################################
 
         return max_cost - cost

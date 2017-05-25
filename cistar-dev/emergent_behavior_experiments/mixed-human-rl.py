@@ -22,10 +22,10 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step":0.2, "traci_control": 0}
+sumo_params = {"time_step":0.05, "traci_control": 1}
 sumo_binary = "sumo"
 
-env_params = {"target_velocity": 20, "max-deacc": 0, "max-acc": 3, "fail-safe": 'None'}
+env_params = {"target_velocity": 8, "max-deacc": 6, "max-acc": 3, "fail-safe": 'None'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40,
               "net_path": "debug/rl/net/"}
@@ -37,10 +37,11 @@ initial_config = {"shuffle": False, "spacing":"gaussian"}
 num_cars = 22
 num_auto = 1
 
-exp_tag = str(num_cars) + 'target-velocity-norm-pos-reward'
+exp_tag = str(num_cars) + 'target-velocity-norm-pos-reward-IDM'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
-               "ovm": (num_cars - num_auto, (OVMController, {}), (StaticLaneChanger, {}), 0)}
+                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -48,7 +49,7 @@ env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
-for seed in [16, 20, 21, 22]:
+for seed in [10, 13, 19, 35, 88]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
@@ -60,11 +61,11 @@ for seed in [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=50000,
-        max_path_length=500,
-        n_itr=400,  # 1000
+        batch_size=100000,
+        max_path_length=2000,
+        n_itr=200,  # 1000
         # whole_paths=True,
-        discount=0.999,
+        # discount=0.999,
         step_size=0.01,
     )
     # algo.train()
@@ -78,8 +79,8 @@ for seed in [16, 20, 21, 22]:
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         #mode="ec2",
-        exp_prefix=exp_tag
+        exp_prefix=exp_tag,
         # plot=True,
     )

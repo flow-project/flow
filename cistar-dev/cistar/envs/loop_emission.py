@@ -28,7 +28,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         """
         #TODO: max and min are parameters
         #TODO: Make more realistic
-        return Box(low=0, high=5.0, shape=(self.scenario.num_rl_vehicles, ))
+        return Box(low=-abs(self.env_params["max-deacc"]), high=3.0, shape=(self.scenario.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
@@ -41,9 +41,9 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         #ypos = Box(low=0., high=np.inf, shape=(num_cars, ))
         vel = Box(low=0., high=np.inf, shape=(num_cars, ))
         headway = Box(low=0., high=np.inf, shape=(num_cars, ))
-        fuelconsump = Box(low=0., high=np.inf, shape=(num_cars, ))
-        self.obs_var_labels = ["Velocity", "Fuel", "Headway"]
-        return Product([vel, fuelconsump, headway])
+        #fuelconsump = Box(low=0., high=np.inf, shape=(num_cars, ))
+        self.obs_var_labels = ["Velocity", "Headway"]
+        return Product([vel, headway])
 
     def compute_reward(self, state, action):
         """
@@ -68,9 +68,13 @@ class SimpleEmissionEnvironment(LoopEnvironment):
 
     def getState(self):
 
+        #return np.array([[self.vehicles[veh_id]["speed"], \
+        #                    self.vehicles[veh_id]["fuel"], \
+        #                    self.get_headway(veh_id)] for veh_id in self.vehicles]).T
+
         return np.array([[self.vehicles[veh_id]["speed"], \
-                            self.vehicles[veh_id]["fuel"], \
-                            self.get_headway(veh_id)] for veh_id in self.vehicles]).T
+                           self.get_headway(veh_id)] for veh_id in self.vehicles]).T
+
 
     def apply_action(self, car_id, action):
         """
@@ -85,4 +89,4 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
     def render(self):
-        print('current velocity, fuel, headway', self.state)
+        print('current velocity, headway', self.state)
