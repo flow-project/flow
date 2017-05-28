@@ -37,7 +37,7 @@ initial_config = {"shuffle": False, "spacing":"gaussian"}
 num_cars = 22
 num_auto = 1
 
-exp_tag = str(num_cars) + 'target-velocity-norm-pos-reward-IDM'
+exp_tag = str(num_cars) + 'target-velocity-norm-pos-reward-IDM-dockertest'
 
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                 "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
@@ -49,7 +49,7 @@ env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
-for seed in [10, 13, 19, 35, 88]:
+for seed in [10, 22, 33]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
@@ -61,7 +61,7 @@ for seed in [10, 13, 19, 35, 88]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=100000,
+        batch_size=40000,
         max_path_length=2000,
         n_itr=200,  # 1000
         # whole_paths=True,
