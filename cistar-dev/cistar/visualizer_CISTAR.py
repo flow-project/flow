@@ -7,6 +7,8 @@ import random
 import numpy as np
 # import tensorflow as tf
 from matplotlib import pyplot as plt
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+
 
 import plotly.offline as po
 import plotly.graph_objs as go
@@ -25,6 +27,9 @@ if __name__ == "__main__":
                         help='Flag for using sumo-gui vs sumo binary')
     parser.add_argument('--run_long', type=float, default=1,
                         help='Number by which to increase max_path_length')
+    parser.add_argument('--loop_length', type=float, default=230,
+                        help='Length of loop over which to simulate')
+
     args = parser.parse_args()
 
     data = joblib.load(args.file)
@@ -46,11 +51,23 @@ if __name__ == "__main__":
     flat_obs = env._wrapped_env.observation_space.flat_dim
     num_obs_var = flat_obs / tot_cars
 
-    # Kanaad and Eugene's Video stuff + Emission output stuff
+    # Recreate the sumo scenario, change the loop length
+    scenario = env._wrapped_env.scenario
+    exp_tag = scenario.name
+    type_params = scenario.type_params
+    net_params = scenario.net_params
+    net_params["length"] = args.loop_length
+    cfg_params = scenario.cfg_params
+    initial_config = scenario.initial_config
+    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    env._wrapped_env.scenario = scenario
+
+    # Set sumo to make a video 
     sumo_params = env._wrapped_env.sumo_params
     sumo_params['emission_path'] = "./test_time_rollout/"
     sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
     env._wrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
+
 
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
