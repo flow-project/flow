@@ -1,6 +1,7 @@
 from cistar.envs.loop import LoopEnvironment
 
 from rllab.spaces import Box
+from rllab.spaces import Product
 
 import traci
 
@@ -8,13 +9,12 @@ import numpy as np
 import pdb
 
 
-"""
-Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
-difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
-velocities for each vehicle.
-"""
 class SimpleAccelerationEnvironment(LoopEnvironment):
-
+    """
+    Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
+    difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
+    velocities for each vehicle.
+    """
 
     @property
     def action_space(self):
@@ -23,7 +23,8 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         :return:
         """
         #TODO: max and min are parameters
-        return Box(low=self.env_params["max-deacc"], high=self.env_params["max-acc"], shape=(self.scenario.num_rl_vehicles, ))
+        return Box(low=-np.abs(self.env_params["max-deacc"]), high=self.env_params["max-acc"],
+                   shape=(self.scenario.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
@@ -31,8 +32,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        self.obs_var_labels = ["Velocity"]
-        return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles, ))
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, absolute_pos])
 
     def apply_action(self, car_id, action):
         """
@@ -47,20 +49,29 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
-    def compute_reward(self, velocity, rl_actions):
+    def compute_reward(self, state, rl_actions, fail=False):
         """
         See parent class
         """
-        #print('speed: {0}, reward:{1}'.format(velocity, -np.linalg.norm(velocity - self.env_params["target_velocity"])))
-        return -np.linalg.norm(velocity - self.env_params["target_velocity"])
+        if any(state[0] < 0) or fail:
+            return -20.0
+
+        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
+
+        cost = state[0] - self.env_params["target_velocity"]
+        cost = np.linalg.norm(cost)
+
+        return max_cost - cost
 
     def getState(self):
         """
-       See parent class
-       The state is an array the velocities for each vehicle
-       :return: an array of vehicle speed for each vehicle
-       """
-        return np.array([self.vehicles[vehicle]["speed"] for vehicle in self.vehicles])
+        See parent class
+        The state is an array the velocities for each vehicle
+        :return: a matrix of velocities and absolute positions for each vehicle
+        """
+        return np.array([[self.vehicles[vehicle]["speed"],
+                          self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T
 
     def render(self):
         print('current state/velocity:', self.state)
