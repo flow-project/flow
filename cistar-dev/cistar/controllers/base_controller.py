@@ -1,5 +1,6 @@
 import numpy as np
 import collections
+import pdb
 
 """Base class for controllers. 
 
@@ -72,9 +73,11 @@ class BaseController:
             time_step = env.time_step
 
             h = (lead_pos - lead_length - this_pos) % env.scenario.length
-
-            if h/(this_vel+action*time_step) < time_step:
-                return -this_vel / time_step
+            if (this_vel+action*time_step) > 0:
+                if h/(this_vel+action*time_step) < time_step:
+                    return -this_vel / time_step
+                else:
+                    return action
             else:
                 return action
 

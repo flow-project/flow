@@ -167,11 +167,20 @@ class SumoEnvironment(Env, Serializable):
             else:
                 self.controlled_ids.append(i)
 
+        # create the list of colors
+        colors = {}
+        key_index = 0
+        color_choice = np.random.choice(len(COLORS))
+        for key in self.scenario.type_params.keys():
+            colors[key] = COLORS[(color_choice+key_index)%len(COLORS)]
+            key_index += 1
+
         for veh_id in self.ids:
             vehicle = dict()
             vehicle["id"] = veh_id
             veh_type = self.traci_connection.vehicle.getTypeID(veh_id)
             vehicle["type"] = veh_type
+            self.traci_connection.vehicle.setColor(veh_id, colors[veh_type])
             vehicle["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
             vehicle["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             vehicle["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
@@ -223,7 +232,6 @@ class SumoEnvironment(Env, Serializable):
         info : a dictionary containing other diagnostic information from the previous action
         """
         self.timer += 1
-
         if self.sumo_params["traci_control"]:
             for veh_id in self.controlled_ids:
                 action = self.vehicles[veh_id]['controller'].get_action(self)
@@ -245,7 +253,6 @@ class SumoEnvironment(Env, Serializable):
                     pass
                 else:
                     self.apply_action(veh_id, action=safe_action)
-
                 if self.timer % 100 == 0:
                     if self.vehicles[veh_id]['lane_changer']:
                         newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
@@ -314,9 +321,14 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
+           # create the list of colors
+        colors = {}
+        key_index = 0
         color_choice = np.random.choice(len(COLORS))
-        color = COLORS[color_choice]
-        color_rl = COLORS[(color_choice + 1) % len(COLORS)]
+        for key in self.scenario.type_params.keys():
+            colors[key] = COLORS[(color_choice+key_index)%len(COLORS)]
+            key_index += 1
+
         for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
@@ -326,11 +338,8 @@ class SumoEnvironment(Env, Serializable):
 
             self.traci_connection.vehicle.remove(veh_id)
             self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
-                                                  departPos=str(lane_pos), departSpeed=str(speed))
-            if self.vehicles[veh_id]['type'] == 'rl':
-                self.traci_connection.vehicle.setColor(veh_id, color_rl)
-            else:
-                self.traci_connection.vehicle.setColor(veh_id, color)
+                                  departPos=str(lane_pos), departSpeed=str(speed))
+            self.traci_connection.vehicle.setColor(veh_id, colors[self.vehicles[veh_id]['type']])
 
         self.traci_connection.simulationStep()
 
@@ -347,6 +356,7 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
             self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
+
 
         self.state = self.getState()
         observation = np.copy(self.state)

@@ -5,20 +5,17 @@ from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.car_following_models import CFMController
-from cistar.controllers.lane_change_controllers import \
-    never_change_lanes_controller, stochastic_lane_changer
+from cistar.controllers.lane_change_controllers import *
 
 
 class TestTwoLaneTwoController(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.WARNING)
 
-        self.sumo_params = {"port": 8873, "time_step": 0.01}
+        self.sumo_params = {"time_step": 0.01, "traci_control": 1}
         self.sumo_binary = "sumo"
-        self.type_params = {"cfm-slow": (
-        6, (CFMController, {'v_des': 6}), never_change_lanes_controller(), 0), \
-                            "cfm-fast": (6, (CFMController, {'v_des': 10}),
-                                         stochastic_lane_changer(), 0)}
+        self.type_params = { "cfm-slow": (6, (CFMController, {'v_des': 6}), (StaticLaneChanger, {}), 0),\
+                            "cfm-fast": (6, (CFMController, {'v_des': 10}), (StochasticLaneChanger, {}), 0)}
         self.env_params = {"target_velocity": 8}
         self.net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
                            "resolution": 40, "net_path": "tests/debug/net/"}

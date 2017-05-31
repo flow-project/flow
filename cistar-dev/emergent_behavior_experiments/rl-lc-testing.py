@@ -19,20 +19,21 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"port": 8873, "time_step": 0.1, "traci_control": 0}
-sumo_binary = "sumo-gui"
-num_cars = 12
+
+sumo_params = {"time_step": 0.1, "traci_control": 1}
+sumo_binary = "sumo"
+num_cars = 30
 
 exp_tag = str(num_cars) + '-car-rl-lane_change'
 
 type_params = {"rl": (num_cars, (RLController, {}), None, 0)}
 
-env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5,
+env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 5,
               "fail-safe": "None"}
 
-net_params = {"length": 200, "lanes": 2, "speed_limit": 0, "resolution": 40, "net_path": "debug/net/"}
+net_params = {"length": 230, "lanes": 2, "speed_limit": 0, "resolution": 40, "net_path": "debug/net/"}
 
-cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 30000000, "cfg_path": "debug/cfg/"}
 
 scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params)
 
@@ -40,10 +41,11 @@ env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_pa
 
 env = normalize(env)
 
-for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+for seed in [5, 10]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(150, 25)
+
+        hidden_sizes=(100, 50, 25)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -55,6 +57,7 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         batch_size=30000,
         max_path_length=1500,
         n_itr=1000,  # 50000
+
         # whole_paths=True,
         # discount=0.99,
         # step_size=0.01,
@@ -66,12 +69,12 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         # Number of parallel workers for sampling
         n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
-        snapshot_mode="last",
+        snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

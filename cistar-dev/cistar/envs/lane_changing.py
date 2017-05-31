@@ -22,9 +22,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         else:
             self.lane_change_duration = 5 / self.time_step
 
-        for rl_id in self.rl_ids:
-            self.vehicles[rl_id]['last_lc'] = -1 * self.lane_change_duration
-
     @property
     def action_space(self):
         """
@@ -140,8 +137,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
             acceleration = actions[3 * i]
             lc_value = actions[3 * i + 1]
             direction = actions[3 * i + 2]
-
             # fail-safe on acceleration in the presence of leading cars
+            acceleration = actions[3 * i]
+
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
             elif self.fail_safe == 'eugene':
@@ -175,6 +173,13 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
         return resulting_behaviors
 
+    def reset(self):
+        observation = super().reset()
+        pdb.set_trace()
+        for veh_id in self.rl_ids:
+            self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
+        return observation
+
 
 class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
 
@@ -198,6 +203,8 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
             return -20.0
 
         # upper bound used to ensure the reward is always positive
+        if np.any(state < 0):
+            return -20.0
         max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
                              np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
         max_cost = np.linalg.norm(max_cost)
