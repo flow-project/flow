@@ -13,7 +13,7 @@ class TestTwoLaneTwoController(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.WARNING)
 
-        self.sumo_params = {"port": 8873, "time_step": 0.01}
+        self.sumo_params = {"time_step": 0.01}
         self.sumo_binary = "sumo"
         self.type_params = {"cfm-slow": (
         6, (CFMController, {'v_des': 6}), never_change_lanes_controller(), 0), \
