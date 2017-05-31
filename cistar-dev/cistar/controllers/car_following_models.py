@@ -364,6 +364,6 @@ class IDMController(BaseController):
 
         h = (lead_pos - lead_length - this_pos) % env.scenario.length
 
-        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (h * np.sqrt(self.a * self.b))])
+        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)
