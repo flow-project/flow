@@ -132,3 +132,66 @@ class BaseController:
                 np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))
 
         return v_safe
+
+    def get_safe_intersection_action(self, env, action):
+        """ Fail-safe used to ensure vehicles do not collide at an intersection.
+
+        Orders vehicles to stop if there are about to enter an intersection currently
+        occupied by a vehicle moving perpendicular.
+
+        Provides right-of-way to one side ("top-bottom" or "left-right") in case vehicles
+        at the same time to an intersection.
+        """
+        time_step = env.time_step
+        this_vel = env.vehicles[self.veh_id]['speed']
+        next_vel = this_vel + action * time_step
+        this_dist_to_intersection, this_intersection = env.get_distance_to_intersection(self.veh_id)
+
+        stop_action = - this_vel / time_step
+
+        # if the car is not about to enter the intersection, continue moving as requested
+
+        if next_vel * time_step < this_dist_to_intersection:
+            return action
+
+        # if the vehicle is about to enter an intersection, and another vehicle is currently in the intersection
+        # from the perpendicular end, stop
+
+        # TODO: modify this for multiple intersections
+        if env.intersection_edges[0] in this_intersection:
+            cross_intersection = env.intersection_edges[1]
+        elif env.intersection_edges[1] in this_intersection:
+            cross_intersection = env.intersection_edges[0]
+
+        if any([cross_intersection in env.vehicles[veh_id]["edge"] for veh_id in env.ids]):
+            return stop_action
+
+        # if two cars are about to enter the intersection, and the other car has right of way, stop;
+        # else, continue into the intersection
+
+        other_dist = []
+        other_veh_id = []
+        for veh_id in env.ids:
+            dist, intersection = env.get_distance_to_intersection(veh_id)
+
+            if cross_intersection in intersection:
+                other_dist.append(dist)
+                other_veh_id.append(veh_id)
+
+        # minimum distance from the cross end until a vehicle
+        ind_min_cross_dist = np.argmin(other_dist)
+        cross_dist = other_dist[ind_min_cross_dist]
+        cross_veh_id = other_veh_id[ind_min_cross_dist]
+
+        cross_vel = env.vehicles[cross_veh_id]["speed"]
+        cross_max_vel = cross_vel + env.env_params["max-acc"] * time_step
+
+        # TODO: this does not take into consideration what the velocity of the other vehicle may be in the next step
+        # TODO: a possible move could be to add the maximum acceleration to the vehicle (worst case scenario)
+        if cross_max_vel * time_step > cross_dist:
+            # if this vehicle does not have right-of-way, stop
+            if env.intersection_edges[1] in this_intersection and env.intersection_fail_safe == "left-right":
+                return stop_action
+            # if this vehicle does have right-of-way, continue
+            elif env.intersection_edges[0] in this_intersection and env.intersection_fail_safe == "top-bottom":
+                return action
