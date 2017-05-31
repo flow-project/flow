@@ -8,11 +8,18 @@ class Figure8Scenario(Scenario):
     def __init__(self, name, type_params, net_params, cfg_params=None,
                  initial_config=None, cfg=None):
         """
-        Initializes a loop scenario. Required net_params: length, lanes,
+        Initializes a figure 8 scenario. Required net_params: radius_ring, lanes,
         speed_limit, resolution. Required initial_config: positions.
 
         See Scenario.py for description of params.
         """
+        ring_edgelen = net_params["radius_ring"] * np.pi / 2.
+        intersection_len = 2 * net_params["radius_ring"]
+        junction_len = 2.9 + 3.3 * net_params["lanes"]
+
+        # instantiate "length" in net params
+        net_params["length"] = 6 * ring_edgelen + 2 * intersection_len + 2 * junction_len
+
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,
                          generator_class=Figure8Generator)
@@ -20,7 +27,8 @@ class Figure8Scenario(Scenario):
         if "radius_ring" not in self.net_params:
             raise ValueError("radius of ring not supplied")
         self.radius_ring = self.net_params["radius_ring"]
-        self.length = self.radius_ring * (3 * np.pi + 4)
+
+        self.length = self.net_params["length"]
 
         if "lanes" not in self.net_params:
             raise ValueError("number of lanes not supplied")
@@ -30,34 +38,25 @@ class Figure8Scenario(Scenario):
             raise ValueError("speed limit not supplied")
         self.speed_limit = self.net_params["speed_limit"]
 
-        if "priority" not in self.net_params:
-            raise ValueError("intersection priority not supplied")
-        elif self.net_params["priority"] != "None" and self.net_params["priority"] != "top_bottom" and \
-                        self.net_params["priority"] != "left_right":
-            raise ValueError('priority must be "top_bottom", "left_right", or "None" ')
-
         if "resolution" not in self.net_params:
-            raise ValueError("resolution of circle not supplied")
+            raise ValueError("resolution of circular sections not supplied")
         self.resolution = self.net_params["resolution"]
-
-        ring_edgelen = self.radius_ring * np.pi / 2.
-        intersection_edgelen = 2 * self.radius_ring
 
         self.edgestarts = [("bottom_lower_ring", 0),
                            ("right_lower_ring_in", ring_edgelen),
-                           ("right_lower_ring_out", ring_edgelen + intersection_edgelen / 2),
-                           ("left_upper_ring", ring_edgelen + intersection_edgelen),
-                           ("top_upper_ring", 2 * ring_edgelen + intersection_edgelen),
-                           ("right_upper_ring", 3 * ring_edgelen + intersection_edgelen),
-                           ("bottom_upper_ring_in", 4 * ring_edgelen + intersection_edgelen),
-                           ("bottom_upper_ring_out", 4 * ring_edgelen + 3 / 2 * intersection_edgelen),
-                           ("top_lower_ring", 4 * ring_edgelen + 2 * intersection_edgelen),
-                           ("left_lower_ring", 5 * ring_edgelen + 2 * intersection_edgelen)]
+                           ("right_lower_ring_out", ring_edgelen + intersection_len / 2 + junction_len),
+                           ("left_upper_ring", ring_edgelen + intersection_len + junction_len),
+                           ("top_upper_ring", 2 * ring_edgelen + intersection_len + junction_len),
+                           ("right_upper_ring", 3 * ring_edgelen + intersection_len + junction_len),
+                           ("bottom_upper_ring_in", 4 * ring_edgelen + intersection_len + junction_len),
+                           ("bottom_upper_ring_out", 4 * ring_edgelen + 3 / 2 * intersection_len + 2 * junction_len),
+                           ("top_lower_ring", 4 * ring_edgelen + 2 * intersection_len + 2 * junction_len),
+                           ("left_lower_ring", 5 * ring_edgelen + 2 * intersection_len + 2 * junction_len)]
 
-        self.junctionstarts = [(":right_lower_ring", ring_edgelen),
-                               (":center_intersection_2", ring_edgelen + intersection_edgelen / 2),
-                               ("bottom_upper_ring", 4 * ring_edgelen + intersection_edgelen),
-                               (":center_intersection_1", 4 * ring_edgelen + 3 / 2 * intersection_edgelen)]
+        # defines junctions not covered
+        self.intersection_edgestarts = \
+            [(":center_intersection_%s" % (1+self.lanes), ring_edgelen + intersection_len / 2),
+             (":center_intersection_1", 4 * ring_edgelen + 3 / 2 * intersection_len + junction_len)]
 
         if "positions" not in self.initial_config:
             bunch_factor = 0
@@ -110,10 +109,10 @@ class Figure8Scenario(Scenario):
                 edgestart = edge_tuple[1]
                 return position + edgestart
 
-        # if the vehicle is not in a lane, check if it is on a junction
-        for junction_tuple in self.junctionstarts:
-            if junction_tuple[0] in edge:
-                edgestart = junction_tuple[1]
+        # if the vehicle is not in a lane, check if it is on an intersection
+        for center_tuple in self.intersection_edgestarts:
+            if center_tuple[0] in edge:
+                edgestart = center_tuple[1]
                 return position + edgestart
 
     def gen_even_start_positions(self, bunching):
