@@ -10,8 +10,6 @@ RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
     /bin/bash /Anaconda2-2.5.0-Linux-x86_64.sh -b -p /opt/conda && \
     rm /Anaconda2-2.5.0-Linux-x86_64.sh
 
-RUN apt-get update --fix-missing && apt-get -y install autotools-dev autoconf
-
 RUN apt-get install -y curl grep sed dpkg && \
     TINI_VERSION=`curl https://github.com/krallin/tini/releases/latest | grep -o "/v.*\"" | sed 's:^..\(.*\).$:\1:'` && \
     curl -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini_${TINI_VERSION}.deb" > tini.deb && \
@@ -30,8 +28,7 @@ RUN apt-get -y install git make cmake unzip apt-utils
 
 # ========== SUMO ==========
 ENV SUMO_VERSION 0.27.1
-# ENV SUMO_SRC sumo-src-$SUMO_VERSION
-ENV SUMO_SRC sumo
+ENV SUMO_SRC sumo-src-$SUMO_VERSION
 ENV SUMO_HOME /opt/sumo
 
 # Install system dependencies.
@@ -41,21 +38,16 @@ RUN apt-get update && apt-get -y install -qq \
     libfox-1.6-0 libfox-1.6-dev
 
 # Download and extract source code
-# Download latest stable SUMO
-# RUN wget http://downloads.sourceforge.net/project/sumo/sumo/version%20$SUMO_VERSION/sumo-src-$SUMO_VERSION.tar.gz
-# RUN tar xzf sumo-src-$SUMO_VERSION.tar.gz && \
-#    mv sumo-$SUMO_VERSION $SUMO_HOME && \#
-#    rm sumo-src-$SUMO_VERSION.tar.gz
-
-# Download SUMO nightly build
-RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo
-RUN mv $SUMO_SRC $SUMO_HOME
+RUN wget http://downloads.sourceforge.net/project/sumo/sumo/version%20$SUMO_VERSION/sumo-src-$SUMO_VERSION.tar.gz
+RUN tar xzf sumo-src-$SUMO_VERSION.tar.gz && \
+    mv sumo-$SUMO_VERSION $SUMO_HOME && \
+    rm sumo-src-$SUMO_VERSION.tar.gz
 
 # Apply patch file
-RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
+RUN cd $SUMO_HOME && wget https://www.dropbox.com/s/23dam05ugg73jny/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
 
-# Install SUMO
-RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make && make install
+# Configure and build from source.
+RUN cd $SUMO_HOME && ./configure && make install
 
 # RUN echo "export PYTHONPATH=\"/opt/sumo/sumo-$SUMO_VERSION/tools\"" >> /root/.bashrc
 ENV PYTHONPATH $SUMO_HOME/tools:$PYTHONPATH
