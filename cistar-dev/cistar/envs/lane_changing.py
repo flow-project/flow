@@ -175,7 +175,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
     def reset(self):
         observation = super().reset()
-        pdb.set_trace()
         for veh_id in self.rl_ids:
             self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
         return observation
@@ -195,11 +194,11 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
                                                         for i in range(len(ind_nonaggressive))])]
         self.ind_nonaggressive = ind_nonaggressive
 
-    def compute_reward(self, state, action, fail=False):
+    def compute_reward(self, state, action, **kwargs):
         """
         See parent class
         """
-        if any(state[0] < 0) or fail:
+        if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
         # upper bound used to ensure the reward is always positive

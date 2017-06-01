@@ -45,7 +45,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         self.obs_var_labels = ["Velocity", "Headway"]
         return Product([vel, headway])
 
-    def compute_reward(self, state, action):
+    def compute_reward(self, state, action, **kwargs):
         """
         See parent class
         TODO(Leah): Fill in documentations
