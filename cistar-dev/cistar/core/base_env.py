@@ -63,6 +63,11 @@ class SumoEnvironment(Env, Serializable):
         self.state = None
         self.obs_var_labels = []
 
+        self.intersection_edges = []
+        if hasattr(self.scenario, "intersection_edgestarts"):
+            for intersection_tuple in self.scenario.intersection_edgestarts:
+                self.intersection_edges.append(intersection_tuple[0])
+
         # SUMO Params
         if "port" not in sumo_params:
             self.port = sumolib.miscutils.getFreeSocketPort()
@@ -87,6 +92,13 @@ class SumoEnvironment(Env, Serializable):
         else:
             self.fail_safe = 'instantaneous'
 
+        if 'intersection_fail-safe' in env_params:
+            if env_params["intersection_fail-safe"] not in ["left-right", "top-bottom", "None"]:
+                raise ValueError('Intersection fail-safe must either be "left-right", "top-bottom", or "None"')
+            self.intersection_fail_safe = env_params["intersection_fail-safe"]
+        else:
+            self.intersection_fail_safe = "None"
+
         self.start_sumo()
         self.setup_initial_state()
 
@@ -100,7 +112,7 @@ class SumoEnvironment(Env, Serializable):
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
             ensure_dir(data_folder)
-            self.emission_out = data_folder +  "{0}-emission.xml".format(self.scenario.name)
+            self.emission_out = data_folder + "{0}-emission.xml".format(self.scenario.name)
 
         self.start_sumo()
         self.setup_initial_state()
@@ -133,7 +145,6 @@ class SumoEnvironment(Env, Serializable):
         self.traci_connection = traci.connect(self.port)
 
         self.traci_connection.simulationStep()
-
 
         # Density = num vehicles / length (in meters)
         # so density in vehicles/km would be 1000 * self.density
@@ -185,14 +196,16 @@ class SumoEnvironment(Env, Serializable):
             # initializes lane-changing controller
             lane_changer_params = self.scenario.type_params[veh_type][2]
             if lane_changer_params is not None:
-                vehicle['lane_changer'] = lane_changer_params[0](veh_id = veh_id, **lane_changer_params[1])
+                vehicle['lane_changer'] = lane_changer_params[0](veh_id=veh_id, **lane_changer_params[1])
             else:
                 vehicle['lane_changer'] = None
 
             self.vehicles[veh_id] = vehicle
+            self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
+
             self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
             if veh_id in self.rl_ids:
-                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
 
             # Saving initial state
             route_id = self.traci_connection.vehicle.getRouteID(veh_id)
@@ -222,12 +235,19 @@ class SumoEnvironment(Env, Serializable):
         if self.sumo_params["traci_control"]:
             for veh_id in self.controlled_ids:
                 action = self.vehicles[veh_id]['controller'].get_action(self)
+
+                # fail-safe to prevent longitudinal crashing
                 if self.fail_safe == 'instantaneous':
                     safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
                 elif self.fail_safe == 'eugene':
                     safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
                 else:
                     safe_action = action
+
+                # fail-safe to prevent crashing at intersections
+                if self.intersection_fail_safe != "None":
+                    safe_action = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_action)
+
                 if safe_action is None:
                     print('safe action is None')
                     pass
@@ -246,6 +266,7 @@ class SumoEnvironment(Env, Serializable):
 
         speeds = []
         for veh_id in self.ids:
+            prev_pos = self.get_x_by_id(veh_id)
             self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
             this_edge = self.traci_connection.vehicle.getRoadID(veh_id)
             if this_edge is None:
@@ -258,28 +279,33 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["speed"] = veh_speed
             speeds.append(veh_speed)
             self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
-            #self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
-            self.vehicles[veh_id]["distance"] += veh_speed*self.time_step
+            self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
+            try:
+                self.vehicles[veh_id]["absolute_position"] += \
+                    (self.get_x_by_id(veh_id) - prev_pos) % self.scenario.length
+            except ValueError:
+                self.vehicles[veh_id]["absolute_position"] = -1001
 
-            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or 
-                self.traci_connection.vehicle.getSpeed(veh_id) < 0):
-                print("Traci is returning error codes for some of your values\n")
-                print(veh_id)
+            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
+                        self.traci_connection.vehicle.getSpeed(veh_id) < 0):
+                print("Traci is returning error codes for some of your values", veh_id)
 
         # if round(self.timer) == round(self.timer, 3):
         #     mean_speed = np.mean(speeds)
         #     print('time:', round(self.timer), 's; avg speed:', mean_speed, 'm/s; flow:', mean_speed * self.density * 3600, '(cars/km)')
         #     print('')
 
-
         # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
         self.state = self.getState()
-        reward = self.compute_reward(self.state, rl_actions)
+        intersection_crash = self.check_intersection_crash()
+        reward = self.compute_reward(self.state, rl_actions, fail=intersection_crash)
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
 
         if (self.traci_connection.simulation.getEndingTeleportNumber() != 0
-            or self.traci_connection.simulation.getStartingTeleportNumber() != 0):
+            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+            or any(self.state.flatten() == -1001)
+            or intersection_crash):
             # Crash has occurred, end rollout
             if self.fail_safe == "None":
                 return Step(observation=next_observation, reward=reward, done=True)
@@ -315,12 +341,13 @@ class SumoEnvironment(Env, Serializable):
                                   departPos=str(lane_pos), departSpeed=str(speed))
             self.traci_connection.vehicle.setColor(veh_id, colors[self.vehicles[veh_id]['type']])
 
-
         self.traci_connection.simulationStep()
 
         # TODO: Replace these traci calls with initial_state accesses
         for veh_id in self.ids:
             self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
+            if veh_id in self.rl_ids:
+                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
             self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
             self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
             self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
@@ -328,6 +355,7 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
+            self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
 
 
         self.state = self.getState()
@@ -341,18 +369,42 @@ class SumoEnvironment(Env, Serializable):
     def apply_rl_actions(self, rl_actions):
         for index, veh_id in enumerate(self.rl_ids):
             action = rl_actions[index]
+
+            # fail-safe to prevent longitudinal crashing
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
             elif self.fail_safe == 'eugene':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
             else:
                 safe_action = action
+
+            # fail-safe to prevent crashing at intersections
+            if self.intersection_fail_safe != "None":
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_action)
+
             self.apply_action(veh_id, action=safe_action)
 
     def apply_action(self, veh_id, action):
         """
         :param veh_id: {string}
         :param action: as specified by a controller or rllab, usually a scalar value
+        """
+        raise NotImplementedError
+
+    def check_intersection_crash(self):
+        """
+        Checks if two vehicles are moving through an intersection from perpendicular ends
+        :return: boolean value (True if crash occurred, False else)
+        """
+        if len(self.intersection_edges) == 0:
+            return False
+        else:
+            return any([self.intersection_edges[0] in self.vehicles[veh_id]["edge"] for veh_id in self.ids]) \
+                   and any([self.intersection_edges[1] in self.vehicles[veh_id]["edge"] for veh_id in self.ids])
+
+    def get_x_by_id(self, veh_id):
+        """
+        Determines the position of a vehicle relative to a certain reference (origin)
         """
         raise NotImplementedError
 
@@ -377,11 +429,12 @@ class SumoEnvironment(Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, actions):
+    def compute_reward(self, state, actions, fail=False):
         """Reward function for RL.
         
         Arguments:
             state {Array-type} -- State of all the vehicles in the simulation
+            fail {bool-type} -- represents any crash or fail not explicitly present in the state
         """
         raise NotImplementedError
 

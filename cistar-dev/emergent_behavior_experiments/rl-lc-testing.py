@@ -1,7 +1,6 @@
 """
 Script used to test the incorporation of lane changing into rl vehicles.
-
-
+Vehicles are trained to travel at a target velocity while avoiding collisions.
 """
 
 import logging
@@ -19,6 +18,7 @@ from cistar.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.INFO)
 
 stub(globals())
+
 
 sumo_params = {"time_step": 0.1, "traci_control": 1}
 sumo_binary = "sumo"
@@ -44,6 +44,7 @@ env = normalize(env)
 for seed in [5, 10]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
+
         hidden_sizes=(100, 50, 25)
     )
 
@@ -53,9 +54,10 @@ for seed in [5, 10]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=50000,
-        max_path_length=1000,
-        n_itr=400,  # 1000
+        batch_size=30000,
+        max_path_length=1500,
+        n_itr=1000,  # 50000
+
         # whole_paths=True,
         # discount=0.99,
         # step_size=0.01,

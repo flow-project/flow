@@ -7,12 +7,12 @@ import pdb
 import numpy as np
 
 
-"""
-Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
-difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
-velocities for each vehicle.
-"""
 class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
+    """
+    Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
+    difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
+    velocities for each vehicle.
+    """
 
     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
         super().__init__(env_params, sumo_binary, sumo_params, scenario)
@@ -44,9 +44,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         An observation is an array the velocities for each vehicle
         """
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        lane = Box(low=0, high=self.scenario.lanes, shape=(self.scenario.num_vehicles,))
-        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, lane, headway])
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, absolute_pos])
 
     def apply_action(self, veh_id, action):
         """
@@ -60,29 +60,30 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         self.traci_connection.vehicle.slowDown(veh_id, nextVel, 1)
 
-    def compute_reward(self, state, action):
+    def compute_reward(self, state, action, fail=False):
         """
         See parent class
         """
-        if any(state[0] < 0):
+        if any(state[0] < 0) or fail:
             return -20.0
+
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 
         cost = state[0] - self.env_params["target_velocity"]
         cost = np.linalg.norm(cost)
+
         return max_cost - cost
-        #return -np.linalg.norm(velocity - self.env_params["target_velocity"])
 
     def getState(self):
         """
-       See parent class
-       The state is an array the velocities for each vehicle
-       :return: an array of vehicle speed for each vehicle
-       """
+        See parent class
+        The state is an array the velocities for each vehicle
+        :return: an array of vehicle speed for each vehicle
+        """
         return np.array([[self.vehicles[vehicle]["speed"],
-                          self.vehicles[vehicle]["lane"],  # TODO: what if we have more than 10 lanes?
-                          self.get_headway(vehicle)]for vehicle in self.vehicles]).T
+                          self.vehicles[vehicle]["lane"],
+                          self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T
 
     def render(self):
         print('current velocity, lane, headway:', self.state)
@@ -133,17 +134,23 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         resulting_behaviors = []
 
         for i, veh_id in enumerate(self.rl_ids):
-            # if veh_id == "rl_1":
-            #     print(actions[3*i], actions[3*i+1], actions[3*i+2])
+            acceleration = actions[3 * i]
             lc_value = actions[3 * i + 1]
             direction = actions[3 * i + 2]
+            # fail-safe on acceleration in the presence of leading cars
             acceleration = actions[3 * i]
+
             if self.fail_safe == 'instantaneous':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acceleration)
             elif self.fail_safe == 'eugene':
                 safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, acceleration)
             else:
                 safe_action = acceleration
+
+            # fail-safe on intersections
+            if self.intersection_fail_safe == "instantaneous":
+                safe_action = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_action)
+
             self.apply_action(veh_id, action=safe_action)
 
             successful_lc = 0
@@ -188,10 +195,13 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
                                                         for i in range(len(ind_nonaggressive))])]
         self.ind_nonaggressive = ind_nonaggressive
 
-    def compute_reward(self, state, action):
+    def compute_reward(self, state, action, fail=False):
         """
         See parent class
         """
+        if any(state[0] < 0) or fail:
+            return -20.0
+
         # upper bound used to ensure the reward is always positive
         if np.any(state < 0):
             return -20.0
@@ -206,10 +216,5 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
                          state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
                          self.env_params["target_velocity"])
         cost = np.linalg.norm(cost)
-
-        #######################################
-        if np.any(state < 0):
-            print(state)
-        #######################################
 
         return max_cost - cost

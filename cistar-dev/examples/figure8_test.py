@@ -6,25 +6,28 @@ from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.car_following_models import *
 from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.rlcontroller import RLController
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step": 0.1, "emission_path": "./data/"}
+sumo_params = {"port": 8873, "time_step": 0.1, "emission_path": "./data/", "traci_control": 1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"ovm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"idm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25}  # , "failsafe": "instantaneous"}
+env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "fail-safe": "None",
+              "intersection_fail-safe": "left-right"}
 
-net_params = {"radius_ring": 20, "lanes": 1, "priority": "top_bottom", "speed_limit": 35, "resolution": 40,
-              "net_path": "debug/net/", "length": 20*5*np.pi}
+radius_ring = 50
+net_params = {"radius_ring": radius_ring, "lanes": 2, "speed_limit": 35, "resolution": 40,
+              "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"shuffle": False, "bunching": 20}
+# initial_config = {"shuffle": False, "bunching": 200}
 
-scenario = LoopScenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
+scenario = Figure8Scenario("figure8", type_params, net_params, cfg_params)
 
 leah_sumo_params = {"port": 8873}
 
@@ -35,4 +38,3 @@ logging.info("Experiment Set Up complete")
 exp.run(1, 10000)
 
 exp.env.terminate()
-
