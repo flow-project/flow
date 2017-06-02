@@ -13,7 +13,7 @@
   - `libxslt=1.1.29` 
   - Takeaway: when updating `environment.yml` make sure to look at both the old version in CISTAR and the newer ones in rllab, and don’t lose data
 - In the same directory that contains the Dockerfile and environment file, run:
-  - `docker build -t <name_of_image>` 
+  - `docker build -t <name_of_image>` .
   - Check it’s there: `docker images` 
   - Create a dockerhub account
   - `docker login` 
