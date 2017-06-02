@@ -198,12 +198,26 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
         """
         See parent class
         """
+        # if any(state[0] < 0) or kwargs["fail"]:
+        #     return -20.0
+
+        # max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
+        #                      np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
+        # max_cost = np.linalg.norm(max_cost)
+
+        # # cost associated with being away from target velocity
+        # # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
+        # cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
+        #                  self.env_params["target_velocity_aggressive"],
+        #                  state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
+        #                  self.env_params["target_velocity"])
+        # cost = np.linalg.norm(cost)
+
+        # return max_cost - cost
+
         if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
-        # upper bound used to ensure the reward is always positive
-        if np.any(state < 0):
-            return -20.0
         max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
                              np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
         max_cost = np.linalg.norm(max_cost)

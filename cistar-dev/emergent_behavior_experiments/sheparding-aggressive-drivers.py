@@ -29,14 +29,15 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, 
-                "rl_lc": "no_collide", "human_lc": "strategic"}
-sumo_binary = "sumo-gui"
+                "rl_lc": "aggressive", "human_lc": "strategic"}
+                
+sumo_binary = "sumo"
 
 test_type = 'rl'    # type of test being implemented (see comment at start of file)
 
 num_aggressive = 2  # number of aggressive drivers
 num_cars = 20        # total number of cars in simulation
-num_human = 12       # number of uncontrollable (human) vehicles
+num_human = 16       # number of uncontrollable (human) vehicles
 num_auto = 4        # number of controllable (rl) vehicles
 ind_aggressive = [0, 1]  # location of aggressive cars
 
@@ -48,11 +49,11 @@ ind_aggressive = [0, 1]  # location of aggressive cars
 #     num_auto = num_cars - num_aggressive
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
-               "idm": (num_human, (IDMController, {}), None, 0), 
+               "idm": (num_human, (IDMController, {}), (StaticLaneChanger, {}), 0), 
                "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
-                None, 0)}
+                (StaticLaneChanger, {}), 0)}
 
-exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd'
+exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd' + 'human-strategic' +'rlaggressive'
 
 
 # type_params = { "cfm-slow": (6, (LinearOVM, {'v_max': 5, "h_st": 2}), None, 0),\
@@ -60,7 +61,7 @@ exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd'
 #  "rl": (1, (RLController, {}), None, 0),}
 
 env_params = {"target_velocity": 8, "target_velocity_aggressive": 12, "ind_aggressive": ind_aggressive,
-              "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5, "fail-safe": "instantaneous"}
+              "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5, "fail-safe": "None"}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 60, "resolution": 40, "net_path": "debug/net/"}
 
@@ -90,7 +91,7 @@ for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         baseline=baseline,
         batch_size=30000,  # 4000
         max_path_length=1500,
-        n_itr=1000,  # 50000
+        n_itr=400,  # 50000
 
         # whole_paths=True,
         # discount=0.99,
@@ -101,13 +102,13 @@ for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,

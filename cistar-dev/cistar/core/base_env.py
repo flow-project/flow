@@ -353,14 +353,7 @@ class SumoEnvironment(Env, Serializable):
             self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
             self.traci_connection.vehicle.setColor(veh_id, colors[self.vehicles[veh_id]['type']])
-            #self.traci_connection.vehicle.setLaneChangeMode(veh_id, 597)
-            ## THIS IS WHAT KANAAD HAD IT AS
-            #self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
-            #self.traci_connection.vehicle.setLaneChangeMode(veh_id, 512)
-            # SUMO MAKES STRATEGIC CHANGES
-            #self.traci_connection.vehicle.setLaneChangeMode(veh_id, 853)
-            # IGNORE ALL LANE CHANGE SAFETY
-             # Set lane change modes
+
             if self.scenario.net_params["lanes"] > 1:
                 if veh_id in self.rl_ids:
                     if self.sumo_params["rl_lc"] == "aggressive":
