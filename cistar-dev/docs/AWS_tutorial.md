@@ -10,7 +10,7 @@
                 Bucket=S3_BUCKET_NAME,
                 CreateBucketConfiguration={'LocationConstraint': 'us-west-1'}
             )
-  - In `config_personal.py` change DOCKER_IMAGE to `DOCKER_IMAGE = "lahaela/cistar-rllab"` 
+  - In `config_personal.py` change DOCKER_IMAGE to `DOCKER_IMAGE = "lahaela/cistar-rllab"` (or for latest svn version evinitsky/cistar-rllab)
   - Also in `config_personal.py` ,if your rllab directory isn’t clean you may want to add certain folders to `FAST_CODE_SYNC_IGNORES` such as `"visualizer/"` 
   - Go to the `Makefile` in `learning-traffic/cistar-dev` and update the path to your rllab root directory (no trailing slash)
   - (See note below); Run `make prepare` 
