@@ -52,7 +52,7 @@ RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo
 RUN mv $SUMO_SRC $SUMO_HOME
 
 # Apply patch file
-RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
+#RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
 
 # Install SUMO
 RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make && make install
@@ -112,7 +112,9 @@ RUN echo "source activate rllab3" >> /root/.bashrc
 ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
-RUN /opt/conda/envs/rllab3/bin/pip install --ignore-installed --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc0-cp35-cp35m-linux_x86_64.whl
+#RUN /opt/conda/envs/rllab3/bin/pip install --ignore-installed --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc0-cp35-cp35m-linux_x86_64.whl
+
+RUN /opt/conda/envs/rllab3/bin/pip install --ignore-installed --upgrade tensorflow
 
 RUN apt-get install -y libopenblas-dev
 RUN printf "[blas]\nldflags = -lopenblas\n" > ~/.theanorc
