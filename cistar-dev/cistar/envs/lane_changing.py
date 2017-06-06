@@ -67,11 +67,11 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Product([speed, lane, absolute_pos])
 
-    def compute_reward(self, state, action, fail=False):
+    def compute_reward(self, state, action, **kwargs):
         """
         See parent class
         """
-        if any(state[0] < 0) or fail:
+        if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
@@ -132,13 +132,13 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
             # TODO: we need fail-safes to be outside of lane-changing control to ensure cars don't crash,
             # TODO: but should we penalize lane-changing cars for applying a fail-safe?
-            self.apply_accel(veh_id, acc=acceleration)
+            self.apply_accel([veh_id], acc=acceleration)
 
             if lc_value > 0:
                 # desired lc
                 if self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']:
                     # enough time has passed, change lanes
-                    lc_reward = self.apply_lane_change(veh_id, direction=direction)
+                    lc_reward = self.apply_lane_change([veh_id], direction=direction)
                     resulting_behaviors.append(lc_reward)
                 else:
                     # rl vehicle desires lane change but duration of previous lane change has not yet completed
@@ -149,7 +149,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         return resulting_behaviors
 
     def reset(self):
-        observation = super().reset()
+        observation = super().reset
 
         for veh_id in self.rl_ids:
             self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
@@ -170,16 +170,30 @@ class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
                                                         for i in range(len(ind_nonaggressive))])]
         self.ind_nonaggressive = ind_nonaggressive
 
-    def compute_reward(self, state, action, fail=False):
+    def compute_reward(self, state, action, **kwargs):
         """
         See parent class
         """
-        if any(state[0] < 0) or fail:
+        # if any(state[0] < 0) or kwargs["fail"]:
+        #     return -20.0
+
+        # max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
+        #                      np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
+        # max_cost = np.linalg.norm(max_cost)
+
+        # # cost associated with being away from target velocity
+        # # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
+        # cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
+        #                  self.env_params["target_velocity_aggressive"],
+        #                  state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
+        #                  self.env_params["target_velocity"])
+        # cost = np.linalg.norm(cost)
+
+        # return max_cost - cost
+
+        if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
-        # upper bound used to ensure the reward is always positive
-        if np.any(state < 0):
-            return -20.0
         max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
                              np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
         max_cost = np.linalg.norm(max_cost)

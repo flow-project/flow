@@ -41,11 +41,11 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
             acceleration = rl_actions[index]
             self.apply_accel(veh_id, acceleration)
 
-    def compute_reward(self, state, rl_actions, fail=False):
+    def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        if any(state[0] < 0) or fail:
+        if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)

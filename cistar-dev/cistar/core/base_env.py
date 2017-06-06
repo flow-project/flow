@@ -225,10 +225,45 @@ class SumoEnvironment(Env, Serializable):
 
             self.initial_vehicles_state[veh_id] = self.vehicles[veh_id]
 
-            self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
-            # TODO: are we sure this is working? Should we just remove the if statement?
-            if veh_id in self.rl_ids:
-                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
+            # set speed mode
+            self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
+
+            if "rl_sm" in self.sumo_params:
+                if veh_id in self.rl_ids:
+                    if self.sumo_params["rl_sm"] == "aggressive":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
+                    elif self.sumo_params["rl_sm"] == "no_collide":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
+
+            if "human_sm" in self.sumo_params:
+                if veh_id not in self.rl_ids:
+                    if self.sumo_params["human_sm"] == "aggressive":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
+                    elif self.sumo_params["human_sm"] == "no_collide":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
+
+            # set lane change mode
+            if self.scenario.net_params["lanes"] > 1:
+                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+
+                if "rl_lc" in self.sumo_params:
+                    if veh_id in self.rl_ids:
+                        if self.sumo_params["rl_lc"] == "aggressive":
+                            # Let TRACI make any lane changes it wants
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
+                        elif self.sumo_params["rl_lc"] == "no_collide":
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 256)
+                        else:
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+
+                if "human_lc" in self.sumo_params:
+                    if veh_id not in self.rl_ids:
+                        if self.sumo_params["human_lc"] == "strategic":
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 853)
+                        else:
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+                    else:
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
 
             # Saving initial state
             route_id = self.traci_connection.vehicle.getRouteID(veh_id)
@@ -259,12 +294,12 @@ class SumoEnvironment(Env, Serializable):
             for veh_id in self.controlled_ids:
                 # acceleration action
                 action = self.vehicles[veh_id]['controller'].get_action(self)
-                self.apply_accel(veh_id, acc=action)
+                self.apply_accel([veh_id], acc=action)
 
                 # lane changing action
                 if self.vehicles[veh_id]['lane_changer']:
                     new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                    self.apply_lane_change(veh_id, target_lane=new_lane)
+                    self.apply_lane_change([veh_id], target_lane=new_lane)
 
         self.apply_rl_actions(rl_actions)
 
@@ -325,6 +360,7 @@ class SumoEnvironment(Env, Serializable):
         else:
             return Step(observation=next_observation, reward=reward, done=False)
 
+    @property
     def reset(self):
         """
         Resets the state of the environment, returning an initial observation.
@@ -353,10 +389,45 @@ class SumoEnvironment(Env, Serializable):
                                                   departPos=str(lane_pos), departSpeed=str(speed))
             self.traci_connection.vehicle.setColor(veh_id, colors[self.vehicles[veh_id]['type']])
 
-            self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
-            # TODO: are we sure this is working? Should we just remove the if statement?
-            if veh_id in self.rl_ids:
-                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
+            # reset speed mode
+            self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
+
+            if "rl_sm" in self.sumo_params:
+                if veh_id in self.rl_ids:
+                    if self.sumo_params["rl_sm"] == "aggressive":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
+                    elif self.sumo_params["rl_sm"] == "no_collide":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
+
+            if "human_sm" in self.sumo_params:
+                if veh_id not in self.rl_ids:
+                    if self.sumo_params["human_sm"] == "aggressive":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
+                    elif self.sumo_params["human_sm"] == "no_collide":
+                        self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
+
+            # reset lane change mode
+            if self.scenario.net_params["lanes"] > 1:
+                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+
+                if "rl_lc" in self.sumo_params:
+                    if veh_id in self.rl_ids:
+                        if self.sumo_params["rl_lc"] == "aggressive":
+                            # Let TRACI make any lane changes it wants
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
+                        elif self.sumo_params["rl_lc"] == "no_collide":
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 256)
+                        else:
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+
+                if "human_lc" in self.sumo_params:
+                    if veh_id not in self.rl_ids:
+                        if self.sumo_params["human_lc"] == "strategic":
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 853)
+                        else:
+                            self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+                    else:
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
 
             # re-initialize perceived state
             self.vehicles[veh_id] = self.initial_vehicles_state[veh_id]
@@ -402,55 +473,49 @@ class SumoEnvironment(Env, Serializable):
         """
         raise NotImplementedError
 
-    def apply_accel(self, veh_id, acc):
+    def apply_accel(self, veh_ids, acc):
         """
         Given an acceleration, set instantaneous velocity given that acceleration.
         Prevents vehicles from moves backwards (issuing negative velocities).
 
-        :param veh_id: vehicle to apply the acceleration to
-        :param acc: requested acceleration from the vehicle
-        :return penalty value: 0 is accel was not changed, -1 if it was
+        :param veh_ids: vehicles to apply the acceleration to
+        :param acc: requested accelerations from the vehicles
         """
         # fail-safe to prevent longitudinal (bumper-to-bumper) crashing
-        if self.fail_safe == 'instantaneous':
-            safe_acc = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acc)
-        elif self.fail_safe == 'eugene':
-            safe_acc = self.vehicles[veh_id]['controller'].get_safe_action(self, acc)
-        else:
-            safe_acc = acc
+        # if self.fail_safe == 'instantaneous':
+        #     safe_acc = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acc)
+        # elif self.fail_safe == 'eugene':
+        #     safe_acc = self.vehicles[veh_id]['controller'].get_safe_action(self, acc)
+        # else:
+        #     safe_acc = acc
 
         # fail-safe to prevent crashing at intersections
-        if self.intersection_fail_safe != "None":
-            safe_acc = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_acc)
+        # if self.intersection_fail_safe != "None":
+        #     safe_acc = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_acc)
 
-        if safe_acc is None:
-            print('safe acceleration is None')
-            return -1
+        # if safe_acc is None:
+        #     print('safe acceleration is None')
+        #     return -1
 
         # issue traci command for requested acceleration
-        thisVel = self.vehicles[veh_id]['speed']
-        nextVel = max(0, thisVel + safe_acc * self.time_step)
+        thisVel = np.array([self.vehicles[vid]['speed'] for vid in veh_ids])
+        nextVel = thisVel + acc * self.time_step
+        nextVel = nextVel.clip(min=0)
 
-        self.traci_connection.vehicle.slowDown(veh_id, nextVel, 1)
+        for i, vid in enumerate(veh_ids):
+            self.traci_connection.vehicle.slowDown(vid, nextVel[i], 1)
 
-        # if the safe acc is not the same as the requested acc, or the requested acc makes the
-        # vehicle move backwards, issue a negative penalty
-        if safe_acc == acc and thisVel + safe_acc * self.time_step >= 0:
-            return 0
-        else:
-            return -1
-
-    def apply_lane_change(self, veh_id, direction=None, target_lane=None):
+    def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """
-        Applies an instantaneous lane-change to a vehicle, while preventing vehicles from moving
-        to lanes that do not exist.
+        Applies an instantaneous lane-change to a set of vehicles, while preventing vehicles from
+        moving to lanes that do not exist.
 
-        Takes as input either a direction or a target_lane. If both are provided, a ValueError
-        is raised.
+        Takes as input either a set of directions or a target_lanes. If both are provided, a
+        ValueError is raised.
 
-        :param veh_id: vehicle to apply the lane change to
-        :param direction: double between -1 and 1; -1 to the right, 1 to the left
-        :param target_lane: index of lane to enter
+        :param veh_ids: vehicles to apply the lane change to
+        :param direction: array on intergers in {-1,1}; -1 to the right, 1 to the left
+        :param target_lane: array of indeces of lane to enter
         :return: penalty value: 0 for successful lane change, -1 for impossible lane change
         """
         if direction is not None and target_lane is not None:
@@ -462,18 +527,23 @@ class SumoEnvironment(Env, Serializable):
             print("Uh oh, single lane track.")
             return -1
 
-        current_lane = self.vehicles[veh_id]['lane']
+        current_lane = np.array([self.vehicles[vid]['lane'] for vid in veh_ids])
+
         if target_lane is None:
-            target_lane = int(current_lane + np.sign(direction))
+            target_lane = current_lane + direction
 
         safe_target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
 
-        if safe_target_lane == target_lane:
-            self.traci_connection.vehicle.changeLane(veh_id, target_lane, 1)
-            self.vehicles[veh_id]['last_lc'] = self.timer
-            return 0
-        else:
-            return -1
+        penalty = []
+        for i, vid in enumerate(veh_ids):
+            if safe_target_lane[i] == target_lane:
+                self.traci_connection.vehicle.changeLane(vid, int(target_lane), 1)
+                self.vehicles[vid]['last_lc'] = self.timer
+                penalty.append(0)
+            else:
+                penalty.append(-1)
+
+        return penalty
 
     def check_intersection_crash(self):
         """
@@ -519,9 +589,8 @@ class SumoEnvironment(Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, actions, fail=False):
-        """
-        Reward function for RL.
+    def compute_reward(self, state, actions, **kwargs):
+        """Reward function for RL.
         
         Arguments:
             state {Array-type} -- State of all the vehicles in the simulation
