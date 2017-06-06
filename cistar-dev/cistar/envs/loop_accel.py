@@ -36,18 +36,10 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Product([speed, absolute_pos])
 
-    def apply_action(self, car_id, action):
-        """
-        See parent class (base_env)
-        Given an acceleration, set instantaneous velocity given that acceleration.
-        """
-        thisSpeed = self.vehicles[car_id]['speed']
-        nextVel = thisSpeed + action * self.time_step
-        nextVel = max(0, nextVel)
-        # nextVel = min(nextVel, 15)
-        # if we're being completely mathematically correct, 1 should be replaced by int(self.time_step * 1000)
-        # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
-        self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
+    def apply_rl_actions(self, rl_actions):
+        for index, veh_id in enumerate(self.rl_ids):
+            acceleration = rl_actions[index]
+            self.apply_accel(veh_id, acceleration)
 
     def compute_reward(self, state, rl_actions, fail=False):
         """
