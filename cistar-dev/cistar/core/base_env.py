@@ -204,8 +204,17 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
 
             self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
-            if veh_id in self.rl_ids:
-                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
+
+            # Set lane change modes
+            if self.scenario.net_params["lanes"] > 1:
+                if veh_id in self.rl_ids:
+                    if self.sumo_params["rl_lc"] == "aggressive":
+                        # Let TRACI make any lane changes it wants
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
+                    elif self.sumo_params["rl_lc"] == "no_collide":
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 256)
+                    else:
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
 
             # Saving initial state
             route_id = self.traci_connection.vehicle.getRouteID(veh_id)
@@ -253,10 +262,10 @@ class SumoEnvironment(Env, Serializable):
                     pass
                 else:
                     self.apply_action(veh_id, action=safe_action)
-                if self.timer % 100 == 0:
-                    if self.vehicles[veh_id]['lane_changer']:
-                        newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                        self.traci_connection.vehicle.changeLane(veh_id, newlane, 10000)
+                
+                if self.vehicles[veh_id]['lane_changer']:
+                    newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                    self.traci_connection.vehicle.changeLane(veh_id, newlane, 10000)
 
         self.apply_rl_actions(rl_actions)
 
@@ -297,8 +306,10 @@ class SumoEnvironment(Env, Serializable):
 
         # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
         self.state = self.getState()
+
         intersection_crash = self.check_intersection_crash()
         reward = self.compute_reward(self.state, rl_actions, fail=intersection_crash)
+
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
 
@@ -311,6 +322,8 @@ class SumoEnvironment(Env, Serializable):
                 return Step(observation=next_observation, reward=reward, done=True)
             else:
                 print("Crash has occurred! Check failsafes!")
+                return Step(observation=next_observation, reward=reward, done=True)
+
         else:
             return Step(observation=next_observation, reward=reward, done=False)
 
@@ -340,6 +353,21 @@ class SumoEnvironment(Env, Serializable):
             self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                   departPos=str(lane_pos), departSpeed=str(speed))
             self.traci_connection.vehicle.setColor(veh_id, colors[self.vehicles[veh_id]['type']])
+
+            if self.scenario.net_params["lanes"] > 1:
+                if veh_id in self.rl_ids:
+                    if self.sumo_params["rl_lc"] == "aggressive":
+                        # Let TRACI make any lane changes it wants
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
+                    elif self.sumo_params["rl_lc"] == "no_collide":
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 256)
+                    else:
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+                else:
+                    if self.sumo_params["human_lc"] == "strategic":
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 853)
+                    else:
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
 
         self.traci_connection.simulationStep()
 
@@ -429,7 +457,7 @@ class SumoEnvironment(Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, actions, fail=False):
+    def compute_reward(self, state, actions, **kwargs):
         """Reward function for RL.
         
         Arguments:

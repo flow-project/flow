@@ -49,11 +49,11 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
-    def compute_reward(self, state, rl_actions, fail=False):
+    def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        if any(state[0] < 0) or fail:
+        if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
