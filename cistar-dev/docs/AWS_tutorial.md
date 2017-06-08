@@ -20,6 +20,7 @@
   - (See note below); Run `make prepare` 
   - Try an example! Run any experiment from `cistar/examples`, change
    mode to “ec2”
+  - You can run it locally by changing the mode to local_docker. If this isn't working, make sure to check that your local docker image is the most current image. 
   - Log into AWS via: https://cathywu.signin.aws.amazon.com/console
   - If you don’t see the instance you just launched (give it a few 
   minutes) running on AWS, then make sure your region is correct (go to
