@@ -21,11 +21,9 @@ class Figure8Generator(Generator):
 
     def generate_net(self, params):
         """
-        Generates Net files for loop sim. Requires:
+        Generates Net files for figure 8 sim. Requires:
         - radius_ring: radius of the ring portion of the network
         - lanes: number of lanes in the road network
-        - priority: specifies which portion of the intersection receives priority; can be "top_bottom", "left_right",
-                    or "None" (default="None"). If no priority is specified, vehicles may crash at the intersection.
         - speed_limit: max speed limit of the vehicles on the road network
         - resolution: number of nodes resolution
         """
@@ -33,21 +31,6 @@ class Figure8Generator(Generator):
         lanes = params["lanes"]
         speed_limit = params["speed_limit"]
         resolution = params["resolution"]
-
-        # vehicles on sections with a lower priority value are given priority in crossing
-        # intersection_type = "unregulated"
-        # priority_top_bottom = -1
-        # priority_left_right = -1
-        # if not params["priority"]:
-        #     pass
-        # elif params["priority"] == "top_bottom":
-        #     intersection_type = "priority"
-        #     priority_top_bottom = 46
-        #     priority_left_right = 78
-        # elif params["priority"] == "left_right":
-        #     intersection_type = "priority"
-        #     priority_top_bottom = 78
-        #     priority_left_right = 46
 
         ring_edgelen = r * pi/2.
         intersection_edgelen = 2*r
@@ -64,8 +47,8 @@ class Figure8Generator(Generator):
         # contains nodes for the boundary points
         # with respect to the x and y axes
         # titled: center_intersection,
-        #         top_lower_ring, bottom_lower_ring, left_lower_ring, right_lower_ring,
-        #         top_upper_ring, bottom_upper_ring, left_upper_ring, right_upper_ring
+        #         top_lower_ring, bottom_lower_ring, left_lower_ring, right_lower_ring_in,
+        #         top_upper_ring, bottom_upper_ring_in, left_upper_ring, right_upper_ring
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
         x.append(E("node", id="center_intersection", x=repr(0), y=repr(0), type="unregulated"))
         x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type="unregulated"))
@@ -99,32 +82,32 @@ class Figure8Generator(Generator):
                                    "length": repr(intersection_edgelen/2)}))
 
         # ring edges
-        x.append(E("edge", attrib={"id": "left_upper_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "left_upper_ring",
                                    "from": "left_upper_ring", "to": "top_upper_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 - cos(t)), r * (1 + sin(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "top_upper_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "top_upper_ring",
                                    "from": "top_upper_ring", "to": "right_upper_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 + sin(t)), r * (1 + cos(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "right_upper_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "right_upper_ring",
                                    "from": "right_upper_ring", "to": "bottom_upper_ring_in", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 + cos(t)), r * (1 - sin(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "top_lower_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "top_lower_ring",
                                    "from": "top_lower_ring", "to": "left_lower_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), -r + r * sin(t))
                                                       for t in linspace(pi/2, pi, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "left_lower_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "left_lower_ring",
                                    "from": "left_lower_ring", "to": "bottom_lower_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), - r + r * sin(t))
                                                       for t in linspace(pi, 3*pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "bottom_lower_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "bottom_lower_ring",
                                    "from": "bottom_lower_ring", "to": "right_lower_ring_in", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), - r + r * sin(t))
                                                       for t in linspace(-pi/2, 0, resolution)]),
@@ -176,11 +159,10 @@ class Figure8Generator(Generator):
 
         startTime: time to start the simulation
         endTime: time to end the simulation
-
         """
 
         if "start_time" not in params:
-            raise ValueError("start_time of circle not supplied")
+            raise ValueError("start_time not supplied")
         else:
             start_time = params["start_time"]
 
@@ -196,11 +178,8 @@ class Figure8Generator(Generator):
 
         def rerouter(name, frm, to):
             '''
-
-            :param name:
-            :param frm:
-            :param to:
-            :return:
+            Used to define changes in route on loop-like scenarios to ensure vehicle continue moving after
+            completing a single path.
             '''
             t = E("rerouter", id=name, edges=frm)
             i = E("interval", begin="0", end="10000000")
@@ -242,12 +221,23 @@ class Figure8Generator(Generator):
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
+        # add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routetop_upper_ring"))
+        # add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeright_lower_ring_in"))
+        # add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routebottom_lower_ring"))
+        # add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
+        # add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_upper_ring"))
+        # add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeright_upper_ring"))
+
         add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routetop_upper_ring"))
-        add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeright_lower_ring_in"))
-        add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routebottom_lower_ring"))
+        add.append(rerouter("rerouterRight_lower_ring_in", "right_lower_ring_in", "routeright_upper_ring"))
+        add.append(rerouter("rerouterRight_lower_ring_out", "right_lower_ring_out", "routebottom_upper_ring_in"))
+        add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routebottom_upper_ring_out"))
+        add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routetop_lower_ring"))
         add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
-        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routetop_upper_ring"))
-        add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeright_upper_ring"))
+        add.append(rerouter("rerouterBottom_upper_ring_in", "bottom_upper_ring_in", "routebottom_lower_ring"))
+        add.append(rerouter("rerouterBottom_upper_ring_out", "bottom_upper_ring_out", "routeright_lower_ring_in"))
+        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_lower_ring_out"))
+        add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeleft_upper_ring"))
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")

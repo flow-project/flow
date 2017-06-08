@@ -24,11 +24,6 @@ class BaseController:
         self.veh_id = veh_id
         self.controller_params = controller_params
 
-        # TODO: with the modifications to the failsafe, we don't need this parameter anymore
-        self.stopping_distance = 1
-        if "stopping_distance" in controller_params:
-            self.stopping_distance = controller_params["stopping_distance"]
-
         if not controller_params['delay']:
             self.delay = 0
         else:
@@ -51,35 +46,33 @@ class BaseController:
         :param action:
         :return:
         """
+        # if there is only one vehicle in the environment, all actions are safe
+        if len(env.vehicles) == 1:
+            return action
+
         this_lane = env.vehicles[self.veh_id]['lane']
         lead_id = env.get_leading_car(self.veh_id, this_lane)
+
+        # if there is no other vehicle in the current lane, all actions are safe
         if lead_id is None:
-            # print('')
-            # print('no lead car for car', self.veh_id, 'in lane', this_lane)
             return action
+
         lead_pos = env.get_x_by_id(lead_id)
         lead_length = env.vehicles[lead_id]['length']
 
-        if len(env.vehicles) == 1:
-            return action
-        else:
-            this_lane = env.vehicles[self.veh_id]['lane']
-            lead_id = env.get_leading_car(self.veh_id, this_lane)
-            lead_pos = env.get_x_by_id(lead_id)
-            lead_length = env.vehicles[lead_id]['length']
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
+        time_step = env.time_step
+        next_vel = this_vel + action * time_step
 
-            this_pos = env.get_x_by_id(self.veh_id)
-            this_vel = env.vehicles[self.veh_id]['speed']
-            time_step = env.time_step
-
-            h = (lead_pos - lead_length - this_pos) % env.scenario.length
-            if (this_vel+action*time_step) > 0:
-                if h/(this_vel+action*time_step) < time_step:
-                    return -this_vel / time_step
-                else:
-                    return action
+        h = (lead_pos - lead_length - this_pos) % env.scenario.length
+        if (next_vel + action * time_step) > 0:
+            if h < time_step * this_vel+action * time_step:
+                return -this_vel / time_step
             else:
                 return action
+        else:
+            return action
 
     def get_safe_action(self, env, action):
         """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
@@ -92,20 +85,18 @@ class BaseController:
         else:
             safe_velocity = self.safe_velocity(env)
 
-            #this is not being used?
-            this_lane = env.vehicles[self.veh_id]['lane']
-
             this_vel = env.vehicles[self.veh_id]['speed']
             time_step = env.time_step
 
-            if this_vel + action*time_step > safe_velocity:
+            if this_vel + action * time_step > safe_velocity:
                 return (safe_velocity - this_vel)/time_step
             else:
                 return action
 
     def safe_velocity(self, env):
-        """Finds maximum velocity such that if the lead vehicle breaks
-        with max acceleration, we can bring the following vehicle to rest
+        """
+        Finds maximum velocity such that if the lead vehicle breaks
+        with max deceleration, we can bring the following vehicle to rest
         at the point at which the headway is zero.
         """
         this_lane = env.vehicles[self.veh_id]['lane']
@@ -119,14 +110,13 @@ class BaseController:
 
         # need to account for the position being reset around the length
         self.max_deaccel = np.abs(self.max_deaccel)
-        if lead_pos > this_pos: 
+        if lead_pos > this_pos:
             dist = lead_pos - (this_pos + lead_length) 
         else:
             loop_length = env.scenario.net_params["length"]
-            dist =  (this_pos + lead_length) - (lead_pos + loop_length)
-        self.last_d = self.d
-        d = dist - np.power((lead_vel - self.max_deaccel * env.time_step),2)/(2*self.max_deaccel)
-        self.d = d
+            dist = (this_pos + lead_length) - (lead_pos + loop_length)
+
+        d = dist - np.power((lead_vel - self.max_deaccel * env.time_step), 2)/(2*self.max_deaccel)
 
         if -2*d+self.max_deaccel*self.delay**2 < 0:
             v_safe = 0
@@ -166,6 +156,7 @@ class BaseController:
         elif env.intersection_edges[1] in this_intersection:
             cross_intersection = env.intersection_edges[0]
 
+        # TODO: also make sure that the car is more than its vehicle length out of the intersection
         if any([cross_intersection in env.vehicles[veh_id]["edge"] for veh_id in env.ids]):
             return stop_action
 

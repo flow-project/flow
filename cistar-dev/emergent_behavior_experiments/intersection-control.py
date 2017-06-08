@@ -22,33 +22,31 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.01, "traci_control": 0}
+sumo_params = {"time_step": 0.1, "traci_control": 0}
 sumo_binary = "sumo-gui"
 
-env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": 'None'}
+env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": "None"}
 
 net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 35, "resolution": 40,
-              "net_path": "debug/rl/net/"}
+              "net_path": "debug/net/", "length": 230}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 12
+num_cars = 10
 
 exp_tag = str(num_cars) + '-car-intersection-control'
 
 type_params = {"rl": (num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
-# type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm": (12, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = normalize(env)
 
-for seed in [10]:  # [16, 20, 21, 22]:
+for seed in [5]:  # [16, 20, 21, 22]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
@@ -60,14 +58,13 @@ for seed in [10]:  # [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=20000,
-        max_path_length=200,
+        batch_size=30000,
+        max_path_length=1500,
         n_itr=100,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
     )
-    # algo.train()
 
     run_experiment_lite(
         algo.train(),

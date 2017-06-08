@@ -42,6 +42,7 @@ class Figure8Scenario(Scenario):
             raise ValueError("resolution of circular sections not supplied")
         self.resolution = self.net_params["resolution"]
 
+        # defines edge starts for road sections
         self.edgestarts = [("bottom_lower_ring", 0),
                            ("right_lower_ring_in", ring_edgelen),
                            ("right_lower_ring_out", ring_edgelen + intersection_len / 2 + junction_len),
@@ -53,7 +54,7 @@ class Figure8Scenario(Scenario):
                            ("top_lower_ring", 4 * ring_edgelen + 2 * intersection_len + 2 * junction_len),
                            ("left_lower_ring", 5 * ring_edgelen + 2 * intersection_len + 2 * junction_len)]
 
-        # defines junctions not covered
+        # defines edge starts for intersections
         self.intersection_edgestarts = \
             [(":center_intersection_%s" % (1+self.lanes), ring_edgelen + intersection_len / 2),
              (":center_intersection_1", 4 * ring_edgelen + 3 / 2 * intersection_len + junction_len)]
@@ -101,7 +102,7 @@ class Figure8Scenario(Scenario):
         position on the track.
         :param edge: name of edge (string)
         :param position: relative position on edge
-        :return:
+        :return: absolute position of the vehicle on the track given a reference (origin)
         """
         # check it the vehicle is in a lane
         for edge_tuple in self.edgestarts:

@@ -15,33 +15,13 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
     velocities for each vehicle.
     """
-
-    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
-        """ Initializes a lane-changing environment.
-        Appends to the simple acceleration environment
-
-        :param env_params:
-        :param sumo_binary:
-        :param sumo_params:
-        :param scenario:
-        """
-        super().__init__(env_params, sumo_binary, sumo_params, scenario)
-
-        if "lane_change_duration" in self.env_params:
-            self.lane_change_duration = self.env_params['lane_change_duration'] / self.time_step
-        else:
-            self.lane_change_duration = 5 / self.time_step
-
-        print(self.lane_change_fail_safe)
-        print(self.fail_safe)
-
     @property
     def action_space(self):
         """
         Actions are:
          - a (continuous) acceleration from max-deacc to max-acc
-         - a (discrete) direction with 3 values: 0) no lane change, 1) lane change to index +1,
-                                                 2) lane change to index -1
+         - a (discrete) direction with 3 values: 0) lane change to index -1, 1) no lane change,
+                                                 2) lane change to index +1
         :return:
         """
         # acc_space = Box(low=-abs(self.env_params["max-deacc"]),
@@ -60,7 +40,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
     def observation_space(self):
         """
         See parent class
-        An observation is an array the velocities for each vehicle
+        An observation consists of the velocity, lane index, and absolute position of each vehicle
+        in the fleet
         """
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
@@ -104,42 +85,31 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         :param actions: (acceleration, lc_value, direction)
         :return: array of resulting actions: 0 if successful + other actions are ok, -1 if unsucessful / bad actions.
         """
+        # acceleration = actions[:self.scenario.num_rl_vehicles]
+        # direction = actions[self.scenario.num_rl_vehicles:] - 1
+        #
+        # # represents vehicles that are allowed to change lanes
+        # lane_changing_veh = [self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+        #                      for veh_id in self.rl_ids]
+        #
+        # self.apply_accel(self.rl_ids, acc=acceleration)
+        # self.apply_lane_change(self.rl_ids[lane_changing_veh], direction=direction[lane_changing_veh])
+
         resulting_behaviors = []
 
         for i, veh_id in enumerate(self.rl_ids):
-            # TODO: in the discrete scheme, we should get rid of lc_value and have direction be {-1,0,1}
             acceleration = actions[3 * i]
             lc_value = actions[3 * i + 1]
             direction = actions[3 * i + 2]
 
-            # if self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']:
-            #     # if enough time has elapsed since the last lane change, perform lane changes as requested
-            #     resulting_behaviors.append(0)
-            # else:
-            #     # if not enough time has passed, ignore the acceleration action (set to zero)
-            #     acceleration = 0.
-            #
-            #     # TODO: this is always going to be continuous, so we can't possibly punish them for having it non-zero
-            #     # TODO: if we specify a range of accelerations that are acceptable during a lane change, then we can
-            #     # TODO: start punishing
-            #     if actions[3 * i] != 0:
-            #         # if requested acceleration was non-zero, add a penalty to the reward fn
-            #         resulting_behaviors.append(-1)
-            #         # TODO: update the action to be the same as actual action?
-            #         actions[3 * i] = 0.
-            #     else:
-            #         resulting_behaviors.append(0)
-
-            # TODO: we need fail-safes to be outside of lane-changing control to ensure cars don't crash,
-            # TODO: but should we penalize lane-changing cars for applying a fail-safe?
-            self.apply_accel([veh_id], acc=acceleration)
+            self.apply_acceleration([veh_id], acc=[acceleration])
 
             if lc_value > 0:
                 # desired lc
                 if self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']:
                     # enough time has passed, change lanes
-                    lc_reward = self.apply_lane_change([veh_id], direction=direction)
-                    resulting_behaviors.append(lc_reward)
+                    self.apply_lane_change([veh_id], direction=np.sign(direction))
+                    resulting_behaviors.append(0)
                 else:
                     # rl vehicle desires lane change but duration of previous lane change has not yet completed
                     resulting_behaviors.append(-1)
@@ -147,13 +117,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                 resulting_behaviors.append(0)
 
         return resulting_behaviors
-
-    def reset(self):
-        observation = super().reset
-
-        for veh_id in self.rl_ids:
-            self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
-        return observation
 
 
 class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):

@@ -37,9 +37,10 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         return Product([speed, absolute_pos])
 
     def apply_rl_actions(self, rl_actions):
-        for index, veh_id in enumerate(self.rl_ids):
-            acceleration = rl_actions[index]
-            self.apply_accel(veh_id, acceleration)
+        """
+        See parent class
+        """
+        self.apply_acceleration(self.rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
