@@ -5,9 +5,10 @@ import logging
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import stub, run_experiment_lite
-from rllab.algos.trpo import TRPO
+from sandbox.rocky.tf.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+from sandbox.rocky.tf.policies.auto_mlp_policy import AutoMLPPolicy
+from sandbox.rocky.tf.envs.base import TfEnv
 
 # from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
@@ -47,10 +48,11 @@ scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_co
 
 env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
-env = normalize(env)
+env = TfEnv(normalize(env))
 
 for seed in [10, 22, 33]:
-    policy = GaussianMLPPolicy(
+    policy = AutoMLPPolicy(
+        name="policy",
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
     )
