@@ -263,79 +263,83 @@ class SumoEnvironment(Env, Serializable):
         done : a boolean, indicating whether the episode has ended
         info : a dictionary containing other diagnostic information from the previous action
         """
-        self.timer += 1
-        accel = []
-        if self.sumo_params["traci_control"]:
-            for veh_id in self.controlled_ids:
-                # acceleration action
-                action = self.vehicles[veh_id]['controller'].get_action(self)
-                accel.append(action)
+        try:
+            self.timer += 1
+            accel = []
+            if self.sumo_params["traci_control"]:
+                for veh_id in self.controlled_ids:
+                    # acceleration action
+                    action = self.vehicles[veh_id]['controller'].get_action(self)
+                    accel.append(action)
 
-                # lane changing action
-                if self.vehicles[veh_id]['lane_changer'] is not None:
-                    new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                    self.apply_lane_change([veh_id], target_lane=new_lane)
+                    # lane changing action
+                    if self.scenario.lanes > 1: 
+                        if self.vehicles[veh_id]['lane_changer'] is not None:
+                            new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                            self.apply_lane_change([veh_id], target_lane=new_lane)
 
-            self.apply_acceleration(self.controlled_ids, acc=accel)
+                self.apply_acceleration(self.controlled_ids, acc=accel)
 
-        self.apply_rl_actions(rl_actions)
+            self.apply_rl_actions(rl_actions)
 
-        self.additional_command()
+            self.additional_command()
 
-        self.traci_connection.simulationStep()
+            self.traci_connection.simulationStep()
 
-        # a = self.proc.stderr.read()
-        # print(a)
+            # a = self.proc.stderr.read()
+            # print(a)
 
-        for veh_id in self.ids:
-            prev_pos = self.get_x_by_id(veh_id)
-            self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
-            this_edge = self.traci_connection.vehicle.getRoadID(veh_id)
-            if this_edge is None:
-                print('Null edge for vehicle:', veh_id)
+            for veh_id in self.ids:
+                prev_pos = self.get_x_by_id(veh_id)
+                self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
+                this_edge = self.traci_connection.vehicle.getRoadID(veh_id)
+                if this_edge is None:
+                    print('Null edge for vehicle:', veh_id)
+                else:
+                    self.vehicles[veh_id]["edge"] = this_edge
+                self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
+                self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+                veh_speed = self.traci_connection.vehicle.getSpeed(veh_id)
+                self.vehicles[veh_id]["speed"] = veh_speed
+                # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
+                # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
+                try:
+                    self.vehicles[veh_id]["absolute_position"] += \
+                        (self.get_x_by_id(veh_id) - prev_pos) % self.scenario.length
+                except ValueError:
+                    self.vehicles[veh_id]["absolute_position"] = -1001
+
+                if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
+                            self.traci_connection.vehicle.getSpeed(veh_id) < 0):
+                    print("Traci is returning error codes for some of your values", veh_id)
+
+            # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
+            # collect information of the state of the network based on the environment class used
+            self.state = self.getState()
+
+            # check whether any vehicles collided at any intersections
+            intersection_crash = self.check_intersection_crash()
+
+            # compute the reward
+            reward = self.compute_reward(self.state, rl_actions, fail=intersection_crash)
+
+            # TODO: Allow for partial observability
+            next_observation = np.copy(self.state)
+
+            if (self.traci_connection.simulation.getEndingTeleportNumber() != 0
+                or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+                or any(self.state.flatten() == -1001)
+                or intersection_crash):
+                # Crash has occurred, end rollout
+                if self.fail_safe == "None":
+                    return Step(observation=next_observation, reward=reward, done=True)
+                else:
+                    print("Crash has occurred! Check failsafes!")
+                    return Step(observation=next_observation, reward=reward, done=False)
             else:
-                self.vehicles[veh_id]["edge"] = this_edge
-            self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
-            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
-            veh_speed = self.traci_connection.vehicle.getSpeed(veh_id)
-            self.vehicles[veh_id]["speed"] = veh_speed
-            # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
-            # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
-            try:
-                self.vehicles[veh_id]["absolute_position"] += \
-                    (self.get_x_by_id(veh_id) - prev_pos) % self.scenario.length
-            except ValueError:
-                self.vehicles[veh_id]["absolute_position"] = -1001
-
-            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
-                        self.traci_connection.vehicle.getSpeed(veh_id) < 0):
-                print("Traci is returning error codes for some of your values", veh_id)
-
-        # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
-        # collect information of the state of the network based on the environment class used
-        self.state = self.getState()
-
-        # check whether any vehicles collided at any intersections
-        intersection_crash = self.check_intersection_crash()
-
-        # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=intersection_crash)
-
-        # TODO: Allow for partial observability
-        next_observation = np.copy(self.state)
-
-        if (self.traci_connection.simulation.getEndingTeleportNumber() != 0
-            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
-            or any(self.state.flatten() == -1001)
-            or intersection_crash):
-            # Crash has occurred, end rollout
-            if self.fail_safe == "None":
-                return Step(observation=next_observation, reward=reward, done=True)
-            else:
-                print("Crash has occurred! Check failsafes!")
                 return Step(observation=next_observation, reward=reward, done=False)
-        else:
-            return Step(observation=next_observation, reward=reward, done=False)
+        except KeyBoardInterrupt:
+            self.close() 
 
     # @property
     def reset(self):
@@ -595,4 +599,5 @@ class SumoEnvironment(Env, Serializable):
         self.traci_connection.close()
 
     def close(self):
+        print("Aw damn, we closed")
         self.terminate()

@@ -5,9 +5,10 @@ import logging
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import stub, run_experiment_lite
-from rllab.algos.trpo import TRPO
+from sandbox.rocky.tf.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+from sandbox.rocky.tf.policies.auto_mlp_policy import AutoMLPPolicy
+from sandbox.rocky.tf.envs.base import TfEnv
 
 # from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
@@ -45,12 +46,13 @@ type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
-env = normalize(env)
+env = TfEnv(normalize(env))
 
 for seed in [10, 22, 33]:
-    policy = GaussianMLPPolicy(
+    policy = AutoMLPPolicy(
+        name="policy",
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
     )
@@ -73,13 +75,13 @@ for seed in [10, 22, 33]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         #mode="ec2",
         exp_prefix=exp_tag,
         # plot=True,
