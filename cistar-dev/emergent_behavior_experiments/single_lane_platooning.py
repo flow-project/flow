@@ -19,8 +19,6 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 # from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
-from cistar.controllers.car_following_models import *
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
 
@@ -28,25 +26,28 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.1, "traci_control": 0}
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "no_collide",
+               "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": "None"}
 
-net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 35, "resolution": 40,
-              "net_path": "debug/net/", "length": 230}
+net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
+              "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": False, "bunching": 20}
+initial_config = {"shuffle": False}
 
-num_cars = 10
+num_cars = 22
+num_auto = 6
 
-exp_tag = str(num_cars) + '-car-intersection-control'
+exp_tag = str(num_cars) + '-car-single-lane-platooning'
 
-type_params = {"rl": (num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"rl": (num_auto, (RLController, {}), None, 0),
+                "idm": (num_cars - num_auto, ("sumoIDM", {"accel": 1, "decel": 1.5, "delta": 4, "tau": 1}), None, 0)}
 
-scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
