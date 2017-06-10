@@ -338,7 +338,7 @@ class SumoEnvironment(Env, Serializable):
                     return Step(observation=next_observation, reward=reward, done=False)
             else:
                 return Step(observation=next_observation, reward=reward, done=False)
-        except KeyBoardInterrupt:
+        except KeyboardInterrupt:
             self.close() 
 
     # @property
@@ -459,8 +459,8 @@ class SumoEnvironment(Env, Serializable):
 
         penalty = []
         for i, vid in enumerate(veh_ids):
-            if safe_target_lane[i] == target_lane:
-                self.traci_connection.vehicle.changeLane(vid, int(target_lane), 1)
+            if safe_target_lane[i] == target_lane[i]:
+                self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 1)
                 self.vehicles[vid]['last_lc'] = self.timer
                 penalty.append(0)
             else:

@@ -24,13 +24,20 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                                                  2) lane change to index +1
         :return:
         """
-        acc_space = Box(low=-abs(self.env_params["max-deacc"]),
+        # direction_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)])
+
+        # acc_space = Box(low=-abs(self.env_params["max-deacc"]),
+        #                 high=self.env_params["max-acc"],
+        #                 shape=(self.scenario.num_rl_vehicles,))
+
+        action_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)], 
+            Box(low=-abs(self.env_params["max-deacc"]),
                         high=self.env_params["max-acc"],
-                        shape=(self.scenario.num_rl_vehicles,))
-        
-        direction_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)])
-        
-        return Product([acc_space, direction_space])
+                        shape=(self.scenario.num_rl_vehicles,)))
+                
+        return action_space
+
+        #return Product([acc_space, direction_space])
 
         # lb = [-abs(self.env_params["max-deacc"]), -1, -1] * self.scenario.num_rl_vehicles
         # ub = [self.env_params["max-acc"], 1, 1] * self.scenario.num_rl_vehicles
@@ -85,15 +92,17 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         :param actions: (acceleration, lc_value, direction)
         :return: array of resulting actions: 0 if successful + other actions are ok, -1 if unsucessful / bad actions.
         """
-        acceleration = actions[:self.scenario.num_rl_vehicles]
-        direction = actions[self.scenario.num_rl_vehicles:] - 1
+        acceleration = actions[-1]
+        direction = np.array(actions[:-1]) - 1
         
         # represents vehicles that are allowed to change lanes
         lane_changing_veh = [self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']
                              for veh_id in self.rl_ids]
         
-        self.apply_accel(self.rl_ids, acc=acceleration)
-        self.apply_lane_change(self.rl_ids[lane_changing_veh], direction=direction[lane_changing_veh])
+        # self.rl_ids = np.array(self.rl_ids)
+
+        self.apply_acceleration(self.rl_ids, acc=acceleration)
+        self.apply_lane_change(np.array(self.rl_ids)[lane_changing_veh], direction=direction[lane_changing_veh])
 
         resulting_behaviors = []
 

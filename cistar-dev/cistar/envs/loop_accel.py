@@ -40,6 +40,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
+        pdb.set_trace()
         self.apply_acceleration(self.rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
