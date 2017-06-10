@@ -42,7 +42,6 @@ exp_tag = str(num_cars) + 'target-velocity-norm-pos-reward-IDM-dockertest'
 type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
                 "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
 env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
