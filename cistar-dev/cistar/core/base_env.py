@@ -506,7 +506,7 @@ class SumoEnvironment(Env, Serializable):
                     if self.sumo_params["rl_lc"] == "aggressive":
                         # Let TRACI make any lane changes it wants
                         lc_mode = 0
-                    elif self.sumo_params["rl_lc"] == "no_collide":
+                    elif self.sumo_params["rl_lc"] == "no_lat_collide":
                         lc_mode = 256
                     else:
                         lc_mode = 768
@@ -517,8 +517,6 @@ class SumoEnvironment(Env, Serializable):
                         lc_mode = 853
                     else:
                         lc_mode = 768
-                else:
-                    lc_mode = 768
 
             self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
 

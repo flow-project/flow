@@ -14,9 +14,12 @@ import logging
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import stub, run_experiment_lite
-from rllab.algos.trpo import TRPO
+#from rllab.algos.trpo import TRPO
+from sandbox.rocky.tf.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+from sandbox.rocky.tf.policies.auto_mlp_policy import AutoMLPPolicy
+from sandbox.rocky.tf.envs.base import TfEnv
 
 from cistar.envs.lane_changing import ShepherdAggressiveDrivers
 from cistar.scenarios.loop.loop_scenario import LoopScenario
@@ -29,7 +32,8 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, 
-                "rl_lc": "aggressive", "human_lc": "strategic"}
+                "rl_lc": "no_lat_collide", "human_lc": "strategic", 
+                "human_sm": "no_collide", "rl_sm": "no_collide"}
                 
 sumo_binary = "sumo"
 
@@ -74,11 +78,12 @@ scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_
 #env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
 env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
 
-env = normalize(env)
+env = TfEnv(normalize(env))
 
 
 for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
-    policy = GaussianMLPPolicy(
+    policy = AutoMLPPolicy(
+        name="policy",
         env_spec=env.spec,
         hidden_sizes=(100,50,25)
     )
