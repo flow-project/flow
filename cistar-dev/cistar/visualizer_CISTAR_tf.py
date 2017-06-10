@@ -37,24 +37,22 @@ if __name__ == "__main__":
         data = joblib.load(args.file)
         policy = data['policy']
         env = data['env']
-        #algo = data['algo']
 
         # Input
-        pdb.set_trace()
-        if env._wrapped_env.obs_var_labels:
-            obs_vars = env._wrapped_env.obs_var_labels
+        unwrapped_env = env._wrapped_env.wrapped_env
+        if unwrapped_env.obs_var_labels:
+            obs_vars = unwrapped_env.obs_var_labels
         else:
             obs_vars = ["Velocity"] # , "Fuel", "Distance"
 
         # Recreate experiment params
-        tot_cars = env._wrapped_env.scenario.num_vehicles
-        rl_cars = env._wrapped_env.scenario.num_rl_vehicles
-        #num_itr = algo.n_itr
-        flat_obs = env._wrapped_env.observation_space.flat_dim
+        tot_cars = unwrapped_env.scenario.num_vehicles
+        rl_cars = unwrapped_env.scenario.num_rl_vehicles
+        flat_obs = unwrapped_env.observation_space.flat_dim
         num_obs_var = flat_obs / tot_cars
 
         # Recreate the sumo scenario, change the loop length
-        scenario = env._wrapped_env.scenario
+        scenario = unwrapped_env.scenario
         exp_tag = scenario.name
         type_params = scenario.type_params
         net_params = scenario.net_params
@@ -65,17 +63,17 @@ if __name__ == "__main__":
         env._wrapped_env.scenario = scenario
 
         # Set sumo to make a video 
-        sumo_params = env._wrapped_env.sumo_params
+        sumo_params = unwrapped_env.sumo_params
         sumo_params['emission_path'] = "./test_time_rollout/"
         sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
-        env._wrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
+        unwrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
 
 
         # Load data into arrays
-        all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
-        all_rewards = np.zeros((args.num_rollouts, max_path_length))
+        all_obs = np.zeros((args.num_rollouts, args.max_path_length, flat_obs))
+        all_rewards = np.zeros((args.num_rollouts, args.max_path_length))
         for j in range(args.num_rollouts):
-            path = rollout(env, policy, max_path_length=max_path_length,
+            path = rollout(env, policy, max_path_length=args.max_path_length,
                        animated=False, speedup=1)
             obs = path['observations'] # length of rollout x flattened observation
             all_obs[j] = obs
@@ -92,7 +90,7 @@ if __name__ == "__main__":
                 # mean is horizontal, across num_rollouts
                 center = np.mean(all_obs[:, :, tot_cars*obs_var_idx + car], axis=0)
                 # stdev = np.std(carvels[car], axis=1)
-                plt.plot(range(max_path_length), center, lw=2.0, label='Car {}'.format(car))
+                plt.plot(range(args.max_path_length), center, lw=2.0, label='Car {}'.format(car))
                 # plt.plot(range(max_path_length), center + stdev, lw=2.0, c='black', ls=':')
                 # plt.plot(range(max_path_length), center - stdev, lw=2.0, c='black', ls=':')
             plt.ylabel(obs_var, fontsize=15)
@@ -105,7 +103,7 @@ if __name__ == "__main__":
             car_mean = np.mean(np.mean(all_obs[:, :, tot_cars*obs_var_idx:tot_cars*(obs_var_idx + 1)], 
                             axis=0), axis = 1)
             plt.figure()
-            plt.plot(range(max_path_length), car_mean)
+            plt.plot(range(args.max_path_length), car_mean)
             plt.ylabel(obs_var, fontsize=15)
             plt.xlabel("Rollout/Path Length", fontsize=15)
             plt.title("Cars {0} / {1}".format(rl_cars, tot_cars), fontsize=16)
@@ -113,7 +111,7 @@ if __name__ == "__main__":
 
         # Make a figure for the mean rewards over the course of the rollout
         plt.figure()
-        plt.plot(range(max_path_length), np.mean(all_rewards, axis=0), lw=2.0)
+        plt.plot(range(args.max_path_length), np.mean(all_rewards, axis=0), lw=2.0)
         plt.ylabel("Reward", fontsize=15)
         plt.xlabel("Rollout/Path Length", fontsize=15)
         plt.title("Cars {0} / {1}".format(rl_cars, tot_cars), fontsize=16)

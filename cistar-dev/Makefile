@@ -1,6 +1,6 @@
 
 
-	RLLABDIR = /Users/eugenevinitsky/Documents/Modules/rllab
+	RLLABDIR = /Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllabcistar
 
 prepare: 
 	rm -rf $(RLLABDIR)/debug

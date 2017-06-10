@@ -52,19 +52,24 @@ ind_aggressive = [0, 1]  # location of aggressive cars
 #     num_human = num_aggressive
 #     num_auto = num_cars - num_aggressive
 
-type_params = {"rl": (num_auto, (RLController, {}), None, 0),
-               "idm": (num_human, (IDMController, {}), (StaticLaneChanger, {}), 0), 
-               "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
-                (StaticLaneChanger, {}), 0)}
+# type_params = {"rl": (num_auto, (RLController, {}), None, 0),
+#                "idm": (num_human, (IDMController, {}), (StaticLaneChanger, {}), 0), 
+#                "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
+#                 (StaticLaneChanger, {}), 0)}
 
-exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd' + 'human-strategic' +'rlaggressive'
+type_params = {"rl": (num_auto, (RLController, {}), None, 0),
+               "idm": (num_human, (IDMController, {}), None, 0), 
+               "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
+                None, 0)}
+
+exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd' + 'human-nolc' +'rlaggressive' + 'failsafeson'
 
 
 # type_params = { "cfm-slow": (6, (LinearOVM, {'v_max': 5, "h_st": 2}), None, 0),\
 #  "cfm-fast": (6, (LinearOVM, {'v_max': 20, "h_st": 2}), None, 0), 
 #  "rl": (1, (RLController, {}), None, 0),}
 
-env_params = {"target_velocity": 8, "target_velocity_aggressive": 12, "ind_aggressive": ind_aggressive,
+env_params = {"target_velocity": 20, "target_velocity_aggressive": 12, "ind_aggressive": ind_aggressive,
               "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5, "fail-safe": "None"}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 60, "resolution": 40, "net_path": "debug/net/"}
@@ -107,13 +112,13 @@ for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
