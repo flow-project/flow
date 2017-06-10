@@ -53,7 +53,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, lane, absolute_pos])
+        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, absolute_pos, headway])
 
     def compute_reward(self, state, action, **kwargs):
         """
@@ -78,10 +79,11 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         return np.array([[self.vehicles[vehicle]["speed"],
                           self.vehicles[vehicle]["lane"],
-                          self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T
+                          self.vehicles[vehicle]["absolute_position"],
+                          self.get_headway(vehicle)] for vehicle in self.vehicles]).T
 
     def render(self):
-        print('current velocity, lane, headway:', self.state)
+        print('current velocity, lane, absolute_pos, headway:', self.state)
 
     def apply_rl_actions(self, actions):
         """

@@ -459,12 +459,13 @@ class SumoEnvironment(Env, Serializable):
 
         penalty = []
         for i, vid in enumerate(veh_ids):
-            if safe_target_lane[i] == target_lane[i]:
-                self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 1)
-                self.vehicles[vid]['last_lc'] = self.timer
-                penalty.append(0)
-            else:
-                penalty.append(-1)
+            if vid in self.rl_ids:
+                if safe_target_lane[i] == target_lane[i]:
+                    self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 1)
+                    self.vehicles[vid]['last_lc'] = self.timer
+                    penalty.append(0)
+                else:
+                    penalty.append(-1)
 
         return penalty
 
