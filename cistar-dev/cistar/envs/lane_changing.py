@@ -30,18 +30,18 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         #                 high=self.env_params["max-acc"],
         #                 shape=(self.scenario.num_rl_vehicles,))
 
-        action_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)], 
-            Box(low=-abs(self.env_params["max-deacc"]),
-                        high=self.env_params["max-acc"],
-                        shape=(self.scenario.num_rl_vehicles,)))
-                
-        return action_space
+        # action_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)],
+        #     Box(low=-abs(self.env_params["max-deacc"]),
+        #                 high=self.env_params["max-acc"],
+        #                 shape=(self.scenario.num_rl_vehicles,)))
+        #
+        # return action_space
 
         #return Product([acc_space, direction_space])
 
-        # lb = [-abs(self.env_params["max-deacc"]), -1, -1] * self.scenario.num_rl_vehicles
-        # ub = [self.env_params["max-acc"], 1, 1] * self.scenario.num_rl_vehicles
-        # return Box(np.array(lb), np.array(ub))
+        lb = [-abs(self.env_params["max-deacc"]), -1] * self.scenario.num_rl_vehicles
+        ub = [self.env_params["max-acc"], 1] * self.scenario.num_rl_vehicles
+        return Box(np.array(lb), np.array(ub))
 
     @property
     def observation_space(self):
@@ -79,8 +79,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         return np.array([[self.vehicles[vehicle]["speed"],
                           self.vehicles[vehicle]["lane"],
-                          self.vehicles[vehicle]["absolute_position"],
-                          self.get_headway(vehicle)] for vehicle in self.vehicles]).T
+                          # self.vehicles[vehicle]["absolute_position"],
+                          self.get_headway(vehicle, lane=abs(self.vehicles[vehicle]["lane"]-1)),  # adjacent-lane head
+                          self.get_headway(vehicle)] for vehicle in self.vehicles]).T             # current lane head
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -94,17 +95,21 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         :param actions: (acceleration, lc_value, direction)
         :return: array of resulting actions: 0 if successful + other actions are ok, -1 if unsucessful / bad actions.
         """
-        acceleration = actions[-1]
-        direction = np.array(actions[:-1]) - 1
+        # acceleration = actions[-1]
+        # direction = np.array(actions[:-1]) - 1
         
+        acceleration = actions[::2]
+        direction = np.round(actions[1::2])
+
         # represents vehicles that are allowed to change lanes
-        lane_changing_veh = [self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']
-                             for veh_id in self.rl_ids]
+        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+                                 for veh_id in self.rl_ids]
+        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
         
         # self.rl_ids = np.array(self.rl_ids)
 
         self.apply_acceleration(self.rl_ids, acc=acceleration)
-        self.apply_lane_change(np.array(self.rl_ids)[lane_changing_veh], direction=direction[lane_changing_veh])
+        self.apply_lane_change(self.rl_ids, direction=direction)
 
         resulting_behaviors = []
 

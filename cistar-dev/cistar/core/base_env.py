@@ -163,7 +163,7 @@ class SumoEnvironment(Env, Serializable):
 
         logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
 
-        self.traci_connection = traci.connect(self.port)
+        self.traci_connection = traci.connect(self.port, numRetries=100)
 
         self.traci_connection.simulationStep()
 
@@ -249,7 +249,6 @@ class SumoEnvironment(Env, Serializable):
         # remove sumo controlled vehicles from controlled_ids
         self.controlled_ids = [self.controlled_ids[i] for i in range(len(self.controlled_ids)) if
                                self.vehicles[self.controlled_ids[i]]["controller"] is not None]
-        print(self.controlled_ids)
 
         # dictionary of initial observations used while resetting vehicles after each rollout
         self.initial_observations = deepcopy(self.vehicles)
@@ -473,9 +472,10 @@ class SumoEnvironment(Env, Serializable):
 
         lane_change_penalty = []
         for i, vid in enumerate(veh_ids):
-            if safe_target_lane[i] == target_lane:
-                self.traci_connection.vehicle.changeLane(vid, int(target_lane), 1)
-                self.vehicles[vid]['last_lc'] = self.timer
+            if safe_target_lane[i] == target_lane[i]:
+                self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 1)
+                if target_lane[i] != current_lane[i]:
+                    self.vehicles[vid]['last_lc'] = self.timer
                 lane_change_penalty.append(0)
             else:
                 lane_change_penalty.append(-1)

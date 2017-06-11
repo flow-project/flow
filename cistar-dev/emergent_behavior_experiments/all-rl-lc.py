@@ -27,6 +27,7 @@ from cistar.envs.lane_changing import *
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
@@ -52,17 +53,17 @@ net_params = {"length": 230, "lanes": 2, "speed_limit": 60, "resolution": 40, "n
 
 cfg_params = {"start_time": 0, "end_time": 30000000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"shuffle": True, "spacing":"gaussian"}
+initial_config = {"shuffle": True, "spacing": "gaussian"}
 
 scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params, initial_config=initial_config)
 
-#env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
+# env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
 env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 env = TfEnv(normalize(env))
 
 
-for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = AutoMLPPolicy(
         name="policy",
         env_spec=env.spec,
@@ -90,12 +91,12 @@ for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         # Number of parallel workers for sampling
         n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
-        snapshot_mode="all",
+        snapshot_mode="last",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix=exp_tag
-        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        exp_prefix=exp_tag,
+        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

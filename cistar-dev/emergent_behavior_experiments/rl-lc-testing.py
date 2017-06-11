@@ -20,10 +20,10 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "aggressive", "human_lc": "aggressive",
-               "rl_sm": "aggressive", "human_sm": "aggressive"}
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no-collide", "human_lc": "no-collide",
+               "rl_sm": "no-collide", "human_sm": "no-collide", "port": 8813}
 sumo_binary = "sumo-gui"
-num_cars = 22
+num_cars = 30
 
 exp_tag = str(num_cars) + '-car-rl-lane_change'
 

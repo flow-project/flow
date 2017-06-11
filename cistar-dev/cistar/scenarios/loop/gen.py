@@ -189,11 +189,9 @@ class CircleGenerator(Generator):
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
         num_cars = scenario.num_vehicles
-        print(type_list)
         if type_list:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
-                print(type_params[tp][1][0])
                 if type_params[tp][1][0] == "sumoIDM":
                     # if any IDM parameters are not specified, they are set to the default parameters specified
                     # by Treiber
@@ -232,6 +230,6 @@ class CircleGenerator(Generator):
                 route, pos = positions[i]
                 type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",
-                             departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
+                              departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
 
             printxml(routes, self.cfg_path + self.roufn)

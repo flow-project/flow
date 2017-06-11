@@ -21,13 +21,14 @@ from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "no_collide",
-               "rl_sm": "no_collide", "human_sm": "no_collide"}
+               "rl_sm": "no_collide", "human_sm": "no_collide", "port": 8813}
 sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": "None"}
@@ -45,7 +46,8 @@ num_auto = 6
 exp_tag = str(num_cars) + '-car-single-lane-platooning'
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
-                "idm": (num_cars - num_auto, ("sumoIDM", {"accel": 1, "decel": 1.5, "delta": 4, "tau": 1}), None, 0)}
+               "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+               # "idm": (num_cars - num_auto, ("sumoIDM", {"accel": 1, "decel": 1.5, "delta": 4, "tau": 1}), None, 0)}
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
