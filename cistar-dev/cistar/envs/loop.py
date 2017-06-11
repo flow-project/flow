@@ -70,6 +70,10 @@ class LoopEnvironment(SumoEnvironment):
             return None
 
     def get_headway(self, veh_id, lane=None):
+        # by default, will look in the same lane
+        if lane is None:
+            lane = self.vehicles[veh_id]["lane"]
+
         lead_id = self.get_leading_car(veh_id, lane)
         # if there's more than one car
         if lead_id:
