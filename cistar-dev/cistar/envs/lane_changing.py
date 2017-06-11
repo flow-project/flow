@@ -97,14 +97,16 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         acceleration = actions[-1]
         direction = np.array(actions[:-1]) - 1
         
-        # represents vehicles that are allowed to change lanes
-        lane_changing_veh = [self.timer > self.lane_change_duration + self.vehicles[veh_id]['last_lc']
-                             for veh_id in self.rl_ids]
+        # represents vehicles that are not allowed to change lanes
+        non_lane_changing_veh = ([self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+                                    for veh_id in self.rl_ids]) 
+        print(non_lane_changing_veh)
+        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
         
         # self.rl_ids = np.array(self.rl_ids)
 
         self.apply_acceleration(self.rl_ids, acc=acceleration)
-        self.apply_lane_change(np.array(self.rl_ids)[lane_changing_veh], direction=direction[lane_changing_veh])
+        self.apply_lane_change(np.array(self.rl_ids), direction=direction)
 
         resulting_behaviors = []
 
