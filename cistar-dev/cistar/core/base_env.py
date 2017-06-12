@@ -369,7 +369,7 @@ class SumoEnvironment(Env, Serializable):
             key_index += 1
 
         # perform shuffling (if requested)
-        if self.sumo_params["shuffle"]:
+        if self.reset_shuffle:
             shuffled_veh_ids = deepcopy(self.ids)
             random.shuffle(shuffled_veh_ids)
 
