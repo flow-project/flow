@@ -15,6 +15,7 @@ from rllab.envs.base import Step
 from cistar.core.util import ensure_dir
 import pdb
 import collections
+import time
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
@@ -302,18 +303,13 @@ class SumoEnvironment(Env, Serializable):
         # a = self.proc.stderr.read()
         # print(a)
 
+        sumo_crash = False
         for veh_id in self.ids:
             prev_pos = self.get_x_by_id(veh_id)
-            self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
-            this_edge = self.traci_connection.vehicle.getRoadID(veh_id)
-            if this_edge is None:
-                print('Null edge for vehicle:', veh_id)
-            else:
-                self.vehicles[veh_id]["edge"] = this_edge
+            self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
             self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
-            veh_speed = self.traci_connection.vehicle.getSpeed(veh_id)
-            self.vehicles[veh_id]["speed"] = veh_speed
+            self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
             try:
@@ -322,27 +318,28 @@ class SumoEnvironment(Env, Serializable):
             except ValueError:
                 self.vehicles[veh_id]["absolute_position"] = -1001
 
-            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
-                        self.traci_connection.vehicle.getSpeed(veh_id) < 0):
+            if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
                 print("Traci is returning error codes for some of your values", veh_id)
+                sumo_crash = True
 
-        # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
         # collect information of the state of the network based on the environment class used
         self.state = self.getState()
 
-        # check whether any vehicles collided at any intersections
+        # crash encodes whether sumo experienced a crash or whether there was a crash an an intersection
+        sumo_crash = sumo_crash or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
+            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+
         intersection_crash = self.check_intersection_crash()
 
+        crash = intersection_crash or sumo_crash
+
         # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=intersection_crash)
+        reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
 
-        if (self.traci_connection.simulation.getEndingTeleportNumber() != 0
-            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
-            or any(self.state.flatten() == -1001)
-            or intersection_crash):
+        if crash:
             # Crash has occurred, end rollout
             if self.fail_safe == "None":
                 return Step(observation=next_observation, reward=reward, done=True)
@@ -472,10 +469,10 @@ class SumoEnvironment(Env, Serializable):
         for i, vid in enumerate(veh_ids):
             self.traci_connection.vehicle.slowDown(vid, actual_nextVel[i], 1)
 
-        actual_acc = (actual_nextVel - thisVel) / self.time_step
-        acc_deviation = (actual_nextVel - requested_nextVel) / self.time_step
-
-        return actual_acc, acc_deviation
+        # actual_acc = (actual_nextVel - thisVel) / self.time_step
+        # acc_deviation = (actual_nextVel - requested_nextVel) / self.time_step
+        #
+        # return actual_acc, acc_deviation
 
     def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """
@@ -506,17 +503,17 @@ class SumoEnvironment(Env, Serializable):
 
         safe_target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
 
-        lane_change_penalty = []
+        # lane_change_penalty = []
         for i, vid in enumerate(veh_ids):
             if safe_target_lane[i] == target_lane[i]:
                 self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 1)
                 if target_lane[i] != current_lane[i]:
                     self.vehicles[vid]['last_lc'] = self.timer
-                lane_change_penalty.append(0)
-            else:
-                lane_change_penalty.append(-1)
+            #     lane_change_penalty.append(0)
+            # else:
+            #     lane_change_penalty.append(-1)
 
-        return lane_change_penalty
+        # return lane_change_penalty
 
     def set_speed_mode(self, veh_id):
         """
@@ -645,5 +642,4 @@ class SumoEnvironment(Env, Serializable):
         self.traci_connection.close()
 
     def close(self):
-        print("Aw damn, we closed")
         self.terminate()
