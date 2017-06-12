@@ -400,10 +400,6 @@ class SumoEnvironment(Env, Serializable):
             self.initial_state = deepcopy(shuffled_initial_state)
             self.initial_observations = deepcopy(shuffled_initial_observations)
 
-            print(self.initial_observations)
-            print("---------------")
-            print(self.initial_state)
-
         # re-initialize the perceived state
         self.vehicles = deepcopy(self.initial_observations)
 
