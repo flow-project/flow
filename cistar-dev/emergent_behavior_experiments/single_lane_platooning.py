@@ -27,8 +27,8 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "no_collide",
-               "rl_sm": "no_collide", "human_sm": "no_collide", "port": 8813}
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "aggressive", "human_lc": "aggressive",
+               "rl_sm": "aggressive", "human_sm": "aggressive", "port": 8813, "shuffle": True}
 sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": "None"}
@@ -41,7 +41,7 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 initial_config = {"shuffle": False}
 
 num_cars = 22
-num_auto = 6
+num_auto = 10
 
 exp_tag = str(num_cars) + '-car-single-lane-platooning'
 
@@ -69,7 +69,7 @@ for seed in [5]:  # [16, 20, 21, 22]:
         baseline=baseline,
         batch_size=30000,
         max_path_length=1500,
-        n_itr=100,  # 1000
+        n_itr=1000,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -85,7 +85,6 @@ for seed in [5]:  # [16, 20, 21, 22]:
         # will be used
         seed=seed,
         mode="local",
-        #mode="ec2",
         exp_prefix=exp_tag,
         python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
