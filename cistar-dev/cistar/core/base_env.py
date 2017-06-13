@@ -291,12 +291,11 @@ class SumoEnvironment(Env, Serializable):
 
             for veh_id in self.ids:
                 prev_pos = self.get_x_by_id(veh_id)
-                self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
                 this_edge = self.traci_connection.vehicle.getRoadID(veh_id)
-                if this_edge is None:
-                    print('Null edge for vehicle:', veh_id)
-                else:
-                    self.vehicles[veh_id]["edge"] = this_edge
+                # if this_edge is None:
+                #     print('Null edge for vehicle:', veh_id)
+                # else:
+                #     self.vehicles[veh_id]["edge"] = this_edge
                 self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
                 self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
                 veh_speed = self.traci_connection.vehicle.getSpeed(veh_id)
@@ -309,9 +308,9 @@ class SumoEnvironment(Env, Serializable):
                 except ValueError:
                     self.vehicles[veh_id]["absolute_position"] = -1001
 
-                if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
-                            self.traci_connection.vehicle.getSpeed(veh_id) < 0):
-                    print("Traci is returning error codes for some of your values", veh_id)
+                # if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
+                #             self.traci_connection.vehicle.getSpeed(veh_id) < 0):
+                #     print("Traci is returning error codes for some of your values", veh_id)
 
             # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
             # collect information of the state of the network based on the environment class used
@@ -466,7 +465,10 @@ class SumoEnvironment(Env, Serializable):
                         self.vehicles[vid]['last_lc'] = self.timer
                     penalty.append(0)
                 else:
+                    self.traci_connection.vehicle.changeLane(vid, int(safe_target_lane[i]), 10000000)
                     penalty.append(-1)
+            else:
+                self.traci_connection.vehicle.changeLane(vid, target_lane, 10000000)
 
         return penalty
 

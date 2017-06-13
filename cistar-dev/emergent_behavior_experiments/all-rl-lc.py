@@ -38,7 +38,7 @@ sumo_params = {"time_step": 0.1, "traci_control": 1,
                 
 sumo_binary = "sumo"
 
-num_auto = 30        # number of controllable (rl) vehicles
+num_auto = 22        # number of controllable (rl) vehicles
 
 # if test_type == 'rl':
 
@@ -66,7 +66,7 @@ for seed in [5, 16, 22, 44]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = AutoMLPPolicy(
         name="policy",
         env_spec=env.spec,
-        hidden_sizes=(100,50,25)
+        hidden_sizes=(200,100,50)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -75,8 +75,8 @@ for seed in [5, 16, 22, 44]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=1000,  # 4000
-        max_path_length=1000,
+        batch_size=500,  # 4000
+        max_path_length=500,
         n_itr=400,  # 50000
 
         # whole_paths=True,
@@ -94,7 +94,7 @@ for seed in [5, 16, 22, 44]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,

@@ -21,7 +21,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from sandbox.rocky.tf.policies.auto_mlp_policy import AutoMLPPolicy
 from sandbox.rocky.tf.envs.base import TfEnv
 
-from cistar.envs.lane_changing import ShepherdAggressiveDrivers
+from cistar.envs.lane_changing import *
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
@@ -35,13 +35,13 @@ sumo_params = {"time_step": 0.1, "traci_control": 1,
                 "rl_lc": "no_lat_collide", "human_lc": "strategic", 
                 "human_sm": "no_collide", "rl_sm": "no_collide"}
                 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 test_type = 'rl'    # type of test being implemented (see comment at start of file)
 
 num_aggressive = 2  # number of aggressive drivers
 num_cars = 20        # total number of cars in simulation
-num_human = 16       # number of uncontrollable (human) vehicles
+num_human = 16      # number of uncontrollable (human) vehicles
 num_auto = 4        # number of controllable (rl) vehicles
 ind_aggressive = [0, 1]  # location of aggressive cars
 
@@ -62,7 +62,7 @@ type_params = {"rl": (num_auto, (RLController, {}), None, 0),
 #                "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
 #                 None, 0)}
 
-exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd' + 'human-lc' +'rlaggressive' + 'failsafeson'
+exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd' + 'human-no-lc' +'-penalize0'
 
 
 # type_params = { "cfm-slow": (6, (LinearOVM, {'v_max': 5, "h_st": 2}), None, 0),\
@@ -81,16 +81,16 @@ initial_config = {"shuffle": True, "spacing":"gaussian"}
 scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params, initial_config=initial_config)
 
 #env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
-env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
-
+#env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = RLOnlyLane(env_params, sumo_binary, sumo_params, scenario)
 env = TfEnv(normalize(env))
 
 
-for seed in [5, 12, 33, 54]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+for seed in [5, 30, 11, 72]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = AutoMLPPolicy(
         name="policy",
         env_spec=env.spec,
-        hidden_sizes=(100,50,25)
+        hidden_sizes=(200,100,50)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -99,9 +99,9 @@ for seed in [5, 12, 33, 54]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=1500,  # 4000
-        max_path_length=1500,
-        n_itr=1,  # 50000
+        batch_size=10000,  # 4000
+        max_path_length=1000,
+        n_itr=400,  # 50000
 
         # whole_paths=True,
         # discount=0.99,
@@ -112,13 +112,13 @@ for seed in [5, 12, 33, 54]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
