@@ -76,7 +76,7 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=20000,  # 4000
+        batch_size=4000,  # 4000
         max_path_length=600,
         n_itr=400,  # 50000
 

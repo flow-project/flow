@@ -1,6 +1,6 @@
 
 
-	RLLABDIR = /Users/eugenevinitsky/Documents/Modules/rllab
+	RLLABDIR = /home/aboudy/Documents/rllab
 
 prepare: 
 	rm -rf $(RLLABDIR)/debug
