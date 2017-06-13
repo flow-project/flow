@@ -237,8 +237,7 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
             # the time step of the last lane change is always present in the environment,
             # but only used by sub-classes that apply lane changing
-            if veh_id in self.rl_ids:
-                self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
+            self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
 
             # set speed mode
             self.set_speed_mode(veh_id)
@@ -260,6 +259,11 @@ class SumoEnvironment(Env, Serializable):
 
         # dictionary of initial observations used while resetting vehicles after each rollout
         self.initial_observations = deepcopy(dict(self.vehicles))
+
+        # contains the last lc before the current step
+        self.prev_last_lc = dict()
+        for veh_id in self.ids:
+            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
 
     def step(self, rl_actions):
         """
@@ -310,7 +314,7 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             if self.vehicles[veh_id]["position"] < prev_rel_pos:
                 self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
-            if self.timer - self.vehicles[veh_id]["last_lc"] >= self.lane_change_duration and self.scenario.lanes > 1:
+            if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration and self.scenario.lanes > 1:
                 self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
@@ -403,6 +407,11 @@ class SumoEnvironment(Env, Serializable):
         # re-initialize the perceived state
         self.vehicles = deepcopy(self.initial_observations)
 
+        # re-initialize memory on last lc
+        self.prev_last_lc = dict()
+        for veh_id in self.ids:
+            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
+
         for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
@@ -494,6 +503,9 @@ class SumoEnvironment(Env, Serializable):
             raise ValueError("Cannot provide both a direction and target_lane.")
         elif direction is None and target_lane is None:
             raise ValueError("A direction or target_lane must be specified.")
+
+        for veh_id in veh_ids:
+            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
 
         if self.scenario.lanes == 1:
             print("Uh oh, single lane track.")
