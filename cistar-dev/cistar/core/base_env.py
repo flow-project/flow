@@ -343,6 +343,10 @@ class SumoEnvironment(Env, Serializable):
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
+        if reward < 0:
+            print(reward)
+            print(self.state[0])
+
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
 
@@ -521,12 +525,11 @@ class SumoEnvironment(Env, Serializable):
         lane_change_penalty = []
         for i, vid in enumerate(veh_ids):
             if safe_target_lane[i] == target_lane[i]:
-                self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 1)
-                if target_lane[i] != current_lane[i]:
-                    self.vehicles[vid]['last_lc'] = self.timer
                 lane_change_penalty.append(0)
+                if target_lane[i] != current_lane[i]:
+                    self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
+                self.vehicles[vid]['last_lc'] = self.timer
             else:
-                self.traci_connection.vehicle.changeLane(vid, int(safe_target_lane[i]), 1)
                 lane_change_penalty.append(-1)
 
         return lane_change_penalty
