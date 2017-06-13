@@ -306,9 +306,12 @@ class SumoEnvironment(Env, Serializable):
         sumo_crash = False
         for veh_id in self.ids:
             prev_pos = self.get_x_by_id(veh_id)
-            self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
+            prev_rel_pos = self.vehicles[veh_id]["position"]
             self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
-            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            if self.vehicles[veh_id]["position"] < prev_rel_pos:
+                self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
+            if self.timer - self.vehicles[veh_id]["last_lc"] >= self.lane_change_duration and self.scenario.lanes > 1:
+                self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
@@ -503,17 +506,18 @@ class SumoEnvironment(Env, Serializable):
 
         safe_target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
 
-        # lane_change_penalty = []
+        lane_change_penalty = []
         for i, vid in enumerate(veh_ids):
             if safe_target_lane[i] == target_lane[i]:
                 self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 1)
                 if target_lane[i] != current_lane[i]:
                     self.vehicles[vid]['last_lc'] = self.timer
-            #     lane_change_penalty.append(0)
-            # else:
-            #     lane_change_penalty.append(-1)
+                lane_change_penalty.append(0)
+            else:
+                self.traci_connection.vehicle.changeLane(vid, int(safe_target_lane[i]), 1)
+                lane_change_penalty.append(-1)
 
-        # return lane_change_penalty
+        return lane_change_penalty
 
     def set_speed_mode(self, veh_id):
         """
