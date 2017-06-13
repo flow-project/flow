@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "strategic",
-               "rl_sm": "no_collide", "human_sm": "no_collide", "port": 8813}
+               "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 5,
@@ -45,7 +45,7 @@ initial_config = {"shuffle": True}
 num_cars = 30
 num_auto = 20
 
-exp_tag = str(num_cars) + '-car-multi-lane-platooning'
+exp_tag = str(num_cars) + '-car-multi-lane-platooning-fastest'
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm": (num_cars - num_auto, (IDMController, {}), None, 0)}
@@ -70,7 +70,7 @@ for seed in [5]:  # [16, 20, 21, 22]:
         baseline=baseline,
         batch_size=30000,
         max_path_length=1500,
-        n_itr=1000,  # 1000
+        n_itr=500,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -81,7 +81,7 @@ for seed in [5]:  # [16, 20, 21, 22]:
         # Number of parallel workers for sampling
         n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
-        snapshot_mode="last",
+        snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,

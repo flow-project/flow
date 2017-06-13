@@ -27,8 +27,8 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "aggressive", "human_lc": "aggressive",
-               "rl_sm": "aggressive", "human_sm": "aggressive", "port": 8813, "shuffle": True}
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "no_collide",
+               "rl_sm": "no_collide", "human_sm": "no_collide", "port": 8813, "shuffle": True}
 sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": "None"}

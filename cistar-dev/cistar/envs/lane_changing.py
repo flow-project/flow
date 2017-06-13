@@ -7,6 +7,7 @@ from rllab.spaces.discrete import Discrete
 import traci
 import pdb
 import numpy as np
+import time
 
 
 class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
@@ -53,8 +54,10 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, lane, absolute_pos, headway])
+        last_lc = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        # headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, absolute_pos, last_lc])
+        # return Product([speed, lane, absolute_pos, headway])
 
     def compute_reward(self, state, action, **kwargs):
         """
@@ -79,9 +82,10 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         return np.array([[self.vehicles[vehicle]["speed"],
                           self.vehicles[vehicle]["lane"],
-                          # self.vehicles[vehicle]["absolute_position"],
-                          self.get_headway(vehicle, lane=abs(self.vehicles[vehicle]["lane"]-1)),  # adjacent-lane head
-                          self.get_headway(vehicle)] for vehicle in self.vehicles]).T             # current lane head
+                          self.vehicles[vehicle]["absolute_position"],
+                          self.timer - self.vehicles[vehicle]["last_lc"]] for vehicle in self.vehicles]).T
+                          # self.get_headway(vehicle, lane=abs(self.vehicles[vehicle]["lane"]-1)),  # adjacent-lane head
+                          # self.get_headway(vehicle)] for vehicle in self.vehicles]).T             # current lane head
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -106,8 +110,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                                  for veh_id in self.rl_ids]
         direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
         
-        # self.rl_ids = np.array(self.rl_ids)
-
         self.apply_acceleration(self.rl_ids, acc=acceleration)
         self.apply_lane_change(self.rl_ids, direction=direction)
 

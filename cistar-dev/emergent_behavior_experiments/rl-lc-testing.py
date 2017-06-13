@@ -25,7 +25,9 @@ sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no-collide", "hum
 sumo_binary = "sumo-gui"
 num_cars = 30
 
-exp_tag = str(num_cars) + '-car-rl-lane_change'
+initial_config = {"shuffle": False}
+
+exp_tag = str(num_cars) + '-car-rl-lane_change-minimal-state-space'
 
 type_params = {"rl": (num_cars, (RLController, {}), None, 0)}
 
@@ -36,7 +38,7 @@ net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40, "n
 
 cfg_params = {"start_time": 0, "end_time": 30000000, "cfg_path": "debug/cfg/"}
 
-scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params)
+scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params, initial_config)
 
 env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
@@ -56,7 +58,7 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
         baseline=baseline,
         batch_size=30000,
         max_path_length=1500,
-        n_itr=1000,  # 50000
+        n_itr=500,  # 50000
 
         # whole_paths=True,
         # discount=0.99,
