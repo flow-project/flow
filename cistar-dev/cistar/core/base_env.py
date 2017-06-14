@@ -331,6 +331,7 @@ class SumoEnvironment(Env, Serializable):
                 or intersection_crash):
                 # Crash has occurred, end rollout
                 if self.fail_safe == "None":
+                    print("Crash occured, resetting")
                     return Step(observation=next_observation, reward=reward, done=True)
                 else:
                     print("Crash has occurred! Check failsafes!")
@@ -460,14 +461,14 @@ class SumoEnvironment(Env, Serializable):
         for i, vid in enumerate(veh_ids):
             if vid in self.rl_ids:
                 if safe_target_lane[i] == target_lane[i]:
-                    self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 10000000)
+                    penalty.append(0)
                     if target_lane[i] != current_lane[i]:
                         self.vehicles[vid]['last_lc'] = self.timer
-                    penalty.append(0)
+                        self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 10000000)
                 else:
-                    self.traci_connection.vehicle.changeLane(vid, int(safe_target_lane[i]), 10000000)
                     penalty.append(-1)
             else:
+                # This line is called if we have built a lane changing model for a human car
                 self.traci_connection.vehicle.changeLane(vid, target_lane, 10000000)
 
         return penalty
