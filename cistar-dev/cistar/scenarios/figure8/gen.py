@@ -221,23 +221,23 @@ class Figure8Generator(Generator):
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
-        # add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routetop_upper_ring"))
-        # add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeright_lower_ring_in"))
-        # add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routebottom_lower_ring"))
-        # add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
-        # add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_upper_ring"))
-        # add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeright_upper_ring"))
-
         add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routetop_upper_ring"))
-        add.append(rerouter("rerouterRight_lower_ring_in", "right_lower_ring_in", "routeright_upper_ring"))
-        add.append(rerouter("rerouterRight_lower_ring_out", "right_lower_ring_out", "routebottom_upper_ring_in"))
-        add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routebottom_upper_ring_out"))
-        add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routetop_lower_ring"))
+        add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeright_lower_ring_in"))
+        add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routebottom_lower_ring"))
         add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
-        add.append(rerouter("rerouterBottom_upper_ring_in", "bottom_upper_ring_in", "routebottom_lower_ring"))
-        add.append(rerouter("rerouterBottom_upper_ring_out", "bottom_upper_ring_out", "routeright_lower_ring_in"))
-        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_lower_ring_out"))
-        add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeleft_upper_ring"))
+        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_upper_ring"))
+        add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeright_upper_ring"))
+
+        # add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routetop_upper_ring"))
+        # add.append(rerouter("rerouterRight_lower_ring_in", "right_lower_ring_in", "routeright_upper_ring"))
+        # add.append(rerouter("rerouterRight_lower_ring_out", "right_lower_ring_out", "routebottom_upper_ring_in"))
+        # add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routebottom_upper_ring_out"))
+        # add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routetop_lower_ring"))
+        # add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
+        # add.append(rerouter("rerouterBottom_upper_ring_in", "bottom_upper_ring_in", "routebottom_lower_ring"))
+        # add.append(rerouter("rerouterBottom_upper_ring_out", "bottom_upper_ring_out", "routeright_lower_ring_in"))
+        # add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_lower_ring_out"))
+        # add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeleft_upper_ring"))
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")
@@ -266,7 +266,29 @@ class Figure8Generator(Generator):
         if type_list:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
-                routes.append(E("vType", id=tp, minGap="0"))
+                print(type_params[tp][1][0])
+                if type_params[tp][1][0] == "sumoIDM":
+                    # if any IDM parameters are not specified, they are set to the default parameters specified
+                    # by Treiber
+                    if "accel" not in type_params[tp][1]:
+                        type_params[tp][1][1]["accel"] = 1
+
+                    if "decel" not in type_params[tp][1]:
+                        type_params[tp][1][1]["decel"] = 1.5
+
+                    if "delta" not in type_params[tp][1]:
+                        type_params[tp][1][1]["delta"] = 4
+
+                    if "tau" not in type_params[tp][1]:
+                        type_params[tp][1][1]["tau"] = 1
+
+                    routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
+                                                     "accel": repr(type_params[tp][1][1]["accel"]),
+                                                     "decel": repr(type_params[tp][1][1]["decel"]),
+                                                     "delta": repr(type_params[tp][1][1]["delta"]),
+                                                     "tau": repr(type_params[tp][1][1]["tau"])}))
+                else:
+                    routes.append(E("vType", id=tp, minGap="0"))
 
             vehicle_ids = []
             if num_cars > 0:

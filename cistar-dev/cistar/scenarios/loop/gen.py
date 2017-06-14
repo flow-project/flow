@@ -192,7 +192,28 @@ class CircleGenerator(Generator):
         if type_list:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
-                routes.append(E("vType", id=tp, minGap="0"))
+                if type_params[tp][1][0] == "sumoIDM":
+                    # if any IDM parameters are not specified, they are set to the default parameters specified
+                    # by Treiber
+                    if "accel" not in type_params[tp][1]:
+                        type_params[tp][1][1]["accel"] = 1
+
+                    if "decel" not in type_params[tp][1]:
+                        type_params[tp][1][1]["decel"] = 1.5
+
+                    if "delta" not in type_params[tp][1]:
+                        type_params[tp][1][1]["delta"] = 4
+
+                    if "tau" not in type_params[tp][1]:
+                        type_params[tp][1][1]["tau"] = 1
+
+                    routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
+                                                     "accel": repr(type_params[tp][1][1]["accel"]),
+                                                     "decel": repr(type_params[tp][1][1]["decel"]),
+                                                     "delta": repr(type_params[tp][1][1]["delta"]),
+                                                     "tau": repr(type_params[tp][1][1]["tau"])}))
+                else:
+                    routes.append(E("vType", id=tp, minGap="0"))
 
             vehicle_ids = []
             if num_cars > 0:
@@ -209,6 +230,6 @@ class CircleGenerator(Generator):
                 route, pos = positions[i]
                 type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",
-                             departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
+                              departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
 
             printxml(routes, self.cfg_path + self.roufn)
