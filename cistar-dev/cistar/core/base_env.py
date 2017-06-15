@@ -340,12 +340,11 @@ class SumoEnvironment(Env, Serializable):
 
         crash = intersection_crash or sumo_crash
 
+        if intersection_crash:
+            print("intersection crash!")
+
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
-
-        if reward < 0:
-            print(reward)
-            print(self.state[0])
 
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
@@ -356,7 +355,7 @@ class SumoEnvironment(Env, Serializable):
                 return Step(observation=next_observation, reward=reward, done=True)
             else:
                 print("Crash has occurred! Check failsafes!")
-                return Step(observation=next_observation, reward=reward, done=False)
+                return Step(observation=next_observation, reward=reward, done=True)
         else:
             return Step(observation=next_observation, reward=reward, done=False)
 

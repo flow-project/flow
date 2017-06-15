@@ -26,7 +26,8 @@ sumo_params = {"time_step": 0.1, "traci_control": 0, "rl_lc": "no_collide", "hum
                "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo"
 
-env_params = {"target_velocity": 8, "max-deacc": -3, "max-acc": 3, "fail-safe": "None"}
+env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
+              "intersection_fail-safe": "left-right"}
 
 net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 35, "resolution": 40,
               "net_path": "debug/net/", "length": 230}
@@ -36,10 +37,12 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 initial_config = {"shuffle": False}
 
 num_cars = 18
+num_auto = 18
 
-exp_tag = str(num_cars) + '-car-intersection-control'
+exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-intersection-control'
 
-type_params = {"rl": (num_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"rl": (num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
+               "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
 scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -61,7 +64,7 @@ for seed in [5]:  # [16, 20, 21, 22]:
         baseline=baseline,
         batch_size=30000,
         max_path_length=1500,
-        n_itr=100,  # 1000
+        n_itr=1000,
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,

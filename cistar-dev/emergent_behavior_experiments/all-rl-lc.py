@@ -63,7 +63,11 @@ env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_pa
 env = TfEnv(normalize(env))
 
 
+<<<<<<< HEAD
 for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+=======
+for seed in [5, 16, 22, 44]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+>>>>>>> 2a141ba68b02858693b6be10cd8764f78851d64c
     policy = AutoMLPPolicy(
         name="policy",
         env_spec=env.spec,
@@ -76,8 +80,13 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
+<<<<<<< HEAD
         batch_size=4000,  # 4000
         max_path_length=600,
+=======
+        batch_size=1000,  # 4000
+        max_path_length=1000,
+>>>>>>> 2a141ba68b02858693b6be10cd8764f78851d64c
         n_itr=400,  # 50000
 
         # whole_paths=True,
@@ -89,14 +98,20 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="last",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
+<<<<<<< HEAD
         mode="local",
         exp_prefix=exp_tag,
         python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+=======
+        mode="ec2",
+        exp_prefix=exp_tag
+        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+>>>>>>> 2a141ba68b02858693b6be10cd8764f78851d64c
         # plot=True,
     )

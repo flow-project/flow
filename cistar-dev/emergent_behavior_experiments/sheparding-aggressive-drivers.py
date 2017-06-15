@@ -35,7 +35,7 @@ sumo_params = {"time_step": 0.1, "traci_control": 1,
                 "rl_lc": "no_lat_collide", "human_lc": "strategic", 
                 "human_sm": "no_collide", "rl_sm": "no_collide"}
                 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 test_type = 'rl'    # type of test being implemented (see comment at start of file)
 
@@ -57,14 +57,19 @@ type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
                 (StaticLaneChanger, {}), 0)}
 
-exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd' + 'human-strategic' +'rlaggressive'
+# type_params = {"rl": (num_auto, (RLController, {}), None, 0),
+#                "idm": (num_human, (IDMController, {}), None, 0), 
+#                "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
+#                 None, 0)}
+
+exp_tag = str(num_auto + num_human + len(ind_aggressive)) + 'car-shepherd' + 'human-lc' +'rlaggressive' + 'failsafeson'
 
 
 # type_params = { "cfm-slow": (6, (LinearOVM, {'v_max': 5, "h_st": 2}), None, 0),\
 #  "cfm-fast": (6, (LinearOVM, {'v_max': 20, "h_st": 2}), None, 0), 
 #  "rl": (1, (RLController, {}), None, 0),}
 
-env_params = {"target_velocity": 8, "target_velocity_aggressive": 12, "ind_aggressive": ind_aggressive,
+env_params = {"target_velocity": 20, "target_velocity_aggressive": 12, "ind_aggressive": ind_aggressive,
               "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5, "fail-safe": "None"}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 60, "resolution": 40, "net_path": "debug/net/"}
@@ -81,7 +86,7 @@ env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
 env = TfEnv(normalize(env))
 
 
-for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+for seed in [5, 12, 33, 54]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     policy = AutoMLPPolicy(
         name="policy",
         env_spec=env.spec,
@@ -94,9 +99,9 @@ for seed in [5, 16, 22]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,  # 4000
+        batch_size=1500,  # 4000
         max_path_length=1500,
-        n_itr=400,  # 50000
+        n_itr=1,  # 50000
 
         # whole_paths=True,
         # discount=0.99,

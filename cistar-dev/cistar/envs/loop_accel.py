@@ -33,8 +33,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         An observation is an array the velocities for each vehicle
         """
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, absolute_pos])
+        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, pos])
 
     def apply_rl_actions(self, rl_actions):
         """

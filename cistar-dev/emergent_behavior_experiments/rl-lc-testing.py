@@ -21,13 +21,13 @@ stub(globals())
 
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no-collide", "human_lc": "no-collide",
-               "rl_sm": "no-collide", "human_sm": "no-collide", "port": 8813}
-sumo_binary = "sumo-gui"
-num_cars = 30
+               "rl_sm": "no-collide", "human_sm": "no-collide"}
+sumo_binary = "sumo"
+num_cars = 44
 
 initial_config = {"shuffle": False}
 
-exp_tag = str(num_cars) + '-car-rl-lane_change-minimal-state-space'
+exp_tag = str(num_cars) + '-car-rl-lane_change'
 
 type_params = {"rl": (num_cars, (RLController, {}), None, 0)}
 
@@ -58,7 +58,7 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
         baseline=baseline,
         batch_size=30000,
         max_path_length=1500,
-        n_itr=500,  # 50000
+        n_itr=1000,  # 50000
 
         # whole_paths=True,
         # discount=0.99,
@@ -68,14 +68,14 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

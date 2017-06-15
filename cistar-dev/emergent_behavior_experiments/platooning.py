@@ -28,9 +28,9 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "strategic",
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "no_collide",
                "rl_sm": "no_collide", "human_sm": "no_collide"}
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 5,
               "fail-safe": "None"}
@@ -40,12 +40,12 @@ net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40,
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": True}
+initial_config = {"shuffle": False}
 
-num_cars = 30
-num_auto = 20
+num_cars = 32
+num_auto = 2
 
-exp_tag = str(num_cars) + '-car-multi-lane-platooning-fastest'
+exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-multi-mixed-human-rl'
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm": (num_cars - num_auto, (IDMController, {}), None, 0)}
@@ -68,9 +68,9 @@ for seed in [5]:  # [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,
+        batch_size=15000,
         max_path_length=1500,
-        n_itr=500,  # 1000
+        n_itr=1000,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -79,14 +79,14 @@ for seed in [5]:  # [16, 20, 21, 22]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

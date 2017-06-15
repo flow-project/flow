@@ -54,9 +54,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        last_lc = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        # headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, lane, absolute_pos, last_lc])
+        # last_lc = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, absolute_pos])
         # return Product([speed, lane, absolute_pos, headway])
 
     def compute_reward(self, state, action, **kwargs):
@@ -80,12 +80,16 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        return np.array([[self.vehicles[vehicle]["speed"],
-                          self.vehicles[vehicle]["lane"],
-                          self.vehicles[vehicle]["absolute_position"],
-                          self.timer - self.vehicles[vehicle]["last_lc"]] for vehicle in self.vehicles]).T
-                          # self.get_headway(vehicle, lane=abs(self.vehicles[vehicle]["lane"]-1)),  # adjacent-lane head
-                          # self.get_headway(vehicle)] for vehicle in self.vehicles]).T             # current lane head
+        # # sorting states by position
+        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+
+        # return np.array([[self.vehicles[self.ids[i]]["speed"],
+        #                   self.vehicles[self.ids[i]]["lane"],
+        #                   self.vehicles[self.ids[i]]["absolute_position"]] for i in sorted_indx]).T
+
+        return np.array([[self.vehicles[veh_id]["speed"],
+                          self.vehicles[veh_id]["lane"],
+                          self.vehicles[veh_id]["absolute_position"]] for veh_id in self.ids]).T
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -104,6 +108,12 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         
         acceleration = actions[::2]
         direction = np.round(actions[1::2])
+
+        # # sorting states by position
+        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        #
+        # # re-arrange actions according to mapping in observation space
+        # sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
