@@ -14,13 +14,13 @@ import logging
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import stub, run_experiment_lite
-#from rllab.algos.trpo import TRPO
+from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from sandbox.rocky.tf.policies.auto_mlp_policy import AutoMLPPolicy
 from sandbox.rocky.tf.envs.base import TfEnv
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from sandbox.rocky.tf.algos.trpo import TRPO
+#from sandbox.rocky.tf.algos.trpo import TRPO
 from sandbox.rocky.tf.envs.base import TfEnv
 
 from cistar.envs.lane_changing import *
@@ -37,7 +37,7 @@ stub(globals())
 sumo_params = {"time_step": 0.1, "traci_control": 1, 
                 "rl_lc": "no_lat_collide", "rl_sm": "no_collide"}
                 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 num_auto = 10       # number of controllable (rl) vehicles
 
@@ -61,11 +61,10 @@ scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_
 # env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
 env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
-env = TfEnv(normalize(env))
+env = normalize(env)
 
 for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
-    policy = AutoMLPPolicy(
-        name="policy",
+    policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(200,100,50)
     )
@@ -76,8 +75,8 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=10000,  # 4000
-        max_path_length=250,
+        batch_size=30000,  # 4000
+        max_path_length=1500,
         n_itr=400,  # 50000
 
         # whole_paths=True,
@@ -89,7 +88,7 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="last",
         # Specifies the seed for the experiment. If this is not provided, a random seed
@@ -97,6 +96,6 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

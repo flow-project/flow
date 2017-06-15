@@ -331,8 +331,6 @@ class SumoEnvironment(Env, Serializable):
 
         # collect information of the state of the network based on the environment class used
         self.state = self.getState()
-        print(self.getState())
-        pdb.set_trace()
 
         # crash encodes whether sumo experienced a crash or whether there was a crash an an intersection
         sumo_crash = sumo_crash or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
@@ -346,7 +344,7 @@ class SumoEnvironment(Env, Serializable):
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
         if reward < 0:
-            print(reward)
+            #print(reward)
             print(self.state[0])
 
         # TODO: Allow for partial observability
@@ -451,7 +449,7 @@ class SumoEnvironment(Env, Serializable):
         """
         Specifies the actions to be performed by rl_vehicles
         """
-        raise NotImplementedError
+        pass
 
     def apply_acceleration(self, veh_ids, acc):
         """

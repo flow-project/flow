@@ -3,6 +3,7 @@ import math
 from cistar.controllers.base_controller import BaseController
 import collections
 import numpy as np
+import pdb
 
 """Contains a bunch of car-following control models for CISTAR.
 Controllers can have their output delayed by some duration.
@@ -370,3 +371,39 @@ class IDMController(BaseController):
 
     def reset_delay(self, env):
         pass
+
+
+class DrunkDriver(IDMController):
+    """Drunk driver. Randomly perturbs every 50 time steps. """
+    def __init__(self, veh_id, v0=30, perturb_time = 10, perturb_size = 40):
+        IDMController.__init__(self, veh_id)
+        self.timer = 0
+        self.perturb_time = perturb_time
+        self.perturb_size = perturb_size
+
+    def get_action(self, env):
+        self.timer += 1
+        this_lane = env.vehicles[self.veh_id]['lane']
+
+        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        if lead_id is None:  # no car ahead
+            return self.a
+
+        lead_pos = env.get_x_by_id(lead_id)
+        lead_vel = env.vehicles[lead_id]['speed']
+        lead_length = env.vehicles[lead_id]['length']
+
+        this_pos = env.get_x_by_id(self.veh_id)
+        this_vel = env.vehicles[self.veh_id]['speed']
+
+        h = (lead_pos - lead_length - this_pos) % env.scenario.length
+
+        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
+
+        perturb = 0
+        if self.timer % self.perturb_time == 0:
+            perturb = self.perturb_size*random.random() - self.perturb_size/2.0
+
+        return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2) + perturb
+
+

@@ -44,11 +44,12 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         # but it shouldn't matter too much, because 1 is always going to be less than int(self.time_step * 1000)
         self.traci_connection.vehicle.slowDown(car_id, nextVel, 1)
 
-    def compute_reward(self, velocity, action):
+    def compute_reward(self, velocity, action, **kwargs):
         """
         See parent class
         """
-        return -np.linalg.norm(velocity - self.env_params["target_velocity"])
+        return 20
+        #-np.linalg.norm(velocity - self.env_params["target_velocity"])
 
     def getState(self):
         """
