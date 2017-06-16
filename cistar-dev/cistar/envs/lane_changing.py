@@ -181,23 +181,38 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
                 # penalize the left lane in increasing amount from the start
                 left_lane_cost[i] = self.timer/20
 
-                #cost2 = np.linalg.norm(np.array(left_lane_cost))/10
+                cost2 = np.linalg.norm(np.array(left_lane_cost))/10
         cost2 = 0
 
+        #return max_cost - cost - cost2
 
-        flag = 0
-        max_cost3 = np.array([self.env_params["target_velocity"]]*len(self.rl_ids))
-        max_cost3 = np.linalg.norm(max_cost3)
-        cost3 = [self.vehicles[veh_id]["speed"] - self.env_params["target_velocity"] for veh_id in self.rl_ids]
-        cost3 = np.linalg.norm(cost)
-        for i, veh_id in enumerate(self.rl_ids):
-            if self.vehicles[veh_id]["lane"] != 0:
-                flag = 1
+
+        flag = 1
+        # max_cost3 = np.array([self.env_params["target_velocity"]]*len(self.rl_ids))
+        # max_cost3 = np.linalg.norm(max_cost3)
+        # cost3 = [self.vehicles[veh_id]["speed"] - self.env_params["target_velocity"] for veh_id in self.rl_ids]
+        # cost3 = np.linalg.norm(cost)
+        # for i, veh_id in enumerate(self.rl_ids):
+        #     if self.vehicles[veh_id]["lane"] != 0:
+        #         flag = 1
 
         if flag: 
             return max_cost - cost - cost2
         else:
             return (max_cost - cost) + (max_cost3 - cost3) - cost2 
+
+    @property
+    def observation_space(self):
+        """
+        See parent class
+        An observation consists of the velocity, lane index, and absolute position of each vehicle
+        in the fleet
+        """
+        speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        adj_headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, headway, adj_headway])
 
     def getState(self):
         """
@@ -214,7 +229,11 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
 
         return np.array([[self.vehicles[veh_id]["speed"],
                           self.vehicles[veh_id]["lane"],
-                          self.vehicles[veh_id]["absolute_position"]] for veh_id in self.ids]).T
+                          self.get_headway(veh_id),
+                          self.get_headway(veh_id, lane=abs(self.vehicles[veh_id]["lane"] - 1))] for veh_id in self.ids]).T
+
+    def render(self):
+        print('current velocity, lane, headway, adj headway:', self.state)
 
 
 class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):

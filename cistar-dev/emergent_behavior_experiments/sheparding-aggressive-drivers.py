@@ -35,7 +35,7 @@ sumo_params = {"time_step": 0.1, "traci_control": 1,
                 "rl_lc": "no_lat_collide", "human_lc": "strategic", 
                 "human_sm": "no_collide", "rl_sm": "no_collide"}
                 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 test_type = 'rl'    # type of test being implemented (see comment at start of file)
 
@@ -43,7 +43,7 @@ num_human = 18     # number of uncontrollable (human) vehicles
 num_auto = 2        # number of controllable (rl) vehicles
 ind_aggressive = [0]  # location of aggressive cars
 perturb_time = 5
-perturb_size = 20
+perturb_size = 40
 
 # if test_type == 'rl':
 #     num_human = 0
@@ -67,7 +67,7 @@ type_params = {"rl": (num_auto, (RLController, {}), None, 0),
 
 
 exp_tag = ('human-' + str(num_human) + 'drunk-' + str(len(ind_aggressive)) + 
-    '-rl-' + str(num_auto)+  'human-lc-shep-1lane-noleftpenalty-rewardrl' + '-perturb-time' + str(perturb_time)
+    '-rl-' + str(num_auto)+  'human-lc-shep-1lane-noleftpenalty' + '-perturb-time' + str(perturb_time)
     + 'perturb-size-' + str(perturb_size)) 
 
 
