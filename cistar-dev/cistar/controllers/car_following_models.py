@@ -402,7 +402,7 @@ class DrunkDriver(IDMController):
 
         perturb = 0
         if self.timer % self.perturb_time == 0:
-            perturb = self.perturb_size*random.random() - self.perturb_size/2.0
+            perturb = self.perturb_size*random.random() # - self.perturb_size/2.0
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2) + perturb
 

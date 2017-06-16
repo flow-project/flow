@@ -32,7 +32,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Product([speed, absolute_pos])
 
@@ -50,6 +50,8 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         if any(state[0] < 0):
             print('youre getting negative velocities')
+            return -20
+
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 
@@ -65,7 +67,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         :return: a matrix of velocities and absolute positions for each vehicle
         """
         return np.array([[self.vehicles[vehicle]["speed"],
-                          self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T
+                          self.get_headway(vehicle)] for vehicle in self.vehicles]).T
 
     def render(self):
         print('current state/velocity:', self.state)

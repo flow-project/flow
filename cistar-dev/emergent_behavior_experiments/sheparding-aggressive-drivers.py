@@ -35,16 +35,15 @@ sumo_params = {"time_step": 0.1, "traci_control": 1,
                 "rl_lc": "no_lat_collide", "human_lc": "strategic", 
                 "human_sm": "no_collide", "rl_sm": "no_collide"}
                 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 test_type = 'rl'    # type of test being implemented (see comment at start of file)
 
-num_cars = 20        # total number of cars in simulation
 num_human = 18     # number of uncontrollable (human) vehicles
 num_auto = 2        # number of controllable (rl) vehicles
 ind_aggressive = [0]  # location of aggressive cars
 perturb_time = 5
-perturb_size = 40
+perturb_size = 20
 
 # if test_type == 'rl':
 #     num_human = 0
@@ -53,22 +52,22 @@ perturb_size = 40
 #     num_human = num_aggressive
 #     num_auto = num_cars - num_aggressive
 
+# All human cars constrained to right lane
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm": (num_human, (IDMController, {}), (StaticLaneChanger, {}), 0), 
                "drunk": (len(ind_aggressive), (DrunkDriver, {"perturb_time": perturb_time}), 
                 (StaticLaneChanger, {}), 0)}
 
+# human cars can lane change
 # type_params = {"rl": (num_auto, (RLController, {}), None, 0),
 #                "idm": (num_human, (IDMController, {}), None, 0), 
 #                "drunk": (len(ind_aggressive), (DrunkDriver, {"perturb_time": perturb_time, "perturb_size": perturb_size}), 
 #                 None, 0)}
 
-# type_params = {"idm": (num_human, (IDMController, {}), None, 0), 
-#                "idm2": (len(ind_aggressive), (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), 
-#                 None, 0)}
+
 
 exp_tag = ('human-' + str(num_human) + 'drunk-' + str(len(ind_aggressive)) + 
-    '-rl-' + str(num_auto)+  'human-lc-shep-1lane' + '-perturb-time' + str(perturb_time)
+    '-rl-' + str(num_auto)+  'human-lc-shep-1lane-noleftpenalty-rewardrl' + '-perturb-time' + str(perturb_time)
     + 'perturb-size-' + str(perturb_size)) 
 
 
@@ -87,8 +86,11 @@ initial_config = {"shuffle": True}
 
 scenario = LoopScenario("two-lane-two-controller", type_params, net_params, cfg_params, initial_config=initial_config)
 
-#env = ShepherdAggressiveDrivers(env_params, sumo_binary, sumo_params, scenario)
-#env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+# lane changing reward
+# env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+# human cars in right lane only reward
 env = RLOnlyLane(env_params, sumo_binary, sumo_params, scenario)
 env = normalize(env)
 

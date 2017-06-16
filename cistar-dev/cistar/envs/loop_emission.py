@@ -40,10 +40,10 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         num_cars = self.scenario.num_vehicles
         #ypos = Box(low=0., high=np.inf, shape=(num_cars, ))
         vel = Box(low=0., high=np.inf, shape=(num_cars, ))
-        headway = Box(low=0., high=np.inf, shape=(num_cars, ))
+        abs_pos = Box(low=0., high=np.inf, shape=(num_cars, ))
         #fuelconsump = Box(low=0., high=np.inf, shape=(num_cars, ))
-        self.obs_var_labels = ["Velocity", "Headway"]
-        return Product([vel, headway])
+        self.obs_var_labels = ["Velocity", "Absolute Position"]
+        return Product([vel, abs_pos])
 
     def compute_reward(self, state, action, **kwargs):
         """
@@ -73,7 +73,7 @@ class SimpleEmissionEnvironment(LoopEnvironment):
         #                    self.get_headway(veh_id)] for veh_id in self.vehicles]).T
 
         return np.array([[self.vehicles[veh_id]["speed"], \
-                           self.get_headway(veh_id)] for veh_id in self.vehicles]).T
+                           self.vehicles[veh_id]["absolute_position"]] for veh_id in self.vehicles]).T
 
 
     def apply_action(self, car_id, action):

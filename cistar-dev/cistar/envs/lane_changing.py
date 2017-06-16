@@ -63,8 +63,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        if any(state[0] < 0) or kwargs["fail"]:
-            return -20.0
+        # if any(state[0] < 0) or kwargs["fail"]:
+        #     return -20.0
 
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
@@ -154,13 +154,19 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
         """
 
 
-        if any(state[0] < 0) or kwargs["fail"]:
-            return -20.0
+        # if any(state[0] < 0) or kwargs["fail"]:
+        #     return -20.0
 
-        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+        # max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+        # max_cost = np.linalg.norm(max_cost)
+
+        # cost = state[0] - self.env_params["target_velocity"]
+        # cost = np.linalg.norm(cost)
+
+        # Only reward non-rl cars
+        max_cost = np.array([self.env_params["target_velocity"]]*len(self.controlled_ids))
         max_cost = np.linalg.norm(max_cost)
-
-        cost = state[0] - self.env_params["target_velocity"]
+        cost = [self.vehicles[veh_id]["speed"] - self.env_params["target_velocity"] for veh_id in self.controlled_ids]
         cost = np.linalg.norm(cost)
 
         # penalty for being in the other lane
@@ -170,11 +176,45 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
             if self.vehicles[veh_id]["lane"] != 0:
                 # if its possible to lane change and we are still hanging out in the left lane
                 # start penalizing it
-                left_lane_cost[i] = np.max([0,(self.timer - self.vehicles[veh_id]['last_lc'] - self.lane_change_duration)])
+                #left_lane_cost[i] = np.max([0,(self.timer - self.vehicles[veh_id]['last_lc'] - self.lane_change_duration)])
 
-        cost2 = np.linalg.norm(np.array(left_lane_cost))/10
+                # penalize the left lane in increasing amount from the start
+                left_lane_cost[i] = self.timer/20
 
-        return max_cost - cost - cost2
+                #cost2 = np.linalg.norm(np.array(left_lane_cost))/10
+        cost2 = 0
+
+
+        flag = 0
+        max_cost3 = np.array([self.env_params["target_velocity"]]*len(self.rl_ids))
+        max_cost3 = np.linalg.norm(max_cost3)
+        cost3 = [self.vehicles[veh_id]["speed"] - self.env_params["target_velocity"] for veh_id in self.rl_ids]
+        cost3 = np.linalg.norm(cost)
+        for i, veh_id in enumerate(self.rl_ids):
+            if self.vehicles[veh_id]["lane"] != 0:
+                flag = 1
+
+        if flag: 
+            return max_cost - cost - cost2
+        else:
+            return (max_cost - cost) + (max_cost3 - cost3) - cost2 
+
+    def getState(self):
+        """
+        See parent class
+        The state is an array the velocities for each vehicle
+        :return: an array of vehicle speed for each vehicle
+        """
+        # # sorting states by position
+        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+
+        # return np.array([[self.vehicles[self.ids[i]]["speed"],
+        #                   self.vehicles[self.ids[i]]["lane"],
+        #                   self.vehicles[self.ids[i]]["absolute_position"]] for i in sorted_indx]).T
+
+        return np.array([[self.vehicles[veh_id]["speed"],
+                          self.vehicles[veh_id]["lane"],
+                          self.vehicles[veh_id]["absolute_position"]] for veh_id in self.ids]).T
 
 
 class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
