@@ -26,9 +26,9 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-target_velocity = 8
+target_velocity = 20
 
-sumo_params = {"time_step":0.05, "traci_control": 1, "rl_sm": "aggressive", "human_sm": "aggressive"}
+sumo_params = {"time_step":0.05, "traci_control": 1, "rl_sm": "aggressive", "human_sm": "no_collide"}
 sumo_binary = "sumo"
 
 env_params = {"target_velocity": target_velocity, "max-deacc": 6, "max-acc": 3, "fail-safe": 'None'}
@@ -66,7 +66,7 @@ for seed in [10, 22, 33]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,
+        batch_size=10000,
         max_path_length=2000,
         n_itr=400,  # 1000
         # whole_paths=True,

@@ -173,7 +173,6 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
                 left_lane_cost[i] = np.max([0,(self.timer - self.vehicles[veh_id]['last_lc'] - self.lane_change_duration)])
 
         cost2 = np.linalg.norm(np.array(left_lane_cost))/10
-        print(cost2)
 
         return max_cost - cost - cost2
 

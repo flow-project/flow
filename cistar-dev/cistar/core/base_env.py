@@ -193,7 +193,7 @@ class SumoEnvironment(Env, Serializable):
         # create the list of colors used to different between different types of
         # vehicles visually on sumo's gui
         colors = {}
-        key_index = 0
+        key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for key in self.scenario.type_params.keys():
             colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
@@ -369,7 +369,7 @@ class SumoEnvironment(Env, Serializable):
         # create the list of colors used to visually distinguish between different types of vehicles
         self.timer = 0
         colors = {}
-        key_index = 0
+        key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for key in self.scenario.type_params.keys():
             colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]

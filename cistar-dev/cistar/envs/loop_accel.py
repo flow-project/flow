@@ -48,9 +48,8 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        if any(state[0] < 0) or kwargs["fail"]:
-            return -20.0
-
+        if any(state[0] < 0):
+            print('youre getting negative velocities')
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 

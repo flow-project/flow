@@ -32,15 +32,15 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, 
-                "rl_lc": "no_collide", "human_lc": "strategic", 
+                "rl_lc": "no_lat_collide", "human_lc": "strategic", 
                 "human_sm": "no_collide", "rl_sm": "no_collide"}
                 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 test_type = 'rl'    # type of test being implemented (see comment at start of file)
 
 num_cars = 20        # total number of cars in simulation
-num_human = 16     # number of uncontrollable (human) vehicles
+num_human = 18     # number of uncontrollable (human) vehicles
 num_auto = 2        # number of controllable (rl) vehicles
 ind_aggressive = [0]  # location of aggressive cars
 perturb_time = 5
@@ -77,7 +77,7 @@ exp_tag = ('human-' + str(num_human) + 'drunk-' + str(len(ind_aggressive)) +
 #  "rl": (1, (RLController, {}), None, 0),}
 
 env_params = {"target_velocity": 20, "target_velocity_aggressive": 12, 
-        "max-deacc": -3, "max-acc": 3, "lane_change_duration": 5, "fail-safe": "None"}
+        "max-deacc": -3, "max-acc": 3, "lane_change_duration": 3, "fail-safe": "None"}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 60, "resolution": 40, "net_path": "debug/net/"}
 
@@ -118,13 +118,13 @@ for seed in [2, 9, 10]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
