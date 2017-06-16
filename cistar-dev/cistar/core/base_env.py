@@ -279,6 +279,7 @@ class SumoEnvironment(Env, Serializable):
         """
         self.timer += 1
         accel = []
+
         if self.sumo_params["traci_control"]:
             for veh_id in self.controlled_ids:
                 # acceleration action
@@ -306,11 +307,14 @@ class SumoEnvironment(Env, Serializable):
         for veh_id in self.ids:
             prev_pos = self.get_x_by_id(veh_id)
             prev_rel_pos = self.vehicles[veh_id]["position"]
+            prev_lane = self.vehicles[veh_id]["lane"]
             self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             if self.vehicles[veh_id]["position"] < prev_rel_pos:
                 self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
             if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration and self.scenario.lanes > 1:
                 self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+                if self.vehicles[veh_id]["lane"] != prev_lane:
+                    self.vehicles[veh_id]["last_lc"] = self.timer
             self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
@@ -521,7 +525,7 @@ class SumoEnvironment(Env, Serializable):
                     lane_change_penalty.append(0)
                     if target_lane[i] != current_lane[i]:
                         self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
-                        self.vehicles[vid]['last_lc'] = self.timer
+                        #self.vehicles[vid]['last_lc'] = self.timer
                 else:
                     lane_change_penalty.append(-1)
             else:

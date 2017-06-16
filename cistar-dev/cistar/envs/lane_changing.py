@@ -171,9 +171,9 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
                 # if its possible to lane change and we are still hanging out in the left lane
                 # start penalizing it
                 left_lane_cost[i] = np.max([0,(self.timer - self.vehicles[veh_id]['last_lc'] - self.lane_change_duration)])
-                print(left_lane_cost[i])
 
-        cost2 = np.linalg.norm(np.array(left_lane_cost))/5
+        cost2 = np.linalg.norm(np.array(left_lane_cost))/10
+        print(cost2)
 
         return max_cost - cost - cost2
 

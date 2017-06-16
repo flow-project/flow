@@ -43,8 +43,8 @@ num_cars = 20        # total number of cars in simulation
 num_human = 16     # number of uncontrollable (human) vehicles
 num_auto = 2        # number of controllable (rl) vehicles
 ind_aggressive = [0]  # location of aggressive cars
-perturb_time = 2
-perturb_size = 80
+perturb_time = 5
+perturb_size = 40
 
 # if test_type == 'rl':
 #     num_human = 0
@@ -68,7 +68,7 @@ type_params = {"rl": (num_auto, (RLController, {}), None, 0),
 #                 None, 0)}
 
 exp_tag = ('human-' + str(num_human) + 'drunk-' + str(len(ind_aggressive)) + 
-    '-rl-' + str(num_auto)+  'human-lc-shep' + '-perturb-time' + str(perturb_time)
+    '-rl-' + str(num_auto)+  'human-lc-shep-1lane' + '-perturb-time' + str(perturb_time)
     + 'perturb-size-' + str(perturb_size)) 
 
 
