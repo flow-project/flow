@@ -21,12 +21,9 @@ import time
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
 start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
 reset the simulation to an initial configuration.
-
 SumoEnv must be be Serializable to allow for pickling of the policy.
-
 This class cannot be used as is: you must extend it to implement an action applicator method, and
 properties to define the MDP if you choose to use it with RLLab.
-
 A reinforcement learning environment can be built using SumoEnvironment as a parent class by
 adding the following functions:
  - action_space(self): specifies the action space of the rl vehicles
@@ -34,7 +31,6 @@ adding the following functions:
  - apply_rl_action(self, rl_actions): Specifies the actions to be performed by rl_vehicles
  - getState(self):
  - compute_reward():
-
 """
 
 COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 255, 255, 0), (255, 0, 255, 0),
@@ -46,7 +42,6 @@ class SumoEnvironment(Env, Serializable):
         """ Base environment for all Sumo-based operations
         
         [description]
-
         Arguments:
             env_params {dictionary} -- [description]
             sumo_binary {string} -- Either "sumo" or "sumo-gui"
@@ -314,8 +309,8 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             if self.vehicles[veh_id]["position"] < prev_rel_pos:
                 self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
-            #if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration and self.scenario.lanes > 1:
-            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration and self.scenario.lanes > 1:
+                self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
@@ -367,9 +362,8 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-
-        self.timer = 0
         # create the list of colors used to visually distinguish between different types of vehicles
+        self.timer = 0
         colors = {}
         key_index = 0
         color_choice = np.random.choice(len(COLORS))
@@ -450,13 +444,12 @@ class SumoEnvironment(Env, Serializable):
         """
         Specifies the actions to be performed by rl_vehicles
         """
-        pass
+        raise NotImplementedError
 
     def apply_acceleration(self, veh_ids, acc):
         """
         Given an acceleration, set instantaneous velocity given that acceleration.
         Prevents vehicles from moves backwards (issuing negative velocities).
-
         :param veh_ids: vehicles to apply the acceleration to
         :param acc: requested accelerations from the vehicles
         :return acc_deviation: difference between the requested acceleration that keeps the velocity positive
@@ -495,10 +488,8 @@ class SumoEnvironment(Env, Serializable):
         """
         Applies an instantaneous lane-change to a set of vehicles, while preventing vehicles from
         moving to lanes that do not exist.
-
         Takes as input either a set of directions or a target_lanes. If both are provided, a
         ValueError is raised.
-
         :param veh_ids: vehicles to apply the lane change to
         :param direction: array on intergers in {-1,1}; -1 to the right, 1 to the left
         :param target_lane: array of indeces of lane to enter
@@ -509,8 +500,8 @@ class SumoEnvironment(Env, Serializable):
         elif direction is None and target_lane is None:
             raise ValueError("A direction or target_lane must be specified.")
 
-        # for veh_id in veh_ids:
-        #     self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
+        for veh_id in veh_ids:
+            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
 
         if self.scenario.lanes == 1:
             print("Uh oh, single lane track.")
@@ -520,7 +511,7 @@ class SumoEnvironment(Env, Serializable):
 
         if target_lane is None:
             target_lane = current_lane + direction
-        print('target lane is {0}:\n'.format(target_lane))
+
         safe_target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
 
         lane_change_penalty = []
@@ -536,11 +527,11 @@ class SumoEnvironment(Env, Serializable):
             else:
                 self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
 
+
         return lane_change_penalty
 
     def set_speed_mode(self, veh_id):
         """
-
         :param veh_id:
         :return:
         """
@@ -564,7 +555,6 @@ class SumoEnvironment(Env, Serializable):
 
     def set_lane_change_mode(self, veh_id):
         """
-
         :param veh_id:
         :return:
         """
@@ -591,7 +581,6 @@ class SumoEnvironment(Env, Serializable):
     def check_intersection_crash(self):
         """
         Checks if two vehicles are moving through the same intersection from perpendicular ends
-
         :return: boolean value (True if crash occurred, False else)
         """
         if len(self.intersection_edges) == 0:
@@ -603,7 +592,6 @@ class SumoEnvironment(Env, Serializable):
     def check_longitudinal_crash(self):
         """
         Checks if the collision was the result of a forward movement (i.e. bumper-to-bumper crash)
-
         :return: boolean value (True if crash occurred, False else)
         """
         pass
@@ -611,7 +599,6 @@ class SumoEnvironment(Env, Serializable):
     def check_lane_change_crash(self):
         """
         Checks if the collision was the result of a lane change
-
         :return: boolean value (True if crash occurred, False else)
         """
         pass

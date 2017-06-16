@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, 
-                "rl_lc": "no_lat_collide", "human_lc": "strategic", 
+                "rl_lc": "no_collide", "human_lc": "strategic", 
                 "human_sm": "no_collide", "rl_sm": "no_collide"}
                 
 sumo_binary = "sumo-gui"

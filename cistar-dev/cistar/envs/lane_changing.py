@@ -7,6 +7,7 @@ from rllab.spaces.discrete import Discrete
 import traci
 import pdb
 import numpy as np
+import time
 
 
 class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
@@ -53,10 +54,10 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        #headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        #adj_headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles))
-        #return Product([speed, lane, absolute_pos, headway])
+        # last_lc = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Product([speed, lane, absolute_pos])
+        # return Product([speed, lane, absolute_pos, headway])
 
     def compute_reward(self, state, action, **kwargs):
         """
@@ -79,19 +80,16 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        # return np.array([[self.vehicles[vehicle]["speed"],
-        #                   self.vehicles[vehicle]["lane"],
-        #                   self.vehicles[vehicle]["absolute_position"],
-        #                   self.get_headway(vehicle)] for vehicle in self.vehicles]).T
+        # # sorting states by position
+        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
 
-        # sorting states by position
-        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
-        return np.array([[self.vehicles[self.ids[i]]["speed"],
-                          self.vehicles[self.ids[i]]["lane"],
-                          self.vehicles[self.ids[i]]["absolute_position"]] for i in sorted_indx]).T
-        # return np.array([[self.vehicles[vehicle]["speed"],
-        #                   self.vehicles[vehicle]["lane"],
-        #                   self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T             # current lane head
+        # return np.array([[self.vehicles[self.ids[i]]["speed"],
+        #                   self.vehicles[self.ids[i]]["lane"],
+        #                   self.vehicles[self.ids[i]]["absolute_position"]] for i in sorted_indx]).T
+
+        return np.array([[self.vehicles[veh_id]["speed"],
+                          self.vehicles[veh_id]["lane"],
+                          self.vehicles[veh_id]["absolute_position"]] for veh_id in self.ids]).T
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -108,18 +106,24 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         # acceleration = actions[-1]
         # direction = np.array(actions[:-1]) - 1
         
-        # # represents vehicles that are not allowed to change lanes
-        # non_lane_changing_veh = ([self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
-        #                             for veh_id in self.rl_ids]) 
+        acceleration = actions[::2]
+        direction = np.round(actions[1::2])
 
-        # direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+        # # sorting states by position
+        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        #
+        # # re-arrange actions according to mapping in observation space
+        # sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
+
+        # represents vehicles that are allowed to change lanes
+        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+                                 for veh_id in self.rl_ids]
+        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
         
-        # # self.rl_ids = np.array(self.rl_ids)
+        self.apply_acceleration(self.rl_ids, acc=acceleration)
+        self.apply_lane_change(self.rl_ids, direction=direction)
 
-        # self.apply_acceleration(self.rl_ids, acc=acceleration)
-        # self.apply_lane_change(np.array(self.rl_ids), direction=direction)
-
-        # resulting_behaviors = []
+        resulting_behaviors = []
 
         # for i, veh_id in enumerate(self.rl_ids):
         #     acceleration = actions[3 * i]
@@ -139,32 +143,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         #             resulting_behaviors.append(-1)
         #     else:
         #         resulting_behaviors.append(0)
-
-        acceleration = actions[::2]
-        direction = np.round(actions[1::2])
-
-        # sorting states by position
-        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
-        
-        # re-arrange actions according to mapping in observation space
-        sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
-
-
-        # represents vehicles that are allowed to change lanes
-        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc'] for veh_id in self.rl_ids]
-        for i, veh_id in enumerate(self.rl_ids):
-            print('timer:{0}, lane: {1}, last_lc: {2}, cant_change: {3}\n'.
-                format(self.timer, self.vehicles[veh_id]['lane'], self.vehicles[veh_id]['last_lc'], non_lane_changing_veh[i]))
-            np.array([0] * sum(non_lane_changing_veh))
-        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
-        print('direction is {0}:\n'.format(direction))
-        
-        # self.rl_ids = np.array(self.rl_ids)
-
-        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
-        self.apply_lane_change(sorted_rl_ids, direction=direction)
-
-        resulting_behaviors = []
 
         return resulting_behaviors
 

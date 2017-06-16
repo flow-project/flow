@@ -20,10 +20,10 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no-collide", "human_lc": "no-collide",
-               "rl_sm": "no-collide", "human_sm": "no-collide", "port": 8813}
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_lat_collide", "human_lc": "no_collide",
+               "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
-num_cars = 30
+num_cars = 2
 
 exp_tag = str(num_cars) + '-car-rl-lane_change'
 
@@ -74,6 +74,6 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )
