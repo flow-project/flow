@@ -40,13 +40,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
+        self.apply_acceleration(self.rl_ids, rl_actions)
 
-        actual_acc, acc_deviation = self.apply_acceleration(self.rl_ids, rl_actions)
-
-        target_lane = None
-        lane_change_penalty = None
-
-        return actual_acc, acc_deviation, target_lane, lane_change_penalty
+        return []
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """

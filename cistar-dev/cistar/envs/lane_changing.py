@@ -83,9 +83,15 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         #                   self.vehicles[vehicle]["lane"],
         #                   self.vehicles[vehicle]["absolute_position"],
         #                   self.get_headway(vehicle)] for vehicle in self.vehicles]).T
-        return np.array([[self.vehicles[vehicle]["speed"],
-                          self.vehicles[vehicle]["lane"],
-                          self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T             # current lane head
+
+        # sorting states by position
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        return np.array([[self.vehicles[self.ids[i]]["speed"],
+                          self.vehicles[self.ids[i]]["lane"],
+                          self.vehicles[self.ids[i]]["absolute_position"]] for i in sorted_indx]).T
+        # return np.array([[self.vehicles[vehicle]["speed"],
+        #                   self.vehicles[vehicle]["lane"],
+        #                   self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T             # current lane head
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -137,15 +143,26 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         acceleration = actions[::2]
         direction = np.round(actions[1::2])
 
+        # sorting states by position
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
+        
+        # re-arrange actions according to mapping in observation space
+        sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
+
+
         # represents vehicles that are allowed to change lanes
-        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
-                                 for veh_id in self.rl_ids]
+        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc'] for veh_id in self.rl_ids]
+        for i, veh_id in enumerate(self.rl_ids):
+            print('timer:{0}, lane: {1}, last_lc: {2}, cant_change: {3}\n'.
+                format(self.timer, self.vehicles[veh_id]['lane'], self.vehicles[veh_id]['last_lc'], non_lane_changing_veh[i]))
+            np.array([0] * sum(non_lane_changing_veh))
         direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+        print('direction is {0}:\n'.format(direction))
         
         # self.rl_ids = np.array(self.rl_ids)
 
-        self.apply_acceleration(self.rl_ids, acc=acceleration)
-        self.apply_lane_change(self.rl_ids, direction=direction)
+        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
+        self.apply_lane_change(sorted_rl_ids, direction=direction)
 
         resulting_behaviors = []
 
@@ -158,7 +175,7 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
         See parent class
         """
 
-        print(state)
+
         if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
@@ -169,7 +186,16 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
         cost = np.linalg.norm(cost)
 
         # penalty for being in the other lane
-        cost2 = 20*np.linalg.norm(state[1] != 0)
+        # calculate how long the cars have been in the left lane
+        left_lane_cost = np.zeros(len(self.rl_ids))
+        for i, veh_id in enumerate(self.rl_ids):
+            if self.vehicles[veh_id]["lane"] != 0:
+                # if its possible to lane change and we are still hanging out in the left lane
+                # start penalizing it
+                left_lane_cost[i] = np.max([0,(self.timer - self.vehicles[veh_id]['last_lc'] - self.lane_change_duration)])
+                print(left_lane_cost[i])
+
+        cost2 = np.linalg.norm(np.array(left_lane_cost))/5
 
         return max_cost - cost - cost2
 

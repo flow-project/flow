@@ -314,8 +314,8 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             if self.vehicles[veh_id]["position"] < prev_rel_pos:
                 self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
-            if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration and self.scenario.lanes > 1:
-                self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
+            #if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration and self.scenario.lanes > 1:
+            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
             self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
@@ -340,12 +340,11 @@ class SumoEnvironment(Env, Serializable):
 
         crash = intersection_crash or sumo_crash
 
+        if intersection_crash:
+            print("intersection crash!")
+
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
-
-        if reward < 0:
-            #print(reward)
-            print(self.state[0])
 
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
@@ -356,7 +355,7 @@ class SumoEnvironment(Env, Serializable):
                 return Step(observation=next_observation, reward=reward, done=True)
             else:
                 print("Crash has occurred! Check failsafes!")
-                return Step(observation=next_observation, reward=reward, done=False)
+                return Step(observation=next_observation, reward=reward, done=True)
         else:
             return Step(observation=next_observation, reward=reward, done=False)
 
@@ -368,6 +367,8 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
+
+        self.timer = 0
         # create the list of colors used to visually distinguish between different types of vehicles
         colors = {}
         key_index = 0
@@ -508,8 +509,8 @@ class SumoEnvironment(Env, Serializable):
         elif direction is None and target_lane is None:
             raise ValueError("A direction or target_lane must be specified.")
 
-        for veh_id in veh_ids:
-            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
+        # for veh_id in veh_ids:
+        #     self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
 
         if self.scenario.lanes == 1:
             print("Uh oh, single lane track.")
@@ -519,18 +520,22 @@ class SumoEnvironment(Env, Serializable):
 
         if target_lane is None:
             target_lane = current_lane + direction
-
+        print('target lane is {0}:\n'.format(target_lane))
         safe_target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
 
         lane_change_penalty = []
         for i, vid in enumerate(veh_ids):
-            if safe_target_lane[i] == target_lane[i]:
-                lane_change_penalty.append(0)
-                if target_lane[i] != current_lane[i]:
-                    self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
-                self.vehicles[vid]['last_lc'] = self.timer
+            if vid in self.rl_ids: 
+                if safe_target_lane[i] == target_lane[i]:
+                    lane_change_penalty.append(0)
+                    if target_lane[i] != current_lane[i]:
+                        self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
+                        self.vehicles[vid]['last_lc'] = self.timer
+                else:
+                    lane_change_penalty.append(-1)
             else:
-                lane_change_penalty.append(-1)
+                self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
+
         return lane_change_penalty
 
     def set_speed_mode(self, veh_id):

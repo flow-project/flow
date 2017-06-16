@@ -66,8 +66,8 @@ class BaseController:
         next_vel = this_vel + action * time_step
 
         h = (lead_pos - lead_length - this_pos) % env.scenario.length
-        if (next_vel + action * time_step) > 0:
-            if h < time_step * this_vel+action * time_step:
+        if next_vel > 0:
+            if h < time_step * next_vel + this_vel * 1e-3:
                 return -this_vel / time_step
             else:
                 return action
@@ -144,7 +144,7 @@ class BaseController:
 
         # if the car is not about to enter the intersection, continue moving as requested
 
-        if next_vel * time_step < this_dist_to_intersection:
+        if next_vel * time_step + this_vel * 1e-3 < this_dist_to_intersection:
             return action
 
         # if the vehicle is about to enter an intersection, and another vehicle is currently in the intersection
@@ -189,3 +189,7 @@ class BaseController:
             # if this vehicle does have right-of-way, continue
             elif env.intersection_edges[0] in this_intersection and env.intersection_fail_safe == "top-bottom":
                 return action
+        else:
+            return action
+ 
+
