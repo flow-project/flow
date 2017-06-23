@@ -28,11 +28,11 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "human_lc": "no_collide",
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_lat_collide", "human_lc": "strategic",
                "rl_sm": "no_collide", "human_sm": "no_collide"}
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
-env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 5,
+env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 5,
               "fail-safe": "None"}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40,
@@ -40,12 +40,12 @@ net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40,
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": False}
+initial_config = {"shuffle": True}
 
-num_cars = 32
+num_cars = 44
 num_auto = 2
 
-exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-multi-mixed-human-rl'
+exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-multi-lane-loop'
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm": (num_cars - num_auto, (IDMController, {}), None, 0)}
@@ -79,14 +79,14 @@ for seed in [5]:  # [16, 20, 21, 22]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

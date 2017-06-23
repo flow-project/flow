@@ -21,7 +21,7 @@ class LoopEnvironment(SumoEnvironment):
         :return:
         """
         if self.vehicles[id]["edge"] == '':
-            print("This vehicle teleported and its edge is now empty", id)
+            # print("This vehicle teleported and its edge is now empty", id)
             return 0.
         return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])
 

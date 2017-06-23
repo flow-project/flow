@@ -8,11 +8,14 @@ import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
 from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 
 
 import plotly.offline as po
 import plotly.graph_objs as go
 import pdb
+
+TYPE = 'figure8'
 
 if __name__ == "__main__":
 
@@ -59,7 +62,10 @@ if __name__ == "__main__":
         net_params["length"] = args.loop_length
         cfg_params = scenario.cfg_params
         initial_config = scenario.initial_config
-        scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+        if TYPE == 'figure8':
+            scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+        elif TYPE == 'loop':
+            scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
         env._wrapped_env.scenario = scenario
 
         # Set sumo to make a video 

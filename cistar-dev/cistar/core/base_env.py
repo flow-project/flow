@@ -16,6 +16,7 @@ from cistar.core.util import ensure_dir
 import pdb
 import collections
 import time
+import pickle
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
@@ -185,13 +186,18 @@ class SumoEnvironment(Env, Serializable):
         TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
+        self.total_reward = 0
+        self.pos = {}
+        self.vel = {}
+
         self.ids = self.traci_connection.vehicle.getIDList()
         self.controlled_ids.clear()
         self.rl_ids.clear()
         self.vehicles.clear()
         for i in self.ids:
-            if self.traci_connection.vehicle.getTypeID(i) == "rl":
-                self.rl_ids.append(i)
+            # if self.traci_connection.vehicle.getTypeID(i) == "rl":
+            if self.traci_connection.vehicle.getTypeID(i)[:2] == "rl":
+                    self.rl_ids.append(i)
             else:
                 self.controlled_ids.append(i)
 
@@ -239,6 +245,9 @@ class SumoEnvironment(Env, Serializable):
             # but only used by sub-classes that apply lane changing
             self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
 
+            self.vel[veh_id] = [self.vehicles[veh_id]["speed"]]
+            self.pos[veh_id] = [self.vehicles[veh_id]["absolute_position"]]
+
             # set speed mode
             self.set_speed_mode(veh_id)
 
@@ -259,6 +268,10 @@ class SumoEnvironment(Env, Serializable):
 
         # dictionary of initial observations used while resetting vehicles after each rollout
         self.initial_observations = deepcopy(dict(self.vehicles))
+
+        self.initial_pos = dict()
+        for veh_id in self.ids:
+            self.initial_pos[veh_id] = self.vehicles[veh_id]["absolute_position"]
 
         # contains the last lc before the current step
         self.prev_last_lc = dict()
@@ -320,14 +333,18 @@ class SumoEnvironment(Env, Serializable):
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
             # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
             try:
-                self.vehicles[veh_id]["absolute_position"] += \
-                    (self.get_x_by_id(veh_id) - prev_pos) % self.scenario.length
+                change = self.get_x_by_id(veh_id) - prev_pos
+                if change < 0:
+                    change += self.scenario.length
+                self.vehicles[veh_id]["absolute_position"] += change
             except ValueError:
                 self.vehicles[veh_id]["absolute_position"] = -1001
 
             if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
-                print("Traci is returning error codes for some of your values", veh_id)
+                # print("Traci is returning error codes for some of your values", veh_id)
                 sumo_crash = True
+            # self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
+            # self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
 
         # collect information of the state of the network based on the environment class used
         self.state = self.getState()
@@ -336,15 +353,14 @@ class SumoEnvironment(Env, Serializable):
         sumo_crash = sumo_crash or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
-        intersection_crash = self.check_intersection_crash()
+        # intersection_crash = self.check_intersection_crash()
+        intersection_crash = False
 
         crash = intersection_crash or sumo_crash
 
-        if intersection_crash:
-            print("intersection crash!")
-
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        # self.total_reward += reward
 
         # TODO: Allow for partial observability
         next_observation = np.copy(self.state)
@@ -419,8 +435,9 @@ class SumoEnvironment(Env, Serializable):
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
             # clear controller acceleration queue of traci-controlled vehicles
-            if not self.vehicles[veh_id]['type'] == 'rl' and self.vehicles[veh_id]['controller'] is not None:
-                self.vehicles[veh_id]['controller'].reset_delay(self)
+            if not self.vehicles[veh_id]['type'][:2] == 'rl' and self.vehicles[veh_id]['controller'] is not None:
+            # if not self.vehicles[veh_id]['type'] == 'rl' and self.vehicles[veh_id]['controller'] is not None:
+                    self.vehicles[veh_id]['controller'].reset_delay(self)
 
             # clear vehicles from traci connection and re-introduce vehicles with pre-defined initial position
             self.traci_connection.vehicle.remove(veh_id)
@@ -459,7 +476,6 @@ class SumoEnvironment(Env, Serializable):
         :param acc: requested accelerations from the vehicles
         :return acc_deviation: difference between the requested acceleration that keeps the velocity positive
         """
-        # TODO: delete me? (start here)
         for i, veh_id in enumerate(veh_ids):
             # fail-safe to prevent longitudinal (bumper-to-bumper) crashing
             if self.fail_safe == 'instantaneous':
@@ -474,7 +490,6 @@ class SumoEnvironment(Env, Serializable):
                 safe_acc = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_acc)
 
             acc[i] = safe_acc
-        # TODO: delete me? (end here)
 
         # issue traci command for requested acceleration
         thisVel = np.array([self.vehicles[vid]['speed'] for vid in veh_ids])
@@ -523,13 +538,16 @@ class SumoEnvironment(Env, Serializable):
 
         lane_change_penalty = []
         for i, vid in enumerate(veh_ids):
-            if safe_target_lane[i] == target_lane[i]:
-                lane_change_penalty.append(0)
-                if target_lane[i] != current_lane[i]:
-                    self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
-                self.vehicles[vid]['last_lc'] = self.timer
+            if vid in self.rl_ids:
+                if safe_target_lane[i] == target_lane[i]:
+                    lane_change_penalty.append(0)
+                    if target_lane[i] != current_lane[i]:
+                        self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
+                        self.vehicles[vid]['last_lc'] = self.timer
+                else:
+                    lane_change_penalty.append(-1)
             else:
-                lane_change_penalty.append(-1)
+                self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
 
         return lane_change_penalty
 
@@ -657,6 +675,11 @@ class SumoEnvironment(Env, Serializable):
         Closes the TraCI I/O connection. Should be done at end of every experiment.
         Must be in Environment because the environment opens the TraCI connection.
         """
+        # output_filename = '/home/aboudy/Documents/unstable-ring.pkl'
+        # output = open(output_filename, 'wb')
+        # pickle.dump({"vel": self.vel, "pos": self.pos}, output)
+        # output.close()
+
         self.traci_connection.close()
 
     def close(self):

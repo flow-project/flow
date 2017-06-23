@@ -20,10 +20,10 @@ logging.basicConfig(level=logging.INFO)
 stub(globals())
 
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no-collide", "human_lc": "no-collide",
-               "rl_sm": "no-collide", "human_sm": "no-collide"}
-sumo_binary = "sumo"
-num_cars = 44
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_lat_collide", "human_lc": "no_collide",
+               "rl_sm": "no_collide", "human_sm": "no_collide"}
+sumo_binary = "sumo-gui"
+num_cars = 2
 
 initial_config = {"shuffle": False}
 
@@ -68,14 +68,14 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

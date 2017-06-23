@@ -11,6 +11,7 @@ from numpy import pi, sin, cos, linspace
 import logging
 import random
 from lxml import etree
+import numpy as np
 E = etree.Element
 
 
@@ -50,15 +51,15 @@ class Figure8Generator(Generator):
         #         top_lower_ring, bottom_lower_ring, left_lower_ring, right_lower_ring_in,
         #         top_upper_ring, bottom_upper_ring_in, left_upper_ring, right_upper_ring
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
-        x.append(E("node", id="center_intersection", x=repr(0), y=repr(0), type="unregulated"))
-        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type="unregulated"))
-        x.append(E("node", id="bottom_upper_ring_in", x=repr(r), y=repr(0), type="unregulated"))
-        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r), type="unregulated"))
-        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r), type="unregulated"))
-        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0), type="unregulated"))
-        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r), type="unregulated"))
-        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r), type="unregulated"))
-        x.append(E("node", id="right_lower_ring_in", x=repr(0), y=repr(-r), type="unregulated"))
+        x.append(E("node", id="center_intersection", x=repr(0), y=repr(0), type="priority"))
+        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type="priority"))
+        x.append(E("node", id="bottom_upper_ring_in", x=repr(r), y=repr(0), type="priority"))
+        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r), type="priority"))
+        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r), type="priority"))
+        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0), type="priority"))
+        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r), type="priority"))
+        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r), type="priority"))
+        x.append(E("node", id="right_lower_ring_in", x=repr(0), y=repr(-r), type="priority"))
 
         printxml(x, self.net_path + nodfn)
 
@@ -68,16 +69,16 @@ class Figure8Generator(Generator):
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
 
         # intersection edges
-        x.append(E("edge", attrib={"id": "right_lower_ring_in",
+        x.append(E("edge", attrib={"id": "right_lower_ring_in", "priority": "78",
                                    "from": "right_lower_ring_in", "to": "center_intersection", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
-        x.append(E("edge", attrib={"id": "right_lower_ring_out",
+        x.append(E("edge", attrib={"id": "right_lower_ring_out", "priority": "78",
                                    "from": "center_intersection", "to": "left_upper_ring", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
-        x.append(E("edge", attrib={"id": "bottom_upper_ring_in",
+        x.append(E("edge", attrib={"id": "bottom_upper_ring_in", "priority": "46",
                                    "from": "bottom_upper_ring_in", "to": "center_intersection", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
-        x.append(E("edge", attrib={"id": "bottom_upper_ring_out",
+        x.append(E("edge", attrib={"id": "bottom_upper_ring_out", "priority": "46",
                                    "from": "center_intersection", "to": "top_lower_ring", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
 
@@ -262,8 +263,12 @@ class Figure8Generator(Generator):
 
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
+        # type_list = np.sort(list(type_list))[[2, 0, 3, 1]]
+        # type_list = np.sort(list(type_list))[[4, 0, 5, 1, 6, 2, 7, 3]]
+        # type_list = np.sort(list(type_list))[[5, 0, 6, 1, 7, 2, 8, 3, 9, 4]]
+        type_list = np.sort(list(type_list))[[10, 0, 11, 1, 12, 2, 13, 3, 14, 4, 15, 5, 16, 6, 17, 7, 18, 8, 19, 9]]
         num_cars = scenario.num_vehicles
-        if type_list:
+        if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
                 print(type_params[tp][1][0])
@@ -292,7 +297,7 @@ class Figure8Generator(Generator):
 
             vehicle_ids = []
             if num_cars > 0:
-                for type in type_params:
+                for type in type_list:
                     type_count = type_params[type][0]
                     for i in range(type_count):
                         vehicle_ids.append((type, type + "_" + str(i)))

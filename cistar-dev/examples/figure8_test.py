@@ -14,13 +14,13 @@ sumo_params = {"port": 8873, "time_step": 0.1, "emission_path": "./data/", "trac
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"idm": (20, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "fail-safe": "None",
-              "intersection_fail-safe": "left-right"}
+              "intersection_fail-safe": "None"}
 
-radius_ring = 50
-net_params = {"radius_ring": radius_ring, "lanes": 2, "speed_limit": 35, "resolution": 40,
+radius_ring = 30
+net_params = {"radius_ring": radius_ring, "lanes": 1, "speed_limit": 30, "resolution": 40,
               "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
@@ -35,6 +35,6 @@ exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sum
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 10000)
+exp.run(1, 1500)
 
 exp.env.terminate()

@@ -38,8 +38,11 @@ class Scenario(Serializable):
         self.type_params = type_params
 
         self.num_rl_vehicles = 0
-        if "rl" in type_params:
-            self.num_rl_vehicles = type_params["rl"][0]
+        # if "rl" in type_params:
+        #     self.num_rl_vehicles = type_params["rl"][0]
+        for key in type_params.keys():
+            if key[:2] == "rl":
+                self.num_rl_vehicles += type_params[key][0]
 
         if not net_params:
             ValueError("No network params specified!")

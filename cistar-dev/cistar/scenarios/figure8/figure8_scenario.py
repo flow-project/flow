@@ -16,9 +16,11 @@ class Figure8Scenario(Scenario):
         self.ring_edgelen = net_params["radius_ring"] * np.pi / 2.
         self.intersection_len = 2 * net_params["radius_ring"]
         self.junction_len = 2.9 + 3.3 * net_params["lanes"]
+        self.inner_space_len = 0.28
 
         # instantiate "length" in net params
-        net_params["length"] = 6 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len
+        net_params["length"] = 6 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + \
+            10 * self.inner_space_len
 
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,
@@ -43,21 +45,44 @@ class Figure8Scenario(Scenario):
         self.resolution = self.net_params["resolution"]
 
         # defines edge starts for road sections
-        self.edgestarts = [("bottom_lower_ring", 0),
-                           ("right_lower_ring_in", self.ring_edgelen),
-                           ("right_lower_ring_out", self.ring_edgelen + self.intersection_len / 2 + self.junction_len),
-                           ("left_upper_ring", self.ring_edgelen + self.intersection_len + self.junction_len),
-                           ("top_upper_ring", 2 * self.ring_edgelen + self.intersection_len + self.junction_len),
-                           ("right_upper_ring", 3 * self.ring_edgelen + self.intersection_len + self.junction_len),
-                           ("bottom_upper_ring_in", 4 * self.ring_edgelen + self.intersection_len + self.junction_len),
-                           ("bottom_upper_ring_out", 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len),
-                           ("top_lower_ring", 4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len),
-                           ("left_lower_ring", 5 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len)]
+        self.edgestarts = [("bottom_lower_ring", 0 + self.inner_space_len),
+                           ("right_lower_ring_in", self.ring_edgelen + 2 * self.inner_space_len),
+                           ("right_lower_ring_out", self.ring_edgelen + self.intersection_len / 2 + self.junction_len + 3 * self.inner_space_len),
+                           ("left_upper_ring", self.ring_edgelen + self.intersection_len + self.junction_len + 4 * self.inner_space_len),
+                           ("top_upper_ring", 2 * self.ring_edgelen + self.intersection_len + self.junction_len + 5 * self.inner_space_len),
+                           ("right_upper_ring", 3 * self.ring_edgelen + self.intersection_len + self.junction_len + 6 * self.inner_space_len),
+                           ("bottom_upper_ring_in", 4 * self.ring_edgelen + self.intersection_len + self.junction_len + 7 * self.inner_space_len),
+                           ("bottom_upper_ring_out", 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len + 8 * self.inner_space_len),
+                           ("top_lower_ring", 4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 9 * self.inner_space_len),
+                           ("left_lower_ring", 5 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 10 * self.inner_space_len)]
 
         # defines edge starts for intersections
         self.intersection_edgestarts = \
-            [(":center_intersection_%s" % (1+self.lanes), self.ring_edgelen + self.intersection_len / 2),
-             (":center_intersection_1", 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + self.junction_len)]
+            [(":center_intersection_%s" % (1+self.lanes), self.ring_edgelen + self.intersection_len / 2 + 3 * self.inner_space_len),
+             (":center_intersection_1", 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + self.junction_len + 8 * self.inner_space_len)]
+
+        print(self.intersection_edgestarts)
+        print(self.junction_len)
+
+        self.extra_edgestarts = \
+            [("bottom_lower_ring", 0),
+             ("right_lower_ring_in", self.ring_edgelen + self.inner_space_len),
+             ("right_lower_ring_out",
+              self.ring_edgelen + self.intersection_len / 2 + self.junction_len + 2 * self.inner_space_len),
+             ("left_upper_ring",
+              self.ring_edgelen + self.intersection_len + self.junction_len + 3 * self.inner_space_len),
+             ("top_upper_ring",
+              2 * self.ring_edgelen + self.intersection_len + self.junction_len + 4 * self.inner_space_len),
+             ("right_upper_ring",
+              3 * self.ring_edgelen + self.intersection_len + self.junction_len + 5 * self.inner_space_len),
+             ("bottom_upper_ring_in",
+              4 * self.ring_edgelen + self.intersection_len + self.junction_len + 6 * self.inner_space_len),
+             ("bottom_upper_ring_out",
+              4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len + 7 * self.inner_space_len),
+             ("top_lower_ring",
+              4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 8 * self.inner_space_len),
+             ("left_lower_ring",
+              5 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 9 * self.inner_space_len)]
 
         if "positions" not in self.initial_config:
             bunch_factor = 0
@@ -106,7 +131,7 @@ class Figure8Scenario(Scenario):
         """
         # check it the vehicle is in a lane
         for edge_tuple in self.edgestarts:
-            if edge_tuple[0] in edge:
+            if edge_tuple[0] == edge:
                 edgestart = edge_tuple[1]
                 return position + edgestart
 
@@ -114,6 +139,12 @@ class Figure8Scenario(Scenario):
         for center_tuple in self.intersection_edgestarts:
             if center_tuple[0] in edge:
                 edgestart = center_tuple[1]
+                return position + edgestart
+
+        # finally, check if it is in the connection between lanes
+        for extra_tuple in self.extra_edgestarts:
+            if extra_tuple[0] in edge:
+                edgestart = extra_tuple[1]
                 return position + edgestart
 
     def gen_even_start_positions(self, bunching):

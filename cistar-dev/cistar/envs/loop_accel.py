@@ -41,7 +41,11 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        self.apply_acceleration(self.rl_ids, rl_actions)
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
+        sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
+
+        self.apply_acceleration(sorted_rl_ids, rl_actions)
+        # self.apply_acceleration(self.rl_ids, rl_actions)
 
         # target_lane = None
         # lane_change_penalty = None
@@ -55,13 +59,22 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
-        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
-        max_cost = np.linalg.norm(max_cost)
+        reward_type = 'speed'
 
-        cost = state[0] - self.env_params["target_velocity"]
-        cost = np.linalg.norm(cost)
+        if reward_type == 'speed':
+            max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+            max_cost = np.linalg.norm(max_cost)
 
-        return max_cost - cost
+            cost = state[0] - self.env_params["target_velocity"]
+            cost = np.linalg.norm(cost)
+
+            return max(max_cost - cost, 0)
+
+        elif reward_type == 'distance':
+            distance = np.array([self.vehicles[veh_id]["absolute_position"] - self.initial_pos[veh_id]
+                                 for veh_id in self.ids])
+
+            return sum(distance)
 
     def getState(self):
         """
@@ -69,8 +82,20 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        sorted_ids = np.array(self.ids)[sorted_indx]
+
         return np.array([[self.vehicles[vehicle]["speed"],
-                          self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T
+                          self.vehicles[vehicle]["absolute_position"]] for vehicle in sorted_ids]).T
+
+        # return np.array([[self.vehicles[vehicle]["speed"],
+        #                   self.get_headway(vehicle)] for vehicle in sorted_ids]).T
+
+        # return np.array([[self.vehicles[vehicle]["speed"],
+        #                   self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T
+
+        # return np.array([[self.vehicles[vehicle]["speed"],
+        #                   self.get_headway(vehicle)] for vehicle in self.ids]).T
 
     def render(self):
         print('current state/velocity:', self.state)

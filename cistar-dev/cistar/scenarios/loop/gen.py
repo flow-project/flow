@@ -223,6 +223,7 @@ class CircleGenerator(Generator):
                         vehicle_ids.append((type, type + "_" + str(i)))
 
             if initial_config["shuffle"]:
+                random.seed(448)
                 random.shuffle(vehicle_ids)
 
             positions = initial_config["positions"]
