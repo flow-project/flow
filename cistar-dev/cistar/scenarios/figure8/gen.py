@@ -263,10 +263,12 @@ class Figure8Generator(Generator):
 
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
+        type_list = np.sort(list(type_list))[[1, 0]]
         # type_list = np.sort(list(type_list))[[2, 0, 3, 1]]
         # type_list = np.sort(list(type_list))[[4, 0, 5, 1, 6, 2, 7, 3]]
         # type_list = np.sort(list(type_list))[[5, 0, 6, 1, 7, 2, 8, 3, 9, 4]]
-        type_list = np.sort(list(type_list))[[10, 0, 11, 1, 12, 2, 13, 3, 14, 4, 15, 5, 16, 6, 17, 7, 18, 8, 19, 9]]
+        # type_list = np.sort(list(type_list))[[7, 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6]]
+        # type_list = np.sort(list(type_list))[[10, 0, 11, 1, 12, 2, 13, 3, 14, 4, 15, 5, 16, 6, 17, 7, 18, 8, 19, 9]]
         num_cars = scenario.num_vehicles
         if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")

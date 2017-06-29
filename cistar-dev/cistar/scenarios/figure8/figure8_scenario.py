@@ -21,6 +21,7 @@ class Figure8Scenario(Scenario):
         # instantiate "length" in net params
         net_params["length"] = 6 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + \
             10 * self.inner_space_len
+        print(net_params["length"])
 
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,

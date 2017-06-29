@@ -67,8 +67,8 @@ for seed in [5]:  # [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=20000,
-        max_path_length=2000,
+        batch_size=15000,
+        max_path_length=1500,
         n_itr=500,  # 1000
         # whole_paths=True,
         discount=0.999,

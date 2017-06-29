@@ -71,7 +71,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-
         sort_pos = True
 
         if sort_pos:
@@ -93,8 +92,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         else:
             return np.array([[self.vehicles[veh_id]["speed"],
                               self.vehicles[veh_id]["lane"],
-                              self.vehicles[veh_id]["absolute_position"],
-                              veh_id in self.rl_ids] for veh_id in self.ids]).T
+                              self.vehicles[veh_id]["absolute_position"]] for veh_id in self.ids]).T
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -144,54 +142,160 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         return resulting_behaviors
 
 
-class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
-
-    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
-        super().__init__(env_params, sumo_binary, sumo_params, scenario)
-
-        # index of aggressive vehicles
-        self.ind_aggressive = env_params["ind_aggressive"]
-
-        # index of non-aggressive vehicles
-        ind_nonaggressive = np.arange(self.scenario.num_vehicles)
-        ind_nonaggressive = ind_nonaggressive[np.array([ind_nonaggressive[i] not in self.ind_aggressive
-                                                        for i in range(len(ind_nonaggressive))])]
-        self.ind_nonaggressive = ind_nonaggressive
+class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
 
     def compute_reward(self, state, action, **kwargs):
         """
         See parent class
         """
-        # if any(state[0] < 0) or kwargs["fail"]:
-        #     return -20.0
-
-        # max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
-        #                      np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
-        # max_cost = np.linalg.norm(max_cost)
-
-        # # cost associated with being away from target velocity
-        # # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
-        # cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
-        #                  self.env_params["target_velocity_aggressive"],
-        #                  state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
-        #                  self.env_params["target_velocity"])
-        # cost = np.linalg.norm(cost)
-
-        # return max_cost - cost
 
         if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
 
-        max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
-                             np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
-        max_cost = np.linalg.norm(max_cost)
 
-        # cost associated with being away from target velocity
-        # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
-        cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
-                         self.env_params["target_velocity_aggressive"],
-                         state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
-                         self.env_params["target_velocity"])
-        cost = np.linalg.norm(cost)
+        #
+        # flag = 1
+        # # max_cost3 = np.array([self.env_params["target_velocity"]]*len(self.rl_ids))
+        # # max_cost3 = np.linalg.norm(max_cost3)
+        # # cost3 = [self.vehicles[veh_id]["speed"] - self.env_params["target_velocity"] for veh_id in self.rl_ids]
+        # # cost3 = np.linalg.norm(cost)
+        # # for i, veh_id in enumerate(self.rl_ids):
+        # #     if self.vehicles[veh_id]["lane"] != 0:
+        # #         flag = 1
+        #
+        # if flag:
+        #     return max_cost - cost - cost2
+        # else:
+        #     return (max_cost - cost) + (max_cost3 - cost3) - cost2
 
-        return max_cost - cost
+        reward_type = 1
+
+        if reward_type == 1:
+            # this reward type only rewards the velocity of the rl vehicle if it is in lane zero
+            # otherwise, the reward function perceives the velocity of the rl vehicles as 0 m/s
+
+            max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+            max_cost = np.linalg.norm(max_cost)
+
+            vel = state[0]
+            lane = state[1]
+            vel[lane != 0] = np.array([0] * sum(lane != 0))
+
+            cost = vel - self.env_params["target_velocity"]
+            cost = np.linalg.norm(cost)
+
+            return max(max_cost - cost, 0)
+
+        elif reward_type == 2:
+            # this reward type only rewards non-rl vehicles, and penalizes rl vehicles for being
+            # in the wrong lane
+
+            # reward for only non-rl vehicles
+            max_cost = np.array([self.env_params["target_velocity"]]*len(self.controlled_ids))
+            max_cost = np.linalg.norm(max_cost)
+
+            cost = [self.vehicles[veh_id]["speed"] - self.env_params["target_velocity"]
+                    for veh_id in self.controlled_ids]
+            cost = np.linalg.norm(cost)
+
+            # penalty for being in the other lane
+            # calculate how long the cars have been in the left lane
+            left_lane_cost = np.zeros(len(self.rl_ids))
+            for i, veh_id in enumerate(self.rl_ids):
+                if self.vehicles[veh_id]["lane"] != 0:
+                    # method 1:
+                    # if its possible to lane change and we are still hanging out in the left lane
+                    # start penalizing it
+                    # left_lane_cost[i] = np.max([0, (self.timer - self.vehicles[veh_id]['last_lc'] -
+                    #                                 self.lane_change_duration)])
+
+                    # method 2:
+                    # penalize the left lane in increasing amount from the start
+                    left_lane_cost[i] = self.timer/20
+
+            cost2 = np.linalg.norm(np.array(left_lane_cost))/10
+
+            return max_cost - cost - cost2
+
+    @property
+    def observation_space(self):
+        """
+        See parent class
+        An observation consists of the velocity, lane index, and absolute position of each vehicle
+        in the fleet
+        """
+        speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, pos])
+
+    def getState(self):
+        """
+        See parent class
+        The state is an array the velocities for each vehicle
+        :return: an array of vehicle speed for each vehicle
+        """
+        # sorting states by position
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        sorted_ids = np.array(self.ids)[sorted_indx]
+
+        return np.array([[self.vehicles[veh_id]["speed"],
+                          self.vehicles[veh_id]["lane"],
+                          self.vehicles[veh_id]["absolute_position"]] for veh_id in sorted_ids]).T
+
+
+    def render(self):
+        print('current velocity, lane, headway, adj headway:', self.state)
+
+
+# class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
+#
+#     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+#         super().__init__(env_params, sumo_binary, sumo_params, scenario)
+#
+#         # index of aggressive vehicles
+#         self.ind_aggressive = env_params["ind_aggressive"]
+#
+#         # index of non-aggressive vehicles
+#         ind_nonaggressive = np.arange(self.scenario.num_vehicles)
+#         ind_nonaggressive = ind_nonaggressive[np.array([ind_nonaggressive[i] not in self.ind_aggressive
+#                                                         for i in range(len(ind_nonaggressive))])]
+#         self.ind_nonaggressive = ind_nonaggressive
+#
+#     def compute_reward(self, state, action, **kwargs):
+#         """
+#         See parent class
+#         """
+#         # if any(state[0] < 0) or kwargs["fail"]:
+#         #     return -20.0
+#
+#         # max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
+#         #                      np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
+#         # max_cost = np.linalg.norm(max_cost)
+#
+#         # # cost associated with being away from target velocity
+#         # # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
+#         # cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
+#         #                  self.env_params["target_velocity_aggressive"],
+#         #                  state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
+#         #                  self.env_params["target_velocity"])
+#         # cost = np.linalg.norm(cost)
+#
+#         # return max_cost - cost
+#
+#         if any(state[0] < 0) or kwargs["fail"]:
+#             return -20.0
+#
+#         max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
+#                              np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
+#         max_cost = np.linalg.norm(max_cost)
+#
+#         # cost associated with being away from target velocity
+#         # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
+#         cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
+#                          self.env_params["target_velocity_aggressive"],
+#                          state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
+#                          self.env_params["target_velocity"])
+#         cost = np.linalg.norm(cost)
+#
+#         return max_cost - cost

@@ -11,6 +11,7 @@ from numpy import pi, sin, cos, linspace
 import logging
 import random
 from lxml import etree
+import numpy as np
 E = etree.Element
 
 
@@ -188,8 +189,10 @@ class CircleGenerator(Generator):
 
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
+        # type_list = np.sort(list(type_list))[[1,0,2]]
+        # type_list = np.sort(list(type_list))
         num_cars = scenario.num_vehicles
-        if type_list:
+        if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
                 if type_params[tp][1][0] == "sumoIDM":
@@ -223,7 +226,8 @@ class CircleGenerator(Generator):
                         vehicle_ids.append((type, type + "_" + str(i)))
 
             if initial_config["shuffle"]:
-                random.seed(448)
+                # random.seed(448)
+                random.seed(132)
                 random.shuffle(vehicle_ids)
 
             positions = initial_config["positions"]

@@ -1,22 +1,23 @@
-''' Script used for running case with mixed number of OVM cars and RL cars
-operating on the SimpleEmission environment '''
+"""
+Script used to train test platooning on a single lane.
+
+RL vehicles are bunched together. The emergent behavior we are hoping to witness
+is that rl-vehicles group together in other to allow non rl-vehicles a larger headway,
+and thus larger equilibrium speeds.
+
+One concern is whether rl-vehicles will start trail-gating human vehicles.
+"""
 
 import logging
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import stub, run_experiment_lite
-#from sandbox.rocky.tf.algos.trpo import TRPO
 from rllab.algos.trpo import TRPO
-
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from sandbox.rocky.tf.policies.auto_mlp_policy import AutoMLPPolicy
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
-from sandbox.rocky.tf.envs.base import TfEnv
 
 # from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.envs.loop_accel_pos_vel import ExtendedAccelerationEnvironment
-from cistar.envs.loop_emission import SimpleEmissionEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
@@ -26,27 +27,26 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-target_velocity = 20
-
-sumo_params = {"time_step":0.05, "traci_control": 1, "rl_sm": "aggressive", "human_sm": "no_collide"}
+sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_sm": "aggressive", "human_sm": "aggressive"}
 sumo_binary = "sumo"
 
-env_params = {"target_velocity": target_velocity, "max-deacc": 6, "max-acc": 3, "fail-safe": 'None'}
+env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None"}
 
-net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40,
-              "net_path": "debug/rl/net/"}
+net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
+              "net_path": "debug/net/"}
 
-cfg_params = {"start_time": 0, "end_time": 1000000, "cfg_path": "debug/rl/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": False, "spacing":"gaussian"}
+initial_config = {"shuffle": False}
 
 num_cars = 22
-num_auto = 1
 
-exp_tag = str(num_cars) + 'single-lane' + 'target-velocity-' + str(target_velocity)
+exp_tag = str(num_cars) + "-car-stabilizing-the-ring-with-perturbations"
 
-type_params = {"rl":(num_auto, (RLController, {}), (StaticLaneChanger, {}), 0), 
-                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {
+    "rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+    "drunk": (1, (DrunkDriver, {}), (StaticLaneChanger, {}), 0),
+    "idm": (num_cars - 2, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -54,7 +54,7 @@ env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenar
 
 env = normalize(env)
 
-for seed in [10, 22, 33]:
+for seed in [5]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
@@ -66,14 +66,13 @@ for seed in [10, 22, 33]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=10000,
-        max_path_length=2000,
-        n_itr=400,  # 1000
+        batch_size=15000,
+        max_path_length=1500,
+        n_itr=1000,  # 1000
         # whole_paths=True,
-        # discount=0.999,
+        discount=0.999,
         step_size=0.01,
     )
-    # algo.train()
 
     run_experiment_lite(
         algo.train(),
@@ -85,7 +84,7 @@ for seed in [10, 22, 33]:
         # will be used
         seed=seed,
         mode="ec2",
-        #mode="ec2",
         exp_prefix=exp_tag,
+        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

@@ -76,6 +76,6 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

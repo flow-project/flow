@@ -26,7 +26,7 @@ sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_collide", "hum
                "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo"
 
-env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
+env_params = {"target_velocity": 10, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
               "intersection_fail-safe": "None"}
 
 net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
@@ -36,69 +36,58 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 20
-num_auto = 15
+num_cars = 14
+num_auto = 14
+type_params = {"rl": (num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
+               "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+
+exp_type = 1
+
+if exp_type == 1:
+    num_cars = 14
+    num_auto = 1
+    type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm": (13, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+
+elif exp_type == 2:
+    num_cars = 14
+    num_auto = 2
+    type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm": (6, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl2": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm2": (6, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+
+elif exp_type == 3:
+    num_cars = 14
+    num_auto = 4
+    type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm": (3, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl2": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm2": (2, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl3": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm3": (3, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl4": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm4": (2, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+
+elif exp_type == 4:
+    num_cars = 14
+    num_auto = 7
+    type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl2": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm2": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl3": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm3": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl4": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm4": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl5": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm5": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl6": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm6": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
+                   "rl7": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm7": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
 exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-intersection-control'
-
-# type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm": (9, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl2": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm2": (9, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-
-# type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm": (4, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl2": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm2": (4, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl3": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm3": (4, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl4": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm4": (4, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-
-# type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm": (3, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl2": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm2": (3, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl3": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm3": (3, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl4": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm4": (3, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl5": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm5": (3, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-
-# type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl2": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm2": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl3": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm3": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl4": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm4": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl5": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm5": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl6": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm6": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl7": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm7": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl8": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm8": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl9": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm9": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-#                "rl10": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-#                "idm10": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-
-type_params = {"rl": (3, (RLController, {}), (StaticLaneChanger, {}), 0),
-               "idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-               "rl2": (3, (RLController, {}), (StaticLaneChanger, {}), 0),
-               "idm2": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-               "rl3": (3, (RLController, {}), (StaticLaneChanger, {}), 0),
-               "idm3": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-               "rl4": (3, (RLController, {}), (StaticLaneChanger, {}), 0),
-               "idm4": (1, (IDMController, {}), (StaticLaneChanger, {}), 0),
-               "rl5": (3, (RLController, {}), (StaticLaneChanger, {}), 0),
-               "idm5": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-
-# type_params = {"rl": (20, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
 scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 

@@ -32,10 +32,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        headway = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, pos])
+        speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, absolute_pos])
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -56,8 +55,8 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        if any(state[0] < 0) or kwargs["fail"]:
-            return -20.0
+        if any(state[0] < 0):
+            return -20
 
         reward_type = 'speed'
 
