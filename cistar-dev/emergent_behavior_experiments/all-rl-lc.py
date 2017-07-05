@@ -63,21 +63,11 @@ env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_pa
 
 env = normalize(env)
 
-<<<<<<< HEAD
-
-<<<<<<< HEAD
-for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
-=======
-for seed in [5, 16, 22, 44]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
->>>>>>> 2a141ba68b02858693b6be10cd8764f78851d64c
+for seed in [5, 16, 22, 44]:  # [5, 10, 73, 56, 1]:
     policy = AutoMLPPolicy(
         name="policy",
-=======
-for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
-    policy = GaussianMLPPolicy(
->>>>>>> 9535ee0357e35b686da20dab20be8b282232f974
         env_spec=env.spec,
-        hidden_sizes=(200,100,50)
+        hidden_sizes=(200, 100, 50)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -86,19 +76,9 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-<<<<<<< HEAD
-<<<<<<< HEAD
-        batch_size=4000,  # 4000
+        batch_size=4000,
         max_path_length=600,
-=======
-        batch_size=1000,  # 4000
-        max_path_length=1000,
->>>>>>> 2a141ba68b02858693b6be10cd8764f78851d64c
-=======
-        batch_size=30000,  # 4000
-        max_path_length=1500,
->>>>>>> 9535ee0357e35b686da20dab20be8b282232f974
-        n_itr=400,  # 50000
+        n_itr=400,
 
         # whole_paths=True,
         discount=0.99,
@@ -115,20 +95,8 @@ for seed in [5]:  # [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-<<<<<<< HEAD
-<<<<<<< HEAD
         mode="local",
         exp_prefix=exp_tag,
         python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
-=======
-        mode="ec2",
-        exp_prefix=exp_tag
-        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
->>>>>>> 2a141ba68b02858693b6be10cd8764f78851d64c
-=======
-        mode="local",
-        exp_prefix=exp_tag,
-        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
->>>>>>> 9535ee0357e35b686da20dab20be8b282232f974
         # plot=True,
     )
