@@ -6,6 +6,8 @@ from rllab.spaces import Product
 import traci
 
 import numpy as np
+from numpy.random import normal
+
 import pdb
 
 
@@ -22,7 +24,6 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         Actions are a set of accelerations from 0 to 15m/s
         :return:
         """
-        #TODO: max and min are parameters
         return Box(low=-np.abs(self.env_params["max-deacc"]), high=self.env_params["max-acc"],
                    shape=(self.scenario.num_rl_vehicles, ))
 
@@ -44,38 +45,25 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
 
         self.apply_acceleration(sorted_rl_ids, rl_actions)
-        # self.apply_acceleration(self.rl_ids, rl_actions)
-
-        # target_lane = None
-        # lane_change_penalty = None
-        #
-        # return actual_acc, acc_deviation, target_lane, lane_change_penalty
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        if any(state[0] < 0):
-            return -20
+        vel = state[0]
 
-        reward_type = 'speed'
+        if any(vel < -100) or kwargs["fail"]:
+            return 0.0
 
-        if reward_type == 'speed':
-            max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
-            max_cost = np.linalg.norm(max_cost)
+        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
 
-            cost = state[0] - self.env_params["target_velocity"]
-            cost = np.linalg.norm(cost)
+        cost = vel - self.env_params["target_velocity"]
+        cost = np.linalg.norm(cost)
 
-            return max(max_cost - cost, 0)
+        return max(max_cost - cost, 0)
 
-        elif reward_type == 'distance':
-            distance = np.array([self.vehicles[veh_id]["absolute_position"] - self.initial_pos[veh_id]
-                                 for veh_id in self.ids])
-
-            return sum(distance)
-
-    def getState(self):
+    def getState(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle
@@ -84,17 +72,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
         sorted_ids = np.array(self.ids)[sorted_indx]
 
-        return np.array([[self.vehicles[vehicle]["speed"],
-                          self.vehicles[vehicle]["absolute_position"]] for vehicle in sorted_ids]).T
-
-        # return np.array([[self.vehicles[vehicle]["speed"],
-        #                   self.get_headway(vehicle)] for vehicle in sorted_ids]).T
-
-        # return np.array([[self.vehicles[vehicle]["speed"],
-        #                   self.vehicles[vehicle]["absolute_position"]] for vehicle in self.vehicles]).T
-
-        # return np.array([[self.vehicles[vehicle]["speed"],
-        #                   self.get_headway(vehicle)] for vehicle in self.ids]).T
+        return np.array([[self.vehicles[vehicle]["speed"] + normal(0, kwargs["observation_vel_std"]),
+                          self.vehicles[vehicle]["absolute_position"] + normal(0, kwargs["observation_pos_std"])]
+                         for vehicle in sorted_ids]).T
 
     def render(self):
         print('current state/velocity:', self.state)

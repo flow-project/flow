@@ -31,7 +31,8 @@ sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "aggressive", "hum
                "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
 
-env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None"}
+env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3,
+              "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
               "net_path": "debug/net/"}

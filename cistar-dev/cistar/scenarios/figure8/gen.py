@@ -228,17 +228,6 @@ class Figure8Generator(Generator):
         add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
         add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_upper_ring"))
         add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeright_upper_ring"))
-
-        # add.append(rerouter("rerouterBottom_lower_ring", "bottom_lower_ring", "routetop_upper_ring"))
-        # add.append(rerouter("rerouterRight_lower_ring_in", "right_lower_ring_in", "routeright_upper_ring"))
-        # add.append(rerouter("rerouterRight_lower_ring_out", "right_lower_ring_out", "routebottom_upper_ring_in"))
-        # add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routebottom_upper_ring_out"))
-        # add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routetop_lower_ring"))
-        # add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
-        # add.append(rerouter("rerouterBottom_upper_ring_in", "bottom_upper_ring_in", "routebottom_lower_ring"))
-        # add.append(rerouter("rerouterBottom_upper_ring_out", "bottom_upper_ring_out", "routeright_lower_ring_in"))
-        # add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_lower_ring_out"))
-        # add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeleft_upper_ring"))
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")
@@ -263,12 +252,6 @@ class Figure8Generator(Generator):
 
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
-        type_list = np.sort(list(type_list))[[1, 0]]
-        # type_list = np.sort(list(type_list))[[2, 0, 3, 1]]
-        # type_list = np.sort(list(type_list))[[4, 0, 5, 1, 6, 2, 7, 3]]
-        # type_list = np.sort(list(type_list))[[5, 0, 6, 1, 7, 2, 8, 3, 9, 4]]
-        # type_list = np.sort(list(type_list))[[7, 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6]]
-        # type_list = np.sort(list(type_list))[[10, 0, 11, 1, 12, 2, 13, 3, 14, 4, 15, 5, 16, 6, 17, 7, 18, 8, 19, 9]]
         num_cars = scenario.num_vehicles
         if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")

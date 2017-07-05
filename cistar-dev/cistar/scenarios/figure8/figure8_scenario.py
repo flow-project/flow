@@ -21,7 +21,6 @@ class Figure8Scenario(Scenario):
         # instantiate "length" in net params
         net_params["length"] = 6 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + \
             10 * self.inner_space_len
-        print(net_params["length"])
 
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,
@@ -61,9 +60,6 @@ class Figure8Scenario(Scenario):
         self.intersection_edgestarts = \
             [(":center_intersection_%s" % (1+self.lanes), self.ring_edgelen + self.intersection_len / 2 + 3 * self.inner_space_len),
              (":center_intersection_1", 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + self.junction_len + 8 * self.inner_space_len)]
-
-        print(self.intersection_edgestarts)
-        print(self.junction_len)
 
         self.extra_edgestarts = \
             [("bottom_lower_ring", 0),

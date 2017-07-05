@@ -7,6 +7,7 @@ from rllab.spaces.discrete import Discrete
 import traci
 import pdb
 import numpy as np
+from numpy.random import normal
 import time
 
 
@@ -46,53 +47,38 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        # is_rl = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        # return Product([speed, lane, absolute_pos, is_rl])
         return Product([speed, lane, absolute_pos])
 
     def compute_reward(self, state, action, **kwargs):
         """
         See parent class
         """
-        if any(state[0] < 0) or kwargs["fail"]:
-            return -20.0
+        vel = state[0]
+
+        if any(vel < -100) or kwargs["fail"]:
+            return 0.0
 
         max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 
-        cost = state[0] - self.env_params["target_velocity"]
+        cost = vel - self.env_params["target_velocity"]
         cost = np.linalg.norm(cost)
 
         return max(max_cost - cost, 0)
 
-    def getState(self):
+    def getState(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        sort_pos = True
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        sorted_ids = np.array(self.ids)[sorted_indx]
 
-        if sort_pos:
-            # sorting states by position
-            sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, kwargs["observation_vel_std"]),
+                          self.vehicles[veh_id]["absolute_position"] + normal(0, kwargs["observation_pos_std"]),
+                          self.vehicles[veh_id]["lane"]] for veh_id in sorted_ids]).T
 
-            sorted_ids = np.array(self.ids)[sorted_indx]
-
-            sorted_rl_cars = np.array([0] * len(sorted_ids))
-            sorted_rl_cars[:len(self.rl_ids)] = np.sort([self.vehicles[veh_id]["absolute_position"]
-                                                         for veh_id in self.rl_ids])
-
-            state = np.array([[self.vehicles[veh_id]["speed"],
-                              self.vehicles[veh_id]["lane"],
-                              self.vehicles[veh_id]["absolute_position"]] for veh_id in sorted_ids]).T
-            # state = np.vstack((state, sorted_rl_cars))
-
-            return state
-        else:
-            return np.array([[self.vehicles[veh_id]["speed"],
-                              self.vehicles[veh_id]["lane"],
-                              self.vehicles[veh_id]["absolute_position"]] for veh_id in self.ids]).T
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -112,30 +98,19 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         acceleration = actions[::2]
         direction = np.round(actions[1::2])
 
-        sort_pos = True
-        
-        if sort_pos:
-            # sorting states by position
-            sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
+        # sorting states by position
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
 
-            # re-arrange actions according to mapping in observation space
-            sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
+        # re-arrange actions according to mapping in observation space
+        sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
 
-            # represents vehicles that are allowed to change lanes
-            non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
-                                     for veh_id in sorted_rl_ids]
-            direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+        # represents vehicles that are allowed to change lanes
+        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+                                 for veh_id in sorted_rl_ids]
+        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
 
-            self.apply_acceleration(sorted_rl_ids, acc=acceleration)
-            self.apply_lane_change(sorted_rl_ids, direction=direction)
-        else:
-            # represents vehicles that are allowed to change lanes
-            non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
-                                     for veh_id in self.rl_ids]
-            direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
-
-            self.apply_acceleration(self.rl_ids, acc=acceleration)
-            self.apply_lane_change(self.rl_ids, direction=direction)
+        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
+        self.apply_lane_change(sorted_rl_ids, direction=direction)
 
         resulting_behaviors = []
 
@@ -151,7 +126,6 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
 
         if any(state[0] < 0) or kwargs["fail"]:
             return -20.0
-
 
         #
         # flag = 1

@@ -30,10 +30,10 @@ stub(globals())
 
 sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_lat_collide", "human_lc": "strategic",
                "rl_sm": "no_collide", "human_sm": "no_collide"}
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
-env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 3,
-              "fail-safe": "None"}
+env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 3,
+              "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40,
               "net_path": "debug/net/"}
@@ -79,14 +79,14 @@ for seed in [5]:  # [16, 20, 21, 22]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

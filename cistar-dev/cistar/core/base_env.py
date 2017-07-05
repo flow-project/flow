@@ -12,7 +12,11 @@ from rllab.core.serializable import Serializable
 from rllab.envs.base import Env
 from rllab.envs.base import Step
 
+from cistar.controllers.base_controller import *
+from cistar.controllers.car_following_models import *
+from cistar.controllers.rlcontroller import RLController
 from cistar.core.util import ensure_dir
+
 import pdb
 import collections
 import time
@@ -68,7 +72,7 @@ class SumoEnvironment(Env, Serializable):
         # Ordered dictionary used to keep neural net inputs in order
         self.initial_state = {}
         self.ids = []
-        self.controlled_ids, self.rl_ids = [], []
+        self.controlled_ids, self.sumo_ids, self.rl_ids = [], [], []
         self.state = None
         self.obs_var_labels = []
 
@@ -86,7 +90,7 @@ class SumoEnvironment(Env, Serializable):
         if "time_step" in sumo_params:
             self.time_step = sumo_params["time_step"]
         else:
-            self.time_step = 0.01  # 0.01 = default time step for our research
+            self.time_step = 0.1  # 0.1 = default time step for our research
 
         # parameter used to determine if initial conditions of vehicles (position and velocity)
         # are shuffled at reset
@@ -114,6 +118,30 @@ class SumoEnvironment(Env, Serializable):
             self.intersection_fail_safe = env_params["intersection_fail-safe"]
         else:
             self.intersection_fail_safe = "None"
+
+        # observation (sensor) noise associated with velocity data
+        if "observation_vel_std" in env_params:
+            self.observation_vel_std = env_params["observation_vel_std"]
+        else:
+            self.observation_vel_std = 0
+
+        # observation (sensor) noise associated with position data
+        if "observation_pos_std" in env_params:
+            self.observation_pos_std = env_params["observation_pos_std"]
+        else:
+            self.observation_pos_std = 0
+
+        # action (actuator) noise associated with human-driven vehicle acceleration
+        if "human_acc_std" in env_params:
+            self.human_acc_std = env_params["human_acc_std"]
+        else:
+            self.human_acc_std = 0
+
+        # action (actuator) noise associated with autonomous vehicle acceleration
+        if "rl_acc_std" in env_params:
+            self.rl_acc_std = env_params["rl_acc_std"]
+        else:
+            self.rl_acc_std = 0
 
         # lane changing duration is always present in the environment,
         # but only used by sub-classes that apply lane changing
@@ -181,20 +209,12 @@ class SumoEnvironment(Env, Serializable):
         TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
-        self.total_reward = 0
-        self.pos = {}
-        self.vel = {}
-
+        # collect ids and prepare id and vehicle lists
         self.ids = self.traci_connection.vehicle.getIDList()
         self.controlled_ids.clear()
+        self.sumo_ids.clear()
         self.rl_ids.clear()
         self.vehicles.clear()
-        for i in self.ids:
-            # if self.traci_connection.vehicle.getTypeID(i) == "rl":
-            if self.traci_connection.vehicle.getTypeID(i)[:2] == "rl":
-                    self.rl_ids.append(i)
-            else:
-                self.controlled_ids.append(i)
 
         # create the list of colors used to different between different types of
         # vehicles visually on sumo's gui
@@ -218,14 +238,17 @@ class SumoEnvironment(Env, Serializable):
             vehicle["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             vehicle["length"] = self.traci_connection.vehicle.getLength(veh_id)
             vehicle["max_speed"] = self.traci_connection.vehicle.getMaxSpeed(veh_id)
-            # vehicle["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
             # specify acceleration controller
             controller_params = self.scenario.type_params[veh_type][1]
-            if isinstance(controller_params[0], str):
-                vehicle['controller'] = None
+            vehicle['controller'] = controller_params[0](veh_id=veh_id, **controller_params[1])
+
+            if controller_params[0] == SumoController:
+                self.sumo_ids.append(veh_id)
+            elif controller_params[0] == RLController:
+                self.rl_ids.append(veh_id)
             else:
-                vehicle['controller'] = controller_params[0](veh_id=veh_id, **controller_params[1])
+                self.controlled_ids.append(veh_id)
 
             # specify lane-changing controller
             lane_changer_params = self.scenario.type_params[veh_type][2]
@@ -240,9 +263,6 @@ class SumoEnvironment(Env, Serializable):
             # but only used by sub-classes that apply lane changing
             self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
 
-            self.vel[veh_id] = [self.vehicles[veh_id]["speed"]]
-            self.pos[veh_id] = [self.vehicles[veh_id]["absolute_position"]]
-
             # set speed mode
             self.set_speed_mode(veh_id)
 
@@ -256,10 +276,6 @@ class SumoEnvironment(Env, Serializable):
 
             self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"],
                                           vehicle["position"], vehicle["speed"], pos)
-
-        # remove sumo controlled vehicles from controlled_ids
-        self.controlled_ids = [self.controlled_ids[i] for i in range(len(self.controlled_ids)) if
-                               self.vehicles[self.controlled_ids[i]]["controller"] is not None]
 
         # dictionary of initial observations used while resetting vehicles after each rollout
         self.initial_observations = deepcopy(dict(self.vehicles))
@@ -292,7 +308,9 @@ class SumoEnvironment(Env, Serializable):
         """
         self.timer += 1
         accel = []
-        if self.sumo_params["traci_control"]:
+
+        # perform acceleration and (optionally) lane change actions for cistar-controlled human-driven vehicles
+        if len(self.controlled_ids) > 0:
             for veh_id in self.controlled_ids:
                 # acceleration action
                 action = self.vehicles[veh_id]['controller'].get_action(self)
@@ -305,6 +323,15 @@ class SumoEnvironment(Env, Serializable):
                         self.apply_lane_change([veh_id], target_lane=[new_lane])
 
             self.apply_acceleration(self.controlled_ids, acc=accel)
+
+        # perform (optionally) lane change actions for sumo-controlled human-driven vehicles
+        if len(self.sumo_ids) > 0:
+            for veh_id in self.sumo_ids:
+                # lane changing action
+                if self.scenario.lanes > 1:
+                    if self.vehicles[veh_id]['lane_changer'] is not None:
+                        new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                        self.apply_lane_change([veh_id], target_lane=[new_lane])
 
         self.apply_rl_actions(rl_actions)
 
@@ -329,7 +356,6 @@ class SumoEnvironment(Env, Serializable):
                     self.vehicles[veh_id]["last_lc"] = self.timer
             self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             # self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
-            # self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
             try:
                 change = self.get_x_by_id(veh_id) - prev_pos
                 if change < 0:
@@ -341,11 +367,10 @@ class SumoEnvironment(Env, Serializable):
             if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
                 # print("Traci is returning error codes for some of your values", veh_id)
                 sumo_crash = True
-            # self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
-            # self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
 
         # collect information of the state of the network based on the environment class used
-        self.state = self.getState()
+        self.state = self.getState(observation_vel_std=self.observation_vel_std,
+                                   observation_pos_std=self.observation_pos_std)
 
         # crash encodes whether sumo experienced a crash or whether there was a crash an an intersection
         sumo_crash = sumo_crash or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
@@ -358,9 +383,8 @@ class SumoEnvironment(Env, Serializable):
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
-        self.total_reward += reward
 
-        # TODO: Allow for partial observability
+        # collect observation new state associated with action
         next_observation = np.copy(self.state)
 
         if crash:
@@ -381,9 +405,6 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-        print(self.total_reward)
-        self.total_reward = 0
-
         # create the list of colors used to visually distinguish between different types of vehicles
         self.timer = 0
         colors = {}
@@ -437,9 +458,8 @@ class SumoEnvironment(Env, Serializable):
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
             # clear controller acceleration queue of traci-controlled vehicles
-            if not self.vehicles[veh_id]['type'][:2] == 'rl' and self.vehicles[veh_id]['controller'] is not None:
-            # if not self.vehicles[veh_id]['type'] == 'rl' and self.vehicles[veh_id]['controller'] is not None:
-                    self.vehicles[veh_id]['controller'].reset_delay(self)
+            if veh_id in self.controlled_ids:
+                self.vehicles[veh_id]['controller'].reset_delay(self)
 
             # clear vehicles from traci connection and re-introduce vehicles with pre-defined initial position
             self.traci_connection.vehicle.remove(veh_id)
@@ -478,6 +498,12 @@ class SumoEnvironment(Env, Serializable):
         :return acc_deviation: difference between the requested acceleration that keeps the velocity positive
         """
         for i, veh_id in enumerate(veh_ids):
+            # add actuator noise to accelerations
+            if veh_id in self.rl_ids:
+                acc[i] += np.random.normal(0, self.rl_acc_std)
+            elif veh_id in self.controlled_ids:
+                acc[i] += np.random.normal(0, self.human_acc_std)
+
             # fail-safe to prevent longitudinal (bumper-to-bumper) crashing
             if self.fail_safe == 'instantaneous':
                 safe_acc = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acc[i])
@@ -512,8 +538,8 @@ class SumoEnvironment(Env, Serializable):
         Takes as input either a set of directions or a target_lanes. If both are provided, a
         ValueError is raised.
         :param veh_ids: vehicles to apply the lane change to
-        :param direction: array on intergers in {-1,1}; -1 to the right, 1 to the left
-        :param target_lane: array of indeces of lane to enter
+        :param direction: array on integers in {-1,1}; -1 to the right, 1 to the left
+        :param target_lane: array of indices of lane to enter
         :return: penalty value: 0 for successful lane change, -1 for impossible lane change
         """
         if direction is not None and target_lane is not None:
@@ -551,6 +577,7 @@ class SumoEnvironment(Env, Serializable):
         return lane_change_penalty
 
     def set_speed_mode(self, veh_id):
+        # TODO: document
         """
         :param veh_id:
         :return:
@@ -575,8 +602,13 @@ class SumoEnvironment(Env, Serializable):
 
     def set_lane_change_mode(self, veh_id):
         """
-        :param veh_id:
-        :return:
+        Specifies the SUMO-defined lane-changing mode used to constrain lane-changing actions
+
+        The available lane-changing modes are as follows:
+         - default: Human and RL cars can only safely change into lanes
+         - "strategic": Human cars make lane changes in accordance with SUMO to provide speed boosts
+         - "no_lat_collide": RL cars can lane change into any space, no matter how likely it is to crash
+         - "aggressive": RL cars can crash longitudinally
         """
         if self.scenario.lanes > 1:
             lc_mode = 768
@@ -614,6 +646,7 @@ class SumoEnvironment(Env, Serializable):
         Checks if the collision was the result of a forward movement (i.e. bumper-to-bumper crash)
         :return: boolean value (True if crash occurred, False else)
         """
+        # TODO: figure out how to implement
         pass
 
     def check_lane_change_crash(self):
@@ -621,6 +654,7 @@ class SumoEnvironment(Env, Serializable):
         Checks if the collision was the result of a lane change
         :return: boolean value (True if crash occurred, False else)
         """
+        # TODO: figure out how to implement
         pass
 
     def get_x_by_id(self, veh_id):
@@ -629,7 +663,7 @@ class SumoEnvironment(Env, Serializable):
         """
         raise NotImplementedError
 
-    def getState(self):
+    def getState(self, **kwargs):
         """
         Returns the state of the simulation, dependent on the experiment/environment
         """
@@ -669,13 +703,6 @@ class SumoEnvironment(Env, Serializable):
         Closes the TraCI I/O connection. Should be done at end of every experiment.
         Must be in Environment because the environment opens the TraCI connection.
         """
-        # output_filename = '/home/aboudy/Documents/unstable-ring.pkl'
-        # output = open(output_filename, 'wb')
-        # pickle.dump({"vel": self.vel, "pos": self.pos}, output)
-        # output.close()
-
-        # print(self.total_reward)
-
         self.traci_connection.close()
 
     def close(self):

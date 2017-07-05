@@ -1,16 +1,28 @@
+"""
+This file contains the base controllers used by human-driven vehicle units.
+
+Two types of controllers are provided:
+ - BaseController: A controller that instantiates a vehicle with car-following dynamics
+   controlled by acceleration models in cistar (located in car_following_models.py)
+ - SumoController: A controller that instantiates a vehicle with car-following dynamics
+   from sumo's built-in functions
+"""
+
 import numpy as np
 import collections
 import pdb
 
-"""Base class for controllers. 
 
-Instantiates a controller and forces the user to pass a 
-maximum acceleration to the controller. Provides the method
-safe_action to ensure that controls are never made that could
-cause the system to crash. 
-
-"""
 class BaseController:
+    """ Base class for cistar-controlled acceleration behavior.
+
+    Instantiates a controller and forces the user to pass a
+    maximum acceleration to the controller. Provides the method
+    safe_action to ensure that controls are never made that could
+    cause the system to crash.
+
+    """
+
     def __init__(self, veh_id, controller_params):
         """
         Arguments:
@@ -191,3 +203,40 @@ class BaseController:
                 return action
         else:
             return action
+
+
+class SumoController:
+    """
+    Base class for sumo-controlled acceleration behavior.
+    """
+
+    def __init__(self, veh_id, controller_params):
+        """
+        Initializes a SUMO controller with information required by sumo.
+
+        :param veh_id {string} -- unique vehicle identifier
+        :param controller_params {dict} -- contains the parameters needed to instantiate a sumo controller
+               - model_type {string} -- type of SUMO car-following model to use. Must be one of: Krauss, KraussOrig1,
+                 PWagner2009, BKerner, IDM, IDMM, KraussPS, KraussAB, SmartSK, Wiedemann, Daniel1
+               - model_params {dict} -- dictionary of parameters applicable to sumo cars,
+                 see: http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        """
+        self.veh_id = veh_id
+
+        available_models = ["Krauss", "KraussOrig1", "PWagner2009", "BKerner", "IDM", "IDMM", "KraussPS",
+                            "KraussAB", "SmartSK", "Wiedemann", "Daniel1"]
+
+        if "model_type" in controller_params:
+            # the model type specified must be available in sumo
+            if controller_params["model_type"] not in available_models:
+                raise ValueError("Model type is not available in SUMO.")
+
+            self.model_type = controller_params["model"]
+        else:
+            # if no model is specified, the controller defaults to sumo's Krauss model
+            self.model_type = "Krauss"
+
+        if "model_params" in controller_params:
+            self.model_params = controller_params["model_params"]
+        else:
+            self.model_params = dict()

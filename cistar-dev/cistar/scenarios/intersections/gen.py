@@ -1,12 +1,11 @@
 from cistar.core.exp import Generator
+from cistar.controllers.base_controller import SumoController
 
 from cistar.core.util import makexml
 from cistar.core.util import printxml
 
 import subprocess
 import sys
-
-from numpy import pi, sin, cos, linspace
 
 import logging
 import random
@@ -15,88 +14,33 @@ E = etree.Element
 
 
 """
-Generator for intersections.
+Generator for two-way intersections, three-way intersections (e.g. Y/T junctions), and four-way intersections.
 """
-class IntersectionGenerator(Generator):
 
-    """
-    Generates Net files for intersection sim. Requires:
-    - length_top: length of the top portion of the intersection, in meters
-    - length_bottom: length of the bottom portion of the intersection, in meters
-    - length_left: length of the left portion of the intersection, in meters
-    - length_right: length of the right portion of the intersection, in meters
-    - lanes_top: number of lanes of the top section
-    - lanes_bottom: number of lanes of the bottom section
-    - lanes_left: number of lanes of the left section
-    - lanes_right: number of lanes of the right section
-    - speed_limit_top: max speed limit of the top section, in m/s
-    - speed_limit_bottom: max speed limit of the bottom section, in m/s
-    - speed_limit_left: max speed limit of the left section, in m/s
-    - speed_limit_right: max speed limit of the right section, in m/s
-    - direction_top_bottom: direction vehicles move on the vertical section (may be "up" or down")
-    - direction_left_right: direction vehicles move on the horizontal section (may be "left" or "right")
-    - angle: clockwise rotation of the intersection, in radians (default=0)
-    - priority: specifies which portion of the intersection receives priority; can be "top_bottom", "left_right",
-                or "None" (default="None"). If no priority is specified, vehicles may crash at the intersection.
-    - resolution: number of nodes resolution
-    """
+class TwoWayIntersectionGenerator(Generator):
+
     def generate_net(self, params):
-        length_top = params["length_top"]
-        length_bottom = params["length_top"]
-        length_left = params["length_top"]
-        length_right = params["length_top"]
-        lanes_top = params["lanes_top"]
-        lanes_bottom = params["lanes_bottom"]
-        lanes_left = params["lanes_left"]
-        lanes_right = params["lanes_right"]
-        speed_limit_top = params["speed_limit_top"]
-        speed_limit_bottom = params["speed_limit_bottom"]
-        speed_limit_left = params["speed_limit_left"]
-        speed_limit_right = params["speed_limit_right"]
+        """
+        Generates Net files for two-way intersection sim. Requires:
+        - horizontal_length_before: length of the horizontal lane before the intersection
+        - horizontal_length_after: length of the horizontal lane after the intersection
+        - horizontal_lanes: number of lanes in the horizontal lane
+        - vertical_length_before: length of the vertical lane before the intersection
+        - vertical_length_after: length of the vertical lane after the intersection
+        - vertical_lanes: number of lanes in the vertical lane
+        - speed_limit: max speed limit of the vehicles on the road network
+        """
+        horizontal_length_before = params["horizontal_length_before"]
+        horizontal_length_after = params["horizontal_length_after"]
+        horizontal_lanes = params["horizontal_lanes"]
+        vertical_length_before = params["vertical_length_before"]
+        vertical_length_after = params["vertical_length_after"]
+        vertical_lanes = params["vertical_lanes"]
+        speed_limit = params["speed_limit"]
 
-        # TODO: what if we want vehicle to move in both directions (for different lanes)?
-        # direction the vehicles will move on the vertical section
-        if params["direction_top_bottom"] != "up" and params["direction_top_bottom"] != "down":
-            # print error message
-            angle = 1
-        else:
-            direction_top_bottom = params["direction_top_bottom"]
-
-        # direction the vehicles will move on the horizontal section
-        if params["direction_left_right"] != "left" and params["direction_left_right"] != "right":
-            # print error message
-            angle = 1
-        else:
-            direction_left_right = params["direction_left_right"]
-
-        # the intersection will be rotated by this angle
-        if not params["angle"]:
-            angle = 0
-        elif params["angle"] >= pi/2:
-            # print warning
-            angle = 0
-        else:
-            angle = params["angle"]
-
-        # vehicles on sections with a lower priority value are given priority in crossing
-        if not params["priority"]:
-            priority_top_bottom = 1
-            priority_left_right = 1
-        elif params["priority"] == "None":
-            priority_top_bottom = 1
-            priority_left_right = 1
-        elif params["priority"] == "top_bottom":
-            priority_top_bottom = 1
-            priority_left_right = 2
-        elif params["priority"] == "left_right":
-            priority_top_bottom = 2
-            priority_left_right = 1
-
-        resolution = params["resolution"]
-
-        self.name = "%s-%dm,%dl_%dm,%dl_%dm,%dl_%dm,%dl" % (self.base, length_top, lanes_top, length_bottom,
-                                                            lanes_bottom, length_left, lanes_left, length_right,
-                                                            lanes_right)
+        self.name = "%s-horizontal-%dm%dl-vertical-%dm%dl" % \
+                    (self.base, horizontal_length_before + horizontal_length_after, horizontal_lanes,
+                     vertical_length_before + vertical_length_after, vertical_lanes)
 
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -104,46 +48,32 @@ class IntersectionGenerator(Generator):
         cfgfn = "%s.netccfg" % self.name
         netfn = "%s.net.xml" % self.name
 
-        # xml file for nodes
-        # contains nodes for the boundary points, as well as the center point
-        # with respect to the x and y axes
-        # titled: center, top, bottom, left, right
+        # xml file for nodes; contains nodes for the boundary points with respect to the x and y axes
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
-        x.append(E("node", id="center", x=repr(0), y=repr(0)))
-        x.append(E("node", id="top", x=repr(-length_top*sin(angle)), y=repr(length_top*cos(angle))))
-        x.append(E("node", id="bottom", x=repr(length_bottom*sin(angle)), y=repr(-length_bottom*cos(angle))))
-        x.append(E("node", id="left", x=repr(-length_left*cos(angle)), y=repr(-length_left*sin(angle))))
-        x.append(E("node", id="right", x=repr(length_right*cos(angle)), y=repr(length_right*sin(angle))))
+        x.append(E("node", id="center", x=repr(0), y=repr(0), type="priority"))
+        x.append(E("node", id="bottom", x=repr(0), y=repr(-vertical_length_before), type="priority"))
+        x.append(E("node", id="top", x=repr(0), y=repr(vertical_length_after), type="priority"))
+        x.append(E("node", id="left", x=repr(-horizontal_length_before), y=repr(0), type="priority"))
+        x.append(E("node", id="right", x=repr(horizontal_length_after), y=repr(0), type="priority"))
         printxml(x, self.net_path + nodfn)
 
-        # xml file for edges
-        # creates circular arcs that connect the created nodes
-        # space between points in the edge is defined by the "resolution" variable
+        # xml file for edges; creates circular arcs that connect the created nodes space between points
+        # in the edge is defined by the "resolution" variable
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
-        if direction_top_bottom == "up":
-            from_top_bottom = "bottom"
-            to_top_bottom = "top"
-        elif direction_top_bottom == "down":
-            from_top_bottom = "top"
-            to_top_bottom = "bottom"
-
-        if direction_left_right == "left":
-            from_left_right = "right"
-            to_left_right = "left"
-        elif direction_left_right == "right":
-            from_left_right = "left"
-            to_left_right = "right"
-
-        x.append(E("edge", attrib={"id": "top_bottom", "from": from_top_bottom, "to": to_top_bottom,
-                                   "type": "edgeType", "length": repr(length_top+length_bottom)}))
-        x.append(E("edge", attrib={"id": "left_right", "from": from_left_right, "to": to_left_right,
-                                   "type": "edgeType", "length": repr(length_left+length_right)}))
+        x.append(E("edge", attrib={"id": "left", "from": "left", "to": "center", "priority": "78",
+                                   "type": "horizontal", "length": repr(horizontal_length_before)}))
+        x.append(E("edge", attrib={"id": "right", "from": "center", "to": "right", "priority": "78",
+                                   "type": "horizontal", "length": repr(horizontal_length_after)}))
+        x.append(E("edge", attrib={"id": "bottom", "from": "bottom", "to": "center", "priority": "46",
+                                   "type": "vertical", "length": repr(vertical_length_before)}))
+        x.append(E("edge", attrib={"id": "top", "from": "center", "to": "top", "priority": "46",
+                                   "type": "vertical", "length": repr(vertical_length_after)}))
         printxml(x, self.net_path + edgfn)
 
-        # xml file for types
-        # contains the the number of lanes and the speed limit for the lanes
+        # xml file for types; contains the the number of lanes and the speed limit for the lanes
         x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
-        x.append(E("type", id="edgeType", numLanes=repr(lanes), speed=repr(speed_limit)))
+        x.append(E("type", id="horizontal", numLanes=repr(horizontal_lanes), speed=repr(speed_limit)))
+        x.append(E("type", id="vertical", numLanes=repr(vertical_lanes), speed=repr(speed_limit)))
         printxml(x, self.net_path + typfn)
 
         # xml file for configuration
@@ -166,29 +96,28 @@ class IntersectionGenerator(Generator):
         printxml(x, self.net_path + cfgfn)
 
         # netconvert -c $(cfg) --output-file=$(net)
-        retcode = subprocess.call(
-            ["netconvert -c " + self.net_path + cfgfn + " --output-file=" + self.cfg_path + netfn],
-            stdout=sys.stdout, stderr=sys.stderr, shell=True)
+        retcode = subprocess.call(["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
+                                   self.cfg_path + netfn + ' --no-internal-links="false"'],
+                                  stdout=sys.stdout, stderr=sys.stderr, shell=True)
         self.netfn = netfn
 
         return self.net_path + netfn
 
-    """
-    Generates .sumo.cfg files using net files and netconvert.
-    Requires:
-    num_cars: Number of cars to seed the simulation with
-       max_speed: max speed of cars
-       OR
-    type_list: List of types of cars to seed the simulation with
-
-    startTime: time to start the simulation
-    endTime: time to end the simulation
-
-    """
     def generate_cfg(self, params):
+        """
+        Generates .sumo.cfg files using net files and netconvert.
+        Requires:
+        num_cars: Number of cars to seed the simulation with
+           max_speed: max speed of cars
+           OR
+        type_list: List of types of cars to seed the simulation with
+
+        startTime: time to start the simulation
+        endTime: time to end the simulation
+        """
 
         if "start_time" not in params:
-            raise ValueError("start_time of circle not supplied")
+            raise ValueError("start_time not supplied")
         else:
             start_time = params["start_time"]
 
@@ -202,35 +131,16 @@ class IntersectionGenerator(Generator):
         cfgfn = "%s.sumo.cfg" % self.name
         guifn = "%s.gui.cfg" % self.name
 
-        def rerouter(name, frm, to):
-            '''
-
-            :param name:
-            :param frm:
-            :param to:
-            :return:
-            '''
-            t = E("rerouter", id=name, edges=frm)
-            i = E("interval", begin="0", end="100000")
-            i.append(E("routeProbReroute", id=to))
-            t.append(i)
-            return t
-
-        self.rts = {"top": "top left bottom right",
-               "left": "left bottom right top",
-               "bottom": "bottom right top left",
-               "right": "right top left bottom"}
+        self.rts = {"left": "left center right", "bottom": "bottom center top"}
 
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
             add.append(E("route", id="route%s" % rt, edges=edge))
-        add.append(rerouter("rerouterBottom", "bottom", "routebottom"))
-        add.append(rerouter("rerouterTop", "top", "routetop"))
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
-        printxml(gui, self.cfg_path +guifn)
+        printxml(gui, self.cfg_path + guifn)
 
         cfg = makexml("configuration", "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
 
@@ -251,14 +161,23 @@ class IntersectionGenerator(Generator):
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
         num_cars = scenario.num_vehicles
-        if type_list:
+        if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
-                routes.append(E("vType", id=tp, minGap="0"))
+                print(type_params[tp][1][0])
+                if type_params[tp][1][0] == SumoController:
+                    sumo_attributes = dict()
+                    sumo_attributes["id"] = tp
+                    sumo_attributes["minGap"] = "0"
+                    for key in type_params[tp][1][1].keys():
+                        sumo_attributes[key] = repr(type_params[tp][1][1][key])
+                    routes.append(E("vType", attrib=sumo_attributes))
+                else:
+                    routes.append(E("vType", id=tp, minGap="0"))
 
             vehicle_ids = []
             if num_cars > 0:
-                for type in type_params:
+                for type in type_list:
                     type_count = type_params[type][0]
                     for i in range(type_count):
                         vehicle_ids.append((type, type + "_" + str(i)))
