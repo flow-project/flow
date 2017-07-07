@@ -16,13 +16,16 @@ logging.basicConfig(level=logging.INFO)
 sumo_params = {"port": 8873, "time_step": 0.1, "emission_path": "./data/"}
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+# type_params = {"idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"idm": (1, (IDMController, {}), None, 0)}
 
 env_params = {"target_velocity": 25, "max-deacc": -6, "max-acc": 3}
 
-net_params = {"horizontal_length_before": 100, "horizontal_length_after": 10, "horizontal_lanes": 1,
-              "vertical_length_before": 100, "vertical_length_after": 10, "vertical_lanes": 1,
-              "prob_enter": {"bottom": 0.01, "left": 0.01}, "speed_limit": 30, "net_path": "debug/net/"}
+net_params = {"horizontal_length_in": 100, "horizontal_length_out": 10, "horizontal_lanes": 1,
+              "vertical_length_in": 100, "vertical_length_out": 10, "vertical_lanes": 1,
+              "prob_enter": {"horizontal": lambda x: 0.01, "vertical": lambda x: 0.01},
+              "speed_limit": {"horizontal": 30, "vertical": 30},
+              "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 

@@ -107,6 +107,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
                                  for veh_id in sorted_rl_ids]
+        # vehicle that are not allowed to change have their directions set to 0
         direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
 
         self.apply_acceleration(sorted_rl_ids, acc=acceleration)

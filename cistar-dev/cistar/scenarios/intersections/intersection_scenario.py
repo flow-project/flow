@@ -14,10 +14,10 @@ class TwoWayIntersectionScenario(Scenario):
 
         See Scenario.py for description of params.
         """
-        self.left_len = net_params["horizontal_length_before"]
-        self.right_len = net_params["horizontal_length_after"]
-        self.bottom_len = net_params["vertical_length_before"]
-        self.top_len = net_params["vertical_length_after"]
+        self.left_len = net_params["horizontal_length_in"]
+        self.right_len = net_params["horizontal_length_out"]
+        self.bottom_len = net_params["vertical_length_in"]
+        self.top_len = net_params["vertical_length_out"]
 
         self.horizontal_junction_len = 2.9 + 3.3 * net_params["vertical_lanes"]
         self.vertical_junction_len = 2.9 + 3.3 * net_params["horizontal_lanes"]
@@ -31,7 +31,7 @@ class TwoWayIntersectionScenario(Scenario):
                          initial_config=initial_config, cfg=cfg,
                          generator_class=TwoWayIntersectionGenerator)
 
-        self.length = self.net_params["length"]
+        self.length = np.inf  # self.net_params["length"]
 
         if "horizontal_lanes" not in self.net_params:
             raise ValueError("number of horizontal lanes not supplied")
@@ -42,21 +42,35 @@ class TwoWayIntersectionScenario(Scenario):
         self.lanes = {"top": self.net_params["vertical_lanes"], "bottom": self.net_params["vertical_lanes"],
                       "left": self.net_params["horizontal_lanes"], "right": self.net_params["horizontal_lanes"]}
 
+        # enter_lane specifies which lane a car enters given a certain direction
+        self.enter_lane = {"horizontal": "left", "vertical": "bottom"}
+
         if "speed_limit" not in self.net_params:
             raise ValueError("speed limit not supplied")
-        self.speed_limit = self.net_params["speed_limit"]
+
+        # if the speed limit is a single number, then all lanes have the same speed limit
+        if isinstance(self.net_params["speed_limit"], int) or isinstance(self.net_params["speed_limit"], float):
+            self.speed_limit = {"horizontal": self.net_params["speed_limit"],
+                                "vertical": self.net_params["speed_limit"]}
+        # if the speed limit is a dict with separate values for vertical and horizontal,
+        # then they are set as such
+        elif "vertical" in self.net_params["speed_limit"] and "horizontal" in self.net_params["speed_limit"]:
+            self.speed_limit = {"horizontal": self.net_params["speed_limit"]["horizontal"],
+                                "vertical": self.net_params["speed_limit"]["vertical"]}
+        else:
+            raise ValueError('speed limit must contain a number or a dict with keys: "vertical" and "horizontal"')
 
         # defines edge starts for road sections
         self.edgestarts = \
             [("bottom", 0),
              ("top", self.bottom_len + self.vertical_junction_len),
-             ("left", self.bottom_len + self.vertical_junction_len + self.top_len),
-             ("right", self.bottom_len + self.vertical_junction_len + self.top_len + self.left_len + self.horizontal_junction_len)]
+             ("left", 1000 * (self.bottom_len + self.vertical_junction_len + self.top_len)),
+             ("right", 1000 * (self.bottom_len + self.vertical_junction_len + self.top_len) + self.left_len + self.horizontal_junction_len)]
 
         # defines edge starts for intersections
         self.intersection_edgestarts = \
-            [(":center_intersection_%s" % (1+self.lanes), self.bottom_len),
-             (":center_intersection_1", self.bottom_len + self.vertical_junction_len + self.top_len + self.left_len)]
+            [(":center_%s" % (1+self.lanes["left"]), self.bottom_len),
+             (":center_1", 1000 * (self.bottom_len + self.vertical_junction_len + self.top_len) + self.left_len)]
 
         if "positions" not in self.initial_config:
             bunch_factor = 0
@@ -144,7 +158,7 @@ class TwoWayIntersectionScenario(Scenario):
             # ensures that vehicles are not placed in the intersection
             for center_tuple in self.intersection_edgestarts:
                 if center_tuple[0] in pos[0]:
-                    x += self.junction_len
+                    x += self.vertical_junction_len
                     pos = self.get_edge(x)
 
             startpositions.append(pos)

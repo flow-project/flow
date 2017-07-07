@@ -218,11 +218,11 @@ class SumoEnvironment(Env, Serializable):
 
         # create the list of colors used to different between different types of
         # vehicles visually on sumo's gui
-        colors = {}
+        self.colors = {}
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for key in self.scenario.type_params.keys():
-            colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
+            self.colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
         for veh_id in self.ids:
@@ -231,7 +231,7 @@ class SumoEnvironment(Env, Serializable):
             vehicle["id"] = veh_id
             veh_type = self.traci_connection.vehicle.getTypeID(veh_id)
             vehicle["type"] = veh_type
-            self.traci_connection.vehicle.setColor(veh_id, colors[veh_type])
+            self.traci_connection.vehicle.setColor(veh_id, self.colors[veh_type])
             vehicle["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
             vehicle["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             vehicle["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
@@ -317,10 +317,10 @@ class SumoEnvironment(Env, Serializable):
                 accel.append(action)
 
                 # lane changing action
-                if self.scenario.lanes > 1:
-                    if self.vehicles[veh_id]['lane_changer'] is not None:
-                        new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                        self.apply_lane_change([veh_id], target_lane=[new_lane])
+                # if self.scenario.lanes > 1:
+                if self.vehicles[veh_id]['lane_changer'] is not None:
+                    new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                    self.apply_lane_change([veh_id], target_lane=[new_lane])
 
             self.apply_acceleration(self.controlled_ids, acc=accel)
 
@@ -328,10 +328,10 @@ class SumoEnvironment(Env, Serializable):
         if len(self.sumo_ids) > 0:
             for veh_id in self.sumo_ids:
                 # lane changing action
-                if self.scenario.lanes > 1:
-                    if self.vehicles[veh_id]['lane_changer'] is not None:
-                        new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                        self.apply_lane_change([veh_id], target_lane=[new_lane])
+                # if self.scenario.lanes > 1:
+                if self.vehicles[veh_id]['lane_changer'] is not None:
+                    new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                    self.apply_lane_change([veh_id], target_lane=[new_lane])
 
         self.apply_rl_actions(rl_actions)
 
@@ -347,10 +347,22 @@ class SumoEnvironment(Env, Serializable):
             prev_pos = self.get_x_by_id(veh_id)
             prev_rel_pos = self.vehicles[veh_id]["position"]
             prev_lane = self.vehicles[veh_id]["lane"]
-            self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
+            try:
+                self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
+            except traci.exceptions.TraCIException:
+                # if the vehicle is no longer in the network, delete it from all lists and the vehicles dict
+                self.ids.remove(veh_id)
+                del self.vehicles[veh_id]
+                if veh_id in self.rl_ids:
+                    self.rl_ids.remove(veh_id)
+                elif veh_id in self.sumo_ids:
+                    self.sumo_ids.remove(veh_id)
+                elif veh_id in self.controlled_ids:
+                    self.controlled_ids.remove(veh_id)
+                continue
             if self.vehicles[veh_id]["position"] < prev_rel_pos:
                 self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
-            if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration and self.scenario.lanes > 1:
+            if self.timer - self.prev_last_lc[veh_id] >= self.lane_change_duration:  # and self.scenario.lanes > 1:
                 self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
                 if self.vehicles[veh_id]["lane"] != prev_lane and veh_id in self.rl_ids:
                     self.vehicles[veh_id]["last_lc"] = self.timer
@@ -361,7 +373,7 @@ class SumoEnvironment(Env, Serializable):
                 if change < 0:
                     change += self.scenario.length
                 self.vehicles[veh_id]["absolute_position"] += change
-            except ValueError:
+            except ValueError or TypeError:
                 self.vehicles[veh_id]["absolute_position"] = -1001
 
             if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
@@ -407,11 +419,11 @@ class SumoEnvironment(Env, Serializable):
         """
         # create the list of colors used to visually distinguish between different types of vehicles
         self.timer = 0
-        colors = {}
+        self.colors = {}
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for key in self.scenario.type_params.keys():
-            colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
+            self.colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
         # perform shuffling (if requested)
@@ -465,7 +477,7 @@ class SumoEnvironment(Env, Serializable):
             self.traci_connection.vehicle.remove(veh_id)
             self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
                                                   departPos=str(lane_pos), departSpeed=str(speed))
-            self.traci_connection.vehicle.setColor(veh_id, colors[self.vehicles[veh_id]['type']])
+            self.traci_connection.vehicle.setColor(veh_id, self.colors[self.vehicles[veh_id]['type']])
 
             # reset speed mode
             self.set_speed_mode(veh_id)
@@ -610,25 +622,25 @@ class SumoEnvironment(Env, Serializable):
          - "no_lat_collide": RL cars can lane change into any space, no matter how likely it is to crash
          - "aggressive": RL cars can crash longitudinally
         """
-        if self.scenario.lanes > 1:
-            lc_mode = 768
+        # if self.scenario.lanes > 1:
+        lc_mode = 768
 
-            if "rl_lc" in self.sumo_params:
-                if veh_id in self.rl_ids:
-                    if self.sumo_params["rl_lc"] == "aggressive":
-                        # Let TRACI make any lane changes it wants
-                        lc_mode = 0
-                    elif self.sumo_params["rl_lc"] == "no_lat_collide":
-                        lc_mode = 256
+        if "rl_lc" in self.sumo_params:
+            if veh_id in self.rl_ids:
+                if self.sumo_params["rl_lc"] == "aggressive":
+                    # Let TRACI make any lane changes it wants
+                    lc_mode = 0
+                elif self.sumo_params["rl_lc"] == "no_lat_collide":
+                    lc_mode = 256
 
-            if "human_lc" in self.sumo_params:
-                if veh_id not in self.rl_ids:
-                    if self.sumo_params["human_lc"] == "strategic":
-                        lc_mode = 853
-                    else:
-                        lc_mode = 768
+        if "human_lc" in self.sumo_params:
+            if veh_id not in self.rl_ids:
+                if self.sumo_params["human_lc"] == "strategic":
+                    lc_mode = 853
+                else:
+                    lc_mode = 768
 
-            self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
+        self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
     def check_intersection_crash(self):
         """

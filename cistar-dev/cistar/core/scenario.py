@@ -34,11 +34,11 @@ class Scenario(Serializable):
         Serializable.quick_init(self, locals())
 
         self.name = name
-        # x[1] gets the value (number of cars, car following model,
-        # lane changing model); x[1][0] gets the number of cars.
+        self.type_params = type_params
+
+        # these numbers are not always static; better to get them from id list in the env class
         self.num_vehicles = sum([x[1][0] for x in type_params.items()])
         self.num_rl_vehicles = sum([x[1][0] for x in type_params.items() if x[1][1][0] == RLController])
-        self.type_params = type_params
 
         if not net_params:
             ValueError("No network params specified!")

@@ -22,25 +22,28 @@ class TwoWayIntersectionGenerator(Generator):
     def generate_net(self, params):
         """
         Generates Net files for two-way intersection sim. Requires:
-        - horizontal_length_before: length of the horizontal lane before the intersection
-        - horizontal_length_after: length of the horizontal lane after the intersection
+        - horizontal_length_in: length of the horizontal lane before the intersection
+        - horizontal_length_out: length of the horizontal lane after the intersection
         - horizontal_lanes: number of lanes in the horizontal lane
-        - vertical_length_before: length of the vertical lane before the intersection
-        - vertical_length_after: length of the vertical lane after the intersection
+        - vertical_length_in: length of the vertical lane before the intersection
+        - vertical_length_out: length of the vertical lane after the intersection
         - vertical_lanes: number of lanes in the vertical lane
         - speed_limit: max speed limit of the vehicles on the road network
         """
-        horizontal_length_before = params["horizontal_length_before"]
-        horizontal_length_after = params["horizontal_length_after"]
+        horizontal_length_in = params["horizontal_length_in"]
+        horizontal_length_out = params["horizontal_length_out"]
         horizontal_lanes = params["horizontal_lanes"]
-        vertical_length_before = params["vertical_length_before"]
-        vertical_length_after = params["vertical_length_after"]
+        vertical_length_in = params["vertical_length_in"]
+        vertical_length_out = params["vertical_length_out"]
         vertical_lanes = params["vertical_lanes"]
-        speed_limit = params["speed_limit"]
+        if isinstance(params["speed_limit"], int) or isinstance(params["speed_limit"], float):
+            speed_limit = {"horizontal": params["speed_limit"], "vertical": params["speed_limit"]}
+        else:
+            speed_limit = params["speed_limit"]
 
         self.name = "%s-horizontal-%dm%dl-vertical-%dm%dl" % \
-                    (self.base, horizontal_length_before + horizontal_length_after, horizontal_lanes,
-                     vertical_length_before + vertical_length_after, vertical_lanes)
+                    (self.base, horizontal_length_in + horizontal_length_out, horizontal_lanes,
+                     vertical_length_in + vertical_length_out, vertical_lanes)
 
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -51,29 +54,29 @@ class TwoWayIntersectionGenerator(Generator):
         # xml file for nodes; contains nodes for the boundary points with respect to the x and y axes
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
         x.append(E("node", id="center", x=repr(0), y=repr(0), type="priority"))
-        x.append(E("node", id="bottom", x=repr(0), y=repr(-vertical_length_before), type="priority"))
-        x.append(E("node", id="top", x=repr(0), y=repr(vertical_length_after), type="priority"))
-        x.append(E("node", id="left", x=repr(-horizontal_length_before), y=repr(0), type="priority"))
-        x.append(E("node", id="right", x=repr(horizontal_length_after), y=repr(0), type="priority"))
+        x.append(E("node", id="bottom", x=repr(0), y=repr(-vertical_length_in), type="priority"))
+        x.append(E("node", id="top", x=repr(0), y=repr(vertical_length_out), type="priority"))
+        x.append(E("node", id="left", x=repr(-horizontal_length_in), y=repr(0), type="priority"))
+        x.append(E("node", id="right", x=repr(horizontal_length_out), y=repr(0), type="priority"))
         printxml(x, self.net_path + nodfn)
 
         # xml file for edges; creates circular arcs that connect the created nodes space between points
         # in the edge is defined by the "resolution" variable
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
         x.append(E("edge", attrib={"id": "left", "from": "left", "to": "center", "priority": "78",
-                                   "type": "horizontal", "length": repr(horizontal_length_before)}))
+                                   "type": "horizontal", "length": repr(horizontal_length_in)}))
         x.append(E("edge", attrib={"id": "right", "from": "center", "to": "right", "priority": "78",
-                                   "type": "horizontal", "length": repr(horizontal_length_after)}))
+                                   "type": "horizontal", "length": repr(horizontal_length_out)}))
         x.append(E("edge", attrib={"id": "bottom", "from": "bottom", "to": "center", "priority": "46",
-                                   "type": "vertical", "length": repr(vertical_length_before)}))
+                                   "type": "vertical", "length": repr(vertical_length_in)}))
         x.append(E("edge", attrib={"id": "top", "from": "center", "to": "top", "priority": "46",
-                                   "type": "vertical", "length": repr(vertical_length_after)}))
+                                   "type": "vertical", "length": repr(vertical_length_out)}))
         printxml(x, self.net_path + edgfn)
 
         # xml file for types; contains the the number of lanes and the speed limit for the lanes
         x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
-        x.append(E("type", id="horizontal", numLanes=repr(horizontal_lanes), speed=repr(speed_limit)))
-        x.append(E("type", id="vertical", numLanes=repr(vertical_lanes), speed=repr(speed_limit)))
+        x.append(E("type", id="horizontal", numLanes=repr(horizontal_lanes), speed=repr(speed_limit["horizontal"])))
+        x.append(E("type", id="vertical", numLanes=repr(vertical_lanes), speed=repr(speed_limit["vertical"])))
         printxml(x, self.net_path + typfn)
 
         # xml file for configuration
@@ -103,6 +106,8 @@ class TwoWayIntersectionGenerator(Generator):
 
         return self.net_path + netfn
 
+    """ Lets add everything after here to the base generator class """
+
     def generate_cfg(self, params):
         """
         Generates .sumo.cfg files using net files and netconvert.
@@ -131,7 +136,7 @@ class TwoWayIntersectionGenerator(Generator):
         cfgfn = "%s.sumo.cfg" % self.name
         guifn = "%s.gui.cfg" % self.name
 
-        self.rts = {"left": "left center right", "bottom": "bottom center top"}
+        self.rts = {"left": "left right", "bottom": "bottom top"}
 
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
