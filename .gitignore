@@ -91,3 +91,6 @@ ENV/
 # Don't add xml
 .xml
 .DS_Store
+
+# Custom for learning-traffic
+Makefile
