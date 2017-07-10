@@ -45,6 +45,11 @@ class LoopEnvironment(SumoEnvironment):
                     distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
                     backdists.append((c["id"], distto))
 
+        if backdists:
+            return min(backdists, key=(lambda x:x[1]))[0]
+        else:
+            return None
+
     def get_trailing_car(self, veh_id, lane=None):
         """
         Returns the id of the car behind the specified car in the specified lane.
