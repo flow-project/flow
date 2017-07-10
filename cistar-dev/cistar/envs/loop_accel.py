@@ -59,22 +59,22 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        if kwargs["observability"] == "full":
-            # full observability
-            return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-                              self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
-                             for veh_id in self.sorted_ids]).T
+        # if kwargs["observability"] == "full":
+        # full observability
+        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
+                         for veh_id in self.sorted_ids]).T
 
-        else:
-            # partial observability (n car ahead, m car behind)
-            sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
-            veh_ids = []
-            for veh_id in sorted_rl_ids:
-                veh_ids.append(veh_id)  # add rl vehicle
-                veh_ids.append(self.vehicles[veh_id]["leader"])  # add vehicle in front of rl vehicle
-                veh_ids.append(self.vehicles[veh_id]["follower"])  # add vehicle behind rl vehicle
-
-            veh_ids = np.unique(veh_ids)  # remove redundant vehicle ids
+        # else:
+        #     # partial observability (n car ahead, m car behind)
+        #     sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+        #     veh_ids = []
+        #     for veh_id in sorted_rl_ids:
+        #         veh_ids.append(veh_id)  # add rl vehicle
+        #         veh_ids.append(self.vehicles[veh_id]["leader"])  # add vehicle in front of rl vehicle
+        #         veh_ids.append(self.vehicles[veh_id]["follower"])  # add vehicle behind rl vehicle
+        #
+        #     veh_ids = np.unique(veh_ids)  # remove redundant vehicle ids
 
 
 
