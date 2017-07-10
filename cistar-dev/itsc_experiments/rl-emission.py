@@ -7,7 +7,7 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 # from cistar.core.exp import SumoExperiment
-from cistar.envs.loop_emission import SimpleEmissionEnvironment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import StaticLaneChanger
@@ -47,7 +47,7 @@ scenario = LoopScenario("rl-emission-test", type_params, net_params, cfg_params)
 
 # exp = SumoExperiment(SimpleEmissionEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
-env = SimpleEmissionEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
 logging.info("Experiment Set Up complete")
 
