@@ -27,8 +27,8 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "aggressive", "human_lc": "aggressive",
-               "rl_sm": "no_collide", "human_sm": "no_collide", "shuffle": True}
+sumo_params = {"time_step": 0.1, "starting_position_shuffle": True, "vehicle_arrangement_shuffle": True,
+               "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3,
@@ -39,7 +39,7 @@ net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": False}
+initial_config = {"shuffle": True}
 
 num_cars = 22
 num_auto = 3
@@ -48,7 +48,6 @@ exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-single-lane-platooning'
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-               # "idm": (num_cars - num_auto, ("sumoIDM", {"accel": 1, "decel": 1.5, "delta": 4, "tau": 1}), None, 0)}
 
 scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 

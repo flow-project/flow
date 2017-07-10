@@ -280,18 +280,18 @@ class Figure8Generator(Generator):
                 else:
                     routes.append(E("vType", id=tp, minGap="0"))
 
-            vehicle_ids = []
+            self.vehicle_ids = []
             if num_cars > 0:
                 for type in type_list:
                     type_count = type_params[type][0]
                     for i in range(type_count):
-                        vehicle_ids.append((type, type + "_" + str(i)))
+                        self.vehicle_ids.append((type, type + "_" + str(i)))
 
             if initial_config["shuffle"]:
-                random.shuffle(vehicle_ids)
+                random.shuffle(self.vehicle_ids)
 
             positions = initial_config["positions"]
-            for i, (type, id) in enumerate(vehicle_ids):
+            for i, (type, id) in enumerate(self.vehicle_ids):
                 route, pos = positions[i]
                 type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",
