@@ -68,9 +68,9 @@ class SumoEnvironment(Env, Serializable):
         # timer: Represents number of steps taken
         self.timer = 0
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
+        # Ordered dictionary used to keep neural net inputs in order
         self.vehicles = collections.OrderedDict()
         # initial_state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
-        # Ordered dictionary used to keep neural net inputs in order
         self.initial_state = {}
         self.ids = []
         self.controlled_ids, self.sumo_ids, self.rl_ids = [], [], []
@@ -386,17 +386,23 @@ class SumoEnvironment(Env, Serializable):
             self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
 
         # collect information of the state of the network based on the environment class used
-        self.state = self.getState()
+        if self.scenario.num_rl_vehicles > 0: 
+            self.state = self.getState()
+        else:
+            self.state = []
+        # collect observation new state associated with action
+        next_observation = np.copy(self.state)
 
         # crash encodes whether sumo experienced a crash
         crash = crash or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        if self.scenario.num_rl_vehicles > 0:
+            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        else:
+            reward = 0
 
-        # collect observation new state associated with action
-        next_observation = np.copy(self.state)
 
         if crash:
             # Crash has occurred, end rollout
