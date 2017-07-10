@@ -4,6 +4,7 @@ from rllab.spaces import Box
 
 import traci
 
+from copy import deepcopy
 import numpy as np
 import pdb
 
@@ -34,18 +35,15 @@ class LoopEnvironment(SumoEnvironment):
         """
         target_pos = self.get_x_by_id(veh_id)
 
-        front_dists = []
+        headway = []
+
+        backdists = []
         for i in self.ids:
             if i != veh_id:
                 c = self.vehicles[i]
                 if lane is None or c['lane'] == lane:
-                    dist_to = (self.get_x_by_id(i) - target_pos) % self.scenario.length
-                    front_dists.append((c["id"], dist_to))
-
-        if front_dists:
-            return min(front_dists, key=(lambda x: x[1]))[0]
-        else:
-            return None
+                    distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
+                    backdists.append((c["id"], distto))
 
     def get_trailing_car(self, veh_id, lane=None):
         """
@@ -132,3 +130,39 @@ class LoopEnvironment(SumoEnvironment):
         ind = np.argmin(dist)
 
         return dist[ind], intersection[ind]
+
+    def get_all_headways(self):
+        """
+        Collects the headways, leaders, and followers of all vehicles at once, and stores them in self.vehicles
+        :return: sorted_ids {list} -- an array of all vehicle ids in the network sorted by position
+        """
+
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        sorted_ids = np.array(self.ids)[sorted_indx]
+
+        for lane in range(self.scenario.lanes):
+            unique_lane_ids = [veh_id for veh_id in sorted_ids if self.vehicles[veh_id]["lane"] == lane]
+
+            if len(unique_lane_ids) == 1:
+                veh_id = unique_lane_ids[0]
+                self.vehicles[veh_id]["leader"] = None
+                self.vehicles[veh_id]["follower"] = None
+                self.vehicles[veh_id]["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+
+            for i, veh_id in enumerate(unique_lane_ids):
+                if i < len(unique_lane_ids) - 1:
+                    self.vehicles[veh_id]["leader"] = unique_lane_ids[i+1]
+                else:
+                    self.vehicles[veh_id]["leader"] = unique_lane_ids[0]
+
+                self.vehicles[veh_id]["headway"] = \
+                    (self.vehicles[self.vehicles[veh_id]["leader"]]["absolute_position"] -
+                     self.vehicles[self.vehicles[veh_id]["leader"]]["length"] -
+                     self.vehicles[veh_id]["absolute_position"]) % self.scenario.length
+
+                if i > 0:
+                    self.vehicles[veh_id]["follower"] = unique_lane_ids[i-1]
+                else:
+                    self.vehicles[veh_id]["follower"] = unique_lane_ids[-1]
+
+        return sorted_ids

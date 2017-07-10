@@ -41,8 +41,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
-        sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
+        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
+        # sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
 
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
@@ -63,18 +64,15 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
 
         return max(max_cost - cost, 0)
 
-    def getState(self, **kwargs):
+    def getState(self):
         """
         See parent class
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
-        sorted_ids = np.array(self.ids)[sorted_indx]
-
-        return np.array([[self.vehicles[vehicle]["speed"] + normal(0, kwargs["observation_vel_std"]),
-                          self.vehicles[vehicle]["absolute_position"] + normal(0, kwargs["observation_pos_std"])]
-                         for vehicle in sorted_ids]).T
+        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
+                         for veh_id in self.sorted_ids]).T
 
     def render(self):
         print('current state/velocity:', self.state)

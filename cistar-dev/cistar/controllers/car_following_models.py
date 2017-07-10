@@ -325,7 +325,7 @@ class IDMController(BaseController):
          Arguments:
             veh_id -- Vehicle ID for SUMO identification
 
-        Keyword Arguments:
+         Keyword Arguments:
             v0 {number} -- [desirable velocity, in m/s] (default: {30})
             T {number} -- [safe time headway, in s] (default: {1})
             a {number} -- [maximum acceleration [m/s2] (default: {1})
@@ -350,20 +350,14 @@ class IDMController(BaseController):
         self.dt = dt
 
     def get_action(self, env):
-        this_lane = env.vehicles[self.veh_id]['lane']
 
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        lead_id = env.vehicles[self.veh_id]["leader"]
         if lead_id is None:  # no car ahead
             return self.a
 
-        lead_pos = env.get_x_by_id(lead_id)
+        h = env.vehicles[self.veh_id]["headway"]
         lead_vel = env.vehicles[lead_id]['speed']
-        lead_length = env.vehicles[lead_id]['length']
-
-        this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
-
-        h = (lead_pos - lead_length - this_pos) % env.scenario.length
 
         s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
@@ -383,20 +377,14 @@ class DrunkDriver(IDMController):
 
     def get_action(self, env):
         self.timer += 1
-        this_lane = env.vehicles[self.veh_id]['lane']
+        lead_id = env.vehicles[self.veh_id]["leader"]
 
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
         if lead_id is None:  # no car ahead
             return self.a
 
-        lead_pos = env.get_x_by_id(lead_id)
+        h = env.vehicles[self.veh_id]["headway"]
         lead_vel = env.vehicles[lead_id]['speed']
-        lead_length = env.vehicles[lead_id]['length']
-
-        this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
-
-        h = (lead_pos - lead_length - this_pos) % env.scenario.length
 
         s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 

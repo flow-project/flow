@@ -43,7 +43,7 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 initial_config = {"shuffle": False}
 
 num_cars = 44
-num_auto = 6
+num_auto = 22
 
 exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-multi-lane-loop'
 

@@ -72,13 +72,26 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
-        sorted_ids = np.array(self.ids)[sorted_indx]
+        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        # sorted_ids = np.array(self.ids)[sorted_indx]
+        #
+        # if self.observation_vel_std == 0:
+        #     vel_dev = np.array([0] * self.scenario.num_vehicles)
+        # else:
+        #     vel_dev = normal(0, self.observation_vel_std, self.scenario.num_vehicles)
+        #
+        # if self.observation_pos_std == 0:
+        #     pos_dev = np.array([0] * self.scenario.num_vehicles)
+        # else:
+        #     pos_dev = normal(0, self.observation_pos_std, self.scenario.num_vehicles)
+        #
+        # return np.array([[self.vehicles[veh_id]["speed"] + vel_dev[i],
+        #                   self.vehicles[veh_id]["absolute_position"] + pos_dev[i],
+        #                   self.vehicles[veh_id]["lane"]] for i, veh_id in enumerate(self.sorted_ids)]).T
 
-        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, kwargs["observation_vel_std"]),
-                          self.vehicles[veh_id]["absolute_position"] + normal(0, kwargs["observation_pos_std"]),
-                          self.vehicles[veh_id]["lane"]] for veh_id in sorted_ids]).T
-
+        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
+                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -98,11 +111,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         acceleration = actions[::2]
         direction = np.round(actions[1::2])
 
-        # sorting states by position
-        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.rl_ids])
-
         # re-arrange actions according to mapping in observation space
-        sorted_rl_ids = np.array(self.rl_ids)[sorted_indx]
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']

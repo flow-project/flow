@@ -63,21 +63,17 @@ class BaseController:
             return action
 
         this_lane = env.vehicles[self.veh_id]['lane']
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        lead_id = env.vehicles[self.veh_id]["leader"]
 
         # if there is no other vehicle in the current lane, all actions are safe
         if lead_id is None:
             return action
 
-        lead_pos = env.get_x_by_id(lead_id)
-        lead_length = env.vehicles[lead_id]['length']
-
-        this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
         time_step = env.time_step
         next_vel = this_vel + action * time_step
+        h = env.vehicles[self.veh_id]["headway"]
 
-        h = (lead_pos - lead_length - this_pos) % env.scenario.length
         if next_vel > 0:
             if h < time_step * next_vel + this_vel * 1e-3:
                 return -this_vel / time_step
@@ -112,13 +108,13 @@ class BaseController:
         at the point at which the headway is zero.
         """
         this_lane = env.vehicles[self.veh_id]['lane']
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        lead_id = env.vehicles[self.veh_id]["leader"]
 
-        lead_pos = env.get_x_by_id(lead_id)
+        lead_pos = env.vehicles[lead_id]["absolute_position"]
         lead_vel = env.vehicles[lead_id]['speed']
         lead_length = env.vehicles[lead_id]['length']
 
-        this_pos = env.get_x_by_id(self.veh_id)
+        this_pos = env.vehicles[self.veh_id]["absolute_position"]
 
         # need to account for the position being reset around the length
         self.max_deaccel = np.abs(self.max_deaccel)
