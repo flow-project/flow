@@ -280,12 +280,22 @@ class SumoEnvironment(Env, Serializable):
         self.sorted_ids = self.sort_by_position()
 
         # collect headway, leader id, and follower id data
-        vehicles = self.get_headway_dict()
+        # vehicles = self.get_headway_dict()
 
         for veh_id in self.ids:
-            self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
-            self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
-            self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+            # self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
+            # self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
+            # self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+            
+            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
+            if headway is None:
+                self.vehicles[veh_id]["leader"] = ''
+                self.vehicles[veh_id]["follower"] = ''
+                self.vehicles[veh_id]["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+            else:
+                self.vehicles[veh_id]["headway"] = headway[1]
+                self.vehicles[veh_id]["leader"] = headway[0]
+                self.vehicles[headway[0]]["follower"] = veh_id
 
         # dictionary of initial observations used while resetting vehicles after each rollout
         self.initial_observations = deepcopy(dict(self.vehicles))
@@ -323,14 +333,25 @@ class SumoEnvironment(Env, Serializable):
         if len(self.controlled_ids) > 0:
             for veh_id in self.controlled_ids:
                 # acceleration action
+                try:
+                    self.vehicles[veh_id]['leader']
+                except KeyError:
+                    pdb.set_trace()
                 action = self.vehicles[veh_id]['controller'].get_action(self)
                 accel.append(action)
 
                 # lane changing action
-                if self.scenario.lanes > 1:
-                    if self.vehicles[veh_id]['lane_changer'] is not None:
-                        new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                        self.apply_lane_change([veh_id], target_lane=[new_lane])
+                lane_flag = 0
+                if type(self.scenario.lanes) is dict:
+                    if any(v > 1 for v in self.scenario.lanes.values()):
+                        lane_flag = 1
+                else:
+                    if self.scenario.lanes > 1:
+                        lane_flag = 1
+
+                if self.vehicles[veh_id]['lane_changer'] is not None and lane_flag:
+                    new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                    self.apply_lane_change([veh_id], target_lane=[new_lane])
 
             self.apply_acceleration(self.controlled_ids, acc=accel)
 
@@ -378,12 +399,18 @@ class SumoEnvironment(Env, Serializable):
         self.sorted_ids = self.sort_by_position()
 
         # collect headway, leader id, and follower id data
-        vehicles = self.get_headway_dict()
+        # vehicles = self.get_headway_dict()
 
         for veh_id in self.ids:
-            self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
-            self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
-            self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
+            if headway is None:
+                self.vehicles[veh_id]["leader"] = ''
+                self.vehicles[veh_id]["follower"] = ''
+                self.vehicles[veh_id]["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+            else:
+                self.vehicles[veh_id]["headway"] = headway[1]
+                self.vehicles[veh_id]["leader"] = headway[0]
+                self.vehicles[headway[0]]["follower"] = veh_id
 
         # collect information of the state of the network based on the environment class used
         if self.scenario.num_rl_vehicles > 0: 
@@ -423,6 +450,7 @@ class SumoEnvironment(Env, Serializable):
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
         # create the list of colors used to visually distinguish between different types of vehicles
+        pdb.set_trace()
         self.timer = 0
         self.colors = {}
         key_index = 1
@@ -473,12 +501,23 @@ class SumoEnvironment(Env, Serializable):
         self.sorted_ids = self.sort_by_position()
 
         # collect headway, leader id, and follower id data
-        vehicles = self.get_headway_dict()
+        # vehicles = self.get_headway_dict()
 
         for veh_id in self.ids:
-            self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
-            self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
-            self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+            # self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
+            # self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
+            # self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+
+            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
+            if headway is None:
+                pdb.set_trace()
+                self.vehicles[veh_id]["leader"] = ''
+                self.vehicles[veh_id]["follower"] = ''
+                self.vehicles[veh_id]["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+            else:
+                self.vehicles[veh_id]["headway"] = headway[1]
+                self.vehicles[veh_id]["leader"] = headway[0]
+                self.vehicles[headway[0]]["follower"] = veh_id
 
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 

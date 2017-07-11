@@ -151,35 +151,48 @@ class LoopEnvironment(SumoEnvironment):
         """
         vehicles = dict()
 
-        for lane in range(self.scenario.lanes):
-            unique_lane_ids = [veh_id for veh_id in self.sorted_ids if self.vehicles[veh_id]["lane"] == lane]
+        if type(self.scenario.lanes) is dict:
+            lane_dict = self.scenario.lanes
+        else:
+            lane_dict = {"lanes": self.scenario.lanes}
 
-            if len(unique_lane_ids) == 1:
-                vehicle = dict()
-                veh_id = unique_lane_ids[0]
-                vehicle["leader"] = None
-                vehicle["follower"] = None
-                vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
-                vehicles[veh_id] = vehicle
+        for lane_num in lane_dict.values():
+            for lane in range(lane_num):
+                unique_lane_ids = [veh_id for veh_id in self.sorted_ids if self.vehicles[veh_id]["lane"] == lane]
 
-            for i, veh_id in enumerate(unique_lane_ids):
-                vehicle = dict()
+                if len(unique_lane_ids) == 1:
+                    vehicle = dict()
+                    veh_id = unique_lane_ids[0]
+                    vehicle["leader"] = None
+                    vehicle["follower"] = None
+                    vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+                    pdb.set_trace()
+                    vehicles[veh_id] = vehicle
 
-                if i < len(unique_lane_ids) - 1:
-                    vehicle["leader"] = unique_lane_ids[i+1]
-                else:
-                    vehicle["leader"] = unique_lane_ids[0]
+                for i, veh_id in enumerate(unique_lane_ids):
+                    vehicle = dict()
 
-                vehicle["headway"] = \
-                    (self.vehicles[vehicle["leader"]]["absolute_position"] -
-                     self.vehicles[vehicle["leader"]]["length"] -
-                     self.vehicles[veh_id]["absolute_position"]) % self.scenario.length
+                    if i < len(unique_lane_ids) - 1:
+                        vehicle["leader"] = unique_lane_ids[i+1]
+                    else:
+                        vehicle["leader"] = unique_lane_ids[0]
 
-                if i > 0:
-                    vehicle["follower"] = unique_lane_ids[i-1]
-                else:
-                    vehicle["follower"] = unique_lane_ids[-1]
+                    vehicle["headway"] = \
+                        (self.vehicles[vehicle["leader"]]["absolute_position"] -
+                         self.vehicles[vehicle["leader"]]["length"] -
+                         self.vehicles[veh_id]["absolute_position"]) % self.scenario.length
 
-                vehicles[veh_id] = vehicle
+                    if i > 0:
+                        vehicle["follower"] = unique_lane_ids[i-1]
+                    else:
+                        vehicle["follower"] = unique_lane_ids[-1]
+
+                    vehicles[veh_id] = vehicle
+
+        # try:
+        #     [self.vehicles[veh_id]["leader"] for veh_id in self.sorted_ids]
+        # except KeyError:
+        #     pdb.set_trace()
 
         return vehicles
+

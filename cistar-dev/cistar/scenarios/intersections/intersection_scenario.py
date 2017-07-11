@@ -31,7 +31,7 @@ class TwoWayIntersectionScenario(Scenario):
                          initial_config=initial_config, cfg=cfg,
                          generator_class=TwoWayIntersectionGenerator)
 
-        self.length = np.inf  # self.net_params["length"]
+        self.length = self.net_params["length"]
 
         if "horizontal_lanes" not in self.net_params:
             raise ValueError("number of horizontal lanes not supplied")
@@ -184,6 +184,6 @@ class TwoWayIntersectionScenario(Scenario):
                 startpositions.append(("left", x))
             else:
                 startpositions.append(("right", x))
-            x += np.random.normal(shift)
+            x += np.random.normal(loc=shift)
         return startpositions
 

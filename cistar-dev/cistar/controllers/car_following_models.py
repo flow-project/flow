@@ -329,9 +329,9 @@ class IDMController(BaseController):
         self.dt = dt
 
     def get_action(self, env):
-
+        
         lead_id = env.vehicles[self.veh_id]["leader"]
-        if lead_id is None:  # no car ahead
+        if lead_id == '':  # no car ahead
             return self.a
 
         h = env.vehicles[self.veh_id]["headway"]
