@@ -36,20 +36,11 @@ class LoopScenario(Scenario):
         edgelen = self.length / 4
         self.edgestarts = [("bottom", 0), ("right", edgelen),
                            ("top", 2 * edgelen), ("left", 3 * edgelen)]
+        self.edgepos = {"bottom": 0, "right": edgelen, "top": 2 * edgelen, "left": 3 * edgelen}
 
+        # generate starting position for vehicles in the network
         if "positions" not in self.initial_config:
-            bunch_factor = 0
-            if "bunching" in self.initial_config:
-                bunch_factor = self.initial_config["bunching"]
-
-            if "spacing" in self.initial_config:
-                if self.initial_config["spacing"] == "gaussian":
-                    downscale = 5
-                    if "downscale" in self.initial_config:
-                        downscale = self.initial_config["downscale"]
-                    self.initial_config["positions"] = self.gen_random_start_pos(downscale, bunch_factor)
-            else:
-                self.initial_config["positions"] = self.gen_even_start_positions(bunch_factor)
+            self.initial_config["positions"] = self.generate_starting_positions()
 
         if "shuffle" not in self.initial_config:
             self.initial_config["shuffle"] = False
@@ -82,13 +73,31 @@ class LoopScenario(Scenario):
         :param position: relative position on edge
         :return:
         """
-        for edge_tuple in self.edgestarts:
-            if edge_tuple[0] == edge:
-                edge_start = edge_tuple[1]
-                break
-        return position + edge_start
+        return self.edgepos[edge] + position
 
-    def gen_even_start_positions(self, bunching):
+    def generate_starting_positions(self, x0=1):
+        """
+        Generates starting positions for vehicles in the network
+        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        """
+        startpositions = []
+
+        bunch_factor = 0
+        if "bunching" in self.initial_config:
+            bunch_factor = self.initial_config["bunching"]
+
+        if "spacing" in self.initial_config:
+            if self.initial_config["spacing"] == "gaussian":
+                downscale = 5
+                if "downscale" in self.initial_config:
+                    downscale = self.initial_config["downscale"]
+                startpositions = self.gen_random_start_pos(downscale, bunch_factor, x0=x0)
+        else:
+            startpositions = self.gen_even_start_positions(bunch_factor, x0=x0)
+
+        return startpositions
+
+    def gen_even_start_positions(self, bunching, x0=1):
         """
         Generate uniformly spaced start positions.
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
@@ -97,16 +106,16 @@ class LoopScenario(Scenario):
         # FIXME(cathywu) Remove this arbitrary "- 10"?
         increment = (self.length - bunching) / self.num_vehicles
 
-        x = 1
+        x = x0
         for i in range(self.num_vehicles):
             # pos is a tuple (route, departPos)
             pos = self.get_edge(x)
             startpositions.append(pos)
-            x += increment
+            x = (x + increment) % self.length
 
         return startpositions
 
-    def gen_random_start_pos(self, downscale=5, bunching=0):
+    def gen_random_start_pos(self, downscale=5, bunching=0, x0=1):
         """
         Generate random start positions via additive Gaussian.
 
@@ -118,10 +127,10 @@ class LoopScenario(Scenario):
         mean = (self.length - bunching) / self.num_vehicles
 
         # FIXME(cathywu) Why is x=1 the start, instead of x=0?
-        x = 1
+        x = x0
         for i in range(self.num_vehicles):
             pos = self.get_edge(x)
             startpositions.append(pos)
-            x += np.random.normal(scale=mean / downscale, loc=mean)
+            x = (x + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
 
         return startpositions

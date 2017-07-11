@@ -1,16 +1,28 @@
+"""
+This file contains the base controllers used by human-driven vehicle units.
+
+Two types of controllers are provided:
+ - BaseController: A controller that instantiates a vehicle with car-following dynamics
+   controlled by acceleration models in cistar (located in car_following_models.py)
+ - SumoController: A controller that instantiates a vehicle with car-following dynamics
+   from sumo's built-in functions
+"""
+
 import numpy as np
 import collections
 import pdb
 
-"""Base class for controllers. 
 
-Instantiates a controller and forces the user to pass a 
-maximum acceleration to the controller. Provides the method
-safe_action to ensure that controls are never made that could
-cause the system to crash. 
-
-"""
 class BaseController:
+    """ Base class for cistar-controlled acceleration behavior.
+
+    Instantiates a controller and forces the user to pass a
+    maximum acceleration to the controller. Provides the method
+    safe_action to ensure that controls are never made that could
+    cause the system to crash.
+
+    """
+
     def __init__(self, veh_id, controller_params):
         """
         Arguments:
@@ -23,11 +35,6 @@ class BaseController:
         self.d = 0
         self.veh_id = veh_id
         self.controller_params = controller_params
-
-        # TODO: with the modifications to the failsafe, we don't need this parameter anymore
-        self.stopping_distance = 1
-        if "stopping_distance" in controller_params:
-            self.stopping_distance = controller_params["stopping_distance"]
 
         if not controller_params['delay']:
             self.delay = 0
@@ -51,35 +58,29 @@ class BaseController:
         :param action:
         :return:
         """
-        this_lane = env.vehicles[self.veh_id]['lane']
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
-        if lead_id is None:
-            # print('')
-            # print('no lead car for car', self.veh_id, 'in lane', this_lane)
-            return action
-        lead_pos = env.get_x_by_id(lead_id)
-        lead_length = env.vehicles[lead_id]['length']
-
+        # if there is only one vehicle in the environment, all actions are safe
         if len(env.vehicles) == 1:
             return action
-        else:
-            this_lane = env.vehicles[self.veh_id]['lane']
-            lead_id = env.get_leading_car(self.veh_id, this_lane)
-            lead_pos = env.get_x_by_id(lead_id)
-            lead_length = env.vehicles[lead_id]['length']
 
-            this_pos = env.get_x_by_id(self.veh_id)
-            this_vel = env.vehicles[self.veh_id]['speed']
-            time_step = env.time_step
+        this_lane = env.vehicles[self.veh_id]['lane']
+        lead_id = env.vehicles[self.veh_id]["leader"]
 
-            h = (lead_pos - lead_length - this_pos) % env.scenario.length
-            if (this_vel+action*time_step) > 0:
-                if h/(this_vel+action*time_step) < time_step:
-                    return -this_vel / time_step
-                else:
-                    return action
+        # if there is no other vehicle in the current lane, all actions are safe
+        if lead_id is None:
+            return action
+
+        this_vel = env.vehicles[self.veh_id]['speed']
+        time_step = env.time_step
+        next_vel = this_vel + action * time_step
+        h = env.vehicles[self.veh_id]["headway"]
+
+        if next_vel > 0:
+            if h < time_step * next_vel + this_vel * 1e-3:
+                return -this_vel / time_step
             else:
                 return action
+        else:
+            return action
 
     def get_safe_action(self, env, action):
         """ USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
@@ -92,41 +93,38 @@ class BaseController:
         else:
             safe_velocity = self.safe_velocity(env)
 
-            #this is not being used?
-            this_lane = env.vehicles[self.veh_id]['lane']
-
             this_vel = env.vehicles[self.veh_id]['speed']
             time_step = env.time_step
 
-            if this_vel + action*time_step > safe_velocity:
+            if this_vel + action * time_step > safe_velocity:
                 return (safe_velocity - this_vel)/time_step
             else:
                 return action
 
     def safe_velocity(self, env):
-        """Finds maximum velocity such that if the lead vehicle breaks
-        with max acceleration, we can bring the following vehicle to rest
+        """
+        Finds maximum velocity such that if the lead vehicle breaks
+        with max deceleration, we can bring the following vehicle to rest
         at the point at which the headway is zero.
         """
         this_lane = env.vehicles[self.veh_id]['lane']
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        lead_id = env.vehicles[self.veh_id]["leader"]
 
-        lead_pos = env.get_x_by_id(lead_id)
+        lead_pos = env.vehicles[lead_id]["absolute_position"]
         lead_vel = env.vehicles[lead_id]['speed']
         lead_length = env.vehicles[lead_id]['length']
 
-        this_pos = env.get_x_by_id(self.veh_id)
+        this_pos = env.vehicles[self.veh_id]["absolute_position"]
 
         # need to account for the position being reset around the length
         self.max_deaccel = np.abs(self.max_deaccel)
-        if lead_pos > this_pos: 
+        if lead_pos > this_pos:
             dist = lead_pos - (this_pos + lead_length) 
         else:
             loop_length = env.scenario.net_params["length"]
-            dist =  (this_pos + lead_length) - (lead_pos + loop_length)
-        self.last_d = self.d
-        d = dist - np.power((lead_vel - self.max_deaccel * env.time_step),2)/(2*self.max_deaccel)
-        self.d = d
+            dist = (this_pos + lead_length) - (lead_pos + loop_length)
+
+        d = dist - np.power((lead_vel - self.max_deaccel * env.time_step), 2)/(2*self.max_deaccel)
 
         if -2*d+self.max_deaccel*self.delay**2 < 0:
             v_safe = 0
@@ -154,7 +152,7 @@ class BaseController:
 
         # if the car is not about to enter the intersection, continue moving as requested
 
-        if next_vel * time_step < this_dist_to_intersection:
+        if next_vel * time_step + this_vel * 1e-3 < this_dist_to_intersection:
             return action
 
         # if the vehicle is about to enter an intersection, and another vehicle is currently in the intersection
@@ -166,6 +164,7 @@ class BaseController:
         elif env.intersection_edges[1] in this_intersection:
             cross_intersection = env.intersection_edges[0]
 
+        # TODO: also make sure that the car is more than its vehicle length out of the intersection
         if any([cross_intersection in env.vehicles[veh_id]["edge"] for veh_id in env.ids]):
             return stop_action
 
@@ -198,3 +197,42 @@ class BaseController:
             # if this vehicle does have right-of-way, continue
             elif env.intersection_edges[0] in this_intersection and env.intersection_fail_safe == "top-bottom":
                 return action
+        else:
+            return action
+
+
+class SumoController:
+    """
+    Base class for sumo-controlled acceleration behavior.
+    """
+
+    def __init__(self, veh_id, controller_params):
+        """
+        Initializes a SUMO controller with information required by sumo.
+
+        :param veh_id {string} -- unique vehicle identifier
+        :param controller_params {dict} -- contains the parameters needed to instantiate a sumo controller
+               - model_type {string} -- type of SUMO car-following model to use. Must be one of: Krauss, KraussOrig1,
+                 PWagner2009, BKerner, IDM, IDMM, KraussPS, KraussAB, SmartSK, Wiedemann, Daniel1
+               - model_params {dict} -- dictionary of parameters applicable to sumo cars,
+                 see: http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        """
+        self.veh_id = veh_id
+
+        available_models = ["Krauss", "KraussOrig1", "PWagner2009", "BKerner", "IDM", "IDMM", "KraussPS",
+                            "KraussAB", "SmartSK", "Wiedemann", "Daniel1"]
+
+        if "model_type" in controller_params:
+            # the model type specified must be available in sumo
+            if controller_params["model_type"] not in available_models:
+                raise ValueError("Model type is not available in SUMO.")
+
+            self.model_type = controller_params["model"]
+        else:
+            # if no model is specified, the controller defaults to sumo's Krauss model
+            self.model_type = "Krauss"
+
+        if "model_params" in controller_params:
+            self.model_params = controller_params["model_params"]
+        else:
+            self.model_params = dict()

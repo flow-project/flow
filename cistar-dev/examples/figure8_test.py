@@ -1,5 +1,25 @@
-import logging
+''' Example of figure 8 with car following models on it. 
 
+
+Variables:
+    sumo_params {dict} -- [Pass time step, where to save data, whether safe mode is on or off]
+    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
+    type_params {dict} -- [Types of cars in the system. 
+    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
+    env_params {dict} -- []
+    net_params {dict} -- [Params for network.
+                            radius_ring
+                            lanes
+                            speed limit
+                            resolution: number of edges comprising ring
+                            net_path: where to store net]
+    cfg_params {dict} -- [description]
+    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
+                                spacing: if gaussian, add noise in start positions
+                                bunching: how close to place cars at experiment start]
+    scenario {[type]} -- [Which road network to use]
+'''
+import logging
 from cistar.core.exp import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
@@ -10,17 +30,15 @@ from cistar.controllers.rlcontroller import RLController
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"port": 8873, "time_step": 0.1, "emission_path": "./data/", "traci_control": 1}
+sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": 1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"idm": (14, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "fail-safe": "None",
-              "intersection_fail-safe": "left-right"}
+env_params = {"max-deacc": -3, "max-acc": 3}
 
-radius_ring = 50
-net_params = {"radius_ring": radius_ring, "lanes": 2, "speed_limit": 35, "resolution": 40,
+net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
               "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
@@ -29,12 +47,10 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 scenario = Figure8Scenario("figure8", type_params, net_params, cfg_params)
 
-leah_sumo_params = {"port": 8873}
-
 exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 10000)
+exp.run(1, 1500)
 
 exp.env.terminate()

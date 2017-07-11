@@ -12,7 +12,7 @@ class TestTwoLaneTwoController(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.WARNING)
 
-        self.sumo_params = {"time_step": 0.01, "traci_control": 1, "human_lc": "strategic"}
+        self.sumo_params = {"time_step": 0.01, "human_sm": 1, "human_lc": "strategic"}
         self.sumo_binary = "sumo"
         self.type_params = { "cfm-slow": (6, (CFMController, {'v_des': 6}), (StaticLaneChanger, {}), 0),\
                             "cfm-fast": (6, (CFMController, {'v_des': 10}), (StochasticLaneChanger, {}), 0)}

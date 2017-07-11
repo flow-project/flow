@@ -1,11 +1,13 @@
 from cistar.controllers.base_controller import BaseController
+import numpy as np
+import pdb
 
 
 class ConstantVelocityController(BaseController):
     """Base velocity controller (assumes acceleration by Default)
     """
 
-    def __init__(self, veh_id, max_deaccel=15, tau=0, dt=0.1, constant_speed=15):
+    def __init__(self, veh_id, max_deaccel=15, max_accel = 6, tau=0, dt=0.1, constant_speed=7):
         """Instantiates a velocity controller
 
         Arguments:
@@ -21,9 +23,22 @@ class ConstantVelocityController(BaseController):
         controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel}
         BaseController.__init__(self, veh_id, controller_params)
         self.constant_speed = constant_speed
+        self.max_deaccel = -abs(max_deaccel)
+        self.max_accel = max_accel
 
     def get_action(self, env):
-        return self.constant_speed
+        this_vel = env.vehicles[self.veh_id]['speed']
+        acc = (self.constant_speed - this_vel)/env.time_step
+        if acc > 0:
+            if acc > self.max_accel:
+                return self.max_accel
+            else:
+                return acc
+        else:
+            if acc > self.max_deaccel:
+                return acc
+            else:
+                return self.max_deaccel
 
     def get_safe_action(self, env, action):
         v_safe = self.safe_velocity(env)
@@ -51,15 +66,15 @@ class FollowerStopper(BaseController):
     def get_action(self, env):
         this_lane = env.vehicles[self.veh_id]['lane']
 
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        lead_id = env.vehicles[self.veh_id]['leader']
         if not lead_id: # no car ahead
             return self.acc_max
 
-        lead_pos = env.get_x_by_id(lead_id)
+        lead_pos = env.vehicles[lead_id]['absolute_position']
         lead_vel = env.vehicles[lead_id]['speed']
         lead_length = env.vehicles[lead_id]['length']
 
-        this_pos = env.get_x_by_id(self.veh_id)
+        this_pos = env.vehicles[self.veh_id]['absolute_position']
         this_vel = env.vehicles[self.veh_id]['speed']
 
         deltaV = lead_vel - this_vel
@@ -75,7 +90,7 @@ class FollowerStopper(BaseController):
             v_cmd = 0
         elif dx < deltaX[1]:
             v_cmd = this_v*(dx - deltaX[0])/(deltaX[1] - deltaX[0])
-        elif dx < deltax[2]:
+        elif dx < deltaX[2]:
             v_cmd = this_v + (self.constant_speed - this_v)*(dx - deltaX[1])/(deltaX[2] - deltaX[1])
         else:
             v_cmd = self.constant_speed

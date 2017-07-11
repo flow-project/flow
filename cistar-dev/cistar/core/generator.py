@@ -9,7 +9,7 @@ from rllab.core.serializable import Serializable
 E = etree.Element
 
 """
-Generator base class for creating 
+Base class for generating transportation networks.
 """
 
 

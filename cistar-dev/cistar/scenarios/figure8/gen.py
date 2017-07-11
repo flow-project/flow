@@ -11,6 +11,7 @@ from numpy import pi, sin, cos, linspace
 import logging
 import random
 from lxml import etree
+import numpy as np
 E = etree.Element
 
 
@@ -21,11 +22,9 @@ class Figure8Generator(Generator):
 
     def generate_net(self, params):
         """
-        Generates Net files for loop sim. Requires:
+        Generates Net files for figure 8 sim. Requires:
         - radius_ring: radius of the ring portion of the network
         - lanes: number of lanes in the road network
-        - priority: specifies which portion of the intersection receives priority; can be "top_bottom", "left_right",
-                    or "None" (default="None"). If no priority is specified, vehicles may crash at the intersection.
         - speed_limit: max speed limit of the vehicles on the road network
         - resolution: number of nodes resolution
         """
@@ -33,21 +32,6 @@ class Figure8Generator(Generator):
         lanes = params["lanes"]
         speed_limit = params["speed_limit"]
         resolution = params["resolution"]
-
-        # vehicles on sections with a lower priority value are given priority in crossing
-        # intersection_type = "unregulated"
-        # priority_top_bottom = -1
-        # priority_left_right = -1
-        # if not params["priority"]:
-        #     pass
-        # elif params["priority"] == "top_bottom":
-        #     intersection_type = "priority"
-        #     priority_top_bottom = 46
-        #     priority_left_right = 78
-        # elif params["priority"] == "left_right":
-        #     intersection_type = "priority"
-        #     priority_top_bottom = 78
-        #     priority_left_right = 46
 
         ring_edgelen = r * pi/2.
         intersection_edgelen = 2*r
@@ -64,18 +48,18 @@ class Figure8Generator(Generator):
         # contains nodes for the boundary points
         # with respect to the x and y axes
         # titled: center_intersection,
-        #         top_lower_ring, bottom_lower_ring, left_lower_ring, right_lower_ring,
-        #         top_upper_ring, bottom_upper_ring, left_upper_ring, right_upper_ring
+        #         top_lower_ring, bottom_lower_ring, left_lower_ring, right_lower_ring_in,
+        #         top_upper_ring, bottom_upper_ring_in, left_upper_ring, right_upper_ring
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
-        x.append(E("node", id="center_intersection", x=repr(0), y=repr(0), type="unregulated"))
-        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type="unregulated"))
-        x.append(E("node", id="bottom_upper_ring_in", x=repr(r), y=repr(0), type="unregulated"))
-        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r), type="unregulated"))
-        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r), type="unregulated"))
-        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0), type="unregulated"))
-        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r), type="unregulated"))
-        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r), type="unregulated"))
-        x.append(E("node", id="right_lower_ring_in", x=repr(0), y=repr(-r), type="unregulated"))
+        x.append(E("node", id="center_intersection", x=repr(0), y=repr(0), type="priority"))
+        x.append(E("node", id="top_upper_ring", x=repr(r), y=repr(2*r), type="priority"))
+        x.append(E("node", id="bottom_upper_ring_in", x=repr(r), y=repr(0), type="priority"))
+        x.append(E("node", id="left_upper_ring", x=repr(0), y=repr(r), type="priority"))
+        x.append(E("node", id="right_upper_ring", x=repr(2*r), y=repr(r), type="priority"))
+        x.append(E("node", id="top_lower_ring", x=repr(-r), y=repr(0), type="priority"))
+        x.append(E("node", id="bottom_lower_ring", x=repr(-r), y=repr(-2*r), type="priority"))
+        x.append(E("node", id="left_lower_ring", x=repr(-2*r), y=repr(-r), type="priority"))
+        x.append(E("node", id="right_lower_ring_in", x=repr(0), y=repr(-r), type="priority"))
 
         printxml(x, self.net_path + nodfn)
 
@@ -85,46 +69,46 @@ class Figure8Generator(Generator):
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
 
         # intersection edges
-        x.append(E("edge", attrib={"id": "right_lower_ring_in",
+        x.append(E("edge", attrib={"id": "right_lower_ring_in", "priority": "78",
                                    "from": "right_lower_ring_in", "to": "center_intersection", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
-        x.append(E("edge", attrib={"id": "right_lower_ring_out",
+        x.append(E("edge", attrib={"id": "right_lower_ring_out", "priority": "78",
                                    "from": "center_intersection", "to": "left_upper_ring", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
-        x.append(E("edge", attrib={"id": "bottom_upper_ring_in",
+        x.append(E("edge", attrib={"id": "bottom_upper_ring_in", "priority": "46",
                                    "from": "bottom_upper_ring_in", "to": "center_intersection", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
-        x.append(E("edge", attrib={"id": "bottom_upper_ring_out",
+        x.append(E("edge", attrib={"id": "bottom_upper_ring_out", "priority": "46",
                                    "from": "center_intersection", "to": "top_lower_ring", "type": "edgeType",
                                    "length": repr(intersection_edgelen/2)}))
 
         # ring edges
-        x.append(E("edge", attrib={"id": "left_upper_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "left_upper_ring",
                                    "from": "left_upper_ring", "to": "top_upper_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 - cos(t)), r * (1 + sin(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "top_upper_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "top_upper_ring",
                                    "from": "top_upper_ring", "to": "right_upper_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 + sin(t)), r * (1 + cos(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "right_upper_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "right_upper_ring",
                                    "from": "right_upper_ring", "to": "bottom_upper_ring_in", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (r * (1 + cos(t)), r * (1 - sin(t)))
                                                       for t in linspace(0, pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "top_lower_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "top_lower_ring",
                                    "from": "top_lower_ring", "to": "left_lower_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), -r + r * sin(t))
                                                       for t in linspace(pi/2, pi, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "left_lower_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "left_lower_ring",
                                    "from": "left_lower_ring", "to": "bottom_lower_ring", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), - r + r * sin(t))
                                                       for t in linspace(pi, 3*pi/2, resolution)]),
                                    "length": repr(ring_edgelen)}))
-        x.append(E("edge", attrib={"id": "bottom_lower_ring",  # "width": "5",
+        x.append(E("edge", attrib={"id": "bottom_lower_ring",
                                    "from": "bottom_lower_ring", "to": "right_lower_ring_in", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (- r + r * cos(t), - r + r * sin(t))
                                                       for t in linspace(-pi/2, 0, resolution)]),
@@ -176,11 +160,10 @@ class Figure8Generator(Generator):
 
         startTime: time to start the simulation
         endTime: time to end the simulation
-
         """
 
         if "start_time" not in params:
-            raise ValueError("start_time of circle not supplied")
+            raise ValueError("start_time not supplied")
         else:
             start_time = params["start_time"]
 
@@ -196,11 +179,8 @@ class Figure8Generator(Generator):
 
         def rerouter(name, frm, to):
             '''
-
-            :param name:
-            :param frm:
-            :param to:
-            :return:
+            Used to define changes in route on loop-like scenarios to ensure vehicle continue moving after
+            completing a single path.
             '''
             t = E("rerouter", id=name, edges=frm)
             i = E("interval", begin="0", end="10000000")
@@ -246,7 +226,7 @@ class Figure8Generator(Generator):
         add.append(rerouter("rerouterLeft_upper_ring", "left_upper_ring", "routeright_lower_ring_in"))
         add.append(rerouter("rerouterTop_upper_ring", "top_upper_ring", "routebottom_lower_ring"))
         add.append(rerouter("rerouterRight_upper_ring", "right_upper_ring", "routeleft_lower_ring"))
-        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routetop_upper_ring"))
+        add.append(rerouter("rerouterTop_lower_ring", "top_lower_ring", "routeright_upper_ring"))
         add.append(rerouter("rerouterLeft_lower_ring", "left_lower_ring", "routeright_upper_ring"))
         printxml(add, self.cfg_path + addfn)
 
@@ -273,23 +253,45 @@ class Figure8Generator(Generator):
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
         num_cars = scenario.num_vehicles
-        if type_list:
+        if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
             for tp in type_list:
-                routes.append(E("vType", id=tp, minGap="0"))
+                print(type_params[tp][1][0])
+                if type_params[tp][1][0] == "sumoIDM":
+                    # if any IDM parameters are not specified, they are set to the default parameters specified
+                    # by Treiber
+                    if "accel" not in type_params[tp][1]:
+                        type_params[tp][1][1]["accel"] = 1
 
-            vehicle_ids = []
+                    if "decel" not in type_params[tp][1]:
+                        type_params[tp][1][1]["decel"] = 1.5
+
+                    if "delta" not in type_params[tp][1]:
+                        type_params[tp][1][1]["delta"] = 4
+
+                    if "tau" not in type_params[tp][1]:
+                        type_params[tp][1][1]["tau"] = 1
+
+                    routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
+                                                     "accel": repr(type_params[tp][1][1]["accel"]),
+                                                     "decel": repr(type_params[tp][1][1]["decel"]),
+                                                     "delta": repr(type_params[tp][1][1]["delta"]),
+                                                     "tau": repr(type_params[tp][1][1]["tau"])}))
+                else:
+                    routes.append(E("vType", id=tp, minGap="0"))
+
+            self.vehicle_ids = []
             if num_cars > 0:
-                for type in type_params:
+                for type in type_list:
                     type_count = type_params[type][0]
                     for i in range(type_count):
-                        vehicle_ids.append((type, type + "_" + str(i)))
+                        self.vehicle_ids.append((type, type + "_" + str(i)))
 
             if initial_config["shuffle"]:
-                random.shuffle(vehicle_ids)
+                random.shuffle(self.vehicle_ids)
 
             positions = initial_config["positions"]
-            for i, (type, id) in enumerate(vehicle_ids):
+            for i, (type, id) in enumerate(self.vehicle_ids):
                 route, pos = positions[i]
                 type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",

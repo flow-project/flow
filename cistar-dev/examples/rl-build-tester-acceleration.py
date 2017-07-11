@@ -1,3 +1,23 @@
+''' Basic test of fully rl environment with accelerations as actions. Single lane. 
+
+Variables:
+    sumo_params {dict} -- [Pass time step, whether safe mode is on or off]
+    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
+    type_params {dict} -- [Types of cars in the system. 
+    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
+    env_params {dict} -- [Params for reward function]
+    net_params {dict} -- [Params for network.
+                            length: road length
+                            lanes
+                            speed limit
+                            resolution: number of edges comprising ring
+                            net_path: where to store net]
+    cfg_params {dict} -- [description]
+    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
+                                spacing: if gaussian, add noise in start positions
+                                bunching: how close to place cars at experiment start]
+    scenario {[type]} -- [Which road network to use]
+'''
 import logging
 
 from rllab.envs.normalized_env import normalize
@@ -17,15 +37,14 @@ stub(globals())
 tot_cars = 6
 
 auton_cars = 6
-human_cars = tot_cars - auton_cars
 
-sumo_params = {"port": 8873, "time_step":0.01}
+sumo_params = {"time_step":0.01,  "rl_sm": 1}
 
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "fail-safe":'instantaneous'}
+env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3}
 
 net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
               "net_path":"debug/rl/net/"}
@@ -49,7 +68,7 @@ env.restart_sumo(sumo_params)
 
 env = normalize(env)
 
-for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
+for seed in [5]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(16,)
@@ -61,10 +80,10 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=40,
-        max_path_length=10,
+        batch_size=10000,
+        max_path_length=1000,
         # whole_paths=True,
-        n_itr=10,  # 1000
+        n_itr=2,  # 1000
         # discount=0.99,
         # step_size=0.01,
     )
@@ -81,6 +100,6 @@ for seed in [5, 10, 73, 56, 1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="rl-acceleration",
-        python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
+        #python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
         # plot=True,
     )
