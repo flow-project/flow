@@ -177,15 +177,17 @@ class TwoWayIntersectionScenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]    
         """
         startpositions = []
-        shift = 5
-        x = 1
+        shift = 15
+        xl = 1
+        xb = 1
         for i in range(self.num_vehicles):
             left_lane = np.random.randint(2, size=1)
             if left_lane:
-                startpositions.append(("left", x))
+                startpositions.append(("left", xl))
+                xl += np.random.normal(loc=shift)
             else:
-                startpositions.append(("bottom", x))
-            x += np.random.normal(loc=shift)
+                startpositions.append(("bottom", xb))
+                xb += np.random.normal(loc = shift)
         pdb.set_trace()
         return startpositions
 
