@@ -1,4 +1,5 @@
 from cistar.envs.loop import LoopEnvironment
+from cistar.core import rewards
 
 from rllab.spaces import Box
 from rllab.spaces import Product
@@ -49,46 +50,19 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Product([speed, lane, absolute_pos])
 
-    def compute_reward(self, state, action, **kwargs):
+    def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        vel = state[0]
+        return rewards.desired_velocity(
+            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
 
-        if any(vel < -100) or kwargs["fail"]:
-            return 0.0
-
-        max_cost = np.array([self.env_params["target_velocity"]]*self.scenario.num_vehicles)
-        max_cost = np.linalg.norm(max_cost)
-
-        cost = vel - self.env_params["target_velocity"]
-        cost = np.linalg.norm(cost)
-
-        return max(max_cost - cost, 0)
-
-    def getState(self, **kwargs):
+    def getState(self):
         """
         See parent class
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        # sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
-        # sorted_ids = np.array(self.ids)[sorted_indx]
-        #
-        # if self.observation_vel_std == 0:
-        #     vel_dev = np.array([0] * self.scenario.num_vehicles)
-        # else:
-        #     vel_dev = normal(0, self.observation_vel_std, self.scenario.num_vehicles)
-        #
-        # if self.observation_pos_std == 0:
-        #     pos_dev = np.array([0] * self.scenario.num_vehicles)
-        # else:
-        #     pos_dev = normal(0, self.observation_pos_std, self.scenario.num_vehicles)
-        #
-        # return np.array([[self.vehicles[veh_id]["speed"] + vel_dev[i],
-        #                   self.vehicles[veh_id]["absolute_position"] + pos_dev[i],
-        #                   self.vehicles[veh_id]["lane"]] for i, veh_id in enumerate(self.sorted_ids)]).T
-
         return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
                           self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
                           self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T

@@ -22,7 +22,7 @@ class CFMController(BaseController):
     """Basic car-following model. Only looks ahead.
     """
 
-    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 20, tau = 0, dt = 0.1):
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8, acc_max=20, tau=0, dt=0.1):
         """Instantiates a CFM controller
         
         Arguments:
@@ -51,16 +51,14 @@ class CFMController(BaseController):
         self.accel_queue = collections.deque()
 
     def get_action(self, env):
-        this_lane = env.vehicles[self.veh_id]['lane']
-
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
+        lead_id = env.vehicles[self.veh_id]["leader"]
         if not lead_id: # no car ahead
             return self.acc_max
 
-        lead_pos = env.get_x_by_id(lead_id)
+        lead_pos = env.vehicles[lead_id]["absolute_position"]
         lead_vel = env.vehicles[lead_id]['speed']
 
-        this_pos = env.get_x_by_id(self.veh_id)
+        this_pos = env.vehicles[self.veh_id]["absolute_position"]
         this_vel = env.vehicles[self.veh_id]['speed']
 
         d_l = (lead_pos - this_pos) % env.scenario.length
@@ -76,6 +74,7 @@ class CFMController(BaseController):
     def reset_delay(self, env):
         self.accel_queue.clear()
 
+
 class BCMController(BaseController):
     """Bilateral car-following model. Looks ahead and behind.
     
@@ -84,7 +83,7 @@ class BCMController(BaseController):
     Variables:
     """
 
-    def __init__(self, veh_id, k_d=1, k_v=1, k_c = 1, d_des=1, v_des = 8, acc_max = 15, deacc_max = -5, tau = 0, dt = 0.1):
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8, acc_max=15, deacc_max=-5, tau=0, dt=0.1):
         """Instantiates a BCM controller
         
         Arguments:
@@ -113,31 +112,30 @@ class BCMController(BaseController):
         self.accel_queue = collections.deque()
 
     def get_action(self, env):
-        # From the paper: 
-        # There would also be additional control rules that take
-        # into account minimum safe separation, relative speeds,
-        # speed limits, weather and lighting conditions, traffic density
-        # and traffic advisories
+        """
+        From the paper:
+        There would also be additional control rules that take
+        into account minimum safe separation, relative speeds,
+        speed limits, weather and lighting conditions, traffic density
+        and traffic advisories
+        """
 
-        this_lane = env.vehicles[self.veh_id]['lane']
-
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
-        if not lead_id: # no car ahead
+        lead_id = env.vehicles[self.veh_id]["leader"]
+        if not lead_id:  # no car ahead
             return self.acc_max
 
-        lead_pos = env.get_x_by_id(lead_id)
+        lead_pos = env.vehicles[lead_id]["absolute_position"]
         lead_vel = env.vehicles[lead_id]['speed']
 
-        this_pos = env.get_x_by_id(self.veh_id)
+        this_pos = env.vehicles[self.veh_id]["absolute_position"]
         this_vel = env.vehicles[self.veh_id]['speed']
 
-        trail_id = env.get_trailing_car(self.veh_id, this_lane)
-        trail_pos = env.get_x_by_id(trail_id)
+        trail_id = env.vehicles[self.veh_id]["follower"]
+        trail_pos = env.vehicles[trail_id]["absolute_position"]
         trail_vel = env.vehicles[trail_id]['speed']
 
-        headway = (lead_pos - this_pos) % env.scenario.length # d_l
-
-        footway = (this_pos - trail_pos) % env.scenario.length # d_f
+        headway = (lead_pos - this_pos) % env.scenario.length
+        footway = (this_pos - trail_pos) % env.scenario.length
 
         acc = self.k_d * (headway - footway) + \
             self.k_v * ((lead_vel - this_vel) - (this_vel - trail_vel)) + \
@@ -194,20 +192,13 @@ class OVMController(BaseController):
         self.dt = dt
         
     def get_action(self, env):
-        this_lane = env.vehicles[self.veh_id]['lane']
-
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
-        if not lead_id: # no car ahead
+        lead_id = env.vehicles[self.veh_id]["leader"]
+        if not lead_id:  # no car ahead
             return self.acc_max
 
-        lead_pos = env.get_x_by_id(lead_id)
         lead_vel = env.vehicles[lead_id]['speed']
-        lead_length = env.vehicles[lead_id]['length']
-
-        this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
-
-        h = (lead_pos - lead_length - this_pos) % env.scenario.length
+        h = env.vehicles[self.veh_id]["headway"]
         h_dot = lead_vel - this_vel
 
         # V function here - input: h, output : Vh
@@ -244,10 +235,10 @@ class LinearOVM(BaseController):
     Variables:
     """
 
-    def __init__(self, veh_id, v_max = 30, acc_max = 15, max_deaccel=5, adaptation = 0.65, h_st = 5, delay_time = 0, dt = 0.1):
+    def __init__(self, veh_id, v_max=30, acc_max=15, max_deaccel=5, adaptation=0.65, h_st=5, delay_time=0, dt=0.1):
         """Instantiates an OVM controller
         
-         Arguments:
+        Arguments:
             veh_id -- Vehicle ID for SUMO identification
         
         Keyword Arguments:
@@ -268,36 +259,24 @@ class LinearOVM(BaseController):
         self.max_deaccel = max_deaccel
         self.acc_max = acc_max
         self.veh_id = veh_id
-        self.v_max = v_max # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
-        self.adaptation = adaptation # TAU in Traffic Flow Dynamics textbook
+        self.v_max = v_max  # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
+        self.adaptation = adaptation  # TAU in Traffic Flow Dynamics textbook
         self.h_st = h_st
         self.delay_time = delay_time
         self.dt = dt
 
     def get_action(self, env):
-        this_lane = env.vehicles[self.veh_id]['lane']
-
-        this_pos = env.get_x_by_id(self.veh_id)
         this_vel = env.vehicles[self.veh_id]['speed']
-
-        lead_id = env.get_leading_car(self.veh_id, this_lane)
-        if not lead_id: # no car ahead
-            h = float('inf')
-        else:        
-            lead_pos = env.get_x_by_id(lead_id)
-            lead_vel = env.vehicles[lead_id]['speed']
-            lead_length = env.vehicles[lead_id]['length']
-            h = (lead_pos - lead_length - this_pos) % env.scenario.length
+        h = env.vehicles[self.veh_id]["headway"]
 
         # V function here - input: h, output : Vh
-        alpha = 1.689 # the average value from Nakayama paper
+        alpha = 1.689  # the average value from Nakayama paper
         if h < self.h_st:
             Vh = 0
         elif self.h_st <= h <= self.h_st + self.v_max/alpha:
             Vh = alpha * (h - self.h_st)
         else:
             Vh = self.v_max
-
 
         acc = (Vh - this_vel) / self.adaptation
 

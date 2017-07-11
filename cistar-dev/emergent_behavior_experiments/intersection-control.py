@@ -48,7 +48,6 @@ exp_type = 1
 if exp_type == 1:
     num_cars = 14
     num_auto = 1
-    # TODO: do we need to add collections to the docker?
     # type_params = \
     #     OrderedDict([("rl", (1, (RLController, {}), (StaticLaneChanger, {}), 0)),
     #                  ("idm", (13, (IDMController, {}), (StaticLaneChanger, {}), 0))])
