@@ -2,6 +2,7 @@ import numpy as np
 
 from cistar.core.scenario import Scenario
 from cistar.scenarios.intersections.gen import *
+import pdb
 
 
 class TwoWayIntersectionScenario(Scenario):
@@ -183,7 +184,8 @@ class TwoWayIntersectionScenario(Scenario):
             if left_lane:
                 startpositions.append(("left", x))
             else:
-                startpositions.append(("right", x))
+                startpositions.append(("bottom", x))
             x += np.random.normal(loc=shift)
+        pdb.set_trace()
         return startpositions
 
