@@ -83,6 +83,8 @@ class TwoWayIntersectionScenario(Scenario):
                     if "downscale" in self.initial_config:
                         downscale = self.initial_config["downscale"]
                     self.initial_config["positions"] = self.gen_random_start_pos(downscale, bunch_factor)
+                if self.initial_config["spacing"] == "edge_start":
+                    self.initial_config["positions"] = self.gen_random_end_pos()
             else:
                 self.initial_config["positions"] = self.gen_even_start_positions(bunch_factor)
 
@@ -165,3 +167,23 @@ class TwoWayIntersectionScenario(Scenario):
             x += np.random.normal(scale=mean / downscale, loc=mean)
 
         return startpositions
+
+    def gen_random_end_pos(self):
+        """
+        Generate random positions starting from the ends of the track.
+        Vehicles are spaced so that no car can arrive at the 
+        control portion of the track more often than...
+        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]    
+        """
+        startpositions = []
+        shift = 5
+        x = 1
+        for i in range(self.num_vehicles):
+            left_lane = np.random.randint(2, size=1)
+            if left_lane:
+                startpositions.append(("left", x))
+            else:
+                startpositions.append(("right", x))
+            x += np.random.normal(shift)
+        return startpositions
+
