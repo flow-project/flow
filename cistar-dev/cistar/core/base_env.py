@@ -333,10 +333,6 @@ class SumoEnvironment(Env, Serializable):
         if len(self.controlled_ids) > 0:
             for veh_id in self.controlled_ids:
                 # acceleration action
-                try:
-                    self.vehicles[veh_id]['leader']
-                except KeyError:
-                    pdb.set_trace()
                 action = self.vehicles[veh_id]['controller'].get_action(self)
                 accel.append(action)
 
@@ -377,7 +373,18 @@ class SumoEnvironment(Env, Serializable):
         for veh_id in self.ids:
             prev_pos = self.get_x_by_id(veh_id)
             prev_lane = self.vehicles[veh_id]["lane"]
-            self.vehicles[veh_id]["position"] = network_observations[veh_id][tc.VAR_LANEPOSITION]
+            try:
+                self.vehicles[veh_id]["position"] = network_observations[veh_id][tc.VAR_LANEPOSITION]
+            except KeyError:
+                del self.vehicles[veh_id]
+                self.ids.remove(veh_id)
+                if veh_id in self.rl_ids:
+                    self.rl_ids.remove(veh_id)
+                elif veh_id in self.controlled_ids:
+                    self.controlled_ids.remove(veh_id)
+                else:
+                    self.sumo_ids.remove(veh_id)
+                continue
             self.vehicles[veh_id]["edge"] = network_observations[veh_id][tc.VAR_ROAD_ID]
             self.vehicles[veh_id]["lane"] = network_observations[veh_id][tc.VAR_LANE_INDEX]
             if self.vehicles[veh_id]["lane"] != prev_lane and veh_id in self.rl_ids:
@@ -450,7 +457,6 @@ class SumoEnvironment(Env, Serializable):
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
         # create the list of colors used to visually distinguish between different types of vehicles
-        pdb.set_trace()
         self.timer = 0
         self.colors = {}
         key_index = 1
@@ -510,7 +516,6 @@ class SumoEnvironment(Env, Serializable):
 
             headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
             if headway is None:
-                pdb.set_trace()
                 self.vehicles[veh_id]["leader"] = ''
                 self.vehicles[veh_id]["follower"] = ''
                 self.vehicles[veh_id]["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
