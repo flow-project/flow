@@ -74,20 +74,7 @@ class TwoWayIntersectionScenario(Scenario):
              (":center_1", 1000 * (self.bottom_len + self.vertical_junction_len + self.top_len) + self.left_len)]
 
         if "positions" not in self.initial_config:
-            bunch_factor = 0
-            if "bunching" in self.initial_config:
-                bunch_factor = self.initial_config["bunching"]
-
-            if "spacing" in self.initial_config:
-                if self.initial_config["spacing"] == "gaussian":
-                    downscale = 5
-                    if "downscale" in self.initial_config:
-                        downscale = self.initial_config["downscale"]
-                    self.initial_config["positions"] = self.gen_random_start_pos(downscale, bunch_factor)
-                if self.initial_config["spacing"] == "edge_start":
-                    self.initial_config["positions"] = self.gen_random_end_pos()
-            else:
-                self.initial_config["positions"] = self.gen_even_start_positions(bunch_factor)
+            self.initial_config["positions"] = self.generate_starting_positions()
 
         if "shuffle" not in self.initial_config:
             self.initial_config["shuffle"] = False
@@ -128,6 +115,30 @@ class TwoWayIntersectionScenario(Scenario):
             if center_tuple[0] in edge:
                 edgestart = center_tuple[1]
                 return position + edgestart
+
+    def generate_starting_positions(self, x0=1):
+        """
+        Generates starting positions for vehicles in the network
+        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        """
+        startpositions = []
+
+        bunch_factor = 0
+        if "bunching" in self.initial_config:
+            bunch_factor = self.initial_config["bunching"]
+
+        if "spacing" in self.initial_config:
+            if self.initial_config["spacing"] == "gaussian":
+                downscale = 5
+                if "downscale" in self.initial_config:
+                    downscale = self.initial_config["downscale"]
+                startpositions = self.gen_random_start_pos(downscale, bunch_factor)
+            if self.initial_config["spacing"] == "edge_start":
+                startpositions = self.gen_random_end_pos()
+        else:
+            startpositions = self.gen_even_start_positions(bunch_factor)
+
+        return startpositions
 
     def gen_even_start_positions(self, bunching):
         """
@@ -188,6 +199,5 @@ class TwoWayIntersectionScenario(Scenario):
             else:
                 startpositions.append(("bottom", xb))
                 xb += np.random.normal(loc = shift)
-        pdb.set_trace()
         return startpositions
 
