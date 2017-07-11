@@ -66,9 +66,15 @@ for seed in [5]:
         env=env,
         policy=policy,
         baseline=baseline,
+<<<<<<< Updated upstream:cistar-dev/emergent_behavior_experiments/stabilizing-the-ring-with-perturbations.py
         batch_size=15000,
         max_path_length=1500,
         n_itr=1000,  # 1000
+=======
+        batch_size=30000,
+        max_path_length=2000,
+        n_itr=400,  # 1000
+>>>>>>> Stashed changes:cistar-dev/emergent_behavior_experiments/mixed-human-rl.py
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
