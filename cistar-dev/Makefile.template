@@ -2,7 +2,8 @@
 # 1. Replace the path for RLLABDIR
 # 2. Make a copy from Makefile.template to Makefile
 
-RLLABDIR = <PATH TO RLLAB FOR CISTAR DIR>
+
+	RLLABDIR = <PATH TO RLLAB FOR CISTAR DIR>
 
 prepare: 
 	rm -rf $(RLLABDIR)/debug
