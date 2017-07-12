@@ -43,7 +43,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         """
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
-
+        
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):

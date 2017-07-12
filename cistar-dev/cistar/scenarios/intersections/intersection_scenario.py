@@ -1,5 +1,5 @@
 import numpy as np
-
+import random
 from cistar.core.scenario import Scenario
 from cistar.scenarios.intersections.gen import *
 import pdb
@@ -134,7 +134,8 @@ class TwoWayIntersectionScenario(Scenario):
                     downscale = self.initial_config["downscale"]
                 startpositions = self.gen_random_start_pos(downscale, bunch_factor)
             if self.initial_config["spacing"] == "edge_start":
-                startpositions = self.gen_random_end_pos()
+                startpositions = self.gen_random_end_pos(self.initial_config["intensity"],
+                                                        self.initial_config["enter_speed"])
         else:
             startpositions = self.gen_even_start_positions(bunch_factor)
 
@@ -180,24 +181,24 @@ class TwoWayIntersectionScenario(Scenario):
 
         return startpositions
 
-    def gen_random_end_pos(self):
+    def gen_random_end_pos(self, rate, v_enter):
         """
         Generate random positions starting from the ends of the track.
         Vehicles are spaced so that no car can arrive at the 
         control portion of the track more often than...
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]    
         """
-        startpositions = []
-        shift = 15
-        xl = 1
-        xb = 1
-        for i in range(self.num_vehicles):
+        start_positions = []
+        x = 1
+        while len(start_positions) < self.num_vehicles:
             left_lane = np.random.randint(2, size=1)
-            if left_lane:
-                startpositions.append(("left", xl))
-                xl += np.random.normal(loc=shift)
-            else:
-                startpositions.append(("bottom", xb))
-                xb += np.random.normal(loc = shift)
-        return startpositions
+            d_inc = v_enter*random.expovariate(1.0/rate)
+            # FIX to get length of car that has been placed already
+            if d_inc > 5:
+                x += d_inc
+                if left_lane:
+                    start_positions.append(("left", x))
+                else:
+                    start_positions.append(("bottom", x))
+        return start_positions
 
