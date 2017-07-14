@@ -91,3 +91,5 @@ ENV/
 # Don't add xml
 .xml
 .DS_Store
+
+.idea/**
