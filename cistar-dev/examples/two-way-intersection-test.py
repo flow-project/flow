@@ -25,7 +25,8 @@ type_params = {"rl": (20, (RLController, {}), None, 0)}
 intensity = .2
 v_enter = 20
 
-env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 3, "control-length": 150}
+env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 3, 
+            "control-length": 150, "max_speed": v_enter}
 
 net_params = {"horizontal_length_in": 400, "horizontal_length_out": 10, "horizontal_lanes": 1,
               "vertical_length_in": 400, "vertical_length_out": 10, "vertical_lanes": 1,

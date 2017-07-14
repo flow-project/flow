@@ -25,6 +25,7 @@ class Generator(Serializable):
         self.base = base
         self.name = base
         self.netfn = ""
+        self.vehicle_ids = []
 
         ensure_dir("%s" % self.net_path)
         ensure_dir("%s" % self.cfg_path)

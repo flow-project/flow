@@ -142,6 +142,11 @@ class SumoEnvironment(Env, Serializable):
         else:
             self.rl_acc_std = 0
 
+        if "max_speed" in env_params:
+            self.max_speed = env_params["max_speed"]
+        else:
+            self.max_speed = 55.0
+
         # lane changing duration is always present in the environment,
         # but only used by sub-classes that apply lane changing
         if "lane_change_duration" in self.env_params:
@@ -236,7 +241,7 @@ class SumoEnvironment(Env, Serializable):
             vehicle["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
             vehicle["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             vehicle["length"] = self.traci_connection.vehicle.getLength(veh_id)
-            vehicle["max_speed"] = self.traci_connection.vehicle.getMaxSpeed(veh_id)
+            vehicle["max_speed"] = self.max_speed
 
             # specify acceleration controller
             controller_params = self.scenario.type_params[veh_type][1]
@@ -287,7 +292,7 @@ class SumoEnvironment(Env, Serializable):
             # self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
             # self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
             
-            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
+            headway = self.traci_connection.vehicle.getLeader(veh_id, 2000)
             if headway is None:
                 self.vehicles[veh_id]["leader"] = ''
                 self.vehicles[veh_id]["follower"] = ''
@@ -308,6 +313,8 @@ class SumoEnvironment(Env, Serializable):
         for veh_id in self.ids:
             self.traci_connection.vehicle.subscribe(veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
                                                              tc.VAR_ROAD_ID, tc.VAR_SPEED])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
 
     def step(self, rl_actions):
         """
@@ -368,7 +375,6 @@ class SumoEnvironment(Env, Serializable):
 
         # store new observations in the network after traci simulation step
         network_observations = self.traci_connection.vehicle.getSubscriptionResults()
-
         crash = False
         for veh_id in self.ids:
             prev_pos = self.get_x_by_id(veh_id)
@@ -402,14 +408,8 @@ class SumoEnvironment(Env, Serializable):
             if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
                 crash = True
 
-        # collect list of sorted vehicle ids
-        self.sorted_ids = self.sort_by_position()
-
-        # collect headway, leader id, and follower id data
-        # vehicles = self.get_headway_dict()
-
-        for veh_id in self.ids:
-            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
+            # Grab the headway
+            headway = network_observations[veh_id][tc.VAR_LEADER]
             if headway is None:
                 self.vehicles[veh_id]["leader"] = ''
                 self.vehicles[veh_id]["follower"] = ''
@@ -418,6 +418,9 @@ class SumoEnvironment(Env, Serializable):
                 self.vehicles[veh_id]["headway"] = headway[1]
                 self.vehicles[veh_id]["leader"] = headway[0]
                 self.vehicles[headway[0]]["follower"] = veh_id
+
+        # collect list of sorted vehicle ids
+        self.sorted_ids = self.sort_by_position()
 
         # collect information of the state of the network based on the environment class used
         if self.scenario.num_rl_vehicles > 0: 
@@ -479,7 +482,7 @@ class SumoEnvironment(Env, Serializable):
             initial_positions = self.scenario.generate_starting_positions(x0=x0)
 
             initial_state = dict()
-            for i, veh_id in enumerate(veh_ids):
+            for i, veh_id in enumerate(self.ids):
                 route_id = "route" + initial_positions[i][0]
 
                 # replace initial positions in initial state
@@ -523,7 +526,6 @@ class SumoEnvironment(Env, Serializable):
                 self.vehicles[veh_id]["headway"] = headway[1]
                 self.vehicles[veh_id]["leader"] = headway[0]
                 self.vehicles[headway[0]]["follower"] = veh_id
-
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
             # clear controller acceleration queue of traci-controlled vehicles
@@ -536,6 +538,8 @@ class SumoEnvironment(Env, Serializable):
                                                   departPos=str(lane_pos), departSpeed=str(speed))
             self.traci_connection.vehicle.setColor(veh_id, self.colors[self.vehicles[veh_id]['type']])
 
+            # set top speed
+            self.traci_connection.vehicle.setMaxSpeed(veh_id, self.max_speed)
             # reset speed mode
             self.set_speed_mode(veh_id)
 

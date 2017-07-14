@@ -9,6 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
+from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
 
 import plotly.offline as po
 import plotly.graph_objs as go
@@ -69,6 +70,8 @@ if __name__ == "__main__":
     elif args.scenario_type == 'loop':
         net_params["length"] = args.loop_length
         scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    elif args.scenario_type == 'intersection':
+        scenario = TwoWayIntersectionScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
     env._wrapped_env.scenario = scenario
 
     # Set sumo to make a video 

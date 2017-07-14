@@ -190,11 +190,15 @@ class TwoWayIntersectionScenario(Scenario):
         """
         start_positions = []
         x = 1
+        # Fix it so processes in both lanes are poisson with the right
+        # intensity, rather than half the intensity
         while len(start_positions) < self.num_vehicles:
             left_lane = np.random.randint(2, size=1)
             d_inc = v_enter*random.expovariate(1.0/rate)
             # FIX to get length of car that has been placed already
-            if d_inc > 5:
+            # This should be the car length, other values are to make problem
+            # easier
+            if d_inc > 10:
                 x += d_inc
                 if left_lane:
                     start_positions.append(("left", x))
