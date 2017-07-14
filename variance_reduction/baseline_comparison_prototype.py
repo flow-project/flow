@@ -147,7 +147,7 @@ obs = []
 done = True
 for _ in range(1000):
     if done:
-        observation = env.reset()
+        observation = env.reset
     observation, reward, done, info = env.step(env.action_space.sample())
     obs.append(observation)
 obs_mean = np.mean(np.vstack(obs), axis=0)
@@ -177,7 +177,7 @@ with tf.Session() as sess:
     rendering = False
     sess.run(init)
     # Obtain an initial observation of the environment
-    observation = env.reset()
+    observation = env.reset
 
     # Reset the gradient placeholder. We will collect gradients in
     # gradBuffer until we are ready to update our policy network.
@@ -328,6 +328,6 @@ with tf.Session() as sess:
 
                 reward_sum = 0
 
-            observation = env.reset()
+            observation = env.reset
 
 print(episode_number, 'Episodes completed.')

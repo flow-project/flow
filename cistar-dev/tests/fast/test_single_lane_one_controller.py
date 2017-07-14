@@ -13,7 +13,7 @@ class TestSingleLaneOneController(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.WARNING)
 
-        self.sumo_params = {"time_step": 0.01, "traci_control": 1}
+        self.sumo_params = {"time_step": 0.01, "human_sm": 1}
         self.sumo_binary = "sumo"
         self.type_params = {"cfm_slow": (
             5, (CFMController, {'v_des': 8}), None, 0)}

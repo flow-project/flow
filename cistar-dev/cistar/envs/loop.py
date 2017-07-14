@@ -4,15 +4,15 @@ from rllab.spaces import Box
 
 import traci
 
+from copy import deepcopy
 import numpy as np
 import pdb
-
 
 
 class LoopEnvironment(SumoEnvironment):
     """
     Half-implementation for the environment for loop scenarios. Contains non-static methods pertaining to a loop
-     environment (for example, headway calculation leading-car, etc.)
+    environment (for example, headway calculation, leading-car, etc.)
     """
 
     def get_x_by_id(self, id):
@@ -22,57 +22,24 @@ class LoopEnvironment(SumoEnvironment):
         :return:
         """
         if self.vehicles[id]["edge"] == '':
-            print("This vehicle teleported and its edge is now empty", id)
+            # print("This vehicle teleported and its edge is now empty", id)
             return 0.
-        # try:
-        #     if self.vehicles[id]["edge"] == '':
-        #         print("This vehicle teleported and its edge is now empty", id)
-        # except KeyError:
-        #     print('')
-        #     print('keyerror when fetching a vehicle\'s edge')
-        #     print('vehicle id:', id)
         return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])
 
-    def get_leading_car(self, car_id, lane = None):
+    def get_leading_car(self, veh_id, lane=None):
         """
         Returns the id of the car in-front of the specified car in the specified lane.
-        :param car_id: target car
+        :param veh_id: target car
         :param lane: target lane
         :return: id of leading car in target lane
         """
-        target_pos = self.get_x_by_id(car_id)
+        target_pos = self.get_x_by_id(veh_id)
 
-        front_dists = []
-        for i in self.ids:
-            if i != car_id:
-                c = self.vehicles[i]
-                if lane is None or c['lane'] == lane:
-                    dist_to = (self.get_x_by_id(i) - target_pos) % self.scenario.length
-                    front_dists.append((c["id"], dist_to))
-
-        if front_dists:
-            return min(front_dists, key=(lambda x:x[1]))[0]
-        else:
-            # print('')
-            # print('no lead cars, printing other cars and their lanes')
-            # for i in self.ids:
-            #     if i != car_id:
-            #         c = self.vehicles[i]
-                    # print('id:', i,'lane:', c['lane'])
-            return None
-
-    def get_trailing_car(self, car_id, lane = None):
-        """
-        Returns the id of the car behind the specified car in the specified lane.
-        :param car_id: target car
-        :param lane: target lane
-        :return: id of trailing car in target lane
-        """
-        target_pos = self.get_x_by_id(car_id)
+        headway = []
 
         backdists = []
         for i in self.ids:
-            if i != car_id:
+            if i != veh_id:
                 c = self.vehicles[i]
                 if lane is None or c['lane'] == lane:
                     distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
@@ -83,40 +50,56 @@ class LoopEnvironment(SumoEnvironment):
         else:
             return None
 
-    def get_headway(self, car_id, lane = None):
-        lead_id = self.get_leading_car(car_id, lane)
+    def get_trailing_car(self, veh_id, lane=None):
+        """
+        Returns the id of the car behind the specified car in the specified lane.
+        :param veh_id: target car
+        :param lane: target lane
+        :return: id of trailing car in target lane
+        """
+        target_pos = self.get_x_by_id(veh_id)
+
+        backdists = []
+        for i in self.ids:
+            if i != veh_id:
+                c = self.vehicles[i]
+                if lane is None or c['lane'] == lane:
+                    distto = (target_pos - self.get_x_by_id(i)) % self.scenario.length
+                    backdists.append((c["id"], distto))
+
+        if backdists:
+            return min(backdists, key=(lambda x:x[1]))[0]
+        else:
+            return None
+
+    def get_headway(self, veh_id, lane=None):
+        # by default, will look in the same lane
+        if lane is None:
+            lane = self.vehicles[veh_id]["lane"]
+
+        lead_id = self.get_leading_car(veh_id, lane)
         # if there's more than one car
         if lead_id:
             lead_pos = self.get_x_by_id(lead_id)
-            lead_vel = self.vehicles[lead_id]['speed']
             lead_length = self.vehicles[lead_id]['length']
-
-            this_pos = self.get_x_by_id(car_id)
-
-            # need to account for the position being reset around the length
-            if lead_pos > this_pos: 
-                dist = lead_pos - (this_pos + lead_length) 
-            else:
-                loop_length = self.scenario.net_params["length"]
-                dist = (lead_pos + loop_length) - (this_pos + lead_length) 
-
-            return np.abs(dist)
+            this_pos = self.get_x_by_id(veh_id)
+            return (lead_pos - lead_length - this_pos) % self.scenario.length
         # if there's only one car, return the loop length minus car length
         else: 
-            return self.scenario.net_params["length"] - self.vehicles[car_id]['length']
+            return self.scenario.net_params["length"] - self.vehicles[veh_id]['length']
 
-    def get_cars(self, car_id, dxBack, dxForward, lane = None, dx = None):
+    def get_cars(self, veh_id, dxBack, dxForward, lane = None, dx = None):
         #TODO: correctly implement this method, and add documentation
-        this_pos = self.get_x_by_id(car_id) # position of the car checking neighbors
+        this_pos = self.get_x_by_id(veh_id)  # position of the car checking neighbors
         front_limit = this_pos + dxForward
         rear_limit = this_pos - dxBack
 
-        if dx == None:
+        if dx is None:
             dx = .5 * (dxBack + dxForward)
 
         cars = []
         for i in self.ids:
-            if i != car_id:
+            if i != veh_id:
                 car = self.vehicles[i]
                 if lane is None or car['lane'] == lane:
                     # if a one-lane case or the correct lane
@@ -152,3 +135,51 @@ class LoopEnvironment(SumoEnvironment):
         ind = np.argmin(dist)
 
         return dist[ind], intersection[ind]
+
+    def sort_by_position(self):
+        """
+        sorts the vehicle ids of vehicles in the network by position
+        :return: a list of sorted vehicle ids
+        """
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        return np.array(self.ids)[sorted_indx]
+
+    def get_headway_dict(self):
+        """
+        Collects the headways, leaders, and followers of all vehicles at once
+        :return: vehicles {dict} -- headways, leader ids, and follower ids for each veh_id in the network
+        """
+        vehicles = dict()
+
+        for lane in range(self.scenario.lanes):
+            unique_lane_ids = [veh_id for veh_id in self.sorted_ids if self.vehicles[veh_id]["lane"] == lane]
+
+            if len(unique_lane_ids) == 1:
+                vehicle = dict()
+                veh_id = unique_lane_ids[0]
+                vehicle["leader"] = None
+                vehicle["follower"] = None
+                vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+                vehicles[veh_id] = vehicle
+
+            for i, veh_id in enumerate(unique_lane_ids):
+                vehicle = dict()
+
+                if i < len(unique_lane_ids) - 1:
+                    vehicle["leader"] = unique_lane_ids[i+1]
+                else:
+                    vehicle["leader"] = unique_lane_ids[0]
+
+                vehicle["headway"] = \
+                    (self.vehicles[vehicle["leader"]]["absolute_position"] -
+                     self.vehicles[vehicle["leader"]]["length"] -
+                     self.vehicles[veh_id]["absolute_position"]) % self.scenario.length
+
+                if i > 0:
+                    vehicle["follower"] = unique_lane_ids[i-1]
+                else:
+                    vehicle["follower"] = unique_lane_ids[-1]
+
+                vehicles[veh_id] = vehicle
+
+        return vehicles

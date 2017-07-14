@@ -8,11 +8,12 @@ import numpy as np
 # import tensorflow as tf
 from matplotlib import pyplot as plt
 from cistar.scenarios.loop.loop_scenario import LoopScenario
-
+from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 
 import plotly.offline as po
 import plotly.graph_objs as go
 import pdb
+import pickle
 
 if __name__ == "__main__":
 
@@ -29,6 +30,10 @@ if __name__ == "__main__":
                         help='Number by which to increase max_path_length')
     parser.add_argument('--loop_length', type=float, default=230,
                         help='Length of loop over which to simulate')
+    parser.add_argument('--radius_ring', type=float, default=30,
+                        help='Radius of the ring in the case of figure 8 scenarios')
+    parser.add_argument('--scenario_type', type=str, default='loop',
+                        help='type of scenario being implemented ("loop" or "figure8"')
 
     args = parser.parse_args()
 
@@ -56,10 +61,14 @@ if __name__ == "__main__":
     exp_tag = scenario.name
     type_params = scenario.type_params
     net_params = scenario.net_params
-    net_params["length"] = args.loop_length
     cfg_params = scenario.cfg_params
     initial_config = scenario.initial_config
-    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    if args.scenario_type == 'figure8':
+        net_params["radius_ring"] = args.radius_ring
+        scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    elif args.scenario_type == 'loop':
+        net_params["length"] = args.loop_length
+        scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
     env._wrapped_env.scenario = scenario
 
     # Set sumo to make a video 
@@ -75,11 +84,25 @@ if __name__ == "__main__":
     for j in range(args.num_rollouts):
         path = rollout(env, policy, max_path_length=max_path_length,
                    animated=False, speedup=1)
-        obs = path['observations'] # length of rollout x flattened observation
-        all_obs[j] = obs
-        all_rewards[j] = path["rewards"]
+        obs = path['observations']  # length of rollout x flattened observation
+        try:
+            all_obs[j] = obs
+            all_rewards[j] = path["rewards"]
+        except ValueError:
+            pass
         print("\n Done: {0} / {1}, {2}%".format(j+1, args.num_rollouts, (j+1) / args.num_rollouts))
-    
+
+    # export observations in a pickle file
+    output_filename = 'observations.pkl'
+    output = open(output_filename, 'wb')
+    pickle.dump(all_obs, output)
+    output.close()
+
+    # export observations in a pickle file
+    output_filename = 'rewards.pkl'
+    output = open(output_filename, 'wb')
+    pickle.dump(all_rewards, output)
+    output.close()
 
     # TODO: savefig doesn't like making new directories
     # Make a separate figure for each observation variable

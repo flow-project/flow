@@ -1,8 +1,10 @@
 import logging
+from collections import OrderedDict
 
 from rllab.core.serializable import Serializable
 
 from cistar.core.generator import Generator
+from cistar.controllers.rlcontroller import RLController
 
 # TODO(cathywu) Make this an abstract class
 
@@ -32,14 +34,11 @@ class Scenario(Serializable):
         Serializable.quick_init(self, locals())
 
         self.name = name
-        # x[1] gets the value (number of cars, car following model,
-        # lane changing model); x[1][0] gets the number of cars.
-        self.num_vehicles = sum([x[1][0] for x in type_params.items()])
         self.type_params = type_params
 
-        self.num_rl_vehicles = 0
-        if "rl" in type_params:
-            self.num_rl_vehicles = type_params["rl"][0]
+        # these numbers are not always static; better to get them from id list in the env class
+        self.num_vehicles = sum([x[1][0] for x in type_params.items()])
+        self.num_rl_vehicles = sum([x[1][0] for x in type_params.items() if x[1][1][0] == RLController])
 
         if not net_params:
             ValueError("No network params specified!")
@@ -77,16 +76,15 @@ class Scenario(Serializable):
         if "cfg_path" in self.cfg_params:
             cfg_path = self.cfg_params["cfg_path"]
 
-        generator = self.generator_class(net_path, cfg_path,
-                                         self.name)
-        generator.generate_net(self.net_params)
-        cfg_name = generator.generate_cfg(self.cfg_params)
+        self.generator = self.generator_class(net_path, cfg_path, self.name)
+        self.generator.generate_net(self.net_params)
+        cfg_name = self.generator.generate_cfg(self.cfg_params)
         # Note that self (the whole scenario instance) is passed on here,
         # so this is where self.type_params (for instance) is used.
-        generator.make_routes(self, self.initial_config, self.cfg_params)
-        return generator.cfg_path + cfg_name
+        self.generator.make_routes(self, self.initial_config, self.cfg_params)
+
+        return self.generator.cfg_path + cfg_name
 
     def __str__(self):
         # TODO(cathywu) return the parameters too.
-        return "Scenario " + self.name + " with " + str(
-            self.num_vehicles) + " vehicles."
+        return "Scenario " + self.name + " with " + str(self.num_vehicles) + " vehicles."

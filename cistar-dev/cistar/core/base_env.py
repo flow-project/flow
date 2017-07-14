@@ -1,29 +1,42 @@
 import logging
 import subprocess
 import sys
+from copy import deepcopy
+import random
 
 import numpy as np
 
 import traci
+from traci import constants as tc
 import sumolib
 from rllab.core.serializable import Serializable
 from rllab.envs.base import Env
 from rllab.envs.base import Step
 
+from cistar.controllers.base_controller import *
+from cistar.controllers.car_following_models import *
+from cistar.controllers.rlcontroller import RLController
 from cistar.core.util import ensure_dir
+
 import pdb
 import collections
+import time
+import pickle
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
 start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
 reset the simulation to an initial configuration.
-
 SumoEnv must be be Serializable to allow for pickling of the policy.
-
 This class cannot be used as is: you must extend it to implement an action applicator method, and
 properties to define the MDP if you choose to use it with RLLab.
-
+A reinforcement learning environment can be built using SumoEnvironment as a parent class by
+adding the following functions:
+ - action_space(self): specifies the action space of the rl vehicles
+ - observation_space(self): specifies the observation space of the rl vehicles
+ - apply_rl_action(self, rl_actions): Specifies the actions to be performed by rl_vehicles
+ - getState(self):
+ - compute_reward():
 """
 
 COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 255, 255, 0), (255, 0, 255, 0),
@@ -32,10 +45,9 @@ COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 
 
 class SumoEnvironment(Env, Serializable):
     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
-        """[summary]
+        """ Base environment for all Sumo-based operations
         
         [description]
-        
         Arguments:
             env_params {dictionary} -- [description]
             sumo_binary {string} -- Either "sumo" or "sumo-gui"
@@ -53,13 +65,15 @@ class SumoEnvironment(Env, Serializable):
         self.sumo_binary = sumo_binary
         self.scenario = scenario
         self.sumo_params = sumo_params
-        self.timer = 0  # Represents number of steps taken
-        self.vehicles = collections.OrderedDict()  # Vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
-        # Initial state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
+        # timer: Represents number of steps taken
+        self.timer = 0
+        # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
+        self.vehicles = collections.OrderedDict()
+        # initial_state: Key = Vehicle ID, Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
         self.initial_state = {}
         self.ids = []
-        self.controlled_ids, self.rl_ids = [], []
+        self.controlled_ids, self.sumo_ids, self.rl_ids = [], [], []
         self.state = None
         self.obs_var_labels = []
 
@@ -77,7 +91,19 @@ class SumoEnvironment(Env, Serializable):
         if "time_step" in sumo_params:
             self.time_step = sumo_params["time_step"]
         else:
-            self.time_step = 0.01  # 0.01 = default time step for our research
+            self.time_step = 0.1  # 0.1 = default time step for our research
+
+        # parameter used to determine if initial conditions of vehicles are shuffled at reset
+        if "vehicle_arrangement_shuffle" in sumo_params:
+            self.vehicle_arrangement_shuffle = sumo_params["vehicle_arrangement_shuffle"]
+        else:
+            self.vehicle_arrangement_shuffle = False
+
+        # parameter used to determine if starting position of vehicles should be updated between rollouts
+        if "starting_position_shuffle" in sumo_params:
+            self.starting_position_shuffle = sumo_params["starting_position_shuffle"]
+        else:
+            self.starting_position_shuffle = False
 
         if "emission_path" in sumo_params:
             data_folder = sumo_params['emission_path']
@@ -90,18 +116,43 @@ class SumoEnvironment(Env, Serializable):
         if 'fail-safe' in env_params:
             self.fail_safe = env_params['fail-safe']
         else:
-            self.fail_safe = 'instantaneous'
+            self.fail_safe = 'None'
 
-        if 'intersection_fail-safe' in env_params:
-            if env_params["intersection_fail-safe"] not in ["left-right", "top-bottom", "None"]:
-                raise ValueError('Intersection fail-safe must either be "left-right", "top-bottom", or "None"')
-            self.intersection_fail_safe = env_params["intersection_fail-safe"]
+        # observation (sensor) noise associated with velocity data
+        if "observation_vel_std" in env_params:
+            self.observation_vel_std = env_params["observation_vel_std"]
         else:
-            self.intersection_fail_safe = "None"
+            self.observation_vel_std = 0
+
+        # observation (sensor) noise associated with position data
+        if "observation_pos_std" in env_params:
+            self.observation_pos_std = env_params["observation_pos_std"]
+        else:
+            self.observation_pos_std = 0
+
+        # action (actuator) noise associated with human-driven vehicle acceleration
+        if "human_acc_std" in env_params:
+            self.human_acc_std = env_params["human_acc_std"]
+        else:
+            self.human_acc_std = 0
+
+        # action (actuator) noise associated with autonomous vehicle acceleration
+        if "rl_acc_std" in env_params:
+            self.rl_acc_std = env_params["rl_acc_std"]
+        else:
+            self.rl_acc_std = 0
+
+        # lane changing duration is always present in the environment,
+        # but only used by sub-classes that apply lane changing
+        if "lane_change_duration" in self.env_params:
+            self.lane_change_duration = self.env_params['lane_change_duration'] / self.time_step
+        else:
+            self.lane_change_duration = 5 / self.time_step
 
         self.start_sumo()
         self.setup_initial_state()
 
+    # TODO: never used...
     def restart_sumo(self, sumo_params, sumo_binary=None):
         self.traci_connection.close(False)
         if sumo_binary:
@@ -139,10 +190,11 @@ class SumoEnvironment(Env, Serializable):
             sumo_call.append(self.emission_out)
 
         subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
+        # self.proc = subprocess.Popen(sumo_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # sys.stderr
 
         logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
 
-        self.traci_connection = traci.connect(self.port)
+        self.traci_connection = traci.connect(self.port, numRetries=100)
 
         self.traci_connection.simulationStep()
 
@@ -156,44 +208,48 @@ class SumoEnvironment(Env, Serializable):
         TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
-
+        # collect ids and prepare id and vehicle lists
         self.ids = self.traci_connection.vehicle.getIDList()
         self.controlled_ids.clear()
+        self.sumo_ids.clear()
         self.rl_ids.clear()
         self.vehicles.clear()
-        for i in self.ids:
-            if self.traci_connection.vehicle.getTypeID(i) == "rl":
-                self.rl_ids.append(i)
-            else:
-                self.controlled_ids.append(i)
 
-        # create the list of colors
-        colors = {}
-        key_index = 0
+        # create the list of colors used to different between different types of
+        # vehicles visually on sumo's gui
+        self.colors = {}
+        key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for key in self.scenario.type_params.keys():
-            colors[key] = COLORS[(color_choice+key_index)%len(COLORS)]
+            self.colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
         for veh_id in self.ids:
+            # import initial state from traci and place in vehicle dict
             vehicle = dict()
             vehicle["id"] = veh_id
             veh_type = self.traci_connection.vehicle.getTypeID(veh_id)
             vehicle["type"] = veh_type
-            self.traci_connection.vehicle.setColor(veh_id, colors[veh_type])
+            self.traci_connection.vehicle.setColor(veh_id, self.colors[veh_type])
             vehicle["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
             vehicle["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
             vehicle["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
             vehicle["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             vehicle["length"] = self.traci_connection.vehicle.getLength(veh_id)
             vehicle["max_speed"] = self.traci_connection.vehicle.getMaxSpeed(veh_id)
-            vehicle["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
 
-            # implement flexibility in controller
+            # specify acceleration controller
             controller_params = self.scenario.type_params[veh_type][1]
             vehicle['controller'] = controller_params[0](veh_id=veh_id, **controller_params[1])
 
-            # initializes lane-changing controller
+            if controller_params[0] == SumoController:
+                self.sumo_ids.append(veh_id)
+            elif controller_params[0] == RLController:
+                self.rl_ids.append(veh_id)
+            else:
+                self.controlled_ids.append(veh_id)
+
+            # specify lane-changing controller
             lane_changer_params = self.scenario.type_params[veh_type][2]
             if lane_changer_params is not None:
                 vehicle['lane_changer'] = lane_changer_params[0](veh_id=veh_id, **lane_changer_params[1])
@@ -202,26 +258,46 @@ class SumoEnvironment(Env, Serializable):
 
             self.vehicles[veh_id] = vehicle
             self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
+            # the time step of the last lane change is always present in the environment,
+            # but only used by sub-classes that apply lane changing
+            self.vehicles[veh_id]['last_lc'] = -1 * self.lane_change_duration
 
-            self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
+            # set speed mode
+            self.set_speed_mode(veh_id)
 
-            # Set lane change modes
-            if self.scenario.net_params["lanes"] > 1:
-                if veh_id in self.rl_ids:
-                    if self.sumo_params["rl_lc"] == "aggressive":
-                        # Let TRACI make any lane changes it wants
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
-                    elif self.sumo_params["rl_lc"] == "no_collide":
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 256)
-                    else:
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+            # set lane change mode
+            self.set_lane_change_mode(veh_id)
 
             # Saving initial state
-            route_id = self.traci_connection.vehicle.getRouteID(veh_id)
+            # route_id = self.traci_connection.vehicle.getRouteID(veh_id)
+            route_id = "route" + vehicle["edge"]
             pos = self.traci_connection.vehicle.getPosition(veh_id)
 
             self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"],
                                           vehicle["position"], vehicle["speed"], pos)
+
+        # collect list of sorted vehicle ids
+        self.sorted_ids = self.sort_by_position()
+
+        # collect headway, leader id, and follower id data
+        vehicles = self.get_headway_dict()
+
+        for veh_id in self.ids:
+            self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
+            self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
+            self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+
+        # dictionary of initial observations used while resetting vehicles after each rollout
+        self.initial_observations = deepcopy(dict(self.vehicles))
+
+        # contains the last lc before the current step
+        self.prev_last_lc = dict()
+        for veh_id in self.ids:
+            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
+
+        for veh_id in self.ids:
+            self.traci_connection.vehicle.subscribe(veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                                                             tc.VAR_ROAD_ID, tc.VAR_SPEED])
 
     def step(self, rl_actions):
         """
@@ -241,31 +317,31 @@ class SumoEnvironment(Env, Serializable):
         info : a dictionary containing other diagnostic information from the previous action
         """
         self.timer += 1
-        if self.sumo_params["traci_control"]:
+
+        # perform acceleration and (optionally) lane change actions for cistar-controlled human-driven vehicles
+        accel = []
+        if len(self.controlled_ids) > 0:
             for veh_id in self.controlled_ids:
+                # acceleration action
                 action = self.vehicles[veh_id]['controller'].get_action(self)
+                accel.append(action)
 
-                # fail-safe to prevent longitudinal crashing
-                if self.fail_safe == 'instantaneous':
-                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
-                elif self.fail_safe == 'eugene':
-                    safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
-                else:
-                    safe_action = action
+                # lane changing action
+                if self.scenario.lanes > 1:
+                    if self.vehicles[veh_id]['lane_changer'] is not None:
+                        new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                        self.apply_lane_change([veh_id], target_lane=[new_lane])
 
-                # fail-safe to prevent crashing at intersections
-                if self.intersection_fail_safe != "None":
-                    safe_action = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_action)
+            self.apply_acceleration(self.controlled_ids, acc=accel)
 
-                if safe_action is None:
-                    print('safe action is None')
-                    pass
-                else:
-                    self.apply_action(veh_id, action=safe_action)
-                
-                if self.vehicles[veh_id]['lane_changer']:
-                    newlane = self.vehicles[veh_id]['lane_changer'].get_action(self)
-                    self.traci_connection.vehicle.changeLane(veh_id, newlane, 10000)
+        # perform (optionally) lane change actions for sumo-controlled human-driven vehicles
+        if len(self.sumo_ids) > 0:
+            for veh_id in self.sumo_ids:
+                # lane changing action
+                if self.scenario.lanes > 1:
+                    if self.vehicles[veh_id]['lane_changer'] is not None:
+                        new_lane = self.vehicles[veh_id]['lane_changer'].get_action(self)
+                        self.apply_lane_change([veh_id], target_lane=[new_lane])
 
         self.apply_rl_actions(rl_actions)
 
@@ -273,60 +349,72 @@ class SumoEnvironment(Env, Serializable):
 
         self.traci_connection.simulationStep()
 
-        speeds = []
+        # store new observations in the network after traci simulation step
+        network_observations = self.traci_connection.vehicle.getSubscriptionResults()
+
+        crash = False
         for veh_id in self.ids:
             prev_pos = self.get_x_by_id(veh_id)
-            self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
-            this_edge = self.traci_connection.vehicle.getRoadID(veh_id)
-            if this_edge is None:
-                print('Null edge for vehicle:', veh_id)
-            else:
-                self.vehicles[veh_id]["edge"] = this_edge
-            self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
-            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
-            veh_speed = self.traci_connection.vehicle.getSpeed(veh_id)
-            self.vehicles[veh_id]["speed"] = veh_speed
-            speeds.append(veh_speed)
-            self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
-            self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
+            prev_lane = self.vehicles[veh_id]["lane"]
+            self.vehicles[veh_id]["position"] = network_observations[veh_id][tc.VAR_LANEPOSITION]
+            self.vehicles[veh_id]["edge"] = network_observations[veh_id][tc.VAR_ROAD_ID]
+            self.vehicles[veh_id]["lane"] = network_observations[veh_id][tc.VAR_LANE_INDEX]
+            if self.vehicles[veh_id]["lane"] != prev_lane and veh_id in self.rl_ids:
+                self.vehicles[veh_id]["last_lc"] = self.timer
+            self.vehicles[veh_id]["speed"] = network_observations[veh_id][tc.VAR_SPEED]
+
             try:
-                self.vehicles[veh_id]["absolute_position"] += \
-                    (self.get_x_by_id(veh_id) - prev_pos) % self.scenario.length
-            except ValueError:
+                change = self.get_x_by_id(veh_id) - prev_pos
+                if change < 0:
+                    change += self.scenario.length
+                self.vehicles[veh_id]["absolute_position"] += change
+            except ValueError or TypeError:
                 self.vehicles[veh_id]["absolute_position"] = -1001
 
-            if (self.traci_connection.vehicle.getDistance(veh_id) < 0 or
-                        self.traci_connection.vehicle.getSpeed(veh_id) < 0):
-                print("Traci is returning error codes for some of your values", veh_id)
+            if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
+                crash = True
 
-        # if round(self.timer) == round(self.timer, 3):
-        #     mean_speed = np.mean(speeds)
-        #     print('time:', round(self.timer), 's; avg speed:', mean_speed, 'm/s; flow:', mean_speed * self.density * 3600, '(cars/km)')
-        #     print('')
+        # collect list of sorted vehicle ids
+        self.sorted_ids = self.sort_by_position()
 
-        # TODO: Can self._state be initialized, saved and updated so that we can exploit numpy speed
-        self.state = self.getState()
+        # collect headway, leader id, and follower id data
+        vehicles = self.get_headway_dict()
 
-        intersection_crash = self.check_intersection_crash()
-        reward = self.compute_reward(self.state, rl_actions, fail=intersection_crash)
+        for veh_id in self.ids:
+            self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
+            self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
+            self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
 
-        # TODO: Allow for partial observability
+        # collect information of the state of the network based on the environment class used
+        if self.scenario.num_rl_vehicles > 0: 
+            self.state = self.getState()
+        else:
+            self.state = []
+        # collect observation new state associated with action
         next_observation = np.copy(self.state)
 
-        if (self.traci_connection.simulation.getEndingTeleportNumber() != 0
+        # crash encodes whether sumo experienced a crash
+        crash = crash or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
-            or any(self.state.flatten() == -1001)
-            or intersection_crash):
+
+        # compute the reward
+        if self.scenario.num_rl_vehicles > 0:
+            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        else:
+            reward = 0
+
+
+        if crash:
             # Crash has occurred, end rollout
             if self.fail_safe == "None":
                 return Step(observation=next_observation, reward=reward, done=True)
             else:
                 print("Crash has occurred! Check failsafes!")
                 return Step(observation=next_observation, reward=reward, done=True)
-
         else:
             return Step(observation=next_observation, reward=reward, done=False)
 
+    # @property
     def reset(self):
         """
         Resets the state of the environment, returning an initial observation.
@@ -334,59 +422,86 @@ class SumoEnvironment(Env, Serializable):
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
         """
-           # create the list of colors
-        colors = {}
-        key_index = 0
+        # create the list of colors used to visually distinguish between different types of vehicles
+        self.timer = 0
+        self.colors = {}
+        key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for key in self.scenario.type_params.keys():
-            colors[key] = COLORS[(color_choice+key_index)%len(COLORS)]
+            self.colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
+        # perform shuffling (if requested)
+        if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
+            if self.starting_position_shuffle:
+                x0 = np.random.uniform(0, self.scenario.length)
+            else:
+                x0 = 1
+
+            veh_ids = deepcopy([x[1] for x in self.scenario.generator.vehicle_ids])
+            if self.vehicle_arrangement_shuffle:
+                random.shuffle(veh_ids)
+
+            initial_positions = self.scenario.generate_starting_positions(x0=x0)
+
+            initial_state = dict()
+            for i, veh_id in enumerate(veh_ids):
+                route_id = "route" + initial_positions[i][0]
+
+                # replace initial positions in initial state
+                list_initial_state = list(self.initial_state[veh_id])
+                list_initial_state[1] = route_id
+                list_initial_state[3] = initial_positions[i][1]
+                initial_state[veh_id] = tuple(list_initial_state)
+
+                # replace initial positions in initial observations
+                self.initial_observations[veh_id]["edge"] = initial_positions[i][0]
+                self.initial_observations[veh_id]["position"] = initial_positions[i][1]
+
+            self.initial_state = deepcopy(initial_state)
+
+        # re-initialize the perceived state
+        self.vehicles = deepcopy(self.initial_observations)
+
+        # re-initialize memory on last lc
+        self.prev_last_lc = dict()
         for veh_id in self.ids:
+            self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
+            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
+
+        # reset the list of sorted vehicle ids
+        self.sorted_ids = self.sort_by_position()
+
+        # collect headway, leader id, and follower id data
+        vehicles = self.get_headway_dict()
+
+        for veh_id in self.ids:
+            self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
+            self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
+            self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+
             type_id, route_id, lane_index, lane_pos, speed, pos = self.initial_state[veh_id]
 
-            # clears controller acceleration queue
-            if not self.vehicles[veh_id]['type'] == 'rl':
+            # clear controller acceleration queue of traci-controlled vehicles
+            if veh_id in self.controlled_ids:
                 self.vehicles[veh_id]['controller'].reset_delay(self)
 
+            # clear vehicles from traci connection and re-introduce vehicles with pre-defined initial position
             self.traci_connection.vehicle.remove(veh_id)
             self.traci_connection.vehicle.addFull(veh_id, route_id, typeID=str(type_id), departLane=str(lane_index),
-                                  departPos=str(lane_pos), departSpeed=str(speed))
-            self.traci_connection.vehicle.setColor(veh_id, colors[self.vehicles[veh_id]['type']])
+                                                  departPos=str(lane_pos), departSpeed=str(speed))
+            self.traci_connection.vehicle.setColor(veh_id, self.colors[self.vehicles[veh_id]['type']])
 
-            if self.scenario.net_params["lanes"] > 1:
-                if veh_id in self.rl_ids:
-                    if self.sumo_params["rl_lc"] == "aggressive":
-                        # Let TRACI make any lane changes it wants
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
-                    elif self.sumo_params["rl_lc"] == "no_collide":
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 256)
-                    else:
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
-                else:
-                    if self.sumo_params["human_lc"] == "strategic":
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 853)
-                    else:
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 768)
+            # reset speed mode
+            self.set_speed_mode(veh_id)
+
+            # reset lane change mode
+            self.set_lane_change_mode(veh_id)
 
         self.traci_connection.simulationStep()
 
-        # TODO: Replace these traci calls with initial_state accesses
-        for veh_id in self.ids:
-            self.traci_connection.vehicle.setSpeedMode(veh_id, 0)
-            if veh_id in self.rl_ids:
-                self.traci_connection.vehicle.setLaneChangeMode(veh_id, 0)
-            self.vehicles[veh_id]["type"] = self.traci_connection.vehicle.getTypeID(veh_id)
-            self.vehicles[veh_id]["edge"] = self.traci_connection.vehicle.getRoadID(veh_id)
-            self.vehicles[veh_id]["position"] = self.traci_connection.vehicle.getLanePosition(veh_id)
-            self.vehicles[veh_id]["lane"] = self.traci_connection.vehicle.getLaneIndex(veh_id)
-            self.vehicles[veh_id]["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
-            self.vehicles[veh_id]["fuel"] = self.traci_connection.vehicle.getFuelConsumption(veh_id)
-            self.vehicles[veh_id]["distance"] = self.traci_connection.vehicle.getDistance(veh_id)
-            self.vehicles[veh_id]["absolute_position"] = self.get_x_by_id(veh_id)
-
-
         self.state = self.getState()
+
         observation = np.copy(self.state)
 
         return observation
@@ -395,51 +510,176 @@ class SumoEnvironment(Env, Serializable):
         pass
 
     def apply_rl_actions(self, rl_actions):
-        for index, veh_id in enumerate(self.rl_ids):
-            action = rl_actions[index]
+        """
+        Specifies the actions to be performed by rl_vehicles
+        """
+        pass
 
-            # fail-safe to prevent longitudinal crashing
+    def apply_acceleration(self, veh_ids, acc):
+        """
+        Given an acceleration, set instantaneous velocity given that acceleration.
+        Prevents vehicles from moves backwards (issuing negative velocities).
+        :param veh_ids: vehicles to apply the acceleration to
+        :param acc: requested accelerations from the vehicles
+        :return acc_deviation: difference between the requested acceleration that keeps the velocity positive
+        """
+        rl_i = 0
+        human_i = 0
+        for i, veh_id in enumerate(veh_ids):
+            # add actuator noise to accelerations
+            if veh_id in self.rl_ids:
+                acc[i] += np.random.normal(0, self.rl_acc_std)
+                rl_i += 1
+            elif veh_id in self.controlled_ids:
+                acc[i] += np.random.normal(0, self.human_acc_std)
+                human_i += 1
+
+            # fail-safe to prevent longitudinal (bumper-to-bumper) crashing
             if self.fail_safe == 'instantaneous':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, action)
+                safe_acc = self.vehicles[veh_id]['controller'].get_safe_action_instantaneous(self, acc[i])
             elif self.fail_safe == 'eugene':
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_action(self, action)
+                safe_acc = self.vehicles[veh_id]['controller'].get_safe_action(self, acc[i])
             else:
-                safe_action = action
+                safe_acc = acc[i]
 
-            # fail-safe to prevent crashing at intersections
-            if self.intersection_fail_safe != "None":
-                safe_action = self.vehicles[veh_id]['controller'].get_safe_intersection_action(self, safe_action)
+            acc[i] = safe_acc
 
-            self.apply_action(veh_id, action=safe_action)
+        # issue traci command for requested acceleration
+        thisVel = np.array([self.vehicles[vid]['speed'] for vid in veh_ids])
+        requested_nextVel = thisVel + np.array(acc) * self.time_step
+        actual_nextVel = requested_nextVel.clip(min=0)
 
-    def apply_action(self, veh_id, action):
+        for i, vid in enumerate(veh_ids):
+            self.traci_connection.vehicle.slowDown(vid, actual_nextVel[i], 1)
+
+    def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """
-        :param veh_id: {string}
-        :param action: as specified by a controller or rllab, usually a scalar value
+        Applies an instantaneous lane-change to a set of vehicles, while preventing vehicles from
+        moving to lanes that do not exist.
+        Takes as input either a set of directions or a target_lanes. If both are provided, a
+        ValueError is raised.
+        :param veh_ids: vehicles to apply the lane change to
+        :param direction: array on integers in {-1,1}; -1 to the right, 1 to the left
+        :param target_lane: array of indices of lane to enter
+        :return: penalty value: 0 for successful lane change, -1 for impossible lane change
         """
-        raise NotImplementedError
+        if direction is not None and target_lane is not None:
+            raise ValueError("Cannot provide both a direction and target_lane.")
+        elif direction is None and target_lane is None:
+            raise ValueError("A direction or target_lane must be specified.")
 
-    def check_intersection_crash(self):
+        for veh_id in veh_ids:
+            self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
+
+        if self.scenario.lanes == 1:
+            print("Uh oh, single lane track.")
+            return -1
+
+        current_lane = np.array([self.vehicles[vid]['lane'] for vid in veh_ids])
+
+        if target_lane is None:
+            target_lane = current_lane + direction
+
+        safe_target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
+
+        for i, vid in enumerate(veh_ids):
+            if vid in self.rl_ids:
+                if safe_target_lane[i] == target_lane[i] and target_lane[i] != current_lane[i]:
+                        self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
+            else:
+                self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
+
+    def set_speed_mode(self, veh_id):
+        # TODO: document
         """
-        Checks if two vehicles are moving through an intersection from perpendicular ends
+        :param veh_id:
+        :return:
+        """
+        speed_mode = 1
+
+        if "rl_sm" in self.sumo_params:
+            if veh_id in self.rl_ids:
+                if self.sumo_params["rl_sm"] == "aggressive":
+                    speed_mode = 0
+                elif self.sumo_params["rl_sm"] == "no_collide":
+                    speed_mode = 1
+
+        if "human_sm" in self.sumo_params:
+            if veh_id not in self.rl_ids:
+                if self.sumo_params["human_sm"] == "aggressive":
+                    speed_mode = 0
+                elif self.sumo_params["human_sm"] == "no_collide":
+                    speed_mode = 1
+
+        self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
+
+    def set_lane_change_mode(self, veh_id):
+        """
+        Specifies the SUMO-defined lane-changing mode used to constrain lane-changing actions
+
+        The available lane-changing modes are as follows:
+         - default: Human and RL cars can only safely change into lanes
+         - "strategic": Human cars make lane changes in accordance with SUMO to provide speed boosts
+         - "no_lat_collide": RL cars can lane change into any space, no matter how likely it is to crash
+         - "aggressive": RL cars can crash longitudinally
+        """
+        lc_mode = 768
+
+        if "rl_lc" in self.sumo_params:
+            if veh_id in self.rl_ids:
+                if self.sumo_params["rl_lc"] == "aggressive":
+                    # Let TRACI make any lane changes it wants
+                    lc_mode = 0
+                elif self.sumo_params["rl_lc"] == "no_lat_collide":
+                    lc_mode = 256
+
+        if "human_lc" in self.sumo_params:
+            if veh_id not in self.rl_ids:
+                if self.sumo_params["human_lc"] == "strategic":
+                    lc_mode = 853
+                else:
+                    lc_mode = 768
+
+        self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
+
+    def check_longitudinal_crash(self):
+        """
+        Checks if the collision was the result of a forward movement (i.e. bumper-to-bumper crash)
         :return: boolean value (True if crash occurred, False else)
         """
-        if len(self.intersection_edges) == 0:
-            return False
-        else:
-            return any([self.intersection_edges[0] in self.vehicles[veh_id]["edge"] for veh_id in self.ids]) \
-                   and any([self.intersection_edges[1] in self.vehicles[veh_id]["edge"] for veh_id in self.ids])
+        # TODO: figure out how to implement
+        pass
+
+    def check_lane_change_crash(self):
+        """
+        Checks if the collision was the result of a lane change
+        :return: boolean value (True if crash occurred, False else)
+        """
+        # TODO: figure out how to implement
+        pass
 
     def get_x_by_id(self, veh_id):
         """
-        Determines the position of a vehicle relative to a certain reference (origin)
+        Returns the position of a vehicle relative to a certain reference (origin)
+        """
+        raise NotImplementedError
+
+    def sort_by_position(self):
+        """
+        sorts the vehicle ids of vehicles in the network by position
+        :return: a list of sorted vehicle ids
+        """
+        raise NotImplementedError
+
+    def get_headway_dict(self):
+        """
+        Returns the headway between the current vehicle and the one in front of it
         """
         raise NotImplementedError
 
     def getState(self):
         """
-        returns the state of the simulation, dependent on the experiment/environment
-        :return:
+        Returns the state of the simulation, dependent on the experiment/environment
         """
         raise NotImplementedError
 
@@ -457,21 +697,25 @@ class SumoEnvironment(Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, actions, **kwargs):
+    def compute_reward(self, state, rl_actions, **kwargs):
         """Reward function for RL.
         
         Arguments:
             state {Array-type} -- State of all the vehicles in the simulation
+            rl_actions {Array-type} -- array of actions performed by rl vehicles
             fail {bool-type} -- represents any crash or fail not explicitly present in the state
         """
         raise NotImplementedError
 
     def render(self):
-        """Description of the state for when verbose mode is on."""
+        """
+        Description of the state for when verbose mode is on.
+        """
         raise NotImplementedError
 
     def terminate(self):
-        """Closes the TraCI I/O connection. Should be done at end of every experiment.
+        """
+        Closes the TraCI I/O connection. Should be done at end of every experiment.
         Must be in Environment because the environment opens the TraCI connection.
         """
         self.traci_connection.close()

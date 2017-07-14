@@ -11,13 +11,13 @@ AWS_REGION_NAME = "us-west-1"
 if USE_GPU:
     DOCKER_IMAGE = "dementrock/rllab3-shared-gpu"
 else:
-    DOCKER_IMAGE = "lahaela/rllab-sumo" # "dementrock/rllab3-shared"
+    DOCKER_IMAGE = "evinitsky/cistar-rllab" # "dementrock/rllab3-shared"
 
 DOCKER_LOG_DIR = "/tmp/expt"
 
-AWS_S3_PATH = "s3://leah.traffic/rllab/experiments"
+AWS_S3_PATH = "s3://aboudy.traffic/rllab/experiments"
 
-AWS_CODE_SYNC_S3_PATH = "s3://leah.traffic/rllab/code"
+AWS_CODE_SYNC_S3_PATH = "s3://aboudy.traffic/rllab/code"
 
 ALL_REGION_AWS_IMAGE_IDS = {
     "us-west-1": "ami-ad81c8cd",
@@ -43,7 +43,7 @@ AWS_KEY_NAME = ALL_REGION_AWS_KEY_NAMES[AWS_REGION_NAME]
 
 AWS_SPOT = True
 
-AWS_SPOT_PRICE = '1.0'
+AWS_SPOT_PRICE = '0.5	'
 
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY", None)
 
@@ -92,4 +92,5 @@ FAST_CODE_SYNC_IGNORES = [
 ]
 
 FAST_CODE_SYNC = True
+
 
