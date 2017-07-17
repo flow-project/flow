@@ -33,6 +33,13 @@ class LoopScenario(Scenario):
             raise ValueError("resolution of circle not supplied")
         self.resolution = self.net_params["resolution"]
 
+        # number of lanes vehicles should be distributed in at the start of a rollout
+        # must be less than or equal to the number of lanes in the network
+        if "lanes_distribution" not in self.net_params:
+            self.lanes_distribution = 1
+        else:
+            self.lanes_distribution = min(self.net_params["lanes_distribution"], self.lanes)
+
         edgelen = self.length / 4
         self.edgestarts = [("bottom", 0), ("right", edgelen),
                            ("top", 2 * edgelen), ("left", 3 * edgelen)]
@@ -40,7 +47,7 @@ class LoopScenario(Scenario):
 
         # generate starting position for vehicles in the network
         if "positions" not in self.initial_config:
-            self.initial_config["positions"] = self.generate_starting_positions()
+            self.initial_config["positions"], self.initial_config["lanes"] = self.generate_starting_positions()
 
         if "shuffle" not in self.initial_config:
             self.initial_config["shuffle"] = False
@@ -103,17 +110,29 @@ class LoopScenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
-        # FIXME(cathywu) Remove this arbitrary "- 10"?
-        increment = (self.length - bunching) / self.num_vehicles
+        startlanes = []
+        increment = (self.length - bunching) * self.lanes_distribution / self.num_vehicles
 
-        x = x0
-        for i in range(self.num_vehicles):
-            # pos is a tuple (route, departPos)
-            pos = self.get_edge(x)
+        x = [x0] * self.lanes_distribution
+        car_count = 0
+        lane_count = 0
+        while car_count < self.num_vehicles:
+            # collect the position and lane number of each new vehicle
+            print(lane_count)
+            pos = self.get_edge(x[lane_count])
             startpositions.append(pos)
-            x = (x + increment) % self.length
+            startlanes.append(lane_count)
 
-        return startpositions
+            x[lane_count] = (x[lane_count] + increment) % self.length
+
+            # increment the car_count and lane_num
+            car_count += 1
+            lane_count += 1
+            # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
+            if lane_count >= self.lanes_distribution:
+                lane_count = 0
+
+        return startpositions, startlanes
 
     def gen_random_start_pos(self, downscale=5, bunching=0, x0=1):
         """
@@ -124,13 +143,25 @@ class LoopScenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
-        mean = (self.length - bunching) / self.num_vehicles
+        startlanes = []
+        mean = (self.length - bunching) * self.lanes_distribution / self.num_vehicles
 
-        # FIXME(cathywu) Why is x=1 the start, instead of x=0?
-        x = x0
-        for i in range(self.num_vehicles):
-            pos = self.get_edge(x)
+        x = [x0] * self.lanes_distribution
+        car_count = 0
+        lane_count = 0
+        while car_count < self.num_vehicles:
+            # collect the position and lane number of each new vehicle
+            pos = self.get_edge(x[lane_count])
             startpositions.append(pos)
-            x = (x + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
+            startlanes.append(lane_count)
 
-        return startpositions
+            x[lane_count] = (x[lane_count] + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
+
+            # increment the car_count and lane_num
+            car_count += 1
+            lane_count += 1
+            # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
+            if lane_count >= self.lanes_distribution:
+                lane_count = 0
+
+        return startpositions, startlanes
