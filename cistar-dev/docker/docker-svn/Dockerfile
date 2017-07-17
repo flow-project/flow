@@ -50,12 +50,13 @@ RUN apt-get update && apt-get -y install -qq \
 # Download SUMO nightly build
 RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo
 RUN mv $SUMO_SRC $SUMO_HOME
+RUN cd $SUMO_HOME && svn update
 
 # Apply patch file
-#RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
+# RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
 
 # Install SUMO
-RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make && make install
+RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make -j8 && make install
 
 # RUN echo "export PYTHONPATH=\"/opt/sumo/sumo-$SUMO_VERSION/tools\"" >> /root/.bashrc
 ENV PYTHONPATH $SUMO_HOME/tools:$PYTHONPATH
@@ -95,8 +96,9 @@ RUN apt-get install -y vim ack-grep
 
 # ========== OpenAI Gym ==========
 RUN pip install gym
-RUN apt-get -y install ffmpeg
-RUN apt-get -y install libav-tools
+# RUN apt-get -y install ffmpeg
+# RUN apt-get -y install libav-tools
+RUN apt-get install -y python-numpy python-dev cmake zlib1g-dev libjpeg-dev xvfb libav-tools xorg-dev python-opengl libboost-all-dev libsdl2-dev swig
 
 # Dependencies of OpenCV
 RUN apt-get -y install libgtk2.0-0
