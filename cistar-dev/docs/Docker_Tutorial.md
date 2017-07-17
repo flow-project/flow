@@ -3,9 +3,6 @@
 
 - Note: all the hard work is in making a good Dockerfile. You should be able to go into Dockerfile and just update version numbers from now forward. There are comments (denoted by `#` ) for the sections that involve SUMO, including the patch that happens before building. Don’t touch anything outside the SUMO section. Also, if you’re feeling ambitious, check what the rllab latest Dockerfile is and merge in any changes they’ve made.
   - TODO: Update link to sumo patch, must be correct before attempting build. I recommend using AWS S3. 
-  - Instructions for creating sumo patch in the event departure time bug is not yet fixed in SUMO:
-    - fj
-    - fj
 - Familiarize yourself with the docker tutorial at: https://docs.docker.com/get-started/
 - Optional: ssh into lab machine
 - Optional: install Docker on lab machine account
