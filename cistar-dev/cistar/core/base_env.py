@@ -12,6 +12,9 @@ import sumolib
 from rllab.core.serializable import Serializable
 from rllab.envs.base import Env
 from rllab.envs.base import Step
+import gym
+from gym import error, spaces, utils
+from gym.utils import seeding
 
 from cistar.controllers.base_controller import *
 from cistar.controllers.car_following_models import *
@@ -43,7 +46,7 @@ COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 
           (255, 255, 255, 0)]
 
 
-class SumoEnvironment(Env, Serializable):
+class SumoEnvironment(gym.Env, Serializable):
     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
         """ Base environment for all Sumo-based operations
         
@@ -316,7 +319,7 @@ class SumoEnvironment(Env, Serializable):
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
 
-    def step(self, rl_actions):
+    def _step(self, rl_actions):
         """
         Run one timestep of the environment's dynamics. "Self-driving cars" will
         step forward based on rl_actions, provided by the RL algorithm. Other cars
@@ -452,7 +455,7 @@ class SumoEnvironment(Env, Serializable):
             return Step(observation=next_observation, reward=reward, done=False)
 
     # @property
-    def reset(self):
+    def _reset(self):
         """
         Resets the state of the environment, returning an initial observation.
         Outputs

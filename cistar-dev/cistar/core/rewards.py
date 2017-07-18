@@ -3,6 +3,7 @@ This script contains of series of reward functions that can be used to train aut
 """
 
 import numpy as np
+import pdb
 
 
 def desired_velocity(state=None, actions=None, **kwargs):
@@ -30,6 +31,29 @@ def desired_velocity(state=None, actions=None, **kwargs):
 
     cost = vel - kwargs["target_velocity"]
     cost = np.linalg.norm(cost)
+
+    return max(max_cost - cost, 0)
+
+def min_delay(state=None, actions=None, **kwargs):
+    """
+    A reward function used to encourage minimization of total delay in the 
+    system. Distance travelled is used as a scaled value of delay. 
+    
+    This function measures the deviation of a system of vehicles
+    from all the vehicles smoothly travelling at a fixed speed to their destinations.
+
+    Note: state[0] MUST BE VELOCITY
+    """
+
+    vel = state[0]
+
+    if any(vel < -100) or kwargs["fail"]:
+        return 0.
+    v_top = kwargs["target_velocity"]
+    time_step = kwargs["time_step"]
+
+    max_cost = time_step*sum(vel.shape)
+    cost = time_step*sum((v_top - vel)/v_top)
 
     return max(max_cost - cost, 0)
 
