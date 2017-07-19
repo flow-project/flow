@@ -1,0 +1,16 @@
+## Fail-safes
+- All car controllers come equipped with a fail-safe rule wherein cars are not allowed to move at a speed that would cause them to crash if the car in front of them suddenly started breaking with max acceleration. If they attempt to do so, they will be reset to move at $v_{safe}$ where $v_{safe}$ is the speed such that the cars will come to rest at the same point.
+- $v_{safe}$ is calculated like so:
+	- Consider a car with speed $v_{i}$ at position $x_i$ following another car at position $x_{i+1}$ and velocity $v_{i+1}$. 
+	- **Because of the discretization, the front cars speed that you need to be concerned about is actually its speed one time-step later. So, rather than assume the front car has velocity $v_{i+1}$ assume it could have speed $v_{i+1} - max_{deaccel}*timestep$**
+	- The following car has a delay $\tau$ where $\tau \geq 0$ 
+	- At $t = 0$, the front car starts braking with max acceleration $a$. It will come to rest at $q_1 = \frac{v_{i+1}}{a}$. 
+	- Because of the delay, car i will only start braking at $\tau$. 
+	- Consequently, it will come to rest at $q_2 = \tau + \frac{V_i}{a}$
+	- We want that $x_i(q_2) = x_{i+1}(q_2)$
+	- Doing some kinematics: $x_i(q_2) = x_i(0) + v_{safe}*\left(\tau + \frac{v_{safe}}{a}\right) - \frac{1}{2}\left(\frac{v_{safe}^2}{a} \right)$
+	- $x_{i+1}(q_2) = x_{i+1}(0) + \frac{v_{i+1}^2(0)}{a} - \frac{1}{2}\frac{v_{i+1}^2(0)}{a} = x_{i+1}(0) + \frac{v_{i+1}^2(0)}{2a}$
+	- We set the two to be equal and solve for $v_{safe}$. To simplify the notation a bit, we set $x_i(0) - x_{i+1}(0) - \frac{v_{i+1}^2(0)}{2a} = d$
+	- This yields $0 = d + v_{safe}*\left(\tau + \frac{v_{safe}}{a}\right) - \frac{1}{2}\left(\frac{v_{safe}^2}{a} \right).$
+	- This has relevant solution $v_{safe} = -a \tau + \sqrt{a}\sqrt{-2d + a\tau^2}$
+- *Additional note: Even for RL cars, which can shift to arbitrary velocities, you can never let them jump velocities by an acceleration larger than max_accel or max_deaccel. If you don't, you can't guarantee safety.*
