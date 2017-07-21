@@ -118,7 +118,6 @@ class LoopScenario(Scenario):
         lane_count = 0
         while car_count < self.num_vehicles:
             # collect the position and lane number of each new vehicle
-            print(lane_count)
             pos = self.get_edge(x[lane_count])
             startpositions.append(pos)
             startlanes.append(lane_count)

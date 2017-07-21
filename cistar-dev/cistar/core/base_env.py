@@ -208,6 +208,10 @@ class SumoEnvironment(Env, Serializable):
         TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
+        # self.pos = dict()
+        # self.vel = dict()
+        # self.lanes = dict()
+
         # collect ids and prepare id and vehicle lists
         self.ids = self.traci_connection.vehicle.getIDList()
         self.controlled_ids.clear()
@@ -275,6 +279,10 @@ class SumoEnvironment(Env, Serializable):
 
             self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"],
                                           vehicle["position"], vehicle["speed"], pos)
+
+            # self.pos[veh_id] = [self.vehicles[veh_id]["absolute_position"]]
+            # self.vel[veh_id] = [self.vehicles[veh_id]["speed"]]
+            # self.lanes[veh_id] = [self.vehicles[veh_id]["lane"]]
 
         # collect list of sorted vehicle ids
         self.sorted_ids = self.sort_by_position()
@@ -356,7 +364,18 @@ class SumoEnvironment(Env, Serializable):
         for veh_id in self.ids:
             prev_pos = self.get_x_by_id(veh_id)
             prev_lane = self.vehicles[veh_id]["lane"]
-            self.vehicles[veh_id]["position"] = network_observations[veh_id][tc.VAR_LANEPOSITION]
+            try:
+                self.vehicles[veh_id]["position"] = network_observations[veh_id][tc.VAR_LANEPOSITION]
+            except KeyError:
+                del self.vehicles[veh_id]
+                self.ids.remove(veh_id)
+                if veh_id in self.rl_ids:
+                    self.rl_ids.remove(veh_id)
+                elif veh_id in self.controlled_ids:
+                    self.controlled_ids.remove(veh_id)
+                else:
+                    self.sumo_ids.remove(veh_id)
+                continue
             self.vehicles[veh_id]["edge"] = network_observations[veh_id][tc.VAR_ROAD_ID]
             self.vehicles[veh_id]["lane"] = network_observations[veh_id][tc.VAR_LANE_INDEX]
             if self.vehicles[veh_id]["lane"] != prev_lane and veh_id in self.rl_ids:
@@ -374,6 +393,10 @@ class SumoEnvironment(Env, Serializable):
             if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
                 crash = True
 
+            # self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
+            # self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
+            # self.lanes[veh_id].append(self.vehicles[veh_id]["lane"])
+
         # collect list of sorted vehicle ids
         self.sorted_ids = self.sort_by_position()
 
@@ -381,9 +404,12 @@ class SumoEnvironment(Env, Serializable):
         vehicles = self.get_headway_dict()
 
         for veh_id in self.ids:
-            self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
-            self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
-            self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+            try:
+                self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
+                self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
+                self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
+            except KeyError:
+                continue
 
         # collect information of the state of the network based on the environment class used
         if self.scenario.num_rl_vehicles > 0: 
@@ -403,6 +429,11 @@ class SumoEnvironment(Env, Serializable):
         else:
             reward = 0
 
+        # if self.timer == 1500:
+        #     output = {"pos": self.pos, "vel": self.vel, "lane": self.lanes}
+        #
+        #     with open("/home/aboudy/Documents/output.pkl", "wb") as handle:
+        #         pickle.dump(output, handle)
 
         if crash:
             # Crash has occurred, end rollout
@@ -442,15 +473,16 @@ class SumoEnvironment(Env, Serializable):
             if self.vehicle_arrangement_shuffle:
                 random.shuffle(veh_ids)
 
-            initial_positions = self.scenario.generate_starting_positions(x0=x0)
+            initial_positions, initial_lanes = self.scenario.generate_starting_positions(x0=x0)
 
             initial_state = dict()
             for i, veh_id in enumerate(veh_ids):
                 route_id = "route" + initial_positions[i][0]
 
-                # replace initial positions in initial state
+                # replace initial routes, lanes, and positions to reflect new values
                 list_initial_state = list(self.initial_state[veh_id])
                 list_initial_state[1] = route_id
+                list_initial_state[2] = initial_lanes[i]
                 list_initial_state[3] = initial_positions[i][1]
                 initial_state[veh_id] = tuple(list_initial_state)
 
@@ -719,6 +751,11 @@ class SumoEnvironment(Env, Serializable):
         Must be in Environment because the environment opens the TraCI connection.
         """
         self.traci_connection.close()
+
+        # output = {"pos": self.pos, "vel": self.vel}
+        #
+        # with open("/home/aboudy/Documents/output.pkl", "wb") as handle:
+        #     pickle.dump(output, handle)
 
     def close(self):
         self.terminate()

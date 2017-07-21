@@ -45,17 +45,32 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         An observation consists of the velocity, lane index, and absolute position of each vehicle
         in the fleet
         """
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        # speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        # lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        # absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        # return Product([speed, lane, absolute_pos])
+
+        # for moving bottleneck
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.lanes+1,))
+        lane = Box(low=0, high=self.scenario.lanes - 1, shape=(self.scenario.lanes+1,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.lanes+1,))
         return Product([speed, lane, absolute_pos])
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        return rewards.desired_velocity(
-            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
+        target_velocity = self.env_params["target_velocity"]
+
+        # compute the system-level performance of vehicles from a velocity perspective
+        reward = rewards.desired_velocity(state, rl_actions, fail=kwargs["fail"], target_velocity=target_velocity)
+
+        # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
+        for veh_id in self.rl_ids:
+            if self.vehicles[veh_id]["last_lc"] == self.timer:
+                reward -= 1
+
+        return reward
 
     def getState(self):
         """
@@ -63,9 +78,39 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
-                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T
+        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
+        #                   self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T
+
+        # for moving bottleneck: use only local trailing data for the moving bottleneck experiment
+        vehID = self.rl_ids[0]
+
+        trail_lane0 = self.get_trailing_car(vehID, lane=0)
+        headway_lane0 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane0]["absolute_position"]) \
+            % self.scenario.length
+
+        trail_lane1 = self.get_trailing_car(vehID, lane=1)
+        headway_lane1 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane1]["absolute_position"]) \
+            % self.scenario.length
+
+        if self.scenario.lanes == 2:
+            return np.array([[self.vehicles[vehID]["speed"], self.vehicles[trail_lane0]["speed"],
+                              self.vehicles[trail_lane1]["speed"]],
+                             [self.vehicles[vehID]["absolute_position"], headway_lane0, headway_lane1],
+                             [self.vehicles[vehID]["lane"], self.vehicles[trail_lane0]["lane"],
+                              self.vehicles[trail_lane1]["lane"]]])
+
+        elif self.scenario.lanes == 3:
+            trail_lane2 = self.get_trailing_car(vehID, lane=2)
+            headway_lane2 = \
+                (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane2]["absolute_position"]) \
+                % self.scenario.length
+
+            return np.array([[self.vehicles[vehID]["speed"], self.vehicles[trail_lane0]["speed"],
+                              self.vehicles[trail_lane1]["speed"], self.vehicles[trail_lane2]["speed"]],
+                             [self.vehicles[vehID]["absolute_position"], headway_lane0, headway_lane1, headway_lane2],
+                             [self.vehicles[vehID]["lane"], self.vehicles[trail_lane0]["lane"],
+                              self.vehicles[trail_lane1]["lane"], self.vehicles[trail_lane2]["lane"]]])
 
     def render(self):
         print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -97,9 +142,44 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         self.apply_acceleration(sorted_rl_ids, acc=acceleration)
         self.apply_lane_change(sorted_rl_ids, direction=direction)
 
-        resulting_behaviors = []
 
-        return resulting_behaviors
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
