@@ -39,8 +39,9 @@ initial_config = {"shuffle": False, "bunching": 180}
 num_cars = 15
 num_auto = 1
 
-exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-moving-bottleneck' \
-      + "-%.2f-std" % (env_params["human_acc_std"])
+exp_tag = str(num_cars) + '-car-' + str(num_auto) + \
+          '-rl-stabilizing-multilane' \
+          + "-%.2f-std" % (env_params["human_acc_std"])
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
@@ -51,7 +52,7 @@ env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_pa
 
 env = TfEnv(normalize(env))
 
-for seed in [5]:  # [22, 30, 67, 86]:
+def run_task(v):
     policy = GaussianMLPPolicy(
         name="policy",
         env_spec=env.spec,
@@ -72,9 +73,11 @@ for seed in [5]:  # [22, 30, 67, 86]:
         step_size=0.01,
         n_vectorized_envs=1,
     )
+    algo.train()
 
+for seed in [5]:  # [22, 30, 67, 86]:
     run_experiment_lite(
-        algo.train(),
+        run_task,
         # Number of parallel workers for sampling
         n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
