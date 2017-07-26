@@ -1,5 +1,6 @@
 from cistar.envs.loop import LoopEnvironment
 from cistar.core import rewards
+from cistar.controllers.car_following_models import *
 
 from rllab.spaces import Box
 from rllab.spaces import Product
@@ -143,10 +144,87 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         self.apply_lane_change(sorted_rl_ids, direction=direction)
 
 
+class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
 
+    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
 
+        super().__init__(env_params, sumo_binary, sumo_params, scenario)
 
+        # longitudinal (acceleration) controller used for rl cars
+        self.rl_controller = dict()
 
+        for veh_id in self.rl_ids:
+            # self.rl_controller[veh_id] = IDMController(veh_id)
+            self.rl_controller[veh_id] = env_params["rl_controller"](veh_id)
+
+    @property
+    def action_space(self):
+        """
+        Actions are: a continuous direction for each rl vehicle
+        """
+        return Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles,))
+
+    @property
+    def observation_space(self):
+        """
+        See parent class
+        An observation consists of the velocity, lane index, and absolute position of each vehicle
+        in the fleet
+        """
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, lane, absolute_pos])
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """
+        See parent class
+        """
+        target_velocity = self.env_params["target_velocity"]
+
+        # compute the system-level performance of vehicles from a velocity perspective
+        reward = rewards.desired_velocity(state, rl_actions, fail=kwargs["fail"], target_velocity=target_velocity)
+
+        # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
+        for veh_id in self.rl_ids:
+            if self.vehicles[veh_id]["last_lc"] == self.timer:
+                reward -= 1
+
+        return reward
+
+    def getState(self):
+        """
+        See parent class
+        """
+        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
+                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T
+
+    def apply_rl_actions(self, actions):
+        """
+        see parent class
+        - accelerations are derived using the IDM equation
+        - lane-change commands are collected from rllab
+        """
+        direction = actions
+
+        # re-arrange actions according to mapping in observation space
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+
+        # represents vehicles that are allowed to change lanes
+        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+                                 for veh_id in sorted_rl_ids]
+        # vehicle that are not allowed to change have their directions set to 0
+        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+
+        self.apply_lane_change(sorted_rl_ids, direction=direction)
+
+        # collect the accelerations for the rl vehicles are specified by the human controller
+        acceleration = []
+        for veh_id in sorted_rl_ids:
+            acceleration.append(self.rl_controller[veh_id].get_action(self))
+
+        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
 
 
 
@@ -281,7 +359,6 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
         return np.array([[self.vehicles[veh_id]["speed"],
                           self.vehicles[veh_id]["lane"],
                           self.vehicles[veh_id]["absolute_position"]] for veh_id in sorted_ids]).T
-
 
     def render(self):
         print('current velocity, lane, headway, adj headway:', self.state)
