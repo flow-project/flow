@@ -33,9 +33,10 @@ class BraessParadoxGenerator(Generator):
         lanes = params["lanes"]
         speed_limit = params["speed_limit"]
         resolution = params["resolution"]
+        angle = params["angle"]
 
-        edge_x = edge_len * cos(pi/6)
-        edge_y = edge_len * sin(pi/6)
+        edge_x = edge_len * cos(angle)
+        edge_y = edge_len * sin(angle)
         r = 0.75 * edge_y
         curve_len = r * pi
         straight_horz_len = 2 * edge_x
@@ -66,11 +67,11 @@ class BraessParadoxGenerator(Generator):
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
         x.append(E("edge", attrib={"id": "AC", "from": "A", "to": "C", "type": "edgeType",
                                    "length": repr(edge_len)}))
-        x.append(E("edge", attrib={"id": "AD", "from": "A", "to": "D", "type": "edgeType",
+        x.append(E("edge", attrib={"id": "AD", "from": "A", "to": "D", "type": "edgeType",  # "priority": "78",
                                    "length": repr(edge_len)}))
         x.append(E("edge", attrib={"id": "CB", "from": "C", "to": "B", "type": "edgeType",
                                    "length": repr(edge_len)}))
-        x.append(E("edge", attrib={"id": "CD", "from": "C", "to": "D", "type": "edgeType",
+        x.append(E("edge", attrib={"id": "CD", "from": "C", "to": "D", "type": "edgeType",  # "priority": "46",
                                    "length": repr(2 * edge_y)}))
         x.append(E("edge", attrib={"id": "D", "from": "D", "to": "B", "type": "edgeType",
                                    "length": repr(edge_len)}))

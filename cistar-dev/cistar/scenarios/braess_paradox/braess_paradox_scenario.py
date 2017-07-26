@@ -14,11 +14,12 @@ class BraessParadoxScenario(Scenario):
 
         See Scenario.py for description of params.
         """
+        self.angle = net_params["angle"]
         self.edge_len = net_params["edge_length"]
-        self.curve_len = (0.75 * self.edge_len * np.sin(np.pi/6)) * np.pi
+        self.curve_len = (0.75 * self.edge_len * np.sin(self.angle)) * np.pi
         self.junction_len = 2.9 + 3.3 * net_params["lanes"]
         self.inner_space_len = 0.28
-        self.horz_len = 2 * self.edge_len * np.cos(np.pi/6)
+        self.horz_len = 2 * self.edge_len * np.cos(self.angle)
 
         # instantiate "length" in net params
         net_params["length"] = 4 * self.edge_len + 4 * self.junction_len + 2 * self.curve_len + self.horz_len
@@ -139,13 +140,9 @@ class BraessParadoxScenario(Scenario):
         Generate uniformly spaced start positions.
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
-        # cars are to be initially distributed outside the Braess network
-        distribution_length = 2 * self.curve_len + self.horz_len
-
         startpositions = []
         startlanes = []
-        # increment = (self.length - bunching) * self.lanes_distribution / self.num_vehicles
-        increment = (distribution_length - bunching) * self.lanes_distribution / self.num_vehicles
+        increment = (self.length - bunching) * self.lanes_distribution / self.num_vehicles
 
         x = [x0] * self.lanes_distribution
         car_count = 0
