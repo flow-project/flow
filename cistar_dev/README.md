@@ -1,4 +1,4 @@
-# CISTAR Documentation
+# cistar_dev Documentation
 
 ## Getting Started
 

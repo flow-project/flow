@@ -16,44 +16,48 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-# from cistar.core.exp import SumoExperiment
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.car_following_models import *
+# from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+from cistar_dev.controllers.rlcontroller import RLController
+from cistar_dev.controllers.lane_change_controllers import *
+from cistar_dev.controllers.car_following_models import *
+from rllab.envs.gym_env import GymEnv
 
-logging.basicConfig(level=logging.INFO)
+def run_task(*_):
+    import cistar_dev.envs as cistar_envs
+    logging.basicConfig(level=logging.INFO)
 
-stub(globals())
+    sumo_params = {"time_step": 0.1, "rl_lc": "aggressive", "human_lc": "aggressive",
+                   "rl_sm": "no_collide", "human_sm": "no_collide"}
+    sumo_binary = "sumo"
 
-sumo_params = {"time_step": 0.1, "rl_lc": "aggressive", "human_lc": "aggressive",
-               "rl_sm": "no_collide", "human_sm": "no_collide"}
-sumo_binary = "sumo-gui"
+    env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3, "fail-safe": "None"}
 
-env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3, "fail-safe": "None"}
+    net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
+                  "net_path": "debug/net/"}
 
-net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
-              "net_path": "debug/net/"}
+    cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
+    initial_config = {"shuffle": True}
 
-initial_config = {"shuffle": True}
+    num_cars = 22
 
-num_cars = 22
 
-exp_tag = str(num_cars) + "-car-stabilizing-the-ring"
+    type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "idm": (num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-               "idm": (num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    from cistar_dev import pass_params
+    env_name = "SimpleAccelerationEnvironment"
+    pass_params(env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+                cfg_params, initial_config, scenario)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+    env = GymEnv(env_name+"-v0", record_video=False)
+    horizon = env.horizon
+    env = normalize(env)
 
-env = normalize(env)
-
-for seed in [5]:  # [16, 20, 21, 22]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
@@ -65,16 +69,19 @@ for seed in [5]:  # [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=15000,
-        max_path_length=1500,
-        n_itr=500,  # 1000
+        batch_size=1500,
+        max_path_length=horizon,
+        n_itr=1,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
     )
+    algo.train(),
 
+exp_tag = str(22) + "-car-stabilizing-the-ring"
+for seed in [5]:
     run_experiment_lite(
-        algo.train(),
+        run_task, 
         # Number of parallel workers for sampling
         n_parallel=1,
         # Only keep the snapshot parameters for the last iteration

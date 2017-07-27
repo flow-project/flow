@@ -1,24 +1,24 @@
 # Setting up AWS
 
 
-  - Pull `cathywu/rllab` repository and switch to production cistar 
-  `cistar_prod` branch
+  - Pull `cathywu/rllab` repository and switch to production cistar_dev 
+  `cistar_dev_prod` branch
   ```bash
-  git clone git@github.com:cathywu/rllab.git rllabcistar
-  cd rllabcistar
-  git checkout cistar_prod
+  git clone git@github.com:cathywu/rllab.git rllabcistar_dev
+  cd rllabcistar_dev
+  git checkout cistar_dev_prod
   ```
   - Follow [rllab local setup instructions](https://rllab.readthedocs.io/en/latest/user/installation.html)
   - Follow [rllab cluster setup instructions](http://rllab.readthedocs.io/en/latest/user/cluster.html)
     - If prompted, region = us-west-1
-    - Note: the current Docker image path is "evinitsky/cistar-rllab"
+    - Note: the current Docker image path is "evinitsky/cistar_dev-rllab"
     - (Optional): As desired, add to `config_personal.py` files and 
     directories that you do not need uploaded to EC2 for every 
     experiment by modifying `FAST_CODE_SYNC_IGNORES`.
-  - Go to the `Makefile` in `learning-traffic/cistar-dev` and update 
+  - Go to the `Makefile` in `learning-traffic/cistar_dev-dev` and update 
   the path to your rllab root directory (no trailing slash)
   - (See note below); Run `make prepare` 
-  - Try an example! Run any experiment from `cistar/examples`, change
+  - Try an example! Run any experiment from `cistar_dev/examples`, change
    mode to “ec2”
   - You can run it locally by changing the mode to local_docker. If this isn't working, make sure to check that your local docker image is the most current image. 
   - Log into AWS via: https://cathywu.signin.aws.amazon.com/console
@@ -37,15 +37,15 @@ directory to AWS. This way, the AWS instance has access to all files it
   workflow:
   - All code modification will happen in the learning-traffic directory
   - Before each experiment, run the command `make prepare` , which will
-   remove the cistar directory in rllab root and copy 
-   `learning-traffic/cistar-dev/cistar` into your rllab root directory
-    - This means if you make modifications to cistar in the rllab 
+   remove the cistar_dev directory in rllab root and copy 
+   `learning-traffic/cistar_dev-dev/cistar_dev` into your rllab root directory
+    - This means if you make modifications to cistar_dev in the rllab 
     directory, they may be lost
   - Before each experiment, always make sure you have a commit to that 
-  exact snapshot of the `cistar` directory. This is because you may
-   modify cistar later. When you want to run `visualizer.py` , which is
+  exact snapshot of the `cistar_dev` directory. This is because you may
+   modify cistar_dev later. When you want to run `visualizer.py` , which is
     our modified version of `sim_policy.py` , AKA when you want to 
-    create rollout plots, you need the files in `rllab/cistar` to match 
+    create rollout plots, you need the files in `rllab/cistar_dev` to match 
     the files that were there when you originally ran the experiment.
      So when you want to create rollout plots, you will checkout the
       commit that matches when you ran the experiment and run make 

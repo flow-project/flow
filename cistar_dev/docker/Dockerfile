@@ -73,7 +73,7 @@ RUN pip install awscli
 RUN apt-get -y install zlib1g-dev
 RUN apt-get install -y vim ack-grep
 
-# Note: most of those have been commented out because not necessary for CISTAR
+# Note: most of those have been commented out because not necessary for cistar_dev
 # MUJOCO requires graphics stuff (Why?)
 # RUN apt-get -y build-dep glfw
 # RUN apt-get -y install libxrandr2 libxinerama-dev libxi6 libxcursor-dev

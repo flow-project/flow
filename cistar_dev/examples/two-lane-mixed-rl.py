@@ -27,16 +27,16 @@ from rllab.misc.instrument import run_experiment_lite, stub
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+from rllab.envs.gym_env import GymEnv
 
-from cistar.core.exp import SumoExperiment
-from cistar.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
+from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
+from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+from cistar_dev.controllers.rlcontroller import RLController
+from cistar_dev.controllers.car_following_models import *
+from cistar_dev.controllers.lane_change_controllers import *
+
 logging.basicConfig(level=logging.INFO)
-
-stub(globals())
 
 tot_cars = 8
 
@@ -49,9 +49,9 @@ sumo_params = {"time_step":0.1, "human_sm": 1, "rl_sm": 1,
 sumo_binary = "sumo-gui"
 
 type_params = {"rl":(auton_cars, (RLController, {}), None, 0),
-               "cfm":(human_cars, (BCMController, {"v_des":10}), None, 0)}
+               "cfm":(human_cars, (IDMController, {}), None, 0)}
 
-env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3}
+env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 500}
 
 net_params = {"length": 200, "lanes": 2, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
 
@@ -61,8 +61,15 @@ initial_config = {"shuffle": False}
 
 scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = SimpleLaneChangingAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+from cistar_dev import pass_params
+env_name = "SimpleLaneChangingAccelerationEnvironment"
+pass_params(env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+            cfg_params, initial_config, scenario)
 
+#env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
+env = GymEnv(env_name+"-v0", record_video=False)
+horizon = env.horizon
+env = normalize(env)
 logging.info("Experiment Set Up complete")
 
 print("experiment initialized")
@@ -82,7 +89,7 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         policy=policy,
         baseline=baseline,
         batch_size=10000,
-        max_path_length=1000,
+        max_path_length=horizon,
         # whole_paths=True,
         n_itr=2,
         # discount=0.99,

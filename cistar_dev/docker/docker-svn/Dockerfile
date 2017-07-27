@@ -52,7 +52,7 @@ RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo
 RUN mv $SUMO_SRC $SUMO_HOME
 
 # Apply patch file
-#RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
+#RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar_dev.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
 
 # Install SUMO
 RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make && make install
@@ -81,7 +81,7 @@ RUN pip install awscli
 RUN apt-get -y install zlib1g-dev
 RUN apt-get install -y vim ack-grep
 
-# Note: most of those have been commented out because not necessary for CISTAR
+# Note: most of those have been commented out because not necessary for cistar_dev
 # MUJOCO requires graphics stuff (Why?)
 # RUN apt-get -y build-dep glfw
 # RUN apt-get -y install libxrandr2 libxinerama-dev libxi6 libxcursor-dev

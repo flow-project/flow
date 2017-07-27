@@ -21,11 +21,11 @@ Variables:
 '''
 import logging
 
-from cistar.core.exp import SumoExperiment
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
+from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.envs.loop import LoopEnvironment
+from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+from cistar_dev.controllers.car_following_models import *
+from cistar_dev.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -49,7 +49,7 @@ initial_config = {"shuffle": True}
 scenario = LoopScenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
 ##data path needs to be relative to cfg location
 
-exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sumo_params, scenario)
+exp = SumoExperiment(LoopEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
 logging.info("Experiment Set Up complete")
 

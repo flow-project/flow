@@ -6,10 +6,10 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from cistar.core.exp import SumoExperiment
-from cistar.envs.loop_velocity import SimpleVelocityEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-# from cistar.controllers.car_following_models import *
+from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.envs.loop_velocity import SimpleVelocityEnvironment
+from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+# from cistar_dev.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -25,9 +25,9 @@ type_params = {"rl":(auton_cars, None, None, 0)}
 
 env_params = {"target_velocity": 8}
 
-net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"traffic/cistar-dev/leah/net/"}
+net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"traffic/cistar_dev-dev/leah/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"traffic/cistar-dev/leah/cfg/"}
+cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"traffic/cistar_dev-dev/leah/cfg/"}
 
 
 # initial_positions = [("top", 0), ("top", 70), ("top", 140), \

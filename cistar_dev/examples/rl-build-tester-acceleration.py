@@ -25,26 +25,25 @@ from rllab.misc.instrument import stub, run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+from rllab.envs.gym_env import GymEnv
 
-from cistar.controllers.lane_change_controllers import *
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLController
+from cistar_dev.controllers.lane_change_controllers import *
+from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+from cistar_dev.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.DEBUG)
-
-stub(globals())
 
 tot_cars = 6
 
 auton_cars = 6
 
-sumo_params = {"time_step":0.01,  "rl_sm": 1}
+sumo_params = {"time_step":0.1,  "rl_sm": 1}
 
 sumo_binary = "sumo-gui"
 
 type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3}
+env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "num_steps": 1000}
 
 net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
               "net_path":"debug/rl/net/"}
@@ -55,20 +54,22 @@ initial_config = {"shuffle": False}
 
 scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_binary,
-                   sumo_params, scenario)
+from cistar_dev import pass_params
+env_name = "SimpleAccelerationEnvironment"
+pass_params(env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+            cfg_params, initial_config, scenario)
+
+#env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
+env = GymEnv(env_name+"-v0", record_video=False)
+horizon = env.horizon
+env = normalize(env)
 
 # exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary,
 #  sumo_params, scenario)
 
 logging.info("Experiment Set Up complete")
 
-env.restart_sumo(sumo_params)
-
-
-env = normalize(env)
-
-for seed in [5]: # [1, 5, 10, 73, 56]
+for seed in [10]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(16,)
@@ -80,8 +81,8 @@ for seed in [5]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=10000,
-        max_path_length=1000,
+        batch_size=2000,
+        max_path_length=horizon,
         # whole_paths=True,
         n_itr=2,  # 1000
         # discount=0.99,

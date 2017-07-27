@@ -1,29 +1,28 @@
 """
-This script presents the use of two-way intersections in CISTAR.
+This script presents the use of two-way intersections in cistar_dev.
 
 Cars enter from the bottom and left nodes following a probability distribution, and
 continue to move straight until they exit through the top and right nodes, respectively.
 """
 
-from cistar.core.exp import SumoExperiment
-from cistar.envs.intersection import SimpleIntersectionEnvironment
-from cistar.envs.two_intersection import TwoIntersectionEnvironment
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.intersections.intersection_scenario import *
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.rlcontroller import RLController
+from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.envs.intersection import SimpleIntersectionEnvironment
+from cistar_dev.envs.two_intersection import TwoIntersectionEnvironment
+from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.intersections.intersection_scenario import *
+from cistar_dev.controllers.car_following_models import *
+from cistar_dev.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
 sumo_params = {"time_step": 0.1, "emission_path": "./data/"}
-sumo_binary = "sumo"
+sumo_binary = "sumo-gui"
 
 # type_params = {"idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-type_params = {"rl": (20, (RLController, {}), None, 0)}
+type_params = {"rl": (20, (IDMController, {}), None, 0)}
 
 intensity = .2
-v_enter = 20
+v_enter = 10
 
 env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 3, 
             "control-length": 150, "max_speed": v_enter}

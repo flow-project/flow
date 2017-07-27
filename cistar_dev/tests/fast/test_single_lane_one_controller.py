@@ -1,11 +1,11 @@
 import unittest
 import logging
 
-from cistar.core.exp import SumoExperiment
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.car_following_models import CFMController
-from cistar.controllers.lane_change_controllers import \
+from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.envs.loop import LoopEnvironment
+from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+from cistar_dev.controllers.car_following_models import CFMController
+from cistar_dev.controllers.lane_change_controllers import \
     never_change_lanes_controller
 
 
@@ -29,12 +29,10 @@ class TestSingleLaneOneController(unittest.TestCase):
                                 self.type_params, self.net_params,
                                 self.cfg_params, self.initial_config)
 
-        exp = SumoExperiment(SimpleAccelerationEnvironment, self.env_params,
+        exp = SumoExperiment(LoopEnvironment, self.env_params,
                              self.sumo_binary, self.sumo_params, scenario)
 
         exp.run(1, 1000)  # params: num_runs, num_steps
-
-        exp.env.terminate()  # Dummy test
 
 
 if __name__ == '__main__':
