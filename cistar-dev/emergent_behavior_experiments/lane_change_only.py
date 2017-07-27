@@ -25,7 +25,7 @@ sumo_params = {"time_step": 0.1, "starting_position_shuffle": False, "vehicle_ar
                "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
 
-env_params = {"target_velocity": 8, "rl_acc_controller": IDMController, "lane_change_duration": 0,
+env_params = {"target_velocity": 8, "rl_acc_controller": (IDMController, {}), "lane_change_duration": 0,
               "observation_pos_std": 0, "observation_vel_std": 0, "human_acc_std": 0.5, "rl_acc_std": 0.5}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40,

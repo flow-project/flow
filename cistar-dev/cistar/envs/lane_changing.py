@@ -154,8 +154,8 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
         self.rl_controller = dict()
 
         for veh_id in self.rl_ids:
-            # self.rl_controller[veh_id] = IDMController(veh_id)
-            self.rl_controller[veh_id] = env_params["rl_controller"](veh_id)
+            controller_params = env_params["rl_acc_controller"]
+            self.rl_controller[veh_id] = controller_params[0](veh_id=veh_id, **controller_params[1])
 
     @property
     def action_space(self):
