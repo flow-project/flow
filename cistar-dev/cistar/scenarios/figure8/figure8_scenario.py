@@ -44,6 +44,13 @@ class Figure8Scenario(Scenario):
             raise ValueError("resolution of circular sections not supplied")
         self.resolution = self.net_params["resolution"]
 
+        # number of lanes vehicles should be distributed in at the start of a rollout
+        # must be less than or equal to the number of lanes in the network
+        if "lanes_distribution" not in self.net_params:
+            self.lanes_distribution = 1
+        else:
+            self.lanes_distribution = min(self.net_params["lanes_distribution"], self.lanes)
+
         # defines edge starts for road sections
         self.edgestarts = [("bottom_lower_ring", 0 + self.inner_space_len),
                            ("right_lower_ring_in", self.ring_edgelen + 2 * self.inner_space_len),
@@ -98,7 +105,7 @@ class Figure8Scenario(Scenario):
 
         # generate starting position for vehicles in the network
         if "positions" not in self.initial_config:
-            self.initial_config["positions"] = self.generate_starting_positions()
+            self.initial_config["positions"], self.initial_config["lanes"] = self.generate_starting_positions()
 
         if "shuffle" not in self.initial_config:
             self.initial_config["shuffle"] = False
@@ -151,6 +158,7 @@ class Figure8Scenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
+        startlanes = []
 
         bunch_factor = 0
         if "bunching" in self.initial_config:
@@ -161,11 +169,54 @@ class Figure8Scenario(Scenario):
                 downscale = 5
                 if "downscale" in self.initial_config:
                     downscale = self.initial_config["downscale"]
-                startpositions = self.gen_random_start_pos(downscale, bunch_factor, x0=x0)
+                startpositions, startlanes = self.gen_random_start_pos(downscale, bunch_factor, x0=x0)
         else:
-            startpositions = self.gen_even_start_positions(bunch_factor, x0=x0)
+            startpositions, startlanes = self.gen_even_start_positions(bunch_factor, x0=x0)
 
-        return startpositions
+        return startpositions, startlanes
+
+    # def gen_even_start_positions(self, bunching, x0=1):
+    #     """
+    #     Generate uniformly spaced start positions.
+    #     :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+    #     """
+    #     startpositions = []
+    #     increment = (self.length - bunching) / self.num_vehicles
+    #
+    #     x = x0
+    #     for i in range(self.num_vehicles):
+    #         # pos is a tuple (route, departPos)
+    #         pos = self.get_edge(x)
+    #         startpositions.append(pos)
+    #         x = (x + increment) % self.length
+    #
+    #     return startpositions
+    #
+    # def gen_random_start_pos(self, downscale=5, bunching=0, x0=1):
+    #     """
+    #     Generate random start positions via additive Gaussian.
+    #
+    #     WARNING: this does not absolutely gaurantee that the order of
+    #     vehicles is preserved.
+    #     :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+    #     """
+    #     startpositions = []
+    #     mean = (self.length - 2 * self.junction_len - bunching) / self.num_vehicles
+    #
+    #     x = x0
+    #     for i in range(self.num_vehicles):
+    #         pos = self.get_edge(x)
+    #
+    #         # ensures that vehicles are not placed in the intersection
+    #         for center_tuple in self.intersection_edgestarts:
+    #             if center_tuple[0] in pos[0]:
+    #                 x += self.junction_len
+    #                 pos = self.get_edge(x)
+    #
+    #         startpositions.append(pos)
+    #         x = (x + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
+    #
+    #     return startpositions
 
     def gen_even_start_positions(self, bunching, x0=1):
         """
@@ -173,16 +224,36 @@ class Figure8Scenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
-        increment = (self.length - bunching) / self.num_vehicles
+        startlanes = []
+        increment = (self.length - bunching) * self.lanes_distribution / self.num_vehicles
 
-        x = x0
-        for i in range(self.num_vehicles):
-            # pos is a tuple (route, departPos)
-            pos = self.get_edge(x)
+        x = [x0] * self.lanes_distribution
+        car_count = 0
+        lane_count = 0
+        while car_count < self.num_vehicles:
+
+            pos = self.get_edge(x[lane_count])
+
+            # ensures that vehicles are not placed in the intersection
+            for center_tuple in self.intersection_edgestarts:
+                if center_tuple[0] in pos[0]:
+                    x[lane_count] += self.junction_len
+                    pos = self.get_edge(x[lane_count])
+
+            # collect the position and lane number of each new vehicle
             startpositions.append(pos)
-            x = (x + increment) % self.length
+            startlanes.append(lane_count)
 
-        return startpositions
+            x[lane_count] = (x[lane_count] + increment) % self.length
+
+            # increment the car_count and lane_num
+            car_count += 1
+            lane_count += 1
+            # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
+            if lane_count >= self.lanes_distribution:
+                lane_count = 0
+
+        return startpositions, startlanes
 
     def gen_random_start_pos(self, downscale=5, bunching=0, x0=1):
         """
@@ -193,19 +264,33 @@ class Figure8Scenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
         startpositions = []
-        mean = (self.length - 2 * self.junction_len - bunching) / self.num_vehicles
+        startlanes = []
+        mean = (self.length - bunching) * self.lanes_distribution / self.num_vehicles
 
-        x = x0
-        for i in range(self.num_vehicles):
-            pos = self.get_edge(x)
+        x = [x0] * self.lanes_distribution
+        car_count = 0
+        lane_count = 0
+        while car_count < self.num_vehicles:
+
+            pos = self.get_edge(x[lane_count])
 
             # ensures that vehicles are not placed in the intersection
             for center_tuple in self.intersection_edgestarts:
                 if center_tuple[0] in pos[0]:
-                    x += self.junction_len
-                    pos = self.get_edge(x)
+                    x[lane_count] += self.junction_len
+                    pos = self.get_edge(x[lane_count])
 
+            # collect the position and lane number of each new vehicle
             startpositions.append(pos)
-            x = (x + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
+            startlanes.append(lane_count)
 
-        return startpositions
+            x[lane_count] = (x[lane_count] + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
+
+            # increment the car_count and lane_num
+            car_count += 1
+            lane_count += 1
+            # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
+            if lane_count >= self.lanes_distribution:
+                lane_count = 0
+
+        return startpositions, startlanes

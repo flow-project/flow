@@ -291,10 +291,12 @@ class Figure8Generator(Generator):
                 random.shuffle(self.vehicle_ids)
 
             positions = initial_config["positions"]
+            lanes = initial_config["lanes"]
             for i, (type, id) in enumerate(self.vehicle_ids):
                 route, pos = positions[i]
+                lane = lanes[i]
                 type_depart_speed = type_params[type][3]
-                routes.append(self.vehicle(type, "route" + route, depart="0",
-                              departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
+                routes.append(self.vehicle(type, "route" + route, depart="0", id=id, color="1,0.0,0.0",
+                              departSpeed=str(type_depart_speed), departPos=str(pos), departLane=str(lane)))
 
             printxml(routes, self.cfg_path + self.roufn)
