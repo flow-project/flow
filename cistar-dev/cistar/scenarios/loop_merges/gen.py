@@ -254,7 +254,6 @@ class LoopMergesGenerator(Generator):
                 else:
                     route, pos = ring_positions[i_ring]
                     i_ring += 1
-                    print(route, pos)
 
                 type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",

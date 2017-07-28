@@ -25,26 +25,27 @@ from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
-stub(globals())
+# stub(globals())
 
-sumo_params = {"time_step": 0.1, "starting_position_shuffle": True, "vehicle_arrangement_shuffle": True,
+sumo_params = {"time_step": 0.1, "starting_position_shuffle": True, "vehicle_arrangement_shuffle": False,
                "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
 
 env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3,
-              "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
+              "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0.5, "rl_acc_std": 0}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
               "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": True}
+initial_config = {"shuffle": False}
 
 num_cars = 22
 num_auto = 3
 
-exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-single-lane-platooning'
+exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-single-lane-platooning' \
+    + "-%.2f-std" % (env_params["human_acc_std"])
 
 type_params = {"rl": (num_auto, (RLController, {}), None, 0),
                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
@@ -69,7 +70,7 @@ for seed in [5]:  # [16, 20, 21, 22]:
         baseline=baseline,
         batch_size=15000,
         max_path_length=1500,
-        n_itr=500,  # 1000
+        n_itr=1000,
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
