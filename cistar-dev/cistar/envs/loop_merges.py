@@ -104,16 +104,12 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
             if "merge" in self.vehicles[veh_id]["type"] and self.scenario.net_params["merge_out_length"] is not None:
                 continue
 
-            this_edge = self.vehicles[veh_id]["edge"]
-            this_pos = self.vehicles[veh_id]["position"]
-            ring_0_len = 0
-            ring_1_len = 0
-
+            # TODO: add currents routes to the vehicles dict so that we don't have to reroute multiple times
             # check if a vehicle needs to be rerouted
             route = None
-            if this_edge == "ring_0" and this_pos > ring_0_len - 10:
+            if self.vehicles[veh_id]["edge"] == "ring_0":
                 route = ["ring_0", "ring_1"]
-            elif this_edge == "ring_1" and this_pos > ring_1_len - 10:
+            elif self.vehicles[veh_id]["edge"] == "ring_1":
                 route = ["ring_1", "ring_0"]
 
             # perform rerouting
