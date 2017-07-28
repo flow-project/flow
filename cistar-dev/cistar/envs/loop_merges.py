@@ -86,8 +86,8 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         this function reroutes the vehicle to keep in in the network
         """
         for veh_id in self.ids:
-            # if the vehicle is one the merging vehicles, it should not be rerouted
-            if "merge" in self.vehicles[veh_id]["type"]:
+            # if the vehicle is one the merging vehicles, and there is a merge-out lane, it should not be rerouted
+            if "merge" in self.vehicles[veh_id]["type"] and self.scenario.net_params["merge_out_length"] is not None:
                 continue
 
             this_edge = self.vehicles[veh_id]["edge"]

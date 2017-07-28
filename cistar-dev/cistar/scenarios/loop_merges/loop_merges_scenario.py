@@ -24,15 +24,11 @@ class LoopMergesScenario(Scenario):
         # in their names
         self.num_merge_vehicles = sum([x[1][0] for x in type_params.items() if "merge" in x[0]])
 
-        ring_0_len = (self.merge_out_angle - self.merge_in_angle) % (2 * pi) * self.radius
-
         # TODO: find a good way of calculating these
         self.ring_0_0_len = 1.1 + 4 * net_params["lanes"]
         self.ring_1_0_len = 1.1 + 4 * net_params["lanes"]
         self.ring_0_n_len = 6.5
         self.ring_1_n_len = 6.5
-
-        self.junction_len = 2.9 + 3.3 * net_params["lanes"]
         self.inner_space_len = 0.28
 
         # instantiate "length" in net params
@@ -66,26 +62,31 @@ class LoopMergesScenario(Scenario):
             self.lanes_distribution = min(self.net_params["lanes_distribution"], self.lanes)
 
         # defines edge starts for road sections
-        self.edgestarts = \
-            [("ring_0", self.ring_0_n_len),
-             ("ring_1", self.ring_0_n_len + ring_0_len + self.ring_1_n_len),
-             ("merge_in", - self.merge_in_len - self.ring_0_0_len + self.ring_0_n_len),
-             # ("merge_in", 500 * (2 * pi * self.radius)),
-             ("merge_out", 1000 * (2 * pi * self.radius) + self.ring_1_0_len)]
+        if self.merge_out_len is not None:
+            ring_0_len = (self.merge_out_angle - self.merge_in_angle) % (2 * pi) * self.radius
 
-        # defines edge starts for intersections
-        # self.internal_edgestarts = \
-        #     [(":ring_0_0", 0),
-        #      (":ring_1_0", self.ring_0_0_len + ring_0_len),
-        #      (":ring_0_%d" % self.lanes, - ring_0_n_len + self.ring_0_0_len),
-        #      # (":ring_0_%d" % self.lanes, 500 * (2 * pi * self.radius) + self.merge_in_len),
-        #      (":ring_1_%d" % self.lanes, 1000 * (2 * pi * self.radius))]
+            self.edgestarts = \
+                [("ring_0", self.ring_0_n_len),
+                 ("ring_1", self.ring_0_n_len + ring_0_len + self.ring_1_n_len),
+                 ("merge_in", - self.merge_in_len - self.ring_0_0_len + self.ring_0_n_len),
+                 ("merge_out", 1000 * (2 * pi * self.radius) + self.ring_1_0_len)]
 
-        self.internal_edgestarts = \
-            [(":ring_0_%d" % self.lanes, 0),
-             (":ring_1_%d" % self.lanes, self.ring_0_n_len + ring_0_len),
-             (":ring_0_0", - self.ring_0_0_len + self.ring_0_n_len),
-             (":ring_1_0", 1000 * (2 * pi * self.radius))]
+            self.internal_edgestarts = \
+                [(":ring_0_%d" % self.lanes, 0),
+                 (":ring_1_%d" % self.lanes, self.ring_0_n_len + ring_0_len),
+                 (":ring_0_0", - self.ring_0_0_len + self.ring_0_n_len),
+                 (":ring_1_0", 1000 * (2 * pi * self.radius))]
+
+        else:
+            self.edgestarts = \
+                [("ring_0", self.ring_0_n_len),
+                 ("ring_1", self.ring_0_n_len + pi * self.radius + self.inner_space_len),
+                 ("merge_in", - self.merge_in_len - self.ring_0_0_len + self.ring_0_n_len)]
+
+            self.internal_edgestarts = \
+                [(":ring_0_%d" % self.lanes, 0),
+                 (":ring_1_0", self.ring_0_n_len + pi * self.radius),
+                 (":ring_0_0", - self.ring_0_0_len + self.ring_0_n_len)]
 
         # generate starting position for vehicles in the network
         if "positions" not in self.initial_config:

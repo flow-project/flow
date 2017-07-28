@@ -40,8 +40,12 @@ class LoopMergesGenerator(Generator):
         res = params["resolution"]
 
         r = ring_radius
+        self.merge_out_len = merge_out_len
 
-        length = 2 * pi * ring_radius + merge_in_len + merge_out_len
+        if merge_out_len is None:
+            length = 2 * pi * ring_radius + merge_in_len
+        else:
+            length = 2 * pi * ring_radius + merge_in_len + merge_out_len
 
         self.name = "%s-%dm%dl" % (self.base, length, lanes)
 
@@ -54,17 +58,28 @@ class LoopMergesGenerator(Generator):
         # xml file for nodes; contains nodes for the boundary points with respect to the x and y axes
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
 
-        x.append(E("node", id="merge_in", x=repr((r + merge_in_len) * cos(merge_in_angle)),
-                   y=repr((r + merge_in_len) * sin(merge_in_angle)),  type="priority"))
+        if merge_out_len is not None:
+            x.append(E("node", id="merge_in", x=repr((r + merge_in_len) * cos(merge_in_angle)),
+                       y=repr((r + merge_in_len) * sin(merge_in_angle)),  type="priority"))
 
-        x.append(E("node", id="merge_out", x=repr((r + merge_out_len) * cos(merge_out_angle)),
-                   y=repr((r + merge_out_len) * sin(merge_out_angle)), type="priority"))
+            x.append(E("node", id="merge_out", x=repr((r + merge_out_len) * cos(merge_out_angle)),
+                       y=repr((r + merge_out_len) * sin(merge_out_angle)), type="priority"))
 
-        x.append(E("node", id="ring_0", x=repr(r * cos(merge_in_angle)),
-                   y=repr(r * sin(merge_in_angle)), type="priority"))
+            x.append(E("node", id="ring_0", x=repr(r * cos(merge_in_angle)),
+                       y=repr(r * sin(merge_in_angle)), type="priority"))
 
-        x.append(E("node", id="ring_1", x=repr(r * cos(merge_out_angle)),
-                   y=repr(r * sin(merge_out_angle)), type="priority"))
+            x.append(E("node", id="ring_1", x=repr(r * cos(merge_out_angle)),
+                       y=repr(r * sin(merge_out_angle)), type="priority"))
+
+        else:
+            x.append(E("node", id="merge_in", x=repr((r + merge_in_len) * cos(merge_in_angle)),
+                       y=repr((r + merge_in_len) * sin(merge_in_angle)), type="priority"))
+
+            x.append(E("node", id="ring_0", x=repr(r * cos(merge_in_angle)),
+                       y=repr(r * sin(merge_in_angle)), type="priority"))
+
+            x.append(E("node", id="ring_1", x=repr(r * cos(merge_in_angle + pi)),
+                       y=repr(r * sin(merge_in_angle + pi)), type="priority"))
 
         printxml(x, self.net_path + nodfn)
 
@@ -72,21 +87,36 @@ class LoopMergesGenerator(Generator):
         # in the edge is defined by the "resolution" variable
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
 
-        # edges associated with merges
-        x.append(E("edge", attrib={"id": "merge_in", "from": "merge_in", "to": "ring_0", "type": "edgeType",
-                                   "length": repr(merge_in_len)}))
-        x.append(E("edge", attrib={"id": "merge_out", "from": "ring_1", "to": "merge_out", "type": "edgeType",
-                                   "length": repr(merge_out_len)}))
+        if merge_out_len is not None:
+            # edges associated with merges
+            x.append(E("edge", attrib={"id": "merge_in", "from": "merge_in", "to": "ring_0", "type": "edgeType",
+                                       "length": repr(merge_in_len)}))
+            x.append(E("edge", attrib={"id": "merge_out", "from": "ring_1", "to": "merge_out", "type": "edgeType",
+                                       "length": repr(merge_out_len)}))
 
-        # edges associated with the ring
-        x.append(E("edge", attrib={"id": "ring_0", "from": "ring_0", "to": "ring_1", "type": "edgeType",
-                                   "length": repr((merge_out_angle - merge_in_angle) % (2 * pi) * r),
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(merge_in_angle, merge_out_angle, res)])}))
-        x.append(E("edge", attrib={"id": "ring_1", "from": "ring_1", "to": "ring_0", "type": "edgeType",
-                                   "length": repr((merge_in_angle - merge_out_angle) % (2 * pi) * r),
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(merge_out_angle, 2 * pi + merge_in_angle, res)])}))
+            # edges associated with the ring
+            x.append(E("edge", attrib={"id": "ring_0", "from": "ring_0", "to": "ring_1", "type": "edgeType",
+                                       "length": repr((merge_out_angle - merge_in_angle) % (2 * pi) * r),
+                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                                          for t in linspace(merge_in_angle, merge_out_angle, res)])}))
+            x.append(E("edge", attrib={"id": "ring_1", "from": "ring_1", "to": "ring_0", "type": "edgeType",
+                                       "length": repr((merge_in_angle - merge_out_angle) % (2 * pi) * r),
+                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                                          for t in linspace(merge_out_angle, 2 * pi + merge_in_angle, res)])}))
+        else:
+            # edges associated with merges
+            x.append(E("edge", attrib={"id": "merge_in", "from": "merge_in", "to": "ring_0", "type": "edgeType",
+                                       "length": repr(merge_in_len)}))
+
+            # edges associated with the ring
+            x.append(E("edge", attrib={"id": "ring_0", "from": "ring_0", "to": "ring_1", "type": "edgeType",
+                                       "length": repr(pi * r),
+                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                                          for t in linspace(merge_in_angle, merge_in_angle + pi, res)])}))
+            x.append(E("edge", attrib={"id": "ring_1", "from": "ring_1", "to": "ring_0", "type": "edgeType",
+                                       "length": repr(pi * r),
+                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                                          for t in linspace(merge_in_angle + pi, merge_in_angle + 2 * pi, res)])}))
 
         printxml(x, self.net_path + edgfn)
 
@@ -151,9 +181,14 @@ class LoopMergesGenerator(Generator):
         cfgfn = "%s.sumo.cfg" % self.name
         guifn = "%s.gui.cfg" % self.name
 
-        self.rts = {"ring_0":   "ring_0 ring_1",
-                    "ring_1":   "ring_1 ring_0",
-                    "merge_in": "merge_in ring_0 merge_out"}
+        if self.merge_out_len is not None:
+            self.rts = {"ring_0":   "ring_0 ring_1",
+                        "ring_1":   "ring_1 ring_0",
+                        "merge_in": "merge_in ring_0 merge_out"}
+        else:
+            self.rts = {"ring_0":   "ring_0 ring_1",
+                        "ring_1":   "ring_1 ring_0",
+                        "merge_in": "merge_in ring_0 ring_1"}
 
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
@@ -219,6 +254,7 @@ class LoopMergesGenerator(Generator):
                 else:
                     route, pos = ring_positions[i_ring]
                     i_ring += 1
+                    print(route, pos)
 
                 type_depart_speed = type_params[type][3]
                 routes.append(self.vehicle(type, "route" + route, depart="0",
