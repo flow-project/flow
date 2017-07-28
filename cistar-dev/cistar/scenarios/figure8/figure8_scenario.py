@@ -175,49 +175,6 @@ class Figure8Scenario(Scenario):
 
         return startpositions, startlanes
 
-    # def gen_even_start_positions(self, bunching, x0=1):
-    #     """
-    #     Generate uniformly spaced start positions.
-    #     :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-    #     """
-    #     startpositions = []
-    #     increment = (self.length - bunching) / self.num_vehicles
-    #
-    #     x = x0
-    #     for i in range(self.num_vehicles):
-    #         # pos is a tuple (route, departPos)
-    #         pos = self.get_edge(x)
-    #         startpositions.append(pos)
-    #         x = (x + increment) % self.length
-    #
-    #     return startpositions
-    #
-    # def gen_random_start_pos(self, downscale=5, bunching=0, x0=1):
-    #     """
-    #     Generate random start positions via additive Gaussian.
-    #
-    #     WARNING: this does not absolutely gaurantee that the order of
-    #     vehicles is preserved.
-    #     :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-    #     """
-    #     startpositions = []
-    #     mean = (self.length - 2 * self.junction_len - bunching) / self.num_vehicles
-    #
-    #     x = x0
-    #     for i in range(self.num_vehicles):
-    #         pos = self.get_edge(x)
-    #
-    #         # ensures that vehicles are not placed in the intersection
-    #         for center_tuple in self.intersection_edgestarts:
-    #             if center_tuple[0] in pos[0]:
-    #                 x += self.junction_len
-    #                 pos = self.get_edge(x)
-    #
-    #         startpositions.append(pos)
-    #         x = (x + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
-    #
-    #     return startpositions
-
     def gen_even_start_positions(self, bunching, x0=1):
         """
         Generate uniformly spaced start positions.

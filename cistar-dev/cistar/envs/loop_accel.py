@@ -36,8 +36,12 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        # label = Box(low=0., high=1, shape=(self.scenario.num_vehicles,))
         return Product([speed, absolute_pos])
+
+        # # partial observability
+        # speed = Box(low=0, high=np.inf, shape=(3,))
+        # absolute_pos = Box(low=0., high=np.inf, shape=(3,))
+        # return Product([speed, absolute_pos])
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -54,11 +58,6 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         reward = rewards.desired_velocity(
             state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
 
-        # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
-        for veh_id in self.rl_ids:
-            if self.vehicles[veh_id]["last_lc"] == self.timer:
-                reward -= 1
-
         return reward
 
     def getState(self, **kwargs):
@@ -67,31 +66,33 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        # full observability
-        # sorted_rl_ids = np.array([veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids])
-        # sorted_human_ids = np.array([veh_id for veh_id in self.sorted_ids if veh_id not in self.rl_ids])
-        # sorted_ids = np.append(sorted_rl_ids, sorted_human_ids)
-        #
-        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
-        #                   veh_id in self.rl_ids] for veh_id in sorted_ids]).T
-
         return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
                           self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
                          for veh_id in self.sorted_ids]).T
 
-        # else:
-        #     # partial observability (n car ahead, m car behind)
-        #     sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
-        #     veh_ids = []
-        #     for veh_id in sorted_rl_ids:
-        #         veh_ids.append(veh_id)  # add rl vehicle
-        #         veh_ids.append(self.vehicles[veh_id]["leader"])  # add vehicle in front of rl vehicle
-        #         veh_ids.append(self.vehicles[veh_id]["follower"])  # add vehicle behind rl vehicle
+        # # partial observability for stabilizing the ring
+        # vehID = self.rl_ids[0]
+        # lead_id = self.vehicles[vehID]["leader"]
+        # trail_id = self.vehicles[vehID]["follower"]
         #
-        #     veh_ids = np.unique(veh_ids)  # remove redundant vehicle ids
+        # # state contains the speed of the rl car, and its leader and follower,
+        # # as well as the rl car's position in the network, and its headway with the vehicles adjacent to it
+        # observation = np.array([
+        #     [self.vehicles[trail_id]["speed"], self.vehicles[vehID]["speed"],
+        #      self.vehicles[lead_id]["speed"]],
+        #     [self.vehicles[trail_id]["headway"], self.vehicles[vehID]["absolute_position"],
+        #      self.vehicles[vehID]["headway"]]])
+        # return observation
 
-        # partial observability (2 cars ahead, 2 cars behind)
+        # # implicit labeling for stabilizing the ring
+        # indx_rl = np.where(["rl" in self.vehicles[veh_id]["id"] for veh_id in self.sorted_ids])[0]
+        # num_vehicles = self.scenario.num_vehicles
+        # ids_centering_rl = np.append(np.array([self.sorted_ids[i] for i in np.arange(indx_rl, num_vehicles)]),
+        #                              np.array([self.sorted_ids[i] for i in np.arange(indx_rl)]))
+        #
+        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
+        #                  for veh_id in ids_centering_rl]).T
 
     def render(self):
         print('current state/velocity:', self.state)
