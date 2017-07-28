@@ -33,43 +33,43 @@ from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.DEBUG)
 
-tot_cars = 6
+def run_task(*_):
+    tot_cars = 6
 
-auton_cars = 6
+    auton_cars = 6
 
-sumo_params = {"time_step":0.1,  "rl_sm": 1}
+    sumo_params = {"time_step":0.1,  "rl_sm": 1}
 
-sumo_binary = "sumo-gui"
+    sumo_binary = "sumo-gui"
 
-type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "num_steps": 1000}
+    env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "num_steps": 1000}
 
-net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
-              "net_path":"debug/rl/net/"}
+    net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
+                  "net_path":"debug/rl/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
+    cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
-initial_config = {"shuffle": False}
+    initial_config = {"shuffle": False}
 
-scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
 
-from cistar_dev import pass_params
-env_name = "SimpleAccelerationEnvironment"
-pass_params(env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-            cfg_params, initial_config, scenario)
+    from cistar_dev import pass_params
+    env_name = "SimpleAccelerationEnvironment"
+    pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+                cfg_params, initial_config, scenario)
 
-#env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
-env = GymEnv(env_name+"-v0", record_video=False)
-horizon = env.horizon
-env = normalize(env)
+    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
+    env = GymEnv(env_name, record_video=False, register_params=pass_params)
+    horizon = env.horizon
+    env = normalize(env)
 
-# exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary,
-#  sumo_params, scenario)
+    # exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary,
+    #  sumo_params, scenario)
 
-logging.info("Experiment Set Up complete")
+    logging.info("Experiment Set Up complete")
 
-for seed in [10]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(16,)
@@ -88,10 +88,11 @@ for seed in [10]: # [1, 5, 10, 73, 56]
         # discount=0.99,
         # step_size=0.01,
     )
-    # algo.train()
+    algo.train()
 
+for seed in [10]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
-        algo.train(),
+        run_task,
         # Number of parallel workers for sampling
         n_parallel=1,
         # Only keep the snapshot parameters for the last iteration

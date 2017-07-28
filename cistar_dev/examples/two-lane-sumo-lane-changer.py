@@ -53,6 +53,6 @@ exp = SumoExperiment(LoopEnvironment, env_params, sumo_binary, sumo_params, scen
 
 logging.info("Experiment Set Up complete")
 
-exp.run(2, 10000)
+exp.run(2, 1000)
 
 exp.env.terminate()

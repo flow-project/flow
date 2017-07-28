@@ -34,48 +34,48 @@ from cistar_dev.controllers.car_following_models import *
 from cistar_dev.controllers.lane_change_controllers import *
 
 
-import cistar_dev.envs as cistar_envs
-logging.basicConfig(level=logging.INFO)
+def run_task(*_):
+    import cistar_dev.envs as cistar_envs
+    logging.basicConfig(level=logging.INFO)
 
-tot_cars = 8
+    tot_cars = 8
 
-auton_cars = 4
-human_cars = tot_cars - auton_cars
+    auton_cars = 4
+    human_cars = tot_cars - auton_cars
 
-sumo_params = {"time_step":0.1, "human_sm": 1, "rl_sm": 1}
+    sumo_params = {"time_step":0.1, "human_sm": 1, "rl_sm": 1}
 
-sumo_binary = "sumo"
+    sumo_binary = "sumo"
 
-type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0),
-               "cfm":(human_cars, (BCMController, {"v_des":10}), (StaticLaneChanger, {}), 0)}
+    type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   "cfm":(human_cars, (BCMController, {"v_des":10}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 1000}
+    env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 1000}
 
-net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
+    net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
+    cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
-initial_config = {"shuffle": False}
+    initial_config = {"shuffle": False}
 
-scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
 
-from cistar_dev import pass_params
-env_name = "SimpleAccelerationEnvironment"
-pass_params(env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-            cfg_params, initial_config, scenario)
+    from cistar_dev import pass_params
+    env_name = "SimpleAccelerationEnvironment"
+    pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+                cfg_params, initial_config, scenario)
 
-#env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
-env = GymEnv(env_name+"-v0", record_video=False)
-horizon = env.horizon
-env = normalize(env)
+    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
+    env = GymEnv(env_name, record_video=False, register_params=pass_params)
+    horizon = env.horizon
+    env = normalize(env)
 
-logging.info("Experiment Set Up complete")
+    logging.info("Experiment Set Up complete")
 
-print("experiment initialized")
+    print("experiment initialized")
 
-env = normalize(env)
+    env = normalize(env)
 
-for seed in [1]: # [1, 5, 10, 73, 56]
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(32,32)
@@ -87,19 +87,20 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=10000,
+        batch_size=1000,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=2,
         # discount=0.99,
         # step_size=0.01,
     )
-    # algo.train()
+    algo.train()
 
+for seed in [1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
-        algo.train(),
+        run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=4,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="last",
         # Specifies the seed for the experiment. If this is not provided, a random seed
@@ -110,4 +111,3 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         # plot=True,
     )
 
-env.terminate()

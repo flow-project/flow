@@ -51,10 +51,10 @@ def run_task(*_):
 
     from cistar_dev import pass_params
     env_name = "SimpleAccelerationEnvironment"
-    pass_params(env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+    pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                 cfg_params, initial_config, scenario)
 
-    env = GymEnv(env_name+"-v0", record_video=False)
+    env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
 
@@ -69,7 +69,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=1500,
+        batch_size=30000,
         max_path_length=horizon,
         n_itr=1,  # 1000
         # whole_paths=True,
@@ -83,13 +83,13 @@ for seed in [5]:
     run_experiment_lite(
         run_task, 
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=2,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,

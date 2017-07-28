@@ -25,7 +25,7 @@ type_params = {"rl":(auton_cars, None, None, 0)}
 
 env_params = {"target_velocity": 8}
 
-net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"traffic/cistar_dev-dev/leah/net/"}
+net_params = {"length": 840, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"traffic/cistar_dev/leah/net/"}
 
 cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"traffic/cistar_dev-dev/leah/cfg/"}
 

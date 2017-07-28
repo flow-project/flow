@@ -42,11 +42,11 @@ def run_task(*_):
 
     from cistar_dev import pass_params
     env_name = "SimpleLaneChangingAccelerationEnvironment"
-    pass_params(env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+    pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                 cfg_params, initial_config, scenario)
 
     #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
-    env = GymEnv(env_name+"-v0", record_video=False)
+    env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
 
@@ -61,9 +61,9 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=3000,
+        batch_size=30000,
         max_path_length=horizon,
-        n_itr=1000,  # 50000
+        n_itr=2,  # 50000
 
         # whole_paths=True,
         # discount=0.99,
@@ -76,7 +76,7 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=4,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
