@@ -306,6 +306,7 @@ class SumoEnvironment(Env, Serializable):
         for veh_id in self.ids:
             self.traci_connection.vehicle.subscribe(veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
                                                              tc.VAR_ROAD_ID, tc.VAR_SPEED])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
     def step(self, rl_actions):
         """
@@ -393,23 +394,23 @@ class SumoEnvironment(Env, Serializable):
             if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
                 crash = True
 
+            # Grab the headway
+            headway = network_observations[veh_id][tc.VAR_LEADER]
+            if headway is None:
+                self.vehicles[veh_id]["leader"] = None
+                self.vehicles[veh_id]["follower"] = None
+                self.vehicles[veh_id]["headway"] = np.inf
+            else:
+                self.vehicles[veh_id]["headway"] = headway[1]
+                self.vehicles[veh_id]["leader"] = headway[0]
+                self.vehicles[headway[0]]["follower"] = veh_id
+
             # self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
             # self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
             # self.lanes[veh_id].append(self.vehicles[veh_id]["lane"])
 
         # collect list of sorted vehicle ids
         self.sorted_ids = self.sort_by_position()
-
-        # collect headway, leader id, and follower id data
-        vehicles = self.get_headway_dict()
-
-        for veh_id in self.ids:
-            try:
-                self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
-                self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
-                self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
-            except KeyError:
-                continue
 
         # collect information of the state of the network based on the environment class used
         if self.scenario.num_rl_vehicles > 0: 
