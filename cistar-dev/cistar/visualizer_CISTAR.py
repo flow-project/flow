@@ -9,6 +9,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
+from cistar.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
+from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
 
 import plotly.offline as po
 import plotly.graph_objs as go
@@ -69,6 +71,10 @@ if __name__ == "__main__":
     elif args.scenario_type == 'loop':
         net_params["length"] = args.loop_length
         scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    elif args.scenario_type == 'loop_merges':
+        scenario = LoopMergesScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    elif args.scenario_type == 'braess_paradox':
+        scenario = BraessParadoxScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
     env._wrapped_env.scenario = scenario
 
     # Set sumo to make a video 
@@ -76,7 +82,6 @@ if __name__ == "__main__":
     sumo_params['emission_path'] = "./test_time_rollout/"
     sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
     env._wrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
-
 
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
@@ -98,7 +103,7 @@ if __name__ == "__main__":
     pickle.dump(all_obs, output)
     output.close()
 
-    # export observations in a pickle file
+    # export rewards in a pickle file
     output_filename = 'rewards.pkl'
     output = open(output_filename, 'wb')
     pickle.dump(all_rewards, output)
