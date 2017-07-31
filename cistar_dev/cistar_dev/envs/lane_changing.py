@@ -1,5 +1,6 @@
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import rewards
+from cistar_dev.controllers.car_following_models import IDMController
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -99,6 +100,66 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
         self.apply_acceleration(sorted_rl_ids, acc=acceleration)
         self.apply_lane_change(sorted_rl_ids, direction=direction)
+
+        resulting_behaviors = []
+
+        return resulting_behaviors
+
+class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
+
+    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+        super().__init__(env_params, sumo_binary, sumo_params, scenario)
+        vehicle_controllers = {}
+        for veh_id in self.rl_ids:
+            vehicle_controllers[veh_id] = IDMController(veh_id)
+        self.vehicle_controllers = vehicle_controllers
+
+    @property
+    def action_space(self):
+        """
+        Actions are:
+         - a (discrete) direction with 3 values: 0) lane change to index -1, 1) no lane change,
+                                                 2) lane change to index +1
+        :return:
+        """
+
+        lb = [-1] * self.scenario.num_rl_vehicles
+        ub = [1] * self.scenario.num_rl_vehicles
+        return Box(np.array(lb), np.array(ub))
+
+    def apply_rl_actions(self, actions):
+        """
+        Takes a tuple and applies a lane change. if a lane change is applied,
+        don't issue another lane change for the duration of the lane change. 
+        Accelerations are given by an idm model. 
+        :param actions: (acceleration, lc_value, direction)
+        :return: array of resulting actions: 0 if successful + other actions are ok, -1 if unsucessful / bad actions.
+        """
+        # acceleration = actions[-1]
+        # direction = np.array(actions[:-1]) - 1
+
+
+        # re-arrange actions according to mapping in observation space
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+
+        # get the accelerations from an idm model
+        acceleration = np.zeros((len(sorted_rl_ids)))
+        for i, rl_id in enumerate(sorted_rl_ids):
+            acceleration[i] = self.vehicle_controllers[rl_id].get_action(self)
+
+        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
+
+        # get the lane changes from the neural net
+        direction = np.round(actions)
+
+        # represents vehicles that are allowed to change lanes
+        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+                                 for veh_id in sorted_rl_ids]
+        # vehicle that are not allowed to change have their directions set to 0
+        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+
+        self.apply_lane_change(sorted_rl_ids, direction=direction)
+
 
         resulting_behaviors = []
 

@@ -71,7 +71,7 @@ def run_task(*_):
         baseline=baseline,
         batch_size=30000,
         max_path_length=horizon,
-        n_itr=1,  # 1000
+        n_itr=100,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -83,13 +83,13 @@ for seed in [5]:
     run_experiment_lite(
         run_task, 
         # Number of parallel workers for sampling
-        n_parallel=2,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local_docker",
+        mode="local",
         exp_prefix=exp_tag,
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
