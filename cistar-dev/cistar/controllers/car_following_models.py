@@ -329,16 +329,14 @@ class IDMController(BaseController):
         self.dt = dt
 
     def get_action(self, env):
-
-        lead_id = env.vehicles[self.veh_id]["leader"]
-        if lead_id is None:  # no car ahead
-            return self.a
-
-        h = env.vehicles[self.veh_id]["headway"]
-        lead_vel = env.vehicles[lead_id]['speed']
         this_vel = env.vehicles[self.veh_id]['speed']
-
-        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
+        lead_id = env.vehicles[self.veh_id]["leader"]
+        h = env.vehicles[self.veh_id]["headway"]
+        if lead_id is None:  # no car ahead
+            s_star = 0
+        else:
+            lead_vel = env.vehicles[lead_id]['speed']
+            s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)
 
@@ -356,16 +354,15 @@ class DrunkDriver(IDMController):
 
     def get_action(self, env):
         self.timer += 1
-        lead_id = env.vehicles[self.veh_id]["leader"]
 
-        if lead_id is None:  # no car ahead
-            return self.a
-
-        h = env.vehicles[self.veh_id]["headway"]
-        lead_vel = env.vehicles[lead_id]['speed']
         this_vel = env.vehicles[self.veh_id]['speed']
-
-        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
+        lead_id = env.vehicles[self.veh_id]["leader"]
+        h = env.vehicles[self.veh_id]["headway"]
+        if lead_id is None:  # no car ahead
+            s_star = 0
+        else:
+            lead_vel = env.vehicles[lead_id]['speed']
+            s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
         perturb = 0
         if self.timer % self.perturb_time == 0:
