@@ -34,6 +34,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
+        self.obs_var_labels = ["Velocity", "Absolute_pos"]
         speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Tuple((speed, absolute_pos))
@@ -83,3 +84,33 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
 
     # def render(self):
     #     print('current state/velocity:', self.state)
+
+class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
+
+    @property
+    def action_space(self):
+        """
+        Actions are a set of accelerations from 0 to 15m/s
+        :return:
+        """
+        action_space = []
+        for veh_id in self.rl_ids:
+            action_space.append(Box(low=self.env_params["max-deacc"], 
+                high=self.env_params["max-acc"], shape=(1, )))
+        return action_space
+
+    @property
+    def observation_space(self):
+        """
+        See parent class
+        An observation is an array the velocities for each vehicle
+        """
+        observation_space = []
+        speed = Box(low=0, high=np.inf, shape=(1,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(1,))
+        #dist_to_intersection = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        obs_tuple = Tuple((speed, absolute_pos))
+        for veh_id in self.rl_ids:
+            observation_space.append(obs_tuple)
+        return observation_space
+

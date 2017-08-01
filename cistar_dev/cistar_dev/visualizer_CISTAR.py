@@ -5,6 +5,7 @@ import uuid
 import os
 import random
 import numpy as np
+from rllab.envs.gym_env import GymEnv
 # import tensorflow as tf
 from matplotlib import pyplot as plt
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
@@ -44,21 +45,22 @@ if __name__ == "__main__":
     algo = data['algo']
 
     # Input
-    if env._wrapped_env.obs_var_labels:
-        obs_vars = env._wrapped_env.obs_var_labels
+    unwrapped_env = env._wrapped_env.env.unwrapped
+    if unwrapped_env.obs_var_labels:
+        obs_vars = unwrapped_env.obs_var_labels
     else:
         obs_vars = ["Velocity"] # , "Fuel", "Distance"
 
     # Recreate experiment params
-    tot_cars = env._wrapped_env.scenario.num_vehicles
-    rl_cars = env._wrapped_env.scenario.num_rl_vehicles
+    tot_cars = unwrapped_env.scenario.num_vehicles
+    rl_cars = unwrapped_env.scenario.num_rl_vehicles
     num_itr = algo.n_itr
     max_path_length = int(np.floor(algo.max_path_length*args.run_long))
     flat_obs = env._wrapped_env.observation_space.flat_dim
     num_obs_var = flat_obs / tot_cars
 
     # Recreate the sumo scenario, change the loop length
-    scenario = env._wrapped_env.scenario
+    scenario = unwrapped_env.scenario
     exp_tag = scenario.name
     type_params = scenario.type_params
     net_params = scenario.net_params
@@ -75,10 +77,10 @@ if __name__ == "__main__":
     env._wrapped_env.scenario = scenario
 
     # Set sumo to make a video 
-    sumo_params = env._wrapped_env.sumo_params
+    sumo_params = unwrapped_env.sumo_params
     sumo_params['emission_path'] = "./test_time_rollout/"
     sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
-    env._wrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
+    unwrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
 
 
     # Load data into arrays

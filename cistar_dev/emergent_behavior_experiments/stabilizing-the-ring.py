@@ -28,18 +28,18 @@ def run_task(*_):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "rl_lc": "aggressive", "human_lc": "aggressive",
-                   "rl_sm": "no_collide", "human_sm": "no_collide"}
+    sumo_params = {"time_step": 0.1, "rl_sm": "aggressive", "human_sm": "no_collide"}
     sumo_binary = "sumo"
 
-    env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3, "fail-safe": "None"}
+    env_params = {"target_velocity": 15, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
+                "num_steps": 1500}
 
     net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}
 
     cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-    initial_config = {"shuffle": True}
+    initial_config = {"shuffle": False}
 
     num_cars = 22
 
@@ -71,7 +71,7 @@ def run_task(*_):
         baseline=baseline,
         batch_size=30000,
         max_path_length=horizon,
-        n_itr=100,  # 1000
+        n_itr=1,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -79,7 +79,7 @@ def run_task(*_):
     algo.train(),
 
 exp_tag = str(22) + "-car-stabilizing-the-ring"
-for seed in [5]:
+for seed in [11]:
     run_experiment_lite(
         run_task, 
         # Number of parallel workers for sampling
