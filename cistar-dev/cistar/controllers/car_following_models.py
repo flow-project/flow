@@ -332,6 +332,7 @@ class IDMController(BaseController):
         this_vel = env.vehicles[self.veh_id]['speed']
         lead_id = env.vehicles[self.veh_id]["leader"]
         h = env.vehicles[self.veh_id]["headway"]
+
         if lead_id is None:  # no car ahead
             s_star = 0
         else:
@@ -358,6 +359,7 @@ class DrunkDriver(IDMController):
         this_vel = env.vehicles[self.veh_id]['speed']
         lead_id = env.vehicles[self.veh_id]["leader"]
         h = env.vehicles[self.veh_id]["headway"]
+
         if lead_id is None:  # no car ahead
             s_star = 0
         else:
