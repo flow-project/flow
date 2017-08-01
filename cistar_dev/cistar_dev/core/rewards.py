@@ -20,8 +20,6 @@ def desired_velocity(state=None, actions=None, **kwargs):
 
     Note: state[0] MUST BE VELOCITY
     """
-    multi_agent = kwargs["multi_agent"]
-    state = correct_state_space(state, multi_agent)
     num_vehicles = len(state[0])
     vel = state[0]
 
@@ -47,8 +45,6 @@ def min_delay(state=None, actions=None, **kwargs):
     Note: state[0] MUST BE VELOCITY
     """
 
-    multi_agent = kwargs["multi_agent"]
-    state = correct_state_space(state, multi_agent)
     vel = state[0]
 
     if any(vel < -100) or kwargs["fail"]:
@@ -71,8 +67,3 @@ def emission(state=None, actions=None, **kwargs):
     # TODO
     pass
 
-def correct_state_space(state, multi_agent):
-    if multi_agent:
-        return state.T 
-    else:
-        return state 

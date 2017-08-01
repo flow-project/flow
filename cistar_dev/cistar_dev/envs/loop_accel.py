@@ -1,5 +1,6 @@
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import rewards
+from cistar_dev.core import multi_agent_rewards
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -44,7 +45,6 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         """
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
-        
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -63,8 +63,12 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         # if kwargs["observability"] == "full":
         # full observability
-        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
+        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
+        #                  for veh_id in self.sorted_ids])
+
+        return np.array([[self.vehicles[veh_id]["speed"],
+                          self.vehicles[veh_id]["absolute_position"]]
                          for veh_id in self.sorted_ids])
 
         # else:
@@ -105,12 +109,39 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
+        num_vehicles = self.scenario.num_vehicles
         observation_space = []
-        speed = Box(low=0, high=np.inf, shape=(1,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(1,))
+        speed = Box(low=0, high=np.inf, shape=(num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,))
         #dist_to_intersection = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         obs_tuple = Tuple((speed, absolute_pos))
         for veh_id in self.rl_ids:
             observation_space.append(obs_tuple)
         return observation_space
 
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """
+        See parent class
+        """
+        return multi_agent_rewards.desired_velocity(
+            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
+
+    def getState(self, **kwargs):
+        """
+        See parent class
+        The state is an array the velocities for each vehicle
+        :return: a matrix of velocities and absolute positions for each vehicle
+        """
+        # if kwargs["observability"] == "full":
+        # full observability
+        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
+        #                  for veh_id in self.sorted_ids])
+
+        obs_arr = []
+        for i in range(self.scenario.num_rl_vehicles):
+            speed = [self.vehicles[veh_id]["speed"] for veh_id in self.sorted_ids]
+            abs_pos = [self.vehicles[veh_id]["absolute_position"] for veh_id in self.sorted_ids]
+            tup = (speed, abs_pos)
+            obs_arr.append(tup)
+        return obs_arr

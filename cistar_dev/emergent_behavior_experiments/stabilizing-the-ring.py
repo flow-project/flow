@@ -71,7 +71,7 @@ def run_task(*_):
         baseline=baseline,
         batch_size=30000,
         max_path_length=horizon,
-        n_itr=1,  # 1000
+        n_itr=500,  # 1000
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
@@ -79,17 +79,17 @@ def run_task(*_):
     algo.train(),
 
 exp_tag = str(22) + "-car-stabilizing-the-ring"
-for seed in [11]:
+for seed in [22]:
     run_experiment_lite(
         run_task, 
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,

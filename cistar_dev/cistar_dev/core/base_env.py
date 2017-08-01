@@ -467,9 +467,9 @@ class SumoEnvironment(gym.Env, Serializable):
             info_n = {'n': []}
 
             if self.shared_reward:
-                info_n['reward_n'] = reward
+                info_n['reward_n'] = [reward]*len(self.action_space)
             else:
-                info_n['reward_n'] = [reward] * len(self.action_space)
+                info_n['reward_n'] = reward
 
             if crash:
                 if self.fail_safe:
@@ -479,7 +479,7 @@ class SumoEnvironment(gym.Env, Serializable):
             info_n['done_n'] = done_n
             info_n['state'] = self.state
             done = np.all(done_n)
-            return self.state, reward, done, info_n
+            return self.state, sum(reward), done, info_n
 
         else:
             if crash:
@@ -633,19 +633,19 @@ class SumoEnvironment(gym.Env, Serializable):
                 safe_acc = self.vehicles[veh_id]['controller'].get_safe_action(self, acc[i])
             else:
                 # Test for multi-agent
-                if self.multi_agent:
+                if self.multi_agent and (veh_id in self.rl_ids):
                     safe_acc = acc[i][0]
                 else:
                     safe_acc = acc[i]
 
-            if self.multi_agent:
+            if self.multi_agent and (veh_id in self.rl_ids):
                 acc[i][0] = safe_acc
             else:
                 acc[i] = safe_acc
 
         # issue traci command for requested acceleration
         thisVel = np.array([self.vehicles[vid]['speed'] for vid in veh_ids])
-        if self.multi_agent:
+        if self.multi_agent and (veh_id in self.rl_ids):
             acc_arr = np.asarray([element2 for elem in acc for element in elem 
                                 for element2 in element])
         else:
