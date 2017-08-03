@@ -87,8 +87,7 @@ if __name__ == "__main__":
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
     all_rewards = np.zeros((args.num_rollouts, max_path_length))
     for j in range(args.num_rollouts):
-        path = rollout(env, policy, max_path_length=max_path_length,
-                   animated=False, speedup=1)
+        path = rollout(env, policy, max_path_length=max_path_length, animated=False, speedup=1)
         obs = path['observations']  # length of rollout x flattened observation
         try:
             all_obs[j] = obs

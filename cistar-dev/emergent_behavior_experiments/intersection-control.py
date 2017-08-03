@@ -23,8 +23,8 @@ logging.basicConfig(level=logging.INFO)
 
 stub(globals())
 
-sumo_params = {"time_step": 0.1, "shuffle": True,
-               "rl_lc": "no_collide", "human_lc": "no_collide",
+sumo_params = {"time_step": 0.1, "starting_position_shuffle": False, "vehicle_arrangement_shuffle": False,
+               "rl_lc": "no_lat_collide", "human_lc": "no_lat_collide",
                "rl_sm": "no_collide", "human_sm": "no_collide"}
 sumo_binary = "sumo-gui"
 
@@ -38,12 +38,12 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 14
-num_auto = 14
+num_cars = 28
+num_auto = 28
 type_params = {"rl": (num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-exp_type = 1
+exp_type = 0
 
 if exp_type == 1:
     num_cars = 14

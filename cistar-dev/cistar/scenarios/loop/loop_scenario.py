@@ -86,8 +86,10 @@ class LoopScenario(Scenario):
         """
         Generates starting positions for vehicles in the network
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+                 list of start lanes
         """
         startpositions = []
+        startlanes = []
 
         bunch_factor = 0
         if "bunching" in self.initial_config:
@@ -98,16 +100,17 @@ class LoopScenario(Scenario):
                 downscale = 5
                 if "downscale" in self.initial_config:
                     downscale = self.initial_config["downscale"]
-                startpositions = self.gen_random_start_pos(downscale, bunch_factor, x0=x0)
+                startpositions, startlanes = self.gen_random_start_pos(downscale, bunch_factor, x0=x0)
         else:
-            startpositions = self.gen_even_start_positions(bunch_factor, x0=x0)
+            startpositions, startlanes = self.gen_even_start_positions(bunch_factor, x0=x0)
 
-        return startpositions
+        return startpositions, startlanes
 
     def gen_even_start_positions(self, bunching, x0=1):
         """
         Generate uniformly spaced start positions.
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+                 list of start lanes
         """
         startpositions = []
         startlanes = []
@@ -140,6 +143,7 @@ class LoopScenario(Scenario):
         WARNING: this does not absolutely gaurantee that the order of
         vehicles is preserved.
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+                 list of start lanes
         """
         startpositions = []
         startlanes = []
