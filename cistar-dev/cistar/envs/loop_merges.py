@@ -24,7 +24,7 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         :return:
         """
         return Box(low=-np.abs(self.env_params["max-deacc"]), high=self.env_params["max-acc"],
-                   shape=(self.scenario.num_rl_vehicles, ))
+                   shape=(self.scenario.num_rl_vehicles,))
 
     @property
     def observation_space(self):
@@ -34,7 +34,8 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         """
         speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, absolute_pos])
+        edge = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Product([speed, absolute_pos, edge])
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -48,48 +49,21 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        vel_non_merge = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids if "merge" not in veh_id])
-        vel_merge = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids if "merge" in veh_id])
-
-        # check for crashes
-        if any(np.append(vel_merge, vel_non_merge) < -100) or kwargs["fail"]:
-            return 0
-
-        # reward the velocity of vehicle in the ring w.r.t. target velocity
-        max_cost = np.linalg.norm(np.array([self.env_params["target_velocity"]] * len(vel_non_merge)))
-        cost = np.linalg.norm(vel_non_merge - self.env_params["target_velocity"])
-        reward_non_merge = max(0, max_cost - cost)
-
-        # reward the velocity of merging vehicles w.r.t. speed limit
-        max_cost = np.linalg.norm(np.array([self.scenario.net_params["speed_limit"]] * len(vel_non_merge)))
-        cost = np.linalg.norm(vel_non_merge - self.scenario.net_params["speed_limit"])
-        reward_merge = max(0, max_cost - cost)
-
-        return reward_non_merge + reward_merge
+        return rewards.desired_velocity(
+            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
 
     def getState(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle
-        :return: a matrix of velocities and absolute positions for each vehicle
+        :return: a matrix of velocities, relative positions, and edge ids for each vehicle
         """
-        pos = []
-        for veh_id in self.sorted_ids:
-            # the position of non-merging vehicles is their relative position on the ring
-            if "merge" not in veh_id:
-                pos.append(self.vehicles[veh_id]["absolute_position"] % self.scenario.length)
-            # the position of merging vehicles is their absolute position in the network
-            # (in the ring, it would be their relative position on the ring)
-            else:
-                pos.append(self.vehicles[veh_id]["absolute_position"])
+        sorted_pos = self.sorted_extra_data[0]
+        edge_id = self.sorted_extra_data[1]
 
         return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-                          pos[i] + normal(0, self.observation_pos_std)]
-                         for i, veh_id in enumerate(self.sorted_ids)]).T
-
-        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
-        #                  for veh_id in self.sorted_ids]).T
+                          sorted_pos[i] + normal(0, self.observation_pos_std),
+                          edge_id[i]] for i, veh_id in enumerate(self.sorted_ids)]).T
 
     def render(self):
         print('current state/velocity:', self.state)
@@ -104,16 +78,17 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
             if "merge" in self.vehicles[veh_id]["type"] and self.scenario.net_params["merge_out_length"] is not None:
                 continue
 
-            # TODO: add currents routes to the vehicles dict so that we don't have to reroute multiple times
             # check if a vehicle needs to be rerouted
             route = None
-            if self.vehicles[veh_id]["edge"] == "ring_0":
-                route = ["ring_0", "ring_1"]
-            elif self.vehicles[veh_id]["edge"] == "ring_1":
-                route = ["ring_1", "ring_0"]
+            if self.vehicles[veh_id]["route"][-1] == self.vehicles[veh_id]["edge"]:
+                if self.vehicles[veh_id]["edge"] == "ring_0":
+                    route = ["ring_0", "ring_1"]
+                elif self.vehicles[veh_id]["edge"] == "ring_1":
+                    route = ["ring_1", "ring_0"]
 
-            # perform rerouting
+            # perform rerouting and update vehicle's perception of its route
             if route is not None:
+                self.vehicles[veh_id]["route"] = route
                 self.traci_connection.vehicle.setRoute(vehID=veh_id, edgeList=route)
 
     def sort_by_position(self, **kwargs):
@@ -121,77 +96,96 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         See parent class
         Vehicles in the ring are sorted by their relative position in the ring, while vehicles outside the ring
         are sorted according to their position of their respective edge.
-        Vehicles are sorted by position on the ring, the in-merge, then the out-merge
+        Vehicles are sorted by position on the ring, then the in-merge, and finally the out-merge.
         """
-        # abs_pos = []
-        # for veh_id in self.ids:
-        #     # for not non-merging-vehicles, the absolute position is not changed
-        #     if "merge" not in self.vehicles[veh_id]["type"]:
-        #         abs_pos.append((veh_id, self.vehicles[veh_id]["absolute_position"]))
-        #
-        #     # for merging vehicles in the ring, the absolute position is augmented by the number of loops
-        #     # the vehicle
-        #     elif self.vehicles[veh_id]["edge"] not in ["merge_in", "merge_out"]:
-        #         if 0 < self.vehicles[veh_id]["absolute_position"] < self.scenario.length:
-        #             # closest vehicle behind the merge in node
-        #             non_merge_vehicle_pos = [(veh_id, self.vehicles[veh_id]["absolute_position"])
-        #                                      for veh_id in self.ids if "merge" not in veh_id]
-        #             lag_id = max(non_merge_vehicle_pos, key=lambda x: x[1] % self.scenario.length)[0]
-        #
-        #             # number of loops performed by the lagging vehicle
-        #             num_loops = int(self.vehicles[lag_id]["absolute_position"] / self.scenario.length)
-        #
-        #             self.vehicles[veh_id]["absolute_position"] += (num_loops + 1) * self.scenario.length
-        #
-        #         abs_pos.append((veh_id, self.vehicles[veh_id]["absolute_position"]))
-        #
-        #     # merging vehicles outside the ring have absolute positions equal to some constant plus their relative
-        #     # position on the given edge
-        #     else:
-        #         if self.vehicles[veh_id]["edge"] == "merge_in":
-        #             abs_pos.append((veh_id, 1000 * self.scenario.length + self.vehicles[veh_id]["position"]))
-        #         else:
-        #             abs_pos.append((veh_id, 1000 * self.scenario.length + self.vehicles[veh_id]["position"] +
-        #                             self.scenario.merge_in_len))
-        #
-        # # sort absolute positions and collect ids
-        # abs_pos.sort(key=lambda tup: tup[1])
-        # sorted_ids = [tup[0] for tup in abs_pos]
-        #
-        # return sorted_ids
+        if self.scenario.merge_out_len is not None:
+            pos = [[], [], []]
+        else:
+            pos = [[], []]
 
-        # position of merging vehicles and non-merging vehicles are collected and ordered separately
-        merge_veh = []
-        non_merge_veh = []
         for veh_id in self.ids:
-            if "merge" in veh_id:
-                merge_veh.append((veh_id, self.vehicles[veh_id]["absolute_position"]))
+            this_edge = self.vehicles[veh_id]["edge"]
+            this_pos = self.vehicles[veh_id]["position"]
+
+            # the position of vehicles on the ring is their relative position from the
+            # intersection with the merge-in
+            if this_edge in ["ring_0", "ring_1"] or \
+                    ":ring_0_%d" % self.scenario.lanes in this_edge or \
+                    (":ring_1_%d" % self.scenario.lanes in this_edge and self.scenario.merge_out_len is not None) or \
+                    (":ring_1_0" in this_edge and self.scenario.merge_out_len is None):
+                # # merging vehicles need to update their absolute position once to adjust for the number of loops
+                # # non-merging vehicles have performs
+                # if "merge" in veh_id and \
+                #                 self.vehicles[self.vehicles[veh_id]["follower"]]["absolute_position"] > \
+                #                 self.vehicles[veh_id]["absolute_position"]:
+                #     lag_id = self.vehicles[veh_id]["follower"]
+                #
+                #     # number of loops performed by the lagging vehicle
+                #     num_loops = int(self.vehicles[lag_id]["absolute_position"] / self.scenario.length)
+                #
+                #     # TODO: might not want to change it completely, but instead calculate in each iteration
+                #     self.vehicles[veh_id]["absolute_position"] += (num_loops + 1) * self.scenario.length
+                #
+                # pos[0].append((veh_id, self.vehicles[veh_id]["absolute_position"]))
+                pos[0].append((veh_id, self.vehicles[veh_id]["absolute_position"] % self.scenario.length))
+
+            # the position of vehicles in the merge-in / merge-out are their relative position
+            # from the start of the respective merge
+            elif this_edge == "merge_in" or ":ring_0_0" in this_edge:
+                if this_edge != "merge_in":
+                    pos[1].append((veh_id, this_pos + self.scenario.merge_in_len))
+                else:
+                    pos[1].append((veh_id, this_pos))
+
+            elif this_edge == "merge_out" or (":ring_1_0" in this_edge and self.scenario.merge_out_len is not None):
+                if this_edge == "merge_out":
+                    pos[2].append((veh_id, this_pos + self.scenario.ring_1_0_len))
+                else:
+                    pos[2].append((veh_id, this_pos))
+
+        sorted_ids = []
+        sorted_pos = []
+        for i in range(len(pos)):
+            pos[i].sort(key=lambda tup: tup[1])
+            sorted_ids += [tup[0] for tup in pos[i]]
+            if i == 0:
+                sorted_pos += [tup[1] % self.scenario.length for tup in pos[i]]
             else:
-                non_merge_veh.append((veh_id, self.vehicles[veh_id]["absolute_position"]))
+                sorted_pos += [tup[1] for tup in pos[i]]
 
-        merge_veh.sort(key=lambda tup: tup[1])
-        non_merge_veh.sort(key=lambda tup: tup[1])
+        edge_id = [0] * len(pos[0]) + [1] * len(pos[1])
+        if self.scenario.merge_out_len is not None:
+            edge_id += [2] * len(pos[2])
 
-        sorted_merge_ids = [tup[0] for tup in merge_veh]
-        sorted_non_merge_ids = [tup[0] for tup in non_merge_veh]
+        # the extra data in this case is a tuple of sorted positions and route ids
+        sorted_extra_data = (sorted_pos, edge_id)
 
-        # the sorted ids consists of the sorted ids of the non-merging vehicles, followed by the sorted ids of the
-        # merging vehicles
-        sorted_ids = sorted_non_merge_ids + sorted_merge_ids
-
-        return sorted_ids
+        return sorted_ids, sorted_extra_data
 
     def apply_acceleration(self, veh_ids, acc):
         """
         See parent class
-        In addition, merging vehicles that are about to leave the network stop
+        In addition, merging vehicles travel at the target velocity at the merging lanes,
+        and vehicle that are about to leave the network stop.
         """
-        super().apply_acceleration(veh_ids=veh_ids, acc=acc)
-
-        for veh_id in veh_ids:
+        i_called = []  # index of vehicles in the list that have already received traci calls
+        for i, veh_id in enumerate(veh_ids):
             if "merge" in veh_id:
                 this_edge = self.vehicles[veh_id]["edge"]
                 this_pos = self.vehicles[veh_id]["position"]
 
+                # vehicles that are about to exit are stopped
                 if this_edge == "merge_out" and this_pos > self.scenario.merge_out_len - 10:
-                    self.traci_connection.vehicle.slowDown(vehID=veh_id, speed=0, duration=1)
+                    self.traci_connection.vehicle.slowDown(veh_id, 0, 1)
+                    i_called.append(i)
+
+                # vehicles in the merging lanes move at the target velocity (if one is defined)
+                elif "target_velocity" in self.env_params and this_edge in ["merge_in", "merge_out"]:
+                    self.traci_connection.vehicle.slowDown(veh_id, self.env_params["target_velocity"], 1)
+                    i_called.append(i)
+
+        # delete data on vehicles that have already received traci calls in order to reduce run-time
+        veh_ids = [veh_ids[i] for i in range(len(veh_ids)) if i not in i_called]
+        acc = [acc[i] for i in range(len(acc)) if i not in i_called]
+
+        super().apply_acceleration(veh_ids=veh_ids, acc=acc)
