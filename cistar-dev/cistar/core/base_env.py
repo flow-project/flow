@@ -149,6 +149,14 @@ class SumoEnvironment(Env, Serializable):
         else:
             self.lane_change_duration = 5 / self.time_step
 
+        # the available_routes variable contains a dictionary of routes vehicles
+        # can traverse; to be used when routes need to be chosen dynamically
+        self.available_routes = dict()
+        for key in self.scenario.generator.rts:
+            self.available_routes[key] = self.scenario.generator.rts[key].split(' ')
+
+        print(self.available_routes)
+
         self.start_sumo()
         self.setup_initial_state()
 
@@ -241,6 +249,8 @@ class SumoEnvironment(Env, Serializable):
             vehicle["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             vehicle["length"] = self.traci_connection.vehicle.getLength(veh_id)
             vehicle["max_speed"] = self.traci_connection.vehicle.getMaxSpeed(veh_id)
+            # TODO: make more abstract
+            vehicle["route"] = self.available_routes[vehicle["edge"]]
 
             # specify acceleration controller
             controller_params = self.scenario.type_params[veh_type][1]
