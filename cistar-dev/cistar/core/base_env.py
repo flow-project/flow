@@ -285,7 +285,7 @@ class SumoEnvironment(Env, Serializable):
             # self.lanes[veh_id] = [self.vehicles[veh_id]["lane"]]
 
         # collect list of sorted vehicle ids
-        self.sorted_ids = self.sort_by_position()
+        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         # collect headway, leader id, and follower id data
         vehicles = self.get_headway_dict()
@@ -410,7 +410,7 @@ class SumoEnvironment(Env, Serializable):
             # self.lanes[veh_id].append(self.vehicles[veh_id]["lane"])
 
         # collect list of sorted vehicle ids
-        self.sorted_ids = self.sort_by_position()
+        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         # collect information of the state of the network based on the environment class used
         if self.scenario.num_rl_vehicles > 0: 
@@ -503,7 +503,7 @@ class SumoEnvironment(Env, Serializable):
             self.prev_last_lc[veh_id] = self.vehicles[veh_id]["last_lc"]
 
         # reset the list of sorted vehicle ids
-        self.sorted_ids = self.sort_by_position()
+        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         # collect headway, leader id, and follower id data
         vehicles = self.get_headway_dict()
@@ -622,6 +622,15 @@ class SumoEnvironment(Env, Serializable):
             else:
                 self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
 
+    def choose_routes(self, veh_ids, route_choices):
+        """
+        Updates the route choice of vehicles in the network.
+        :param veh_ids: list of vehicle identifiers
+        :param route_choices: list of edges the vehicle wishes to traverse, starting with the edge the
+               vehicle is currently on
+        """
+        pass
+
     def set_speed_mode(self, veh_id):
         # TODO: document
         """
@@ -701,9 +710,12 @@ class SumoEnvironment(Env, Serializable):
         """
         sorts the vehicle ids of vehicles in the network by position
         :return: a list of sorted vehicle ids
+                 an extra component (list, tuple, etc...) containing extra sorted data, such as positions.
+                  If no extra component is needed, a value of None should be returned
         """
         raise NotImplementedError
 
+    # TODO: we are using traci calls for this now. Should we delete?
     def get_headway_dict(self):
         """
         Returns the headway between the current vehicle and the one in front of it

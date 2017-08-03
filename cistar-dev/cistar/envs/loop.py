@@ -140,9 +140,11 @@ class LoopEnvironment(SumoEnvironment):
         """
         sorts the vehicle ids of vehicles in the network by position
         :return: a list of sorted vehicle ids
+                 no extra data is wanted (None is returned for the second output)
         """
         sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
-        return np.array(self.ids)[sorted_indx]
+        sorted_ids = np.array(self.ids)[sorted_indx]
+        return sorted_ids, None
 
     def get_headway_dict(self):
         """
