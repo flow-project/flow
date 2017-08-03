@@ -58,6 +58,16 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         reward = rewards.desired_velocity(
             state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
 
+        # # global reward function for partial observability
+        # vel = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids])
+        # if any(vel < -100) or kwargs["fail"]:
+        #     return 0.
+        # max_cost = np.array([kwargs["target_velocity"]] * self.scenario.num_vehicles)
+        # max_cost = np.linalg.norm(max_cost)
+        # cost = vel - kwargs["target_velocity"]
+        # cost = np.linalg.norm(cost)
+        # reward = max(max_cost - cost, 0)
+
         return reward
 
     def getState(self, **kwargs):
@@ -66,9 +76,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
-                         for veh_id in self.sorted_ids]).T
+        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
+        #                  for veh_id in self.sorted_ids]).T
 
         # # partial observability for stabilizing the ring
         # vehID = self.rl_ids[0]
@@ -84,15 +94,17 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         #      self.vehicles[vehID]["headway"]]])
         # return observation
 
-        # # implicit labeling for stabilizing the ring
-        # indx_rl = np.where(["rl" in self.vehicles[veh_id]["id"] for veh_id in self.sorted_ids])[0]
-        # num_vehicles = self.scenario.num_vehicles
-        # ids_centering_rl = np.append(np.array([self.sorted_ids[i] for i in np.arange(indx_rl, num_vehicles)]),
-        #                              np.array([self.sorted_ids[i] for i in np.arange(indx_rl)]))
-        #
-        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
-        #                  for veh_id in ids_centering_rl]).T
+        # implicit labeling for stabilizing the ring (centering the rl vehicle, scaling and using relative position)
+        indx_rl = np.where(["rl" in self.vehicles[veh_id]["id"] for veh_id in self.sorted_ids])[0]
+        num_vehicles = self.scenario.num_vehicles
+        ids_centering_rl = np.append(np.array([self.sorted_ids[i] for i in np.arange(indx_rl, num_vehicles)]),
+                                     np.array([self.sorted_ids[i] for i in np.arange(indx_rl)]))
+
+        scaled_rel_pos = [(self.vehicles[veh_id]["absolute_position"] % self.scenario.length) / self.scenario.length
+                          for veh_id in ids_centering_rl]
+        vel = [self.vehicles[veh_id]["speed"] for veh_id in ids_centering_rl]
+
+        return np.array([[vel[i], scaled_rel_pos[i]] for i in range(len(ids_centering_rl))]).T
 
     def render(self):
         print('current state/velocity:', self.state)
