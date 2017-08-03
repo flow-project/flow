@@ -21,17 +21,16 @@ class BraessParadoxGenerator(Generator):
     def generate_net(self, params):
         """
         Generates Net files for two-way intersection sim. Requires:
-        - horizontal_length_in: length of the horizontal lane before the intersection
-        - horizontal_length_out: length of the horizontal lane after the intersection
-        - horizontal_lanes: number of lanes in the horizontal lane
-        - vertical_length_in: length of the vertical lane before the intersection
-        - vertical_length_out: length of the vertical lane after the intersection
-        - vertical_lanes: number of lanes in the vertical lane
-        - speed_limit: max speed limit of the vehicles on the road network
+        - edge_length: length of any of the four lanes associated with the diamond portion of the network.
+        - angle: angle between the horizontal axis and the edges associated with the diamond.
+        - resolution:
+        - AC_DB_speed_limit: max speed limit of the vehicles of the AC and DB links
+        - AD_CB_speed_limit: max speed limit of the vehicles of the AD and CB links.
         """
         edge_len = params["edge_length"]
         lanes = params["lanes"]
-        speed_limit = params["speed_limit"]
+        AC_DB_speed_limit = params["AC_DB_speed_limit"]
+        AD_CB_speed_limit = params["AD_CB_speed_limit"]
         resolution = params["resolution"]
         angle = params["angle"]
 
@@ -52,31 +51,37 @@ class BraessParadoxGenerator(Generator):
 
         # xml file for nodes; contains nodes for the boundary points with respect to the x and y axes
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
-        x.append(E("node", id="A",   x=repr(0),          y=repr(0),       type="priority"))
-        x.append(E("node", id="C",   x=repr(edge_x),     y=repr(edge_y),  type="priority"))
-        x.append(E("node", id="D",   x=repr(edge_x),     y=repr(-edge_y), type="priority"))
-        x.append(E("node", id="B",   x=repr(2 * edge_x), y=repr(0),       type="priority"))
-        x.append(E("node", id="BA1", x=repr(2 * edge_x), y=repr(-2 * r),  type="priority"))
-        x.append(E("node", id="BA2", x=repr(0),          y=repr(-2 * r),  type="priority"))
+        x.append(E("node", id="A",   x=repr(0),          y=repr(0),       type="unregulated"))
+        x.append(E("node", id="C",   x=repr(edge_x),     y=repr(edge_y),  type="unregulated"))
+        x.append(E("node", id="D",   x=repr(edge_x),     y=repr(-edge_y), type="unregulated"))
+        x.append(E("node", id="B",   x=repr(2 * edge_x), y=repr(0),       type="unregulated"))
+        x.append(E("node", id="BA1", x=repr(2 * edge_x), y=repr(-2 * r),  type="unregulated"))
+        x.append(E("node", id="BA2", x=repr(0),          y=repr(-2 * r),  type="unregulated"))
         printxml(x, self.net_path + nodfn)
 
-        # xml file for edges; creates circular arcs that connect the created nodes space between points
-        # in the edge is defined by the "resolution" variable
+        # xml file for edges
 
-        # braess network component
+        # braess network component, consisting of the following edges:
+        # - AC: top-left portion of the diamond
+        # - AD: bottom-left portion of the diamond
+        # - CB: top-right portion of the diamond
+        # - DB: bottom-right portion of the diamond
+        # - CD: vertical edge connecting lanes AC and DB
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
         x.append(E("edge", attrib={"id": "AC", "from": "A", "to": "C", "type": "edgeType",
-                                   "length": repr(edge_len)}))
-        x.append(E("edge", attrib={"id": "AD", "from": "A", "to": "D", "type": "edgeType",  # "priority": "78",
-                                   "length": repr(edge_len)}))
+                                   "length": repr(edge_len)}))  # , "speed": repr(AC_DB_speed_limit)}))
+        x.append(E("edge", attrib={"id": "AD", "from": "A", "to": "D", "type": "edgeType",
+                                   "length": repr(edge_len)}))  # , "speed": repr(AD_CB_speed_limit)}))
         x.append(E("edge", attrib={"id": "CB", "from": "C", "to": "B", "type": "edgeType",
-                                   "length": repr(edge_len)}))
-        x.append(E("edge", attrib={"id": "CD", "from": "C", "to": "D", "type": "edgeType",  # "priority": "46",
-                                   "length": repr(2 * edge_y)}))
-        x.append(E("edge", attrib={"id": "D", "from": "D", "to": "B", "type": "edgeType",
-                                   "length": repr(edge_len)}))
+                                   "length": repr(edge_len)}))  # , "speed": repr(AD_CB_speed_limit)}))
+        x.append(E("edge", attrib={"id": "CD", "from": "C", "to": "D", "type": "edgeType",
+                                   "length": repr(2 * edge_y), "speed": repr(AC_DB_speed_limit)}))
+        x.append(E("edge", attrib={"id": "DB", "from": "D", "to": "B", "type": "edgeType",
+                                   "length": repr(edge_len)}))  # , "speed": repr(AC_DB_speed_limit)}))
 
         # connecting output to input in braess network (to produce loop)
+        # Edges B and BA2 produce the two semi-circles on either sides of the braess network,
+        # while edge BA1 is a straight line that connects these to semicircles.
         x.append(E("edge", attrib={"id": "B", "from": "B", "to": "BA1", "type": "edgeType",
                                    "shape": " ".join(["%.2f,%.2f" % (2 * edge_x + r * sin(t), r * (- 1 + cos(t)))
                                                       for t in linspace(0, pi, resolution)]),
@@ -90,9 +95,9 @@ class BraessParadoxGenerator(Generator):
 
         printxml(x, self.net_path + edgfn)
 
-        # xml file for types; contains the the number of lanes and the speed limit for the lanes
+        # xml file for types; contains the the number of lanes TODO: and the speed limit for the lanes
         x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
-        x.append(E("type", id="edgeType", numLanes=repr(lanes), speed=repr(speed_limit)))
+        x.append(E("type", id="edgeType", numLanes=repr(lanes), speed=repr(max(AD_CB_speed_limit, AC_DB_speed_limit))))
         printxml(x, self.net_path + typfn)
 
         # xml file for configuration
@@ -114,8 +119,11 @@ class BraessParadoxGenerator(Generator):
         x.append(t)
         printxml(x, self.net_path + cfgfn)
 
+        # In order to minimize the effect of merges on the performance of the network (specifically the
+        # emergence of queues) "--no-internals-links" is given the value ("true"), meaning that vehicles
+        # cross a merge immediately.
         retcode = subprocess.call(["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
-                                   self.cfg_path + netfn + ' --no-internal-links="false"'],
+                                   self.cfg_path + netfn + ' --no-internal-links="true"'],
                                   stdout=sys.stdout, stderr=sys.stderr, shell=True)
         self.netfn = netfn
 
@@ -151,28 +159,7 @@ class BraessParadoxGenerator(Generator):
         cfgfn = "%s.sumo.cfg" % self.name
         guifn = "%s.gui.cfg" % self.name
 
-        def rerouter(name, frm, to):
-            '''
-
-            :param name:
-            :param frm:
-            :param to:
-            :return:
-            '''
-            t = E("rerouter", id=name, edges=frm)
-            i = E("interval", begin="0", end="10000000")
-            i.append(E("routeProbReroute", id=to))
-            t.append(i)
-            return t
-
-        self.rts = {"AC":  "AC CB B BA1 BA2",
-                    "AD":  "AD D B BA1 BA2",
-                    "CB":  "CB B BA1 BA2 AC",
-                    "CD":  "CD D B BA1 BA2 AC",
-                    "D":   "D B BA1 BA2 AC CD",
-                    "B":   "B BA1 BA2 AC CD D",
-                    "BA1": "BA1 BA2 AC CB B",
-                    "BA2": "BA2 AC CB B BA1"}
+        self.rts = self.available_route_choices()
 
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
@@ -196,6 +183,25 @@ class BraessParadoxGenerator(Generator):
 
         printxml(cfg, self.cfg_path + cfgfn)
         return cfgfn
+
+    def available_route_choices(self):
+        """
+        Specifies a dict on routes vehicles can traverse in the network
+
+        :return: routes that vehicles in the network can traverse given their starting node
+                 (only necessarily needed during initialization; afterwards, different routes
+                  can be specified)
+        """
+        rts = {"AC":  "AC CB B BA1 BA2",
+               "AD":  "AD DB B BA1 BA2",
+               "CB":  "CB B BA1 BA2 AC",
+               "CD":  "CD DB B BA1 BA2 AC",
+               "DB":  "DB B BA1 BA2 AC CD",
+               "B":   "B BA1 BA2 AC CD DB",
+               "BA1": "BA1 BA2 AC CB B",
+               "BA2": "BA2 AC CB B BA1"}
+
+        return rts
 
     def make_routes(self, scenario, initial_config, cfg_params):
 

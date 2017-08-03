@@ -1,5 +1,9 @@
 """
-Base Braess's Paradox experiment without any automated vehicles
+Base Braess's Paradox experiment without any automated vehicles.
+
+Human-driven vehicles choose the route in the braess's network that they perceive as having the
+shortest travel time. They then update their perception of the travel time of that route using
+their most recent observations.
 """
 
 import logging
@@ -18,10 +22,10 @@ sumo_binary = "sumo-gui"
 
 type_params = {"idm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"varying_edge_speed": lambda density: 0.51 / density, "constant_edge_speed": 7.2}
+env_params = {"close_CD": False}
 
-net_params = {"edge_length": 120, "angle": np.pi/9, "resolution": 40, "lanes": 1, "speed_limit": 30,
-              "net_path": "debug/net/"}
+net_params = {"edge_length": 120, "angle": np.pi/9, "resolution": 40, "lanes": 1,
+              "AC_DB_speed_limit": 100, "AD_CB_speed_limit": 15, "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 

@@ -8,11 +8,8 @@ class BraessParadoxScenario(Scenario):
 
     def __init__(self, name, type_params, net_params, cfg_params=None, initial_config=None, cfg=None):
         """
-        Initializes a two-way intersection scenario. Required net_params: horizontal_length_before,
-        horizontal_length_after, horizontal_lanes, vertical_length_before, vertical_length_after, vertical_lanes,
-        speed_limit. Required initial_config: positions.
-
-        See Scenario.py for description of params.
+        Initializes a Braess Paradox scenario.
+        Required net_params: angle, edge_length, lanes, resolution speed_limit.
         """
         self.angle = net_params["angle"]
         self.edge_len = net_params["edge_length"]
@@ -22,7 +19,8 @@ class BraessParadoxScenario(Scenario):
         self.horz_len = 2 * self.edge_len * np.cos(self.angle)
 
         # instantiate "length" in net params
-        net_params["length"] = 4 * self.edge_len + 4 * self.junction_len + 2 * self.curve_len + self.horz_len
+        # net_params["length"] = 4 * self.edge_len + 4 * self.junction_len + 2 * self.curve_len + self.horz_len
+        net_params["length"] = 4 * self.edge_len + 2 * self.curve_len + self.horz_len
 
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,
@@ -35,10 +33,6 @@ class BraessParadoxScenario(Scenario):
         if "lanes" not in self.net_params:
             raise ValueError("lanes of circle not supplied")
         self.lanes = self.net_params["lanes"]
-
-        if "speed_limit" not in self.net_params:
-            raise ValueError("speed limit of circle not supplied")
-        self.speed_limit = self.net_params["speed_limit"]
 
         if "resolution" not in self.net_params:
             raise ValueError("resolution of circle not supplied")
@@ -59,15 +53,15 @@ class BraessParadoxScenario(Scenario):
              ("AC",  2 * self.curve_len + self.horz_len),
              ("CB",  2 * self.curve_len + self.horz_len + self.edge_len),
              ("AD",  2 * self.curve_len + self.horz_len + 2 * self.edge_len),
-             ("D",   2 * self.curve_len + self.horz_len + 3 * self.edge_len),
-             ("CD", 2 * self.curve_len + self.horz_len + 4 * self.edge_len)]
+             ("DB",  2 * self.curve_len + self.horz_len + 3 * self.edge_len),
+             ("CD",  2 * self.curve_len + self.horz_len + 4 * self.edge_len)]
 
-        # defines edge starts for intersections
-        self.intersection_edgestarts = \
-            [(":A", 2 * self.curve_len + self.horz_len + 2 * self.edge_len),
-             (":B", 0),
-             (":C", 2 * self.curve_len + self.horz_len),
-             (":D", 2 * self.curve_len + self.horz_len + 3 * self.edge_len)]
+        # # defines edge starts for intersections
+        # self.intersection_edgestarts = \
+        #     [(":A", 2 * self.curve_len + self.horz_len + 2 * self.edge_len),
+        #      (":B", 0),
+        #      (":C", 2 * self.curve_len + self.horz_len),
+        #      (":D", 2 * self.curve_len + self.horz_len + 3 * self.edge_len)]
 
         # generate starting position for vehicles in the network
         if "positions" not in self.initial_config:
@@ -107,11 +101,11 @@ class BraessParadoxScenario(Scenario):
                 edgestart = edge_tuple[1]
                 return position + edgestart
 
-        # if the vehicle is not in a lane, check if it is on an intersection
-        for center_tuple in self.intersection_edgestarts:
-            if center_tuple[0] in edge:
-                edgestart = center_tuple[1]
-                return position + edgestart
+        # # if the vehicle is not in a lane, check if it is on an intersection
+        # for center_tuple in self.intersection_edgestarts:
+        #     if center_tuple[0] in edge:
+        #         edgestart = center_tuple[1]
+        #         return position + edgestart
 
     def generate_starting_positions(self, x0=1):
         """
@@ -129,7 +123,7 @@ class BraessParadoxScenario(Scenario):
                 downscale = 5
                 if "downscale" in self.initial_config:
                     downscale = self.initial_config["downscale"]
-                startpositions = self.gen_random_start_pos(downscale, bunch_factor, x0=x0)
+                startpositions = self.gen_random_start_positions(downscale, bunch_factor, x0=x0)
         else:
             startpositions = self.gen_even_start_positions(bunch_factor, x0=x0)
 
@@ -140,9 +134,10 @@ class BraessParadoxScenario(Scenario):
         Generate uniformly spaced start positions.
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
         """
+        distribution_len = 2 * self.curve_len + self.horz_len
         startpositions = []
         startlanes = []
-        increment = (self.length - bunching) * self.lanes_distribution / self.num_vehicles
+        increment = (distribution_len - bunching) * self.lanes_distribution / self.num_vehicles
 
         x = [x0] * self.lanes_distribution
         car_count = 0
@@ -165,7 +160,7 @@ class BraessParadoxScenario(Scenario):
 
         return startpositions, startlanes
 
-    def gen_random_start_pos(self, downscale=5, bunching=0, x0=1):
+    def gen_random_start_positions(self, downscale=5, bunching=0, x0=1):
         """
         Generate random start positions via additive Gaussian.
 
