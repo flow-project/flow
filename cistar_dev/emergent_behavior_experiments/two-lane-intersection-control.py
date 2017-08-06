@@ -22,7 +22,7 @@ from rllab.envs.gym_env import GymEnv
 
 import pdb
 
-def run_task(*_):
+def run_task(v):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
@@ -79,25 +79,27 @@ def run_task(*_):
         n_itr=2,
         # whole_paths=True,
         # discount=0.999,
-        step_size=0.01,
+        step_size=v["step_size"],
     )
     algo.train()
 
 
-for seed in [3]:  # [16, 20, 21, 22]:
-    run_experiment_lite(
-        run_task,
-        # Number of parallel workers for sampling
-        n_parallel=2,
-        # Only keep the snapshot parameters for the last iteration
-        snapshot_mode="all",
-        # Specifies the seed for the experiment. If this is not provided, a random seed
-        # will be used
-        seed=seed,
-        mode="local_docker",
-        exp_prefix='test-test',
-        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
-        # plot=True,
-    )
+for step_size in [0.01]:
+    for seed in [3]:  # [16, 20, 21, 22]:
+        run_experiment_lite(
+            run_task,
+            # Number of parallel workers for sampling
+            n_parallel=2,
+            # Only keep the snapshot parameters for the last iteration
+            snapshot_mode="all",
+            # Specifies the seed for the experiment. If this is not provided, a random seed
+            # will be used
+            seed=seed,
+            mode="local_docker",
+            exp_prefix='test-test',
+            variant=dict(step_size=step_size, seed=seed),
+            #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+            # plot=True,
+        )
 
 

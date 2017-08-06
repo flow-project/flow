@@ -32,6 +32,8 @@ if __name__ == "__main__":
                         help='Number of steps to take')
     parser.add_argument('--loop_length', type=float, default=230,
                         help='Length of loop over which to simulate')
+    parser.add_argument('--scenario_type', type=str, default='loop',
+                        help='type of scenario being implemented ("loop" or "figure8"')
 
     args = parser.parse_args()
 
@@ -40,9 +42,10 @@ if __name__ == "__main__":
         data = joblib.load(args.file)
         policy = data['policy']
         env = data['env']
+        import ipdb; ipdb.set_trace()
 
         # Input
-        unwrapped_env = env._wrapped_env.wrapped_env
+        unwrapped_env = env.env.unwrapped
         if unwrapped_env.obs_var_labels:
             obs_vars = unwrapped_env.obs_var_labels
         else:
@@ -51,7 +54,7 @@ if __name__ == "__main__":
         # Recreate experiment params
         tot_cars = unwrapped_env.scenario.num_vehicles
         rl_cars = unwrapped_env.scenario.num_rl_vehicles
-        flat_obs = unwrapped_env.observation_space.flat_dim
+        flat_obs = env.observation_space.flat_dim
         num_obs_var = flat_obs / tot_cars
 
         # Recreate the sumo scenario, change the loop length
@@ -62,16 +65,20 @@ if __name__ == "__main__":
         net_params["length"] = args.loop_length
         cfg_params = scenario.cfg_params
         initial_config = scenario.initial_config
-        if TYPE == 'figure8':
+        if args.scenario_type == 'figure8':
+            net_params["radius_ring"] = args.radius_ring
             scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
-        elif TYPE == 'loop':
+        elif args.scenario_type == 'loop':
+            net_params["length"] = args.loop_length
             scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
-        env._wrapped_env.scenario = scenario
+        elif args.scenario_type == 'intersection':
+            scenario = TwoWayIntersectionScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+        unwrapped_env.scenario = scenario
 
         # Set sumo to make a video 
         sumo_params = unwrapped_env.sumo_params
         sumo_params['emission_path'] = "./test_time_rollout/"
-        sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
+        sumo_binary = 'sumo' if args.use_sumogui else 'sumo'
         unwrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
 
 

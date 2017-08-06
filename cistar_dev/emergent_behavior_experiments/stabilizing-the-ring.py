@@ -23,16 +23,17 @@ from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.controllers.car_following_models import *
 from rllab.envs.gym_env import GymEnv
+import sys
 
-def run_task(*_):
+def run_task(v):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "rl_sm": "aggressive", "human_sm": "no_collide"}
+    sumo_params = {"time_step": 0.1, "rl_sm": "no_collide", "human_sm": "no_collide"}
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 15, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
-                "num_steps": 1500}
+                "num_steps": 1000}
 
     net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}
@@ -63,34 +64,37 @@ def run_task(*_):
         hidden_sizes=(100, 50, 25)
     )
 
-    baseline = LinearFeatureBaseline(env_spec=env.spec)
+    baseline = [LinearFeatureBaseline(env_spec=env.spec)]
 
     algo = TRPO(
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,
+        batch_size=1000,
         max_path_length=horizon,
-        n_itr=500,  # 1000
+        n_itr=1,  # 1000
         # whole_paths=True,
-        discount=0.999,
-        step_size=0.01,
+        #discount=0.999,
+        step_size=v["step_size"],
     )
     algo.train(),
 
 exp_tag = str(22) + "-car-stabilizing-the-ring"
-for seed in [22]:
-    run_experiment_lite(
-        run_task, 
-        # Number of parallel workers for sampling
-        n_parallel=8,
-        # Only keep the snapshot parameters for the last iteration
-        snapshot_mode="all",
-        # Specifies the seed for the experiment. If this is not provided, a random seed
-        # will be used
-        seed=seed,
-        mode="ec2",
-        exp_prefix=exp_tag,
-        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
-        # plot=True,
-    )
+for step_size in [0.01]:
+    for seed in [5]:
+        run_experiment_lite(
+            run_task,
+            # Number of parallel workers for sampling
+            n_parallel=1,
+            # Only keep the snapshot parameters for the last iteration
+            snapshot_mode="all",
+            # Specifies the seed for the experiment. If this is not provided, a random seed
+            # will be used
+            seed=seed,
+            mode="local",
+            exp_prefix=exp_tag,
+            variant=dict(step_size=step_size, seed=seed)
+            #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+            # plot=True,
+        )
+        sys.exit()

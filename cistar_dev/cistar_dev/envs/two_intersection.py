@@ -46,17 +46,18 @@ class TwoIntersectionEnvironment(LoopEnvironment):
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
         for i, veh_id in enumerate(sorted_rl_ids):
 
-            # If we are outside the control region, just get up to speed
+            # If we are outside the control region, just accelerate
+            # up to the entering velocity
             if (self.get_distance_to_intersection(veh_id)[0] > 150 and 
                     (self.vehicles[veh_id]["edge"] == "bottom" or 
                     self.vehicles[veh_id]["edge"] == "left")):
                 # get up to max speed
                 if self.vehicles[veh_id]["speed"] < self.scenario.initial_config["enter_speed"]:
-                    # accelerate as fast as you can
+                    # accelerate as fast as you are allowed
                     if ((self.scenario.initial_config["enter_speed"] - 
                         self.vehicles[veh_id]["speed"])/self.time_step > self.env_params["max-acc"]):
                         rl_actions[i] =  self.env_params["max-acc"]
-                    # accelerate up to target velocity
+                    # accelerate the exact amount needed to get up to target velocity
                     else:
                         rl_actions[i] = ((self.scenario.initial_config["enter_speed"] - 
                                             self.vehicles[veh_id]["speed"])/self.time_step)
@@ -67,6 +68,7 @@ class TwoIntersectionEnvironment(LoopEnvironment):
             # make it so this only happens once
             else:
                 self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
+            # cap the velocity 
             if (self.vehicles[veh_id]["speed"] + 
                 self.time_step*rl_actions[i] > self.vehicles[veh_id]["max_speed"]):
                 rl_actions[i] = ((self.vehicles[veh_id]["max_speed"] - 
@@ -81,8 +83,7 @@ class TwoIntersectionEnvironment(LoopEnvironment):
         See parent class
         """
         return rewards.desired_velocity(
-            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"],
-            multi_agent = self.multi_agent)
+            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
         # return rewards.min_delay(state, rl_actions, target_velocity=self.env_params["target_velocity"],
         #     time_step=self.sumo_params["time_step"], fail=kwargs["fail"])
 

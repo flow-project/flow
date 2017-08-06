@@ -163,6 +163,11 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             self.shared_reward = 0
 
+        if "shared_policy" in self.env_params:
+            self.shared_policy = self.env_params['shared_policy']
+        else:
+            self.shared_policy = 0 
+
         # Check if we are in a multi-agent scenario
         if isinstance(self.action_space, list):
             self.multi_agent = 1
@@ -449,7 +454,8 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             self.state = []
         # collect observation new state associated with action
-        next_observation = np.copy(self.state)
+
+        next_observation = list(self.state)
 
         # crash encodes whether sumo experienced a crash
         crash = crash or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
@@ -472,9 +478,9 @@ class SumoEnvironment(gym.Env, Serializable):
                 info_n['reward_n'] = reward
 
             if crash:
+                done_n = self.scenario.num_rl_vehicles * [1]
                 if self.fail_safe:
-                    print("Crash has occurred!")
-                    done_n = self.scenario.num_rl_vehicles*[1]
+                    print("Crash has occurred! Check your failsafes")
 
             info_n['done_n'] = done_n
             info_n['state'] = self.state
@@ -594,8 +600,7 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             self.state = self.getState().T
 
-        observation = np.copy(self.state)
-
+        observation = list(self.state)
         return observation
 
     def additional_command(self):
