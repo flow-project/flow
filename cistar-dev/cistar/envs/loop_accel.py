@@ -55,18 +55,34 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        reward = rewards.desired_velocity(
-            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
+        # reward = rewards.desired_velocity(
+        #     state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
 
-        # # global reward function for partial observability
-        # vel = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids])
-        # if any(vel < -100) or kwargs["fail"]:
-        #     return 0.
-        # max_cost = np.array([kwargs["target_velocity"]] * self.scenario.num_vehicles)
-        # max_cost = np.linalg.norm(max_cost)
-        # cost = vel - kwargs["target_velocity"]
-        # cost = np.linalg.norm(cost)
-        # reward = max(max_cost - cost, 0)
+        # reward desired velocity
+        vel = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids])
+        if any(vel < -100) or kwargs["fail"]:
+            return 0.
+        max_cost = np.array([self.env_params["target_velocity"]] * self.scenario.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
+        cost = vel - self.env_params["target_velocity"]
+        cost = np.linalg.norm(cost)
+        reward = max(max_cost - cost, 0)
+
+        # punish small headways
+        headway_threshold = 30
+        penalty_gain = 0.4
+        penalty_exponent = 2
+        headway_penalty = 0
+        for veh_id in self.rl_ids:
+            if self.vehicles[veh_id]["headway"] < headway_threshold:
+                headway_penalty += (((headway_threshold - self.vehicles[veh_id]["headway"]) / headway_threshold)
+                                    ** penalty_exponent) * penalty_gain
+
+        # in order to keep headway penalty (and thus reward function) positive
+        max_headway_penalty = self.scenario.num_rl_vehicles * penalty_gain
+        headway_penalty = max_headway_penalty - headway_penalty
+
+        reward += headway_penalty
 
         return reward
 
@@ -80,31 +96,89 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
         #                  for veh_id in self.sorted_ids]).T
 
-        # # partial observability for stabilizing the ring
-        # vehID = self.rl_ids[0]
-        # lead_id = self.vehicles[vehID]["leader"]
-        # trail_id = self.vehicles[vehID]["follower"]
-        #
-        # # state contains the speed of the rl car, and its leader and follower,
-        # # as well as the rl car's position in the network, and its headway with the vehicles adjacent to it
-        # observation = np.array([
-        #     [self.vehicles[trail_id]["speed"], self.vehicles[vehID]["speed"],
-        #      self.vehicles[lead_id]["speed"]],
-        #     [self.vehicles[trail_id]["headway"], self.vehicles[vehID]["absolute_position"],
-        #      self.vehicles[vehID]["headway"]]])
-        # return observation
-
-        # implicit labeling for stabilizing the ring (centering the rl vehicle, scaling and using relative position)
-        indx_rl = np.where(["rl" in self.vehicles[veh_id]["id"] for veh_id in self.sorted_ids])[0]
-        num_vehicles = self.scenario.num_vehicles
-        ids_centering_rl = np.append(np.array([self.sorted_ids[i] for i in np.arange(indx_rl, num_vehicles)]),
-                                     np.array([self.sorted_ids[i] for i in np.arange(indx_rl)]))
-
+        """implicit labeling for stabilizing the ring (centering the rl vehicle, scaling and using relative position)"""
         scaled_rel_pos = [(self.vehicles[veh_id]["absolute_position"] % self.scenario.length) / self.scenario.length
-                          for veh_id in ids_centering_rl]
-        vel = [self.vehicles[veh_id]["speed"] for veh_id in ids_centering_rl]
+                          for veh_id in self.sorted_ids]
+        scaled_vel = [self.vehicles[veh_id]["speed"] / self.env_params["target_velocity"]
+                      for veh_id in self.sorted_ids]
+        return np.array([[scaled_vel[i], scaled_rel_pos[i]] for i in range(len(self.sorted_ids))]).T
 
-        return np.array([[vel[i], scaled_rel_pos[i]] for i in range(len(ids_centering_rl))]).T
+        # """for purely homogeneous cases (i.e. full autonomy)"""
+        # # note: for mixed-autonomy with more than one rl car, the reference vehicle can probably be chosen
+        # # differently during the run, and still support the concept of equivalent classes
+        # scaled_rel_pos = [self.vehicles[veh_id]["absolute_position"] / self.scenario.length
+        #                   for veh_id in self.sorted_ids]
+        # scaled_vel = [self.vehicles[veh_id]["speed"] / self.env_params["target_velocity"]
+        #               for veh_id in self.sorted_ids]
+        # return np.array([[scaled_vel[i], scaled_rel_pos[i]] for i in range(len(self.sorted_ids))]).T
 
     def render(self):
         print('current state/velocity:', self.state)
+
+
+class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
+    """
+    This environment is an extension of the SimpleAccelerationEnvironment (seen above), with the exception
+    that only partial information is provided to the agent about the network; namely, information on the
+    vehicle immediately in front of it and the vehicle immediately behind it. The reward function, however,
+    continues to reward GLOBAL performance. The environment also assumes that only one autonomous vehicle
+    is in the network.
+    """
+    # TODO: maybe generalize for several vehicles?
+
+    @property
+    def observation_space(self):
+        """
+        See parent class
+        An observation is an array the velocities for each vehicle
+        """
+        # partial observability
+        speed = Box(low=0, high=np.inf, shape=(3,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(3,))
+        return Product([speed, absolute_pos])
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """
+        See parent class
+        """
+        # reward desired velocity
+        vel = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids])
+        if any(vel < -100) or kwargs["fail"]:
+            return 0.
+
+        max_cost = np.array([self.env_params["target_velocity"]] * self.scenario.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
+
+        cost = vel - self.env_params["target_velocity"]
+        cost = np.linalg.norm(cost)
+
+        return max(max_cost - cost, 0)
+
+    def getState(self, **kwargs):
+        """
+        See parent class
+        The state is an array the velocities for each vehicle
+        :return: a matrix of velocities and absolute positions for each vehicle
+        """
+        vehID = self.rl_ids[0]
+        lead_id = self.vehicles[vehID]["leader"]
+        trail_id = self.vehicles[vehID]["follower"]
+
+        if trail_id is None:
+            trail_id = vehID
+            self.vehicles[trail_id]["headway"] = 0
+        if lead_id is None:
+            lead_id = vehID
+            self.vehicles[vehID]["headway"] = 0
+
+        # state contains the speed of the rl car, and its leader and follower,
+        # as well as the rl car's position in the network, and its headway with the vehicles adjacent to it
+        observation = np.array([
+            [self.vehicles[vehID]["speed"],
+             self.vehicles[trail_id]["speed"],
+             self.vehicles[lead_id]["speed"]],
+            [self.vehicles[vehID]["absolute_position"] / self.scenario.length,
+             self.vehicles[trail_id]["headway"] / self.scenario.length,
+             self.vehicles[vehID]["headway"] / self.scenario.length]])
+
+        return observation
