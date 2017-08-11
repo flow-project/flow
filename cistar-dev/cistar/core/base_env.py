@@ -155,8 +155,6 @@ class SumoEnvironment(Env, Serializable):
         for key in self.scenario.generator.rts:
             self.available_routes[key] = self.scenario.generator.rts[key].split(' ')
 
-        print(self.available_routes)
-
         self.start_sumo()
         self.setup_initial_state()
 
@@ -404,16 +402,19 @@ class SumoEnvironment(Env, Serializable):
             if self.vehicles[veh_id]["position"] < 0 or self.vehicles[veh_id]["speed"] < 0:
                 crash = True
 
-            # Grab the headway
-            headway = network_observations[veh_id][tc.VAR_LEADER]
-            if headway is None:
-                self.vehicles[veh_id]["leader"] = None
-                self.vehicles[veh_id]["follower"] = None
-                self.vehicles[veh_id]["headway"] = np.inf
-            else:
-                self.vehicles[veh_id]["headway"] = headway[1]
-                self.vehicles[veh_id]["leader"] = headway[0]
-                self.vehicles[headway[0]]["follower"] = veh_id
+            # collect headway, leader id, and follower id data
+            headway_data = self.get_headway_dict(network_observations=network_observations)
+
+            for veh_id in self.ids:
+                try:
+                    self.vehicles[veh_id]["headway"] = headway_data[veh_id]["headway"]
+                    self.vehicles[veh_id]["leader"] = headway_data[veh_id]["leader"]
+                    self.vehicles[veh_id]["follower"] = headway_data[veh_id]["follower"]
+                except KeyError:
+                    # occurs in the case of crashes, so headway is assumed to be very small
+                    self.vehicles[veh_id]["headway"] = 1e-3
+                    self.vehicles[veh_id]["leader"] = None
+                    self.vehicles[veh_id]["follower"] = None
 
             # self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
             # self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
@@ -689,48 +690,68 @@ class SumoEnvironment(Env, Serializable):
             if veh_id not in self.rl_ids:
                 if self.sumo_params["human_lc"] == "strategic":
                     lc_mode = 853
+                elif self.sumo_params["human_lc"] == "aggressive":
+                    # Let TRACI make any lane changes it wants
+                    lc_mode = 0
+                elif self.sumo_params["human_lc"] == "no_lat_collide":
+                    lc_mode = 256
                 else:
                     lc_mode = 768
 
         self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
-    def check_longitudinal_crash(self):
-        """
-        Checks if the collision was the result of a forward movement (i.e. bumper-to-bumper crash)
-        :return: boolean value (True if crash occurred, False else)
-        """
-        # TODO: figure out how to implement
-        pass
-
-    def check_lane_change_crash(self):
-        """
-        Checks if the collision was the result of a lane change
-        :return: boolean value (True if crash occurred, False else)
-        """
-        # TODO: figure out how to implement
-        pass
-
     def get_x_by_id(self, veh_id):
         """
         Returns the position of a vehicle relative to a certain reference (origin)
         """
-        raise NotImplementedError
+        if self.vehicles[veh_id]["edge"] == '':
+            # occurs when a vehicle crashes is teleported for some other reason
+            return 0.
+        return self.scenario.get_x(self.vehicles[veh_id]["edge"], self.vehicles[veh_id]["position"])
 
     def sort_by_position(self):
         """
-        sorts the vehicle ids of vehicles in the network by position
+        Sorts the vehicle ids of vehicles in the network by position.
+        The base environment does this by sorting vehicles by their absolute position, as specified
+        by the "get_x_by_id" function.
+
         :return: a list of sorted vehicle ids
                  an extra component (list, tuple, etc...) containing extra sorted data, such as positions.
                   If no extra component is needed, a value of None should be returned
         """
-        raise NotImplementedError
+        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        sorted_ids = np.array(self.ids)[sorted_indx]
+        return sorted_ids, None
 
-    # TODO: we are using traci calls for this now. Should we delete?
-    def get_headway_dict(self):
+    def get_headway_dict(self, **kwargs):
         """
-        Returns the headway between the current vehicle and the one in front of it
+        Collects the headways, leaders, and followers of all vehicles at once.
+        The base environment does by using traci calls.
+
+        :return: vehicles {dict} -- headways, leader ids, and follower ids for each veh_id in the network
         """
-        raise NotImplementedError
+        vehicles = dict()
+
+        for veh_id in self.ids:
+            vehicles[veh_id] = dict()
+            try:
+                headway = kwargs["network_observations"][veh_id][tc.VAR_LEADER]
+                if headway is None:
+                    vehicles[veh_id]["leader"] = None
+                    vehicles[veh_id]["follower"] = None
+                    vehicles[veh_id]["headway"] = np.inf
+                else:
+                    vehicles[veh_id]["headway"] = headway[1]
+                    vehicles[veh_id]["leader"] = headway[0]
+                    vehicles[headway[0]]["follower"] = veh_id
+            except KeyError:
+                # this is used to deal with the absence of network observations upon reset.
+                # it only applies for the very first time step
+                vehicles[veh_id]["leader"] = None
+                vehicles[veh_id]["follower"] = None
+                vehicles[veh_id]["headway"] = np.inf
+
+        return vehicles
 
     def getState(self):
         """
