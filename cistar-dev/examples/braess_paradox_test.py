@@ -16,16 +16,16 @@ from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParado
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": "no_collide"}
+sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": "no_collide", "human_lc": "no_lat_collide"}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = {"idm": (30, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"close_CD": False}
+env_params = {"close_CD": True}
 
-net_params = {"edge_length": 120, "angle": np.pi/9, "resolution": 40, "lanes": 1,
-              "AC_DB_speed_limit": 100, "AD_CB_speed_limit": 15, "net_path": "debug/net/"}
+net_params = {"edge_length": 130, "angle": np.pi/9, "resolution": 40, "lanes": 1,
+              "AC_DB_speed_limit": 100, "AD_CB_speed_limit": 10, "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 

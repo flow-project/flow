@@ -26,9 +26,9 @@ stub(globals())
 sumo_params = {"time_step": 0.1, "starting_position_shuffle": False, "vehicle_arrangement_shuffle": False,
                "rl_lc": "no_lat_collide", "human_lc": "no_lat_collide",
                "rl_sm": "no_collide", "human_sm": "no_collide"}
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
-env_params = {"target_velocity": 10, "max-deacc": -6, "max-acc": 3,
+env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3,
               "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
 
 net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
@@ -38,8 +38,8 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
 initial_config = {"shuffle": False}
 
-num_cars = 28
-num_auto = 28
+num_cars = 14
+num_auto = 14
 type_params = {"rl": (num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
@@ -48,9 +48,6 @@ exp_type = 0
 if exp_type == 1:
     num_cars = 14
     num_auto = 1
-    # type_params = \
-    #     OrderedDict([("rl", (1, (RLController, {}), (StaticLaneChanger, {}), 0)),
-    #                  ("idm", (13, (IDMController, {}), (StaticLaneChanger, {}), 0))])
     type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
                    "idm": (13, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
@@ -92,7 +89,7 @@ elif exp_type == 4:
                    "rl7": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
                    "idm7": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
-exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-intersection-control'
+exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-figure-8-intersection-control'
 
 scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -100,7 +97,7 @@ env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenar
 
 env = normalize(env)
 
-for seed in [5]:  # [16, 20, 21, 22]:
+for seed in [5, 58, 122]:  # , 20, 65]:
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
         hidden_sizes=(100, 50, 25)
@@ -112,7 +109,7 @@ for seed in [5]:  # [16, 20, 21, 22]:
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=15000,
+        batch_size=30000,
         max_path_length=1500,
         n_itr=1000,
         # whole_paths=True,
@@ -123,14 +120,14 @@ for seed in [5]:  # [16, 20, 21, 22]:
     run_experiment_lite(
         algo.train(),
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

@@ -56,12 +56,12 @@ class BraessParadoxScenario(Scenario):
              ("DB",  2 * self.curve_len + self.horz_len + 3 * self.edge_len),
              ("CD",  2 * self.curve_len + self.horz_len + 4 * self.edge_len)]
 
-        # # defines edge starts for intersections
-        # self.intersection_edgestarts = \
-        #     [(":A", 2 * self.curve_len + self.horz_len + 2 * self.edge_len),
-        #      (":B", 0),
-        #      (":C", 2 * self.curve_len + self.horz_len),
-        #      (":D", 2 * self.curve_len + self.horz_len + 3 * self.edge_len)]
+        # defines edge starts for intersections
+        self.intersection_edgestarts = \
+            [(":A", 2 * self.curve_len + self.horz_len + 2 * self.edge_len),
+             (":B", 0),
+             (":C", 2 * self.curve_len + self.horz_len),
+             (":D", 2 * self.curve_len + self.horz_len + 3 * self.edge_len)]
 
         # generate starting position for vehicles in the network
         if "positions" not in self.initial_config:
@@ -101,11 +101,11 @@ class BraessParadoxScenario(Scenario):
                 edgestart = edge_tuple[1]
                 return position + edgestart
 
-        # # if the vehicle is not in a lane, check if it is on an intersection
-        # for center_tuple in self.intersection_edgestarts:
-        #     if center_tuple[0] in edge:
-        #         edgestart = center_tuple[1]
-        #         return position + edgestart
+        # if the vehicle is not in a lane, check if it is on an intersection
+        for center_tuple in self.intersection_edgestarts:
+            if center_tuple[0] in edge:
+                edgestart = center_tuple[1]
+                return position + edgestart
 
     def generate_starting_positions(self, x0=1):
         """

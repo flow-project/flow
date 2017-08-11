@@ -1,4 +1,4 @@
-from cistar.envs.loop import LoopEnvironment
+from cistar.core.base_env import SumoEnvironment
 from cistar.core import rewards
 
 from rllab.spaces import Box
@@ -11,7 +11,7 @@ import random
 import pdb
 
 
-class BraessParadoxEnvironment(LoopEnvironment):
+class BraessParadoxEnvironment(SumoEnvironment):
     """
     A class meant to mimic Braess's paradox.
 
@@ -217,16 +217,9 @@ class BraessParadoxEnvironment(LoopEnvironment):
         for i, veh_id in enumerate(veh_ids):
             # some values of interest
             this_edge = self.vehicles[veh_id]["edge"]
-            this_pos = self.vehicles[veh_id]["position"]
-            edge_len = self.scenario.edge_len
-            curve_len = self.scenario.curve_len
 
-            # this term determines if the vehicle in question is close enough to any route-choosing nodes
-            near_route_choosing_node = ((this_pos >= edge_len - 10) and (this_edge in ["DB", "CB"])) \
-                or ((this_pos >= curve_len - 10) and (this_edge == "BA2"))
-
-            # if the vehicle is not close enough, do not make any route changing decisions
-            if not near_route_choosing_node:
+            # if the vehicle is not at the end of its route, do not make any route changing decisions
+            if this_edge != self.vehicles[veh_id]["route"][-1]:
                 continue
 
             # in order for vehicles to remain in the network indefinitely, they reroute once they are near node "B"
@@ -249,7 +242,9 @@ class BraessParadoxEnvironment(LoopEnvironment):
 
                 route_choices[i] = self.available_route_choices[current_route_choice_indx]
 
-            self.traci_connection.vehicle.setRoute(vehID=veh_id, edgeList=route_choices[i])
+            if self.vehicles[veh_id]["route"] != route_choices[i]:
+                self.vehicles[veh_id]["route"] = route_choices[i]
+                self.traci_connection.vehicle.setRoute(vehID=veh_id, edgeList=route_choices[i])
 
     def apply_acceleration(self, veh_ids, acc):
         """
@@ -258,35 +253,29 @@ class BraessParadoxEnvironment(LoopEnvironment):
         i_called = []  # index of vehicles in the list that have already received traci calls
         for i, veh_id in enumerate(veh_ids):
             this_edge = self.vehicles[veh_id]["edge"]
-            this_pos = self.vehicles[veh_id]["position"]
-            edge_len = self.scenario.edge_len
+            this_lane = self.vehicles[veh_id]["lane"]
 
-            # vehicles on edges CD and any of the edges not part of the braess paradox network
-            # move very fast (mimicking a zero or negligible travel time)
+            # vehicles on any of the edges that are not part of the braess paradox network
+            # move at the lower speed limit - this should serve to mimic constant speeds in the lower
+            # speed limit lanes, while limiting accelerations by density in the higher speed limit lanes,
+            # thereby making velocity in these lanes a function of density
             if this_edge in ["B", "BA1", "BA2"]:
-                target_speed = self.scenario.net_params["AD_CB_speed_limit"]
+                target_speed = min(self.scenario.net_params["AC_DB_speed_limit"],
+                                   self.scenario.net_params["AD_CB_speed_limit"])
+
+                # in order to ensure that vehicles are no adjacent to one another along the connecting route, thereby
+                # blocking each other from switching lanes, all cars are placed at the center lane, and vehicles not
+                # on the lane move at a slower speed so that they are not always next to the vehicles.
+                if this_edge in ["BA1"] and this_lane != 1:
+                    target_speed = max(0, target_speed - 10)
+                    self.traci_connection.vehicle.changeLane(veh_id, 1, 100000)
+
                 self.traci_connection.vehicle.slowDown(vehID=veh_id, speed=target_speed, duration=1)
                 i_called.append(i)
-
-            # elif this_edge in ["AC", "D"] and (this_pos > edge_len - 10 or this_pos < 10):
-            #     target_speed = self.scenario.net_params["AC_DB_speed_limit"]  # speed limit on these lanes
-            #     self.traci_connection.vehicle.slowDown(vehID=veh_id, speed=target_speed, duration=1)
-            #     i_called.append(i)
-            #
-            # elif this_edge in ["AD", "CB"] and (this_pos > edge_len - 10 or this_pos < 10):
-            #     target_speed = self.scenario.net_params["AD_CB_speed_limit"]  # speed limit on these lanes
-            #     self.traci_connection.vehicle.slowDown(vehID=veh_id, speed=target_speed, duration=1)
-            #     i_called.append(i)
 
         # delete data on vehicles that have already received traci calls in order to reduce run-time
         veh_ids = [veh_ids[i] for i in range(len(veh_ids)) if i not in i_called]
         acc = [acc[i] for i in range(len(acc)) if i not in i_called]
-
-        # print([veh_id for veh_id in self.ids])
-        # print([self.vehicles[veh_id]["leader"] for veh_id in self.ids])
-        # print([self.vehicles[veh_id]["speed"] for veh_id in self.ids])
-        # print([self.vehicles[veh_id]["headway"] for veh_id in self.ids])
-        # print("---------------------------------------")
 
         super().apply_acceleration(veh_ids=veh_ids, acc=acc)
 
@@ -295,7 +284,38 @@ class BraessParadoxEnvironment(LoopEnvironment):
         See parent class
         In order to mimic variable speed limits, the desired speed limit on the IDMController (v0) is modified
         depending on the lane the vehicle is located.
+        Lane changes in braess are used to keep vehicles in the lane designated to their specified routes.
         """
+        for veh_id in self.controlled_ids:
+            this_edge = self.vehicles[veh_id]["edge"]
+            this_lane = self.vehicles[veh_id]["lane"]
+            this_rout_choice = set(self.vehicles[veh_id]["route"])
+
+            target_lane = None
+
+            if this_edge == "BA2":
+                if this_rout_choice == {"BA2", "AC", "CB"} and this_lane != 2:
+                    target_lane = 2
+                elif this_rout_choice == {"BA2", "AC", "CD", "DB"} and this_lane != 1:
+                    target_lane = 1
+                elif this_rout_choice == {"BA2", "AD", "DB"} and this_lane != 0:
+                    target_lane = 0
+
+            elif this_edge == "AC":
+                if this_rout_choice == {"BA2", "AC", "CB"} and this_lane != 1:
+                    target_lane = 1
+                elif this_rout_choice == {"BA2", "AC", "CD", "DB"} and this_lane != 0:
+                    target_lane = 0
+
+            elif this_edge == "DB":
+                if set(self.current_braess_route_choice[veh_id]) == {"AD", "DB"} and this_lane != 0:
+                    target_lane = 0
+                elif set(self.current_braess_route_choice[veh_id]) == {"AC", "CD", "DB"} and this_lane != 1:
+                    target_lane = 1
+
+            if target_lane is not None:
+                self.traci_connection.vehicle.changeLane(veh_id, int(target_lane), 100000)
+
         for veh_id in self.controlled_ids:
             current_edge = self.vehicles[veh_id]["edge"]
             # previous_edge = self.vehicles[veh_id]["previous_edge"]
@@ -303,41 +323,5 @@ class BraessParadoxEnvironment(LoopEnvironment):
             if current_edge in ["AD", "CB"] and self.prev_edge[veh_id] not in ["AD", "CB"]:
                 self.vehicles[veh_id]["controller"].v0 = self.scenario.net_params["AD_CB_speed_limit"]
 
-            elif current_edge in ["AC", "DB"] and self.prev_edge[veh_id] not in ["AC", "DB"]:
+            elif current_edge in ["AC", "DB"] and self.prev_edge[veh_id] not in ["AC", "CD", "DB"]:
                 self.vehicles[veh_id]["controller"].v0 = self.scenario.net_params["AC_DB_speed_limit"]
-
-    # def apply_acceleration(self, veh_ids, acc=None, **kwargs):
-    #     """
-    #     See parent class
-    #     """
-    #     for i, veh_id in enumerate(veh_ids):
-    #         target_speed = None
-    #
-    #         # vehicles on edges AC and DB move at a speed dependent on the density
-    #         if self.vehicles[veh_id]["edge"] in ["AC", "D"] and \
-    #                 (self.prev_edge[veh_id] not in ["AC", "D"] or veh_id in self.rl_ids):
-    #             # compute the density of cars in the edge the vehicle is currently located
-    #             this_edge = self.vehicles[veh_id]["edge"]
-    #             num_cars = sum([self.vehicles[vID]["edge"] == this_edge for vID in self.ids])
-    #             density = num_cars / self.scenario.edge_len
-    #
-    #             target_speed = self.varying_edge_speed(density)
-    #
-    #         # vehicles on edges AD and CB moves at a speed independent of the density
-    #         elif self.vehicles[veh_id]["edge"] in ["AD", "CB"] and \
-    #                 (self.prev_edge[veh_id] not in ["AD", "CB"] or veh_id in self.rl_ids):
-    #             target_speed = self.constant_edge_speed
-    #
-    #         # vehicles on edges CD and any of the edges not part of the braess paradox network
-    #         # move very fast (mimicking a zero or negligible travel time)
-    #         elif self.vehicles[veh_id]["edge"] in ["CD", "B", "BA1", "BA2"] and \
-    #                 (self.prev_edge[veh_id] not in ["CD", "B", "BA1", "BA2"] or veh_id in self.rl_ids):
-    #             target_speed = 30.  # something fast
-    #
-    #         # rl vehicles can move in a fraction of the target velocity (to slow down the network)
-    #         if veh_id in self.rl_ids and target_speed is not None:
-    #             target_speed = target_speed * kwargs["speed_fraction"][i]
-    #             self.traci_connection.vehicle.slowDown(veh_id, target_speed, 1)
-    #
-    #         elif target_speed is not None:
-    #             self.traci_connection.vehicle.setSpeed(veh_id, target_speed)

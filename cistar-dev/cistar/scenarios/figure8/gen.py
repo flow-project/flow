@@ -136,7 +136,7 @@ class Figure8Generator(Generator):
         t.append(E("output-file", value=netfn))
         x.append(t)
         t = E("processing")
-        t.append(E("no-internal-links", value="true"))
+        t.append(E("no-internal-links", value="false"))
         t.append(E("no-turnarounds", value="true"))
         x.append(t)
         printxml(x, self.net_path + cfgfn)

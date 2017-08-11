@@ -48,6 +48,7 @@ class BraessParadoxGenerator(Generator):
         typfn = "%s.typ.xml" % self.name
         cfgfn = "%s.netccfg" % self.name
         netfn = "%s.net.xml" % self.name
+        confn = "%s.con.xml" % self.name
 
         # xml file for nodes; contains nodes for the boundary points with respect to the x and y axes
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
@@ -68,34 +69,58 @@ class BraessParadoxGenerator(Generator):
         # - DB: bottom-right portion of the diamond
         # - CD: vertical edge connecting lanes AC and DB
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
-        x.append(E("edge", attrib={"id": "AC", "from": "A", "to": "C", "type": "edgeType",
-                                   "length": repr(edge_len)}))  # , "speed": repr(AC_DB_speed_limit)}))
-        x.append(E("edge", attrib={"id": "AD", "from": "A", "to": "D", "type": "edgeType",
-                                   "length": repr(edge_len)}))  # , "speed": repr(AD_CB_speed_limit)}))
-        x.append(E("edge", attrib={"id": "CB", "from": "C", "to": "B", "type": "edgeType",
-                                   "length": repr(edge_len)}))  # , "speed": repr(AD_CB_speed_limit)}))
-        x.append(E("edge", attrib={"id": "CD", "from": "C", "to": "D", "type": "edgeType",
-                                   "length": repr(2 * edge_y), "speed": repr(AC_DB_speed_limit)}))
-        x.append(E("edge", attrib={"id": "DB", "from": "D", "to": "B", "type": "edgeType",
-                                   "length": repr(edge_len)}))  # , "speed": repr(AC_DB_speed_limit)}))
+
+        x.append(E("edge", attrib={"id": "AC", "from": "A", "to": "C",
+                                   "numLanes": "2", "length": repr(edge_len),
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
+                                   # "speed": repr(AC_DB_speed_limit)}))
+
+        x.append(E("edge", attrib={"id": "AD", "from": "A", "to": "D",
+                                   "numLanes": "1", "length": repr(edge_len),
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
+                                   # "speed": repr(AD_CB_speed_limit)}))
+
+        x.append(E("edge", attrib={"id": "CB", "from": "C", "to": "B",
+                                   "numLanes": "1", "length": repr(edge_len),
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
+                                   # "speed": repr(AD_CB_speed_limit)}))
+
+        x.append(E("edge", attrib={"id": "CD", "from": "C", "to": "D",
+                                   "numLanes": "1", "length": repr(2 * edge_y),
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
+                                   # "speed": repr(AC_DB_speed_limit)}))
+
+        x.append(E("edge", attrib={"id": "DB", "from": "D", "to": "B",
+                                   "numLanes": "2", "length": repr(edge_len),
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
+                                   # "speed": repr(AC_DB_speed_limit)}))
 
         # connecting output to input in braess network (to produce loop)
         # Edges B and BA2 produce the two semi-circles on either sides of the braess network,
         # while edge BA1 is a straight line that connects these to semicircles.
-        x.append(E("edge", attrib={"id": "B", "from": "B", "to": "BA1", "type": "edgeType",
+        x.append(E("edge", attrib={"id": "B", "from": "B", "to": "BA1", "numLanes": "3", "length": repr(curve_len),
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit)),
                                    "shape": " ".join(["%.2f,%.2f" % (2 * edge_x + r * sin(t), r * (- 1 + cos(t)))
-                                                      for t in linspace(0, pi, resolution)]),
-                                   "length": repr(curve_len)}))
-        x.append(E("edge", attrib={"id": "BA1", "from": "BA1", "to": "BA2", "type": "edgeType",
+                                                      for t in linspace(0, pi, resolution)])}))
+
+        x.append(E("edge", attrib={"id": "BA1", "from": "BA1", "to": "BA2", "numLanes": "3",
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit)),
                                    "length": repr(straight_horz_len)}))
-        x.append(E("edge", attrib={"id": "BA2", "from": "BA2", "to": "A", "type": "edgeType",
+
+        x.append(E("edge", attrib={"id": "BA2", "from": "BA2", "to": "A", "numLanes": "3", "length": repr(curve_len),
+                                   "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit)),
                                    "shape": " ".join(["%.2f,%.2f" % (- r * sin(t), - r * (1 + cos(t)))
-                                                      for t in linspace(0, pi, resolution)]),
-                                   "length": repr(curve_len)}))
+                                                      for t in linspace(0, pi, resolution)])}))
 
         printxml(x, self.net_path + edgfn)
 
-        # xml file for types; contains the the number of lanes TODO: and the speed limit for the lanes
+        # xml for connections: specifies which lanes connect to which in the edges
+        x = makexml("connections", "http://sumo.dlr.de/xsd/connections_file.xsd")
+        x.append(E("connection", attrib={"from": "AC", "to": "CB", "fromLane": "1", "toLane": "0"}))
+        x.append(E("connection", attrib={"from": "AC", "to": "CD", "fromLane": "0", "toLane": "0"}))
+        printxml(x, self.net_path + confn)
+
+        # xml file for types; contains the the number of lanes and the speed limit for the lanes
         x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
         x.append(E("type", id="edgeType", numLanes=repr(lanes), speed=repr(max(AD_CB_speed_limit, AC_DB_speed_limit))))
         printxml(x, self.net_path + typfn)
@@ -109,6 +134,7 @@ class BraessParadoxGenerator(Generator):
         t.append(E("node-files", value=nodfn))
         t.append(E("edge-files", value=edgfn))
         t.append(E("type-files", value=typfn))
+        t.append(E("connection-files", value=confn))
         x.append(t)
         t = E("output")
         t.append(E("output-file", value=netfn))
@@ -123,7 +149,7 @@ class BraessParadoxGenerator(Generator):
         # emergence of queues) "--no-internals-links" is given the value ("true"), meaning that vehicles
         # cross a merge immediately.
         retcode = subprocess.call(["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
-                                   self.cfg_path + netfn + ' --no-internal-links="true"'],
+                                   self.cfg_path + netfn + ' --no-internal-links="false"'],
                                   stdout=sys.stdout, stderr=sys.stderr, shell=True)
         self.netfn = netfn
 
@@ -197,9 +223,9 @@ class BraessParadoxGenerator(Generator):
                "CB":  "CB B BA1 BA2 AC",
                "CD":  "CD DB B BA1 BA2 AC",
                "DB":  "DB B BA1 BA2 AC CD",
-               "B":   "B BA1 BA2 AC CD DB",
-               "BA1": "BA1 BA2 AC CB B",
-               "BA2": "BA2 AC CB B BA1"}
+               "B":   "B BA1 BA2",
+               "BA1": "BA1 BA2",
+               "BA2": "BA2"}
 
         return rts
 
@@ -233,10 +259,12 @@ class BraessParadoxGenerator(Generator):
                 random.shuffle(vehicle_ids)
 
             positions = initial_config["positions"]
+            lanes = initial_config["lanes"]
             for i, (type, id) in enumerate(vehicle_ids):
                 route, pos = positions[i]
+                lane = lanes[i]
                 type_depart_speed = type_params[type][3]
-                routes.append(self.vehicle(type, "route" + route, depart="0",
-                              departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
+                routes.append(self.vehicle(type, "route" + route, depart="0", id=id, color="1,0.0,0.0",
+                              departSpeed=str(type_depart_speed), departPos=str(pos), departLane=str(lane)))
 
             printxml(routes, self.cfg_path + self.roufn)
