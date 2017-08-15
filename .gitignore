@@ -93,4 +93,5 @@ ENV/
 .DS_Store
 
 # Custom for learning-traffic
+.idea/**
 Makefile
