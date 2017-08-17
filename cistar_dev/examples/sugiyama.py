@@ -28,7 +28,7 @@ from cistar_dev.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step":0.01}
+sumo_params = {"time_step": 0.1}
 
 sumo_binary = "sumo-gui"
 
@@ -36,19 +36,16 @@ type_params = {"idm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
 env_params = {}
 
-net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
+net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"shuffle":False, "bunching": 20}
+initial_config = {"shuffle": False, "bunching": 20}
 
-scenario = LoopScenario("single-lane-one-contr", type_params, net_params, cfg_params, initial_config)
+scenario = LoopScenario("sugiyama", type_params, net_params, cfg_params, initial_config)
 
 exp = SumoExperiment(LoopEnvironment, env_params, sumo_binary, sumo_params, scenario)
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 1000)
-
-#exp.env.terminate()
-
+exp.run(1, 1500)

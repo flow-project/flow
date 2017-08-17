@@ -3,11 +3,11 @@
 """
 
 import logging
-from cistar.core.exp import SumoExperiment
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
-from cistar.envs.loop_merges import SimpleLoopMergesEnvironment
-from cistar.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
+from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.controllers.car_following_models import *
+from cistar_dev.controllers.lane_change_controllers import *
+from cistar_dev.envs.loop_merges import SimpleLoopMergesEnvironment
+from cistar_dev.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 
 from numpy import pi
 
