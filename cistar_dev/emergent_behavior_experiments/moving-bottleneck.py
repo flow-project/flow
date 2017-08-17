@@ -28,11 +28,11 @@ env_params = {"target_velocity": 3, "max-deacc": -6, "max-acc": 3, "lane_change_
               "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0.5, "rl_acc_std": 0}
 
 net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40,
-              "net_path": "debug/net/", "lanes_distribution": 2}
+              "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-initial_config = {"shuffle": False, "bunching": 180}
+initial_config = {"shuffle": False, "bunching": 180, "lanes_distribution": 2}
 
 num_cars = 15
 num_auto = 1

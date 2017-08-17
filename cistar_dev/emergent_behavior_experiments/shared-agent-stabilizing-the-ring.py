@@ -36,7 +36,7 @@ def run_task(*_):
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 15, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
-                "num_steps": 4, "shared_policy": 1}
+                  "num_steps": 4, "shared_policy": 1}
 
     net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}

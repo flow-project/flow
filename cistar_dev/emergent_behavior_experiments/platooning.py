@@ -30,10 +30,11 @@ num_auto = 22
 
 exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-multi-lane-loop'
 
+
 def run_task(*_):
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_lat_collide", "human_lc": "strategic",
+    sumo_params = {"time_step": 0.1, "rl_lc": "no_lat_collide", "human_lc": "strategic",
                    "rl_sm": "no_collide", "human_sm": "no_collide"}
     sumo_binary = "sumo"
 

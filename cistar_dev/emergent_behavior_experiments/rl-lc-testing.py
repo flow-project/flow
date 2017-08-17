@@ -18,12 +18,12 @@ from cistar_dev.controllers.rlcontroller import RLController
 num_cars = 2
 exp_tag = str(num_cars) + '-car-rl-lane_change'
 
+
 def run_task(*_):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-
-    sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_lat_collide", "human_lc": "no_collide",
+    sumo_params = {"time_step": 0.1, "rl_lc": "no_lat_collide", "human_lc": "no_collide",
                    "rl_sm": "no_collide", "human_sm": "no_collide"}
     sumo_binary = "sumo"
 
@@ -43,9 +43,8 @@ def run_task(*_):
     from cistar_dev import pass_params
     env_name = "SimpleLaneChangingAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-                cfg_params, initial_config, scenario)
+                   cfg_params, initial_config, scenario)
 
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
@@ -84,6 +83,6 @@ for seed in [5]:  # [5, 10, 73, 56, 1]:
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

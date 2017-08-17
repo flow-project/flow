@@ -333,7 +333,7 @@ class IDMController(BaseController):
         lead_id = env.vehicles[self.veh_id]["leader"]
         h = env.vehicles[self.veh_id]["headway"]
 
-        if lead_id is None:  # no car ahead
+        if lead_id is None or lead_id == '':  # no car ahead
             s_star = 0
         else:
             lead_vel = env.vehicles[lead_id]['speed']
@@ -371,5 +371,3 @@ class DrunkDriver(IDMController):
             perturb = self.perturb_size*random.random()  # - self.perturb_size/2.0
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2) + perturb
-
-

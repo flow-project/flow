@@ -22,13 +22,14 @@ from rllab.envs.gym_env import GymEnv
 
 import pdb
 
+
 def run_task(v):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "emission_path": "./data/", 
-                        "starting_position_shuffle": 1, "rl_sm": "aggressive"}
-    sumo_binary = "sumo"
+    sumo_params = {"time_step": 0.1, "emission_path": "./data/",
+                   "starting_position_shuffle": 0, "rl_sm": "aggressive"}
+    sumo_binary = "sumo-gui"
 
     num_cars = 15
 
@@ -39,8 +40,8 @@ def run_task(v):
     intensity = .3
     v_enter = 20.0
 
-    env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 6, 
-                "control-length": 150, "max_speed": v_enter, "num_steps": 500}
+    env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 6,
+                  "control-length": 150, "max_speed": v_enter, "num_steps": 500}
 
     net_params = {"horizontal_length_in": 600, "horizontal_length_out": 1000, "horizontal_lanes": 1,
                   "vertical_length_in": 600, "vertical_length_out": 1000, "vertical_lanes": 1,
@@ -53,12 +54,10 @@ def run_task(v):
 
     scenario = TwoWayIntersectionScenario("figure8", type_params, net_params, cfg_params, initial_config=initial_config)
 
-    from cistar_dev import pass_params
     env_name = "TwoIntersectionEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                 cfg_params, initial_config, scenario)
 
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
@@ -89,16 +88,16 @@ for step_size in [0.01]:
         run_experiment_lite(
             run_task,
             # Number of parallel workers for sampling
-            n_parallel=2,
+            n_parallel=1,
             # Only keep the snapshot parameters for the last iteration
             snapshot_mode="all",
             # Specifies the seed for the experiment. If this is not provided, a random seed
             # will be used
             seed=seed,
-            mode="local_docker",
+            mode="local",
             exp_prefix='test-test',
             variant=dict(step_size=step_size, seed=seed),
-            #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+            python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
             # plot=True,
         )
 

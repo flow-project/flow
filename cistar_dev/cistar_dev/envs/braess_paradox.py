@@ -1,5 +1,5 @@
-from cistar.core.base_env import SumoEnvironment
-from cistar.core import rewards
+from cistar_dev.core.base_env import SumoEnvironment
+from cistar_dev.core import rewards
 
 from rllab.spaces import Box
 from rllab.spaces import Product
@@ -27,11 +27,19 @@ class BraessParadoxEnvironment(SumoEnvironment):
         """
         super().__init__(env_params, sumo_binary, sumo_params, scenario)
 
+        # specifies whether vehicles are allowed to cross the edge connecting
+        # the top and bottom portions of the network
+        self.close_CD = self.env_params["close_CD"]
+
         # the route choice variable contacts the edges to traverse for each of the
         # braess paradox route choices
-        self.available_route_choices = [["BA2", "AC", "CB"],
-                                        ["BA2", "AC", "CD", "DB"],
-                                        ["BA2", "AD", "DB"]]
+        if self.close_CD:
+            self.available_route_choices = [["BA2", "AC", "CB"],
+                                            ["BA2", "AD", "DB"]]
+        else:
+            self.available_route_choices = [["BA2", "AC", "CD", "DB"],
+                                            ["BA2", "AC", "CB"],
+                                            ["BA2", "AD", "DB"]]
 
         # The expected travel time for each of the 3 routes is the average travel time
         # a vehicle experienced during the rollout in each route. Each human vehicles
@@ -46,10 +54,6 @@ class BraessParadoxEnvironment(SumoEnvironment):
             self.current_route_times[veh_id] = dict()
             self.current_route_times[veh_id]["enter"] = [0, 0]
             self.current_route_times[veh_id]["exit"] = [0, 0]
-
-        # specifies whether vehicles are allowed to cross the edge connecting
-        # the top and bottom portions of the network
-        self.close_CD = self.env_params["close_CD"]
 
         # initialize edge memory (used in setting speed)
         self.prev_edge = dict()
@@ -113,9 +117,6 @@ class BraessParadoxEnvironment(SumoEnvironment):
         return np.array([[self.vehicles[vehicle]["speed"] + normal(0, self.observation_vel_std),
                           self.vehicles[vehicle]["absolute_position"] + normal(0, self.observation_pos_std)]
                          for vehicle in self.sorted_ids]).T
-
-    def render(self):
-        print('current state/velocity:', self.state)
 
     def step(self, rl_actions):
         """
@@ -233,7 +234,8 @@ class BraessParadoxEnvironment(SumoEnvironment):
                 tt = np.array([j[1] for j in self.route_expected_tt[veh_id]])
 
                 if self.close_CD:
-                    current_route_choice_indx = random.choice([0, 2])
+                    current_route_choice_indx = np.argmin(tt)
+                    # current_route_choice_indx = random.choice([0, 2])
                 else:
                     # the vehicle chooses the route that will allow it to move fastest
                     # choices between equivalent routes are made randomly
@@ -321,7 +323,9 @@ class BraessParadoxEnvironment(SumoEnvironment):
             # previous_edge = self.vehicles[veh_id]["previous_edge"]
 
             if current_edge in ["AD", "CB"] and self.prev_edge[veh_id] not in ["AD", "CB"]:
-                self.vehicles[veh_id]["controller"].v0 = self.scenario.net_params["AD_CB_speed_limit"]
+                self.traci_connection.vehicle.setMaxSpeed(veh_id, self.scenario.net_params["AD_CB_speed_limit"])
+                # self.vehicles[veh_id]["controller"].v0 = self.scenario.net_params["AD_CB_speed_limit"]
 
             elif current_edge in ["AC", "DB"] and self.prev_edge[veh_id] not in ["AC", "CD", "DB"]:
-                self.vehicles[veh_id]["controller"].v0 = self.scenario.net_params["AC_DB_speed_limit"]
+                self.traci_connection.vehicle.setMaxSpeed(veh_id, self.scenario.net_params["AC_DB_speed_limit"])
+                # self.vehicles[veh_id]["controller"].v0 = self.scenario.net_params["AC_DB_speed_limit"]

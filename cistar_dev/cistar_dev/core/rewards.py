@@ -34,6 +34,7 @@ def desired_velocity(state=None, actions=None, **kwargs):
 
     return max(max_cost - cost, 0)
 
+
 def min_delay(state=None, actions=None, **kwargs):
     """
     A reward function used to encourage minimization of total delay in the 

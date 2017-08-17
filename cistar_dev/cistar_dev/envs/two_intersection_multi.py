@@ -59,8 +59,8 @@ class TwoIntersectionMultiAgentEnvironment(LoopEnvironment):
                 # get up to max speed
                 if self.vehicles[veh_id]["speed"] < self.scenario.initial_config["enter_speed"]:
                     # accelerate as fast as you can
-                    if ((self.scenario.initial_config["enter_speed"] - 
-                        self.vehicles[veh_id]["speed"])/self.time_step > self.env_params["max-acc"]):
+                    if ((self.scenario.initial_config["enter_speed"] -
+                         self.vehicles[veh_id]["speed"])/self.time_step > self.env_params["max-acc"]):
                         rl_actions[i][0][0] =  self.env_params["max-acc"]
                     # accelerate up to target velocity
                     else:
@@ -124,10 +124,6 @@ class TwoIntersectionMultiAgentEnvironment(LoopEnvironment):
         #         veh_ids.append(self.vehicles[veh_id]["follower"])  # add vehicle behind rl vehicle
         #
         #     veh_ids = np.unique(veh_ids)  # remove redundant vehicle ids
-
-
-
-        # partial observability (2 cars ahead, 2 cars behind)
 
     # def _render(self):
     #     print('current state/velocity:', self.state)

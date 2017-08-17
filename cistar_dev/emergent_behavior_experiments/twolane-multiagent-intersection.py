@@ -30,8 +30,8 @@ def run_task(v):
 
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "emission_path": "./data/", 
-                        "starting_position_shuffle": 1, "rl_sm": "aggressive"}
+    sumo_params = {"time_step": 0.1, "emission_path": "./data/",
+                   "starting_position_shuffle": 1, "rl_sm": "aggressive"}
     sumo_binary = "sumo"
 
     num_cars = 3

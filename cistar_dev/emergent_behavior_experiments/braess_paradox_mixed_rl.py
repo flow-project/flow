@@ -16,14 +16,11 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-# from cistar.core.exp import SumoExperiment
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.envs.braess_paradox import BraessParadoxEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.car_following_models import *
+from cistar_dev.envs.braess_paradox import BraessParadoxEnvironment
+from cistar_dev.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
+from cistar_dev.controllers.rlcontroller import RLController
+from cistar_dev.controllers.lane_change_controllers import *
+from cistar_dev.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 

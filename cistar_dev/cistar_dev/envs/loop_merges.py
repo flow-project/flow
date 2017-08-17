@@ -1,8 +1,8 @@
-from cistar.envs.loop import LoopEnvironment
-from cistar.core import rewards
+from cistar_dev.envs.loop import LoopEnvironment
+from cistar_dev.core import rewards
 
-from rllab.spaces import Box
-from rllab.spaces import Product
+from gym.spaces.box import Box
+from gym.spaces.tuple_space import Tuple
 
 import numpy as np
 from numpy.random import normal
@@ -35,7 +35,7 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         edge = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, absolute_pos, edge])
+        return Tuple([speed, absolute_pos, edge])
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -63,15 +63,11 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
 
         return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
                           sorted_pos[i] + normal(0, self.observation_pos_std),
-                          edge_id[i]] for i, veh_id in enumerate(self.sorted_ids)]).T
-
-    def render(self):
-        print('current state/velocity:', self.state)
+                          edge_id[i]] for i, veh_id in enumerate(self.sorted_ids)])
 
     def additional_command(self):
         """
-        In the case when a vehicle meant to stay in the ring is about to reach a rout choosing node,
-        this function reroutes the vehicle to keep in in the network
+        Vehicles that are meant to stay in the ring are rerouted whenever they reach a new edge.
         """
         for veh_id in self.ids:
             # if the vehicle is one the merging vehicles, and there is a merge-out lane, it should not be rerouted

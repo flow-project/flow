@@ -351,7 +351,6 @@ class SumoEnvironment(gym.Env, Serializable):
                                                              tc.VAR_ROAD_ID, tc.VAR_SPEED])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
-
     def _step(self, rl_actions):
         """
         Run one timestep of the environment's dynamics. "Self-driving cars" will
@@ -466,7 +465,7 @@ class SumoEnvironment(gym.Env, Serializable):
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         # collect information of the state of the network based on the environment class used
-        if self.scenario.num_rl_vehicles > 0: 
+        if self.scenario.num_rl_vehicles > 0:
             self.state = self.getState()
             # rllab requires non-multi agent to have state shape as 
             # num-states x num_vehicles
@@ -578,18 +577,12 @@ class SumoEnvironment(gym.Env, Serializable):
         # reset the list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        # collect headway, leader id, and follower id data
-        # vehicles = self.get_headway_dict()
-
         for veh_id in self.ids:
-            # self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
-            # self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
-            # self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
-
+            # collect headway, leader id, and follower id data
             headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
             if headway is None:
-                self.vehicles[veh_id]["leader"] = ''
-                self.vehicles[veh_id]["follower"] = ''
+                self.vehicles[veh_id]["leader"] = None
+                self.vehicles[veh_id]["follower"] = None
                 self.vehicles[veh_id]["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
             else:
                 self.vehicles[veh_id]["headway"] = headway[1]
@@ -871,7 +864,7 @@ class SumoEnvironment(gym.Env, Serializable):
         """
         raise NotImplementedError
 
-    # TOFIX (Eugene) commenting this out causes render to fail due to bad arguments
+    # FIXME (Eugene) commenting this out causes render to fail due to bad arguments
     # ??? Why ???
     # def _render(self):
     #     """
@@ -891,4 +884,3 @@ class SumoEnvironment(gym.Env, Serializable):
 
     def _seed(self, seed=None): 
         return []
-

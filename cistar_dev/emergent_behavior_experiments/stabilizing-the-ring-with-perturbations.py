@@ -28,7 +28,7 @@ def run_task(*_):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_sm": "aggressive", "human_sm": "aggressive"}
+    sumo_params = {"time_step": 0.1, "rl_sm": "aggressive", "human_sm": "aggressive"}
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
