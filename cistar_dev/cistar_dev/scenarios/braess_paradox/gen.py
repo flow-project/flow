@@ -1,8 +1,8 @@
-from cistar.core.exp import Generator
-from cistar.controllers.base_controller import SumoController
+from cistar_dev.core.exp import Generator
+from cistar_dev.controllers.base_controller import SumoController
 
-from cistar.core.util import makexml
-from cistar.core.util import printxml
+from cistar_dev.core.util import makexml
+from cistar_dev.core.util import printxml
 
 import subprocess
 import sys
@@ -73,27 +73,22 @@ class BraessParadoxGenerator(Generator):
         x.append(E("edge", attrib={"id": "AC", "from": "A", "to": "C",
                                    "numLanes": "2", "length": repr(edge_len),
                                    "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
-                                   # "speed": repr(AC_DB_speed_limit)}))
 
         x.append(E("edge", attrib={"id": "AD", "from": "A", "to": "D",
                                    "numLanes": "1", "length": repr(edge_len),
                                    "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
-                                   # "speed": repr(AD_CB_speed_limit)}))
 
         x.append(E("edge", attrib={"id": "CB", "from": "C", "to": "B",
                                    "numLanes": "1", "length": repr(edge_len),
                                    "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
-                                   # "speed": repr(AD_CB_speed_limit)}))
 
         x.append(E("edge", attrib={"id": "CD", "from": "C", "to": "D",
                                    "numLanes": "1", "length": repr(2 * edge_y),
                                    "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
-                                   # "speed": repr(AC_DB_speed_limit)}))
 
         x.append(E("edge", attrib={"id": "DB", "from": "D", "to": "B",
                                    "numLanes": "2", "length": repr(edge_len),
                                    "speed": repr(max(AD_CB_speed_limit, AC_DB_speed_limit))}))
-                                   # "speed": repr(AC_DB_speed_limit)}))
 
         # connecting output to input in braess network (to produce loop)
         # Edges B and BA2 produce the two semi-circles on either sides of the braess network,

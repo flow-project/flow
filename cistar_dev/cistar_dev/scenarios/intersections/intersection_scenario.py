@@ -205,4 +205,3 @@ class TwoWayIntersectionScenario(Scenario):
                 else:
                     start_positions.append(("bottom", x))
         return start_positions
-

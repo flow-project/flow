@@ -1,8 +1,8 @@
-from cistar.core.exp import Generator
-from cistar.controllers.base_controller import SumoController
+from cistar_dev.core.exp import Generator
+from cistar_dev.controllers.base_controller import SumoController
 
-from cistar.core.util import makexml
-from cistar.core.util import printxml
+from cistar_dev.core.util import makexml
+from cistar_dev.core.util import printxml
 
 import subprocess
 import sys

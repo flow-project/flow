@@ -189,8 +189,6 @@ class CircleGenerator(Generator):
 
         type_params = scenario.type_params
         type_list = scenario.type_params.keys()
-        type_list = np.sort(list(type_list))[[1, 0]]
-        # type_list = np.sort(list(type_list))
         num_cars = scenario.num_vehicles
         if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")

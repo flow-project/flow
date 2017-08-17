@@ -1,7 +1,7 @@
 import numpy as np
 
-from cistar.core.scenario import Scenario
-from cistar.scenarios.loop_merges.gen import *
+from cistar_dev.core.scenario import Scenario
+from cistar_dev.scenarios.loop_merges.gen import *
 
 
 class LoopMergesScenario(Scenario):
@@ -34,150 +34,103 @@ class LoopMergesScenario(Scenario):
         # instantiate "length" in net params
         net_params["length"] = 2 * pi * self.radius + self.ring_0_n_len + self.ring_1_n_len
 
+        if "length" not in net_params:
+            raise ValueError("length of circle not supplied")
+        self.length = net_params["length"]
+
+        if "lanes" not in net_params:
+            raise ValueError("lanes of circle not supplied")
+        self.lanes = net_params["lanes"]
+
+        if "speed_limit" not in net_params:
+            raise ValueError("speed limit of circle not supplied")
+        self.speed_limit = net_params["speed_limit"]
+
+        if "resolution" not in net_params:
+            raise ValueError("resolution of circle not supplied")
+        self.resolution = net_params["resolution"]
+
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,
                          generator_class=LoopMergesGenerator)
 
-        if "length" not in self.net_params:
-            raise ValueError("length of circle not supplied")
-        self.length = self.net_params["length"]
-
-        if "lanes" not in self.net_params:
-            raise ValueError("lanes of circle not supplied")
-        self.lanes = self.net_params["lanes"]
-
-        if "speed_limit" not in self.net_params:
-            raise ValueError("speed limit of circle not supplied")
-        self.speed_limit = self.net_params["speed_limit"]
-
-        if "resolution" not in self.net_params:
-            raise ValueError("resolution of circle not supplied")
-        self.resolution = self.net_params["resolution"]
-
-        # number of lanes vehicles should be distributed in at the start of a rollout
-        # must be less than or equal to the number of lanes in the network
-        if "lanes_distribution" not in self.net_params:
-            self.lanes_distribution = 1
-        else:
-            self.lanes_distribution = min(self.net_params["lanes_distribution"], self.lanes)
-
-        # defines edge starts for road sections
+    def specify_edge_starts(self):
+        """
+        See parent class
+        """
         if self.merge_out_len is not None:
             ring_0_len = (self.merge_out_angle - self.merge_in_angle) % (2 * pi) * self.radius
 
-            self.edgestarts = \
+            edgestarts = \
                 [("ring_0", self.ring_0_n_len),
                  ("ring_1", self.ring_0_n_len + ring_0_len + self.ring_1_n_len),
                  ("merge_in", - self.merge_in_len - self.ring_0_0_len + self.ring_0_n_len),
                  ("merge_out", 1000 * (2 * pi * self.radius) + self.ring_1_0_len)]
 
-            self.internal_edgestarts = \
-                [(":ring_0_%d" % self.lanes, 0),
-                 (":ring_1_%d" % self.lanes, self.ring_0_n_len + ring_0_len),
-                 (":ring_0_0", - self.ring_0_0_len + self.ring_0_n_len),
-                 (":ring_1_0", 1000 * (2 * pi * self.radius))]
-
         else:
-            self.edgestarts = \
+            edgestarts = \
                 [("ring_0", self.ring_0_n_len),
                  ("ring_1", self.ring_0_n_len + pi * self.radius + self.inner_space_len),
                  ("merge_in", - self.merge_in_len - self.ring_0_0_len + self.ring_0_n_len)]
 
-            self.internal_edgestarts = \
-                [(":ring_0_%d" % self.lanes, 0),
+        return edgestarts
+
+    def specify_internal_edge_starts(self):
+        """
+        See parent class
+        """
+        lanes = self.net_params["lanes"]
+
+        if self.merge_out_len is not None:
+            ring_0_len = (self.merge_out_angle - self.merge_in_angle) % (2 * pi) * self.radius
+
+            internal_edgestarts = \
+                [(":ring_0_%d" % lanes, 0),
+                 (":ring_1_%d" % lanes, self.ring_0_n_len + ring_0_len),
+                 (":ring_0_0", - self.ring_0_0_len + self.ring_0_n_len),
+                 (":ring_1_0", 1000 * (2 * pi * self.radius))]
+
+        else:
+            internal_edgestarts = \
+                [(":ring_0_%d" % lanes, 0),
                  (":ring_1_0", self.ring_0_n_len + pi * self.radius),
                  (":ring_0_0", - self.ring_0_0_len + self.ring_0_n_len)]
 
-        # generate starting position for vehicles in the network
-        if "positions" not in self.initial_config:
-            self.initial_config["positions"], self.initial_config["lanes"] = self.generate_starting_positions()
+        return internal_edgestarts
 
-        if "shuffle" not in self.initial_config:
-            self.initial_config["shuffle"] = False
-        if not cfg:
-            self.cfg = self.generate()
-
-    def get_edge(self, x):
+    def gen_even_start_pos(self, initial_config, **kwargs):
         """
-        Given an absolute position x on the track, returns the edge (name) and
-        relative position on that edge.
-        :param x: absolute position x
-        :return: (edge (name, such as bottom, right, etc.), relative position on
-        edge)
+        See base class
         """
-        starte = ""
-        startx = 0
-        total_edgestarts = self.edgestarts + self.internal_edgestarts
-        total_edgestarts.sort(key=lambda tup: tup[1])
+        x0 = 1
+        if "x0" in kwargs:
+            x0 = kwargs["x0"]
 
-        for (e, s) in total_edgestarts:
-            if x >= s:
-                starte = e
-                startx = x - s
-        return starte, startx
+        bunching = 0
+        if "bunching" in initial_config:
+            bunching = initial_config["bunching"]
 
-    def get_x(self, edge, position):
-        """
-        Given an edge name and relative position, return the absolute position on the track.
-        :param edge: name of edge (string)
-        :param position: relative position on edge
-        :return: absolute position of the vehicle on the track given a reference (origin)
-        """
-        # check it the vehicle is in a lane
-        for edge_tuple in self.edgestarts:
-            if edge_tuple[0] == edge:
-                edgestart = edge_tuple[1]
-                return position + edgestart
+        lanes_distribution = 1
+        if "lanes_distribution" in initial_config:
+            lanes_distribution = initial_config["lanes_distribution"]
 
-        # if the vehicle is not in a lane, check if it is on an intersection
-        for center_tuple in self.internal_edgestarts:
-            if center_tuple[0] in edge:
-                edgestart = center_tuple[1]
-                return position + edgestart
+        merge_bunching = 0
+        if "merge_bunching" in initial_config:
+            merge_bunching = initial_config["merge_bunching"]
 
-    def generate_starting_positions(self, x0=1):
-        """
-        Generates starting positions for vehicles in the network
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-                 list of start lanes
-        """
-        startpositions = []
-        startlanes = []
+        n_merge_platoons = None
+        if "n_merge_platoons" in initial_config:
+            n_merge_platoons = initial_config["n_merge_platoons"]
 
-        bunch_factor = 0
-        if "bunching" in self.initial_config:
-            bunch_factor = self.initial_config["bunching"]
-
-        merge_bunch_factor = 0
-        if "merge_bunching" in self.initial_config:
-            merge_bunch_factor = self.initial_config["merge_bunching"]
-
-        if "spacing" in self.initial_config:
-            if self.initial_config["spacing"] == "gaussian":
-                downscale = 5
-                if "downscale" in self.initial_config:
-                    downscale = self.initial_config["downscale"]
-                startpositions, startlanes = self.gen_random_start_pos(downscale, bunch_factor, merge_bunch_factor, x0)
-        else:
-            startpositions, startlanes = self.gen_even_start_pos(bunch_factor, merge_bunch_factor, x0)
-
-        return startpositions, startlanes
-
-    def gen_even_start_pos(self, bunching, merge_bunching, x0=1):
-        """
-        Generate uniformly spaced start positions.
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-                 list of start lanes
-        """
         startpositions = []
         startlanes = []
 
         # generate starting positions for non-merging vehicles
         # in order to avoid placing cars in the internal edges, their length is removed from the distribution length
         distribution_len = self.length - self.ring_0_n_len - self.ring_1_n_len
-        increment = (distribution_len - bunching) * self.lanes_distribution / (self.num_vehicles - self.num_merge_vehicles)
+        increment = (distribution_len - bunching) * lanes_distribution / (self.num_vehicles - self.num_merge_vehicles)
 
-        x = [x0] * self.lanes_distribution
+        x = [x0] * lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.num_vehicles - self.num_merge_vehicles:
@@ -200,16 +153,24 @@ class LoopMergesScenario(Scenario):
             car_count += 1
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
-            if lane_count >= self.lanes_distribution:
+            if lane_count >= lanes_distribution:
                 lane_count = 0
 
         # generate starting positions for merging vehicles
-        increment = (self.merge_in_len - merge_bunching) * self.lanes_distribution / self.num_merge_vehicles
-
-        x = [self.get_x(edge="merge_in", position=0)] * self.lanes_distribution
+        x = [self.get_x(edge="merge_in", position=0)] * lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.num_merge_vehicles:
+            if n_merge_platoons is None:
+                # if no platooning is requested for merging vehicles, the vehicles are uniformly distributed
+                # across the appropriate section of the merge_in length
+                increment = (self.merge_in_len - merge_bunching) * lanes_distribution / self.num_merge_vehicles
+            else:
+                if True:  # FIXME
+                    increment = 8  # some small value (to ensure vehicles are bunched together)
+                else:
+                    increment = 1  # FIXME
+
             # collect the position and lane number of each new vehicle
             pos = self.get_edge(x[lane_count])
 
@@ -222,12 +183,69 @@ class LoopMergesScenario(Scenario):
             car_count += 1
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
-            if lane_count >= self.lanes_distribution:
+            if lane_count >= lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes
 
-    def gen_random_start_pos(self, downscale=5, bunching=0, merge_bunching=0, x0=1):
+    def gen_gaussian_start_pos(self, initial_config, **kwargs):
+        """
+        Generates start positions that are perturbed from a uniformly spaced distribution
+        by some gaussian noise.
+
+        :param kwargs:
+        :return:
+        """
+        x0 = 1
+        if "x0" in kwargs:
+            x0 = kwargs["x0"]
+
+        bunching = 0
+        if "bunching" in initial_config:
+            bunching = initial_config["bunching"]
+
+        lanes_distribution = 1
+        if "lanes_distribution" in initial_config:
+            lanes_distribution = initial_config["lanes_distribution"]
+
+        distribution_length = self.length
+        if "distribution_length" in initial_config:
+            distribution_length = initial_config["distribution_length"]
+
+        startpositions = []
+        startlanes = []
+        increment = (distribution_length - bunching) * lanes_distribution / self.num_vehicles
+
+        x = [x0] * lanes_distribution
+        x_start = np.array([])
+        car_count = 0
+        lane_count = 0
+        while car_count < self.num_vehicles:
+            # collect the position and lane number of each new vehicle
+            x_start = np.append(x_start, x[lane_count])
+            startlanes.append(lane_count)
+
+            # increment = min(max_increment, max(min_increment, np.random.normal(scale=scale, loc=mean)))
+            x[lane_count] = (x[lane_count] + increment) % distribution_length
+
+            # increment the car_count and lane_num
+            car_count += 1
+            lane_count += 1
+            # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
+            if lane_count >= lanes_distribution:
+                lane_count = 0
+
+        # add noise to uniform starting positions
+        for i in range(len(x_start)):
+            # perturbation from uniform distribution
+            x_start[i] = (x_start[i] + min(2.5, max(-2.5, np.random.normal(loc=0, scale=2.5)))) % distribution_length
+
+            pos = self.get_edge(x_start[i])
+            startpositions.append(pos)
+
+        return startpositions, startlanes
+
+    def gen_gaussian_additive_start_pos(self, initial_config, **kwargs):
         """
         Generate random start positions via additive Gaussian.
 
@@ -236,15 +254,35 @@ class LoopMergesScenario(Scenario):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
                  list of start lanes
         """
+        x0 = 1
+        if "x0" in kwargs:
+            x0 = kwargs["x0"]
+
+        bunching = 0
+        if "bunching" in initial_config:
+            bunching = kwargs["bunching"]
+
+        lanes_distribution = 1
+        if "lanes_distribution" in initial_config:
+            lanes_distribution = kwargs["lanes_distribution"]
+
+        downscale = 5
+        if "downscale" in initial_config:
+            downscale = kwargs["downscale"]
+
+        merge_bunching = 0
+        if "merge_bunching" in initial_config:
+            merge_bunching = kwargs["merge_bunching"]
+
         startpositions = []
         startlanes = []
 
         # generate starting positions for non-merging vehicles
         # in order to avoid placing cars in the internal edges, their length is removed from the distribution length
         distribution_len = self.length - self.ring_0_n_len - self.ring_1_n_len
-        mean = (distribution_len - bunching) * self.lanes_distribution / (self.num_vehicles - self.num_merge_vehicles)
+        mean = (distribution_len - bunching) * lanes_distribution / (self.num_vehicles - self.num_merge_vehicles)
 
-        x = [x0] * self.lanes_distribution
+        x = [x0] * lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.num_vehicles - self.num_merge_vehicles:
@@ -267,13 +305,13 @@ class LoopMergesScenario(Scenario):
             car_count += 1
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
-            if lane_count >= self.lanes_distribution:
+            if lane_count >= lanes_distribution:
                 lane_count = 0
 
         # generate starting positions for merging vehicles
-        mean = (self.merge_in_len - merge_bunching) * self.lanes_distribution / self.num_merge_vehicles
+        mean = (self.merge_in_len - merge_bunching) * lanes_distribution / self.num_merge_vehicles
 
-        x = [self.get_x(edge="merge_in", position=0)] * self.lanes_distribution
+        x = [self.get_x(edge="merge_in", position=0)] * lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.num_merge_vehicles:
@@ -289,7 +327,7 @@ class LoopMergesScenario(Scenario):
             car_count += 1
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
-            if lane_count >= self.lanes_distribution:
+            if lane_count >= lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes
