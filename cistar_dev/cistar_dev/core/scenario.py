@@ -37,8 +37,8 @@ class Scenario(Serializable):
         self.type_params = type_params
 
         # these numbers are not always static; better to get them from id list in the env class
-        self.num_vehicles = sum([x[1][0] for x in type_params.items()])
-        self.num_rl_vehicles = sum([x[1][0] for x in type_params.items() if x[1][1][0] == RLController])
+        self.num_vehicles = sum([x[1] for x in type_params])
+        self.num_rl_vehicles = sum([x[1] for x in type_params if x[2][0] == RLController])
 
         if not net_params:
             ValueError("No network params specified!")

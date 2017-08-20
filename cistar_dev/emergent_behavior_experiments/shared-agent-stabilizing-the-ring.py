@@ -45,18 +45,15 @@ def run_task(*_):
 
     initial_config = {"shuffle": True}
 
-    num_cars = 22
-
-
-    type_params = {"rl": (2, (RLController, {}), (StaticLaneChanger, {}), 0),
-                   "idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = [("rl", 2, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   ("idm", 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
     scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
     from cistar_dev import pass_params
     env_name = "SimpleMultiAgentAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-                cfg_params, initial_config, scenario)
+                   cfg_params, initial_config, scenario)
 
     main_env = GymEnv(env_name, record_video=False, register_params = pass_params)
     horizon = main_env.horizon

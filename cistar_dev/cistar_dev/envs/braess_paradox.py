@@ -105,12 +105,10 @@ class BraessParadoxEnvironment(SumoEnvironment):
         """
         See parent class
         """
-        reward = rewards.desired_velocity(
-            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
+        return rewards.desired_velocity(
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
 
-        return reward
-
-    def getState(self):
+    def get_state(self):
         """
         See parent class
         """

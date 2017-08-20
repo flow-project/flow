@@ -12,14 +12,15 @@ import logging
 import random
 from lxml import etree
 import numpy as np
-E = etree.Element
 
+E = etree.Element
 
 """
 Generator for loop circle used in MIT traffic simulation.
 """
-class CircleGenerator(Generator):
 
+
+class CircleGenerator(Generator):
     """
     Generates Net files for loop sim. Requires:
     length: length of the circle
@@ -27,6 +28,7 @@ class CircleGenerator(Generator):
     speed_limit: max speed limit of the circle
     resolution: number of nodes resolution
     """
+
     def generate_net(self, params):
         length = params["length"]
         lanes = params["lanes"]
@@ -122,6 +124,7 @@ class CircleGenerator(Generator):
     endTime: time to end the simulation
 
     """
+
     def generate_cfg(self, params):
 
         if "start_time" not in params:
@@ -154,9 +157,9 @@ class CircleGenerator(Generator):
             return t
 
         self.rts = {"top": "top left bottom right",
-               "left": "left bottom right top",
-               "bottom": "bottom right top left",
-               "right": "right top left bottom"}
+                    "left": "left bottom right top",
+                    "bottom": "bottom right top left",
+                    "right": "right top left bottom"}
 
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (rt, edge) in self.rts.items():
@@ -169,7 +172,7 @@ class CircleGenerator(Generator):
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
-        printxml(gui, self.cfg_path +guifn)
+        printxml(gui, self.cfg_path + guifn)
 
         cfg = makexml("configuration", "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
 
@@ -188,51 +191,56 @@ class CircleGenerator(Generator):
     def make_routes(self, scenario, initial_config, cfg_params):
 
         type_params = scenario.type_params
-        type_list = scenario.type_params.keys()
+        type_list = [tup[0] for tup in type_params]
         num_cars = scenario.num_vehicles
         if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-            for tp in type_list:
-                if type_params[tp][1][0] == "sumoIDM":
+            for i in range(len(type_list)):
+                if type_params[i][2][0] == "sumoIDM":
+                    tp = type_params[i][0]
+
                     # if any IDM parameters are not specified, they are set to the default parameters specified
                     # by Treiber
                     if "accel" not in type_params[tp][1]:
-                        type_params[tp][1][1]["accel"] = 1
+                        type_params[i][2][1]["accel"] = 1
 
                     if "decel" not in type_params[tp][1]:
-                        type_params[tp][1][1]["decel"] = 1.5
+                        type_params[i][2][1]["decel"] = 1.5
 
                     if "delta" not in type_params[tp][1]:
-                        type_params[tp][1][1]["delta"] = 4
+                        type_params[i][2][1]["delta"] = 4
 
                     if "tau" not in type_params[tp][1]:
-                        type_params[tp][1][1]["tau"] = 1
+                        type_params[i][2][1]["tau"] = 1
 
                     routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
-                                                     "accel": repr(type_params[tp][1][1]["accel"]),
-                                                     "decel": repr(type_params[tp][1][1]["decel"]),
-                                                     "delta": repr(type_params[tp][1][1]["delta"]),
-                                                     "tau": repr(type_params[tp][1][1]["tau"])}))
+                                                     "accel": repr(type_params[i][2][1]["accel"]),
+                                                     "decel": repr(type_params[i][2][1]["decel"]),
+                                                     "delta": repr(type_params[i][2][1]["delta"]),
+                                                     "tau": repr(type_params[i][2][1]["tau"])}))
                 else:
-                    routes.append(E("vType", id=tp, minGap="0"))
+                    routes.append(E("vType", id=type_params[i][0], minGap="0"))
 
             self.vehicle_ids = []
             if num_cars > 0:
-                for type in type_params:
-                    type_count = type_params[type][0]
-                    for i in range(type_count):
-                        self.vehicle_ids.append((type, type + "_" + str(i)))
+                for i in range(len(type_params)):
+                    tp = type_params[i][0]
+                    type_count = type_params[i][1]
+                    for j in range(type_count):
+                        self.vehicle_ids.append((tp, tp + "_" + str(j)))
 
             if initial_config["shuffle"]:
                 random.shuffle(self.vehicle_ids)
 
             positions = initial_config["positions"]
             lanes = initial_config["lanes"]
-            for i, (type, id) in enumerate(self.vehicle_ids):
+            for i, (veh_type, id) in enumerate(self.vehicle_ids):
                 route, pos = positions[i]
                 lane = lanes[i]
-                type_depart_speed = type_params[type][3]
-                routes.append(self.vehicle(type, "route" + route, depart="0", id=id, color="1,0.0,0.0",
-                              departSpeed=str(type_depart_speed), departPos=str(pos), departLane=str(lane)))
+                indx_type = [i for i in range(len(type_list)) if type_list[i] == veh_type][0]
+                type_depart_speed = type_params[indx_type][4]
+                routes.append(self.vehicle(veh_type, "route" + route, depart="0", id=id, color="1,0.0,0.0",
+                                           departSpeed=str(type_depart_speed), departPos=str(pos),
+                                           departLane=str(lane)))
 
             printxml(routes, self.cfg_path + self.roufn)

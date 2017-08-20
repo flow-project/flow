@@ -218,7 +218,7 @@ class SimpleIntersectionEnvironment(LoopEnvironment):
 
         return max(max_cost - cost, 0)
 
-    def getState(self, **kwargs):
+    def get_state(self, **kwargs):
         """
         See parent class
         """

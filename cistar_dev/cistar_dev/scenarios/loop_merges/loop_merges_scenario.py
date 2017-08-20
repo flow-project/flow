@@ -22,7 +22,9 @@ class LoopMergesScenario(Scenario):
 
         # the vehicles that start in the merging lane are distinguished by the presence of the string "merge"
         # in their names
-        self.num_merge_vehicles = sum([x[1][0] for x in type_params.items() if "merge" in x[0]])
+        self.num_merge_vehicles = sum([x[1] for x in type_params if "merge" in x[0]])
+        print(self.num_merge_vehicles)
+
 
         # TODO: find a good way of calculating these
         self.ring_0_0_len = 1.1 + 4 * net_params["lanes"]

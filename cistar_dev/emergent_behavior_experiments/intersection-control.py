@@ -48,8 +48,8 @@ def run_task(*_):
 
     num_cars = 14
     num_auto = 14
-    type_params = {"rl": (num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
-                   "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = [("rl", num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   ("idm", num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
     exp_type = 0
 
@@ -124,14 +124,14 @@ def run_task(*_):
         baseline=baseline,
         batch_size=15000,
         max_path_length=horizon,
-        n_itr=2000,
+        n_itr=1000,
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
     )
     algo.train(),
 
-for seed in [5, 20, 68]:  # , 100, 128]:
+for seed in [5]:  # , 20, 68]:  # , 100, 128]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling

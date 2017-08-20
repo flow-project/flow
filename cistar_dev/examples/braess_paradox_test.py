@@ -20,7 +20,7 @@ sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": "no_col
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (40, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = [("idm", 40, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
 env_params = {"max-deacc": -6, "max-acc": 3, "close_CD": False}
 

@@ -47,7 +47,6 @@ def run_task(*_):
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                    cfg_params, initial_config, scenario)
 
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
@@ -74,7 +73,7 @@ def run_task(*_):
     algo.train(),
 
 
-for seed in [5, 10, 11]:  # [5, 10, 73, 56, 1]:
+for seed in [5]:  # [5, 10, 73, 56, 1]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
@@ -86,6 +85,6 @@ for seed in [5, 10, 11]:  # [5, 10, 73, 56, 1]:
         seed=seed,
         mode="ec2",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        # python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

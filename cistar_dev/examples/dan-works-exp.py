@@ -32,8 +32,8 @@ sumo_params = {"time_step":0.01, "human_sm": 1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"constantV": (1, (ConstantVelocityController, {"constant_speed": 3.5}), (StaticLaneChanger, {}), 0),
-               "idm": (21, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = [("constantV", 1, (ConstantVelocityController, {"constant_speed": 3.5}), (StaticLaneChanger, {}), 0),
+               ("idm", 21, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
 env_params = {}
 

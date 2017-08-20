@@ -50,9 +50,9 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         See parent class
         """
         return rewards.desired_velocity(
-            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
 
-    def getState(self, **kwargs):
+    def get_state(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle

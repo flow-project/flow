@@ -33,7 +33,7 @@ def run_task(v):
     sumo_params = {"time_step": 0.1,
                    "starting_position_shuffle": True, "vehicle_arrangement_shuffle": True, "bunching_range": [0, 100],
                    "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "aggressive", "human_sm": "aggressive"}
-    sumo_binary = "sumo"
+    sumo_binary = "sumo-gui"
 
     env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None", "num_steps": 1500,
                   "observation_pos_std": 0, "observation_vel_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
@@ -47,8 +47,11 @@ def run_task(v):
 
     num_cars = 22
 
-    type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-                   "idm": (num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = [("rl", 1, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   ("idm", num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
+
+    # type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
+    #                "idm": (num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
 
     scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -73,20 +76,20 @@ def run_task(v):
         baseline=baseline,
         batch_size=30000,
         max_path_length=horizon,
-        n_itr=1000,
+        n_itr=500,
         # whole_paths=True,
         # discount=0.999,
-        step_size=v["step_size"],
+        # step_size=v["step_size"],
     )
     algo.train(),
 
 exp_tag = str(22) + "-car-stabilizing-the-ring-local-robust-0-std"
 
-for seed in [5, 20, 68]:
+for seed in [5]:  # , 20, 68]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
@@ -97,4 +100,3 @@ for seed in [5, 20, 68]:
         python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )
-    sys.exit()

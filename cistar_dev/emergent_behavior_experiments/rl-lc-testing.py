@@ -29,10 +29,10 @@ def run_task(*_):
 
     initial_config = {"shuffle": False}
 
-    type_params = {"rl": (num_cars, (RLController, {}), None, 0)}
+    type_params = [("rl", num_cars, (RLController, {}), None, 0)]
 
     env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 5,
-                  "fail-safe": "None", "num_steps":1000}
+                  "fail-safe": "None", "num_steps": 1500}
 
     net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40, "net_path": "debug/net/"}
 
@@ -63,9 +63,8 @@ def run_task(*_):
         batch_size=30000,
         max_path_length=horizon,
         n_itr=2,  # 50000
-
         # whole_paths=True,
-        # discount=0.99,
+        discount=0.99,
         # step_size=0.01,
     )
     algo.train(),

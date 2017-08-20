@@ -29,12 +29,13 @@ from cistar_dev.controllers.car_following_models import *
 num_cars = 22
 num_auto = 3
 
+
 def run_task(*_):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "starting_position_shuffle": True, "vehicle_arrangement_shuffle": True,
-                   "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "no_collide", "human_sm": "no_collide"}
+    sumo_params = {"time_step": 0.1, "starting_position_shuffle": False, "vehicle_arrangement_shuffle": False,
+                   "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "aggressive", "human_sm": "no_collide"}
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3,
@@ -46,10 +47,10 @@ def run_task(*_):
 
     cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-    initial_config = {"shuffle": True}
+    initial_config = {"shuffle": False}
 
-    type_params = {"rl": (num_auto, (RLController, {}), None, 0),
-                   "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = [("rl", num_auto, (RLController, {}), None, 0),
+                   ("idm", num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
     scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -73,29 +74,29 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=1500,
+        batch_size=15000,
         max_path_length=horizon,
-        n_itr=2,  # 1000
+        n_itr=1000,
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
     )
     algo.train(),
 
-exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-single-lane-platooning'
+exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-single-lane-platooning-no-failsafe'
 
 for seed in [5]:  # [16, 20, 21, 22]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
-        #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        # python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

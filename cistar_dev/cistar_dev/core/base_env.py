@@ -183,7 +183,6 @@ class SumoEnvironment(gym.Env, Serializable):
         self.start_sumo()
         self.setup_initial_state()
 
-    # TODO: never used...
     def restart_sumo(self, sumo_params, sumo_binary=None):
         self.traci_connection.close(False)
         if sumo_binary:
@@ -239,9 +238,9 @@ class SumoEnvironment(gym.Env, Serializable):
         TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
-        # self.pos = dict()
-        # self.vel = dict()
-        # self.lanes = dict()
+        self.pos = dict()
+        self.vel = dict()
+        self.lanes = dict()
 
         # collect ids and prepare id and vehicle lists
         self.ids = self.traci_connection.vehicle.getIDList()
@@ -255,8 +254,8 @@ class SumoEnvironment(gym.Env, Serializable):
         self.colors = {}
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
-        for key in self.scenario.type_params.keys():
-            self.colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
+        for i in range(len(self.scenario.type_params)):
+            self.colors[self.scenario.type_params[i][0]] = COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
         for veh_id in self.ids:
@@ -275,8 +274,12 @@ class SumoEnvironment(gym.Env, Serializable):
             # TODO: make more abstract
             vehicle["route"] = self.available_routes[vehicle["edge"]]
 
+            # used when specifying the acceleration and lane change controllers
+            type_list = [tup[0] for tup in self.scenario.type_params]
+            indx_type = [i for i in range(len(type_list)) if type_list[i] == veh_type][0]
+
             # specify acceleration controller
-            controller_params = self.scenario.type_params[veh_type][1]
+            controller_params = self.scenario.type_params[indx_type][2]
             vehicle['controller'] = controller_params[0](veh_id=veh_id, **controller_params[1])
 
             if controller_params[0] == SumoController:
@@ -287,7 +290,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.controlled_ids.append(veh_id)
 
             # specify lane-changing controller
-            lane_changer_params = self.scenario.type_params[veh_type][2]
+            lane_changer_params = self.scenario.type_params[indx_type][3]
             if lane_changer_params is not None:
                 vehicle['lane_changer'] = lane_changer_params[0](veh_id=veh_id, **lane_changer_params[1])
             else:
@@ -313,9 +316,9 @@ class SumoEnvironment(gym.Env, Serializable):
             self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"],
                                           vehicle["position"], vehicle["speed"], pos)
 
-            # self.pos[veh_id] = [self.vehicles[veh_id]["absolute_position"]]
-            # self.vel[veh_id] = [self.vehicles[veh_id]["speed"]]
-            # self.lanes[veh_id] = [self.vehicles[veh_id]["lane"]]
+            self.pos[veh_id] = [self.vehicles[veh_id]["absolute_position"]]
+            self.vel[veh_id] = [self.vehicles[veh_id]["speed"]]
+            self.lanes[veh_id] = [self.vehicles[veh_id]["lane"]]
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -457,16 +460,21 @@ class SumoEnvironment(gym.Env, Serializable):
                     self.vehicles[veh_id]["leader"] = None
                     self.vehicles[veh_id]["follower"] = None
 
-            # self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
-            # self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
-            # self.lanes[veh_id].append(self.vehicles[veh_id]["lane"])
+        for veh_id in self.ids:
+            self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
+            self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
+            self.lanes[veh_id].append(self.vehicles[veh_id]["lane"])
+
+        if self.timer == 1500:
+            output = {"pos": self.pos, "vel": self.vel, "lane": self.lanes}
+            pickle.dump(output, open('/home/aboudy/Documents/output.pkl', 'wb'))
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         # collect information of the state of the network based on the environment class used
         if self.scenario.num_rl_vehicles > 0:
-            self.state = self.getState()
+            self.state = self.get_state()
             # rllab requires non-multi agent to have state shape as 
             # num-states x num_vehicles
             if not self.multi_agent:
@@ -531,8 +539,8 @@ class SumoEnvironment(gym.Env, Serializable):
         self.colors = {}
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
-        for key in self.scenario.type_params.keys():
-            self.colors[key] = COLORS[(color_choice + key_index) % len(COLORS)]
+        for i in range(len(self.scenario.type_params)):
+            self.colors[self.scenario.type_params[i][0]] = COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
         # perform shuffling (if requested)
@@ -611,9 +619,9 @@ class SumoEnvironment(gym.Env, Serializable):
         self.traci_connection.simulationStep()
 
         if self.multi_agent:
-            self.state = self.getState()
+            self.state = self.get_state()
         else:
-            self.state = self.getState().T
+            self.state = self.get_state().T
 
         observation = list(self.state)
         return observation
@@ -834,7 +842,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         return vehicles
 
-    def getState(self):
+    def get_state(self):
         """
         Returns the state of the simulation, dependent on the experiment/environment
         """

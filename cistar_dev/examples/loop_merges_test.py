@@ -17,8 +17,8 @@ sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": "no_col
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (14, (IDMController, {}), (StaticLaneChanger, {}), 0),
-               "merge-idm": (14, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = [("idm", 14, (IDMController, {}), (StaticLaneChanger, {}), 0),
+               ("merge-idm", 14, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
 env_params = {}
 

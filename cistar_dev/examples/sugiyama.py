@@ -32,7 +32,7 @@ sumo_params = {"time_step": 0.1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (22, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = [("idm", 22, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
 env_params = {}
 

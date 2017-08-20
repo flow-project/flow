@@ -25,8 +25,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         Actions are:
          - a (continuous) acceleration from max-deacc to max-acc
-         - a (discrete) direction with 3 values: 0) lane change to index -1, 1) no lane change,
-                                                 2) lane change to index +1
+         - a (continuous) direction with 3 values: 0) lane change to index -1, 1) no lane change,
+                                                   2) lane change to index +1
         :return:
         """
         # action_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)],
@@ -60,7 +60,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         target_velocity = self.env_params["target_velocity"]
 
         # compute the system-level performance of vehicles from a velocity perspective
-        reward = rewards.desired_velocity(state, rl_actions, fail=kwargs["fail"], target_velocity=target_velocity)
+        reward = rewards.desired_velocity(
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
 
         # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
         for veh_id in self.rl_ids:
@@ -69,7 +70,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
         return reward
 
-    def getState(self):
+    def get_state(self):
         """
         See parent class
         The state is an array the velocities for each vehicle
@@ -77,7 +78,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
         #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
-        #                   self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T
+        #                   self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids])
 
         # for moving bottleneck: use only local trailing data for the moving bottleneck experiment
         vehID = self.rl_ids[0]
@@ -91,11 +92,10 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
             % self.scenario.length
 
         if self.scenario.lanes == 2:
-            return np.array([[self.vehicles[vehID]["speed"], self.vehicles[trail_lane0]["speed"],
-                              self.vehicles[trail_lane1]["speed"]],
-                             [self.vehicles[vehID]["absolute_position"], headway_lane0, headway_lane1],
-                             [self.vehicles[vehID]["lane"], self.vehicles[trail_lane0]["lane"],
-                              self.vehicles[trail_lane1]["lane"]]])
+            return np.array(
+                [[self.vehicles[vehID]["speed"], self.vehicles[vehID]["absolute_position"], self.vehicles[vehID]["lane"]],
+                 [self.vehicles[trail_lane0]["speed"], headway_lane0, self.vehicles[trail_lane0]["lane"]],
+                 [self.vehicles[trail_lane1]["speed"], headway_lane1, self.vehicles[trail_lane1]["lane"]]])
 
         elif self.scenario.lanes == 3:
             trail_lane2 = self.get_trailing_car(vehID, lane=2)
@@ -103,12 +103,11 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                 (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane2]["absolute_position"]) \
                 % self.scenario.length
 
-            return np.array([[self.vehicles[vehID]["speed"], self.vehicles[trail_lane0]["speed"],
-                              self.vehicles[trail_lane1]["speed"], self.vehicles[trail_lane2]["speed"]],
-                             [self.vehicles[vehID]["absolute_position"], headway_lane0, headway_lane1, headway_lane2],
-                             [self.vehicles[vehID]["lane"], self.vehicles[trail_lane0]["lane"],
-                              self.vehicles[trail_lane1]["lane"], self.vehicles[trail_lane2]["lane"]]])
-
+            return np.array(
+                [[self.vehicles[vehID]["speed"], self.vehicles[vehID]["absolute_position"], self.vehicles[vehID]["lane"]],
+                 [self.vehicles[trail_lane0]["speed"], headway_lane0, self.vehicles[trail_lane0]["lane"]],
+                 [self.vehicles[trail_lane1]["speed"], headway_lane1, self.vehicles[trail_lane1]["lane"]],
+                 [self.vehicles[trail_lane2]["speed"], headway_lane2, self.vehicles[trail_lane2]["lane"]]])
 
     # def render(self):
     #     print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -171,16 +170,15 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
         speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        return Product([speed, lane, absolute_pos])
+        return Tuple([speed, lane, absolute_pos])
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        target_velocity = self.env_params["target_velocity"]
-
         # compute the system-level performance of vehicles from a velocity perspective
-        reward = rewards.desired_velocity(state, rl_actions, fail=kwargs["fail"], target_velocity=target_velocity)
+        reward = rewards.desired_velocity(
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
 
         # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
         for veh_id in self.rl_ids:
@@ -189,13 +187,13 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
 
         return reward
 
-    def getState(self):
+    def get_state(self):
         """
         See parent class
         """
         return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
                           self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
-                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T
+                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids])
 
     def apply_rl_actions(self, actions):
         """
@@ -253,68 +251,6 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
 
 
 
-
-
-# TODO: mine just has one tiny mod, but I kinda like it, so do we keep mine?
-# class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
-#
-#     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
-#         super().__init__(env_params, sumo_binary, sumo_params, scenario)
-#         vehicle_controllers = {}
-#         for veh_id in self.rl_ids:
-#             vehicle_controllers[veh_id] = IDMController(veh_id)
-#         self.vehicle_controllers = vehicle_controllers
-#
-#     @property
-#     def action_space(self):
-#         """
-#         Actions are:
-#          - a (discrete) direction with 3 values: 0) lane change to index -1, 1) no lane change,
-#                                                  2) lane change to index +1
-#         :return:
-#         """
-#
-#         lb = [-1] * self.scenario.num_rl_vehicles
-#         ub = [1] * self.scenario.num_rl_vehicles
-#         return Box(np.array(lb), np.array(ub))
-#
-#     def apply_rl_actions(self, actions):
-#         """
-#         Takes a tuple and applies a lane change. if a lane change is applied,
-#         don't issue another lane change for the duration of the lane change.
-#         Accelerations are given by an idm model.
-#         :param actions: (acceleration, lc_value, direction)
-#         :return: array of resulting actions: 0 if successful + other actions are ok, -1 if unsucessful / bad actions.
-#         """
-#         # acceleration = actions[-1]
-#         # direction = np.array(actions[:-1]) - 1
-#
-#
-#         # re-arrange actions according to mapping in observation space
-#         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
-#
-#         # get the accelerations from an idm model
-#         acceleration = np.zeros((len(sorted_rl_ids)))
-#         for i, rl_id in enumerate(sorted_rl_ids):
-#             acceleration[i] = self.vehicle_controllers[rl_id].get_action(self)
-#
-#         self.apply_acceleration(sorted_rl_ids, acc=acceleration)
-#
-#         # get the lane changes from the neural net
-#         direction = np.round(actions)
-#
-#         # represents vehicles that are allowed to change lanes
-#         non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
-#                                  for veh_id in sorted_rl_ids]
-#         # vehicle that are not allowed to change have their directions set to 0
-#         direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
-#
-#         self.apply_lane_change(sorted_rl_ids, direction=direction)
-#
-#
-#         resulting_behaviors = []
-#
-#         return resulting_behaviors
 
 
 class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):

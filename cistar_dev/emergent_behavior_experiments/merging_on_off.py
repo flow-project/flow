@@ -45,9 +45,9 @@ def run_task(v):
     num_auto = 1
     exp_tag = str(num_merge + num_non_merge) + "-car-" + str(num_merge) + "-merge-" + str(num_auto) + "-rl-merge-on-off"
 
-    type_params = {"rl": (num_auto, (RLController, {}), None, 0),
-                   "idm": (num_non_merge - num_auto, (IDMController, {}), None, 0),
-                   "merge-idm": (num_merge, (IDMController, {}), None, 0)}
+    type_params = [("rl", num_auto, (RLController, {}), None, 0),
+                   ("idm", num_non_merge - num_auto, (IDMController, {}), None, 0),
+                   ("merge-idm", num_merge, (IDMController, {}), None, 0)]
 
     scenario = LoopMergesScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 

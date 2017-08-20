@@ -51,40 +51,19 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        # return rewards.desired_velocity(
-        #     state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"],
-        #     multi_agent=self.multi_agent)
-
         # reward desired velocity
-        vel = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids])
-        if any(vel < -100) or kwargs["fail"]:
-            return 0.
-        max_cost = np.array([self.env_params["target_velocity"]] * self.scenario.num_vehicles)
-        max_cost = np.linalg.norm(max_cost)
-        cost = vel - self.env_params["target_velocity"]
-        cost = np.linalg.norm(cost)
-        reward = max(max_cost - cost, 0)
+        reward = rewards.desired_velocity(
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
 
-        # punish small headways
-        headway_threshold = 20
-        penalty_gain = 0.75
-        penalty_exponent = 1
-
-        headway_penalty = 0
-        for veh_id in self.rl_ids:
-            if self.vehicles[veh_id]["headway"] < headway_threshold:
-                headway_penalty += (((headway_threshold - self.vehicles[veh_id]["headway"]) / headway_threshold)
-                                    ** penalty_exponent) * penalty_gain
-
-        # in order to keep headway penalty (and thus reward function) positive
-        max_headway_penalty = self.scenario.num_rl_vehicles * penalty_gain
-        headway_penalty = max_headway_penalty - headway_penalty
-
-        reward += headway_penalty
+        # # punish small headways
+        # headway_penalty = rewards.punish_small_rl_headways(
+        #     self.vehicles, rl_ids=self.rl_ids, headway_threshold=20, penalty_gain=0.75)
+        #
+        # reward += headway_penalty
 
         return reward
 
-    def getState(self, **kwargs):
+    def get_state(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle
@@ -153,7 +132,7 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         return multi_agent_rewards.desired_velocity(
             state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
 
-    def getState(self, **kwargs):
+    def get_state(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle
@@ -208,19 +187,10 @@ class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
         """
         See parent class
         """
-        vel = np.array([self.vehicles[veh_id]["speed"] for veh_id in self.ids])
-        if any(vel < -100) or kwargs["fail"]:
-            return 0.
+        return rewards.desired_velocity(
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
 
-        max_cost = np.array([self.env_params["target_velocity"]] * self.scenario.num_vehicles)
-        max_cost = np.linalg.norm(max_cost)
-
-        cost = vel - self.env_params["target_velocity"]
-        cost = np.linalg.norm(cost)
-
-        return max(max_cost - cost, 0)
-
-    def getState(self, **kwargs):
+    def get_state(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle

@@ -216,28 +216,27 @@ class LoopMergesGenerator(Generator):
     def make_routes(self, scenario, initial_config, cfg_params):
 
         type_params = scenario.type_params
-        type_list = scenario.type_params.keys()
+        type_list = [tup[0] for tup in type_params]
         num_cars = scenario.num_vehicles
         if type_list is not None:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-            for tp in type_list:
-                print(type_params[tp][1][0])
-                if type_params[tp][1][0] == SumoController:
+            for i, tp in enumerate(type_list):
+                if type_params[i][2][0] == SumoController:
                     sumo_attributes = dict()
                     sumo_attributes["id"] = tp
                     sumo_attributes["minGap"] = "0"
-                    for key in type_params[tp][1][1].keys():
-                        sumo_attributes[key] = repr(type_params[tp][1][1][key])
+                    for key in type_params[i][2][1].keys():
+                        sumo_attributes[key] = repr(type_params[i][1][1][key])
                     routes.append(E("vType", attrib=sumo_attributes))
                 else:
                     routes.append(E("vType", id=tp, minGap="0"))
 
             vehicle_ids = []
             if num_cars > 0:
-                for type in type_list:
-                    type_count = type_params[type][0]
-                    for i in range(type_count):
-                        vehicle_ids.append((type, type + "_" + str(i)))
+                for i, tp in enumerate(type_list):
+                    type_count = type_params[i][1]
+                    for j in range(type_count):
+                        vehicle_ids.append((tp, tp + "_" + str(j)))
 
             if initial_config["shuffle"]:
                 random.shuffle(vehicle_ids)
@@ -255,7 +254,8 @@ class LoopMergesGenerator(Generator):
                     route, pos = ring_positions[i_ring]
                     i_ring += 1
 
-                type_depart_speed = type_params[type][3]
+                indx_type = [i for i in range(len(type_list)) if type_list[i] == type][0]
+                type_depart_speed = type_params[indx_type][4]
                 routes.append(self.vehicle(type, "route" + route, depart="0",
                               departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
 

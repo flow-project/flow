@@ -87,7 +87,7 @@ class TwoIntersectionEnvironment(LoopEnvironment):
         # return rewards.min_delay(state, rl_actions, target_velocity=self.env_params["target_velocity"],
         #     time_step=self.sumo_params["time_step"], fail=kwargs["fail"])
 
-    def getState(self, **kwargs):
+    def get_state(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle
