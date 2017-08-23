@@ -1,246 +1,101 @@
 from cistar_dev.core.exp import Generator
 
-from cistar_dev.core.util import makexml
-from cistar_dev.core.util import printxml
-
-import subprocess
-import sys
-
 from numpy import pi, sin, cos, linspace
-
-import logging
-import random
 from lxml import etree
-import numpy as np
 
 E = etree.Element
-
-"""
-Generator for loop circle used in MIT traffic simulation.
-"""
 
 
 class CircleGenerator(Generator):
     """
-    Generates Net files for loop sim. Requires:
-    length: length of the circle
-    lanes: number of lanes in the circle
-    speed_limit: max speed limit of the circle
-    resolution: number of nodes resolution
+    Generator for loop circle used in MIT traffic simulation. Requires from net_params:
+     - length: length of the circle
+     - lanes: number of lanes in the circle
+     - speed_limit: max speed limit of the circle
+     - resolution: number of nodes resolution
     """
 
-    def generate_net(self, params):
-        length = params["length"]
-        lanes = params["lanes"]
-        speed_limit = params["speed_limit"]
-        resolution = params["resolution"]
+    def __init__(self, net_params, net_path, cfg_path, base):
+        """
+        See parent class
+        """
+        length = net_params["length"]
+        lanes = net_params["lanes"]
+        self.name = "%s-%dm%dl" % (base, length, lanes)
 
-        self.name = "%s-%dm%dl" % (self.base, length, lanes)
+        super().__init__(net_params, net_path, cfg_path, base)
 
-        nodfn = "%s.nod.xml" % self.name
-        edgfn = "%s.edg.xml" % self.name
-        typfn = "%s.typ.xml" % self.name
-        cfgfn = "%s.netccfg" % self.name
-        netfn = "%s.net.xml" % self.name
+    def specify_nodes(self, net_params):
+        """
+        See parent class
+        """
+        length = net_params["length"]
+        r = length / pi
 
+        nodes = [{"id": "bottom", "x": repr(0),  "y": repr(-r)},
+                 {"id": "right",  "x": repr(r),  "y": repr(0)},
+                 {"id": "top",    "x": repr(0),  "y": repr(r)},
+                 {"id": "left",   "x": repr(-r), "y": repr(0)}]
+
+        return nodes
+
+    def specify_edges(self, net_params):
+        """
+        See parent class
+        """
+        length = net_params["length"]
+        resolution = net_params["resolution"]
         r = length / pi
         edgelen = length / 4.
 
-        # xml file for nodes
-        # contains nodes for the boundary points
-        # with respect to the x and y axes
-        # titled: bottom, right, top, left
-        x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
-        x.append(E("node", id="bottom", x=repr(0), y=repr(-r)))
-        x.append(E("node", id="right", x=repr(r), y=repr(0)))
-        x.append(E("node", id="top", x=repr(0), y=repr(r)))
-        x.append(E("node", id="left", x=repr(-r), y=repr(0)))
-        printxml(x, self.net_path + nodfn)
+        edges = [{"id": "bottom", "type": "edgeType",
+                  "from": "bottom", "to": "right", "length": repr(edgelen),
+                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                     for t in linspace(-pi / 2, 0, resolution)])},
+                 {"id": "right", "type": "edgeType",
+                  "from": "right", "to": "top", "length": repr(edgelen),
+                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                     for t in linspace(0, pi / 2, resolution)])},
+                 {"id": "top", "type": "edgeType",
+                  "from": "top", "to": "left", "length": repr(edgelen),
+                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                     for t in linspace(pi / 2, pi, resolution)])},
+                 {"id": "left", "type": "edgeType",
+                  "from": "left", "to": "bottom", "length": repr(edgelen),
+                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                     for t in linspace(pi, 3 * pi / 2, resolution)])}]
 
-        # xml file for edges
-        # creates circular arcs that connect the created nodes
-        # space between points in the edge is defined by the "resolution" variable
-        x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
-        x.append(E("edge", attrib={"id": "bottom", "from": "bottom", "to": "right", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(-pi / 2, 0, resolution)]),
-                                   "length": repr(edgelen)}))
-        x.append(E("edge", attrib={"id": "right", "from": "right", "to": "top", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(0, pi / 2, resolution)]),
-                                   "length": repr(edgelen)}))
-        x.append(E("edge", attrib={"id": "top", "from": "top", "to": "left", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(pi / 2, pi, resolution)]),
-                                   "length": repr(edgelen)}))
-        x.append(E("edge", attrib={"id": "left", "from": "left", "to": "bottom", "type": "edgeType",
-                                   "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                      for t in linspace(pi, 3 * pi / 2, resolution)]),
-                                   "length": repr(edgelen)}))
-        printxml(x, self.net_path + edgfn)
+        return edges
 
-        # xml file for types
-        # contains the the number of lanes and the speed limit for the lanes
-        x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
-        x.append(E("type", id="edgeType", numLanes=repr(lanes), speed=repr(speed_limit)))
-        printxml(x, self.net_path + typfn)
+    def specify_types(self, net_params):
+        """
+        See parent class
+        """
+        lanes = net_params["lanes"]
+        speed_limit = net_params["speed_limit"]
+        types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
-        # xml file for configuration
-        # - specifies the location of all files of interest for sumo
-        # - specifies output net file
-        # - specifies processing parameters for no internal links and no turnarounds
-        x = makexml("configuration", "http://sumo.dlr.de/xsd/netconvertConfiguration.xsd")
-        t = E("input")
-        t.append(E("node-files", value=nodfn))
-        t.append(E("edge-files", value=edgfn))
-        t.append(E("type-files", value=typfn))
-        x.append(t)
-        t = E("output")
-        t.append(E("output-file", value=netfn))
-        x.append(t)
-        t = E("processing")
-        t.append(E("no-internal-links", value="true"))
-        t.append(E("no-turnarounds", value="true"))
-        x.append(t)
-        printxml(x, self.net_path + cfgfn)
+        return types
 
-        # netconvert -c $(cfg) --output-file=$(net)
-        retcode = subprocess.call(
-            ["netconvert -c " + self.net_path + cfgfn + " --output-file=" + self.cfg_path + netfn],
-            stdout=sys.stdout, stderr=sys.stderr, shell=True)
-        self.netfn = netfn
+    def specify_routes(self):
+        """
+        See parent class
+        """
+        rts = {"top": ["top", "left", "bottom", "right"],
+               "left": ["left", "bottom", "right", "top"],
+               "bottom": ["bottom", "right", "top", "left"],
+               "right": ["right", "top", "left", "bottom"]}
 
-        return self.net_path + netfn
+        return rts
 
-    """
-    Generates .sumo.cfg files using net files and netconvert.
-    Requires:
-    num_cars: Number of cars to seed the simulation with
-       max_speed: max speed of cars
-       OR
-    type_list: List of types of cars to seed the simulation with
+    # TODO: may be able to get rid of all together (replace with routing controller)
+    def specify_rerouters(self):
+        """
+        See parent class
+        """
+        rerouting = [{"name": "rerouterTop",    "from": "top",    "route": "routebottom"},
+                     {"name": "rerouterBottom", "from": "bottom", "route": "routetop"},
+                     {"name": "rerouterLeft",   "from": "left",   "route": "routeright"},
+                     {"name": "rerouterRight",  "from": "right",  "route": "routeleft"}]
 
-    startTime: time to start the simulation
-    endTime: time to end the simulation
-
-    """
-
-    def generate_cfg(self, params):
-
-        if "start_time" not in params:
-            raise ValueError("start_time of circle not supplied")
-        else:
-            start_time = params["start_time"]
-
-        if "end_time" in params:
-            end_time = params["end_time"]
-        else:
-            end_time = None
-
-        self.roufn = "%s.rou.xml" % self.name
-        addfn = "%s.add.xml" % self.name
-        cfgfn = "%s.sumo.cfg" % self.name
-        guifn = "%s.gui.cfg" % self.name
-
-        def rerouter(name, frm, to):
-            '''
-
-            :param name:
-            :param frm:
-            :param to:
-            :return:
-            '''
-            t = E("rerouter", id=name, edges=frm)
-            i = E("interval", begin="0", end="10000000")
-            i.append(E("routeProbReroute", id=to))
-            t.append(i)
-            return t
-
-        self.rts = {"top": "top left bottom right",
-                    "left": "left bottom right top",
-                    "bottom": "bottom right top left",
-                    "right": "right top left bottom"}
-
-        add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
-        for (rt, edge) in self.rts.items():
-            add.append(E("route", id="route%s" % rt, edges=edge))
-        add.append(rerouter("rerouterTop", "top", "routebottom"))
-        add.append(rerouter("rerouterBottom", "bottom", "routetop"))
-        add.append(rerouter("rerouterLeft", "left", "routeright"))
-        add.append(rerouter("rerouterRight", "right", "routeleft"))
-        printxml(add, self.cfg_path + addfn)
-
-        gui = E("viewsettings")
-        gui.append(E("scheme", name="real world"))
-        printxml(gui, self.cfg_path + guifn)
-
-        cfg = makexml("configuration", "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
-
-        logging.debug(self.netfn)
-
-        cfg.append(self.inputs(self.name, net=self.netfn, add=addfn, rou=self.roufn, gui=guifn))
-        t = E("time")
-        t.append(E("begin", value=repr(start_time)))
-        if end_time:
-            t.append(E("end", value=repr(end_time)))
-        cfg.append(t)
-
-        printxml(cfg, self.cfg_path + cfgfn)
-        return cfgfn
-
-    def make_routes(self, scenario, initial_config, cfg_params):
-
-        type_params = scenario.type_params
-        type_list = [tup[0] for tup in type_params]
-        num_cars = scenario.num_vehicles
-        if type_list is not None:
-            routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-            for i in range(len(type_list)):
-                if type_params[i][2][0] == "sumoIDM":
-                    tp = type_params[i][0]
-
-                    # if any IDM parameters are not specified, they are set to the default parameters specified
-                    # by Treiber
-                    if "accel" not in type_params[tp][1]:
-                        type_params[i][2][1]["accel"] = 1
-
-                    if "decel" not in type_params[tp][1]:
-                        type_params[i][2][1]["decel"] = 1.5
-
-                    if "delta" not in type_params[tp][1]:
-                        type_params[i][2][1]["delta"] = 4
-
-                    if "tau" not in type_params[tp][1]:
-                        type_params[i][2][1]["tau"] = 1
-
-                    routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
-                                                     "accel": repr(type_params[i][2][1]["accel"]),
-                                                     "decel": repr(type_params[i][2][1]["decel"]),
-                                                     "delta": repr(type_params[i][2][1]["delta"]),
-                                                     "tau": repr(type_params[i][2][1]["tau"])}))
-                else:
-                    routes.append(E("vType", id=type_params[i][0], minGap="0"))
-
-            self.vehicle_ids = []
-            if num_cars > 0:
-                for i in range(len(type_params)):
-                    tp = type_params[i][0]
-                    type_count = type_params[i][1]
-                    for j in range(type_count):
-                        self.vehicle_ids.append((tp, tp + "_" + str(j)))
-
-            if initial_config["shuffle"]:
-                random.shuffle(self.vehicle_ids)
-
-            positions = initial_config["positions"]
-            lanes = initial_config["lanes"]
-            for i, (veh_type, id) in enumerate(self.vehicle_ids):
-                route, pos = positions[i]
-                lane = lanes[i]
-                indx_type = [i for i in range(len(type_list)) if type_list[i] == veh_type][0]
-                type_depart_speed = type_params[indx_type][4]
-                routes.append(self.vehicle(veh_type, "route" + route, depart="0", id=id, color="1,0.0,0.0",
-                                           departSpeed=str(type_depart_speed), departPos=str(pos),
-                                           departLane=str(lane)))
-
-            printxml(routes, self.cfg_path + self.roufn)
+        return rerouting

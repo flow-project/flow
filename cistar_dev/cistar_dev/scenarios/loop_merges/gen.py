@@ -4,214 +4,40 @@ from cistar_dev.controllers.base_controller import SumoController
 from cistar_dev.core.util import makexml
 from cistar_dev.core.util import printxml
 
-import subprocess
-import sys
-
-import numpy as np
 from numpy import pi, sin, cos, linspace
 
-import logging
 import random
 from lxml import etree
 E = etree.Element
 
 
 class LoopMergesGenerator(Generator):
+    """
+    Generator for loop with merges sim. Requires from net_params:
+    - merge_in_length: length of the merging in lane
+    - merge_out_length: length of the merging out lane. May be set to None to remove
+    - merge_in_angle: angle between the horizontal line and the merge-in lane (in radians)
+    - merge_out_angle: angle between the horizontal line and the merge-out lane (in radians).
+                       MUST BE greater than the merge_in_angle
+    - ring_radius: radius of the circular portion of the network.
+    - lanes: number of lanes in the network
+    - speed: max speed of vehicles in the network
+    """
 
-    def generate_net(self, params):
+    def __init__(self, net_params, net_path, cfg_path, base):
         """
-        Generates Net files for two-way intersection sim. Requires:
-        - horizontal_length_in: length of the horizontal lane before the intersection
-        - horizontal_length_out: length of the horizontal lane after the intersection
-        - horizontal_lanes: number of lanes in the horizontal lane
-        - vertical_length_in: length of the vertical lane before the intersection
-        - vertical_length_out: length of the vertical lane after the intersection
-        - vertical_lanes: number of lanes in the vertical lane
-        - speed_limit: max speed limit of the vehicles on the road network
+        See parent class
         """
-        merge_in_len = params["merge_in_length"]
-        merge_out_len = params["merge_out_length"]
-        merge_in_angle = params["merge_in_angle"]
-        merge_out_angle = params["merge_out_angle"]
-        ring_radius = params["ring_radius"]
+        super().__init__(net_params, net_path, cfg_path, base)
 
-        lanes = params["lanes"]
-        speed_limit = params["speed_limit"]
-        res = params["resolution"]
+        merge_in_len = net_params["merge_in_length"]
+        merge_out_len = net_params["merge_out_length"]
+        r = net_params["ring_radius"]
+        lanes = net_params["lanes"]
+        length = merge_in_len + merge_out_len + 2 * pi * r
+        self.name = "%s-%dm%dl" % (base, length, lanes)
 
-        r = ring_radius
-        self.merge_out_len = merge_out_len
-
-        if merge_out_len is None:
-            length = 2 * pi * ring_radius + merge_in_len
-        else:
-            length = 2 * pi * ring_radius + merge_in_len + merge_out_len
-
-        self.name = "%s-%dm%dl" % (self.base, length, lanes)
-
-        nodfn = "%s.nod.xml" % self.name
-        edgfn = "%s.edg.xml" % self.name
-        typfn = "%s.typ.xml" % self.name
-        cfgfn = "%s.netccfg" % self.name
-        netfn = "%s.net.xml" % self.name
-
-        # xml file for nodes; contains nodes for the boundary points with respect to the x and y axes
-        x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
-
-        if merge_out_len is not None:
-            x.append(E("node", id="merge_in", x=repr((r + merge_in_len) * cos(merge_in_angle)),
-                       y=repr((r + merge_in_len) * sin(merge_in_angle)),  type="priority"))
-
-            x.append(E("node", id="merge_out", x=repr((r + merge_out_len) * cos(merge_out_angle)),
-                       y=repr((r + merge_out_len) * sin(merge_out_angle)), type="priority"))
-
-            x.append(E("node", id="ring_0", x=repr(r * cos(merge_in_angle)),
-                       y=repr(r * sin(merge_in_angle)), type="priority"))
-
-            x.append(E("node", id="ring_1", x=repr(r * cos(merge_out_angle)),
-                       y=repr(r * sin(merge_out_angle)), type="priority"))
-
-        else:
-            x.append(E("node", id="merge_in", x=repr((r + merge_in_len) * cos(merge_in_angle)),
-                       y=repr((r + merge_in_len) * sin(merge_in_angle)), type="priority"))
-
-            x.append(E("node", id="ring_0", x=repr(r * cos(merge_in_angle)),
-                       y=repr(r * sin(merge_in_angle)), type="priority"))
-
-            x.append(E("node", id="ring_1", x=repr(r * cos(merge_in_angle + pi)),
-                       y=repr(r * sin(merge_in_angle + pi)), type="priority"))
-
-        printxml(x, self.net_path + nodfn)
-
-        # xml file for edges; creates circular arcs that connect the created nodes space between points
-        # in the edge is defined by the "resolution" variable
-        x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
-
-        if merge_out_len is not None:
-            # edges associated with merges
-            x.append(E("edge", attrib={"id": "merge_in", "from": "merge_in", "to": "ring_0", "type": "edgeType",
-                                       "length": repr(merge_in_len)}))
-            x.append(E("edge", attrib={"id": "merge_out", "from": "ring_1", "to": "merge_out", "type": "edgeType",
-                                       "length": repr(merge_out_len)}))
-
-            # edges associated with the ring
-            x.append(E("edge", attrib={"id": "ring_0", "from": "ring_0", "to": "ring_1", "type": "edgeType",
-                                       "length": repr((merge_out_angle - merge_in_angle) % (2 * pi) * r),
-                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                          for t in linspace(merge_in_angle, merge_out_angle, res)])}))
-            x.append(E("edge", attrib={"id": "ring_1", "from": "ring_1", "to": "ring_0", "type": "edgeType",
-                                       "length": repr((merge_in_angle - merge_out_angle) % (2 * pi) * r),
-                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                          for t in linspace(merge_out_angle, 2 * pi + merge_in_angle, res)])}))
-        else:
-            # edges associated with merges
-            x.append(E("edge", attrib={"id": "merge_in", "from": "merge_in", "to": "ring_0", "type": "edgeType",
-                                       "length": repr(merge_in_len)}))
-
-            # edges associated with the ring
-            x.append(E("edge", attrib={"id": "ring_0", "from": "ring_0", "to": "ring_1", "type": "edgeType",
-                                       "length": repr(pi * r),
-                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                          for t in linspace(merge_in_angle, merge_in_angle + pi, res)])}))
-            x.append(E("edge", attrib={"id": "ring_1", "from": "ring_1", "to": "ring_0", "type": "edgeType",
-                                       "length": repr(pi * r),
-                                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                                          for t in linspace(merge_in_angle + pi, merge_in_angle + 2 * pi, res)])}))
-
-        printxml(x, self.net_path + edgfn)
-
-        # xml file for types; contains the the number of lanes and the speed limit for the lanes
-        x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
-        x.append(E("type", id="edgeType", numLanes=repr(lanes), speed=repr(speed_limit)))
-        printxml(x, self.net_path + typfn)
-
-        # xml file for configuration
-        # - specifies the location of all files of interest for sumo
-        # - specifies output net file
-        # - specifies processing parameters for no internal links and no turnarounds
-        x = makexml("configuration", "http://sumo.dlr.de/xsd/netconvertConfiguration.xsd")
-        t = E("input")
-        t.append(E("node-files", value=nodfn))
-        t.append(E("edge-files", value=edgfn))
-        t.append(E("type-files", value=typfn))
-        x.append(t)
-        t = E("output")
-        t.append(E("output-file", value=netfn))
-        x.append(t)
-        t = E("processing")
-        t.append(E("no-internal-links", value="true"))
-        t.append(E("no-turnarounds", value="true"))
-        x.append(t)
-        printxml(x, self.net_path + cfgfn)
-
-        retcode = subprocess.call(["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
-                                   self.cfg_path + netfn + ' --no-internal-links="false"'],
-                                  stdout=sys.stdout, stderr=sys.stderr, shell=True)
-        self.netfn = netfn
-
-        return self.net_path + netfn
-
-    """ Lets add everything after here to the base generator class """
-
-    def generate_cfg(self, params):
-        """
-        Generates .sumo.cfg files using net files and netconvert.
-        Requires:
-        num_cars: Number of cars to seed the simulation with
-           max_speed: max speed of cars
-           OR
-        type_list: List of types of cars to seed the simulation with
-
-        startTime: time to start the simulation
-        endTime: time to end the simulation
-
-        """
-        if "start_time" not in params:
-            raise ValueError("start_time of circle not supplied")
-        else:
-            start_time = params["start_time"]
-
-        if "end_time" in params:
-            end_time = params["end_time"]
-        else:
-            end_time = None
-
-        self.roufn = "%s.rou.xml" % self.name
-        addfn = "%s.add.xml" % self.name
-        cfgfn = "%s.sumo.cfg" % self.name
-        guifn = "%s.gui.cfg" % self.name
-
-        if self.merge_out_len is not None:
-            self.rts = {"ring_0":   "ring_0 ring_1",
-                        "ring_1":   "ring_1 ring_0",
-                        "merge_in": "merge_in ring_0 merge_out"}
-        else:
-            self.rts = {"ring_0":   "ring_0 ring_1",
-                        "ring_1":   "ring_1 ring_0",
-                        "merge_in": "merge_in ring_0 ring_1"}
-
-        add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
-        for (rt, edge) in self.rts.items():
-            add.append(E("route", id="route%s" % rt, edges=edge))
-        printxml(add, self.cfg_path + addfn)
-
-        gui = E("viewsettings")
-        gui.append(E("scheme", name="real world"))
-        printxml(gui, self.cfg_path +guifn)
-
-        cfg = makexml("configuration", "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
-
-        logging.debug(self.netfn)
-
-        cfg.append(self.inputs(self.name, net=self.netfn, add=addfn, rou=self.roufn, gui=guifn))
-        t = E("time")
-        t.append(E("begin", value=repr(start_time)))
-        if end_time:
-            t.append(E("end", value=repr(end_time)))
-        cfg.append(t)
-
-        printxml(cfg, self.cfg_path + cfgfn)
-        return cfgfn
+        self.merge_out_len = net_params["merge_out_length"]
 
     def make_routes(self, scenario, initial_config, cfg_params):
 
@@ -260,3 +86,116 @@ class LoopMergesGenerator(Generator):
                               departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
 
             printxml(routes, self.cfg_path + self.roufn)
+
+    def specify_nodes(self, net_params):
+        """
+        See parent class
+        """
+        merge_in_len = net_params["merge_in_length"]
+        merge_out_len = net_params["merge_out_length"]
+        merge_in_angle = net_params["merge_in_angle"]
+        merge_out_angle = net_params["merge_out_angle"]
+        r = net_params["ring_radius"]
+
+        if merge_out_len is not None:
+            nodes = [{"id": "merge_in", "type": "priority",
+                      "x": repr((r + merge_in_len) * cos(merge_in_angle)),
+                      "y": repr((r + merge_in_len) * sin(merge_in_angle))},
+
+                     {"id": "merge_out", "type": "priority",
+                      "x": repr((r + merge_out_len) * cos(merge_out_angle)),
+                      "y": repr((r + merge_out_len) * sin(merge_out_angle))},
+
+                     {"id": "ring_0", "type": "priority",
+                      "x": repr(r * cos(merge_in_angle)),
+                      "y": repr(r * sin(merge_in_angle)), },
+
+                     {"id": "ring_1", "type": "priority",
+                      "x": repr(r * cos(merge_out_angle)),
+                      "y": repr(r * sin(merge_out_angle))}]
+
+        else:
+            nodes = [{"id": "merge_in", "type": "priority",
+                      "x": repr((r + merge_in_len) * cos(merge_in_angle)),
+                      "y": repr((r + merge_in_len) * sin(merge_in_angle))},
+
+                     {"id": "ring_0", "type": "priority",
+                      "x": repr(r * cos(merge_in_angle)),
+                      "y": repr(r * sin(merge_in_angle))},
+
+                     {"id": "ring_1", "type": "priority",
+                      "x": repr(r * cos(merge_in_angle + pi)),
+                      "y": repr(r * sin(merge_in_angle + pi))}]
+
+        return nodes
+
+    def specify_edges(self, net_params):
+        """
+        See parent class
+        """
+        merge_in_len = net_params["merge_in_length"]
+        merge_out_len = net_params["merge_out_length"]
+        in_angle = net_params["merge_in_angle"]
+        out_angle = net_params["merge_out_angle"]
+        r = net_params["ring_radius"]
+        res = net_params["resolution"]
+
+        if merge_out_len is not None:
+            # edges associated with merges
+            edges = [{"id": "merge_in", "type": "edgeType",
+                      "from": "merge_in", "to": "ring_0", "length": repr(merge_in_len)},
+
+                     {"id": "merge_out", "type": "edgeType",
+                      "from": "ring_1", "to": "merge_out", "length": repr(merge_out_len)},
+
+                     {"id": "ring_0", "type": "edgeType",
+                      "from": "ring_0", "to": "ring_1", "length": repr((out_angle - in_angle) % (2 * pi) * r),
+                      "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                         for t in linspace(in_angle, out_angle, res)])},
+
+                     {"id": "ring_1", "type": "edgeType",
+                      "from": "ring_1", "to": "ring_0", "length": repr((in_angle - out_angle) % (2 * pi) * r),
+                      "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                         for t in linspace(out_angle, 2 * pi + in_angle, res)])}]
+        else:
+            # edges associated with merges
+            edges = [{"id": "merge_in",
+                      "from": "merge_in", "to": "ring_0", "type": "edgeType", "length": repr(merge_in_len)}]
+
+            # edges associated with the ring
+            edges += [{"id": "ring_0", "type": "edgeType",
+                       "from": "ring_0", "to": "ring_1", "length": repr(pi * r),
+                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                          for t in linspace(in_angle, in_angle + pi, res)])},
+
+                      {"id": "ring_1", "type": "edgeType",
+                       "from": "ring_1", "to": "ring_0", "length": repr(pi * r),
+                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                          for t in linspace(in_angle + pi, in_angle + 2 * pi, res)])}]
+
+        return edges
+
+    def specify_types(self, net_params):
+        """
+        See parent class
+        """
+        lanes = net_params["lanes"]
+        speed_limit = net_params["speed_limit"]
+        types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
+
+        return types
+
+    def specify_routes(self):
+        """
+        See parent class
+        """
+        if self.merge_out_len is not None:
+            rts = {"ring_0":   ["ring_0", "ring_1"],
+                   "ring_1":   ["ring_1", "ring_0"],
+                   "merge_in": ["merge_in", "ring_0", "merge_out"]}
+        else:
+            rts = {"ring_0":   ["ring_0", "ring_1"],
+                   "ring_1":   ["ring_1", "ring_0"],
+                   "merge_in": ["merge_in", "ring_0", "ring_1"]}
+
+        return rts
