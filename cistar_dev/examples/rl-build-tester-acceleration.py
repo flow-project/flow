@@ -33,12 +33,12 @@ from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.DEBUG)
 
+
 def run_task(*_):
     tot_cars = 6
-
     auton_cars = 6
 
-    sumo_params = {"time_step":0.1,  "rl_sm": 1}
+    sumo_params = {"time_step": 0.1,  "rl_sm": 1}
 
     sumo_binary = "sumo-gui"
 
@@ -90,7 +90,7 @@ def run_task(*_):
     )
     algo.train()
 
-for seed in [10]: # [1, 5, 10, 73, 56]
+for seed in [10]:  # [1, 5, 10, 73, 56]
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
@@ -102,6 +102,6 @@ for seed in [10]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="rl-acceleration",
-        #python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

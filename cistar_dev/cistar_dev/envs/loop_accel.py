@@ -1,6 +1,7 @@
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import rewards
 from cistar_dev.core import multi_agent_rewards
+from cistar_dev.controllers.rlcontroller import RLController
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -69,27 +70,23 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
-        #                  for veh_id in self.sorted_ids]).T
-
-        """implicit labeling for stabilizing the ring (centering the rl vehicle, scaling and using relative position)"""
         scaled_rel_pos = [(self.vehicles[veh_id]["absolute_position"] % self.scenario.length) / self.scenario.length
                           for veh_id in self.sorted_ids]
         scaled_pos = [self.vehicles[veh_id]["absolute_position"] / self.scenario.length for veh_id in self.sorted_ids]
         scaled_vel = [self.vehicles[veh_id]["speed"] / self.env_params["target_velocity"]
                       for veh_id in self.sorted_ids]
-        # return np.array([[scaled_vel[i], scaled_rel_pos[i]] for i in range(len(self.sorted_ids))])
-        return np.array([[scaled_vel[i], scaled_pos[i]] for i in range(len(self.sorted_ids))])
 
-        # """for purely homogeneous cases (i.e. full autonomy)"""
-        # # note: for mixed-autonomy with more than one rl car, the reference vehicle can probably be chosen
-        # # differently during the run, and still support the concept of equivalent classes
-        # scaled_rel_pos = [self.vehicles[veh_id]["absolute_position"] / self.scenario.length
-        #                   for veh_id in self.sorted_ids]
-        # scaled_vel = [self.vehicles[veh_id]["speed"] / self.env_params["target_velocity"]
-        #               for veh_id in self.sorted_ids]
-        # return np.array([[scaled_vel[i], scaled_rel_pos[i]] for i in range(len(self.sorted_ids))]).T
+        return np.array([[scaled_vel[i] + normal(0, self.observation_vel_std),
+                          scaled_pos[i] + normal(0, self.observation_pos_std)]
+                         for i in range(len(self.sorted_ids))])
+
+        # # for stabilizing the ring: place the rl car at index 0 to maintain continuity between rollouts
+        # indx_rl = [ind for ind in range(len(self.sorted_ids)) if self.sorted_ids[ind] in self.rl_ids][0]
+        # indx_sorted_ids = np.mod(np.arange(len(self.sorted_ids)) + indx_rl, len(self.sorted_ids))
+        #
+        # return np.array([[scaled_vel[i] + normal(0, self.observation_vel_std),
+        #                   scaled_pos[i] + normal(0, self.observation_pos_std)]
+        #                  for i in indx_sorted_ids])
 
     # def render(self):
     #     print('current state/velocity:', self.state)
@@ -138,18 +135,13 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        # if kwargs["observability"] == "full":
-        # full observability
-        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
-        #                  for veh_id in self.sorted_ids])
-
         obs_arr = []
         for i in range(self.scenario.num_rl_vehicles):
             speed = [self.vehicles[veh_id]["speed"] for veh_id in self.sorted_ids]
             abs_pos = [self.vehicles[veh_id]["absolute_position"] for veh_id in self.sorted_ids]
             tup = (speed, abs_pos)
             obs_arr.append(tup)
+
         return obs_arr
 
 

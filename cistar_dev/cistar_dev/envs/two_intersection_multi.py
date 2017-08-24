@@ -1,3 +1,4 @@
+from cistar_dev.core.base_env import SumoEnvironment
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import multi_agent_rewards
 
@@ -12,7 +13,7 @@ from numpy.random import normal
 import pdb
 
 
-class TwoIntersectionMultiAgentEnvironment(LoopEnvironment):
+class TwoIntersectionMultiAgentEnvironment(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the

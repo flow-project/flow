@@ -95,7 +95,7 @@ def run_task(*_):
     )
     algo.train()
 
-for seed in [1]: # [1, 5, 10, 73, 56]
+for seed in [1]:  # [1, 5, 10, 73, 56]
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
@@ -106,6 +106,7 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="leah-test-exp"
+        exp_prefix="leah-test-exp",
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

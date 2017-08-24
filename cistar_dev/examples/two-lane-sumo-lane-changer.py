@@ -37,9 +37,9 @@ type_params = [("idm", 20, (IDMController, {}), None, 0)]
 
 env_params = {}
 
-net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40, "net_path":"debug/net/"}
+net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40, "net_path": "debug/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 
 initial_config = {"shuffle": True}

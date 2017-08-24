@@ -5,7 +5,7 @@ import logging
 import sys
 
 from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import stub, run_experiment_lite
+from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
@@ -26,13 +26,13 @@ def run_task(v):
     sumo_params = {"time_step": 0.1, "starting_position_shuffle": False, "vehicle_arrangement_shuffle": False,
                    "rl_lc": "no_lat_collide", "human_lc": "no_lat_collide",
                    "rl_sm": "no_collide", "human_sm": "no_collide"}
-    sumo_binary = "sumo-gui"
+    sumo_binary = "sumo"
 
     env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "num_steps": 1500,
                   "observation_pos_std": 0, "observation_vel_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
 
-    net_params = {"merge_in_length": 400, "merge_in_angle": pi / 9,
-                  "merge_out_length": 400, "merge_out_angle": pi * 17 / 9,
+    net_params = {"merge_in_length": 500, "merge_in_angle": pi / 9,
+                  "merge_out_length": 500, "merge_out_angle": pi * 17 / 9,
                   "ring_radius": 400 / (2 * pi), "resolution": 40, "lanes": 1, "speed_limit": 30,
                   "net_path": "debug/net/"}
 
@@ -74,8 +74,8 @@ def run_task(v):
         max_path_length=horizon,
         n_itr=1000,
         # whole_paths=True,
-        # discount=0.999,
-        step_size=v["step_size"],
+        discount=0.999,
+        # step_size=v["step_size"],
     )
     algo.train(),
 
@@ -84,21 +84,18 @@ num_non_merge = 14
 num_auto = 1
 exp_tag = str(num_merge + num_non_merge) + "-car-" + str(num_merge) + "-merge-" + str(num_auto) + "-rl-merge-on-off"
 
-for step_size in [0.1]:
-    for seed in [5]:
-        run_experiment_lite(
-            run_task,
-            # Number of parallel workers for sampling
-            n_parallel=1,
-            # Only keep the snapshot parameters for the last iteration
-            snapshot_mode="all",
-            # Specifies the seed for the experiment. If this is not provided, a random seed
-            # will be used
-            seed=seed,
-            mode="local",
-            exp_prefix=exp_tag,
-            variant=dict(step_size=step_size, seed=seed),
-            python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
-            # plot=True,
-        )
-        sys.exit()
+for seed in [5, 20]:
+    run_experiment_lite(
+        run_task,
+        # Number of parallel workers for sampling
+        n_parallel=8,
+        # Only keep the snapshot parameters for the last iteration
+        snapshot_mode="all",
+        # Specifies the seed for the experiment. If this is not provided, a random seed
+        # will be used
+        seed=seed,
+        mode="ec2",
+        exp_prefix=exp_tag,
+        # python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+        # plot=True,
+    )

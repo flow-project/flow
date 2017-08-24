@@ -159,9 +159,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # the available_routes variable contains a dictionary of routes vehicles
         # can traverse; to be used when routes need to be chosen dynamically
-        self.available_routes = dict()
-        for key in self.scenario.generator.rts:
-            self.available_routes[key] = self.scenario.generator.rts[key].split(' ')
+        self.available_routes = self.scenario.generator.rts
 
         # Check if the reward is shared or not
         if "shared_reward" in self.env_params:
@@ -235,13 +233,8 @@ class SumoEnvironment(gym.Env, Serializable):
     def setup_initial_state(self):
         """
         Store initial state so that simulation can be reset at the end.
-        TODO: Make traci calls as bulk as possible
         Initial state is a dictionary: key = vehicle IDs, value = state describing car
         """
-        self.pos = dict()
-        self.vel = dict()
-        self.lanes = dict()
-
         # collect ids and prepare id and vehicle lists
         self.ids = self.traci_connection.vehicle.getIDList()
         self.controlled_ids.clear()
@@ -271,7 +264,6 @@ class SumoEnvironment(gym.Env, Serializable):
             vehicle["speed"] = self.traci_connection.vehicle.getSpeed(veh_id)
             vehicle["length"] = self.traci_connection.vehicle.getLength(veh_id)
             vehicle["max_speed"] = self.max_speed
-            # TODO: make more abstract
             vehicle["route"] = self.available_routes[vehicle["edge"]]
 
             # used when specifying the acceleration and lane change controllers
@@ -309,6 +301,7 @@ class SumoEnvironment(gym.Env, Serializable):
             self.set_lane_change_mode(veh_id)
 
             # Saving initial state
+            # FIXME: need a better way of getting the route id
             # route_id = self.traci_connection.vehicle.getRouteID(veh_id)
             route_id = "route" + vehicle["edge"]
             pos = self.traci_connection.vehicle.getPosition(veh_id)
@@ -316,21 +309,11 @@ class SumoEnvironment(gym.Env, Serializable):
             self.initial_state[veh_id] = (vehicle["type"], route_id, vehicle["lane"],
                                           vehicle["position"], vehicle["speed"], pos)
 
-            self.pos[veh_id] = [self.vehicles[veh_id]["absolute_position"]]
-            self.vel[veh_id] = [self.vehicles[veh_id]["speed"]]
-            self.lanes[veh_id] = [self.vehicles[veh_id]["lane"]]
-
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         # collect headway, leader id, and follower id data
-        # vehicles = self.get_headway_dict()
-
         for veh_id in self.ids:
-            # self.vehicles[veh_id]["headway"] = vehicles[veh_id]["headway"]
-            # self.vehicles[veh_id]["leader"] = vehicles[veh_id]["leader"]
-            # self.vehicles[veh_id]["follower"] = vehicles[veh_id]["follower"]
-            
             headway = self.traci_connection.vehicle.getLeader(veh_id, 2000)
             if headway is None:
                 self.vehicles[veh_id]["leader"] = ''
@@ -373,9 +356,9 @@ class SumoEnvironment(gym.Env, Serializable):
         """
         self.timer += 1
 
-        # perform acceleration and (optionally) lane change actions for cistar_dev-controlled human-driven vehicles
-        accel = []
+        # perform acceleration and (optionally) lane change actions for traci-controlled human-driven vehicles
         if len(self.controlled_ids) > 0:
+            accel = []
             for veh_id in self.controlled_ids:
                 # acceleration action
                 action = self.vehicles[veh_id]['controller'].get_action(self)
@@ -459,15 +442,6 @@ class SumoEnvironment(gym.Env, Serializable):
                     self.vehicles[veh_id]["headway"] = 1e-3
                     self.vehicles[veh_id]["leader"] = None
                     self.vehicles[veh_id]["follower"] = None
-
-        for veh_id in self.ids:
-            self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
-            self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
-            self.lanes[veh_id].append(self.vehicles[veh_id]["lane"])
-
-        if self.timer == 1500:
-            output = {"pos": self.pos, "vel": self.vel, "lane": self.lanes}
-            pickle.dump(output, open('/home/aboudy/Documents/output.pkl', 'wb'))
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -718,7 +692,7 @@ class SumoEnvironment(gym.Env, Serializable):
         for i, vid in enumerate(veh_ids):
             if vid in self.rl_ids:
                 if safe_target_lane[i] == target_lane[i] and target_lane[i] != current_lane[i]:
-                        self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
+                    self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
             else:
                 self.traci_connection.vehicle.changeLane(vid, int(target_lane[i]), 100000)
 
@@ -732,10 +706,14 @@ class SumoEnvironment(gym.Env, Serializable):
         pass
 
     def set_speed_mode(self, veh_id):
-        # TODO: document
         """
-        :param veh_id:
-        :return:
+        Specifies the SUMO-defined speed mode used to constrain acceleration actions.
+
+        The available speed modes are as follows:
+         - "no_collide" (default): Human and RL cars are preventing from reaching speeds that may cause
+                        crashes (also serves as a failsafe).
+         - "aggressive": Human and RL cars are not limited by sumo with regard to their accelerations,
+                         and can crash longitudinally
         """
         speed_mode = 1
 
@@ -763,7 +741,8 @@ class SumoEnvironment(gym.Env, Serializable):
          - default: Human and RL cars can only safely change into lanes
          - "strategic": Human cars make lane changes in accordance with SUMO to provide speed boosts
          - "no_lat_collide": RL cars can lane change into any space, no matter how likely it is to crash
-         - "aggressive": RL cars can crash longitudinally
+         - "aggressive": RL cars are not limited by sumo with regard to their lane-change actions,
+                         and can crash longitudinally
         """
         lc_mode = 768
 
@@ -784,8 +763,6 @@ class SumoEnvironment(gym.Env, Serializable):
                     lc_mode = 0
                 elif self.sumo_params["human_lc"] == "no_lat_collide":
                     lc_mode = 256
-                else:
-                    lc_mode = 768
 
         self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
@@ -841,6 +818,29 @@ class SumoEnvironment(gym.Env, Serializable):
                 vehicles[veh_id]["headway"] = np.inf
 
         return vehicles
+
+    def get_distance_to_intersection(self, veh_id):
+        """
+        Determines the smallest distance from the current vehicle's position to any of the intersections.
+
+        :param veh_id: vehicle identifier
+        :return: a tuple containing the distance to the intersection and which side of the
+                 intersection the vehicle will be arriving at.
+        """
+        this_pos = self.get_x_by_id(veh_id)
+
+        if not self.scenario.intersection_edgestarts:
+            raise ValueError("The scenario does not contain intersections.")
+
+        dist = []
+        intersection = []
+        for intersection_tuple in self.scenario.intersection_edgestarts:
+            dist.append((intersection_tuple[1] - this_pos) % self.scenario.length)
+            intersection.append(intersection_tuple[0])
+
+        ind = np.argmin(dist)
+
+        return dist[ind], intersection[ind]
 
     def get_state(self):
         """

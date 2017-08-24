@@ -48,7 +48,7 @@ def run_task(*_):
     sumo_params = {"time_step": 0.1, "human_sm": 1, "rl_sm": 1,
                    "human_lc": "strategic", "rl_lc": "no_lat_collide"}
 
-    sumo_binary = "sumo"
+    sumo_binary = "sumo-gui"
 
     type_params = [("rl", auton_cars, (RLController, {}), None, 0),
                    ("cfm", human_cars, (IDMController, {}), None, 0)]
@@ -101,13 +101,14 @@ for seed in [1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="last",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="leah-test-exp"
+        exp_prefix="leah-test-exp",
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

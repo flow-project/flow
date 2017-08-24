@@ -20,10 +20,11 @@ sumo_binary = "sumo-gui"
 type_params = [("idm", 14, (IDMController, {}), (StaticLaneChanger, {}), 0),
                ("merge-idm", 14, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-env_params = {}
+env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None"}
 
 net_params = {"merge_in_length": 500, "merge_in_angle": pi/9, "merge_out_length": 500, "merge_out_angle": pi * 17/9,
-              "ring_radius": 400 / (2 * pi), "resolution": 40, "lanes": 1, "speed_limit": 30, "net_path": "debug/net/"}
+              "ring_radius": 400 / (2 * pi), "resolution": 40, "lanes": 1, "speed_limit": 30, "net_path": "debug/net/",
+              "no-internal-links": False}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 

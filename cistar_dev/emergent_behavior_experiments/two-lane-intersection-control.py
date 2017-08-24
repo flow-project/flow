@@ -34,7 +34,7 @@ def run_task(v):
     num_cars = 15
 
     # type_params = {"idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-    type_params = {"rl": (num_cars, (RLController, {}), None, 0.0)}
+    type_params = [("rl", num_cars, (RLController, {}), None, 0.0)]
 
     # 1/intensity is the average time-spacing of the cars
     intensity = .3
@@ -50,7 +50,7 @@ def run_task(v):
 
     cfg_params = {"start_time": 0, "end_time": 3000000, "cfg_path": "debug/cfg/"}
 
-    initial_config = {"spacing": "edge_start", "intensity": intensity, "enter_speed": v_enter}
+    initial_config = {"spacing": "custom", "intensity": intensity, "enter_speed": v_enter}
 
     scenario = TwoWayIntersectionScenario("figure8", type_params, net_params, cfg_params, initial_config=initial_config)
 

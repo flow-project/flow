@@ -1,3 +1,4 @@
+from cistar_dev.core.base_env import SumoEnvironment
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import rewards
 
@@ -12,7 +13,7 @@ from numpy.random import normal
 import pdb
 
 
-class TwoIntersectionEnvironment(LoopEnvironment):
+class TwoIntersectionEnvironment(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
@@ -74,8 +75,6 @@ class TwoIntersectionEnvironment(LoopEnvironment):
                 rl_actions[i] = ((self.vehicles[veh_id]["max_speed"] - 
                                             self.vehicles[veh_id]["speed"])/self.time_step)
 
-
-
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -83,7 +82,7 @@ class TwoIntersectionEnvironment(LoopEnvironment):
         See parent class
         """
         return rewards.desired_velocity(
-            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params["target_velocity"])
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
         # return rewards.min_delay(state, rl_actions, target_velocity=self.env_params["target_velocity"],
         #     time_step=self.sumo_params["time_step"], fail=kwargs["fail"])
 
@@ -93,12 +92,6 @@ class TwoIntersectionEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        # if kwargs["observability"] == "full":
-        # full observability
-        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std)]
-        #                  for veh_id in self.sorted_ids]).T
-
         # return np.array([[self.vehicles[veh_id]["speed"],
         #                   self.vehicles[veh_id]["absolute_position"],
         #                   self.get_distance_to_intersection(veh_id)[0]]
@@ -107,21 +100,6 @@ class TwoIntersectionEnvironment(LoopEnvironment):
         return np.array([[self.vehicles[veh_id]["speed"],
                           self.vehicles[veh_id]["absolute_position"]]
                          for veh_id in self.sorted_ids])
-
-        # else:
-        #     # partial observability (n car ahead, m car behind)
-        #     sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
-        #     veh_ids = []
-        #     for veh_id in sorted_rl_ids:
-        #         veh_ids.append(veh_id)  # add rl vehicle
-        #         veh_ids.append(self.vehicles[veh_id]["leader"])  # add vehicle in front of rl vehicle
-        #         veh_ids.append(self.vehicles[veh_id]["follower"])  # add vehicle behind rl vehicle
-        #
-        #     veh_ids = np.unique(veh_ids)  # remove redundant vehicle ids
-
-
-
-        # partial observability (2 cars ahead, 2 cars behind)
 
     # def _render(self):
     #     print('current state/velocity:', self.state)

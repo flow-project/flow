@@ -191,7 +191,6 @@ class LoopEnvironment(SumoEnvironment):
                     vehicle["leader"] = None
                     vehicle["follower"] = None
                     vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
-                    pdb.set_trace()
                     vehicles[veh_id] = vehicle
 
                 for i, veh_id in enumerate(unique_lane_ids):
@@ -213,11 +212,6 @@ class LoopEnvironment(SumoEnvironment):
                         vehicle["follower"] = unique_lane_ids[-1]
 
                     vehicles[veh_id] = vehicle
-
-        # try:
-        #     [self.vehicles[veh_id]["leader"] for veh_id in self.sorted_ids]
-        # except KeyError:
-        #     pdb.set_trace()
 
         return vehicles
 

@@ -2,8 +2,6 @@
 Script used to train vehicles to stop crashing longitudinally and on intersections.
 """
 
-#TODO (Eugene) This isn't working for some reason.
-
 import logging
 from collections import OrderedDict
 
@@ -28,7 +26,7 @@ exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-intersection-control'
 
 
 def run_task(*_):
-    import cistar_dev.envs as cistar_envs
+    # import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = {"time_step": 0.1, "shuffle": True,
@@ -40,7 +38,7 @@ def run_task(*_):
                   "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
 
     net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
-                  "net_path": "debug/net/"}
+                  "net_path": "debug/net/", "no-internal-links": False}
 
     cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
@@ -135,14 +133,14 @@ for seed in [5]:  # , 20, 68]:  # , 100, 128]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

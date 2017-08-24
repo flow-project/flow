@@ -36,12 +36,14 @@ class Scenario(Serializable):
         self.name = name
         self.type_params = type_params
 
-        # these numbers are not always static; better to get them from id list in the env class
         self.num_vehicles = sum([x[1] for x in type_params])
         self.num_rl_vehicles = sum([x[1] for x in type_params if x[2][0] == RLController])
 
         if not net_params:
             ValueError("No network params specified!")
+        # determines whether the space between edges is finite
+        if "no-internal-links" not in net_params:
+            net_params["no-internal-links"] = True
         self.net_params = net_params
 
         if cfg:
@@ -75,7 +77,10 @@ class Scenario(Serializable):
 
         # total_edgestarts and total_edgestarts_dict contain all of the above edges, with the
         # former being ordered by position
-        self.total_edgestarts = self.edgestarts + self.internal_edgestarts
+        if self.net_params["no-internal-links"]:
+            self.total_edgestarts = self.edgestarts
+        else:
+            self.total_edgestarts = self.edgestarts + self.internal_edgestarts
         self.total_edgestarts.sort(key=lambda tup: tup[1])
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
@@ -148,7 +153,7 @@ class Scenario(Serializable):
         if "cfg_path" in self.cfg_params:
             cfg_path = self.cfg_params["cfg_path"]
 
-        self.generator = self.generator_class(net_path, cfg_path, self.name)
+        self.generator = self.generator_class(self.net_params, net_path, cfg_path, self.name)
         self.generator.generate_net(self.net_params)
         cfg_name = self.generator.generate_cfg(self.cfg_params)
         # Note that self (the whole scenario instance) is passed on here,
@@ -205,8 +210,12 @@ class Scenario(Serializable):
             startpositions, startlanes = self.gen_gaussian_additive_start_pos(self.initial_config, **kwargs)
         elif self.initial_config["spacing"] == "gaussian":
             startpositions, startlanes = self.gen_gaussian_start_pos(self.initial_config, **kwargs)
-        else:
+        elif self.initial_config["spacing"] == "uniform":
             startpositions, startlanes = self.gen_even_start_pos(self.initial_config, **kwargs)
+        elif self.initial_config["spacing"] == "custom":
+            startpositions, startlanes = self.gen_custom_start_pos(self.initial_config, **kwargs)
+        else:
+            raise ValueError('"spacing" argument in initial_config does not contain a valid option')
 
         return startpositions, startlanes
 
@@ -447,6 +456,9 @@ class Scenario(Serializable):
                 lane_count = 0
 
         return startpositions, startlanes
+
+    def gen_custom_start_pos(self, initial_config, **kwargs):
+        raise NotImplementedError
 
     def __str__(self):
         # TODO(cathywu) return the parameters too.

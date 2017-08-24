@@ -29,7 +29,7 @@ from cistar_dev.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step":0.1, "human_sm": "no_collide"}
+sumo_params = {"time_step": 0.1, "human_sm": "no_collide"}
 
 sumo_binary = "sumo-gui"
 

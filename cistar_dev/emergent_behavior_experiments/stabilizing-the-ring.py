@@ -55,7 +55,7 @@ def run_task(v):
 
     scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-    env_name = "SimplePartiallyObservableEnvironment"
+    env_name = "SimpleAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                    cfg_params, initial_config, scenario)
 

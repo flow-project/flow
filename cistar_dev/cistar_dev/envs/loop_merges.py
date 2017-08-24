@@ -61,6 +61,15 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         sorted_pos = self.sorted_extra_data[0]
         edge_id = self.sorted_extra_data[1]
 
+        # normalize everything
+        for i in range(len(sorted_pos)):
+            if edge_id[i] == 0:
+                sorted_pos[i] = sorted_pos[i] / self.scenario.length
+            elif edge_id[i] == 1:
+                sorted_pos[i] = sorted_pos[i] / self.scenario.merge_in_len
+            elif edge_id[i] == 2:
+                sorted_pos[i] = sorted_pos[i] / self.scenario.merge_out_len
+
         return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
                           sorted_pos[i] + normal(0, self.observation_pos_std),
                           edge_id[i]] for i, veh_id in enumerate(self.sorted_ids)])
@@ -143,10 +152,18 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         sorted_pos = []
         for i in range(len(pos)):
             pos[i].sort(key=lambda tup: tup[1])
-            sorted_ids += [tup[0] for tup in pos[i]]
             if i == 0:
-                sorted_pos += [tup[1] % self.scenario.length for tup in pos[i]]
+                if len(self.rl_ids) == 1:
+                    # for single rl vehicle case: set the rl vehicle in index 0 to allow for implicit labeling
+                    indx_rl = [ind for ind in range(len(pos[0])) if pos[0][ind][0] in self.rl_ids][0]
+                    indx_sorted_ids = np.mod(np.arange(len(pos[0])) + indx_rl, len(pos[0]))
+                    sorted_ids += [pos[0][ind][0] for ind in indx_sorted_ids]
+                    sorted_pos += [pos[0][ind][1] % self.scenario.length for ind in indx_sorted_ids]
+                else:
+                    sorted_ids += [tup[0] for tup in pos[i]]
+                    sorted_pos += [tup[1] % self.scenario.length for tup in pos[i]]
             else:
+                sorted_ids += [tup[0] for tup in pos[i]]
                 sorted_pos += [tup[1] for tup in pos[i]]
 
         edge_id = [0] * len(pos[0]) + [1] * len(pos[1])

@@ -289,22 +289,22 @@ class BraessParadoxEnvironment(SumoEnvironment):
         for veh_id in self.controlled_ids:
             this_edge = self.vehicles[veh_id]["edge"]
             this_lane = self.vehicles[veh_id]["lane"]
-            this_rout_choice = set(self.vehicles[veh_id]["route"])
+            this_route_choice = set(self.vehicles[veh_id]["route"])
 
             target_lane = None
 
             if this_edge == "BA2":
-                if this_rout_choice == {"BA2", "AC", "CB"} and this_lane != 2:
+                if this_route_choice == {"BA2", "AC", "CB"} and this_lane != 2:
                     target_lane = 2
-                elif this_rout_choice == {"BA2", "AC", "CD", "DB"} and this_lane != 1:
+                elif this_route_choice == {"BA2", "AC", "CD", "DB"} and this_lane != 1:
                     target_lane = 1
-                elif this_rout_choice == {"BA2", "AD", "DB"} and this_lane != 0:
+                elif this_route_choice == {"BA2", "AD", "DB"} and this_lane != 0:
                     target_lane = 0
 
             elif this_edge == "AC":
-                if this_rout_choice == {"BA2", "AC", "CB"} and this_lane != 1:
+                if this_route_choice == {"BA2", "AC", "CB"} and this_lane != 1:
                     target_lane = 1
-                elif this_rout_choice == {"BA2", "AC", "CD", "DB"} and this_lane != 0:
+                elif this_route_choice == {"BA2", "AC", "CD", "DB"} and this_lane != 0:
                     target_lane = 0
 
             elif this_edge == "DB":

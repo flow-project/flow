@@ -6,6 +6,7 @@ import os
 import random
 import numpy as np
 from rllab.envs.gym_env import GymEnv
+from rllab.algos.trpo import TRPO
 # import tensorflow as tf
 from matplotlib import pyplot as plt
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
@@ -43,8 +44,20 @@ if __name__ == "__main__":
 
     data = joblib.load(args.file)
     policy = data['policy']
+    baseline = data['baseline']
     env = data['env']
-    algo = data['algo']
+    # algo = data['algo']
+    algo = TRPO(
+        env=env,
+        policy=policy,
+        baseline=baseline,
+        batch_size=15000,
+        max_path_length=1500,
+        n_itr=2000,
+        # whole_paths=True,
+        discount=0.999,
+        step_size=0.01,
+    )
 
     # Input
     unwrapped_env = env._wrapped_env.env.unwrapped

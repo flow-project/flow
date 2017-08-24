@@ -28,7 +28,7 @@ from cistar_dev.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step":0.01, "human_sm": 1}
+sumo_params = {"time_step": 0.01, "human_sm": 1}
 
 sumo_binary = "sumo-gui"
 
@@ -37,11 +37,11 @@ type_params = [("constantV", 1, (ConstantVelocityController, {"constant_speed": 
 
 env_params = {}
 
-net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"dan-work/net/"}
+net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40, "net_path":"dan-work/net/"}
 
-cfg_params = {"start_time": 0, "end_time":50000, "cfg_path":"dan-work/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 50000, "cfg_path": "dan-work/cfg/"}
 
-initial_config = {"shuffle":False, "bunching": 20}
+initial_config = {"shuffle": False, "bunching": 20}
 
 scenario = LoopScenario("test-exp", type_params, net_params, cfg_params, initial_config)
 ##data path needs to be relative to cfg location

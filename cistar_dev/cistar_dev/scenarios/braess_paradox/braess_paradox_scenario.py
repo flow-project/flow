@@ -22,18 +22,6 @@ class BraessParadoxScenario(Scenario):
         # net_params["length"] = 4 * self.edge_len + 4 * self.junction_len + 2 * self.curve_len + self.horz_len
         net_params["length"] = 4 * self.edge_len + 2 * self.curve_len + self.horz_len
 
-        if "length" not in net_params:
-            raise ValueError("length of circle not supplied")
-        self.length = net_params["length"]
-
-        if "lanes" not in net_params:
-            raise ValueError("lanes of circle not supplied")
-        self.lanes = net_params["lanes"]
-
-        if "resolution" not in net_params:
-            raise ValueError("resolution of circle not supplied")
-        self.resolution = net_params["resolution"]
-
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,
                          generator_class=BraessParadoxGenerator)
