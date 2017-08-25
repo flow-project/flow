@@ -29,19 +29,17 @@ from cistar_dev.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step":0.1, "human_sm": "no_collide",
-                "human_lc": "strategic",}
+sumo_params = {"time_step": 0.1, "human_sm": "no_collide", "human_lc": "strategic"}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (20, (IDMController, {}), None, 0)}
-#type_params = {"idm": (16, (IDMController, {"a":5.0, "b":3.0, "T":.5, "v0":50}), (StaticLaneChanger, {}), 0)}
+type_params = [("idm", 20, (IDMController, {}), None, 0)]
 
 env_params = {}
 
-net_params = {"length": 200, "lanes": 2, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
+net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40, "net_path": "debug/net/"}
 
-cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/cfg/"}
+cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 
 initial_config = {"shuffle": True}

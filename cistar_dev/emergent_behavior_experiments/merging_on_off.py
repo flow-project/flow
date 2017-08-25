@@ -1,63 +1,59 @@
 """
-Script used to train test platooning on a single lane.
-
-RL vehicles are bunched together. The emergent behavior we are hoping to witness
-is that rl-vehicles group together in other to allow non rl-vehicles a larger headway,
-and thus larger equilibrium speeds.
-
-One concern is whether rl-vehicles will start trail-gating human vehicles.
 """
 
 import logging
+import sys
 
 from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import stub, run_experiment_lite
+from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-
-# from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+from cistar_dev.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.controllers.car_following_models import *
 
-
-num_cars = 22
-num_auto = 3
+from numpy import pi
 
 
-def run_task(*_):
+def run_task(v):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = {"time_step": 0.1, "starting_position_shuffle": False, "vehicle_arrangement_shuffle": False,
-                   "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "aggressive", "human_sm": "no_collide"}
+                   "rl_lc": "no_lat_collide", "human_lc": "no_lat_collide",
+                   "rl_sm": "no_collide", "human_sm": "no_collide"}
     sumo_binary = "sumo"
 
-    env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3,
-                  "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0,
-                  "num_steps": 1500}
+    env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "num_steps": 1500,
+                  "observation_pos_std": 0, "observation_vel_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
 
-    net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
+    net_params = {"merge_in_length": 500, "merge_in_angle": pi / 9,
+                  "merge_out_length": 500, "merge_out_angle": pi * 17 / 9,
+                  "ring_radius": 400 / (2 * pi), "resolution": 40, "lanes": 1, "speed_limit": 30,
                   "net_path": "debug/net/"}
 
     cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-    initial_config = {"shuffle": False}
+    initial_config = {"merge_bunching": 200, "n_merge_platoons": 2}
+
+    num_merge = 14
+    num_non_merge = 14
+    num_auto = 1
+    exp_tag = str(num_merge + num_non_merge) + "-car-" + str(num_merge) + "-merge-" + str(num_auto) + "-rl-merge-on-off"
 
     type_params = [("rl", num_auto, (RLController, {}), None, 0),
-                   ("idm", num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)]
+                   ("idm", num_non_merge - num_auto, (IDMController, {}), None, 0),
+                   ("merge-idm", num_merge, (IDMController, {}), None, 0)]
 
-    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = LoopMergesScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
-    from cistar_dev import pass_params
-    env_name = "SimpleAccelerationEnvironment"
+    env_name = "SimpleLoopMergesEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-                cfg_params, initial_config, scenario)
+                   cfg_params, initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
@@ -79,13 +75,16 @@ def run_task(*_):
         n_itr=1000,
         # whole_paths=True,
         discount=0.999,
-        step_size=0.01,
+        # step_size=v["step_size"],
     )
     algo.train(),
 
-exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-single-lane-platooning-no-failsafe'
+num_merge = 14
+num_non_merge = 14
+num_auto = 1
+exp_tag = str(num_merge + num_non_merge) + "-car-" + str(num_merge) + "-merge-" + str(num_auto) + "-rl-merge-on-off"
 
-for seed in [5]:  # [16, 20, 21, 22]:
+for seed in [5, 20]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling

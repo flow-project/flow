@@ -49,11 +49,8 @@ def run_task(v):
 
     initial_config = {"shuffle": True}
 
-    num_cars = 22
-
-
-    type_params = {"rl": (2, (RLController, {}), (StaticLaneChanger, {}), 0),
-                   "idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = [("rl", 2, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   ("idm", 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
     scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 

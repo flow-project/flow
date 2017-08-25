@@ -38,19 +38,20 @@ from cistar_dev.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
+
 def run_task(*_):
     tot_cars = 8
 
     auton_cars = 5
     human_cars = tot_cars - auton_cars
 
-    sumo_params = {"time_step":0.1, "human_sm": 1, "rl_sm": 1, 
-                    "human_lc": "strategic", "rl_lc": "no_lat_collide"}
+    sumo_params = {"time_step": 0.1, "human_sm": 1, "rl_sm": 1,
+                   "human_lc": "strategic", "rl_lc": "no_lat_collide"}
 
-    sumo_binary = "sumom"
+    sumo_binary = "sumo-gui"
 
-    type_params = {"rl":(auton_cars, (RLController, {}), None, 0),
-                   "cfm":(human_cars, (IDMController, {}), None, 0)}
+    type_params = [("rl", auton_cars, (RLController, {}), None, 0),
+                   ("cfm", human_cars, (IDMController, {}), None, 0)]
 
     env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 500}
 
@@ -65,9 +66,8 @@ def run_task(*_):
     from cistar_dev import pass_params
     env_name = "SimpleLaneChangingAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-                cfg_params, initial_config, scenario)
+                   cfg_params, initial_config, scenario)
 
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
@@ -101,13 +101,14 @@ for seed in [1]: # [1, 5, 10, 73, 56]
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="last",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="leah-test-exp"
+        exp_prefix="leah-test-exp",
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

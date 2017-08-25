@@ -1,3 +1,4 @@
+
 from cistar_dev.core.base_env import SumoEnvironment
 
 from gym.spaces.box import Box
@@ -15,16 +16,16 @@ class LoopEnvironment(SumoEnvironment):
     environment (for example, headway calculation, leading-car, etc.)
     """
 
-    def get_x_by_id(self, id):
+    def get_x_by_id(self, veh_id):
         """
         Returns the position of the vehicle with specified id
-        :param id: id of vehicle
+        :param veh_id: id of vehicle
         :return:
         """
-        if self.vehicles[id]["edge"] == '':
-            # print("This vehicle teleported and its edge is now empty", id)
+        if self.vehicles[veh_id]["edge"] == '':
+            # occurs when a vehicle crashes is teleported for some other reason
             return 0.
-        return self.scenario.get_x(self.vehicles[id]["edge"], self.vehicles[id]["position"])
+        return self.scenario.get_x(self.vehicles[veh_id]["edge"], self.vehicles[veh_id]["position"])
 
     def get_leading_car(self, veh_id, lane=None):
         """
@@ -34,8 +35,6 @@ class LoopEnvironment(SumoEnvironment):
         :return: id of leading car in target lane
         """
         target_pos = self.get_x_by_id(veh_id)
-
-        headway = []
 
         backdists = []
         for i in self.ids:
@@ -140,16 +139,42 @@ class LoopEnvironment(SumoEnvironment):
         """
         sorts the vehicle ids of vehicles in the network by position
         :return: a list of sorted vehicle ids
+                 no extra data is wanted (None is returned for the second output)
         """
         sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
-        return np.array(self.ids)[sorted_indx]
+        sorted_ids = np.array(self.ids)[sorted_indx]
+        return sorted_ids, None
 
-    def get_headway_dict(self):
+    def get_headway_dict(self, **kwargs):
         """
         Collects the headways, leaders, and followers of all vehicles at once
         :return: vehicles {dict} -- headways, leader ids, and follower ids for each veh_id in the network
         """
         vehicles = dict()
+
+        # TODO: delete me?
+        # # headway data on is collecting for each lane separately (the leading and following cars are
+        # # considered to be part of the same lane)
+        # for lane in range(self.scenario.lanes):
+        #     unique_lane_ids = [veh_id for veh_id in self.sorted_ids if self.vehicles[veh_id]["lane"] == lane]
+        #
+        #     # if there is no other car in the lane with the vehicle in question, then this car
+        #     # has no leader or follower
+        #     if len(unique_lane_ids) == 1:
+        #         vehicle = dict()
+        #         veh_id = unique_lane_ids[0]
+        #         vehicle["leader"] = None
+        #         vehicle["follower"] = None
+        #         vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+        #         vehicles[veh_id] = vehicle
+        #
+        #     for i, veh_id in enumerate(unique_lane_ids):
+        #         vehicle = dict()
+        #
+        #         if i < len(unique_lane_ids) - 1:
+        #             vehicle["leader"] = unique_lane_ids[i+1]
+        #         else:
+        #             vehicle["leader"] = unique_lane_ids[0]
 
         if type(self.scenario.lanes) is dict:
             lane_dict = self.scenario.lanes
@@ -166,7 +191,6 @@ class LoopEnvironment(SumoEnvironment):
                     vehicle["leader"] = None
                     vehicle["follower"] = None
                     vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
-                    pdb.set_trace()
                     vehicles[veh_id] = vehicle
 
                 for i, veh_id in enumerate(unique_lane_ids):
@@ -188,11 +212,6 @@ class LoopEnvironment(SumoEnvironment):
                         vehicle["follower"] = unique_lane_ids[-1]
 
                     vehicles[veh_id] = vehicle
-
-        # try:
-        #     [self.vehicles[veh_id]["leader"] for veh_id in self.sorted_ids]
-        # except KeyError:
-        #     pdb.set_trace()
 
         return vehicles
 

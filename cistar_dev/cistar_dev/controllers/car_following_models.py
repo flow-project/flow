@@ -329,16 +329,15 @@ class IDMController(BaseController):
         self.dt = dt
 
     def get_action(self, env):
-        
-        lead_id = env.vehicles[self.veh_id]["leader"]
-        if lead_id == '':  # no car ahead
-            return self.a
-
-        h = env.vehicles[self.veh_id]["headway"]
-        lead_vel = env.vehicles[lead_id]['speed']
         this_vel = env.vehicles[self.veh_id]['speed']
+        lead_id = env.vehicles[self.veh_id]["leader"]
+        h = env.vehicles[self.veh_id]["headway"]
 
-        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
+        if lead_id is None or lead_id == '':  # no car ahead
+            s_star = 0
+        else:
+            lead_vel = env.vehicles[lead_id]['speed']
+            s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)
 
@@ -356,21 +355,19 @@ class DrunkDriver(IDMController):
 
     def get_action(self, env):
         self.timer += 1
+
+        this_vel = env.vehicles[self.veh_id]['speed']
         lead_id = env.vehicles[self.veh_id]["leader"]
+        h = env.vehicles[self.veh_id]["headway"]
 
         if lead_id is None:  # no car ahead
-            return self.a
-
-        h = env.vehicles[self.veh_id]["headway"]
-        lead_vel = env.vehicles[lead_id]['speed']
-        this_vel = env.vehicles[self.veh_id]['speed']
-
-        s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
+            s_star = 0
+        else:
+            lead_vel = env.vehicles[lead_id]['speed']
+            s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
         perturb = 0
         if self.timer % self.perturb_time == 0:
             perturb = self.perturb_size*random.random()  # - self.perturb_size/2.0
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2) + perturb
-
-

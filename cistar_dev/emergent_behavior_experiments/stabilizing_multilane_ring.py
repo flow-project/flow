@@ -5,18 +5,18 @@
 import logging
 
 from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import stub, run_experiment_lite
+from rllab.misc.instrument import run_experiment_lite
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 
 from sandbox.rocky.tf.algos.trpo import TRPO
 from sandbox.rocky.tf.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from sandbox.rocky.tf.envs.base import TfEnv
 
-from cistar.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.car_following_models import *
+from cistar_dev.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
+from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
+from cistar_dev.controllers.rlcontroller import RLController
+from cistar_dev.controllers.lane_change_controllers import *
+from cistar_dev.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 

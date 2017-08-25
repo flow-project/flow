@@ -7,7 +7,6 @@ import traci
 import numpy as np
 
 
-
 class SimpleVelocityEnvironment(LoopEnvironment):
 
     @property
@@ -16,7 +15,6 @@ class SimpleVelocityEnvironment(LoopEnvironment):
         Actions are a set of velocities from 0 to 15m/s
         :return:
         """
-        #TODO: max and min are parameters
         return Box(low=self.env_params["min-vel"], high=self.env_params["max-vel"], shape=(self.scenario.num_rl_vehicles,))
 
     @property
@@ -28,13 +26,14 @@ class SimpleVelocityEnvironment(LoopEnvironment):
         self.obs_var_labels = ["Velocity"]
         return Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
 
-    def compute_reward(self, velocity, action):
+    def compute_reward(self, state, actions, **kwargs):
         """
         See parent class
         """
+        velocity = state
         return -np.linalg.norm(velocity - self.env_params["target_velocity"])
 
-    def getState(self):
+    def get_state(self):
         """
         See parent class
         The state is an array the velocities for each vehicle

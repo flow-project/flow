@@ -34,12 +34,12 @@ sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": 1}
 
 sumo_binary = "sumo-gui"
 
-type_params = {"idm": (14, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+type_params = [("idm", 14, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
 env_params = {"max-deacc": -3, "max-acc": 3}
 
 net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
-              "net_path": "debug/net/"}
+              "net_path": "debug/net/", "no-internal-links": False}
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 

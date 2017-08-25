@@ -30,21 +30,20 @@ def run_task(v):
 
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "emission_path": "./data/", 
-                        "starting_position_shuffle": 1, "rl_sm": "aggressive"}
+    sumo_params = {"time_step": 0.1, "emission_path": "./data/",
+                   "starting_position_shuffle": 1, "rl_sm": "aggressive"}
     sumo_binary = "sumo"
 
     num_cars = 3
 
-    # type_params = {"idm": (1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-    type_params = {"rl": (num_cars, (RLController, {}), None, 0.0)}
+    type_params = [("rl", num_cars, (RLController, {}), None, 0.0)]
 
     # 1/intensity is the average time-spacing of the cars
     intensity = .3
     v_enter = 20.0
 
-    env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 6, 
-                "control-length": 150, "max_speed": v_enter, "num_steps": 500}
+    env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 6,
+                  "control-length": 150, "max_speed": v_enter, "num_steps": 500}
 
     net_params = {"horizontal_length_in": 600, "horizontal_length_out": 1000, "horizontal_lanes": 1,
                   "vertical_length_in": 600, "vertical_length_out": 1000, "vertical_lanes": 1,
@@ -53,19 +52,15 @@ def run_task(v):
 
     cfg_params = {"start_time": 0, "end_time": 3000000, "cfg_path": "debug/cfg/"}
 
-    initial_config = {"spacing": "edge_start", "intensity": intensity, "enter_speed": v_enter}
+    initial_config = {"spacing": "custom", "intensity": intensity, "enter_speed": v_enter}
 
     scenario = TwoWayIntersectionScenario("figure8", type_params, net_params, cfg_params, initial_config=initial_config)
 
     env_name = 'TwoIntersectionMultiAgentEnvironment'
 
-    from cistar_dev import pass_params
-    pass_params = (env_name, sumo_params, sumo_binary, 
-                type_params, env_params, net_params,
-                cfg_params, initial_config, scenario)
+    pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
+                   cfg_params, initial_config, scenario)
 
-
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     main_env = GymEnv(env_name, record_video=False, register_params = pass_params)
     horizon = main_env.horizon
     # replace raw envs with wrapped shadow envs

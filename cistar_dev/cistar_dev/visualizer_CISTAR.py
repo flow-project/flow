@@ -6,11 +6,14 @@ import os
 import random
 import numpy as np
 from rllab.envs.gym_env import GymEnv
+from rllab.algos.trpo import TRPO
 # import tensorflow as tf
 from matplotlib import pyplot as plt
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.scenarios.figure8.figure8_scenario import Figure8Scenario
 from cistar_dev.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
+from cistar_dev.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
+from cistar_dev.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
 
 import plotly.offline as po
 import plotly.graph_objs as go
@@ -41,8 +44,20 @@ if __name__ == "__main__":
 
     data = joblib.load(args.file)
     policy = data['policy']
+    baseline = data['baseline']
     env = data['env']
-    algo = data['algo']
+    # algo = data['algo']
+    algo = TRPO(
+        env=env,
+        policy=policy,
+        baseline=baseline,
+        batch_size=15000,
+        max_path_length=1500,
+        n_itr=2000,
+        # whole_paths=True,
+        discount=0.999,
+        step_size=0.01,
+    )
 
     # Input
     unwrapped_env = env._wrapped_env.env.unwrapped
@@ -72,6 +87,10 @@ if __name__ == "__main__":
     elif args.scenario_type == 'loop':
         net_params["length"] = args.loop_length
         scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    elif args.scenario_type == 'loop_merges':
+        scenario = LoopMergesScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    elif args.scenario_type == 'braess_paradox':
+        scenario = BraessParadoxScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
     elif args.scenario_type == 'intersection':
         scenario = TwoWayIntersectionScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
     env._wrapped_env.scenario = scenario
@@ -82,13 +101,11 @@ if __name__ == "__main__":
     sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
     unwrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
 
-
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
     all_rewards = np.zeros((args.num_rollouts, max_path_length))
     for j in range(args.num_rollouts):
-        path = rollout(env, policy, max_path_length=max_path_length,
-                   animated=False, speedup=1)
+        path = rollout(env, policy, max_path_length=max_path_length, animated=False, speedup=1)
         obs = path['observations']  # length of rollout x flattened observation
         try:
             all_obs[j] = obs
@@ -103,7 +120,7 @@ if __name__ == "__main__":
     pickle.dump(all_obs, output)
     output.close()
 
-    # export observations in a pickle file
+    # export rewards in a pickle file
     output_filename = 'rewards.pkl'
     output = open(output_filename, 'wb')
     pickle.dump(all_rewards, output)

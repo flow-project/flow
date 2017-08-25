@@ -36,21 +36,22 @@ perturb_size = 40
 exp_tag = str(num_cars - num_auto - num_drunk) + '-human-' + str(num_drunk) + '-drunk-' + str(num_auto) + \
     '-rl-shepherding-aggressive-drivers-' + str(perturb_time) + '-perturb-time-' + str(perturb_size) + '-perturb-size'
 
+
 def run_task(*_):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "traci_control": 1,
+    sumo_params = {"time_step": 0.1,
                    "rl_lc": "no_lat_collide", "human_lc": "strategic",
                    "human_sm": "no_collide", "rl_sm": "no_collide"}
 
     sumo_binary = "sumo"
 
     # all human cars constrained to right lane
-    type_params = {
-        "rl": (num_auto, (RLController, {}), None, 0),
-        "idm": (num_cars - num_auto - num_drunk, (IDMController, {}), (StaticLaneChanger, {}), 0),
-        "drunk": (num_drunk, (DrunkDriver, {"perturb_time": perturb_time}), (StaticLaneChanger, {}), 0)}
+    type_params = [
+        ("rl", num_auto, (RLController, {}), None, 0),
+        ("idm", num_cars - num_auto - num_drunk, (IDMController, {}), (StaticLaneChanger, {}), 0),
+        ("drunk", num_drunk, (DrunkDriver, {"perturb_time": perturb_time}), (StaticLaneChanger, {}), 0)]
 
     # human cars can lane change
     # type_params = {
@@ -58,8 +59,8 @@ def run_task(*_):
     #     "idm": (num_cars - num_auto - num_drunk, (IDMController, {}), None, 0),
     #     "drunk": (num_drunk, (DrunkDriver, {"perturb_time": perturb_time, "perturb_size": perturb_size}), None, 0)}
 
-    env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, 
-                "lane_change_duration": 3, "fail-safe": "None", "num_steps":300}
+    env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3,
+                  "lane_change_duration": 3, "fail-safe": "None", "num_steps":300}
 
     net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40, "net_path": "debug/net/"}
 

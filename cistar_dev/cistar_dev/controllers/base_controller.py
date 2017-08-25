@@ -62,7 +62,6 @@ class BaseController:
         if len(env.vehicles) == 1:
             return action
 
-        this_lane = env.vehicles[self.veh_id]['lane']
         lead_id = env.vehicles[self.veh_id]["leader"]
 
         # if there is no other vehicle in the current lane, all actions are safe

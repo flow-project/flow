@@ -43,18 +43,18 @@ def run_task(*_):
     auton_cars = 4
     human_cars = tot_cars - auton_cars
 
-    sumo_params = {"time_step":0.1, "human_sm": 1, "rl_sm": 1}
+    sumo_params = {"time_step": 0.1, "human_sm": 1, "rl_sm": 1}
 
     sumo_binary = "sumo"
 
-    type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0),
-                   "cfm":(human_cars, (BCMController, {"v_des":10}), (StaticLaneChanger, {}), 0)}
+    type_params = [("rl", auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   ("cfm", human_cars, (BCMController, {"v_des": 10}), (StaticLaneChanger, {}), 0)]
 
-    env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 1000}
+    env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
 
-    net_params = {"length": 200, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
+    net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/rl/net/"}
 
-    cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
+    cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
     initial_config = {"shuffle": False}
 
@@ -65,7 +65,6 @@ def run_task(*_):
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                 cfg_params, initial_config, scenario)
 
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
@@ -78,7 +77,7 @@ def run_task(*_):
 
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,32)
+        hidden_sizes=(32, 32)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -96,7 +95,7 @@ def run_task(*_):
     )
     algo.train()
 
-for seed in [1]: # [1, 5, 10, 73, 56]
+for seed in [1]:  # [1, 5, 10, 73, 56]
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
@@ -107,7 +106,7 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         # will be used
         seed=seed,
         mode="local",
-        exp_prefix="leah-test-exp"
+        exp_prefix="leah-test-exp",
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )
-

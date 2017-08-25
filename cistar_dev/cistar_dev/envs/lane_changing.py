@@ -1,6 +1,6 @@
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import rewards
-from cistar_dev.controllers.car_following_models import IDMController
+from cistar_dev.controllers.car_following_models import *
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -25,8 +25,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         """
         Actions are:
          - a (continuous) acceleration from max-deacc to max-acc
-         - a (discrete) direction with 3 values: 0) lane change to index -1, 1) no lane change,
-                                                 2) lane change to index +1
+         - a (continuous) direction with 3 values: 0) lane change to index -1, 1) no lane change,
+                                                   2) lane change to index +1
         :return:
         """
         # action_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)],
@@ -60,7 +60,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         target_velocity = self.env_params["target_velocity"]
 
         # compute the system-level performance of vehicles from a velocity perspective
-        reward = rewards.desired_velocity(state, rl_actions, fail=kwargs["fail"], target_velocity=target_velocity)
+        reward = rewards.desired_velocity(
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
 
         # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
         for veh_id in self.rl_ids:
@@ -69,46 +70,44 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
         return reward
 
-    def getState(self):
+    def get_state(self):
         """
         See parent class
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        # return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-        #                   self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
-        #                   self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids]).T
+        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
+                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids])
 
-        # for moving bottleneck: use only local trailing data for the moving bottleneck experiment
-        vehID = self.rl_ids[0]
-
-        trail_lane0 = self.get_trailing_car(vehID, lane=0)
-        headway_lane0 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane0]["absolute_position"]) \
-            % self.scenario.length
-
-        trail_lane1 = self.get_trailing_car(vehID, lane=1)
-        headway_lane1 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane1]["absolute_position"]) \
-            % self.scenario.length
-
-        if self.scenario.lanes == 2:
-            return np.array([[self.vehicles[vehID]["speed"], self.vehicles[trail_lane0]["speed"],
-                              self.vehicles[trail_lane1]["speed"]],
-                             [self.vehicles[vehID]["absolute_position"], headway_lane0, headway_lane1],
-                             [self.vehicles[vehID]["lane"], self.vehicles[trail_lane0]["lane"],
-                              self.vehicles[trail_lane1]["lane"]]])
-
-        elif self.scenario.lanes == 3:
-            trail_lane2 = self.get_trailing_car(vehID, lane=2)
-            headway_lane2 = \
-                (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane2]["absolute_position"]) \
-                % self.scenario.length
-
-            return np.array([[self.vehicles[vehID]["speed"], self.vehicles[trail_lane0]["speed"],
-                              self.vehicles[trail_lane1]["speed"], self.vehicles[trail_lane2]["speed"]],
-                             [self.vehicles[vehID]["absolute_position"], headway_lane0, headway_lane1, headway_lane2],
-                             [self.vehicles[vehID]["lane"], self.vehicles[trail_lane0]["lane"],
-                              self.vehicles[trail_lane1]["lane"], self.vehicles[trail_lane2]["lane"]]])
-
+        # # for moving bottleneck: use only local trailing data for the moving bottleneck experiment
+        # vehID = self.rl_ids[0]
+        #
+        # trail_lane0 = self.get_trailing_car(vehID, lane=0)
+        # headway_lane0 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane0]["absolute_position"]) \
+        #     % self.scenario.length
+        #
+        # trail_lane1 = self.get_trailing_car(vehID, lane=1)
+        # headway_lane1 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane1]["absolute_position"]) \
+        #     % self.scenario.length
+        #
+        # if self.scenario.lanes == 2:
+        #     return np.array(
+        #         [[self.vehicles[vehID]["speed"], self.vehicles[vehID]["absolute_position"], self.vehicles[vehID]["lane"]],
+        #          [self.vehicles[trail_lane0]["speed"], headway_lane0, self.vehicles[trail_lane0]["lane"]],
+        #          [self.vehicles[trail_lane1]["speed"], headway_lane1, self.vehicles[trail_lane1]["lane"]]])
+        #
+        # elif self.scenario.lanes == 3:
+        #     trail_lane2 = self.get_trailing_car(vehID, lane=2)
+        #     headway_lane2 = \
+        #         (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane2]["absolute_position"]) \
+        #         % self.scenario.length
+        #
+        #     return np.array(
+        #         [[self.vehicles[vehID]["speed"], self.vehicles[vehID]["absolute_position"], self.vehicles[vehID]["lane"]],
+        #          [self.vehicles[trail_lane0]["speed"], headway_lane0, self.vehicles[trail_lane0]["lane"]],
+        #          [self.vehicles[trail_lane1]["speed"], headway_lane1, self.vehicles[trail_lane1]["lane"]],
+        #          [self.vehicles[trail_lane2]["speed"], headway_lane2, self.vehicles[trail_lane2]["lane"]]])
 
     # def render(self):
     #     print('current velocity, lane, absolute_pos, headway:', self.state)
@@ -141,90 +140,71 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         self.apply_lane_change(sorted_rl_ids, direction=direction)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
 
     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+
         super().__init__(env_params, sumo_binary, sumo_params, scenario)
-        vehicle_controllers = {}
+
+        # longitudinal (acceleration) controller used for rl cars
+        self.rl_controller = dict()
+
         for veh_id in self.rl_ids:
-            vehicle_controllers[veh_id] = IDMController(veh_id)
-        self.vehicle_controllers = vehicle_controllers
+            controller_params = env_params["rl_acc_controller"]
+            self.rl_controller[veh_id] = controller_params[0](veh_id=veh_id, **controller_params[1])
 
     @property
     def action_space(self):
         """
-        Actions are:
-         - a (discrete) direction with 3 values: 0) lane change to index -1, 1) no lane change,
-                                                 2) lane change to index +1
-        :return:
+        Actions are: a continuous direction for each rl vehicle
         """
+        return Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles,))
 
-        lb = [-1] * self.scenario.num_rl_vehicles
-        ub = [1] * self.scenario.num_rl_vehicles
-        return Box(np.array(lb), np.array(ub))
+    @property
+    def observation_space(self):
+        """
+        See parent class
+        An observation consists of the velocity, lane index, and absolute position of each vehicle
+        in the fleet
+        """
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        return Tuple([speed, lane, absolute_pos])
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """
+        See parent class
+        """
+        # compute the system-level performance of vehicles from a velocity perspective
+        reward = rewards.desired_velocity(
+            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
+
+        # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
+        for veh_id in self.rl_ids:
+            if self.vehicles[veh_id]["last_lc"] == self.timer:
+                reward -= 1
+
+        return reward
+
+    def get_state(self):
+        """
+        See parent class
+        """
+        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
+                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids])
 
     def apply_rl_actions(self, actions):
         """
-        Takes a tuple and applies a lane change. if a lane change is applied,
-        don't issue another lane change for the duration of the lane change. 
-        Accelerations are given by an idm model. 
-        :param actions: (acceleration, lc_value, direction)
-        :return: array of resulting actions: 0 if successful + other actions are ok, -1 if unsucessful / bad actions.
+        see parent class
+        - accelerations are derived using the IDM equation
+        - lane-change commands are collected from rllab
         """
-        # acceleration = actions[-1]
-        # direction = np.array(actions[:-1]) - 1
-
+        direction = actions
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
-
-        # get the accelerations from an idm model
-        acceleration = np.zeros((len(sorted_rl_ids)))
-        for i, rl_id in enumerate(sorted_rl_ids):
-            acceleration[i] = self.vehicle_controllers[rl_id].get_action(self)
-
-        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
-
-        # get the lane changes from the neural net
-        direction = np.round(actions)
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
@@ -234,10 +214,43 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
 
         self.apply_lane_change(sorted_rl_ids, direction=direction)
 
+        # collect the accelerations for the rl vehicles as specified by the human controller
+        acceleration = []
+        for veh_id in sorted_rl_ids:
+            acceleration.append(self.rl_controller[veh_id].get_action(self))
 
-        resulting_behaviors = []
+        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
 
-        return resulting_behaviors
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
@@ -326,7 +339,7 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
         pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Tuple((speed, lane, pos))
 
-    def getState(self):
+    def get_state(self):
         """
         See parent class
         The state is an array the velocities for each vehicle
@@ -340,59 +353,5 @@ class RLOnlyLane(SimpleLaneChangingAccelerationEnvironment):
                           self.vehicles[veh_id]["lane"],
                           self.vehicles[veh_id]["absolute_position"]] for veh_id in sorted_ids])
 
-
     # def render(self):
     #     print('current velocity, lane, headway, adj headway:', self.state)
-
-
-# class ShepherdAggressiveDrivers(SimpleLaneChangingAccelerationEnvironment):
-#
-#     def __init__(self, env_params, sumo_binary, sumo_params, scenario):
-#         super().__init__(env_params, sumo_binary, sumo_params, scenario)
-#
-#         # index of aggressive vehicles
-#         self.ind_aggressive = env_params["ind_aggressive"]
-#
-#         # index of non-aggressive vehicles
-#         ind_nonaggressive = np.arange(self.scenario.num_vehicles)
-#         ind_nonaggressive = ind_nonaggressive[np.array([ind_nonaggressive[i] not in self.ind_aggressive
-#                                                         for i in range(len(ind_nonaggressive))])]
-#         self.ind_nonaggressive = ind_nonaggressive
-#
-#     def compute_reward(self, state, action, **kwargs):
-#         """
-#         See parent class
-#         """
-#         # if any(state[0] < 0) or kwargs["fail"]:
-#         #     return -20.0
-#
-#         # max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
-#         #                      np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
-#         # max_cost = np.linalg.norm(max_cost)
-#
-#         # # cost associated with being away from target velocity
-#         # # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
-#         # cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
-#         #                  self.env_params["target_velocity_aggressive"],
-#         #                  state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
-#         #                  self.env_params["target_velocity"])
-#         # cost = np.linalg.norm(cost)
-#
-#         # return max_cost - cost
-#
-#         if any(state[0] < 0) or kwargs["fail"]:
-#             return -20.0
-#
-#         max_cost = np.append(np.array([self.env_params["target_velocity_aggressive"]]*len(self.ind_nonaggressive)),
-#                              np.array([self.env_params["target_velocity"]]*len(self.ind_nonaggressive)))
-#         max_cost = np.linalg.norm(max_cost)
-#
-#         # cost associated with being away from target velocity
-#         # if the vehicle's velocity is more than twice the target velocity, the cost does not become worse
-#         cost = np.append(state[0][self.ind_aggressive].clip(max=2*self.env_params["target_velocity_aggressive"]) -
-#                          self.env_params["target_velocity_aggressive"],
-#                          state[0][self.ind_nonaggressive].clip(max=2*self.env_params["target_velocity"]) -
-#                          self.env_params["target_velocity"])
-#         cost = np.linalg.norm(cost)
-#
-#         return max_cost - cost

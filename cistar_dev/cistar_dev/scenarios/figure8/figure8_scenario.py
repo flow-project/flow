@@ -22,190 +22,88 @@ class Figure8Scenario(Scenario):
         net_params["length"] = 6 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + \
             10 * self.inner_space_len
 
+        if "radius_ring" not in net_params:
+            raise ValueError("radius of ring not supplied")
+        self.radius_ring = net_params["radius_ring"]
+
+        self.length = net_params["length"]
+
+        if "lanes" not in net_params:
+            raise ValueError("number of lanes not supplied")
+        self.lanes = net_params["lanes"]
+
+        if "speed_limit" not in net_params:
+            raise ValueError("speed limit not supplied")
+        self.speed_limit = net_params["speed_limit"]
+
+        if "resolution" not in net_params:
+            raise ValueError("resolution of circular sections not supplied")
+        self.resolution = net_params["resolution"]
+
         super().__init__(name, type_params, net_params, cfg_params=cfg_params,
                          initial_config=initial_config, cfg=cfg,
                          generator_class=Figure8Generator)
 
-        if "radius_ring" not in self.net_params:
-            raise ValueError("radius of ring not supplied")
-        self.radius_ring = self.net_params["radius_ring"]
-
-        self.length = self.net_params["length"]
-
-        if "lanes" not in self.net_params:
-            raise ValueError("number of lanes not supplied")
-        self.lanes = self.net_params["lanes"]
-
-        if "speed_limit" not in self.net_params:
-            raise ValueError("speed limit not supplied")
-        self.speed_limit = self.net_params["speed_limit"]
-
-        if "resolution" not in self.net_params:
-            raise ValueError("resolution of circular sections not supplied")
-        self.resolution = self.net_params["resolution"]
-
-        # defines edge starts for road sections
-        self.edgestarts = [("bottom_lower_ring", 0 + self.inner_space_len),
-                           ("right_lower_ring_in", self.ring_edgelen + 2 * self.inner_space_len),
-                           ("right_lower_ring_out", self.ring_edgelen + self.intersection_len / 2 + self.junction_len + 3 * self.inner_space_len),
-                           ("left_upper_ring", self.ring_edgelen + self.intersection_len + self.junction_len + 4 * self.inner_space_len),
-                           ("top_upper_ring", 2 * self.ring_edgelen + self.intersection_len + self.junction_len + 5 * self.inner_space_len),
-                           ("right_upper_ring", 3 * self.ring_edgelen + self.intersection_len + self.junction_len + 6 * self.inner_space_len),
-                           ("bottom_upper_ring_in", 4 * self.ring_edgelen + self.intersection_len + self.junction_len + 7 * self.inner_space_len),
-                           ("bottom_upper_ring_out", 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len + 8 * self.inner_space_len),
-                           ("top_lower_ring", 4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 9 * self.inner_space_len),
-                           ("left_lower_ring", 5 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 10 * self.inner_space_len)]
-
-        self.edgepos = {"bottom_lower_ring": 0 + self.inner_space_len,
-                        "right_lower_ring_in": self.ring_edgelen + 2 * self.inner_space_len,
-                        "right_lower_ring_out": self.ring_edgelen + self.intersection_len / 2 + self.junction_len + 3 * self.inner_space_len,
-                        "left_upper_ring": self.ring_edgelen + self.intersection_len + self.junction_len + 4 * self.inner_space_len,
-                        "top_upper_ring": 2 * self.ring_edgelen + self.intersection_len + self.junction_len + 5 * self.inner_space_len,
-                        "right_upper_ring": 3 * self.ring_edgelen + self.intersection_len + self.junction_len + 6 * self.inner_space_len,
-                        "bottom_upper_ring_in": 4 * self.ring_edgelen + self.intersection_len + self.junction_len + 7 * self.inner_space_len,
-                        "bottom_upper_ring_out": 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len + 8 * self.inner_space_len,
-                        "top_lower_ring": 4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 9 * self.inner_space_len,
-                        "left_lower_ring": 5 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 10 * self.inner_space_len}
-
-        # defines edge starts for intersections
-        self.intersection_edgestarts = \
-            [(":center_intersection_%s" % (1+self.lanes), self.ring_edgelen + self.intersection_len / 2 + 3 * self.inner_space_len),
-             (":center_intersection_1", 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + self.junction_len + 8 * self.inner_space_len)]
-
-        self.intersection_pos = \
-            {":center_intersection_%s" % (1+self.lanes): self.ring_edgelen + self.intersection_len / 2 + 3 * self.inner_space_len,
-             ":center_intersection_1": 4 * self.ring_edgelen + 3 / 2 * self.intersection_len + self.junction_len + 8 * self.inner_space_len}
-
-        self.extra_edgestarts = \
-            [("bottom_lower_ring", 0),
-             ("right_lower_ring_in", self.ring_edgelen + self.inner_space_len),
+    def specify_edge_starts(self):
+        """
+        See base class
+        """
+        edgestarts = \
+            [("bottom_lower_ring", 0 + self.inner_space_len),
+             ("right_lower_ring_in", self.ring_edgelen + 2 * self.inner_space_len),
              ("right_lower_ring_out",
-              self.ring_edgelen + self.intersection_len / 2 + self.junction_len + 2 * self.inner_space_len),
+              self.ring_edgelen + self.intersection_len / 2 + self.junction_len + 3 * self.inner_space_len),
              ("left_upper_ring",
-              self.ring_edgelen + self.intersection_len + self.junction_len + 3 * self.inner_space_len),
+              self.ring_edgelen + self.intersection_len + self.junction_len + 4 * self.inner_space_len),
              ("top_upper_ring",
-              2 * self.ring_edgelen + self.intersection_len + self.junction_len + 4 * self.inner_space_len),
+              2 * self.ring_edgelen + self.intersection_len + self.junction_len + 5 * self.inner_space_len),
              ("right_upper_ring",
-              3 * self.ring_edgelen + self.intersection_len + self.junction_len + 5 * self.inner_space_len),
+              3 * self.ring_edgelen + self.intersection_len + self.junction_len + 6 * self.inner_space_len),
              ("bottom_upper_ring_in",
-              4 * self.ring_edgelen + self.intersection_len + self.junction_len + 6 * self.inner_space_len),
+              4 * self.ring_edgelen + self.intersection_len + self.junction_len + 7 * self.inner_space_len),
              ("bottom_upper_ring_out",
-              4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len + 7 * self.inner_space_len),
+              4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len + 8 * self.inner_space_len),
              ("top_lower_ring",
-              4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 8 * self.inner_space_len),
+              4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 9 * self.inner_space_len),
              ("left_lower_ring",
+              5 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 10 * self.inner_space_len)]
+
+        return edgestarts
+
+    def specify_intersection_edge_starts(self):
+        """
+        See base class
+        """
+        intersection_edgestarts = \
+            [(":center_intersection_%s" % (1+self.lanes),
+              self.ring_edgelen + self.intersection_len / 2 + 3 * self.inner_space_len),
+             (":center_intersection_1",
+              4 * self.ring_edgelen + 3 / 2 * self.intersection_len + self.junction_len + 8 * self.inner_space_len)]
+
+        return intersection_edgestarts
+
+    def specify_internal_edge_starts(self):
+        """
+        See base class
+        """
+        internal_edgestarts = \
+            [(":bottom_lower_ring", 0),
+             (":right_lower_ring_in", self.ring_edgelen + self.inner_space_len),
+             (":right_lower_ring_out",
+              self.ring_edgelen + self.intersection_len / 2 + self.junction_len + 2 * self.inner_space_len),
+             (":left_upper_ring",
+              self.ring_edgelen + self.intersection_len + self.junction_len + 3 * self.inner_space_len),
+             (":top_upper_ring",
+              2 * self.ring_edgelen + self.intersection_len + self.junction_len + 4 * self.inner_space_len),
+             (":right_upper_ring",
+              3 * self.ring_edgelen + self.intersection_len + self.junction_len + 5 * self.inner_space_len),
+             (":bottom_upper_ring_in",
+              4 * self.ring_edgelen + self.intersection_len + self.junction_len + 6 * self.inner_space_len),
+             (":bottom_upper_ring_out",
+              4 * self.ring_edgelen + 3 / 2 * self.intersection_len + 2 * self.junction_len + 7 * self.inner_space_len),
+             (":top_lower_ring",
+              4 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 8 * self.inner_space_len),
+             (":left_lower_ring",
               5 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 9 * self.inner_space_len)]
 
-        # generate starting position for vehicles in the network
-        if "positions" not in self.initial_config:
-            self.initial_config["positions"] = self.generate_starting_positions()
-
-        if "shuffle" not in self.initial_config:
-            self.initial_config["shuffle"] = False
-        if not cfg:
-            # FIXME(cathywu) Resolve this inconsistency. Base class does not
-            # call generate, but child class does. What is the convention?
-            self.cfg = self.generate()
-
-    def get_edge(self, x):
-        """
-        Given an absolute position x on the track, returns the edge (name) and
-        relative position on that edge.
-        :param x: absolute position x
-        :return: (edge (name, such as bottom, right, etc.), relative position on
-        edge)
-        """
-        starte = ""
-        startx = 0
-        for (e, s) in self.edgestarts:
-            if x >= s:
-                starte = e
-                startx = x - s
-        return starte, startx
-
-    def get_x(self, edge, position):
-        """
-        Given an edge name and relative position, return the absolute
-        position on the track.
-        :param edge: name of edge (string)
-        :param position: relative position on edge
-        :return: absolute position of the vehicle on the track given a reference (origin)
-        """
-        # check it the vehicle is in a lane
-        if edge in self.edgepos.keys():
-            return position + self.edgepos[edge]
-
-        # if the vehicle is not in a lane, check if it is on an intersection
-        if edge in self.intersection_pos.keys():
-            return position + self.intersection_pos[edge]
-
-        # finally, check if it is in the connection between lanes
-        for extra_tuple in self.extra_edgestarts:
-            if extra_tuple[0] in edge:
-                edgestart = extra_tuple[1]
-                return position + edgestart
-
-    def generate_starting_positions(self, x0=1):
-        """
-        Generates starting positions for vehicles in the network
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        """
-        startpositions = []
-
-        bunch_factor = 0
-        if "bunching" in self.initial_config:
-            bunch_factor = self.initial_config["bunching"]
-
-        if "spacing" in self.initial_config:
-            if self.initial_config["spacing"] == "gaussian":
-                downscale = 5
-                if "downscale" in self.initial_config:
-                    downscale = self.initial_config["downscale"]
-                startpositions = self.gen_random_start_pos(downscale, bunch_factor, x0=x0)
-        else:
-            startpositions = self.gen_even_start_positions(bunch_factor, x0=x0)
-
-        return startpositions
-
-    def gen_even_start_positions(self, bunching, x0=1):
-        """
-        Generate uniformly spaced start positions.
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        """
-        startpositions = []
-        increment = (self.length - bunching) / self.num_vehicles
-
-        x = x0
-        for i in range(self.num_vehicles):
-            # pos is a tuple (route, departPos)
-            pos = self.get_edge(x)
-            startpositions.append(pos)
-            x = (x + increment) % self.length
-
-        return startpositions
-
-    def gen_random_start_pos(self, downscale=5, bunching=0, x0=1):
-        """
-        Generate random start positions via additive Gaussian.
-
-        WARNING: this does not absolutely gaurantee that the order of
-        vehicles is preserved.
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        """
-        startpositions = []
-        mean = (self.length - 2 * self.junction_len - bunching) / self.num_vehicles
-
-        x = x0
-        for i in range(self.num_vehicles):
-            pos = self.get_edge(x)
-
-            # ensures that vehicles are not placed in the intersection
-            for center_tuple in self.intersection_edgestarts:
-                if center_tuple[0] in pos[0]:
-                    x += self.junction_len
-                    pos = self.get_edge(x)
-
-            startpositions.append(pos)
-            x = (x + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
-
-        return startpositions
+        return internal_edgestarts

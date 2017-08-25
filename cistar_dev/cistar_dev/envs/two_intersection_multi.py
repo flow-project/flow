@@ -1,3 +1,4 @@
+from cistar_dev.core.base_env import SumoEnvironment
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import multi_agent_rewards
 
@@ -12,7 +13,7 @@ from numpy.random import normal
 import pdb
 
 
-class TwoIntersectionMultiAgentEnvironment(LoopEnvironment):
+class TwoIntersectionMultiAgentEnvironment(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
@@ -59,8 +60,8 @@ class TwoIntersectionMultiAgentEnvironment(LoopEnvironment):
                 # get up to max speed
                 if self.vehicles[veh_id]["speed"] < self.scenario.initial_config["enter_speed"]:
                     # accelerate as fast as you can
-                    if ((self.scenario.initial_config["enter_speed"] - 
-                        self.vehicles[veh_id]["speed"])/self.time_step > self.env_params["max-acc"]):
+                    if ((self.scenario.initial_config["enter_speed"] -
+                         self.vehicles[veh_id]["speed"])/self.time_step > self.env_params["max-acc"]):
                         rl_actions[i][0][0] =  self.env_params["max-acc"]
                     # accelerate up to target velocity
                     else:
@@ -90,7 +91,7 @@ class TwoIntersectionMultiAgentEnvironment(LoopEnvironment):
         # return rewards.min_delay(state, rl_actions, target_velocity=self.env_params["target_velocity"],
         #     time_step=self.sumo_params["time_step"], fail=kwargs["fail"])
 
-    def getState(self, **kwargs):
+    def get_state(self, **kwargs):
         """
         See parent class
         The state is an array the velocities for each vehicle
@@ -124,10 +125,6 @@ class TwoIntersectionMultiAgentEnvironment(LoopEnvironment):
         #         veh_ids.append(self.vehicles[veh_id]["follower"])  # add vehicle behind rl vehicle
         #
         #     veh_ids = np.unique(veh_ids)  # remove redundant vehicle ids
-
-
-
-        # partial observability (2 cars ahead, 2 cars behind)
 
     # def _render(self):
     #     print('current state/velocity:', self.state)

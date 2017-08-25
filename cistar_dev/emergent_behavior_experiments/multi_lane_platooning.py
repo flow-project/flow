@@ -30,16 +30,17 @@ num_auto = 22
 
 exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-multi-lane-loop'
 
+
 def run_task(*_):
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_lc": "no_lat_collide", "human_lc": "strategic",
+    sumo_params = {"time_step": 0.1, "rl_lc": "no_lat_collide", "human_lc": "strategic",
                    "rl_sm": "no_collide", "human_sm": "no_collide"}
-    sumo_binary = "sumo"
+    sumo_binary = "sumo-gui"
 
     env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "lane_change_duration": 3,
                   "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0,
-                  "num_steps":500}
+                  "num_steps": 1500}
 
     net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}
@@ -48,8 +49,8 @@ def run_task(*_):
 
     initial_config = {"shuffle": False}
 
-    type_params = {"rl": (num_auto, (RLController, {}), None, 0),
-                   "idm": (num_cars - num_auto, (IDMController, {}), None, 0)}
+    type_params = [("rl", num_auto, (RLController, {}), None, 0),
+                   ("idm", num_cars - num_auto, (IDMController, {}), None, 0)]
 
     scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 
@@ -87,7 +88,7 @@ for seed in [5]:  # [16, 20, 21, 22]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
@@ -95,6 +96,6 @@ for seed in [5]:  # [16, 20, 21, 22]:
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

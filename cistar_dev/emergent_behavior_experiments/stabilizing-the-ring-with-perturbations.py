@@ -11,24 +11,23 @@ One concern is whether rl-vehicles will start trail-gating human vehicles.
 import logging
 
 from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import stub, run_experiment_lite
+from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-# from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.controllers.car_following_models import *
 
+
 def run_task(*_):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "traci_control": 1, "rl_sm": "aggressive", "human_sm": "aggressive"}
+    sumo_params = {"time_step": 0.1, "rl_sm": "aggressive", "human_sm": "aggressive"}
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
@@ -43,12 +42,10 @@ def run_task(*_):
 
     num_cars = 22
 
-    exp_tag = str(num_cars) + "-car-stabilizing-the-ring-with-perturbations"
-
-    type_params = {
-        "rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-        "drunk": (1, (DrunkDriver, {}), (StaticLaneChanger, {}), 0),
-        "idm": (num_cars - 2, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = [
+        ("rl", 1, (RLController, {}), (StaticLaneChanger, {}), 0),
+        ("drunk", 1, (DrunkDriver, {}), (StaticLaneChanger, {}), 0),
+        ("idm", num_cars - 2, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
     scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
 

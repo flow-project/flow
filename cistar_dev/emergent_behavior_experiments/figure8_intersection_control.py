@@ -2,8 +2,6 @@
 Script used to train vehicles to stop crashing longitudinally and on intersections.
 """
 
-#TODO (Eugene) This isn't working for some reason.
-
 import logging
 from collections import OrderedDict
 
@@ -26,30 +24,32 @@ num_cars = 14
 num_auto = 14
 exp_tag = str(num_cars) + '-car-' + str(num_auto) + '-rl-intersection-control'
 
+
 def run_task(*_):
-    import cistar_dev.envs as cistar_envs
+    # import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = {"time_step": 0.1, "shuffle": True,
-                   "rl_lc": "no_collide", "human_lc": "no_collide",
-                   "rl_sm": "no_collide", "human_sm": "no_collide"}
+                   "rl_lc": "no_collide", "human_lc": "no_lat_collide",
+                   "rl_sm": "no_collide", "human_sm": "no_lat_collide"}
     sumo_binary = "sumo"
 
-    env_params = {"target_velocity": 10, "max-deacc": -6, "max-acc": 3,
-                  "observation_vel_std": 0, "observation_pos_std": 0, 
-                  "human_acc_std": 0, "rl_acc_std": 0, "num_steps": 500}
+    env_params = {"target_velocity": 30, "max-deacc": -6, "max-acc": 3, "num_steps": 1500,
+                  "observation_vel_std": 0, "observation_pos_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
 
     net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
-                  "net_path": "debug/net/"}
+                  "net_path": "debug/net/", "no-internal-links": False}
 
     cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
     initial_config = {"shuffle": False}
 
-    # type_params = {"rl": (num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
-    #                "idm": (num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)}
+    num_cars = 14
+    num_auto = 14
+    type_params = [("rl", num_auto, (RLController, {}), (StaticLaneChanger, {}), 0),
+                   ("idm", num_cars - num_auto, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-    exp_type = 1
+    exp_type = 0
 
     if exp_type == 1:
         num_cars = 14
@@ -103,9 +103,8 @@ def run_task(*_):
     from cistar_dev import pass_params
     env_name = "SimpleAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-                cfg_params, initial_config, scenario)
+                   cfg_params, initial_config, scenario)
 
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
@@ -123,25 +122,25 @@ def run_task(*_):
         baseline=baseline,
         batch_size=15000,
         max_path_length=horizon,
-        n_itr=2,
+        n_itr=1000,
         # whole_paths=True,
         discount=0.999,
         step_size=0.01,
     )
     algo.train(),
 
-for seed in [5]:  # [16, 20, 21, 22]:
-  run_experiment_lite(
-      run_task,
-      # Number of parallel workers for sampling
-      n_parallel=4,
-      # Only keep the snapshot parameters for the last iteration
-      snapshot_mode="all",
-      # Specifies the seed for the experiment. If this is not provided, a random seed
-      # will be used
-      seed=seed,
-      mode="local",
-      exp_prefix=exp_tag,
-      # python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
-      # plot=True,
-  )
+for seed in [5]:  # , 20, 68]:  # , 100, 128]:
+    run_experiment_lite(
+        run_task,
+        # Number of parallel workers for sampling
+        n_parallel=1,
+        # Only keep the snapshot parameters for the last iteration
+        snapshot_mode="all",
+        # Specifies the seed for the experiment. If this is not provided, a random seed
+        # will be used
+        seed=seed,
+        mode="local",
+        exp_prefix=exp_tag,
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+        # plot=True,
+    )

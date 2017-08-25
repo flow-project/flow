@@ -33,23 +33,23 @@ from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.DEBUG)
 
+
 def run_task(*_):
     tot_cars = 6
-
     auton_cars = 6
 
-    sumo_params = {"time_step":0.1,  "rl_sm": 1}
+    sumo_params = {"time_step": 0.1,  "rl_sm": 1}
 
     sumo_binary = "sumo-gui"
 
-    type_params = {"rl":(auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)}
+    type_params = [("rl", auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)]
 
-    env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc":3, "num_steps": 1000}
+    env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "num_steps": 1000}
 
-    net_params = {"length": 220, "lanes": 1, "speed_limit":35, "resolution": 40,
-                  "net_path":"debug/rl/net/"}
+    net_params = {"length": 220, "lanes": 1, "speed_limit": 30, "resolution": 40,
+                  "net_path": "debug/rl/net/"}
 
-    cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
+    cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
     initial_config = {"shuffle": False}
 
@@ -90,7 +90,7 @@ def run_task(*_):
     )
     algo.train()
 
-for seed in [10]: # [1, 5, 10, 73, 56]
+for seed in [10]:  # [1, 5, 10, 73, 56]
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
@@ -102,6 +102,6 @@ for seed in [10]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="rl-acceleration",
-        #python_command='/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5'
+        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

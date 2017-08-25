@@ -49,14 +49,15 @@ class ConstantVelocityController(BaseController):
     def reset_delay(self, env):
         pass
 
+
 class FollowerStopper(BaseController):
-    '''Inspired by Dan Work's... work.
+    """Inspired by Dan Work's... work.
     
     [description]
     
     Extends:
         BaseController
-    '''
+    """
 
     def __init__(self, veh_id, max_deaccel=15, tau=0, dt=0.1, constant_speed=15):
         controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel}
@@ -78,12 +79,12 @@ class FollowerStopper(BaseController):
         this_vel = env.vehicles[self.veh_id]['speed']
 
         deltaV = lead_vel - this_vel
-        deltaX0 = np.array([4.5, 5.25, 6]) # initial values
-        d_j = np.array([1.5, 1, .5]) # decel rates
+        deltaX0 = np.array([4.5, 5.25, 6])  # initial values
+        d_j = np.array([1.5, 1, .5])  # decel rates
 
-        deltaX = deltaX0 + 1/(2*d_j) * (min(deltaV, 0))**2 # A function of deltaV
+        deltaX = deltaX0 + 1/(2*d_j) * (min(deltaV, 0))**2  # A function of deltaV
 
-        dx = (lead_pos - lead_length - this_pos) % env.scenario.length # headway
+        dx = (lead_pos - lead_length - this_pos) % env.scenario.length  # headway
 
         this_v = min(max(lead_vel, 0), self.constant_speed)
         if dx < deltaX[0]:
@@ -95,7 +96,6 @@ class FollowerStopper(BaseController):
         else:
             v_cmd = self.constant_speed
         return v_cmd
-
 
     def get_safe_action(self, env, action):
         v_safe = self.safe_velocity(env)
