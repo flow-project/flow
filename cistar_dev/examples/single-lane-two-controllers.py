@@ -23,6 +23,7 @@ Variables:
 import logging
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core.exp import SumoExperiment
+from cistar_dev.scenarios.loop.gen import CircleGenerator
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.car_following_models import *
 from cistar_dev.controllers.lane_change_controllers import *
@@ -44,14 +45,16 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 
 initial_config = {"shuffle": False, "bunching": 20}
 
-scenario = LoopScenario("single-lane-two-contr", type_params, net_params, cfg_params, initial_config)
+scenario = LoopScenario("single-lane-two-contr", CircleGenerator, type_params, net_params,
+                        cfg_params, initial_config)
 # data path needs to be relative to cfg location
 
-exp = SumoExperiment(LoopEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = LoopEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 
-# 400 runs, 1000 steps per run
-exp.run(1, 100)
+exp.run(1, 1500)
 
 exp.env.terminate()

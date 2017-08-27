@@ -1,12 +1,12 @@
 import numpy as np
 
 from cistar_dev.core.scenario import Scenario
-from cistar_dev.scenarios.braess_paradox.gen import *
 
 
 class BraessParadoxScenario(Scenario):
 
-    def __init__(self, name, type_params, net_params, cfg_params=None, initial_config=None, cfg=None):
+    def __init__(self, name, generator_class, type_params, net_params, cfg_params=None,
+                 initial_config=None):
         """
         Initializes a Braess Paradox scenario.
         Required net_params: angle, edge_length, lanes, resolution speed_limit.
@@ -22,9 +22,8 @@ class BraessParadoxScenario(Scenario):
         # net_params["length"] = 4 * self.edge_len + 4 * self.junction_len + 2 * self.curve_len + self.horz_len
         net_params["length"] = 4 * self.edge_len + 2 * self.curve_len + self.horz_len
 
-        super().__init__(name, type_params, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config, cfg=cfg,
-                         generator_class=BraessParadoxGenerator)
+        super().__init__(name, generator_class, type_params, net_params, cfg_params=cfg_params,
+                         initial_config=initial_config)
 
     def specify_edge_starts(self):
         """

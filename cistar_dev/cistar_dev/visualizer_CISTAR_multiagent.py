@@ -15,8 +15,6 @@ import plotly.offline as po
 import plotly.graph_objs as go
 import pdb
 
-TYPE = 'figure8'
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()

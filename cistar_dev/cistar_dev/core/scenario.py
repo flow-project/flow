@@ -9,8 +9,8 @@ from cistar_dev.controllers.rlcontroller import RLController
 
 
 class Scenario(Serializable):
-    def __init__(self, name, type_params, net_params, cfg_params=None,
-                 initial_config=None, cfg=None, generator_class=None):
+    def __init__(self, name, generator_class, type_params, net_params, cfg_params=None,
+                 initial_config=None):
         """
         Abstract base class. Initializes a new scenario. This class can be
         instantiated once and reused in multiple experiments. Note that this
@@ -40,21 +40,15 @@ class Scenario(Serializable):
         self.num_rl_vehicles = sum([x[1] for x in type_params if x[2][0] == RLController])
 
         if not net_params:
-            ValueError("No network params specified!")
+            ValueError("No network params specified")
         # determines whether the space between edges is finite
         if "no-internal-links" not in net_params:
             net_params["no-internal-links"] = True
         self.net_params = net_params
 
-        if cfg:
-            self.cfg = cfg
-        elif not cfg:
-            if not generator_class:
-                ValueError("Must supply either a CFG or a simulator!!")
-            self.generator_class = generator_class
-            if cfg_params is None:
-                ValueError("No config params specified")
-            self.cfg_params = cfg_params
+        self.generator_class = generator_class
+
+        self.cfg_params = cfg_params
 
         self.initial_config = {}
         if initial_config:
@@ -100,8 +94,7 @@ class Scenario(Serializable):
         if "shuffle" not in self.initial_config:
             self.initial_config["shuffle"] = False
 
-        if not cfg:
-            self.cfg = self.generate()
+        self.cfg = self.generate()
 
     def specify_edge_starts(self):
         """
@@ -126,9 +119,9 @@ class Scenario(Serializable):
     def specify_internal_edge_starts(self):
         """
         Defines the edge starts for internal edge nodes (caused by finite-length
-        connections between road sections) w.r.t. some global reference frame (only in
-        1-dimension). Need not be specified if "no-internal-links" is set to "true"
-        (see generator.py)
+        connections between road sections) w.r.t. some global reference frame.
+        Need not be specified if "no-internal-links" is not specified or set to
+        True in net_params.
 
         :return: a list of internal junction names and starting positions
                  [(internal0, pos0), (internal1, pos1), ...]
@@ -155,7 +148,7 @@ class Scenario(Serializable):
 
         self.generator = self.generator_class(self.net_params, net_path, cfg_path, self.name)
         self.generator.generate_net(self.net_params)
-        cfg_name = self.generator.generate_cfg(self.cfg_params)
+        cfg_name = self.generator.generate_cfg(self.net_params, self.cfg_params)
         # Note that self (the whole scenario instance) is passed on here,
         # so this is where self.type_params (for instance) is used.
         self.generator.make_routes(self, self.initial_config, self.cfg_params)
@@ -390,6 +383,7 @@ class Scenario(Serializable):
         WARNING: this does not absolutely gaurantee that the order of
         vehicles is preserved.
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
+                 list of start lanes
         """
         x0 = 1
         if "x0" in kwargs:
@@ -456,6 +450,14 @@ class Scenario(Serializable):
                 lane_count = 0
 
         return startpositions, startlanes
+
+    def gen_upstream_start_pos(self, initial_config, **kwargs):
+        """
+
+        :param initial_config:
+        :param kwargs:
+        :return:
+        """
 
     def gen_custom_start_pos(self, initial_config, **kwargs):
         raise NotImplementedError

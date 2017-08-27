@@ -28,7 +28,9 @@ scenario = LoopScenario(scenario_name, type_params, net_params, cfg_params, init
 # data path needs to be relative to cfg location
 leah_sumo_params = {"port": 8873}
 
-exp = SumoExperiment(PerturbationAccelerationLoop, env_params, sumo_binary, sumo_params, scenario)
+env = PerturbationAccelerationLoop(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 

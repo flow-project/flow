@@ -112,7 +112,7 @@ class Figure8Generator(Generator):
 
         return types
 
-    def specify_routes(self):
+    def specify_routes(self, net_params):
         """
         See parent class
         """
@@ -160,7 +160,7 @@ class Figure8Generator(Generator):
         return rts
 
     # TODO: may be able to get rid of all together (replace with routing controller)
-    def specify_rerouters(self):
+    def specify_rerouters(self, net_params):
         """
         See parent class
         """

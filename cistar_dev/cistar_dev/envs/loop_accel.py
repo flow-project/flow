@@ -1,12 +1,9 @@
 from cistar_dev.envs.loop import LoopEnvironment
 from cistar_dev.core import rewards
 from cistar_dev.core import multi_agent_rewards
-from cistar_dev.controllers.rlcontroller import RLController
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
-
-import traci
 
 import numpy as np
 from numpy.random import normal
@@ -53,8 +50,7 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         See parent class
         """
         # reward desired velocity
-        reward = rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
+        reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
         # # punish small headways
         # headway_penalty = rewards.punish_small_rl_headways(
@@ -170,7 +166,7 @@ class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        self.obs_var_labels = ["Velocity", "Relative_pos"]
+        # self.obs_var_labels = ["Velocity", "Relative_pos"]
         speed = Box(low=0, high=np.inf, shape=(3,))
         absolute_pos = Box(low=0., high=np.inf, shape=(3,))
         return Tuple([speed, absolute_pos])
@@ -179,8 +175,7 @@ class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
         """
         See parent class
         """
-        return rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
+        return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
         """

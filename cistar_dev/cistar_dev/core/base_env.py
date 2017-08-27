@@ -38,7 +38,7 @@ adding the following functions:
  - action_space(self): specifies the action space of the rl vehicles
  - observation_space(self): specifies the observation space of the rl vehicles
  - apply_rl_action(self, rl_actions): Specifies the actions to be performed by rl_vehicles
- - getState(self):
+ - get_state(self):
  - compute_reward():
 """
 

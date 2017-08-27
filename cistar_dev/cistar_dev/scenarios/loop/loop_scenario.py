@@ -1,12 +1,9 @@
-import numpy as np
-
 from cistar_dev.core.scenario import Scenario
-from cistar_dev.scenarios.loop.gen import CircleGenerator
 
 
 class LoopScenario(Scenario):
-    def __init__(self, name, type_params, net_params, cfg_params=None,
-                 initial_config=None, cfg=None):
+    def __init__(self, name, generator_class, type_params, net_params, cfg_params=None,
+                 initial_config=None):
         """
         Initializes a loop scenario. Required net_params: length, lanes,
         speed_limit, resolution. Required initial_config: positions.
@@ -29,9 +26,8 @@ class LoopScenario(Scenario):
             raise ValueError("resolution of circle not supplied")
         self.resolution = net_params["resolution"]
 
-        super().__init__(name, type_params, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config, cfg=cfg,
-                         generator_class=CircleGenerator)
+        super().__init__(name, generator_class, type_params, net_params, cfg_params=cfg_params,
+                         initial_config=initial_config)
 
     def specify_edge_starts(self):
         """

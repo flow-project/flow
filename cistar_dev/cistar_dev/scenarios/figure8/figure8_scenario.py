@@ -1,12 +1,11 @@
 import numpy as np
 
 from cistar_dev.core.scenario import Scenario
-from cistar_dev.scenarios.figure8.gen import Figure8Generator
 
 
 class Figure8Scenario(Scenario):
-    def __init__(self, name, type_params, net_params, cfg_params=None,
-                 initial_config=None, cfg=None):
+    def __init__(self, name, generator_class, type_params, net_params, cfg_params=None,
+                 initial_config=None):
         """
         Initializes a figure 8 scenario. Required net_params: radius_ring, lanes,
         speed_limit, resolution. Required initial_config: positions.
@@ -40,9 +39,8 @@ class Figure8Scenario(Scenario):
             raise ValueError("resolution of circular sections not supplied")
         self.resolution = net_params["resolution"]
 
-        super().__init__(name, type_params, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config, cfg=cfg,
-                         generator_class=Figure8Generator)
+        super().__init__(name, generator_class, type_params, net_params, cfg_params=cfg_params,
+                         initial_config=initial_config)
 
     def specify_edge_starts(self):
         """
