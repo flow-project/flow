@@ -20,9 +20,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.policies.multi_mlp_policy import MultiMLPPolicy
 from sandbox.rocky.neural_learner.sample_processors.multi_sample_processor import MultiSampleProcessor
 
-
-# from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.loop.gen import CircleGenerator
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
@@ -36,11 +34,11 @@ def run_task(v):
     import cistar_dev.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = {"time_step": 0.1, "rl_sm": "no_collide", "human_sm": "no_collide"}
+    sumo_params = {"time_step": 0.1, "rl_sm": "aggressive", "human_sm": "no_collide"}
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 15, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
-                "num_steps": 3, "shared_policy": 0}
+                "num_steps": 500, "shared_policy": 0}
 
     net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}
@@ -52,14 +50,14 @@ def run_task(v):
     type_params = [("rl", 2, (RLController, {}), (StaticLaneChanger, {}), 0),
                    ("idm", 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = LoopScenario(exp_tag, CircleGenerator, type_params, net_params,
+                            cfg_params, initial_config=initial_config)
 
-    from cistar_dev import pass_params
     env_name = "SimpleMultiAgentAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                 cfg_params, initial_config, scenario)
 
-    main_env = GymEnv(env_name, record_video=False, register_params = pass_params)
+    main_env = GymEnv(env_name, record_video=False, register_params = pass_params, force_reset=True)
     horizon = main_env.horizon
     # replace raw envs with wrapped shadow envs
     main_env._shadow_envs = [ProxyEnv(normalize(env)) for env in main_env.shadow_envs]
@@ -80,9 +78,9 @@ def run_task(v):
         env=main_env,
         policy=policy,
         baselines=baselines,
-        batch_size=3,
+        batch_size=1000,
         max_path_length=horizon,
-        n_itr=1,
+        n_itr=2,
         #discount=0.99,
         step_size=v["step_size"],
         # Uncomment both lines (this and the plot parameter below) to enable plotting

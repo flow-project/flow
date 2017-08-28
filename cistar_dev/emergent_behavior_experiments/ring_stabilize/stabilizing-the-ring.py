@@ -34,17 +34,17 @@ def run_task(v):
     sumo_params = {"time_step": 0.1,
                    "starting_position_shuffle": False, "vehicle_arrangement_shuffle": False, "bunching_range": [0, 100],
                    "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "aggressive", "human_sm": "aggressive"}
-    sumo_binary = "sumo-gui"
+    sumo_binary = "sumo"
 
-    env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None", "num_steps": 1500,
-                  "observation_pos_std": 0, "observation_vel_std": 0, "human_acc_std": 0, "rl_acc_std": 0}
+    env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None", "num_steps": 500,
+                  "observation_pos_std": 0.001, "observation_vel_std": 0.001, "human_acc_std": 0.001, "rl_acc_std": 0.001}
 
     net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}
 
     cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-    initial_config = {"shuffle": False, "spacing": "gaussian-additive"}
+    initial_config = {"shuffle": False, "spacing": "gaussian_additive"}
 
     num_cars = 22
 
@@ -52,7 +52,7 @@ def run_task(v):
                    ("idm", num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
     scenario = LoopScenario(exp_tag, CircleGenerator, type_params, net_params,
-                            cfg_params, initial_config=initial_config)
+                            cfg_params=cfg_params, initial_config=initial_config)
 
     env_name = "SimpleAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
@@ -73,9 +73,9 @@ def run_task(v):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=15000,
+        batch_size=1500,
         max_path_length=horizon,
-        n_itr=300,
+        n_itr=2,
         # whole_paths=True,
         discount=0.999,
         # step_size=v["step_size"],
@@ -96,6 +96,6 @@ for seed in [5]:  # , 20, 68]:
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+        # python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )
