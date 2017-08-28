@@ -25,7 +25,9 @@ initial_config = {"shuffle":False, "bunching":40, "spacing":"gaussian"}
 scenario = LoopScenario("sugiyama-unstable-ovm", type_params, net_params, cfg_params, initial_config)
 ##data path needs to be relative to cfg location
 
-exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 

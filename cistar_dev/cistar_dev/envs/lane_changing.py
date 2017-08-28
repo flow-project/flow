@@ -60,8 +60,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         target_velocity = self.env_params["target_velocity"]
 
         # compute the system-level performance of vehicles from a velocity perspective
-        reward = rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
+        reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
         # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
         for veh_id in self.rl_ids:
@@ -177,8 +176,7 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
         See parent class
         """
         # compute the system-level performance of vehicles from a velocity perspective
-        reward = rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
+        reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
         # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
         for veh_id in self.rl_ids:

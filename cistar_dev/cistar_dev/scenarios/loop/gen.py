@@ -1,9 +1,6 @@
-from cistar_dev.core.exp import Generator
+from cistar_dev.core.generator import Generator
 
 from numpy import pi, sin, cos, linspace
-from lxml import etree
-
-E = etree.Element
 
 
 class CircleGenerator(Generator):
@@ -77,7 +74,7 @@ class CircleGenerator(Generator):
 
         return types
 
-    def specify_routes(self):
+    def specify_routes(self, net_params):
         """
         See parent class
         """
@@ -89,7 +86,7 @@ class CircleGenerator(Generator):
         return rts
 
     # TODO: may be able to get rid of all together (replace with routing controller)
-    def specify_rerouters(self):
+    def specify_rerouters(self, net_params):
         """
         See parent class
         """

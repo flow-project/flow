@@ -2,7 +2,6 @@
 Base class for generating transportation networks.
 """
 
-from cistar_dev.controllers.base_controller import SumoController
 from cistar_dev.core.util import makexml
 from cistar_dev.core.util import printxml
 from cistar_dev.core.util import ensure_dir
@@ -17,6 +16,7 @@ from rllab.core.serializable import Serializable
 
 E = etree.Element
 
+
 class Generator(Serializable):
     CFG_PATH = "./"
     NET_PATH = "./"
@@ -24,6 +24,7 @@ class Generator(Serializable):
     def __init__(self, net_params, net_path, cfg_path, base):
         Serializable.quick_init(self, locals())
 
+        self.net_params = net_params
         self.net_path = net_path
         self.cfg_path = cfg_path
         self.base = base
@@ -126,7 +127,7 @@ class Generator(Serializable):
 
         return self.net_path + netfn
 
-    def generate_cfg(self, params):
+    def generate_cfg(self, net_params, cfg_params):
         """
         Generates .sumo.cfg files using net files and netconvert.
         Requires:
@@ -138,13 +139,13 @@ class Generator(Serializable):
         start_time: time to start the simulation
         end_time: time to end the simulation
         """
-        if "start_time" not in params:
+        if "start_time" not in cfg_params:
             raise ValueError("start_time not supplied")
         else:
-            start_time = params["start_time"]
+            start_time = cfg_params["start_time"]
 
-        if "end_time" in params:
-            end_time = params["end_time"]
+        if "end_time" in cfg_params:
+            end_time = cfg_params["end_time"]
         else:
             end_time = None
 
@@ -154,7 +155,7 @@ class Generator(Serializable):
         guifn = "%s.gui.cfg" % self.name
 
         # specify routes vehicles can take
-        self.rts = self.specify_routes()
+        self.rts = self.specify_routes(net_params)
 
         # TODO: add functionality for multiple routes (do it for Braess)
         add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
@@ -162,7 +163,7 @@ class Generator(Serializable):
             add.append(E("route", id="route%s" % edge, edges=" ".join(route)))
 
         # specify (optional) rerouting actions
-        rerouting = self.specify_rerouters()
+        rerouting = self.specify_rerouters(net_params)
 
         if rerouting is not None:
             for rerouting_params in rerouting:
@@ -303,18 +304,25 @@ class Generator(Serializable):
         """
         return None
 
-    def specify_routes(self):
+    def specify_routes(self, net_params):
         """
         Specifies the routes vehicles can take starting from a specific node
 
+        :param net_params: network parameters provided during task initialization
         :return: a route dict, with the key being the name of the starting edge, and the routes
                  being the edges a vehicle must traverse, starting from the current edge.
         """
         raise NotImplementedError
 
-    def specify_rerouters(self):
+    def specify_rerouters(self, net_params):
         """
         Specifies rerouting actions vehicles should perform once reaching a specific edge.
+
+        :param net_params: network parameters provided during task initialization
+        :return: A list of rerouting attributes (a separate dict for each rerouter), with each dict containing:
+                 - name {string} -- name of the rerouter
+                 - from {string} -- the edge in which rerouting takes place
+                 - route {string} -- name of the route the vehicle is rerouted into
         """
         return None
 

@@ -9,7 +9,7 @@ import pdb
 
 
 # TODO: create local version (for moving bottleneck, ...)
-def desired_velocity(vehicles, target_velocity, fail=False):
+def desired_velocity(env, fail=False):
     """
     A reward function used to encourage high system-level velocity.
 
@@ -21,20 +21,20 @@ def desired_velocity(vehicles, target_velocity, fail=False):
     deviation from the desired velocity. Additionally, since the velocity of vehicles are unbounded above, the
     reward is bounded below by zero, to ensure nonnegativity.
 
-    :param vehicles {dict} - contains the state of all vehicles in the network (generally self.vehicles)
-    :param target_velocity {float} - desired system-wide velocity
+    :param env {SumoEnvironment type} - the environment variable, which contains information on the current
+           state of the system.
     :param fail {bool} - specifies if any crash or other failure occurred in the system
     """
-    vel = np.array([vehicles[veh_id]["speed"] for veh_id in vehicles.keys()])
+    vel = np.array([env.vehicles[veh_id]["speed"] for veh_id in env.vehicles.keys()])
     num_vehicles = len(vel)
 
     if any(vel < -100) or fail:
         return 0.
 
-    max_cost = np.array([target_velocity] * num_vehicles)
+    max_cost = np.array([env.env_params["target_velocity"]] * num_vehicles)
     max_cost = np.linalg.norm(max_cost)
 
-    cost = vel - target_velocity
+    cost = vel - env.env_params["target_velocity"]
     cost = np.linalg.norm(cost)
 
     return max(max_cost - cost, 0)

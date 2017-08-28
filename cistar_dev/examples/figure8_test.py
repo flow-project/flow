@@ -22,11 +22,10 @@ Variables:
 import logging
 from cistar_dev.core.exp import SumoExperiment
 from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.figure8.gen import Figure8Generator
 from cistar_dev.scenarios.figure8.figure8_scenario import Figure8Scenario
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.car_following_models import *
 from cistar_dev.controllers.lane_change_controllers import *
-from cistar_dev.controllers.rlcontroller import RLController
 
 logging.basicConfig(level=logging.INFO)
 
@@ -45,9 +44,11 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 # initial_config = {"shuffle": False, "bunching": 200}
 
-scenario = Figure8Scenario("figure8", type_params, net_params, cfg_params)
+scenario = Figure8Scenario("figure8", Figure8Generator, type_params, net_params, cfg_params)
 
-exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 

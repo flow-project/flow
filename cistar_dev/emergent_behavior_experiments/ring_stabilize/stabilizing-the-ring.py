@@ -18,6 +18,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 # from cistar_dev.core.exp import SumoExperiment
 # from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment, SimplePartiallyObservableEnvironment
+from cistar_dev.scenarios.loop.gen import CircleGenerator
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
@@ -31,7 +32,7 @@ def run_task(v):
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = {"time_step": 0.1,
-                   "starting_position_shuffle": True, "vehicle_arrangement_shuffle": True, "bunching_range": [0, 100],
+                   "starting_position_shuffle": False, "vehicle_arrangement_shuffle": False, "bunching_range": [0, 100],
                    "rl_lc": "aggressive", "human_lc": "aggressive", "rl_sm": "aggressive", "human_sm": "aggressive"}
     sumo_binary = "sumo-gui"
 
@@ -43,17 +44,15 @@ def run_task(v):
 
     cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/rl/cfg/"}
 
-    initial_config = {"shuffle": False, "spacing": "gaussian", "downscale": 10}
+    initial_config = {"shuffle": False, "spacing": "gaussian-additive"}
 
     num_cars = 22
 
     type_params = [("rl", 1, (RLController, {}), (StaticLaneChanger, {}), 0),
                    ("idm", num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-    # type_params = {"rl": (1, (RLController, {}), (StaticLaneChanger, {}), 0),
-    #                "idm": (num_cars - 1, (IDMController, {}), (StaticLaneChanger, {}), 0)}
-
-    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = LoopScenario(exp_tag, CircleGenerator, type_params, net_params,
+                            cfg_params, initial_config=initial_config)
 
     env_name = "SimpleAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
@@ -74,11 +73,11 @@ def run_task(v):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=30000,
+        batch_size=15000,
         max_path_length=horizon,
-        n_itr=500,
+        n_itr=300,
         # whole_paths=True,
-        # discount=0.999,
+        discount=0.999,
         # step_size=v["step_size"],
     )
     algo.train(),

@@ -185,7 +185,7 @@ class LoopMergesGenerator(Generator):
 
         return types
 
-    def specify_routes(self):
+    def specify_routes(self, net_params):
         """
         See parent class
         """

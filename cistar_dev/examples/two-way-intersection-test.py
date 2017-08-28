@@ -8,6 +8,7 @@ continue to move straight until they exit through the top and right nodes, respe
 from cistar_dev.core.exp import SumoExperiment
 from cistar_dev.envs.two_intersection import TwoIntersectionEnvironment
 from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.intersections.gen import TwoWayIntersectionGenerator
 from cistar_dev.scenarios.intersections.intersection_scenario import *
 from cistar_dev.controllers.car_following_models import *
 from cistar_dev.controllers.lane_change_controllers import *
@@ -36,9 +37,12 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 initial_config = {"spacing": "custom", "intensity": intensity, "enter_speed": v_enter}
 
-scenario = TwoWayIntersectionScenario("figure8", type_params, net_params, cfg_params, initial_config=initial_config)
+scenario = TwoWayIntersectionScenario("two-way-intersection", TwoWayIntersectionGenerator,
+                                      type_params, net_params, cfg_params, initial_config=initial_config)
 
-exp = SumoExperiment(TwoIntersectionEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = TwoIntersectionEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 

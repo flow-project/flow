@@ -7,6 +7,7 @@ from cistar_dev.core.exp import SumoExperiment
 from cistar_dev.controllers.car_following_models import *
 from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.envs.loop_merges import SimpleLoopMergesEnvironment
+from cistar_dev.scenarios.loop_merges.gen import LoopMergesGenerator
 from cistar_dev.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 
 from numpy import pi
@@ -30,9 +31,12 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 
 initial_config = {"merge_bunching": 250}
 
-scenario = LoopMergesScenario("loop-merges", type_params, net_params, cfg_params, initial_config=initial_config)
+scenario = LoopMergesScenario("loop-merges", LoopMergesGenerator, type_params, net_params,
+                              cfg_params, initial_config=initial_config)
 
-exp = SumoExperiment(SimpleLoopMergesEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = SimpleLoopMergesEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 

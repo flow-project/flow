@@ -31,7 +31,9 @@ cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 
 scenario = BraessParadoxScenario("braess-paradox", type_params, net_params, cfg_params)
 
-exp = SumoExperiment(BraessParadoxEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = BraessParadoxEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 

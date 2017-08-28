@@ -28,7 +28,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
 from cistar_dev.controllers.lane_change_controllers import *
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.loop.gen import CircleGenerator
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.DEBUG)
@@ -53,7 +53,8 @@ def run_task(*_):
 
     initial_config = {"shuffle": False}
 
-    scenario = LoopScenario("rl-test", type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = LoopScenario("rl-test", CircleGenerator, type_params, net_params, cfg_params,
+                            initial_config=initial_config)
 
     from cistar_dev import pass_params
     env_name = "SimpleAccelerationEnvironment"

@@ -20,7 +20,8 @@ sumo_binary = "sumo-gui"
 
 type_params = {"ovm": (22, (OVMController, {'v_max': 15}), (StaticLaneChanger, {}), 0)}
 
-env_params = {"target_velocity": 25, "perturbations": [(500, 150), (1000, 150), (1500, 150)],  "max-deacc":-5, "max-acc":5, 'fail-safe':'instantaneous'}
+env_params = {"target_velocity": 25, "perturbations": [(500, 150), (1000, 150), (1500, 150)],
+              "max-deacc": -5, "max-acc": 5, 'fail-safe': 'instantaneous'}
 
 net_params = {"length": 230, "lanes": 1, "speed_limit":35, "resolution": 40, "net_path":"debug/net/"}
 
@@ -34,7 +35,9 @@ scenario = LoopScenario(scenario_name, type_params, net_params, cfg_params, init
 
 leah_sumo_params = {"port": 8873}
 
-exp = SumoExperiment(PerturbationAccelerationLoop, env_params, sumo_binary, sumo_params, scenario)
+env = PerturbationAccelerationLoop(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 

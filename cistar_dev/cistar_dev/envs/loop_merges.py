@@ -49,8 +49,7 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         """
         See parent class
         """
-        return rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
+        return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
         """

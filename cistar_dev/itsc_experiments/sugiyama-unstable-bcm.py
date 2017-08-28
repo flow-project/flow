@@ -26,11 +26,12 @@ scenario = LoopScenario("sugiyama-unstable-bcm", type_params, net_params, cfg_pa
 ##data path needs to be relative to cfg location
 leah_sumo_params = {"port": 8873}
 
-exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+
+exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 
 exp.run(1, 10000)
 
 exp.env.terminate()
-

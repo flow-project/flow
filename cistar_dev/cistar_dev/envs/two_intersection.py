@@ -81,8 +81,7 @@ class TwoIntersectionEnvironment(SumoEnvironment):
         """
         See parent class
         """
-        return rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params["target_velocity"], fail=kwargs["fail"])
+        return rewards.desired_velocity(self, fail=kwargs["fail"])
         # return rewards.min_delay(state, rl_actions, target_velocity=self.env_params["target_velocity"],
         #     time_step=self.sumo_params["time_step"], fail=kwargs["fail"])
 

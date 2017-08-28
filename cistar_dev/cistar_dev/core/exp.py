@@ -8,7 +8,7 @@ Acts as a runner for a scenario and environment.
 """
 class SumoExperiment():
 
-    def __init__(self, env_class, env_params, sumo_binary, sumo_params, scenario):
+    def __init__(self, env, scenario):
 
         # TODO: NEEDS TO BE UPDATED
         """
@@ -33,16 +33,13 @@ class SumoExperiment():
         """
         self.name = scenario.name
         self.num_vehicles = scenario.num_vehicles
-        self.env_params = env_params
+        self.env = env
         self.type_params = scenario.type_params
         self.cfg = scenario.cfg
 
         logging.info(" Starting experiment" + str(self.name) + " at " + str(datetime.datetime.utcnow()))
 
         logging.info("initializing environment.")
-
-        self.env = env_class(self.env_params, sumo_binary, sumo_params,
-                             scenario)
 
     def getCfg(self):
         return self.cfg

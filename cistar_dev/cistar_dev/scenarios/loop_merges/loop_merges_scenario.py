@@ -1,12 +1,13 @@
 import numpy as np
+from numpy import pi
 
 from cistar_dev.core.scenario import Scenario
-from cistar_dev.scenarios.loop_merges.gen import *
 
 
 class LoopMergesScenario(Scenario):
 
-    def __init__(self, name, type_params, net_params, cfg_params=None, initial_config=None, cfg=None):
+    def __init__(self, name, generator_class, type_params, net_params, cfg_params=None,
+                 initial_config=None):
         """
         Initializes a two-way intersection scenario. Required net_params: horizontal_length_before,
         horizontal_length_after, horizontal_lanes, vertical_length_before, vertical_length_after, vertical_lanes,
@@ -23,8 +24,6 @@ class LoopMergesScenario(Scenario):
         # the vehicles that start in the merging lane are distinguished by the presence of the string "merge"
         # in their names
         self.num_merge_vehicles = sum([x[1] for x in type_params if "merge" in x[0]])
-        print(self.num_merge_vehicles)
-
 
         # TODO: find a good way of calculating these
         self.ring_0_0_len = 1.1 + 4 * net_params["lanes"]
@@ -52,9 +51,8 @@ class LoopMergesScenario(Scenario):
             raise ValueError("resolution of circle not supplied")
         self.resolution = net_params["resolution"]
 
-        super().__init__(name, type_params, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config, cfg=cfg,
-                         generator_class=LoopMergesGenerator)
+        super().__init__(name, generator_class, type_params, net_params, cfg_params=cfg_params,
+                         initial_config=initial_config)
 
     def specify_edge_starts(self):
         """
