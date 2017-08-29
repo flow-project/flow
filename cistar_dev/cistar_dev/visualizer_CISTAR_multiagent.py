@@ -9,6 +9,9 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.scenarios.figure8.figure8_scenario import Figure8Scenario
+from cistar_dev.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
+from cistar_dev.scenarios.loop.gen import CircleGenerator
+
 
 
 import plotly.offline as po
@@ -70,7 +73,8 @@ if __name__ == "__main__":
             scenario = Figure8Scenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
         elif args.scenario_type == 'loop':
             net_params["length"] = args.loop_length
-            scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+            scenario = LoopScenario(exp_tag, CircleGenerator,
+                                    type_params, net_params, cfg_params, initial_config=initial_config)
         elif args.scenario_type == 'intersection':
             scenario = TwoWayIntersectionScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
         unwrapped_env.scenario = scenario

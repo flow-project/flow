@@ -58,7 +58,7 @@ def run_task(v):
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                 cfg_params, initial_config, scenario)
 
-    env = GymEnv(env_name, record_video=False, register_params=pass_params)
+    env = GymEnv(env_name, record_video=False, register_params=pass_params, force_reset=True)
     horizon = env.horizon
     env = normalize(env)
 

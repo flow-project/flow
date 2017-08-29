@@ -5,6 +5,9 @@ Cars enter from the bottom and left nodes following a probability distribution, 
 continue to move straight until they exit through the top and right nodes, respectively.
 """
 
+
+import logging
+
 from cistar_dev.envs.two_intersection import TwoIntersectionEnvironment
 from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar_dev.scenarios.intersections.intersection_scenario import *
@@ -61,10 +64,10 @@ def run_task(v):
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                    cfg_params, initial_config, scenario)
 
-    main_env = GymEnv(env_name, record_video=False, register_params = pass_params)
+    main_env = GymEnv(env_name, record_video=False, register_params = pass_params, force_reset=True)
     horizon = main_env.horizon
     # replace raw envs with wrapped shadow envs
-    main_env._shadow_envs = [Proxy(normalize(env)) for env in main_env.shadow_envs]
+    main_env._shadow_envs = [ProxyEnv(normalize(env)) for env in main_env.shadow_envs]
     sub_policies = [GaussianMLPPolicy(
         env_spec=env.spec,
         # The neural network policy should have two hidden layers, each with 32 hidden units.
