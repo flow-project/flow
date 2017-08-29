@@ -5,13 +5,10 @@ Cars enter from the bottom and left nodes following a probability distribution, 
 continue to move straight until they exit through the top and right nodes, respectively.
 """
 
-from cistar_dev.envs.intersection import SimpleIntersectionEnvironment
-from cistar_dev.envs.two_intersection import TwoIntersectionEnvironment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+import logging
 from cistar_dev.scenarios.intersections.intersection_scenario import *
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.controllers.rlcontroller import RLController
+from cistar_dev.scenarios.intersections.gen import TwoWayIntersectionGenerator
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import stub, run_experiment_lite
@@ -52,7 +49,8 @@ def run_task(v):
 
     initial_config = {"spacing": "custom", "intensity": intensity, "enter_speed": v_enter}
 
-    scenario = TwoWayIntersectionScenario("figure8", type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = TwoWayIntersectionScenario("figure8", TwoWayIntersectionGenerator, type_params,
+                                          net_params, cfg_params=cfg_params, initial_config=initial_config)
 
     env_name = "TwoIntersectionEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
@@ -97,7 +95,7 @@ for step_size in [0.01]:
             mode="local",
             exp_prefix='test-test',
             variant=dict(step_size=step_size, seed=seed),
-            python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+            # python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
             # plot=True,
         )
 

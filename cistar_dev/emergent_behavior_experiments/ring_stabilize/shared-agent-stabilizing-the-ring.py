@@ -20,8 +20,7 @@ from sandbox.rocky.neural_learner.sample_processors.shared_sample_processor impo
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 
-# from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar_dev.scenarios.loop.gen import CircleGenerator
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
@@ -36,7 +35,7 @@ def run_task(*_):
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 15, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
-                  "num_steps": 4, "shared_policy": 1}
+                  "num_steps": 500, "shared_policy": 1}
 
     net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}
@@ -48,14 +47,14 @@ def run_task(*_):
     type_params = [("rl", 2, (RLController, {}), (StaticLaneChanger, {}), 0),
                    ("idm", 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+    scenario = LoopScenario(exp_tag, CircleGenerator, type_params, net_params,
+                            cfg_params=cfg_params, initial_config=initial_config)
 
-    from cistar_dev import pass_params
     env_name = "SimpleMultiAgentAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                    cfg_params, initial_config, scenario)
 
-    main_env = GymEnv(env_name, record_video=False, register_params = pass_params)
+    main_env = GymEnv(env_name, record_video=False, register_params = pass_params, force_reset=True)
     horizon = main_env.horizon
     # replace raw envs with wrapped shadow envs
     main_env._shadow_envs = [ProxyEnv(normalize(env)) for env in main_env.shadow_envs]
@@ -77,7 +76,7 @@ def run_task(*_):
         env=main_env,
         policy=policy,
         baseline=baseline,
-        batch_size=3,
+        batch_size=30000,
         max_path_length=horizon,
         n_itr=200,
         #discount=0.99,
@@ -85,23 +84,23 @@ def run_task(*_):
         # Uncomment both lines (this and the plot parameter below) to enable plotting
         # plot=True,
         sample_processor_cls=SharedSampleProcessor,
-        n_vectorized_envs=1,
+        # n_vectorized_envs=1,
     )
     algo.train()
 
 
 exp_tag = str(22) + "-car-stabilizing-the-ring-multiagent"
-for seed in [5]:
+for seed in [5, 10, 15]:
     run_experiment_lite(
         run_task, 
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
         #python_command="/home/aboudy/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,

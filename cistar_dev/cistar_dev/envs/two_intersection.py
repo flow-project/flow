@@ -49,6 +49,8 @@ class TwoIntersectionEnvironment(SumoEnvironment):
 
             # If we are outside the control region, just accelerate
             # up to the entering velocity
+            print("intersec dist:{0}, abs pos: {1}".format(self.get_distance_to_intersection(veh_id)[0],
+                                                           self.vehicles[veh_id]["absolute_position"]))
             if (self.get_distance_to_intersection(veh_id)[0] > 150 and 
                     (self.vehicles[veh_id]["edge"] == "bottom" or 
                     self.vehicles[veh_id]["edge"] == "left")):

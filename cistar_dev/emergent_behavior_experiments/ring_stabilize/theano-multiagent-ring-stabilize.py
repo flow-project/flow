@@ -38,7 +38,7 @@ def run_task(v):
     sumo_binary = "sumo"
 
     env_params = {"target_velocity": 15, "max-deacc": -6, "max-acc": 3, "fail-safe": "None",
-                "num_steps": 500, "shared_policy": 0}
+                "num_steps": 2, "shared_policy": 0}
 
     net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/net/"}
@@ -51,7 +51,7 @@ def run_task(v):
                    ("idm", 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
     scenario = LoopScenario(exp_tag, CircleGenerator, type_params, net_params,
-                            cfg_params, initial_config=initial_config)
+                            cfg_params=cfg_params, initial_config=initial_config)
 
     env_name = "SimpleMultiAgentAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
@@ -78,7 +78,7 @@ def run_task(v):
         env=main_env,
         policy=policy,
         baselines=baselines,
-        batch_size=1000,
+        batch_size=6,
         max_path_length=horizon,
         n_itr=2,
         #discount=0.99,
