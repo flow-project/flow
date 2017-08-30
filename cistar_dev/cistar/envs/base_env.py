@@ -1,3 +1,19 @@
+"""
+This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
+start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
+reset the simulation to an initial configuration.
+SumoEnv must be be Serializable to allow for pickling of the policy.
+This class cannot be used as is: you must extend it to implement an action applicator method, and
+properties to define the MDP if you choose to use it with RLLab.
+A reinforcement learning environment can be built using SumoEnvironment as a parent class by
+adding the following functions:
+ - action_space(self): specifies the action space of the rl vehicles
+ - observation_space(self): specifies the observation space of the rl vehicles
+ - apply_rl_action(self, rl_actions): Specifies the actions to be performed by rl_vehicles
+ - getState(self):
+ - compute_reward():
+"""
+
 import logging
 import subprocess
 import sys
@@ -16,30 +32,12 @@ from cistar.core.util import ensure_dir
 
 import collections
 
-"""
-This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
-start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
-reset the simulation to an initial configuration.
-SumoEnv must be be Serializable to allow for pickling of the policy.
-This class cannot be used as is: you must extend it to implement an action applicator method, and
-properties to define the MDP if you choose to use it with RLLab.
-A reinforcement learning environment can be built using SumoEnvironment as a parent class by
-adding the following functions:
- - action_space(self): specifies the action space of the rl vehicles
- - observation_space(self): specifies the observation space of the rl vehicles
- - apply_rl_action(self, rl_actions): Specifies the actions to be performed by rl_vehicles
- - get_state(self):
- - compute_reward():
-"""
-
 COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 255, 255, 0), (255, 0, 255, 0),
           (255, 255, 255, 0)]
 
 
 class SumoEnvironment(gym.Env, Serializable):
-    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
-        """ Base environment for all Sumo-based operations
-        
+    """ Base environment for all Sumo-based operations
         [description]
         Arguments:
             env_params {dictionary} -- [description]
@@ -48,10 +46,12 @@ class SumoEnvironment(gym.Env, Serializable):
                             "timestep": {float} default=0.01s, SUMO default=1.0s}
             scenario {Scenario} -- @see Scenario; abstraction of the SUMO XML files
                                     which specify the vehicles placed on the net
-        
+
         Raises:
             ValueError -- Raised if a SUMO port not provided
-        """
+    """
+
+    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
         Serializable.quick_init(self, locals())
 
         self.env_params = env_params
@@ -147,7 +147,6 @@ class SumoEnvironment(gym.Env, Serializable):
             sumo_call.append(self.emission_out)
 
         subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
-        # self.proc = subprocess.Popen(sumo_call, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # sys.stderr
 
         logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
 
