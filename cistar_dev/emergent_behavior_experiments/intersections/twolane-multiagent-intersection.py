@@ -5,6 +5,7 @@ Cars enter from the bottom and left nodes following a probability distribution, 
 continue to move straight until they exit through the top and right nodes, respectively.
 """
 
+<<<<<<< HEAD
 
 import logging
 
@@ -14,6 +15,14 @@ from cistar_dev.scenarios.intersections.intersection_scenario import *
 from cistar_dev.controllers.car_following_models import *
 from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.controllers.rlcontroller import RLController
+=======
+from cistar.envs.two_intersection import TwoIntersectionEnvironment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.intersections.intersection_scenario import *
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.rlcontroller import RLController
+>>>>>>> removed some unfinished project i.e. braess & started transition from dictionaries to classes
 
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.envs.normalized_env import normalize
@@ -29,7 +38,7 @@ from sandbox.rocky.neural_learner.sample_processors.multi_sample_processor impor
 import pdb
 
 def run_task(v):
-    import cistar_dev.envs as cistar_envs
+    import cistar.envs as cistar_envs
 
     logging.basicConfig(level=logging.INFO)
 

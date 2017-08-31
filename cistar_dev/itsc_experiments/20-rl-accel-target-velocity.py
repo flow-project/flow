@@ -6,11 +6,11 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-# from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.rlcontroller import RLController
-from cistar_dev.controllers.lane_change_controllers import *
+# from cistar.core.exp import SumoExperiment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.rlcontroller import RLController
+from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 

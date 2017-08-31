@@ -16,6 +16,7 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
+<<<<<<< HEAD
 # from cistar_dev.core.exp import SumoExperiment
 # from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment, SimplePartiallyObservableEnvironment
 from cistar_dev.scenarios.loop.gen import CircleGenerator
@@ -23,12 +24,20 @@ from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.controllers.car_following_models import *
+=======
+# from cistar.core.exp import SumoExperiment
+# from cistar.envs.loop_accel import SimpleAccelerationEnvironment, SimplePartiallyObservableEnvironment
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.rlcontroller import RLController
+from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.car_following_models import *
+>>>>>>> removed some unfinished project i.e. braess & started transition from dictionaries to classes
 from rllab.envs.gym_env import GymEnv
 import sys
 
 
 def run_task(v):
-    import cistar_dev.envs as cistar_envs
+    import cistar.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = {"time_step": 0.1,

@@ -22,17 +22,31 @@ from sandbox.rocky.tf.policies.multi_mlp_policy import MultiMLPPolicy
 from sandbox.rocky.neural_learner.sample_processors.multi_sample_processor import MultiSampleProcessor
 
 
+<<<<<<< HEAD
 from cistar_dev.scenarios.loop.gen import CircleGenerator
 from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
 from cistar_dev.controllers.rlcontroller import RLController
 from cistar_dev.controllers.lane_change_controllers import *
 from cistar_dev.controllers.car_following_models import *
+=======
+# from cistar.core.exp import SumoExperiment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.rlcontroller import RLController
+from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.car_following_models import *
+>>>>>>> removed some unfinished project i.e. braess & started transition from dictionaries to classes
 from rllab.envs.gym_env import GymEnv
 import sys
 
 def run_task(v):
+<<<<<<< HEAD
     import cistar_dev.envs as cistar_envs
     # logging.basicConfig(level=logging.INFO)
+=======
+    import cistar.envs as cistar_envs
+    logging.basicConfig(level=logging.INFO)
+>>>>>>> removed some unfinished project i.e. braess & started transition from dictionaries to classes
 
     sumo_params = {"time_step": 0.1, "rl_sm": "aggressive", "human_sm": "no_collide"}
     sumo_binary = "sumo"
@@ -50,8 +64,14 @@ def run_task(v):
     type_params = [("rl", 2, (RLController, {}), (StaticLaneChanger, {}), 0),
                    ("idm", 1, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
+<<<<<<< HEAD
     scenario = LoopScenario(exp_tag, CircleGenerator, type_params, net_params,
                             cfg_params, initial_config=initial_config)
+=======
+    scenario = LoopScenario(exp_tag, type_params, net_params, cfg_params, initial_config=initial_config)
+
+    from cistar import pass_params
+>>>>>>> removed some unfinished project i.e. braess & started transition from dictionaries to classes
     env_name = "SimpleMultiAgentAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                    cfg_params, initial_config, scenario)

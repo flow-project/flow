@@ -7,22 +7,25 @@ their most recent observations.
 """
 
 import logging
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
-from cistar_dev.envs.braess_paradox import BraessParadoxEnvironment
-from cistar_dev.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
-
+from cistar.core.experiment import SumoExperiment
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+from cistar.envs.braess_paradox import BraessParadoxEnvironment
+from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
+from cistar.core.params import SumoParams
+from cistar.core.params import EnvParams
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": "no_collide", "human_lc": "no_lat_collide"}
+sumo_params = SumoParams()
 
 sumo_binary = "sumo-gui"
 
 type_params = [("idm", 40, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-env_params = {"max-deacc": -6, "max-acc": 3, "close_CD": False}
+additional_params = {"max-deacc": -6, "max-acc": 3, "close_CD": False}
+
+env_params = EnvParams(additional_params=additional_params)
 
 net_params = {"edge_length": 130, "angle": np.pi/10, "resolution": 40, "lanes": 1,
               "AC_DB_speed_limit": 100, "AD_CB_speed_limit": 10, "net_path": "debug/net/"}
