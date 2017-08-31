@@ -2,10 +2,7 @@
 This script contains of series of reward functions that can be used to train autonomous vehicles
 """
 
-from cistar_dev.controllers.rlcontroller import RLController
-
 import numpy as np
-import pdb
 
 
 # TODO: create local version (for moving bottleneck, ...)

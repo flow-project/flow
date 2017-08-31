@@ -1,7 +1,5 @@
-
 from cistar.controllers.base_controller import BaseController
 from cistar.controllers.base_lane_changing_controller import BaseLaneChangingController
-
 
 class RLController(BaseController):
     """ Base RL Controller (assumes acceleration by Default)

@@ -1,6 +1,5 @@
 import numpy as np
 import random
-import traci
 
 class StaticLaneChanger:
     # Equivalent to never_change_lanes_controller

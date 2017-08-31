@@ -2,29 +2,19 @@ import logging
 import subprocess
 import sys
 from copy import deepcopy
-import random
-
-import numpy as np
 
 import traci
 from traci import constants as tc
-import sumolib
 from rllab.core.serializable import Serializable
-from rllab.envs.base import Env
 from rllab.envs.base import Step
 import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
 
 from cistar.controllers.base_controller import *
 from cistar.controllers.car_following_models import *
 from cistar.controllers.rlcontroller import RLController
 from cistar.core.util import ensure_dir
 
-import pdb
 import collections
-import time
-import pickle
 
 """
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can

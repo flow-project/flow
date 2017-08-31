@@ -10,8 +10,6 @@ Two types of controllers are provided:
 
 import numpy as np
 import collections
-import pdb
-
 
 class BaseController:
     """ Base class for cistar-controlled acceleration behavior.

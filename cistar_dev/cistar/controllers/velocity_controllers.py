@@ -1,7 +1,5 @@
 from cistar.controllers.base_controller import BaseController
 import numpy as np
-import pdb
-
 
 class ConstantVelocityController(BaseController):
     """Base velocity controller (assumes acceleration by Default)

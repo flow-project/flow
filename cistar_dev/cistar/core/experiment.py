@@ -1,8 +1,6 @@
 import logging
 import datetime
 
-from cistar.core.generator import Generator
-
 """
 Acts as a runner for a scenario and environment.
 """

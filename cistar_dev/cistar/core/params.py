@@ -1,5 +1,4 @@
 import sumolib
-from cistar.core.util import ensure_dir
 
 class SumoParams():
     def __init__(self, port=None, time_step=0.1, vehicle_arrangement_shuffle=False, starting_position_shuffle=False,

@@ -3,7 +3,6 @@ import math
 from cistar.controllers.base_controller import BaseController
 import collections
 import numpy as np
-import pdb
 
 """Contains a bunch of car-following control models for cistar.
 Controllers can have their output delayed by some duration.
