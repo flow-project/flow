@@ -68,29 +68,22 @@ class TwoLoopsOneMergingScenario(Scenario):
         Vehicles with the prefix "merge" are placed in the merge ring,
         while all other vehicles are placed in the ring.
         """
-        x0 = 1
-        if "x0" in self.initial_config:
-            x0 = initial_config["x0"]
+        x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
         if "x0" in kwargs:
             x0 = kwargs["x0"]
 
-        bunching = 0
-        if "bunching" in initial_config:
-            bunching = initial_config["bunching"]
+        bunching = initial_config.bunching
         # changes to bunching in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
         if "bunching" in kwargs:
             bunching = kwargs["bunching"]
 
-        lanes_distribution = 1
-        if "lanes_distribution" in initial_config:
-            lanes_distribution = initial_config["lanes_distribution"]
-
         merge_bunching = 0
-        if "merge_bunching" in initial_config:
-            merge_bunching = initial_config["merge_bunching"]
+        if initial_config.additional_params is not None:
+            if "merge_bunching" in initial_config.additional_params:
+                merge_bunching = initial_config.additional_params["merge_bunching"]
 
         num_vehicles = self.vehicles.num_vehicles
         num_merge_vehicles = sum(["merge" in self.vehicles.get_state(veh_id, "type")
@@ -102,9 +95,9 @@ class TwoLoopsOneMergingScenario(Scenario):
         startpositions = []
         startlanes = []
         length_loop = 2 * pi * radius
-        increment_loop = (length_loop - bunching) * lanes_distribution / (num_vehicles - num_merge_vehicles)
+        increment_loop = (length_loop - bunching) * initial_config.lanes_distribution / (num_vehicles - num_merge_vehicles)
 
-        x = [x0] * lanes_distribution
+        x = [x0] * initial_config.lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < num_vehicles - num_merge_vehicles:
@@ -130,13 +123,13 @@ class TwoLoopsOneMergingScenario(Scenario):
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be
             # distributed on in the network, reset
-            if lane_count >= lanes_distribution:
+            if lane_count >= initial_config.lanes_distribution:
                 lane_count = 0
 
         length_merge = 2 * (pi - angle_large) * (1.5 * radius)
-        increment_merge = (length_merge - merge_bunching) * lanes_distribution / num_merge_vehicles
+        increment_merge = (length_merge - merge_bunching) * initial_config.lanes_distribution / num_merge_vehicles
 
-        x = [dict(self.edgestarts)["right_bottom"]] * lanes_distribution
+        x = [dict(self.edgestarts)["right_bottom"]] * initial_config.lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < num_merge_vehicles:
@@ -162,7 +155,7 @@ class TwoLoopsOneMergingScenario(Scenario):
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be
             # distributed on in the network, reset
-            if lane_count >= lanes_distribution:
+            if lane_count >= initial_config.lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes

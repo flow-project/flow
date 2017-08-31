@@ -27,7 +27,7 @@ from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.car_following_models import *
 from cistar.controllers.velocity_controllers import *
 from cistar.controllers.lane_change_controllers import *
-from cistar.core.params import SumoParams, EnvParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 from cistar.controllers.routing_controllers import *
 from cistar.core.vehicles import Vehicles
 
@@ -48,7 +48,7 @@ net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40, "n
 
 cfg_params = {"start_time": 0, "end_time": 50000, "cfg_path": "dan-work/cfg/"}
 
-initial_config = {"shuffle": False, "bunching": 20}
+initial_config = InitialConfig(bunching=20)
 
 scenario = LoopScenario("test-exp", CircleGenerator, vehicles, net_params, cfg_params, initial_config)
 

@@ -29,7 +29,7 @@ from rllab.envs.gym_env import GymEnv
 
 from cistar.core.vehicles import Vehicles
 from cistar.core import config as cistar_config
-from cistar.core.params import SumoParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.lane_change_controllers import *
@@ -52,14 +52,14 @@ def run_task(*_):
     vehicles = Vehicles()
     vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
 
-    env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "num_steps": 1000}
+    env_params = EnvParams(additional_params={"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "num_steps": 1000})
 
     net_params = {"length": 220, "lanes": 1, "speed_limit": 30, "resolution": 40,
                   "net_path": "debug/rl/net/"}
 
     cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
-    initial_config = {"shuffle": False}
+    initial_config = InitialConfig()
 
     scenario = LoopScenario("rl-test", CircleGenerator, vehicles, net_params, cfg_params,
                             initial_config=initial_config)

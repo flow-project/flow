@@ -27,7 +27,7 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.params import SumoParams, EnvParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 from cistar.core.vehicles import Vehicles
 from cistar.core import config as cistar_config
 
@@ -47,9 +47,9 @@ def run_task(*_):
     auton_cars = 4
     human_cars = tot_cars - auton_cars
 
-    sumo_params = SumoParams(time_step=0.1, human_speed_mode=1, rl_speed_mode=1)
+    sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", rl_speed_mode="no_collide")
 
-    sumo_binary = "sumo"
+    sumo_binary = "sumo-gui"
 
     vehicles = Vehicles()
     vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
@@ -62,7 +62,7 @@ def run_task(*_):
 
     cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
 
-    initial_config = {"shuffle": False}
+    initial_config = InitialConfig()
 
     scenario = LoopScenario("rl-test", CircleGenerator, vehicles, net_params, cfg_params,
                             initial_config=initial_config)
@@ -105,7 +105,7 @@ for seed in [1]:  # [1, 5, 10, 73, 56]
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="last",
         # Specifies the seed for the experiment. If this is not provided, a random seed

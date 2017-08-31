@@ -7,7 +7,7 @@ continue to move straight until they exit through the top and right nodes, respe
 
 from cistar.core.experiment import SumoExperiment
 from cistar.core.vehicles import Vehicles
-from cistar.core.params import SumoParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 
 from cistar.controllers.car_following_models import *
 from cistar.controllers.routing_controllers import *
@@ -19,7 +19,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step= 0.1, emission_path= "./data/")
+sumo_params = SumoParams(time_step=0.1, emission_path="./data/")
 sumo_binary = "sumo-gui"
 
 vehicles = Vehicles()
@@ -28,8 +28,8 @@ vehicles.add_vehicles("idm", (IDMController, {}), None, None, 0, 20)
 intensity = .2
 v_enter = 10
 
-env_params = {"target_velocity": v_enter, "max-deacc": -6, "max-acc": 3,
-              "control-length": 150, "max_speed": v_enter}
+env_params = EnvParams(additional_params={"target_velocity": v_enter, "max-deacc": -6, "max-acc": 3,
+                                          "control-length": 150, "max_speed": v_enter})
 
 net_params = {"horizontal_length_in": 400, "horizontal_length_out": 10, "horizontal_lanes": 1,
               "vertical_length_in": 400, "vertical_length_out": 10, "vertical_lanes": 1,
@@ -38,7 +38,7 @@ net_params = {"horizontal_length_in": 400, "horizontal_length_out": 10, "horizon
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"spacing": "custom", "intensity": intensity, "enter_speed": v_enter}
+initial_config = InitialConfig(spacing="custom", additional_params={"intensity": intensity, "enter_speed": v_enter})
 
 scenario = TwoWayIntersectionScenario("two-way-intersection", TwoWayIntersectionGenerator,
                                       vehicles, net_params, cfg_params, initial_config=initial_config)

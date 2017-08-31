@@ -229,12 +229,12 @@ class Generator(Serializable):
 
             self.vehicle_ids = vehicles.get_ids()
 
-            if initial_config["shuffle"]:
+            if initial_config.shuffle:
                 random.shuffle(self.vehicle_ids)
 
             # add the initial positions of vehicles to the xml file
-            positions = initial_config["positions"]
-            lanes = initial_config["lanes"]
+            positions = initial_config.positions
+            lanes = initial_config.lanes
             for i, id in enumerate(self.vehicle_ids):
                 veh_type = vehicles.get_state(id, "type")
                 edge, pos = positions[i]

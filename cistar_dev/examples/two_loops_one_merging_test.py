@@ -5,7 +5,7 @@ import logging
 import numpy as np
 
 from cistar.core.experiment import SumoExperiment
-from cistar.core.params import SumoParams, EnvParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 from cistar.core.vehicles import Vehicles
 
 from cistar.controllers.car_following_models import *
@@ -36,7 +36,7 @@ net_params = {"ring_radius": 230/(2*np.pi), "lanes": 1, "speed_limit": 30, "reso
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"spacing": "custom"}
+initial_config = InitialConfig(spacing="custom")
 
 scenario = TwoLoopsOneMergingScenario("two-loop-one-merging", TwoLoopOneMergingGenerator, vehicles,
                                       net_params, cfg_params, initial_config)

@@ -29,7 +29,7 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.params import SumoParams, EnvParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 from cistar.core.vehicles import Vehicles
 from cistar.core import config as cistar_config
 
@@ -67,7 +67,7 @@ def run_task(*_):
 
     cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
 
-    initial_config = {"shuffle": False}
+    initial_config = InitialConfig()
 
     scenario = LoopScenario("rl-test", CircleGenerator, vehicles, net_params,
                             cfg_params, initial_config=initial_config)

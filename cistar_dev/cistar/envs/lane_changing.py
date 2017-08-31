@@ -39,8 +39,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         max_deacc = self.env_params.get_additional_param("max-deacc")
         max_acc = self.env_params.get_additional_param("max-acc")
 
-        lb = [-abs(max_deacc), -1] * self.scenario.num_rl_vehicles
-        ub = [max_acc, 1] * self.scenario.num_rl_vehicles
+        lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
+        ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
 
         return Box(np.array(lb), np.array(ub))
 

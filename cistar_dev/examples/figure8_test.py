@@ -49,8 +49,6 @@ net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40
 
 cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
-# initial_config = {"shuffle": False, "bunching": 200}
-
 scenario = Figure8Scenario("figure8", Figure8Generator, vehicles, net_params, cfg_params)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)

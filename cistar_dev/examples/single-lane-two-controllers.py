@@ -30,7 +30,7 @@ from cistar.controllers.car_following_models import *
 from cistar.controllers.lane_change_controllers import *
 from cistar.controllers.routing_controllers import *
 from cistar.core.vehicles import Vehicles
-from cistar.core.params import SumoParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 
 logging.basicConfig(level=logging.INFO)
 
@@ -42,13 +42,13 @@ vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 15)
 vehicles.add_vehicles("idm2", (DrunkDriver, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 1)
 
-env_params = {}
+env_params = EnvParams()
 
 net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"shuffle": False, "bunching": 20}
+initial_config = InitialConfig(bunching=20)
 
 scenario = LoopScenario("single-lane-two-contr", CircleGenerator, vehicles, net_params,
                         cfg_params, initial_config)

@@ -1,10 +1,10 @@
 import sumolib
 
 
-class SumoParams():
+class SumoParams:
     def __init__(self, port=None, time_step=0.1, vehicle_arrangement_shuffle=False, starting_position_shuffle=False,
                  emission_path="./data/", rl_speed_mode='no_collide', human_speed_mode='no_collide',
-                 rl_lane_change_mode="no_lat_collide" , human_lane_change_mode ="no_lat_collide" ):
+                 rl_lane_change_mode="no_lat_collide", human_lane_change_mode="no_lat_collide"):
         """
         Configuration for running SUMO
 
@@ -37,6 +37,7 @@ class SumoParams():
         :param human_speed_mode: (Optional) 'aggressive' or 'no collide'
         :param rl_lane_change_mode:  (Optional) 'no_lat_collide' or 'strategic' or 'aggressive'
         :param human_lane_change_mode: (Optional) 'no_lat_collide' or 'strategic' or 'aggressive'
+        :param sumo_binary:
         """
         if not port:
             self.port = sumolib.miscutils.getFreeSocketPort()
@@ -52,9 +53,10 @@ class SumoParams():
         self.human_lane_change_mode = human_lane_change_mode
 
 
-class EnvParams():
-    def __init__(self, longitudinal_fail_safe='None', observation_vel_std=0, observation_pos_std=0, human_acc_std=0, rl_acc_std=0,
-                 max_speed=55.0, lane_change_duration=None, shared_reward=False, shared_policy=False, additional_params = None):
+class EnvParams:
+    def __init__(self, longitudinal_fail_safe='None', observation_vel_std=0, observation_pos_std=0,
+                 human_acc_std=0, rl_acc_std=0, max_speed=55.0, lane_change_duration=None,
+                 shared_reward=False, shared_policy=False, additional_params=None):
         """
 
         :param longitudinal_fail_safe: Failsafe strategy to prevent bumper to bumper collisions
@@ -89,3 +91,46 @@ class EnvParams():
             return 5 / time_step
         else:
             return self.lane_change_duration / time_step
+
+
+class InitialConfig:
+
+    def __init__(self, shuffle=False, spacing="uniform", scale=2.5, downscale=5, x0=0, bunching=0,
+                 lanes_distribution=1, distribution_length=None, positions=None, lanes=None,
+                 additional_params=None):
+        """
+
+        :param shuffle: specifies whether the ordering of vehicles in the Vehicles class should be
+                        shuffled upon initialization.
+        :param spacing: specifies the positioning of vehicles in the network relative to one another:
+                        - "uniform" (default)
+                        - "gaussian"
+                        - "gaussian_additive"
+                        - "custom": a user-specified spacing method placed in gen_custom_spacing().
+                                    If no method is employed in the scenario, a NotImplementedError
+                                    is returned.
+        :param scale: used in case of “gaussian” spacing
+        :param downscale: used in case of “gaussian_additive” spacing
+        :param x0: position of the first vehicle to be placed in the network
+        :param bunching: reduces the portion of the network that should be filled with vehicles by this amount.
+        :param lanes_distribution: number of lanes vehicles should be dispersed into (cannot be greater
+                                   than the number of lanes in the network)
+        :param distribution_length: length that vehicles should be disperse in (default is network length)
+        :param positions: used if the user would like to specify user-generated initial positions
+        :param lanes: used if the user would like to specify user-generated initial positions
+        :param additional_params: some other network-specific params
+        """
+        self.shuffle = shuffle
+        self.spacing = spacing
+        self.scale = scale
+        self.downscale = downscale
+        self.x0 = x0
+        self.bunching = bunching
+        self.lanes_distribution = lanes_distribution
+        self.distribution_length = distribution_length
+        self.positions = positions
+        self.lanes = lanes
+        self.additional_params = additional_params
+
+    def get_additional_params(self, key):
+        return self.additional_params[key]

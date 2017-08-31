@@ -82,8 +82,8 @@ class TwoWayIntersectionScenario(Scenario):
         control portion of the track more often than...
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]    
         """
-        rate = initial_config["intensity"]
-        v_enter = initial_config["enter_speed"]
+        rate = initial_config.additional_params["intensity"]
+        v_enter = initial_config.additional_params["enter_speed"]
 
         start_positions = []
         x = 1

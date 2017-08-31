@@ -4,7 +4,7 @@
 
 import logging
 
-from cistar.core.params import SumoParams, EnvParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 from cistar.core.vehicles import Vehicles
 from cistar.core.experiment import SumoExperiment
 
@@ -38,7 +38,7 @@ net_params = {"merge_in_length": 500, "merge_in_angle": pi/9,
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 
-initial_config = {"merge_bunching": 250}
+initial_config = InitialConfig(additional_params={"merge_bunching": 250})
 
 scenario = LoopMergesScenario("loop-merges", LoopMergesGenerator, vehicles, net_params,
                               cfg_params, initial_config=initial_config)

@@ -22,7 +22,7 @@ Variables:
 import logging
 
 from cistar.core.experiment import SumoExperiment
-from cistar.core.params import SumoParams, EnvParams
+from cistar.core.params import SumoParams, EnvParams, InitialConfig
 from cistar.core.vehicles import Vehicles
 
 from cistar.controllers.routing_controllers import ContinuousRouter
@@ -49,7 +49,7 @@ net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40, "n
 
 cfg_params = {"start_time": 0, "cfg_path": "debug/cfg/"}
 
-initial_config = {"shuffle": False, "bunching": 20}
+initial_config = InitialConfig(bunching=20)
 
 scenario = LoopScenario("sugiyama", CircleGenerator, vehicles, net_params,
                         cfg_params, initial_config)

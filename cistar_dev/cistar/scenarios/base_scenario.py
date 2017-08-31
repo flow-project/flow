@@ -5,12 +5,13 @@ from collections import OrderedDict
 from rllab.core.serializable import Serializable
 
 from cistar.core.generator import Generator
+from cistar.core.params import InitialConfig
 from cistar.controllers.rlcontroller import RLController
 
 
 class Scenario(Serializable):
     def __init__(self, name, generator_class, vehicles, net_params, cfg_params=None,
-                 initial_config=None):
+                 initial_config=InitialConfig()):
         """
         Abstract base class. Initializes a new scenario. This class can be
         instantiated once and reused in multiple experiments. Note that this
@@ -45,9 +46,7 @@ class Scenario(Serializable):
 
         self.cfg_params = cfg_params
 
-        self.initial_config = {}
-        if initial_config:
-            self.initial_config = initial_config
+        self.initial_config = initial_config
 
         # parameters to be specified under each unique subclass's __init__() function
         self.edgestarts = self.specify_edge_starts()
@@ -83,11 +82,8 @@ class Scenario(Serializable):
                 raise ValueError("The network does not have a characteristic length specified.")
 
         # generate starting position for vehicles in the network
-        if "positions" not in self.initial_config:
-            self.initial_config["positions"], self.initial_config["lanes"] = self.generate_starting_positions()
-
-        if "shuffle" not in self.initial_config:
-            self.initial_config["shuffle"] = False
+        if self.initial_config.positions is None:
+            self.initial_config.positions, self.initial_config.lanes = self.generate_starting_positions()
 
         self.cfg = self.generate()
 
@@ -189,16 +185,13 @@ class Scenario(Serializable):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
                  list of start lanes
         """
-        if "spacing" not in self.initial_config:
-            self.initial_config["spacing"] = "uniform"
-
-        if self.initial_config["spacing"] == "gaussian_additive":
+        if self.initial_config.spacing == "gaussian_additive":
             startpositions, startlanes = self.gen_gaussian_additive_start_pos(self.initial_config, **kwargs)
-        elif self.initial_config["spacing"] == "gaussian":
+        elif self.initial_config.spacing == "gaussian":
             startpositions, startlanes = self.gen_gaussian_start_pos(self.initial_config, **kwargs)
-        elif self.initial_config["spacing"] == "uniform":
+        elif self.initial_config.spacing == "uniform":
             startpositions, startlanes = self.gen_even_start_pos(self.initial_config, **kwargs)
-        elif self.initial_config["spacing"] == "custom":
+        elif self.initial_config.spacing == "custom":
             startpositions, startlanes = self.gen_custom_start_pos(self.initial_config, **kwargs)
         else:
             raise ValueError('"spacing" argument in initial_config does not contain a valid option')
@@ -215,35 +208,27 @@ class Scenario(Serializable):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
                  list of start lanes
         """
-        x0 = 1
-        if "x0" in self.initial_config:
-            x0 = initial_config["x0"]
+        x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
         if "x0" in kwargs:
             x0 = kwargs["x0"]
 
-        bunching = 0
-        if "bunching" in initial_config:
-            bunching = initial_config["bunching"]
+        bunching = initial_config.bunching
         # changes to bunching in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
         if "bunching" in kwargs:
             bunching = kwargs["bunching"]
 
-        lanes_distribution = 1
-        if "lanes_distribution" in initial_config:
-            lanes_distribution = initial_config["lanes_distribution"]
-
         distribution_length = self.length
-        if "distribution_length" in initial_config:
-            distribution_length = initial_config["distribution_length"]
+        if initial_config.distribution_length is not None:
+            distribution_length = initial_config.distribution_length
 
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) * lanes_distribution / self.vehicles.num_vehicles
+        increment = (distribution_length - bunching) * initial_config.lanes_distribution / self.vehicles.num_vehicles
 
-        x = [x0] * lanes_distribution
+        x = [x0] * initial_config.lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.vehicles.num_vehicles:
@@ -280,7 +265,7 @@ class Scenario(Serializable):
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be
             # distributed on in the network, reset
-            if lane_count >= lanes_distribution:
+            if lane_count >= initial_config.lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes
@@ -295,31 +280,27 @@ class Scenario(Serializable):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
                  list of start lanes
         """
-        x0 = 1
+        x0 = initial_config.x0
+        # changes to x0 in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
         if "x0" in kwargs:
             x0 = kwargs["x0"]
 
-        bunching = 0
-        if "bunching" in initial_config:
-            bunching = initial_config["bunching"]
-
-        lanes_distribution = 1
-        if "lanes_distribution" in initial_config:
-            lanes_distribution = initial_config["lanes_distribution"]
+        bunching = initial_config.bunching
+        # changes to bunching in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "bunching" in kwargs:
+            bunching = kwargs["bunching"]
 
         distribution_length = self.length
-        if "distribution_length" in initial_config:
-            distribution_length = initial_config["distribution_length"]
-
-        scale = 2.5
-        if "scale" in initial_config:
-            scale = initial_config["scale"]
+        if initial_config.distribution_length is not None:
+            distribution_length = initial_config.distribution_length
 
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) * lanes_distribution / self.vehicles.num_vehicles
+        increment = (distribution_length - bunching) * initial_config.lanes_distribution / self.vehicles.num_vehicles
 
-        x = [x0] * lanes_distribution
+        x = [x0] * initial_config.lanes_distribution
         x_start = np.array([])
         car_count = 0
         lane_count = 0
@@ -335,13 +316,15 @@ class Scenario(Serializable):
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be
             # distributed on in the network, reset
-            if lane_count >= lanes_distribution:
+            if lane_count >= initial_config.lanes_distribution:
                 lane_count = 0
 
         # perturb from uniform distribution
         for i in range(len(x_start)):
             x_start[i] = \
-                (x_start[i] + min(scale, max(-scale, np.random.normal(loc=0, scale=scale)))) % distribution_length
+                (x_start[i] + min(initial_config.scale,
+                                  max(-initial_config.scale, np.random.normal(loc=0, scale=initial_config.scale)))) \
+                % distribution_length
 
             pos = self.get_edge(x_start[i])
 
@@ -378,31 +361,27 @@ class Scenario(Serializable):
         :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
                  list of start lanes
         """
-        x0 = 1
+        x0 = initial_config.x0
+        # changes to x0 in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
         if "x0" in kwargs:
             x0 = kwargs["x0"]
 
-        bunching = 0
-        if "bunching" in initial_config:
-            bunching = initial_config["bunching"]
-
-        lanes_distribution = 1
-        if "lanes_distribution" in initial_config:
-            lanes_distribution = initial_config["lanes_distribution"]
+        bunching = initial_config.bunching
+        # changes to bunching in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "bunching" in kwargs:
+            bunching = kwargs["bunching"]
 
         distribution_length = self.length
-        if "distribution_length" in initial_config:
-            distribution_length = initial_config["distribution_length"]
-
-        downscale = 5
-        if "downscale" in initial_config:
-            downscale = initial_config["scale"]
+        if initial_config.distribution_length is not None:
+            distribution_length = initial_config.distribution_length
 
         startpositions = []
         startlanes = []
-        mean = (distribution_length - bunching) * lanes_distribution / self.vehicles.num_vehicles
+        mean = (distribution_length - bunching) * initial_config.lanes_distribution / self.vehicles.num_vehicles
 
-        x = [x0] * lanes_distribution
+        x = [x0] * initial_config.lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.vehicles.num_vehicles:
@@ -433,13 +412,14 @@ class Scenario(Serializable):
             startpositions.append(pos)
             startlanes.append(lane_count)
 
-            x[lane_count] = (x[lane_count] + np.random.normal(scale=mean / downscale, loc=mean)) % self.length
+            x[lane_count] = \
+                (x[lane_count] + np.random.normal(scale=mean / initial_config.downscale, loc=mean)) % self.length
 
             # increment the car_count and lane_num
             car_count += 1
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
-            if lane_count >= lanes_distribution:
+            if lane_count >= initial_config.lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes
