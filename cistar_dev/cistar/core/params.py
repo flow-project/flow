@@ -4,7 +4,8 @@ import sumolib
 class SumoParams:
     def __init__(self, port=None, time_step=0.1, vehicle_arrangement_shuffle=False, starting_position_shuffle=False,
                  emission_path="./data/", rl_speed_mode='no_collide', human_speed_mode='no_collide',
-                 rl_lane_change_mode="no_lat_collide", human_lane_change_mode="no_lat_collide"):
+                 rl_lane_change_mode="no_lat_collide", human_lane_change_mode="no_lat_collide",
+                 sumo_binary="sumo"):
         """
         Configuration for running SUMO
 
@@ -37,7 +38,9 @@ class SumoParams:
         :param human_speed_mode: (Optional) 'aggressive' or 'no collide'
         :param rl_lane_change_mode:  (Optional) 'no_lat_collide' or 'strategic' or 'aggressive'
         :param human_lane_change_mode: (Optional) 'no_lat_collide' or 'strategic' or 'aggressive'
-        :param sumo_binary:
+        :param sumo_binary: (Optional) specifies whether to visualize the rollout(s). May be:
+                - 'sumo-gui' to run the experiment with the gui
+                - 'sumo' to run without the gui
         """
         if not port:
             self.port = sumolib.miscutils.getFreeSocketPort()
@@ -51,6 +54,7 @@ class SumoParams:
         self.human_speed_mode = human_speed_mode
         self.rl_lane_change_mode = rl_lane_change_mode
         self.human_lane_change_mode = human_lane_change_mode
+        self.sumo_binary = sumo_binary
 
 
 class EnvParams:
@@ -65,9 +69,8 @@ class EnvParams:
         :param human_acc_std: action (actuator) noise associated with human-driven vehicle acceleration
         :param rl_acc_std: action (actuator) noise associated with autonomous vehicle acceleration
         :param max_speed: max speed of vehicles in the simulation; defaults to 55 m/s
-        :param lane_change_duration: ; defaults to 5 seconds
-                                     lane changing duration is always present in the environment, but only used by
-                                      sub-classes that apply lane changing
+        :param lane_change_duration: lane changing duration is always present in the environment, but only used by
+                                     sub-classes that apply lane changing; defaults to 5 seconds
         :param shared_reward: (Boolean) use a shared reward; defaults to False
         :param shared_policy: (Boolean) use a shared policy; defaults to False
         :param additional_params: Specify additional environment params for a specific environment configuration
@@ -91,6 +94,23 @@ class EnvParams:
             return 5 / time_step
         else:
             return self.lane_change_duration / time_step
+
+
+class NetParams:
+    def __init__(self, net_path="debug/net/", cfg_path="debug/cfg/", no_internal_links=True, additional_params=None):
+        """
+
+        :param net_path: path to the network files created to create a network with sumo
+        :param cfg_path: path to the configuration files created to create a network with sumo
+        :param no_internal_links: determines whether the space between edges is finite. Important
+                                  when using networks with intersections
+        :param additional_params: network specific parameters; see each subclass for a
+                                  description of what is needed
+        """
+        self.net_path = net_path
+        self.cfg_path = cfg_path
+        self.no_internal_links = no_internal_links
+        self.additional_params = additional_params
 
 
 class InitialConfig:

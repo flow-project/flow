@@ -16,8 +16,8 @@ class TwoLoopOneMergingGenerator(Generator):
         """
         See parent class
         """
-        radius = net_params["ring_radius"]
-        lanes = net_params["lanes"]
+        radius = net_params.additional_params["ring_radius"]
+        lanes = net_params.additional_params["lanes"]
 
         super().__init__(net_params, net_path, cfg_path, base)
 
@@ -27,7 +27,7 @@ class TwoLoopOneMergingGenerator(Generator):
         """
         See parent class
         """
-        r = net_params["ring_radius"]
+        r = net_params.additional_params["ring_radius"]
         angle_small = pi/3
         angle_large = arcsin(0.75)
 
@@ -42,8 +42,8 @@ class TwoLoopOneMergingGenerator(Generator):
         """
         See parent class
         """
-        r = net_params["ring_radius"]
-        resolution = net_params["resolution"]
+        r = net_params.additional_params["ring_radius"]
+        resolution = net_params.additional_params["resolution"]
 
         angle_small = pi/3
         angle_large = arcsin(0.75)
@@ -81,8 +81,8 @@ class TwoLoopOneMergingGenerator(Generator):
         """
         See parent class
         """
-        lanes = net_params["lanes"]
-        speed_limit = net_params["speed_limit"]
+        lanes = net_params.additional_params["lanes"]
+        speed_limit = net_params.additional_params["speed_limit"]
         types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
         return types

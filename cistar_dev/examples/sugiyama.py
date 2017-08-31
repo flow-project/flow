@@ -22,7 +22,7 @@ Variables:
 import logging
 
 from cistar.core.experiment import SumoExperiment
-from cistar.core.params import SumoParams, EnvParams, InitialConfig
+from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from cistar.core.vehicles import Vehicles
 
 from cistar.controllers.routing_controllers import ContinuousRouter
@@ -35,9 +35,7 @@ from cistar.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.1, human_speed_mode="aggressive")
-
-sumo_binary = "sumo-gui"
+sumo_params = SumoParams(time_step=0.1, human_speed_mode="aggressive", sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 22)
@@ -45,16 +43,14 @@ vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 
 additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 500}
 env_params = EnvParams(additional_params=additional_env_params)
 
-net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/net/"}
-
-cfg_params = {"start_time": 0, "cfg_path": "debug/cfg/"}
+additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40}
+net_params = NetParams(additional_params=additional_net_params)
 
 initial_config = InitialConfig(bunching=20)
 
-scenario = LoopScenario("sugiyama", CircleGenerator, vehicles, net_params,
-                        cfg_params, initial_config)
+scenario = LoopScenario("sugiyama", CircleGenerator, vehicles, net_params, initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

@@ -91,9 +91,7 @@ class Generator(Serializable):
             printxml(x, self.net_path + confn)
 
         # check whether the user requested no-internal-links (default="true")
-        if "no-internal-links" not in net_params:
-            self.no_internal_links = "true"
-        elif net_params["no-internal-links"]:
+        if net_params.no_internal_links:
             self.no_internal_links = "true"
         else:
             self.no_internal_links = "false"
@@ -127,7 +125,7 @@ class Generator(Serializable):
 
         return self.net_path + netfn
 
-    def generate_cfg(self, net_params, cfg_params):
+    def generate_cfg(self, net_params):
         """
         Generates .sumo.cfg files using net files and netconvert.
         Requires:
@@ -139,15 +137,8 @@ class Generator(Serializable):
         start_time: time to start the simulation
         end_time: time to end the simulation
         """
-        if "start_time" not in cfg_params:
-            raise ValueError("start_time not supplied")
-        else:
-            start_time = cfg_params["start_time"]
-
-        if "end_time" in cfg_params:
-            end_time = cfg_params["end_time"]
-        else:
-            end_time = None
+        start_time = 0
+        end_time = None
 
         self.roufn = "%s.rou.xml" % self.name
         addfn = "%s.add.xml" % self.name
@@ -190,7 +181,7 @@ class Generator(Serializable):
         printxml(cfg, self.cfg_path + cfgfn)
         return cfgfn
 
-    def make_routes(self, scenario, initial_config, cfg_params):
+    def make_routes(self, scenario, initial_config):
 
         vehicles = scenario.vehicles
         type_list = vehicles.types

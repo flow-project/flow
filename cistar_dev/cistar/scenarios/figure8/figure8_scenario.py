@@ -1,20 +1,19 @@
 import numpy as np
 
 from cistar.scenarios.base_scenario import Scenario
-
+from cistar.core.params import InitialConfig
 
 class Figure8Scenario(Scenario):
-    def __init__(self, name, generator_class, vehicles, net_params, cfg_params=None,
-                 initial_config=None):
+    def __init__(self, name, generator_class, vehicles, net_params, initial_config=InitialConfig()):
         """
         Initializes a figure 8 scenario. Required net_params: radius_ring, lanes,
         speed_limit, resolution. Required initial_config: positions.
 
         See Scenario.py for description of params.
         """
-        self.ring_edgelen = net_params["radius_ring"] * np.pi / 2.
-        self.intersection_len = 2 * net_params["radius_ring"]
-        self.junction_len = 2.9 + 3.3 * net_params["lanes"]
+        self.ring_edgelen = net_params.additional_params["radius_ring"] * np.pi / 2.
+        self.intersection_len = 2 * net_params.additional_params["radius_ring"]
+        self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
 
         # instantiate "length" in net params
@@ -23,23 +22,23 @@ class Figure8Scenario(Scenario):
 
         if "radius_ring" not in net_params:
             raise ValueError("radius of ring not supplied")
-        self.radius_ring = net_params["radius_ring"]
+        self.radius_ring = net_params.additional_params["radius_ring"]
 
-        self.length = net_params["length"]
+        self.length = net_params.additional_params["length"]
 
         if "lanes" not in net_params:
             raise ValueError("number of lanes not supplied")
-        self.lanes = net_params["lanes"]
+        self.lanes = net_params.additional_params["lanes"]
 
         if "speed_limit" not in net_params:
             raise ValueError("speed limit not supplied")
-        self.speed_limit = net_params["speed_limit"]
+        self.speed_limit = net_params.additional_params["speed_limit"]
 
         if "resolution" not in net_params:
             raise ValueError("resolution of circular sections not supplied")
-        self.resolution = net_params["resolution"]
+        self.resolution = net_params.additional_params["resolution"]
 
-        super().__init__(name, generator_class, vehicles, net_params, cfg_params=cfg_params,
+        super().__init__(name, generator_class, vehicles, net_params,
                          initial_config=initial_config)
 
     def specify_edge_starts(self):

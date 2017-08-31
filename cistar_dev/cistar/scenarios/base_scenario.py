@@ -10,7 +10,7 @@ from cistar.controllers.rlcontroller import RLController
 
 
 class Scenario(Serializable):
-    def __init__(self, name, generator_class, vehicles, net_params, cfg_params=None,
+    def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig()):
         """
         Abstract base class. Initializes a new scenario. This class can be
@@ -33,19 +33,9 @@ class Scenario(Serializable):
         Serializable.quick_init(self, locals())
 
         self.name = name
-        self.vehicles = vehicles
-
-        if not net_params:
-            ValueError("No network params specified")
-        # determines whether the space between edges is finite
-        if "no-internal-links" not in net_params:
-            net_params["no-internal-links"] = True
-        self.net_params = net_params
-
         self.generator_class = generator_class
-
-        self.cfg_params = cfg_params
-
+        self.vehicles = vehicles
+        self.net_params = net_params
         self.initial_config = initial_config
 
         # parameters to be specified under each unique subclass's __init__() function
@@ -65,7 +55,7 @@ class Scenario(Serializable):
 
         # total_edgestarts and total_edgestarts_dict contain all of the above edges, with the
         # former being ordered by position
-        if self.net_params["no-internal-links"]:
+        if self.net_params.no_internal_links:
             self.total_edgestarts = self.edgestarts
         else:
             self.total_edgestarts = self.edgestarts + self.internal_edgestarts
@@ -76,8 +66,8 @@ class Scenario(Serializable):
         # length of the network, or the portion of the network in which cars are meant to be distributed
         # (to be calculated during subclass __init__(), or specified in net_params)
         if not hasattr(self, "length"):
-            if "length" in self.net_params:
-                self.length = self.net_params["length"]
+            if "length" in self.net_params.additional_params:
+                self.length = self.net_params.additional_params["length"]
             else:
                 raise ValueError("The network does not have a characteristic length specified.")
 
@@ -129,18 +119,13 @@ class Scenario(Serializable):
         logging.info("Config file not defined, generating using generator")
 
         # Default scenario parameters
-        net_path = Generator.NET_PATH
-        cfg_path = Generator.CFG_PATH
-
-        if "net_path" in self.net_params:
-            net_path = self.net_params["net_path"]
-        if "cfg_path" in self.cfg_params:
-            cfg_path = self.cfg_params["cfg_path"]
+        net_path = self.net_params.net_path
+        cfg_path = self.net_params.cfg_path
 
         self.generator = self.generator_class(self.net_params, net_path, cfg_path, self.name)
         self.generator.generate_net(self.net_params)
-        cfg_name = self.generator.generate_cfg(self.net_params, self.cfg_params)
-        self.generator.make_routes(self, self.initial_config, self.cfg_params)
+        cfg_name = self.generator.generate_cfg(self.net_params)
+        self.generator.make_routes(self, self.initial_config)
 
         return self.generator.cfg_path + cfg_name
 

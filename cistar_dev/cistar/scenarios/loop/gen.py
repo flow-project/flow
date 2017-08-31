@@ -16,8 +16,8 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        length = net_params["length"]
-        lanes = net_params["lanes"]
+        length = net_params.additional_params["length"]
+        lanes = net_params.additional_params["lanes"]
         self.name = "%s-%dm%dl" % (base, length, lanes)
 
         super().__init__(net_params, net_path, cfg_path, base)
@@ -26,7 +26,7 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        length = net_params["length"]
+        length = net_params.additional_params["length"]
         r = length / (2 * pi)
 
         nodes = [{"id": "bottom", "x": repr(0),  "y": repr(-r)},
@@ -40,8 +40,8 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        length = net_params["length"]
-        resolution = net_params["resolution"]
+        length = net_params.additional_params["length"]
+        resolution = net_params.additional_params["resolution"]
         r = length / (2 * pi)
         edgelen = length / 4.
 
@@ -68,8 +68,8 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        lanes = net_params["lanes"]
-        speed_limit = net_params["speed_limit"]
+        lanes = net_params.additional_params["lanes"]
+        speed_limit = net_params.additional_params["speed_limit"]
         types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
         return types

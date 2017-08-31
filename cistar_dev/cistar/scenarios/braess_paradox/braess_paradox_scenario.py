@@ -5,8 +5,7 @@ from cistar.scenarios.base_scenario import Scenario
 
 class BraessParadoxScenario(Scenario):
 
-    def __init__(self, name, generator_class, vehicles, net_params, cfg_params=None,
-                 initial_config=None):
+    def __init__(self, name, generator_class, vehicles, net_params, initial_config=None):
         """
         Initializes a Braess Paradox scenario.
         Required net_params: angle, edge_length, lanes, resolution speed_limit.
@@ -20,10 +19,9 @@ class BraessParadoxScenario(Scenario):
 
         # instantiate "length" in net params
         # net_params["length"] = 4 * self.edge_len + 4 * self.junction_len + 2 * self.curve_len + self.horz_len
-        net_params["length"] = 4 * self.edge_len + 2 * self.curve_len + self.horz_len
+        net_params.additional_params["length"] = 4 * self.edge_len + 2 * self.curve_len + self.horz_len
 
-        super().__init__(name, generator_class, vehicles, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config)
+        super().__init__(name, generator_class, vehicles, net_params, initial_config)
 
     def specify_edge_starts(self):
         """

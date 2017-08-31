@@ -51,13 +51,13 @@ class SumoEnvironment(gym.Env, Serializable):
             ValueError -- Raised if a SUMO port not provided
     """
 
-    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+    def __init__(self, env_params, sumo_params, scenario):
         Serializable.quick_init(self, locals())
 
         self.env_params = env_params
-        self.sumo_binary = sumo_binary
         self.scenario = scenario
         self.sumo_params = sumo_params
+        self.sumo_binary = self.sumo_params.sumo_binary
         self.vehicles = scenario.vehicles
         # timer: Represents number of steps taken
         self.timer = 0
@@ -154,7 +154,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # Density = num vehicles / length (in meters)
         # so density in vehicles/km would be 1000 * self.density
-        self.density = self.vehicles.num_vehicles / self.scenario.net_params['length']
+        self.density = self.vehicles.num_vehicles / self.scenario.net_params.additional_params['length']
 
     def setup_initial_state(self):
         """

@@ -23,8 +23,8 @@ class Figure8Generator(Generator):
         """
         super().__init__(net_params, net_path, cfg_path, base)
 
-        r = net_params["radius_ring"]
-        lanes = net_params["lanes"]
+        r = net_params.additional_params["radius_ring"]
+        lanes = net_params.additional_params["lanes"]
         ring_edgelen = r * pi/2.
         intersection_edgelen = 2*r
         self.name = "%s-%dm%dl" % (base, 2*intersection_edgelen+6*ring_edgelen, lanes)
@@ -33,7 +33,7 @@ class Figure8Generator(Generator):
         """
         See parent class
         """
-        r = net_params["radius_ring"]
+        r = net_params.additional_params["radius_ring"]
 
         nodes = [{"id": "center_intersection",  "x": repr(0),    "y": repr(0),    "type": "priority"},
                  {"id": "top_upper_ring",       "x": repr(r),    "y": repr(2*r),  "type": "priority"},
@@ -51,8 +51,8 @@ class Figure8Generator(Generator):
         """
         See parent class
         """
-        r = net_params["radius_ring"]
-        resolution = net_params["resolution"]
+        r = net_params.additional_params["radius_ring"]
+        resolution = net_params.additional_params["resolution"]
         ring_edgelen = r * pi/2.
         intersection_edgelen = 2*r
 
@@ -106,8 +106,8 @@ class Figure8Generator(Generator):
         """
         See parent class
         """
-        lanes = net_params["lanes"]
-        speed_limit = net_params["speed_limit"]
+        lanes = net_params.additional_params["lanes"]
+        speed_limit = net_params.additional_params["speed_limit"]
         types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
         return types

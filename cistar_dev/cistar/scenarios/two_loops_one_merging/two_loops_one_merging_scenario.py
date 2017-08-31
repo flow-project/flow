@@ -5,7 +5,7 @@ from numpy import pi, sin, cos, arcsin
 
 class TwoLoopsOneMergingScenario(Scenario):
 
-    def __init__(self, name, generator_class, vehicles, net_params, cfg_params=None,
+    def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         """
         Initializes a two loop scenario where one loop merging in and out of the other.
@@ -14,21 +14,20 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         See Scenario.py for description of params.
         """
-        radius = net_params["ring_radius"]
+        radius = net_params.additional_params["ring_radius"]
         radius_merge = 1.5 * radius
         angle_merge = arcsin(0.75)
-        net_params["length"] = 2 * pi * radius + 2 * (pi - angle_merge) * radius
+        net_params.additional_params["length"] = 2 * pi * radius + 2 * (pi - angle_merge) * radius
 
-        self.lanes = net_params["lanes"]
+        self.lanes = net_params.additional_params["lanes"]
 
-        super().__init__(name, generator_class, vehicles, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config)
+        super().__init__(name, generator_class, vehicles, net_params, initial_config)
 
     def specify_edge_starts(self):
         """
         See parent class
         """
-        r = self.net_params["ring_radius"]
+        r = self.net_params.additional_params["ring_radius"]
 
         angle_small = pi/3
         ring_edgelen = (pi-angle_small) * r
@@ -48,7 +47,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         """
         See parent class
         """
-        r = self.net_params["ring_radius"]
+        r = self.net_params.additional_params["ring_radius"]
 
         angle_small = pi/3
         ring_edgelen = (pi-angle_small) * r
@@ -89,7 +88,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         num_merge_vehicles = sum(["merge" in self.vehicles.get_state(veh_id, "type")
                                   for veh_id in self.vehicles.get_ids()])
 
-        radius = self.net_params["ring_radius"]
+        radius = self.net_params.additional_params["ring_radius"]
         angle_large = arcsin(0.75)
 
         startpositions = []
