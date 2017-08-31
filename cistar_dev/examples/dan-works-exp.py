@@ -27,7 +27,7 @@ from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.car_following_models import *
 from cistar.controllers.velocity_controllers import *
 from cistar.controllers.lane_change_controllers import *
-from cistar.core.params import SumoParams
+from cistar.core.params import SumoParams, EnvParams
 from cistar.controllers.routing_controllers import *
 from cistar.core.vehicles import Vehicles
 
@@ -42,7 +42,7 @@ vehicles.add_vehicles("constantV", (ConstantVelocityController, {"constant_speed
                       (ContinuousRouter, {}), 0, 1)
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 21)
 
-env_params = {}
+env_params = EnvParams()
 
 net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40, "net_path": "dan-work/net/"}
 

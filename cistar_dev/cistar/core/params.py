@@ -1,5 +1,6 @@
 import sumolib
 
+
 class SumoParams():
     def __init__(self, port=None, time_step=0.1, vehicle_arrangement_shuffle=False, starting_position_shuffle=False,
                  emission_path="./data/", rl_speed_mode='no_collide', human_speed_mode='no_collide',
@@ -49,6 +50,7 @@ class SumoParams():
         self.human_speed_mode = human_speed_mode
         self.rl_lane_change_mode = rl_lane_change_mode
         self.human_lane_change_mode = human_lane_change_mode
+
 
 class EnvParams():
     def __init__(self, longitudinal_fail_safe='None', observation_vel_std=0, observation_pos_std=0, human_acc_std=0, rl_acc_std=0,

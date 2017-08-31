@@ -28,7 +28,6 @@ vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 40)
 
 additional_params = {"max-deacc": -6, "max-acc": 3, "close_CD": False}
-
 env_params = EnvParams(additional_params=additional_params)
 
 net_params = {"edge_length": 130, "angle": np.pi/10, "resolution": 40, "lanes": 1,

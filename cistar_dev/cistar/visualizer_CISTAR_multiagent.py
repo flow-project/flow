@@ -7,16 +7,11 @@ import random
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
-<<<<<<< HEAD:cistar_dev/cistar_dev/visualizer_CISTAR_multiagent.py
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.scenarios.figure8.figure8_scenario import Figure8Scenario
-from cistar_dev.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
-from cistar_dev.scenarios.loop.gen import CircleGenerator
 
-=======
+from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
+from cistar.scenarios.loop.gen import CircleGenerator
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
->>>>>>> a26fe08af8f9ce059c448d45f9263383b323e73e:cistar_dev/cistar/visualizer_CISTAR_multiagent.py
 
 
 import plotly.offline as po

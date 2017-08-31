@@ -5,6 +5,7 @@ import logging
 import numpy as np
 
 from cistar.core.experiment import SumoExperiment
+from cistar.core.params import SumoParams, EnvParams
 from cistar.core.vehicles import Vehicles
 
 from cistar.controllers.car_following_models import *
@@ -17,7 +18,7 @@ from cistar.scenarios.two_loops_one_merging.two_loops_one_merging_scenario impor
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": 1}
+sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide")
 
 sumo_binary = "sumo-gui"
 
@@ -27,7 +28,8 @@ vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 11)
 vehicles.add_vehicles("merge-idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 11)
 
-env_params = {"max-deacc": -3, "max-acc": 3}
+additional_env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3}
+env_params = EnvParams(additional_params=additional_env_params)
 
 net_params = {"ring_radius": 230/(2*np.pi), "lanes": 1, "speed_limit": 30, "resolution": 40,
               "net_path": "debug/net/", "no-internal-links": False}

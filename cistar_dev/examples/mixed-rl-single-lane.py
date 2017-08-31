@@ -27,7 +27,7 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.params import SumoParams
+from cistar.core.params import SumoParams, EnvParams
 from cistar.core.vehicles import Vehicles
 from cistar.core import config as cistar_config
 
@@ -47,7 +47,7 @@ def run_task(*_):
     auton_cars = 4
     human_cars = tot_cars - auton_cars
 
-    sumo_params = SumoParams(time_step= 0.1, human_speed_mode=1, rl_speed_mode=1)
+    sumo_params = SumoParams(time_step=0.1, human_speed_mode=1, rl_speed_mode=1)
 
     sumo_binary = "sumo"
 
@@ -55,7 +55,8 @@ def run_task(*_):
     vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
     vehicles.add_vehicles("cfm", (BCMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, human_cars)
 
-    env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
+    additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
+    env_params = EnvParams(additional_params=additional_env_params)
 
     net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/rl/net/"}
 

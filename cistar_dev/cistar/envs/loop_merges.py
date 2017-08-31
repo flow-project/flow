@@ -25,7 +25,7 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         """
         return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")),
                    high=self.env_params.get_additional_param("max-acc"),
-                   shape=(self.scenario.num_rl_vehicles,))
+                   shape=(self.vehicles.num_rl_vehicles,))
 
     @property
     def observation_space(self):

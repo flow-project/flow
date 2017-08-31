@@ -1,5 +1,5 @@
-from cistar_dev.core.base_env import SumoEnvironment
-from cistar_dev.core import rewards
+from cistar.envs.base_env import SumoEnvironment
+from cistar.core import rewards
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -21,8 +21,10 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         See parent class
         Actions are accelerations between the bounds set in env_params.
         """
-        return Box(low=-np.abs(self.env_params["max-deacc"]), high=self.env_params["max-acc"],
-                   shape=(self.vehicles.num_rl_vehicles, ))
+        max_acc = self.env_params.additional_params["max-acc"]
+        max_deacc = - abs(self.env_params.additional_params["max-deacc"])
+
+        return Box(low=-max_deacc, high=max_acc, shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
     def observation_space(self):

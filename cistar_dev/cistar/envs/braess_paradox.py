@@ -29,7 +29,7 @@ class BraessParadoxEnvironment(SumoEnvironment):
 
         # specifies whether vehicles are allowed to cross the edge connecting
         # the top and bottom portions of the network
-        self.close_CD = self.env_params["close_CD"]
+        self.close_CD = self.env_params.additional_params["close_CD"]
 
         # the route choice variable contacts the edges to traverse for each of the
         # braess paradox route choices
@@ -68,8 +68,11 @@ class BraessParadoxEnvironment(SumoEnvironment):
         See parent class
         Moves consist of routing decisions, as well as accelerations performed by rl vehicles.
         """
-        lb = [0, - np.abs(self.env_params["max-deacc"])] * self.vehicles.num_rl_vehicles
-        ub = [2, self.env_params["max-acc"]] * self.vehicles.num_rl_vehicles
+        max_acc = self.env_params.additional_params["max-acc"]
+        max_deacc = - abs(self.env_params.additional_params["max-deacc"])
+
+        lb = [0, max_acc] * self.vehicles.num_rl_vehicles
+        ub = [2, max_deacc] * self.vehicles.num_rl_vehicles
 
         return Box(np.array(lb), np.array(ub))
 

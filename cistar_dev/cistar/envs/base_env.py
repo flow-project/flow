@@ -73,7 +73,7 @@ class SumoEnvironment(gym.Env, Serializable):
             for intersection_tuple in self.scenario.intersection_edgestarts:
                 self.intersection_edges.append(intersection_tuple[0])
 
-        #SUMO Params
+        # SUMO Params
         self.port = sumo_params.port
         self.time_step = sumo_params.time_step
         self.vehicle_arrangement_shuffle = sumo_params.vehicle_arrangement_shuffle
