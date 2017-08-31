@@ -20,20 +20,26 @@ Variables:
     scenario {[type]} -- [Which road network to use]
 '''
 import logging
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar_dev.scenarios.figure8.gen import Figure8Generator
-from cistar_dev.scenarios.figure8.figure8_scenario import Figure8Scenario
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
+
+from cistar.core.experiment import SumoExperiment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.figure8.gen import Figure8Generator
+from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.rlcontroller import RLController
+from cistar.core.params import SumoParams
+from cistar.controllers.routing_controllers import *
+from cistar.core.vehicles import Vehicles
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": 1}
+sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode=1)
 
 sumo_binary = "sumo-gui"
 
-type_params = [("idm", 14, (IDMController, {}), (StaticLaneChanger, {}), 0)]
+vehicles = Vehicles()
+vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 14)
 
 env_params = {"max-deacc": -3, "max-acc": 3}
 
@@ -44,7 +50,7 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 # initial_config = {"shuffle": False, "bunching": 200}
 
-scenario = Figure8Scenario("figure8", Figure8Generator, type_params, net_params, cfg_params)
+scenario = Figure8Scenario("figure8", Figure8Generator, vehicles, net_params, cfg_params)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 

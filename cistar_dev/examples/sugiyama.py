@@ -20,22 +20,30 @@ Variables:
     scenario {[type]} -- [Which road network to use]
 '''
 import logging
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar_dev.scenarios.loop.gen import CircleGenerator
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
+
+from cistar.core.experiment import SumoExperiment
+from cistar.core.params import SumoParams, EnvParams
+from cistar.core.vehicles import Vehicles
+
+from cistar.controllers.routing_controllers import ContinuousRouter
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "human_sm": "aggressive"}
+sumo_params = SumoParams(time_step=0.1, human_speed_mode="aggressive")
 
 sumo_binary = "sumo-gui"
 
-type_params = [("idm", 22, (IDMController, {}), (StaticLaneChanger, {}), 0)]
+vehicles = Vehicles()
+vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 22)
 
-env_params = {"max-acc": 3, "max-deacc": -6}
+additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 500}
+env_params = EnvParams(additional_params=additional_env_params)
 
 net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/net/"}
 
@@ -43,7 +51,7 @@ cfg_params = {"start_time": 0, "cfg_path": "debug/cfg/"}
 
 initial_config = {"shuffle": False, "bunching": 20}
 
-scenario = LoopScenario("sugiyama", CircleGenerator, type_params, net_params,
+scenario = LoopScenario("sugiyama", CircleGenerator, vehicles, net_params,
                         cfg_params, initial_config)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)

@@ -27,10 +27,17 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar_dev.controllers.lane_change_controllers import *
-from cistar_dev.scenarios.loop.gen import CircleGenerator
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.rlcontroller import RLController
+from cistar.core.vehicles import Vehicles
+from cistar.core import config as cistar_config
+from cistar.core.params import SumoParams
+
+from cistar.controllers.rlcontroller import RLController
+from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.routing_controllers import *
+
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -38,11 +45,12 @@ def run_task(*_):
     tot_cars = 6
     auton_cars = 6
 
-    sumo_params = {"time_step": 0.1,  "rl_sm": 1}
+    sumo_params = SumoParams(time_step= 0.1,  rl_speed_mode="no_collide")
 
     sumo_binary = "sumo-gui"
 
-    type_params = [("rl", auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0)]
+    vehicles = Vehicles()
+    vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
 
     env_params = {"target_velocity": 25, "max-deacc": -3, "max-acc": 3, "num_steps": 1000}
 
@@ -53,21 +61,16 @@ def run_task(*_):
 
     initial_config = {"shuffle": False}
 
-    scenario = LoopScenario("rl-test", CircleGenerator, type_params, net_params, cfg_params,
+    scenario = LoopScenario("rl-test", CircleGenerator, vehicles, net_params, cfg_params,
                             initial_config=initial_config)
 
-    from cistar_dev import pass_params
     env_name = "SimpleAccelerationEnvironment"
-    pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-                cfg_params, initial_config, scenario)
+    pass_params = (env_name, sumo_params, sumo_binary, vehicles, env_params, net_params,
+                   cfg_params, initial_config, scenario)
 
-    #env = GymEnv("TwoIntersectionEnv-v0", force_reset=True, record_video=False)
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
-
-    # exp = SumoExperiment(SimpleAccelerationEnvironment, env_params, sumo_binary,
-    #  sumo_params, scenario)
 
     logging.info("Experiment Set Up complete")
 
@@ -103,6 +106,6 @@ for seed in [10]:  # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="rl-acceleration",
-        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+        python_command=cistar_config.PYTHON_COMMAND
         # plot=True,
     )

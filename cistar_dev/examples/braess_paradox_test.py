@@ -7,29 +7,36 @@ their most recent observations.
 """
 
 import logging
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
-from cistar_dev.envs.braess_paradox import BraessParadoxEnvironment
-from cistar_dev.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
 
+from cistar.core.experiment import SumoExperiment
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+from cistar.scenarios.braess_paradox.gen import BraessParadoxGenerator
+from cistar.envs.braess_paradox import BraessParadoxEnvironment
+from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
+from cistar.core.params import SumoParams
+from cistar.core.params import EnvParams
+from cistar.core.vehicles import Vehicles
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": "no_collide", "human_lc": "no_lat_collide"}
+sumo_params = SumoParams()
 
 sumo_binary = "sumo-gui"
 
-type_params = [("idm", 40, (IDMController, {}), (StaticLaneChanger, {}), 0)]
+vehicles = Vehicles()
+vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 40)
 
-env_params = {"max-deacc": -6, "max-acc": 3, "close_CD": False}
+additional_params = {"max-deacc": -6, "max-acc": 3, "close_CD": False}
+
+env_params = EnvParams(additional_params=additional_params)
 
 net_params = {"edge_length": 130, "angle": np.pi/10, "resolution": 40, "lanes": 1,
               "AC_DB_speed_limit": 100, "AD_CB_speed_limit": 10, "net_path": "debug/net/"}
 
 cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
 
-scenario = BraessParadoxScenario("braess-paradox", type_params, net_params, cfg_params)
+scenario = BraessParadoxScenario("braess-paradox", BraessParadoxGenerator, vehicles, net_params, cfg_params)
 
 env = BraessParadoxEnvironment(env_params, sumo_binary, sumo_params, scenario)
 

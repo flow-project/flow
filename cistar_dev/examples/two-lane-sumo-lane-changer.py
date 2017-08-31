@@ -21,20 +21,26 @@ Variables:
 '''
 import logging
 
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop import LoopEnvironment
-from cistar_dev.scenarios.loop.gen import CircleGenerator
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
+from cistar.core.experiment import SumoExperiment
+from cistar.core.params import SumoParams
+from cistar.core.vehicles import Vehicles
+
+from cistar.controllers.routing_controllers import *
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.envs.loop import LoopEnvironment
+from cistar.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "human_sm": "no_collide", "human_lc": "strategic"}
+sumo_params = SumoParams(time_step=0.1, human_sm="no_collide", human_lc="strategic")
 
 sumo_binary = "sumo-gui"
 
-type_params = [("idm", 20, (IDMController, {}), None, 0)]
+vehicles = Vehicles()
+vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 20)
 
 env_params = {}
 
@@ -44,7 +50,7 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 
 initial_config = {"shuffle": True}
 
-scenario = LoopScenario("single-lane-one-contr", CircleGenerator, type_params, net_params,
+scenario = LoopScenario("single-lane-one-contr", CircleGenerator, vehicles, net_params,
                         cfg_params, initial_config)
 
 env = LoopEnvironment(env_params, sumo_binary, sumo_params, scenario)

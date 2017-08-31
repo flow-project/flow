@@ -1,11 +1,11 @@
 import unittest
 import logging
 
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
-from cistar_dev.controllers.rlcontroller import RLController
+from cistar.core.experiment import SumoExperiment
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+from cistar.controllers.rlcontroller import RLController
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite, stub
@@ -33,7 +33,7 @@ class TestTwoLaneTwoController(unittest.TestCase):
 
 
     def test_it_runs(self):
-        import cistar_dev.envs as cistar_envs
+        import cistar.envs as cistar_envs
         logging.basicConfig(level=logging.INFO)
 
         scenario = LoopScenario("test-two-lane-two-controller",
@@ -43,7 +43,7 @@ class TestTwoLaneTwoController(unittest.TestCase):
         # FIXME(cathywu) it currently looks like there's no lane changing,
         # although there should be.
         # self.sumo_binary = "sumo-gui"
-        from cistar_dev import pass_params
+        from cistar import pass_params
         env_name = "SimpleLaneChangingAccelerationEnvironment"
         pass_params(env_name, self.sumo_params, self.sumo_binary, self.type_params, 
                     self.env_params, self.net_params, self.cfg_params, self.initial_config, scenario)
