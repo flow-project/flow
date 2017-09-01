@@ -2,13 +2,12 @@ import random
 
 import numpy as np
 
-from cistar.scenarios.intersections.gen import *
 from cistar.scenarios.base_scenario import Scenario
 
 
 class TwoWayIntersectionScenario(Scenario):
 
-    def __init__(self, name, generator_class, vehicles, net_params, cfg_params=None,
+    def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         """
         Initializes a two-way intersection scenario. Required net_params: horizontal_length_before,
@@ -17,48 +16,51 @@ class TwoWayIntersectionScenario(Scenario):
 
         See Scenario.py for description of params.
         """
-        self.left_len = net_params["horizontal_length_in"]
-        self.right_len = net_params["horizontal_length_out"]
-        self.bottom_len = net_params["vertical_length_in"]
-        self.top_len = net_params["vertical_length_out"]
+        self.left_len = net_params.additional_params["horizontal_length_in"]
+        self.right_len = net_params.additional_params["horizontal_length_out"]
+        self.bottom_len = net_params.additional_params["vertical_length_in"]
+        self.top_len = net_params.additional_params["vertical_length_out"]
 
-        self.horizontal_junction_len = 2.9 + 3.3 * net_params["vertical_lanes"]
-        self.vertical_junction_len = 2.9 + 3.3 * net_params["horizontal_lanes"]
+        self.horizontal_junction_len = 2.9 + 3.3 * net_params.additional_params["vertical_lanes"]
+        self.vertical_junction_len = 2.9 + 3.3 * net_params.additional_params["horizontal_lanes"]
         self.inner_space_len = 0.28
 
         # instantiate "length" in net params
-        net_params["length"] = self.left_len + self.right_len + self.horizontal_junction_len + \
+        net_params.additional_params["length"] = self.left_len + self.right_len + self.horizontal_junction_len + \
             self.bottom_len + self.top_len + self.vertical_junction_len
 
-        if "horizontal_lanes" not in net_params:
+        if "horizontal_lanes" not in net_params.additional_params:
             raise ValueError("number of horizontal lanes not supplied")
 
-        if "vertical_lanes" not in net_params:
+        if "vertical_lanes" not in net_params.additional_params:
             raise ValueError("number of vertical lanes not supplied")
 
-        self.lanes = {"top": net_params["vertical_lanes"], "bottom": net_params["vertical_lanes"],
-                      "left": net_params["horizontal_lanes"], "right": net_params["horizontal_lanes"]}
+        self.lanes = {"top": net_params.additional_params["vertical_lanes"],
+                      "bottom": net_params.additional_params["vertical_lanes"],
+                      "left": net_params.additional_params["horizontal_lanes"],
+                      "right": net_params.additional_params["horizontal_lanes"]}
 
         # enter_lane specifies which lane a car enters given a certain direction
         self.enter_lane = {"horizontal": "left", "vertical": "bottom"}
 
-        if "speed_limit" not in net_params:
+        if "speed_limit" not in net_params.additional_params:
             raise ValueError("speed limit not supplied")
 
         # if the speed limit is a single number, then all lanes have the same speed limit
-        if isinstance(net_params["speed_limit"], int) or isinstance(net_params["speed_limit"], float):
-            self.speed_limit = {"horizontal": net_params["speed_limit"],
-                                "vertical": net_params["speed_limit"]}
+        if isinstance(net_params.additional_params["speed_limit"], int) or \
+                isinstance(net_params.additional_params["speed_limit"], float):
+            self.speed_limit = {"horizontal": net_params.additional_params["speed_limit"],
+                                "vertical": net_params.additional_params["speed_limit"]}
         # if the speed limit is a dict with separate values for vertical and horizontal,
         # then they are set as such
-        elif "vertical" in net_params["speed_limit"] and "horizontal" in net_params["speed_limit"]:
-            self.speed_limit = {"horizontal": net_params["speed_limit"]["horizontal"],
-                                "vertical": net_params["speed_limit"]["vertical"]}
+        elif "vertical" in net_params.additional_params["speed_limit"] and \
+                        "horizontal" in net_params.additional_params["speed_limit"]:
+            self.speed_limit = {"horizontal": net_params.additional_params["speed_limit"]["horizontal"],
+                                "vertical": net_params.additional_params["speed_limit"]["vertical"]}
         else:
             raise ValueError('speed limit must contain a number or a dict with keys: "vertical" and "horizontal"')
 
-        super().__init__(name, generator_class, vehicles, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config)
+        super().__init__(name, generator_class, vehicles, net_params, initial_config)
 
     def specify_edge_starts(self):
         edgestarts = \

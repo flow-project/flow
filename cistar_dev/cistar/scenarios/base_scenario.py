@@ -23,7 +23,6 @@ class Scenario(Serializable):
         and net files with placed vehicles, e.g. CircleGenerator
         :param vehicles: See README.md
         :param net_params: See README.md
-        :param cfg_params: See README.md
         :param initial_config:
             { 'shuffle' : True }: Shuffle the starting positions of vehicles.
             { 'positions' : [(route0, pos0), (route1, pos1), ... ]}: Places
@@ -222,23 +221,20 @@ class Scenario(Serializable):
 
             # ensures that vehicles are not placed in an internal junction
             if pos[0] in dict(self.internal_edgestarts).keys():
-                indx_edge = 0
-                for edge_tup in self.total_edgestarts:
-                    if edge_tup[0] != pos[0]:
-                        indx_edge += 1
+                # find the location of the internal edge in total_edgestarts, which has
+                # the edges ordered by position
+                edges = [tup[0] for tup in self.total_edgestarts]
+                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-                    # in case the internal edge is the farthest edge in the system,
-                    # then the new vehicle should be placed at the start of the network,
-                    # where a road network exists
-                    if edge_tup == self.total_edgestarts[-1]:
-                        if self.total_edgestarts[0][0] in dict(self.internal_edgestarts).keys():
-                            indx_edge = 0
-                        else:
-                            indx_edge = -1
+                # take the next edge in the list, and place the car at the beginning of
+                # this edge
+                if indx_edge == len(edges)-1:
+                    next_edge_pos = self.total_edgestarts[0]
+                else:
+                    next_edge_pos = self.total_edgestarts[indx_edge+1]
 
-                next_edge_pos = self.total_edgestarts[indx_edge+1]
                 x[lane_count] = next_edge_pos[1]
-                pos = next_edge_pos
+                pos = (next_edge_pos[0], 0)
 
             startpositions.append(pos)
             startlanes.append(lane_count)
@@ -315,23 +311,20 @@ class Scenario(Serializable):
 
             # ensures that vehicles are not placed in an internal junction
             if pos[0] in dict(self.internal_edgestarts).keys():
-                indx_edge = 0
-                for edge_tup in self.total_edgestarts:
-                    if edge_tup[0] != pos[0]:
-                        indx_edge += 1
+                # find the location of the internal edge in total_edgestarts, which has
+                # the edges ordered by position
+                edges = [tup[0] for tup in self.total_edgestarts]
+                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-                    # in case the internal edge is the farthest edge in the system,
-                    # then the new vehicle should be placed at the start of the network,
-                    # where a road network exists
-                    if edge_tup == self.total_edgestarts[-1]:
-                        if self.total_edgestarts[0][0] in dict(self.internal_edgestarts).keys():
-                            indx_edge = 0
-                        else:
-                            indx_edge = -1
+                # take the next edge in the list, and place the car at the beginning of
+                # this edge
+                if indx_edge == len(edges)-1:
+                    next_edge_pos = self.total_edgestarts[0]
+                else:
+                    next_edge_pos = self.total_edgestarts[indx_edge+1]
 
-                next_edge_pos = self.total_edgestarts[indx_edge+1]
                 x[lane_count] = next_edge_pos[1]
-                pos = next_edge_pos
+                pos = (next_edge_pos[0], 0)
 
             startpositions.append(pos)
 
@@ -375,23 +368,20 @@ class Scenario(Serializable):
 
             # ensures that vehicles are not placed in an internal junction
             if pos[0] in dict(self.internal_edgestarts).keys():
-                indx_edge = 0
-                for edge_tup in self.total_edgestarts:
-                    if edge_tup[0] != pos[0]:
-                        indx_edge += 1
+                # find the location of the internal edge in total_edgestarts, which has
+                # the edges ordered by position
+                edges = [tup[0] for tup in self.total_edgestarts]
+                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-                    # in case the internal edge is the farthest edge in the system,
-                    # then the new vehicle should be placed at the start of the network,
-                    # where a road network exists
-                    if edge_tup == self.total_edgestarts[-1]:
-                        if self.total_edgestarts[0][0] in dict(self.internal_edgestarts).keys():
-                            indx_edge = 0
-                        else:
-                            indx_edge = -1
+                # take the next edge in the list, and place the car at the beginning of
+                # this edge
+                if indx_edge == len(edges)-1:
+                    next_edge_pos = self.total_edgestarts[0]
+                else:
+                    next_edge_pos = self.total_edgestarts[indx_edge+1]
 
-                next_edge_pos = self.total_edgestarts[indx_edge+1]
                 x[lane_count] = next_edge_pos[1]
-                pos = next_edge_pos
+                pos = (next_edge_pos[0], 0)
 
             # collect the position and lane number of each new vehicle
             startpositions.append(pos)

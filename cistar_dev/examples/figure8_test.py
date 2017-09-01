@@ -28,15 +28,14 @@ from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 from cistar.controllers.car_following_models import *
 from cistar.controllers.lane_change_controllers import *
 from cistar.controllers.rlcontroller import RLController
-from cistar.core.params import SumoParams, EnvParams
+from cistar.core.params import SumoParams, EnvParams, NetParams
 from cistar.controllers.routing_controllers import *
 from cistar.core.vehicles import Vehicles
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide")
-
-sumo_binary = "sumo-gui"
+sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide",
+                         sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 14)
@@ -44,14 +43,12 @@ vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (Cont
 additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 500}
 env_params = EnvParams(additional_params=additional_env_params)
 
-net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
-              "net_path": "debug/net/", "no-internal-links": False}
+additional_net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40}
+net_params = NetParams(no_internal_links=False, additional_params=additional_net_params)
 
-cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
+scenario = Figure8Scenario("figure8", Figure8Generator, vehicles, net_params)
 
-scenario = Figure8Scenario("figure8", Figure8Generator, vehicles, net_params, cfg_params)
-
-env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

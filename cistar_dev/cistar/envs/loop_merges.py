@@ -7,8 +7,6 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 from numpy.random import normal
 
-import pdb
-
 
 class SimpleLoopMergesEnvironment(LoopEnvironment):
     """
@@ -81,7 +79,7 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         for veh_id in self.ids:
             # if the vehicle is one the merging vehicles, and there is a merge-out lane, it should not be rerouted
             if "merge" in self.vehicles.get_state(veh_id, "type") and \
-                            self.scenario.net_params["merge_out_length"] is not None:
+                            self.scenario.net_params.additional_params["merge_out_length"] is not None:
                 continue
 
             # check if a vehicle needs to be rerouted

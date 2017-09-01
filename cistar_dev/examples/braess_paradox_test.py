@@ -11,8 +11,8 @@ import logging
 from cistar.core.experiment import SumoExperiment
 from cistar.controllers.car_following_models import *
 from cistar.controllers.lane_change_controllers import *
-from cistar.scenarios.braess_paradox.gen import BraessParadoxGenerator
 from cistar.envs.braess_paradox import BraessParadoxEnvironment
+from cistar.scenarios.braess_paradox.gen import BraessParadoxGenerator
 from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
 from cistar.core.params import SumoParams
 from cistar.core.params import EnvParams
@@ -28,6 +28,7 @@ vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 40)
 
 additional_params = {"max-deacc": -6, "max-acc": 3, "close_CD": False}
+
 env_params = EnvParams(additional_params=additional_params)
 
 net_params = {"edge_length": 130, "angle": np.pi/10, "resolution": 40, "lanes": 1,

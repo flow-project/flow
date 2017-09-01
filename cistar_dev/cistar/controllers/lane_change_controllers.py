@@ -1,7 +1,6 @@
 import numpy as np
 import random
 
-
 class StaticLaneChanger:
     # Equivalent to never_change_lanes_controller
 

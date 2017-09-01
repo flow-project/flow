@@ -67,18 +67,18 @@ class LoopEnvironment(SumoEnvironment):
     def get_headway(self, veh_id, lane=None):
         # by default, will look in the same lane
         if lane is None:
-            lane = self.vehicles[veh_id]["lane"]
+            lane = self.vehicles.get_leader(veh_id)
 
         lead_id = self.get_leading_car(veh_id, lane)
         # if there's more than one car
         if lead_id:
             lead_pos = self.get_x_by_id(lead_id)
-            lead_length = self.vehicles[lead_id]['length']
+            lead_length = self.vehicles.get_state(lead_id, 'length')
             this_pos = self.get_x_by_id(veh_id)
             return (lead_pos - lead_length - this_pos) % self.scenario.length
         # if there's only one car, return the loop length minus car length
         else: 
-            return self.scenario.net_params["length"] - self.vehicles[veh_id]['length']
+            return self.scenario.net_params.additional_params["length"] - self.vehicles.get_state(veh_id, 'length')
 
     def get_cars(self, veh_id, dxBack, dxForward, lane = None, dx = None):
         # TODO: correctly implement this method, and add documentation

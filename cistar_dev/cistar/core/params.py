@@ -97,19 +97,28 @@ class EnvParams:
 
 
 class NetParams:
-    def __init__(self, net_path="debug/net/", cfg_path="debug/cfg/", no_internal_links=True, additional_params=None):
+    def __init__(self, net_path="debug/net/", cfg_path="debug/cfg/", no_internal_links=True,
+                 lanes=1, speed_limit=55, additional_params=None):
         """
 
         :param net_path: path to the network files created to create a network with sumo
         :param cfg_path: path to the configuration files created to create a network with sumo
         :param no_internal_links: determines whether the space between edges is finite. Important
                                   when using networks with intersections
+        :param lanes: number of lanes for each edge in the network. May be specified as a single
+                      integer (in which case all lanes are assumed to have the same number of
+                      lanes), or a dict element, ex: {"edge_1": 2, "edge_2": 1, ...}
+        :param speed_limit: speed limit for each edge in the network. May be specified as a single
+                            value (in which case all edges are assumed to have the same speed limit),
+                            or a dict element, ex: {"edge_1": 30, "edge_2": 35, ...}
         :param additional_params: network specific parameters; see each subclass for a
                                   description of what is needed
         """
         self.net_path = net_path
         self.cfg_path = cfg_path
         self.no_internal_links = no_internal_links
+        self.lanes = lanes
+        self.speed_limit = speed_limit
         self.additional_params = additional_params
 
 

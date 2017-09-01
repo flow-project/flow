@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
-# from cistar.core import multi_agent_rewards
+from cistar.core import multi_agent_rewards
 from cistar.envs.base_env import SumoEnvironment
 
 

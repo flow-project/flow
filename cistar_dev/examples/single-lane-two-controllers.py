@@ -30,13 +30,12 @@ from cistar.controllers.car_following_models import *
 from cistar.controllers.lane_change_controllers import *
 from cistar.controllers.routing_controllers import *
 from cistar.core.vehicles import Vehicles
-from cistar.core.params import SumoParams, EnvParams, InitialConfig
+from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step= 0.1, human_speed_mode="no_collide")
-
-sumo_binary = "sumo-gui"
+sumo_params = SumoParams(time_step= 0.1, human_speed_mode="no_collide",
+                         sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 15)
@@ -44,17 +43,16 @@ vehicles.add_vehicles("idm2", (DrunkDriver, {}), (StaticLaneChanger, {}), (Conti
 
 env_params = EnvParams()
 
-net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/net/"}
-
-cfg_params = {"start_time": 0, "end_time": 30000, "cfg_path": "debug/cfg/"}
+additional_net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40}
+net_params = NetParams(additional_params=additional_net_params)
 
 initial_config = InitialConfig(bunching=20)
 
 scenario = LoopScenario("single-lane-two-contr", CircleGenerator, vehicles, net_params,
-                        cfg_params, initial_config)
+                        initial_config)
 # data path needs to be relative to cfg location
 
-env = LoopEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = LoopEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

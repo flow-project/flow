@@ -4,13 +4,8 @@ from cistar.controllers.car_following_models import *
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
-from gym.spaces.discrete import Discrete
-
-import traci
-import pdb
 import numpy as np
 from numpy.random import normal
-import time
 
 
 class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
@@ -29,19 +24,11 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                                                    2) lane change to index +1
         :return:
         """
-        # action_space = Product(*[Discrete(3) for _ in range(self.scenario.num_rl_vehicles)],
-        #     Box(low=-abs(self.env_params["max-deacc"]),
-        #                 high=self.env_params["max-acc"],
-        #                 shape=(self.scenario.num_rl_vehicles,)))
-        #
-        # return action_space
-
         max_deacc = self.env_params.get_additional_param("max-deacc")
         max_acc = self.env_params.get_additional_param("max-acc")
 
         lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
         ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
-
         return Box(np.array(lb), np.array(ub))
 
     @property
@@ -81,38 +68,6 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
                           self.vehicles.get_absolute_position(veh_id) + normal(0, self.observation_pos_std),
                           self.vehicles.get_lane(veh_id)] for veh_id in self.sorted_ids])
 
-        # # for moving bottleneck: use only local trailing data for the moving bottleneck experiment
-        # vehID = self.rl_ids[0]
-        #
-        # trail_lane0 = self.get_trailing_car(vehID, lane=0)
-        # headway_lane0 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane0]["absolute_position"]) \
-        #     % self.scenario.length
-        #
-        # trail_lane1 = self.get_trailing_car(vehID, lane=1)
-        # headway_lane1 = (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane1]["absolute_position"]) \
-        #     % self.scenario.length
-        #
-        # if self.scenario.lanes == 2:
-        #     return np.array(
-        #         [[self.vehicles[vehID]["speed"], self.vehicles[vehID]["absolute_position"], self.vehicles[vehID]["lane"]],
-        #          [self.vehicles[trail_lane0]["speed"], headway_lane0, self.vehicles[trail_lane0]["lane"]],
-        #          [self.vehicles[trail_lane1]["speed"], headway_lane1, self.vehicles[trail_lane1]["lane"]]])
-        #
-        # elif self.scenario.lanes == 3:
-        #     trail_lane2 = self.get_trailing_car(vehID, lane=2)
-        #     headway_lane2 = \
-        #         (self.vehicles[vehID]["absolute_position"] - self.vehicles[trail_lane2]["absolute_position"]) \
-        #         % self.scenario.length
-        #
-        #     return np.array(
-        #         [[self.vehicles[vehID]["speed"], self.vehicles[vehID]["absolute_position"], self.vehicles[vehID]["lane"]],
-        #          [self.vehicles[trail_lane0]["speed"], headway_lane0, self.vehicles[trail_lane0]["lane"]],
-        #          [self.vehicles[trail_lane1]["speed"], headway_lane1, self.vehicles[trail_lane1]["lane"]],
-        #          [self.vehicles[trail_lane2]["speed"], headway_lane2, self.vehicles[trail_lane2]["lane"]]])
-
-    # def render(self):
-    #     print('current velocity, lane, absolute_pos, headway:', self.state)
-
     def apply_rl_actions(self, actions):
         """
         Takes a tuple and applies a lane change or acceleration. if a lane change is applied,
@@ -143,9 +98,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
 class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
 
-    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+    def __init__(self, env_params, sumo_params, scenario):
 
-        super().__init__(env_params, sumo_binary, sumo_params, scenario)
+        super().__init__(env_params, sumo_params, scenario)
 
         # longitudinal (acceleration) controller used for rl cars
         self.rl_controller = dict()
@@ -159,7 +114,7 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
         """
         Actions are: a continuous direction for each rl vehicle
         """
-        return Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles,))
+        return Box(low=-1, high=1, shape=(self.vehicles.num_rl_vehicles,))
 
     @property
     def observation_space(self):
@@ -168,8 +123,8 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
         An observation consists of the velocity, lane index, and absolute position of each vehicle
         in the fleet
         """
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.vehicles.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Tuple([speed, lane, absolute_pos])
 

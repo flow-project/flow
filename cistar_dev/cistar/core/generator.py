@@ -1,7 +1,6 @@
 """
 Base class for generating transportation networks.
 """
-
 from cistar.core.util import makexml
 from cistar.core.util import printxml
 from cistar.core.util import ensure_dir

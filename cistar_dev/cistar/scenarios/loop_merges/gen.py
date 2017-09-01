@@ -30,16 +30,16 @@ class LoopMergesGenerator(Generator):
         """
         super().__init__(net_params, net_path, cfg_path, base)
 
-        merge_in_len = net_params["merge_in_length"]
-        merge_out_len = net_params["merge_out_length"]
-        r = net_params["ring_radius"]
-        lanes = net_params["lanes"]
+        merge_in_len = net_params.additional_params["merge_in_length"]
+        merge_out_len = net_params.additional_params["merge_out_length"]
+        r = net_params.additional_params["ring_radius"]
+        lanes = net_params.additional_params["lanes"]
         length = merge_in_len + merge_out_len + 2 * pi * r
         self.name = "%s-%dm%dl" % (base, length, lanes)
 
-        self.merge_out_len = net_params["merge_out_length"]
+        self.merge_out_len = net_params.additional_params["merge_out_length"]
 
-    def make_routes(self, scenario, initial_config, cfg_params):
+    def make_routes(self, scenario, initial_config):
 
         type_list = scenario.vehicles.types
         num_cars = scenario.vehicles.num_vehicles
@@ -51,10 +51,10 @@ class LoopMergesGenerator(Generator):
 
             vehicle_ids = scenario.vehicles.get_ids()
 
-            if initial_config["shuffle"]:
+            if initial_config.shuffle:
                 random.shuffle(vehicle_ids)
 
-            positions = initial_config["positions"]
+            positions = initial_config.positions
             ring_positions = positions[:scenario.vehicles.num_vehicles-scenario.num_merge_vehicles]
             merge_positions = positions[scenario.vehicles.num_vehicles-scenario.num_merge_vehicles:]
             i_merge = 0
@@ -78,11 +78,11 @@ class LoopMergesGenerator(Generator):
         """
         See parent class
         """
-        merge_in_len = net_params["merge_in_length"]
-        merge_out_len = net_params["merge_out_length"]
-        merge_in_angle = net_params["merge_in_angle"]
-        merge_out_angle = net_params["merge_out_angle"]
-        r = net_params["ring_radius"]
+        merge_in_len = net_params.additional_params["merge_in_length"]
+        merge_out_len = net_params.additional_params["merge_out_length"]
+        merge_in_angle = net_params.additional_params["merge_in_angle"]
+        merge_out_angle = net_params.additional_params["merge_out_angle"]
+        r = net_params.additional_params["ring_radius"]
 
         if merge_out_len is not None:
             nodes = [{"id": "merge_in", "type": "priority",
@@ -120,12 +120,12 @@ class LoopMergesGenerator(Generator):
         """
         See parent class
         """
-        merge_in_len = net_params["merge_in_length"]
-        merge_out_len = net_params["merge_out_length"]
-        in_angle = net_params["merge_in_angle"]
-        out_angle = net_params["merge_out_angle"]
-        r = net_params["ring_radius"]
-        res = net_params["resolution"]
+        merge_in_len = net_params.additional_params["merge_in_length"]
+        merge_out_len = net_params.additional_params["merge_out_length"]
+        in_angle = net_params.additional_params["merge_in_angle"]
+        out_angle = net_params.additional_params["merge_out_angle"]
+        r = net_params.additional_params["ring_radius"]
+        res = net_params.additional_params["resolution"]
 
         if merge_out_len is not None:
             # edges associated with merges
@@ -166,8 +166,8 @@ class LoopMergesGenerator(Generator):
         """
         See parent class
         """
-        lanes = net_params["lanes"]
-        speed_limit = net_params["speed_limit"]
+        lanes = net_params.additional_params["lanes"]
+        speed_limit = net_params.additional_params["speed_limit"]
         types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
         return types

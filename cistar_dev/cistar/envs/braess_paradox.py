@@ -25,7 +25,7 @@ class BraessParadoxEnvironment(SumoEnvironment):
         """
         See parent class
         """
-        super().__init__(env_params, sumo_binary, sumo_params, scenario)
+        super().__init__(env_params, sumo_params, scenario)
 
         # specifies whether vehicles are allowed to cross the edge connecting
         # the top and bottom portions of the network

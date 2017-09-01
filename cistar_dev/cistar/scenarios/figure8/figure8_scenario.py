@@ -1,7 +1,8 @@
 import numpy as np
 
-from cistar.scenarios.base_scenario import Scenario
 from cistar.core.params import InitialConfig
+from cistar.scenarios.base_scenario import Scenario
+
 
 class Figure8Scenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params, initial_config=InitialConfig()):
@@ -17,24 +18,25 @@ class Figure8Scenario(Scenario):
         self.inner_space_len = 0.28
 
         # instantiate "length" in net params
-        net_params["length"] = 6 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + \
-            10 * self.inner_space_len
+        net_params.additional_params["length"] = \
+            6 * self.ring_edgelen + 2 * self.intersection_len + 2 * self.junction_len + 10 * self.inner_space_len
 
-        if "radius_ring" not in net_params:
+        if "radius_ring" not in net_params.additional_params:
             raise ValueError("radius of ring not supplied")
         self.radius_ring = net_params.additional_params["radius_ring"]
 
         self.length = net_params.additional_params["length"]
+        print(self.length)
 
-        if "lanes" not in net_params:
+        if "lanes" not in net_params.additional_params:
             raise ValueError("number of lanes not supplied")
         self.lanes = net_params.additional_params["lanes"]
 
-        if "speed_limit" not in net_params:
+        if "speed_limit" not in net_params.additional_params:
             raise ValueError("speed limit not supplied")
         self.speed_limit = net_params.additional_params["speed_limit"]
 
-        if "resolution" not in net_params:
+        if "resolution" not in net_params.additional_params:
             raise ValueError("resolution of circular sections not supplied")
         self.resolution = net_params.additional_params["resolution"]
 
