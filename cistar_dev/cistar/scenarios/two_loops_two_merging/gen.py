@@ -1,4 +1,4 @@
-from cistar_dev.core.generator import Generator
+from cistar.core.generator import Generator
 
 from numpy import pi, sin, cos, linspace
 

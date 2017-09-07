@@ -52,7 +52,7 @@ cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
 initial_config = {"shuffle": False, "distribution_length": 8 / 3 * np.pi * net_params["ring_radius"]}
 
 scenario = TwoLoopsTwoMergingScenario("two-loop-two-merging", TwoLoopTwoMergingGenerator, vehicles,
-                                      net_params, cfg_params, initial_config)
+                                      net_params, initial_config)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
 
