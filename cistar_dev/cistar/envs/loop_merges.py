@@ -21,8 +21,9 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         Actions are a set of accelerations from 0 to 15m/s
         :return:
         """
-        return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")), high=self.env_params.get_additional_param("max-acc"),
-                   shape=(self.scenario.num_rl_vehicles,))
+        return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")),
+                   high=self.env_params.get_additional_param("max-acc"),
+                   shape=(self.vehicles.num_rl_vehicles,))
 
     @property
     def observation_space(self):
@@ -30,9 +31,9 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         See parent class
         An observation is an array the velocities for each vehicle
         """
-        speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
-        edge = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        edge = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple([speed, absolute_pos, edge])
 
     def apply_rl_actions(self, rl_actions):
@@ -67,7 +68,7 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
             elif edge_id[i] == 2:
                 sorted_pos[i] = sorted_pos[i] / self.scenario.merge_out_len
 
-        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
+        return np.array([[self.vehicles.get_speed(veh_id) + normal(0, self.observation_vel_std),
                           sorted_pos[i] + normal(0, self.observation_pos_std),
                           edge_id[i]] for i, veh_id in enumerate(self.sorted_ids)])
 
@@ -77,20 +78,21 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         """
         for veh_id in self.ids:
             # if the vehicle is one the merging vehicles, and there is a merge-out lane, it should not be rerouted
-            if "merge" in self.vehicles[veh_id]["type"] and self.scenario.net_params["merge_out_length"] is not None:
+            if "merge" in self.vehicles.get_state(veh_id, "type") and \
+                            self.scenario.net_params.additional_params["merge_out_length"] is not None:
                 continue
 
             # check if a vehicle needs to be rerouted
             route = None
-            if self.vehicles[veh_id]["route"][-1] == self.vehicles[veh_id]["edge"]:
-                if self.vehicles[veh_id]["edge"] == "ring_0":
+            if self.vehicles.get_route(veh_id)[-1] == self.vehicles.get_edge(veh_id):
+                if self.vehicles.get_edge(veh_id) == "ring_0":
                     route = ["ring_0", "ring_1"]
-                elif self.vehicles[veh_id]["edge"] == "ring_1":
+                elif self.vehicles.get_edge(veh_id) == "ring_1":
                     route = ["ring_1", "ring_0"]
 
             # perform rerouting and update vehicle's perception of its route
             if route is not None:
-                self.vehicles[veh_id]["route"] = route
+                self.vehicles.set_route(veh_id, route)
                 self.traci_connection.vehicle.setRoute(vehID=veh_id, edgeList=route)
 
     def sort_by_position(self, **kwargs):
@@ -106,8 +108,8 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
             pos = [[], []]
 
         for veh_id in self.ids:
-            this_edge = self.vehicles[veh_id]["edge"]
-            this_pos = self.vehicles[veh_id]["position"]
+            this_edge = self.vehicles.get_edge(veh_id)
+            this_pos = self.vehicles.get_position(veh_id)
 
             # the position of vehicles on the ring is their relative position from the
             # intersection with the merge-in
@@ -129,7 +131,7 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
                 #     self.vehicles[veh_id]["absolute_position"] += (num_loops + 1) * self.scenario.length
                 #
                 # pos[0].append((veh_id, self.vehicles[veh_id]["absolute_position"]))
-                pos[0].append((veh_id, self.vehicles[veh_id]["absolute_position"] % self.scenario.length))
+                pos[0].append((veh_id, self.vehicles.get_absolute_position(veh_id) % self.scenario.length))
 
             # the position of vehicles in the merge-in / merge-out are their relative position
             # from the start of the respective merge
@@ -150,15 +152,15 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         for i in range(len(pos)):
             pos[i].sort(key=lambda tup: tup[1])
             if i == 0:
-                if len(self.rl_ids) == 1:
-                    # for single rl vehicle case: set the rl vehicle in index 0 to allow for implicit labeling
-                    indx_rl = [ind for ind in range(len(pos[0])) if pos[0][ind][0] in self.rl_ids][0]
-                    indx_sorted_ids = np.mod(np.arange(len(pos[0])) + indx_rl, len(pos[0]))
-                    sorted_ids += [pos[0][ind][0] for ind in indx_sorted_ids]
-                    sorted_pos += [pos[0][ind][1] % self.scenario.length for ind in indx_sorted_ids]
-                else:
-                    sorted_ids += [tup[0] for tup in pos[i]]
-                    sorted_pos += [tup[1] % self.scenario.length for tup in pos[i]]
+                # if len(self.rl_ids) == 1:
+                #     # for single rl vehicle case: set the rl vehicle in index 0 to allow for implicit labeling
+                #     indx_rl = [ind for ind in range(len(pos[0])) if pos[0][ind][0] in self.rl_ids][0]
+                #     indx_sorted_ids = np.mod(np.arange(len(pos[0])) + indx_rl, len(pos[0]))
+                #     sorted_ids += [pos[0][ind][0] for ind in indx_sorted_ids]
+                #     sorted_pos += [pos[0][ind][1] % self.scenario.length for ind in indx_sorted_ids]
+                # else:
+                sorted_ids += [tup[0] for tup in pos[i]]
+                sorted_pos += [tup[1] % self.scenario.length for tup in pos[i]]
             else:
                 sorted_ids += [tup[0] for tup in pos[i]]
                 sorted_pos += [tup[1] for tup in pos[i]]
@@ -181,8 +183,8 @@ class SimpleLoopMergesEnvironment(LoopEnvironment):
         i_called = []  # index of vehicles in the list that have already received traci calls
         for i, veh_id in enumerate(veh_ids):
             if "merge" in veh_id:
-                this_edge = self.vehicles[veh_id]["edge"]
-                this_pos = self.vehicles[veh_id]["position"]
+                this_edge = self.vehicles.get_edge(veh_id)
+                this_pos = self.vehicles.get_position(veh_id)
 
                 # vehicles that are about to exit are stopped
                 if this_edge == "merge_out" and this_pos > self.scenario.merge_out_len - 10:

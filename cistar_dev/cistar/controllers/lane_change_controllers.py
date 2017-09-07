@@ -8,19 +8,12 @@ class StaticLaneChanger:
         self.veh_id = veh_id
 
     def get_action(self, env):
-        return env.vehicles[self.veh_id]['lane']
-
-
-def never_change_lanes_controller():
-    def controller(carID, env):
-        return env.vehicles[carID]["lane"]
-    return controller
-
+        return env.vehicles.get_lane(self.veh_id)
 
 
 class StochasticLaneChanger:
 
-    def __init__(self, veh_id, speedThreshold = 5, prob = 0.5, dxBack = 0, dxForward = 60, gapBack = 10, gapForward = 5):
+    def __init__(self, veh_id, speedThreshold=5, prob=0.5, dxBack=0, dxForward=60, gapBack=10, gapForward=5):
         self.veh_id = veh_id
         self.speedThreshold = speedThreshold
         self.prob = prob
@@ -40,12 +33,12 @@ class StochasticLaneChanger:
         v = [0] * env.scenario.lanes
         for lane in range(num_lanes):
             # count the cars in this lane
-            leadID = env.get_leading_car(self.veh_id, lane)
-            trailID = env.get_trailing_car(self.veh_id, lane)
+            leadID = env.vehicles.get_leader(self.veh_id)
+            trailID = env.vehicles.get_follower(self.veh_id)
 
             if not leadID or not trailID:
                 # empty lanes are assigned maximum speeds
-                v[lane] = env.vehicles[self.veh_id]['max_speed']
+                v[lane] = env.vehicles.get_state(self.veh_id, 'max_speed')
                 continue
 
             leadPos = env.get_x_by_id(leadID)

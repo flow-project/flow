@@ -30,59 +30,46 @@ class LoopMergesGenerator(Generator):
         """
         super().__init__(net_params, net_path, cfg_path, base)
 
-        merge_in_len = net_params["merge_in_length"]
-        merge_out_len = net_params["merge_out_length"]
-        r = net_params["ring_radius"]
-        lanes = net_params["lanes"]
+        merge_in_len = net_params.additional_params["merge_in_length"]
+        merge_out_len = net_params.additional_params["merge_out_length"]
+        r = net_params.additional_params["ring_radius"]
+        lanes = net_params.additional_params["lanes"]
         length = merge_in_len + merge_out_len + 2 * pi * r
         self.name = "%s-%dm%dl" % (base, length, lanes)
 
-        self.merge_out_len = net_params["merge_out_length"]
+        self.merge_out_len = net_params.additional_params["merge_out_length"]
 
-    def make_routes(self, scenario, initial_config, cfg_params):
+    def make_routes(self, scenario, initial_config):
 
-        type_params = scenario.type_params
-        type_list = [tup[0] for tup in type_params]
-        num_cars = scenario.num_vehicles
-        if type_list is not None:
+        type_list = scenario.vehicles.types
+        num_cars = scenario.vehicles.num_vehicles
+        if num_cars > 0:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-            for i, tp in enumerate(type_list):
-                if type_params[i][2][0] == SumoController:
-                    sumo_attributes = dict()
-                    sumo_attributes["id"] = tp
-                    sumo_attributes["minGap"] = "0"
-                    for key in type_params[i][2][1].keys():
-                        sumo_attributes[key] = repr(type_params[i][1][1][key])
-                    routes.append(E("vType", attrib=sumo_attributes))
-                else:
-                    routes.append(E("vType", id=tp, minGap="0"))
 
-            vehicle_ids = []
-            if num_cars > 0:
-                for i, tp in enumerate(type_list):
-                    type_count = type_params[i][1]
-                    for j in range(type_count):
-                        vehicle_ids.append((tp, tp + "_" + str(j)))
+            for veh_type in scenario.vehicles.types:
+                routes.append(E("vType", id=veh_type, minGap="0"))
 
-            if initial_config["shuffle"]:
+            vehicle_ids = scenario.vehicles.get_ids()
+
+            if initial_config.shuffle:
                 random.shuffle(vehicle_ids)
 
-            positions = initial_config["positions"]
-            ring_positions = positions[:scenario.num_vehicles-scenario.num_merge_vehicles]
-            merge_positions = positions[scenario.num_vehicles-scenario.num_merge_vehicles:]
+            positions = initial_config.positions
+            ring_positions = positions[:scenario.vehicles.num_vehicles-scenario.num_merge_vehicles]
+            merge_positions = positions[scenario.vehicles.num_vehicles-scenario.num_merge_vehicles:]
             i_merge = 0
             i_ring = 0
-            for i, (type, id) in enumerate(vehicle_ids):
-                if "merge" in type:
+            for i, id in enumerate(vehicle_ids):
+                if "merge" in scenario.vehicles.get_state(id, "type"):
                     route, pos = merge_positions[i_merge]
                     i_merge += 1
                 else:
                     route, pos = ring_positions[i_ring]
                     i_ring += 1
 
-                indx_type = [i for i in range(len(type_list)) if type_list[i] == type][0]
-                type_depart_speed = type_params[indx_type][4]
-                routes.append(self.vehicle(type, "route" + route, depart="0",
+                veh_type = scenario.vehicles.get_state(id, "type")
+                type_depart_speed = scenario.vehicles.get_initial_speed(id)
+                routes.append(self.vehicle(veh_type, "route" + route, depart="0",
                               departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
 
             printxml(routes, self.cfg_path + self.roufn)
@@ -91,11 +78,11 @@ class LoopMergesGenerator(Generator):
         """
         See parent class
         """
-        merge_in_len = net_params["merge_in_length"]
-        merge_out_len = net_params["merge_out_length"]
-        merge_in_angle = net_params["merge_in_angle"]
-        merge_out_angle = net_params["merge_out_angle"]
-        r = net_params["ring_radius"]
+        merge_in_len = net_params.additional_params["merge_in_length"]
+        merge_out_len = net_params.additional_params["merge_out_length"]
+        merge_in_angle = net_params.additional_params["merge_in_angle"]
+        merge_out_angle = net_params.additional_params["merge_out_angle"]
+        r = net_params.additional_params["ring_radius"]
 
         if merge_out_len is not None:
             nodes = [{"id": "merge_in", "type": "priority",
@@ -133,12 +120,12 @@ class LoopMergesGenerator(Generator):
         """
         See parent class
         """
-        merge_in_len = net_params["merge_in_length"]
-        merge_out_len = net_params["merge_out_length"]
-        in_angle = net_params["merge_in_angle"]
-        out_angle = net_params["merge_out_angle"]
-        r = net_params["ring_radius"]
-        res = net_params["resolution"]
+        merge_in_len = net_params.additional_params["merge_in_length"]
+        merge_out_len = net_params.additional_params["merge_out_length"]
+        in_angle = net_params.additional_params["merge_in_angle"]
+        out_angle = net_params.additional_params["merge_out_angle"]
+        r = net_params.additional_params["ring_radius"]
+        res = net_params.additional_params["resolution"]
 
         if merge_out_len is not None:
             # edges associated with merges
@@ -179,8 +166,8 @@ class LoopMergesGenerator(Generator):
         """
         See parent class
         """
-        lanes = net_params["lanes"]
-        speed_limit = net_params["speed_limit"]
+        lanes = net_params.additional_params["lanes"]
+        speed_limit = net_params.additional_params["speed_limit"]
         types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
         return types

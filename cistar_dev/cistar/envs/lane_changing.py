@@ -1,5 +1,6 @@
 from cistar.envs.loop import LoopEnvironment
 from cistar.core import rewards
+from cistar.controllers.car_following_models import *
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -26,8 +27,8 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         max_deacc = self.env_params.get_additional_param("max-deacc")
         max_acc = self.env_params.get_additional_param("max-acc")
 
-        lb = [-abs(max_deacc), -1] * self.scenario.num_rl_vehicles
-        ub = [max_acc, 1] * self.scenario.num_rl_vehicles
+        lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
+        ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
         return Box(np.array(lb), np.array(ub))
 
     @property
@@ -38,25 +39,21 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         in the fleet
         """
 
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.vehicles.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.vehicles.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, lane, absolute_pos))
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        target_velocity = self.env_params.get_additional_param("target_velocity")
-
         # compute the system-level performance of vehicles from a velocity perspective
         reward = rewards.desired_velocity(self, fail=kwargs["fail"])
-        reward = rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params.get_additional_param("target_velocity"), fail=kwargs["fail"])
 
         # punish excessive lane changes by reducing the reward by a set value every time an rl car changes lanes
         for veh_id in self.rl_ids:
-            if self.vehicles[veh_id]["last_lc"] == self.timer:
+            if self.vehicles.get_state(veh_id, "last_lc") == self.timer:
                 reward -= 1
 
         return reward
@@ -67,9 +64,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: an array of vehicle speed for each vehicle
         """
-        return np.array([[self.vehicles[veh_id]["speed"] + normal(0, self.observation_vel_std),
-                          self.vehicles[veh_id]["absolute_position"] + normal(0, self.observation_pos_std),
-                          self.vehicles[veh_id]["lane"]] for veh_id in self.sorted_ids])
+        return np.array([[self.vehicles.get_speed(veh_id) + normal(0, self.observation_vel_std),
+                          self.vehicles.get_absolute_position(veh_id) + normal(0, self.observation_pos_std),
+                          self.vehicles.get_lane(veh_id)] for veh_id in self.sorted_ids])
 
     def apply_rl_actions(self, actions):
         """
@@ -90,7 +87,7 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
 
         # represents vehicles that are allowed to change lanes
-        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+        non_lane_changing_veh = [self.timer <= self.lane_change_duration + self.vehicles.get_state(veh_id, 'last_lc')
                                  for veh_id in sorted_rl_ids]
         # vehicle that are not allowed to change have their directions set to 0
         direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
@@ -101,9 +98,9 @@ class SimpleLaneChangingAccelerationEnvironment(LoopEnvironment):
 
 class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
 
-    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
+    def __init__(self, env_params, sumo_params, scenario):
 
-        super().__init__(env_params, sumo_binary, sumo_params, scenario)
+        super().__init__(env_params, sumo_params, scenario)
 
         # longitudinal (acceleration) controller used for rl cars
         self.rl_controller = dict()
@@ -117,7 +114,7 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
         """
         Actions are: a continuous direction for each rl vehicle
         """
-        return Box(low=-1, high=1, shape=(self.scenario.num_rl_vehicles,))
+        return Box(low=-1, high=1, shape=(self.vehicles.num_rl_vehicles,))
 
     @property
     def observation_space(self):
@@ -126,8 +123,8 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
         An observation consists of the velocity, lane index, and absolute position of each vehicle
         in the fleet
         """
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.scenario.num_vehicles,))
-        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.scenario.num_vehicles,))
+        speed = Box(low=-np.inf, high=np.inf, shape=(self.vehicles.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
         return Tuple([speed, lane, absolute_pos])
 

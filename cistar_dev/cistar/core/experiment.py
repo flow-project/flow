@@ -30,9 +30,9 @@ class SumoExperiment():
         cfg : specify a configuration, rather than create a new one
         """
         self.name = scenario.name
-        self.num_vehicles = scenario.num_vehicles
+        self.num_vehicles = env.vehicles.num_vehicles
         self.env = env
-        self.type_params = scenario.type_params
+        self.vehicles = scenario.vehicles
         self.cfg = scenario.cfg
 
         logging.info(" Starting experiment" + str(self.name) + " at " + str(datetime.datetime.utcnow()))

@@ -16,8 +16,8 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        length = net_params["length"]
-        lanes = net_params["lanes"]
+        length = net_params.additional_params["length"]
+        lanes = net_params.additional_params["lanes"]
         self.name = "%s-%dm%dl" % (base, length, lanes)
 
         super().__init__(net_params, net_path, cfg_path, base)
@@ -26,8 +26,8 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        length = net_params["length"]
-        r = length / pi
+        length = net_params.additional_params["length"]
+        r = length / (2 * pi)
 
         nodes = [{"id": "bottom", "x": repr(0),  "y": repr(-r)},
                  {"id": "right",  "x": repr(r),  "y": repr(0)},
@@ -40,9 +40,9 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        length = net_params["length"]
-        resolution = net_params["resolution"]
-        r = length / pi
+        length = net_params.additional_params["length"]
+        resolution = net_params.additional_params["resolution"]
+        r = length / (2 * pi)
         edgelen = length / 4.
 
         edges = [{"id": "bottom", "type": "edgeType",
@@ -68,8 +68,8 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        lanes = net_params["lanes"]
-        speed_limit = net_params["speed_limit"]
+        lanes = net_params.additional_params["lanes"]
+        speed_limit = net_params.additional_params["speed_limit"]
         types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
         return types
@@ -84,15 +84,3 @@ class CircleGenerator(Generator):
                "right": ["right", "top", "left", "bottom"]}
 
         return rts
-
-    # TODO: may be able to get rid of all together (replace with routing controller)
-    def specify_rerouters(self, net_params):
-        """
-        See parent class
-        """
-        rerouting = [{"name": "rerouterTop",    "from": "top",    "route": "routebottom"},
-                     {"name": "rerouterBottom", "from": "bottom", "route": "routetop"},
-                     {"name": "rerouterLeft",   "from": "left",   "route": "routeright"},
-                     {"name": "rerouterRight",  "from": "right",  "route": "routeleft"}]
-
-        return rerouting

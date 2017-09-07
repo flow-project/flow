@@ -25,7 +25,7 @@ class ConstantVelocityController(BaseController):
         self.max_accel = max_accel
 
     def get_action(self, env):
-        this_vel = env.vehicles[self.veh_id]['speed']
+        this_vel = env.vehicles.get_speed(self.veh_id)
         acc = (self.constant_speed - this_vel)/env.time_step
         if acc > 0:
             if acc > self.max_accel:

@@ -1,13 +1,12 @@
 import numpy as np
 from numpy import pi
 
-from cistar.scenarios.loop_merges.gen import *
 from cistar.scenarios.base_scenario import Scenario
 
 
 class LoopMergesScenario(Scenario):
 
-    def __init__(self, name, generator_class, type_params, net_params, cfg_params=None,
+    def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         """
         Initializes a two-way intersection scenario. Required net_params: horizontal_length_before,
@@ -16,44 +15,43 @@ class LoopMergesScenario(Scenario):
 
         See Scenario.py for description of params.
         """
-        self.merge_in_len = net_params["merge_in_length"]
-        self.merge_out_len = net_params["merge_out_length"]
-        self.merge_in_angle = net_params["merge_in_angle"]
-        self.merge_out_angle = net_params["merge_out_angle"]
-        self.radius = net_params["ring_radius"]
+        self.merge_in_len = net_params.additional_params["merge_in_length"]
+        self.merge_out_len = net_params.additional_params["merge_out_length"]
+        self.merge_in_angle = net_params.additional_params["merge_in_angle"]
+        self.merge_out_angle = net_params.additional_params["merge_out_angle"]
+        self.radius = net_params.additional_params["ring_radius"]
 
         # the vehicles that start in the merging lane are distinguished by the presence of the string "merge"
         # in their names
-        self.num_merge_vehicles = sum([x[1] for x in type_params if "merge" in x[0]])
+        self.num_merge_vehicles = sum(["merge" in vehicles.get_state(veh_id, "type") for veh_id in vehicles.get_ids()])
 
         # TODO: find a good way of calculating these
-        self.ring_0_0_len = 1.1 + 4 * net_params["lanes"]
-        self.ring_1_0_len = 1.1 + 4 * net_params["lanes"]
+        self.ring_0_0_len = 1.1 + 4 * net_params.additional_params["lanes"]
+        self.ring_1_0_len = 1.1 + 4 * net_params.additional_params["lanes"]
         self.ring_0_n_len = 6.5
         self.ring_1_n_len = 6.5
         self.inner_space_len = 0.28
 
         # instantiate "length" in net params
-        net_params["length"] = 2 * pi * self.radius + self.ring_0_n_len + self.ring_1_n_len
+        net_params.additional_params["length"] = 2 * pi * self.radius + self.ring_0_n_len + self.ring_1_n_len
 
-        if "length" not in net_params:
+        if "length" not in net_params.additional_params:
             raise ValueError("length of circle not supplied")
-        self.length = net_params["length"]
+        self.length = net_params.additional_params["length"]
 
-        if "lanes" not in net_params:
+        if "lanes" not in net_params.additional_params:
             raise ValueError("lanes of circle not supplied")
-        self.lanes = net_params["lanes"]
+        self.lanes = net_params.additional_params["lanes"]
 
-        if "speed_limit" not in net_params:
+        if "speed_limit" not in net_params.additional_params:
             raise ValueError("speed limit of circle not supplied")
-        self.speed_limit = net_params["speed_limit"]
+        self.speed_limit = net_params.additional_params["speed_limit"]
 
-        if "resolution" not in net_params:
+        if "resolution" not in net_params.additional_params:
             raise ValueError("resolution of circle not supplied")
-        self.resolution = net_params["resolution"]
+        self.resolution = net_params.additional_params["resolution"]
 
-        super().__init__(name, generator_class, type_params, net_params, cfg_params=cfg_params,
-                         initial_config=initial_config)
+        super().__init__(name, generator_class, vehicles, net_params, initial_config)
 
     def specify_edge_starts(self):
         """
@@ -80,7 +78,7 @@ class LoopMergesScenario(Scenario):
         """
         See parent class
         """
-        lanes = self.net_params["lanes"]
+        lanes = self.net_params.additional_params["lanes"]
 
         if self.merge_out_len is not None:
             ring_0_len = (self.merge_out_angle - self.merge_in_angle) % (2 * pi) * self.radius
@@ -107,21 +105,17 @@ class LoopMergesScenario(Scenario):
         if "x0" in kwargs:
             x0 = kwargs["x0"]
 
-        bunching = 0
-        if "bunching" in initial_config:
-            bunching = initial_config["bunching"]
+        bunching = initial_config.bunching
 
-        lanes_distribution = 1
-        if "lanes_distribution" in initial_config:
-            lanes_distribution = initial_config["lanes_distribution"]
+        lanes_distribution = initial_config.lanes_distribution
 
         merge_bunching = 0
-        if "merge_bunching" in initial_config:
-            merge_bunching = initial_config["merge_bunching"]
+        if "merge_bunching" in initial_config.additional_params:
+            merge_bunching = initial_config.additional_params["merge_bunching"]
 
         n_merge_platoons = None
-        if "n_merge_platoons" in initial_config:
-            n_merge_platoons = initial_config["n_merge_platoons"]
+        if "n_merge_platoons" in initial_config.additional_params:
+            n_merge_platoons = initial_config.additional_params["n_merge_platoons"]
 
         startpositions = []
         startlanes = []
@@ -129,12 +123,12 @@ class LoopMergesScenario(Scenario):
         # generate starting positions for non-merging vehicles
         # in order to avoid placing cars in the internal edges, their length is removed from the distribution length
         distribution_len = self.length - self.ring_0_n_len - self.ring_1_n_len
-        increment = (distribution_len - bunching) * lanes_distribution / (self.num_vehicles - self.num_merge_vehicles)
+        increment = (distribution_len - bunching) * lanes_distribution / (self.vehicles.num_vehicles - self.num_merge_vehicles)
 
         x = [x0] * lanes_distribution
         car_count = 0
         lane_count = 0
-        while car_count < self.num_vehicles - self.num_merge_vehicles:
+        while car_count < self.vehicles.num_vehicles - self.num_merge_vehicles:
             # collect the position and lane number of each new vehicle
             pos = self.get_edge(x[lane_count])
 
@@ -215,13 +209,13 @@ class LoopMergesScenario(Scenario):
 
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) * lanes_distribution / self.num_vehicles
+        increment = (distribution_length - bunching) * lanes_distribution / self.vehicles.num_vehicles
 
         x = [x0] * lanes_distribution
         x_start = np.array([])
         car_count = 0
         lane_count = 0
-        while car_count < self.num_vehicles:
+        while car_count < self.vehicles.num_vehicles:
             # collect the position and lane number of each new vehicle
             x_start = np.append(x_start, x[lane_count])
             startlanes.append(lane_count)
@@ -281,12 +275,12 @@ class LoopMergesScenario(Scenario):
         # generate starting positions for non-merging vehicles
         # in order to avoid placing cars in the internal edges, their length is removed from the distribution length
         distribution_len = self.length - self.ring_0_n_len - self.ring_1_n_len
-        mean = (distribution_len - bunching) * lanes_distribution / (self.num_vehicles - self.num_merge_vehicles)
+        mean = (distribution_len - bunching) * lanes_distribution / (self.vehicles.num_vehicles - self.num_merge_vehicles)
 
         x = [x0] * lanes_distribution
         car_count = 0
         lane_count = 0
-        while car_count < self.num_vehicles - self.num_merge_vehicles:
+        while car_count < self.vehicles.num_vehicles - self.num_merge_vehicles:
             # collect the position and lane number of each new vehicle
             pos = self.get_edge(x[lane_count])
 

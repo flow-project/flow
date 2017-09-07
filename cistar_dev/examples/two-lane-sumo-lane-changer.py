@@ -21,33 +21,34 @@ Variables:
 '''
 import logging
 
-from cistar.core.exp import SumoExperiment
-from cistar.envs.loop import LoopEnvironment
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from cistar.core.vehicles import Vehicles
+from cistar.controllers.routing_controllers import *
 from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
+from cistar.core.experiment import SumoExperiment
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.envs.loop import LoopEnvironment
+from cistar.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "human_sm": "no_collide", "human_lc": "strategic"}
+sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", human_lane_change_mode="strategic",
+                         sumo_binary="sumo-gui")
 
-sumo_binary = "sumo-gui"
+vehicles = Vehicles()
+vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 20)
 
-type_params = [("idm", 20, (IDMController, {}), None, 0)]
+env_params = EnvParams()
 
-env_params = {}
+additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40}
+net_params = NetParams(additional_params=additional_net_params)
 
-net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40, "net_path": "debug/net/"}
+initial_config = InitialConfig()
 
-cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
+scenario = LoopScenario("single-lane-one-contr", CircleGenerator, vehicles, net_params,
+                        initial_config)
 
-initial_config = {"shuffle": True}
-
-scenario = LoopScenario("single-lane-one-contr", CircleGenerator, type_params, net_params,
-                        cfg_params, initial_config)
-
-env = LoopEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = LoopEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

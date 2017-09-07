@@ -15,10 +15,10 @@ class LoopEnvironment(SumoEnvironment):
         :param veh_id: id of vehicle
         :return:
         """
-        if self.vehicles[veh_id]["edge"] == '':
+        if self.vehicles.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
-        return self.scenario.get_x(self.vehicles[veh_id]["edge"], self.vehicles[veh_id]["position"])
+        return self.scenario.get_x(self.vehicles.get_edge(veh_id), self.vehicles.get_position(veh_id))
 
     def get_leading_car(self, veh_id, lane=None):
         """
@@ -67,21 +67,21 @@ class LoopEnvironment(SumoEnvironment):
     def get_headway(self, veh_id, lane=None):
         # by default, will look in the same lane
         if lane is None:
-            lane = self.vehicles[veh_id]["lane"]
+            lane = self.vehicles.get_leader(veh_id)
 
         lead_id = self.get_leading_car(veh_id, lane)
         # if there's more than one car
         if lead_id:
             lead_pos = self.get_x_by_id(lead_id)
-            lead_length = self.vehicles[lead_id]['length']
+            lead_length = self.vehicles.get_state(lead_id, 'length')
             this_pos = self.get_x_by_id(veh_id)
             return (lead_pos - lead_length - this_pos) % self.scenario.length
         # if there's only one car, return the loop length minus car length
         else: 
-            return self.scenario.net_params["length"] - self.vehicles[veh_id]['length']
+            return self.scenario.net_params.additional_params["length"] - self.vehicles.get_state(veh_id, 'length')
 
     def get_cars(self, veh_id, dxBack, dxForward, lane = None, dx = None):
-        #TODO: correctly implement this method, and add documentation
+        # TODO: correctly implement this method, and add documentation
         this_pos = self.get_x_by_id(veh_id)  # position of the car checking neighbors
         front_limit = this_pos + dxForward
         rear_limit = this_pos - dxBack
@@ -134,7 +134,7 @@ class LoopEnvironment(SumoEnvironment):
         :return: a list of sorted vehicle ids
                  no extra data is wanted (None is returned for the second output)
         """
-        sorted_indx = np.argsort([self.vehicles[veh_id]["absolute_position"] for veh_id in self.ids])
+        sorted_indx = np.argsort(self.vehicles.get_absolute_position(self.ids))
         sorted_ids = np.array(self.ids)[sorted_indx]
         return sorted_ids, None
 
@@ -145,30 +145,6 @@ class LoopEnvironment(SumoEnvironment):
         """
         vehicles = dict()
 
-        # TODO: delete me?
-        # # headway data on is collecting for each lane separately (the leading and following cars are
-        # # considered to be part of the same lane)
-        # for lane in range(self.scenario.lanes):
-        #     unique_lane_ids = [veh_id for veh_id in self.sorted_ids if self.vehicles[veh_id]["lane"] == lane]
-        #
-        #     # if there is no other car in the lane with the vehicle in question, then this car
-        #     # has no leader or follower
-        #     if len(unique_lane_ids) == 1:
-        #         vehicle = dict()
-        #         veh_id = unique_lane_ids[0]
-        #         vehicle["leader"] = None
-        #         vehicle["follower"] = None
-        #         vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
-        #         vehicles[veh_id] = vehicle
-        #
-        #     for i, veh_id in enumerate(unique_lane_ids):
-        #         vehicle = dict()
-        #
-        #         if i < len(unique_lane_ids) - 1:
-        #             vehicle["leader"] = unique_lane_ids[i+1]
-        #         else:
-        #             vehicle["leader"] = unique_lane_ids[0]
-
         if type(self.scenario.lanes) is dict:
             lane_dict = self.scenario.lanes
         else:
@@ -176,14 +152,14 @@ class LoopEnvironment(SumoEnvironment):
 
         for lane_num in lane_dict.values():
             for lane in range(lane_num):
-                unique_lane_ids = [veh_id for veh_id in self.sorted_ids if self.vehicles[veh_id]["lane"] == lane]
+                unique_lane_ids = [veh_id for veh_id in self.sorted_ids if self.vehicles.get_lane(veh_id) == lane]
 
                 if len(unique_lane_ids) == 1:
                     vehicle = dict()
                     veh_id = unique_lane_ids[0]
                     vehicle["leader"] = None
                     vehicle["follower"] = None
-                    vehicle["headway"] = self.scenario.length - self.vehicles[veh_id]["length"]
+                    vehicle["headway"] = self.scenario.length - self.vehicles.get_state(veh_id, "length")
                     vehicles[veh_id] = vehicle
 
                 for i, veh_id in enumerate(unique_lane_ids):
@@ -195,9 +171,9 @@ class LoopEnvironment(SumoEnvironment):
                         vehicle["leader"] = unique_lane_ids[0]
 
                     vehicle["headway"] = \
-                        (self.vehicles[vehicle["leader"]]["absolute_position"] -
-                         self.vehicles[vehicle["leader"]]["length"] -
-                         self.vehicles[veh_id]["absolute_position"]) % self.scenario.length
+                        (self.vehicles.get_absolute_position(vehicle["leader"]) -
+                         self.vehicles.get_state(vehicle["leader"], "length") -
+                         self.vehicles.get_absolute_position(veh_id)) % self.scenario.length
 
                     if i > 0:
                         vehicle["follower"] = unique_lane_ids[i-1]
@@ -215,4 +191,3 @@ class LoopEnvironment(SumoEnvironment):
     @property
     def observation_space(self):
         pass
-

@@ -23,8 +23,8 @@ class Figure8Generator(Generator):
         """
         super().__init__(net_params, net_path, cfg_path, base)
 
-        r = net_params["radius_ring"]
-        lanes = net_params["lanes"]
+        r = net_params.additional_params["radius_ring"]
+        lanes = net_params.additional_params["lanes"]
         ring_edgelen = r * pi/2.
         intersection_edgelen = 2*r
         self.name = "%s-%dm%dl" % (base, 2*intersection_edgelen+6*ring_edgelen, lanes)
@@ -33,7 +33,7 @@ class Figure8Generator(Generator):
         """
         See parent class
         """
-        r = net_params["radius_ring"]
+        r = net_params.additional_params["radius_ring"]
 
         nodes = [{"id": "center_intersection",  "x": repr(0),    "y": repr(0),    "type": "priority"},
                  {"id": "top_upper_ring",       "x": repr(r),    "y": repr(2*r),  "type": "priority"},
@@ -51,8 +51,8 @@ class Figure8Generator(Generator):
         """
         See parent class
         """
-        r = net_params["radius_ring"]
-        resolution = net_params["resolution"]
+        r = net_params.additional_params["radius_ring"]
+        resolution = net_params.additional_params["resolution"]
         ring_edgelen = r * pi/2.
         intersection_edgelen = 2*r
 
@@ -106,8 +106,8 @@ class Figure8Generator(Generator):
         """
         See parent class
         """
-        lanes = net_params["lanes"]
-        speed_limit = net_params["speed_limit"]
+        lanes = net_params.additional_params["lanes"]
+        speed_limit = net_params.additional_params["speed_limit"]
         types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
 
         return types
@@ -158,17 +158,3 @@ class Figure8Generator(Generator):
                                    "bottom_upper_ring_in", "bottom_upper_ring_out", "top_lower_ring"]}
 
         return rts
-
-    # TODO: may be able to get rid of all together (replace with routing controller)
-    def specify_rerouters(self, net_params):
-        """
-        See parent class
-        """
-        rerouting = [{"name": "rerouterBottom_lower_ring", "from": "bottom_lower_ring", "route": "routetop_upper_ring"},
-                     {"name": "rerouterLeft_upper_ring", "from": "left_upper_ring", "route": "routeright_lower_ring_in"},
-                     {"name": "rerouterTop_upper_ring", "from": "top_upper_ring", "route": "routebottom_lower_ring"},
-                     {"name": "rerouterRight_upper_ring", "from": "right_upper_ring", "route": "routeleft_lower_ring"},
-                     {"name": "rerouterTop_lower_ring", "from": "top_lower_ring", "route": "routeright_upper_ring"},
-                     {"name": "rerouterLeft_lower_ring", "from": "left_lower_ring", "route": "routeright_upper_ring"}]
-
-        return rerouting

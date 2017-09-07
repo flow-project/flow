@@ -50,15 +50,15 @@ class CFMController(BaseController):
         self.accel_queue = collections.deque()
 
     def get_action(self, env):
-        lead_id = env.vehicles[self.veh_id]["leader"]
-        if not lead_id: # no car ahead
+        lead_id = env.vehicles.get_leader(self.veh_id)
+        if not lead_id:  # no car ahead
             return self.acc_max
 
-        lead_pos = env.vehicles[lead_id]["absolute_position"]
-        lead_vel = env.vehicles[lead_id]['speed']
+        lead_pos = env.vehicles.get_absolute_position(lead_id)
+        lead_vel = env.vehicles.get_speed(lead_id)
 
-        this_pos = env.vehicles[self.veh_id]["absolute_position"]
-        this_vel = env.vehicles[self.veh_id]['speed']
+        this_pos = env.vehicles.get_absolute_position(self.veh_id)
+        this_vel = env.vehicles.get_speed(self.veh_id)
 
         d_l = (lead_pos - this_pos) % env.scenario.length
 
@@ -119,19 +119,19 @@ class BCMController(BaseController):
         and traffic advisories
         """
 
-        lead_id = env.vehicles[self.veh_id]["leader"]
+        lead_id = env.vehicles.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.acc_max
 
-        lead_pos = env.vehicles[lead_id]["absolute_position"]
-        lead_vel = env.vehicles[lead_id]['speed']
+        lead_pos = env.vehicles.get_absolute_position(lead_id)
+        lead_vel = env.vehicles.get_speed(lead_id)
 
-        this_pos = env.vehicles[self.veh_id]["absolute_position"]
-        this_vel = env.vehicles[self.veh_id]['speed']
+        this_pos = env.vehicles.get_absolute_position(self.veh_id)
+        this_vel = env.vehicles.get_speed(self.veh_id)
 
-        trail_id = env.vehicles[self.veh_id]["follower"]
-        trail_pos = env.vehicles[trail_id]["absolute_position"]
-        trail_vel = env.vehicles[trail_id]['speed']
+        trail_id = env.vehicles.get_follower(self.veh_id)
+        trail_pos = env.vehicles.get_absolute_position(trail_id)
+        trail_vel = env.vehicles.get_speed(trail_id)
 
         headway = (lead_pos - this_pos) % env.scenario.length
         footway = (this_pos - trail_pos) % env.scenario.length
@@ -158,7 +158,7 @@ class OVMController(BaseController):
     Variables:
     """
 
-    def __init__(self, veh_id, alpha = 1, beta = 1, h_st = 2, h_go = 15, v_max = 30, acc_max = 15, max_deaccel=5, tau = 0, dt = 0.1):
+    def __init__(self, veh_id, alpha=1, beta=1, h_st=2, h_go=15, v_max=30, acc_max=15, max_deaccel=5, tau=0, dt=0.1):
         """Instantiates an OVM controller
         
          Arguments:
@@ -191,13 +191,13 @@ class OVMController(BaseController):
         self.dt = dt
         
     def get_action(self, env):
-        lead_id = env.vehicles[self.veh_id]["leader"]
+        lead_id = env.vehicles.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.acc_max
 
-        lead_vel = env.vehicles[lead_id]['speed']
-        this_vel = env.vehicles[self.veh_id]['speed']
-        h = env.vehicles[self.veh_id]["headway"]
+        lead_vel = env.vehicles.get_speed(lead_id)
+        this_vel = env.vehicles.get_speed(self.veh_id)
+        h = env.vehicles.get_headway(self.veh_id)
         h_dot = lead_vel - this_vel
 
         # V function here - input: h, output : Vh
@@ -265,8 +265,8 @@ class LinearOVM(BaseController):
         self.dt = dt
 
     def get_action(self, env):
-        this_vel = env.vehicles[self.veh_id]['speed']
-        h = env.vehicles[self.veh_id]["headway"]
+        this_vel = env.vehicles.get_speed(self.veh_id)
+        h = env.vehicles.get_headway(self.veh_id)
 
         # V function here - input: h, output : Vh
         alpha = 1.689  # the average value from Nakayama paper
@@ -328,14 +328,14 @@ class IDMController(BaseController):
         self.dt = dt
 
     def get_action(self, env):
-        this_vel = env.vehicles[self.veh_id]['speed']
-        lead_id = env.vehicles[self.veh_id]["leader"]
-        h = env.vehicles[self.veh_id]["headway"]
+        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_id = env.vehicles.get_leader(self.veh_id)
+        h = env.vehicles.get_headway(self.veh_id)
 
         if lead_id is None or lead_id == '':  # no car ahead
             s_star = 0
         else:
-            lead_vel = env.vehicles[lead_id]['speed']
+            lead_vel = env.vehicles.get_speed(lead_id)
             s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)
@@ -355,14 +355,14 @@ class DrunkDriver(IDMController):
     def get_action(self, env):
         self.timer += 1
 
-        this_vel = env.vehicles[self.veh_id]['speed']
-        lead_id = env.vehicles[self.veh_id]["leader"]
-        h = env.vehicles[self.veh_id]["headway"]
+        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_id = env.vehicles.get_leader(self.veh_id)
+        h = env.vehicles.get_headway(self.veh_id)
 
         if lead_id is None:  # no car ahead
             s_star = 0
         else:
-            lead_vel = env.vehicles[lead_id]['speed']
+            lead_vel = env.vehicles.get_speed(lead_id)
             s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
 
         perturb = 0

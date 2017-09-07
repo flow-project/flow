@@ -22,16 +22,16 @@ def desired_velocity(env, fail=False):
            state of the system.
     :param fail {bool} - specifies if any crash or other failure occurred in the system
     """
-    vel = np.array([env.vehicles[veh_id]["speed"] for veh_id in env.vehicles.keys()])
-    num_vehicles = len(vel)
+    vel = np.array(env.vehicles.get_speed())
+    num_vehicles = env.vehicles.num_vehicles
 
     if any(vel < -100) or fail:
         return 0.
 
-    max_cost = np.array([env.env_params["target_velocity"]] * num_vehicles)
+    max_cost = np.array([env.env_params.additional_params["target_velocity"]] * num_vehicles)
     max_cost = np.linalg.norm(max_cost)
 
-    cost = vel - env.env_params["target_velocity"]
+    cost = vel - env.env_params.additional_params["target_velocity"]
     cost = np.linalg.norm(cost)
 
     return max(max_cost - cost, 0)

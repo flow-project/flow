@@ -29,46 +29,46 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.exp import SumoExperiment
-from cistar.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
+from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from cistar.core.vehicles import Vehicles
+from cistar.core import config as cistar_config
+
+from cistar.controllers.routing_controllers import *
+
 from cistar.scenarios.loop.gen import CircleGenerator
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.rlcontroller import RLController
 from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
 
 def run_task(*_):
     tot_cars = 8
-
     auton_cars = 5
     human_cars = tot_cars - auton_cars
 
-    sumo_params = {"time_step": 0.1, "human_sm": 1, "rl_sm": 1,
-                   "human_lc": "strategic", "rl_lc": "no_lat_collide"}
+    sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", rl_speed_mode= "no_collide",
+                             human_lane_change_mode="strategic", rl_lane_change_mode="no_lat_collide",
+                             sumo_binary="sumo-gui")
 
-    sumo_binary = "sumo-gui"
+    vehicles = Vehicles()
+    vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, auton_cars)
+    vehicles.add_vehicles("cfm", (IDMController, {}), None, (ContinuousRouter, {}), 0, human_cars)
 
-    type_params = [("rl", auton_cars, (RLController, {}), None, 0),
-                   ("cfm", human_cars, (IDMController, {}), None, 0)]
+    additional_env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 500}
+    env_params = EnvParams(additional_params=additional_env_params)
 
-    env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 500}
+    additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40}
+    net_params = NetParams(additional_params=additional_net_params)
 
-    net_params = {"length": 200, "lanes": 2, "speed_limit":35, "resolution": 40, "net_path":"debug/rl/net/"}
+    initial_config = InitialConfig()
 
-    cfg_params = {"start_time": 0, "end_time":3000, "cfg_path":"debug/rl/cfg/"}
+    scenario = LoopScenario("rl-test", CircleGenerator, vehicles, net_params, initial_config)
 
-    initial_config = {"shuffle": False}
-
-    scenario = LoopScenario("rl-test", CircleGenerator, type_params, net_params,
-                            cfg_params, initial_config=initial_config)
-
-    from cistar_dev import pass_params
     env_name = "SimpleLaneChangingAccelerationEnvironment"
-    pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
-                   cfg_params, initial_config, scenario)
+    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+                   initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
@@ -111,6 +111,6 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="leah-test-exp",
-        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+        python_command=cistar_config.PYTHON_COMMAND
         # plot=True,
     )

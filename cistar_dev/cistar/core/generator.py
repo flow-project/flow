@@ -90,9 +90,7 @@ class Generator(Serializable):
             printxml(x, self.net_path + confn)
 
         # check whether the user requested no-internal-links (default="true")
-        if "no-internal-links" not in net_params:
-            self.no_internal_links = "true"
-        elif net_params["no-internal-links"]:
+        if net_params.no_internal_links:
             self.no_internal_links = "true"
         else:
             self.no_internal_links = "false"
@@ -126,7 +124,7 @@ class Generator(Serializable):
 
         return self.net_path + netfn
 
-    def generate_cfg(self, net_params, cfg_params):
+    def generate_cfg(self, net_params):
         """
         Generates .sumo.cfg files using net files and netconvert.
         Requires:
@@ -138,15 +136,8 @@ class Generator(Serializable):
         start_time: time to start the simulation
         end_time: time to end the simulation
         """
-        if "start_time" not in cfg_params:
-            raise ValueError("start_time not supplied")
-        else:
-            start_time = cfg_params["start_time"]
-
-        if "end_time" in cfg_params:
-            end_time = cfg_params["end_time"]
-        else:
-            end_time = None
+        start_time = 0
+        end_time = None
 
         self.roufn = "%s.rou.xml" % self.name
         addfn = "%s.add.xml" % self.name
@@ -189,57 +180,57 @@ class Generator(Serializable):
         printxml(cfg, self.cfg_path + cfgfn)
         return cfgfn
 
-    def make_routes(self, scenario, initial_config, cfg_params):
+    def make_routes(self, scenario, initial_config):
 
-        type_params = scenario.type_params
-        type_list = [tup[0] for tup in type_params]
-        num_cars = scenario.num_vehicles
-        if type_list is not None:
+        vehicles = scenario.vehicles
+        type_list = vehicles.types
+        if vehicles.num_vehicles > 0:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-            for i in range(len(type_list)):
-                if type_params[i][2][0] == "sumoIDM":
-                    tp = type_params[i][0]
+            # for veh_id in vehicles.get_ids():
+            #     # TODO: work in progress
+            #     if vehicles.get_acc_controller(veh_id) == SumoController:
+            #         tp = type_params[i][0]
+            #
+            #         # if any IDM parameters are not specified, they are set to the default parameters specified
+            #         # by Treiber
+            #         if "accel" not in type_params[tp][1]:
+            #             type_params[i][2][1]["accel"] = 1
+            #
+            #         if "decel" not in type_params[tp][1]:
+            #             type_params[i][2][1]["decel"] = 1.5
+            #
+            #         if "delta" not in type_params[tp][1]:
+            #             type_params[i][2][1]["delta"] = 4
+            #
+            #         if "tau" not in type_params[tp][1]:
+            #             type_params[i][2][1]["tau"] = 1
+            #
+            #         routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
+            #                                          "accel": repr(type_params[i][2][1]["accel"]),
+            #                                          "decel": repr(type_params[i][2][1]["decel"]),
+            #                                          "delta": repr(type_params[i][2][1]["delta"]),
+            #                                          "tau": repr(type_params[i][2][1]["tau"])}))
+            #     else:
+            #         routes.append(E("vType", id=type_params[i][0], minGap="0"))
 
-                    # if any IDM parameters are not specified, they are set to the default parameters specified
-                    # by Treiber
-                    if "accel" not in type_params[tp][1]:
-                        type_params[i][2][1]["accel"] = 1
+            # add the types of vehicles to the xml file
+            for veh_type in vehicles.types:
+                routes.append(E("vType", id=veh_type, minGap="0"))
 
-                    if "decel" not in type_params[tp][1]:
-                        type_params[i][2][1]["decel"] = 1.5
+            self.vehicle_ids = vehicles.get_ids()
 
-                    if "delta" not in type_params[tp][1]:
-                        type_params[i][2][1]["delta"] = 4
-
-                    if "tau" not in type_params[tp][1]:
-                        type_params[i][2][1]["tau"] = 1
-
-                    routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
-                                                     "accel": repr(type_params[i][2][1]["accel"]),
-                                                     "decel": repr(type_params[i][2][1]["decel"]),
-                                                     "delta": repr(type_params[i][2][1]["delta"]),
-                                                     "tau": repr(type_params[i][2][1]["tau"])}))
-                else:
-                    routes.append(E("vType", id=type_params[i][0], minGap="0"))
-
-            self.vehicle_ids = []
-            if num_cars > 0:
-                for i in range(len(type_params)):
-                    tp = type_params[i][0]
-                    type_count = type_params[i][1]
-                    for j in range(type_count):
-                        self.vehicle_ids.append((tp, tp + "_" + str(j)))
-
-            if initial_config["shuffle"]:
+            if initial_config.shuffle:
                 random.shuffle(self.vehicle_ids)
 
-            positions = initial_config["positions"]
-            lanes = initial_config["lanes"]
-            for i, (veh_type, id) in enumerate(self.vehicle_ids):
+            # add the initial positions of vehicles to the xml file
+            positions = initial_config.positions
+            lanes = initial_config.lanes
+            for i, id in enumerate(self.vehicle_ids):
+                veh_type = vehicles.get_state(id, "type")
                 edge, pos = positions[i]
                 lane = lanes[i]
                 indx_type = [i for i in range(len(type_list)) if type_list[i] == veh_type][0]
-                type_depart_speed = type_params[indx_type][4]
+                type_depart_speed = vehicles.get_initial_speed(id)
                 routes.append(self.vehicle(veh_type, "route" + edge, depart="0", id=id, color="1,0.0,0.0",
                                            departSpeed=str(type_depart_speed), departPos=str(pos),
                                            departLane=str(lane)))

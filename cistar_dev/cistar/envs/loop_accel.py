@@ -22,8 +22,9 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         Actions are a set of accelerations from 0 to 15m/s
         :return:
         """
-        return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")), high=self.env_params.get_additional_param("max-acc"),
-                   shape=(self.scenario.num_rl_vehicles, ))
+        return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")),
+                   high=self.env_params.get_additional_param("max-acc"),
+                   shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
@@ -32,8 +33,8 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         An observation is an array the velocities for each vehicle
         """
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.scenario.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.scenario.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, absolute_pos))
 
     def apply_rl_actions(self, rl_actions):
@@ -64,10 +65,10 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        scaled_rel_pos = [(self.vehicles[veh_id]["absolute_position"] % self.scenario.length) / self.scenario.length
+        scaled_rel_pos = [(self.vehicles.get_absolute_position(veh_id) % self.scenario.length) / self.scenario.length
                           for veh_id in self.sorted_ids]
-        scaled_pos = [self.vehicles[veh_id]["absolute_position"] / self.scenario.length for veh_id in self.sorted_ids]
-        scaled_vel = [self.vehicles[veh_id]["speed"] / self.env_params.get_additional_param("target_velocity")
+        scaled_pos = [self.vehicles.get_absolute_position(veh_id) / self.scenario.length for veh_id in self.sorted_ids]
+        scaled_vel = [self.vehicles.get_absolute_position(veh_id) / self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
 
         return np.array([[scaled_vel[i] + normal(0, self.observation_vel_std),
@@ -173,8 +174,7 @@ class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
         """
         See parent class
         """
-        return rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params.get_additional_param("target_velocity"), fail=kwargs["fail"])
+        return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
         """

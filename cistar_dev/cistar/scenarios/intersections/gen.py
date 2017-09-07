@@ -26,12 +26,12 @@ class TwoWayIntersectionGenerator(Generator):
         """
         super().__init__(net_params, net_path, cfg_path, base)
 
-        horizontal_length_in = net_params["horizontal_length_in"]
-        horizontal_length_out = net_params["horizontal_length_out"]
-        horizontal_lanes = net_params["horizontal_lanes"]
-        vertical_length_in = net_params["vertical_length_in"]
-        vertical_length_out = net_params["vertical_length_out"]
-        vertical_lanes = net_params["vertical_lanes"]
+        horizontal_length_in = net_params.additional_params["horizontal_length_in"]
+        horizontal_length_out = net_params.additional_params["horizontal_length_out"]
+        horizontal_lanes = net_params.additional_params["horizontal_lanes"]
+        vertical_length_in = net_params.additional_params["vertical_length_in"]
+        vertical_length_out = net_params.additional_params["vertical_length_out"]
+        vertical_lanes = net_params.additional_params["vertical_lanes"]
 
         self.name = "%s-horizontal-%dm%dl-vertical-%dm%dl" % \
                     (base, horizontal_length_in + horizontal_length_out, horizontal_lanes,
@@ -41,10 +41,10 @@ class TwoWayIntersectionGenerator(Generator):
         """
         See parent class
         """
-        horz_length_in = net_params["horizontal_length_in"]
-        horz_length_out = net_params["horizontal_length_out"]
-        vert_length_in = net_params["vertical_length_in"]
-        vert_length_out = net_params["vertical_length_out"]
+        horz_length_in = net_params.additional_params["horizontal_length_in"]
+        horz_length_out = net_params.additional_params["horizontal_length_out"]
+        vert_length_in = net_params.additional_params["vertical_length_in"]
+        vert_length_out = net_params.additional_params["vertical_length_out"]
 
         nodes = [{"id": "center", "x": repr(0),               "y": repr(0),               "type": "priority"},
                  {"id": "bottom", "x": repr(0),               "y": repr(-vert_length_in), "type": "priority"},
@@ -58,10 +58,10 @@ class TwoWayIntersectionGenerator(Generator):
         """
         See parent class
         """
-        horz_length_in = net_params["horizontal_length_in"]
-        horz_length_out = net_params["horizontal_length_out"]
-        vert_length_in = net_params["vertical_length_in"]
-        vert_length_out = net_params["vertical_length_out"]
+        horz_length_in = net_params.additional_params["horizontal_length_in"]
+        horz_length_out = net_params.additional_params["horizontal_length_out"]
+        vert_length_in = net_params.additional_params["vertical_length_in"]
+        vert_length_out = net_params.additional_params["vertical_length_out"]
 
         edges = [{"id": "left", "type": "horizontal", "priority": "78",
                   "from": "left", "to": "center", "length": repr(horz_length_in)},
@@ -78,12 +78,14 @@ class TwoWayIntersectionGenerator(Generator):
         """
         See parent class
         """
-        horizontal_lanes = net_params["horizontal_lanes"]
-        vertical_lanes = net_params["vertical_lanes"]
-        if isinstance(net_params["speed_limit"], int) or isinstance(net_params["speed_limit"], float):
-            speed_limit = {"horizontal": net_params["speed_limit"], "vertical": net_params["speed_limit"]}
+        horizontal_lanes = net_params.additional_params["horizontal_lanes"]
+        vertical_lanes = net_params.additional_params["vertical_lanes"]
+        if isinstance(net_params.additional_params["speed_limit"], int) or \
+                isinstance(net_params.additional_params["speed_limit"], float):
+            speed_limit = {"horizontal": net_params.additional_params["speed_limit"],
+                           "vertical": net_params.additional_params["speed_limit"]}
         else:
-            speed_limit = net_params["speed_limit"]
+            speed_limit = net_params.additional_params["speed_limit"]
 
         types = [{"id": "horizontal", "numLanes": repr(horizontal_lanes), "speed": repr(speed_limit["horizontal"])},
                  {"id": "vertical", "numLanes": repr(vertical_lanes), "speed": repr(speed_limit["vertical"])}]

@@ -7,6 +7,10 @@ from matplotlib import pyplot as plt
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 
+from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 
 if __name__ == "__main__":
 
