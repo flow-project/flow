@@ -26,15 +26,17 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar_dev.scenarios.loop.gen import CircleGenerator
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.rlcontroller import RLController
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.rlcontroller import RLController
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
 
+from cistar.core.params import SumoParams
+from cistar.core.params import EnvParams
 
 def run_task(*_):
-    import cistar_dev.envs as cistar_envs
+    import cistar.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
     tot_cars = 8
@@ -42,15 +44,15 @@ def run_task(*_):
     auton_cars = 4
     human_cars = tot_cars - auton_cars
 
-    sumo_params = {"time_step": 0.1, "human_sm": 1, "rl_sm": 1}
+    sumo_params = SumoParams()
 
-    sumo_binary = "sumo"
+    sumo_binary = "sumo-gui"
 
     type_params = [("rl", auton_cars, (RLController, {}), (StaticLaneChanger, {}), 0),
                    ("cfm", human_cars, (BCMController, {"v_des": 10}), (StaticLaneChanger, {}), 0)]
 
-    env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
-
+    additional_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
+    env_params = EnvParams(additional_params=additional_params)
     net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40, "net_path": "debug/rl/net/"}
 
     cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/rl/cfg/"}
@@ -60,7 +62,6 @@ def run_task(*_):
     scenario = LoopScenario("rl-test", CircleGenerator, type_params, net_params, cfg_params,
                             initial_config=initial_config)
 
-    from cistar_dev import pass_params
     env_name = "SimpleAccelerationEnvironment"
     pass_params = (env_name, sumo_params, sumo_binary, type_params, env_params, net_params,
                 cfg_params, initial_config, scenario)
@@ -107,6 +108,6 @@ for seed in [1]:  # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="leah-test-exp",
-        python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
+        python_command="/Users/kanaad/anaconda2/envs/rllab3/bin/python3.5"
         # plot=True,
     )

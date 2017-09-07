@@ -1,4 +1,4 @@
-from cistar.core.experiment import Generator
+from cistar.core.generator import Generator
 from cistar.controllers.base_controller import SumoController
 
 from cistar.core.util import makexml

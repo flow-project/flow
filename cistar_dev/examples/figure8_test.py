@@ -20,22 +20,27 @@ Variables:
     scenario {[type]} -- [Which road network to use]
 '''
 import logging
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar_dev.scenarios.figure8.gen import Figure8Generator
-from cistar_dev.scenarios.figure8.figure8_scenario import Figure8Scenario
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
+from cistar.core.experiment import SumoExperiment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.figure8.gen import Figure8Generator
+from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+
+from cistar.core.params import SumoParams
+from cistar.core.params import EnvParams
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": 1}
+sumo_params = SumoParams()
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = [("idm", 14, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-env_params = {"max-deacc": -3, "max-acc": 3}
+additional_params = {"max-deacc": -3, "max-acc": 3}
+
+env_params = EnvParams(additional_params=additional_params)
 
 net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
               "net_path": "debug/net/", "no-internal-links": False}

@@ -19,24 +19,27 @@ Variables:
     scenario {[type]} -- [Which road network to use]
 '''
 import logging
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop import LoopEnvironment
-from cistar_dev.scenarios.loop.gen import CircleGenerator
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.velocity_controllers import *
-from cistar_dev.controllers.lane_change_controllers import *
+from cistar.core.experiment import SumoExperiment
+from cistar.envs.loop import LoopEnvironment
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.car_following_models import *
+from cistar.controllers.velocity_controllers import *
+from cistar.controllers.lane_change_controllers import *
+
+from cistar.core.params import SumoParams
+from cistar.core.params import EnvParams
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.01, "human_sm": 1}
+sumo_params = SumoParams(time_step=0.01)
 
-sumo_binary = "sumo-gui"
+sumo_binary = "sumo"
 
 type_params = [("constantV", 1, (ConstantVelocityController, {"constant_speed": 3.5}), (StaticLaneChanger, {}), 0),
                ("idm", 21, (IDMController, {}), (StaticLaneChanger, {}), 0)]
 
-env_params = {}
+env_params = EnvParams()
 
 net_params = {"length": 230, "lanes": 1, "speed_limit": 35, "resolution": 40, "net_path":"dan-work/net/"}
 

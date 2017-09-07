@@ -27,10 +27,10 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar_dev.controllers.lane_change_controllers import *
-from cistar_dev.scenarios.loop.gen import CircleGenerator
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.rlcontroller import RLController
+from cistar.controllers.lane_change_controllers import *
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.DEBUG)
 
 

@@ -76,14 +76,7 @@ class TwoIntersectionEnvironment(SumoEnvironment):
         """
         See parent class
         """
-<<<<<<< HEAD:cistar_dev/cistar_dev/envs/two_intersection.py
         return rewards.desired_velocity(self, fail=kwargs["fail"])
-=======
-        return rewards.desired_velocity(
-            self.vehicles, target_velocity=self.env_params.get_additional_param("target_velocity"), fail=kwargs["fail"])
->>>>>>> removed some unfinished project i.e. braess & started transition from dictionaries to classes:cistar_dev/cistar/envs/two_intersection.py
-        # return rewards.min_delay(state, rl_actions, target_velocity=self.env_params["target_velocity"],
-        #     time_step=self.sumo_params["time_step"], fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
         """
@@ -91,14 +84,6 @@ class TwoIntersectionEnvironment(SumoEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        # return np.array([[self.vehicles[veh_id]["speed"],
-        #                   self.vehicles[veh_id]["absolute_position"],
-        #                   self.get_distance_to_intersection(veh_id)[0]]
-        #                  for veh_id in self.sorted_ids]).T
-
         return np.array([[self.vehicles[veh_id]["speed"],
                           self.vehicles[veh_id]["absolute_position"]]
                          for veh_id in self.sorted_ids])
-
-    # def _render(self):
-    #     print('current state/velocity:', self.state)

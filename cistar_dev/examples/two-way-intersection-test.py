@@ -1,17 +1,17 @@
 """
-This script presents the use of two-way intersections in cistar_dev.
+This script presents the use of two-way intersections in cistar.
 
 Cars enter from the bottom and left nodes following a probability distribution, and
 continue to move straight until they exit through the top and right nodes, respectively.
 """
 
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.two_intersection import TwoIntersectionEnvironment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar_dev.scenarios.intersections.gen import TwoWayIntersectionGenerator
-from cistar_dev.scenarios.intersections.intersection_scenario import *
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
+from cistar.core.exp import SumoExperiment
+from cistar.envs.two_intersection import TwoIntersectionEnvironment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.intersections.gen import TwoWayIntersectionGenerator
+from cistar.scenarios.intersections.intersection_scenario import *
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
 
 import logging
 

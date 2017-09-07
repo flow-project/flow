@@ -1,29 +1,27 @@
-import sumolib
-
 class SumoParams():
+    """
+    Configuration for running SUMO
+
+    Specify the rl_speed_mode and human_speed_mode as the SUMO-defined speed
+    mode used to constrain acceleration actions.
+    The available speed modes are as follows:
+     - "no_collide" (default): Human and RL cars are preventing from reaching speeds that may cause
+                    crashes (also serves as a failsafe).
+     - "aggressive": Human and RL cars are not limited by sumo with regard to their accelerations,
+                     and can crash longitudinally
+
+    Specify the SUMO-defined lane-changing mode used to constrain lane-changing actions
+    The available lane-changing modes are as follows:
+     - default: Human and RL cars can only safely change into lanes
+     - "strategic": Human cars make lane changes in accordance with SUMO to provide speed boosts
+     - "no_lat_collide": RL cars can lane change into any space, no matter how likely it is to crash
+     - "aggressive": RL cars are not limited by sumo with regard to their lane-change actions,
+                     and can crash longitudinally
+     """
     def __init__(self, port=None, time_step=0.1, vehicle_arrangement_shuffle=False, starting_position_shuffle=False,
                  emission_path="./data/", rl_speed_mode='no_collide', human_speed_mode='no_collide',
                  rl_lane_change_mode="no_lat_collide" , human_lane_change_mode ="no_lat_collide" ):
         """
-        Configuration for running SUMO
-
-        Specify the rl_speed_mode and human_speed_mode as the SUMO-defined speed
-        mode used to constrain acceleration actions.
-        The available speed modes are as follows:
-         - "no_collide" (default): Human and RL cars are preventing from reaching speeds that may cause
-                        crashes (also serves as a failsafe).
-         - "aggressive": Human and RL cars are not limited by sumo with regard to their accelerations,
-                         and can crash longitudinally
-
-        Specify the SUMO-defined lane-changing mode used to constrain lane-changing actions
-        The available lane-changing modes are as follows:
-         - default: Human and RL cars can only safely change into lanes
-         - "strategic": Human cars make lane changes in accordance with SUMO to provide speed boosts
-         - "no_lat_collide": RL cars can lane change into any space, no matter how likely it is to crash
-         - "aggressive": RL cars are not limited by sumo with regard to their lane-change actions,
-                         and can crash longitudinally
-
-
         :param port: (Optional) Port for Traci to connect to; finds an empty port by default
         :param time_step: (Optional) seconds per simulation step; 0.1 by default
         :param vehicle_arrangement_shuffle: (Optional) determines if initial conditions of vehicles are shuffled
@@ -37,10 +35,7 @@ class SumoParams():
         :param rl_lane_change_mode:  (Optional) 'no_lat_collide' or 'strategic' or 'aggressive'
         :param human_lane_change_mode: (Optional) 'no_lat_collide' or 'strategic' or 'aggressive'
         """
-        if not port:
-            self.port = sumolib.miscutils.getFreeSocketPort()
-        else:
-            self.port = port
+        self.port = port
         self.time_step = time_step
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle

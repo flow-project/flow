@@ -20,12 +20,12 @@ Variables:
     scenario {[type]} -- [Which road network to use]
 '''
 import logging
-from cistar_dev.core.exp import SumoExperiment
-from cistar_dev.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar_dev.scenarios.loop.gen import CircleGenerator
-from cistar_dev.scenarios.loop.loop_scenario import LoopScenario
-from cistar_dev.controllers.car_following_models import *
-from cistar_dev.controllers.lane_change_controllers import *
+from cistar.core.experiment import SumoExperiment
+from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 

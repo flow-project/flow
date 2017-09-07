@@ -1,4 +1,4 @@
-from cistar.core.experiment import Generator
+from cistar.core.generator import Generator
 
 from numpy import pi, sin, cos, linspace
 from lxml import etree
