@@ -27,7 +27,6 @@ from cistar.core.vehicles import Vehicles
 
 from cistar.controllers.routing_controllers import ContinuousRouter
 from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
 
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 from cistar.scenarios.loop.gen import CircleGenerator

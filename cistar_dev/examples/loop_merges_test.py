@@ -3,13 +3,16 @@
 """
 
 import logging
+from cistar.core.experiment import SumoExperiment
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
+from cistar.envs.loop_merges import SimpleLoopMergesEnvironment
+from cistar.scenarios.loop_merges.gen import LoopMergesGenerator
+from cistar.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 
 from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from cistar.core.vehicles import Vehicles
 from cistar.core.experiment import SumoExperiment
-
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
 
 from cistar.envs.loop_merges import SimpleLoopMergesEnvironment
 from cistar.scenarios.loop_merges.gen import LoopMergesGenerator
@@ -20,7 +23,7 @@ from numpy import pi
 logging.basicConfig(level=logging.INFO)
 
 sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide",
-                         sumo_binary="sumo-gui")
+                         sumo_binary="sumo")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 14)

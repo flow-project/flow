@@ -38,9 +38,17 @@ from cistar.controllers.routing_controllers import *
 
 from cistar.scenarios.loop.gen import CircleGenerator
 from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.scenarios.loop.gen import CircleGenerator
+from cistar.scenarios.loop.loop_scenario import LoopScenario
+from cistar.controllers.rlcontroller import RLController
+from cistar.controllers.car_following_models import *
+from cistar.controllers.lane_change_controllers import *
 
+from cistar.core.params import SumoParams
+from cistar.core.params import EnvParams
 
 def run_task(*_):
+    import cistar.envs as cistar_envs
     logging.basicConfig(level=logging.INFO)
 
     tot_cars = 8

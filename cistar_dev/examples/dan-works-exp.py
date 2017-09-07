@@ -20,6 +20,9 @@ Variables:
 '''
 import logging
 
+from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from cistar.controllers.routing_controllers import *
+from cistar.core.vehicles import Vehicles
 from cistar.core.experiment import SumoExperiment
 from cistar.envs.loop import LoopEnvironment
 from cistar.scenarios.loop.gen import CircleGenerator
@@ -27,13 +30,13 @@ from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.controllers.car_following_models import *
 from cistar.controllers.velocity_controllers import *
 from cistar.controllers.lane_change_controllers import *
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.controllers.routing_controllers import *
-from cistar.core.vehicles import Vehicles
+
+from cistar.core.params import SumoParams
+from cistar.core.params import EnvParams
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.01, human_speed_mode="no_collide", sumo_binary="sumo-gui")
+sumo_params = SumoParams(time_step=0.01)
 
 vehicles = Vehicles()
 vehicles.add_vehicles("constantV", (ConstantVelocityController, {"constant_speed": 3.5}), (StaticLaneChanger, {}),

@@ -33,14 +33,12 @@ from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from cistar.core.vehicles import Vehicles
 from cistar.core import config as cistar_config
 
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
 from cistar.controllers.routing_controllers import *
 
 from cistar.scenarios.loop.gen import CircleGenerator
 from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
+from cistar.controllers.rlcontroller import RLController
+from cistar.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 

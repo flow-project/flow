@@ -21,7 +21,6 @@ Variables:
 '''
 
 import logging
-
 from cistar.envs.loop import LoopEnvironment
 from cistar.core.experiment import SumoExperiment
 from cistar.scenarios.loop.gen import CircleGenerator

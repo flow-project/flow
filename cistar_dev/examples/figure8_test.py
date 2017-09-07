@@ -20,6 +20,9 @@ Variables:
     scenario {[type]} -- [Which road network to use]
 '''
 import logging
+from cistar.core.params import SumoParams, EnvParams, NetParams
+from cistar.controllers.routing_controllers import *
+from cistar.core.vehicles import Vehicles
 
 from cistar.core.experiment import SumoExperiment
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
@@ -27,15 +30,10 @@ from cistar.scenarios.figure8.gen import Figure8Generator
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 from cistar.controllers.car_following_models import *
 from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.rlcontroller import RLController
-from cistar.core.params import SumoParams, EnvParams, NetParams
-from cistar.controllers.routing_controllers import *
-from cistar.core.vehicles import Vehicles
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide",
-                         sumo_binary="sumo-gui")
+sumo_params = SumoParams()
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 14)

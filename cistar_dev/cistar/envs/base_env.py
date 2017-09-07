@@ -25,6 +25,8 @@ from rllab.core.serializable import Serializable
 from rllab.envs.base import Step
 import gym
 
+import sumolib
+
 from cistar.controllers.base_controller import *
 from cistar.controllers.car_following_models import *
 from cistar.controllers.rlcontroller import RLController
@@ -73,8 +75,11 @@ class SumoEnvironment(gym.Env, Serializable):
             for intersection_tuple in self.scenario.intersection_edgestarts:
                 self.intersection_edges.append(intersection_tuple[0])
 
-        # SUMO Params
-        self.port = sumo_params.port
+        #SUMO Params
+        if sumo_params.port:
+            self.port = sumo_params.port
+        else:
+            self.port = sumolib.miscutils.getFreeSocketPort()
         self.time_step = sumo_params.time_step
         self.vehicle_arrangement_shuffle = sumo_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = sumo_params.starting_position_shuffle
@@ -818,15 +823,15 @@ class SumoEnvironment(gym.Env, Serializable):
     #     """
     #     raise NotImplementedError
 
-    # def terminate(self):
-    #     """
-    #     Closes the TraCI I/O connection. Should be done at end of every experiment.
-    #     Must be in Environment because the environment opens the TraCI connection.
-    #     """
-    #     self.traci_connection.close()
+    def terminate(self):
+        """
+        Closes the TraCI I/O connection. Should be done at end of every experiment.
+        Must be in Environment because the environment opens the TraCI connection.
+        """
+        self._close()
 
     def _close(self):
         self.traci_connection.close()
 
-    def _seed(self, seed=None): 
+    def _seed(self, seed=None):
         return []
