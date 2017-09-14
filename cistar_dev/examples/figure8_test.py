@@ -33,7 +33,7 @@ from cistar.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams()
+sumo_params = SumoParams(sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 14)

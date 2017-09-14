@@ -29,10 +29,7 @@ import sumolib
 
 from cistar.controllers.base_controller import *
 from cistar.controllers.car_following_models import *
-from cistar.controllers.rlcontroller import RLController
 from cistar.core.util import ensure_dir
-
-import collections
 
 COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 255, 255, 0), (255, 0, 255, 0),
           (255, 255, 255, 0)]
@@ -43,7 +40,6 @@ class SumoEnvironment(gym.Env, Serializable):
         [description]
         Arguments:
             env_params {dictionary} -- [description]
-            sumo_binary {string} -- Either "sumo" or "sumo-gui"
             sumo_params {dictionary} -- {"port": {integer} connection to SUMO,
                             "timestep": {float} default=0.01s, SUMO default=1.0s}
             scenario {Scenario} -- @see Scenario; abstraction of the SUMO XML files
@@ -107,9 +103,9 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # Check if we are in a multi-agent scenario
         if isinstance(self.action_space, list):
-            self.multi_agent = 1
+            self.multi_agent = True
         else:
-            self.multi_agent = 0
+            self.multi_agent = False
 
         self.start_sumo()
         self.setup_initial_state()
@@ -375,7 +371,7 @@ class SumoEnvironment(gym.Env, Serializable):
         # collect information of the state of the network based on the environment class used
         if self.vehicles.num_rl_vehicles > 0:
             self.state = self.get_state()
-            # rllab requires non-multi agent to have state shape as 
+            # rllab requires non-multi agent to have state shape as
             # num-states x num_vehicles
             if not self.multi_agent:
                 self.state = self.state.T
@@ -762,28 +758,6 @@ class SumoEnvironment(gym.Env, Serializable):
 
         return vehicles
 
-    def get_distance_to_intersection(self, veh_id):
-        """
-        Determines the smallest distance from the current vehicle's position to any of the intersections.
-
-        :param veh_id: vehicle identifier
-        :return: a tuple containing the distance to the intersection and which side of the
-                 intersection the vehicle will be arriving at.
-        """
-        this_pos = self.get_x_by_id(veh_id)
-
-        if not self.scenario.intersection_edgestarts:
-            raise ValueError("The scenario does not contain intersections.")
-
-        dist = []
-        intersection = []
-        for intersection_tuple in self.scenario.intersection_edgestarts:
-            dist.append((intersection_tuple[1] - this_pos) % self.scenario.length)
-            intersection.append(intersection_tuple[0])
-
-        ind = np.argmin(dist)
-
-        return dist[ind], intersection[ind]
 
     def get_state(self):
         """
@@ -814,14 +788,6 @@ class SumoEnvironment(gym.Env, Serializable):
             fail {bool-type} -- represents any crash or fail not explicitly present in the state
         """
         raise NotImplementedError
-
-    # FIXME (Eugene) commenting this out causes render to fail due to bad arguments
-    # ??? Why ???
-    # def _render(self):
-    #     """
-    #     Description of the state for when verbose mode is on.
-    #     """
-    #     raise NotImplementedError
 
     def terminate(self):
         """

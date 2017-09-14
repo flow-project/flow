@@ -18,6 +18,7 @@ class SumoParams():
      - "aggressive": RL cars are not limited by sumo with regard to their lane-change actions,
                      and can crash longitudinally
      """
+
     def __init__(self, port=None, time_step=0.1, vehicle_arrangement_shuffle=False, starting_position_shuffle=False,
                  emission_path="./data/", rl_speed_mode='no_collide', human_speed_mode='no_collide',
                  rl_lane_change_mode="no_lat_collide", human_lane_change_mode="no_lat_collide",
@@ -56,7 +57,6 @@ class EnvParams:
                  human_acc_std=0, rl_acc_std=0, max_speed=55.0, lane_change_duration=None,
                  shared_reward=False, shared_policy=False, additional_params=None):
         """
-
         :param longitudinal_fail_safe: Failsafe strategy to prevent bumper to bumper collisions
         :param observation_vel_std: observation (sensor) noise associated with velocity data
         :param observation_pos_std: observation (sensor) noise associated with position data

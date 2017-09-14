@@ -3,10 +3,10 @@ from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
 from cistar.core import multi_agent_rewards
-from cistar.envs.base_env import SumoEnvironment
+from cistar.envs.intersection_env import IntersectionEnvironment
 
 
-class TwoIntersectionMultiAgentEnvironment(SumoEnvironment):
+class TwoIntersectionMultiAgentEnvironment(IntersectionEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the

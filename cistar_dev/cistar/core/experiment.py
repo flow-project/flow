@@ -50,4 +50,4 @@ class SumoExperiment():
             logging.info("Iter #" + str(i))
             for j in range(num_steps):
                 self.env.step(rl_actions)
-            self.env.reset
+        self.env.terminate()

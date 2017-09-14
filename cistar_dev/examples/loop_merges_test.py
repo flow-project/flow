@@ -23,7 +23,8 @@ from numpy import pi
 logging.basicConfig(level=logging.INFO)
 
 sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide",
-                         sumo_binary="sumo")
+                         sumo_binary="sumo"
+                                     "-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 14)
