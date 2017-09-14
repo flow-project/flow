@@ -26,7 +26,7 @@ class SingleLaneOneController(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.WARNING)
 
-        sumo_params = SumoParams(time_step=0.1, human_speed_mode="aggressive", sumo_binary="sumo")
+        sumo_params = SumoParams()
 
         vehicles = Vehicles()
         vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 22)
@@ -34,10 +34,10 @@ class SingleLaneOneController(unittest.TestCase):
         additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 500}
         env_params = EnvParams(additional_params=additional_env_params)
 
-        additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40}
+        additional_net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
 
-        initial_config = InitialConfig(bunching=20)
+        initial_config = InitialConfig()
 
         scenario = LoopScenario("SingleLaneOneControllerTest", CircleGenerator, vehicles, net_params, initial_config)
 
@@ -54,35 +54,39 @@ class SingleLaneMixedSingleAgentRL(unittest.TestCase):
     Tests IDM Controller, RL Controller, Continuous Router, SimpleAccelerationEnvironment & RlLab functionality
     """
     def setUp(self):
+
         logging.basicConfig(level=logging.WARNING)
 
-        sumo_params = SumoParams(time_step=0.1, human_speed_mode="aggressive", sumo_binary="sumo")
+        sumo_params = SumoParams()
 
         vehicles = Vehicles()
-        vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 21)
-        vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, 1)
+        vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, 2)
+        vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 8)
 
-        additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 500}
+        additional_env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 500}
         env_params = EnvParams(additional_params=additional_env_params)
 
-        additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30, "resolution": 40}
+        additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
 
-        initial_config = InitialConfig(bunching=20)
+        initial_config = InitialConfig()
 
-        scenario = LoopScenario("SingleLaneMixedRL", CircleGenerator, vehicles, net_params, initial_config)
+        scenario = LoopScenario("MultiLaneMixedRl", CircleGenerator, vehicles, net_params, initial_config)
 
-        env_name = "SimpleAccelerationEnvironment"
+        env_name = "SimpleLaneChangingAccelerationEnvironment"
         pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                        initial_config, scenario)
 
         env = GymEnv(env_name, record_video=False, register_params=pass_params)
         horizon = env.horizon
         env = normalize(env)
+        logging.info("Experiment Set Up complete")
+
+        env = normalize(env)
 
         policy = GaussianMLPPolicy(
             env_spec=env.spec,
-            hidden_sizes=(16,)
+            hidden_sizes=(6, 6)
         )
 
         baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -91,13 +95,14 @@ class SingleLaneMixedSingleAgentRL(unittest.TestCase):
             env=env,
             policy=policy,
             baseline=baseline,
-            batch_size=2000,
+            batch_size=5000,
             max_path_length=horizon,
             # whole_paths=True,
-            n_itr=2,  # 1000
+            n_itr=2,
             # discount=0.99,
             # step_size=0.01,
         )
+
 
     def test_it_runs(self):
         self.algo.train()
