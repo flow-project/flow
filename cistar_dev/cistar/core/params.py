@@ -53,15 +53,10 @@ class SumoParams():
 
 
 class EnvParams:
-    def __init__(self, longitudinal_fail_safe='None', observation_vel_std=0, observation_pos_std=0,
-                 human_acc_std=0, rl_acc_std=0, max_speed=55.0, lane_change_duration=None,
+    def __init__(self, longitudinal_fail_safe='None', max_speed=55.0, lane_change_duration=None,
                  shared_reward=False, shared_policy=False, additional_params=None):
         """
         :param longitudinal_fail_safe: Failsafe strategy to prevent bumper to bumper collisions
-        :param observation_vel_std: observation (sensor) noise associated with velocity data
-        :param observation_pos_std: observation (sensor) noise associated with position data
-        :param human_acc_std: action (actuator) noise associated with human-driven vehicle acceleration
-        :param rl_acc_std: action (actuator) noise associated with autonomous vehicle acceleration
         :param max_speed: max speed of vehicles in the simulation; defaults to 55 m/s
         :param lane_change_duration: lane changing duration is always present in the environment, but only used by
                                      sub-classes that apply lane changing; defaults to 5 seconds
@@ -70,10 +65,6 @@ class EnvParams:
         :param additional_params: Specify additional environment params for a specific environment configuration
         """
         self.fail_safe = longitudinal_fail_safe
-        self.observation_vel_std = observation_vel_std
-        self.observation_pos_std = observation_pos_std
-        self.human_acc_std = human_acc_std
-        self.rl_acc_std = rl_acc_std
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
         self.shared_reward = shared_reward
