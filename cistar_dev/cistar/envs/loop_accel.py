@@ -1,4 +1,4 @@
-from cistar.envs.loop import LoopEnvironment
+from cistar.envs.base_env import SumoEnvironment
 from cistar.core import rewards
 from cistar.core import multi_agent_rewards
 
@@ -9,7 +9,7 @@ import numpy as np
 from numpy.random import normal
 
 
-class SimpleAccelerationEnvironment(LoopEnvironment):
+class SimpleAccelerationEnvironment(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
@@ -51,12 +51,6 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
         # reward desired velocity
         reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
-        # # punish small headways
-        # headway_penalty = rewards.punish_small_rl_headways(
-        #     self.vehicles, rl_ids=self.rl_ids, headway_threshold=20, penalty_gain=0.75)
-        #
-        # reward += headway_penalty
-
         return reward
 
     def get_state(self, **kwargs):
@@ -75,16 +69,6 @@ class SimpleAccelerationEnvironment(LoopEnvironment):
                           scaled_pos[i] + normal(0, self.observation_pos_std)]
                          for i in range(len(self.sorted_ids))])
 
-        # # for stabilizing the ring: place the rl car at index 0 to maintain continuity between rollouts
-        # indx_rl = [ind for ind in range(len(self.sorted_ids)) if self.sorted_ids[ind] in self.rl_ids][0]
-        # indx_sorted_ids = np.mod(np.arange(len(self.sorted_ids)) + indx_rl, len(self.sorted_ids))
-        #
-        # return np.array([[scaled_vel[i] + normal(0, self.observation_vel_std),
-        #                   scaled_pos[i] + normal(0, self.observation_pos_std)]
-        #                  for i in indx_sorted_ids])
-
-    # def render(self):
-    #     print('current state/velocity:', self.state)
 
 
 class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):

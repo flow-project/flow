@@ -1,5 +1,6 @@
-from cistar.envs.loop import LoopEnvironment
 from cistar.core import rewards
+
+from cistar.envs.base_env import SumoEnvironment
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -8,7 +9,7 @@ import numpy as np
 from numpy.random import normal
 
 
-class SimpleLoopMergesEnvironment(LoopEnvironment):
+class SimpleLoopMergesEnvironment(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the

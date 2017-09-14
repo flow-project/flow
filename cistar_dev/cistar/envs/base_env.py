@@ -558,21 +558,10 @@ class SumoEnvironment(gym.Env, Serializable):
         :param acc: requested accelerations from the vehicles
         :return acc_deviation: difference between the requested acceleration that keeps the velocity positive
         """
-        rl_i = 0
-        human_i = 0
         for i, veh_id in enumerate(veh_ids):
-            # add actuator noise to accelerations
-            if veh_id in self.rl_ids:
-                # acc[i] += np.random.normal(0, self.rl_acc_std)
-                rl_i += 1
-            elif veh_id in self.controlled_ids:
-                # acc[i] += np.random.normal(0, self.human_acc_std)
-                human_i += 1
-
-            # fail-safe to prevent longitudinal (bumper-to-bumper) crashing
             if self.fail_safe == 'instantaneous':
                 safe_acc = self.vehicles.get_acc_controller(veh_id).get_safe_action_instantaneous(self, acc[i])
-            elif self.fail_safe == 'eugene':
+            elif self.fail_safe == 'safe_velocity':
                 safe_acc = self.vehicles.get_acc_controller(veh_id).get_safe_action(self, acc[i])
             else:
                 # Test for multi-agent
