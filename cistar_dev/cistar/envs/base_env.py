@@ -140,7 +140,7 @@ class SumoEnvironment(gym.Env, Serializable):
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step)]
-        print("Traci on port: ", self.port)
+        logging.info("Traci on port: ", self.port)
         if self.emission_out:
             sumo_call.append("--emission-output")
             sumo_call.append(self.emission_out)
@@ -404,7 +404,7 @@ class SumoEnvironment(gym.Env, Serializable):
             if crash:
                 done_n = self.vehicles.num_rl_vehicles * [1]
                 if self.fail_safe:
-                    print("Crash has occurred! Check your failsafes")
+                    logging.error("Crash has occurred! Check your failsafes")
 
             info_n['done_n'] = done_n
             info_n['state'] = self.state
@@ -417,7 +417,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 if self.fail_safe == "None":
                     return Step(observation=next_observation, reward=reward, done=True)
                 else:
-                    print("Crash has occurred! Check failsafes!")
+                    logging.info("Crash has occurred! Check failsafes!")
                     return Step(observation=next_observation, reward=reward, done=True)
             else:
                 return Step(observation=next_observation, reward=reward, done=False)
@@ -620,7 +620,7 @@ class SumoEnvironment(gym.Env, Serializable):
             self.prev_last_lc[veh_id] = self.vehicles.get_state(veh_id, "last_lc")
 
         if self.scenario.lanes == 1:
-            print("Uh oh, single lane track.")
+            logging.error("Uh oh, single lane track.")
             return -1
 
         current_lane = np.array(self.vehicles.get_lane(veh_ids))
@@ -670,7 +670,7 @@ class SumoEnvironment(gym.Env, Serializable):
         elif speed_mode == "no_collide":
             speed_mode_id = 1
         else:
-            print("Invalid Speed Mode!! Defaulting to no collision.")
+            logging.error("Invalid Speed Mode!! Defaulting to no collision.")
 
         self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode_id)
 
@@ -699,7 +699,7 @@ class SumoEnvironment(gym.Env, Serializable):
         elif lc_mode == "strategic":
             lc_mode_id = 853
         else:
-            print("Invalid Speed Mode!!")
+            logging.error("Invalid Speed Mode!!")
 
         self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode_id)
 

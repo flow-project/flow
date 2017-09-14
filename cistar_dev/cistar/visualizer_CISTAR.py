@@ -1,13 +1,8 @@
 from rllab.sampler.utils import rollout
 import argparse
 import joblib
-import uuid
-import os
-import random
 import numpy as np
-from rllab.envs.gym_env import GymEnv
 from rllab.algos.trpo import TRPO
-# import tensorflow as tf
 from matplotlib import pyplot as plt
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
@@ -15,10 +10,9 @@ from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersect
 from cistar.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
 
-import plotly.offline as po
-import plotly.graph_objs as go
-import pdb
 import pickle
+
+import logging
 
 if __name__ == "__main__":
 
@@ -112,7 +106,7 @@ if __name__ == "__main__":
             all_rewards[j] = path["rewards"]
         except ValueError:
             pass
-        print("\n Done: {0} / {1}, {2}%".format(j+1, args.num_rollouts, (j+1) / args.num_rollouts))
+        logging.info("\n Done: {0} / {1}, {2}%".format(j+1, args.num_rollouts, (j+1) / args.num_rollouts))
 
     # export observations in a pickle file
     output_filename = 'observations.pkl'
@@ -161,6 +155,3 @@ if __name__ == "__main__":
     plt.xlabel("Rollout/Path Length", fontsize=15)
     plt.title("Cars {0} / {1} Itr {2}".format(rl_cars, tot_cars, num_itr), fontsize=16)
     plt.savefig("visualizer/{0}_reward.png".format(args.plotname), bbox="tight")
-    # print('Total reward: ', sum(np.mean(all_rewards, axis=0)))
-
-    # env.terminate()

@@ -94,7 +94,6 @@ class NetParams:
     def __init__(self, net_path="debug/net/", cfg_path="debug/cfg/", no_internal_links=True,
                  lanes=1, speed_limit=55, additional_params=None):
         """
-
         :param net_path: path to the network files created to create a network with sumo
         :param cfg_path: path to the configuration files created to create a network with sumo
         :param no_internal_links: determines whether the space between edges is finite. Important

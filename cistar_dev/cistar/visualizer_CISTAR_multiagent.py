@@ -4,13 +4,13 @@ import joblib
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
 
 from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
 from cistar.scenarios.loop.gen import CircleGenerator
 from cistar.scenarios.loop.loop_scenario import LoopScenario
 from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
+
+import logging
 
 if __name__ == "__main__":
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
             obs = path['observations'] # length of rollout x flattened observation
             all_obs[j] = obs
             all_rewards[j] = path["rewards"]
-            print("\n Done: {0} / {1}, {2}%".format(j+1, args.num_rollouts, (j+1) / args.num_rollouts))
+            logging.info("\n Done: {0} / {1}, {2}%".format(j+1, args.num_rollouts, (j+1) / args.num_rollouts))
         
 
         # TODO: savefig doesn't like making new directories
@@ -128,6 +128,3 @@ if __name__ == "__main__":
         plt.xlabel("Rollout/Path Length", fontsize=15)
         plt.title("Cars {0} / {1}".format(rl_cars, tot_cars), fontsize=16)
         plt.savefig("visualizer/{0}_reward.png".format(args.plotname), bbox="tight")
-        # print('Total reward: ', sum(np.mean(all_rewards, axis=0)))
-
-    # env.terminate()

@@ -48,9 +48,6 @@ class TwoLoopTwoMergingGenerator(Generator):
         merge_len = 2 * r * sin(angle)
         ring_edgelen = 2 / 3 * pi * r
 
-        print(" ".join(["%.2f,%.2f" % (r * (cos(t) + cos(angle)), r * sin(t))
-                                     for t in linspace(2 / 3 * pi, 0, resolution)]))
-
         edges = [{"id": "merge", "type": "edgeType",
                   "from": "bottom", "to": "top", "length": repr(merge_len)},
 

@@ -16,7 +16,6 @@ def printxml(t, fn):
     etree.ElementTree(t).write(fn, pretty_print=True, encoding='UTF-8', xml_declaration=True)
 
 def ensure_dir(path):
-    print(path)
     try:
         os.makedirs(path)
     except OSError as exception:

@@ -73,8 +73,6 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
                 normalized_pos.append(pos[i])
 
         state = np.array([normalized_vel, normalized_pos, edge]).T
-        print(state)
-
         return state
 
     def sort_by_position(self):

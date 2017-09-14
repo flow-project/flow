@@ -26,7 +26,6 @@ class Figure8Scenario(Scenario):
         self.radius_ring = net_params.additional_params["radius_ring"]
 
         self.length = net_params.additional_params["length"]
-        print(self.length)
 
         if "lanes" not in net_params.additional_params:
             raise ValueError("number of lanes not supplied")
