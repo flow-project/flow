@@ -2,7 +2,11 @@ from cistar.envs.base_env import SumoEnvironment
 
 import numpy as np
 
+
 class IntersectionEnvironment(SumoEnvironment):
+    """
+    A class that may be used to design environments with intersections.
+    """
 
     def __init__(self, env_params, sumo_params, scenario):
         super(IntersectionEnvironment, self).__init__(env_params, sumo_params, scenario)
@@ -11,8 +15,6 @@ class IntersectionEnvironment(SumoEnvironment):
         if hasattr(self.scenario, "intersection_edgestarts"):
             for intersection_tuple in self.scenario.intersection_edgestarts:
                 self.intersection_edges.append(intersection_tuple[0])
-
-
 
     def get_distance_to_intersection(self, veh_id):
         """
@@ -36,4 +38,3 @@ class IntersectionEnvironment(SumoEnvironment):
         ind = np.argmin(dist)
 
         return dist[ind], intersection[ind]
-

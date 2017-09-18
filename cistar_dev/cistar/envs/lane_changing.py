@@ -20,9 +20,8 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
         """
         Actions are:
          - a (continuous) acceleration from max-deacc to max-acc
-         - a (continuous) direction with 3 values: 0) lane change to index -1, 1) no lane change,
-                                                   2) lane change to index +1
-        :return:
+         - a (continuous) lane-change action from -1 to 1, used to determine the lateral direction the vehicle
+           will take
         """
         max_deacc = self.env_params.get_additional_param("max-deacc")
         max_acc = self.env_params.get_additional_param("max-acc")
@@ -35,14 +34,13 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
     def observation_space(self):
         """
         See parent class
-        An observation consists of the velocity, lane index, and absolute position of each vehicle
+        An observation consists of the velocity, absolute position, and lane index of each vehicle
         in the fleet
         """
-
         speed = Box(low=-np.inf, high=np.inf, shape=(self.vehicles.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        return Tuple((speed, lane, absolute_pos))
+        return Tuple((speed, absolute_pos, lane))
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
@@ -74,12 +72,8 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
         don't issue any commands for the duration of the lane change and return negative rewards
         for actions during that lane change. if a lane change isn't applied, and sufficient time
         has passed, issue an acceleration like normal
-        :param actions: (acceleration, lc_value, direction)
-        :return: array of resulting actions: 0 if successful + other actions are ok, -1 if unsucessful / bad actions.
+        :param actions: (acceleration, lc_direction)
         """
-        # acceleration = actions[-1]
-        # direction = np.array(actions[:-1]) - 1
-
         acceleration = actions[::2]
         direction = np.round(actions[1::2])
 
@@ -97,12 +91,18 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
 
 
 class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
+    """
+    Am extension of SimpleLaneChangingAccelerationEnvironment. Autonomous vehicles in this
+    environment can only make lane-changing decisions. Their accelerations, on the other hand,
+    are controlled by an human car-following model specified under "rl_acc_controller" in the
+    in additional_params attribute of env_params.
+    """
 
     def __init__(self, env_params, sumo_params, scenario):
 
         super().__init__(env_params, sumo_params, scenario)
 
-        # longitudinal (acceleration) controller used for rl cars
+        # acceleration controller used for rl cars
         self.rl_controller = dict()
 
         for veh_id in self.rl_ids:
@@ -119,7 +119,7 @@ class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
     def apply_rl_actions(self, actions):
         """
         see parent class
-        - accelerations are derived using the IDM equation
+        - accelerations are derived using the user-specified acceleration controller
         - lane-change commands are collected from rllab
         """
         direction = actions

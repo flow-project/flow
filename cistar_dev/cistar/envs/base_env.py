@@ -66,12 +66,7 @@ class SumoEnvironment(gym.Env, Serializable):
         self.state = None
         self.obs_var_labels = []
 
-        self.intersection_edges = []
-        if hasattr(self.scenario, "intersection_edgestarts"):
-            for intersection_tuple in self.scenario.intersection_edgestarts:
-                self.intersection_edges.append(intersection_tuple[0])
-
-        #SUMO Params
+        # SUMO Params
         if sumo_params.port:
             self.port = sumo_params.port
         else:
@@ -88,10 +83,6 @@ class SumoEnvironment(gym.Env, Serializable):
             self.emission_out = None
 
         self.fail_safe = env_params.fail_safe
-        self.observation_vel_std = env_params.observation_vel_std
-        self.observation_pos_std = env_params.observation_pos_std
-        self.human_acc_std = env_params.human_acc_std
-        self.rl_acc_std = env_params.rl_acc_std
         self.max_speed = env_params.max_speed
         self.lane_change_duration = env_params.get_lane_change_duration(self.time_step)
         self.shared_reward = env_params.shared_reward
@@ -746,7 +737,6 @@ class SumoEnvironment(gym.Env, Serializable):
                 vehicles[veh_id]["headway"] = np.inf
 
         return vehicles
-
 
     def get_state(self):
         """
