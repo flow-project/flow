@@ -13,8 +13,8 @@ steps. Be sure to install cistar before starting this tutorial.
 -----------------
 
 Cistar is a framework for deep reinforcement learning in
-mixed-autonomy traffic scenarios. It interfaces the RL library ``rllab`` (reference)
-with the traffic microsimulator ``SUMO`` (reference). Through cistar, autonomous
+mixed-autonomy traffic scenarios. It interfaces the RL library ``rllab``
+with the traffic microsimulator ``SUMO``. Through cistar, autonomous
 vehicles may be trained to perform various tasks that improve the
 performance of traffic networks. Currently, cistar v0.1 supports the
 implementation of simple closed networks, such as ring roads, figure
@@ -52,25 +52,30 @@ to attenuate these waves. The remainder of the tutorial is organized as follows:
    reinforcement learning algorithm has converged.
 
 
+.. _creating-a-generator:
+
 2 Creating a Generator
 ======================
 
-A generator object prepares the configuration files needed to create a
+This section walks you through the steps needed to create a generator class.
+The generator prepares the configuration files needed to create a
 transportation network in sumo. A transportation network can be thought
 of as a directed graph consisting of nodes, edges, routes, and other
 (optional) elements.
 
+.. _inheriting-the-base-generator:
+
 2.1 Inheriting the Base Generator
 ---------------------------------
 
-We begin by creating a script "my\_generator.py". In this script, we create
-a class titled ``myGenerator`` that inherits the properties of cistar's base
-generator class.
+We begin by creating a file called ``my_generator.py``. In this file, we
+create a class titled ``myGenerator`` that inherits the properties of cistar's
+base generator class.
 
 ::
 
     # import cistar's base generator
-    from cistar_dev.core.generator import Generator
+    from cistar.core.generator import Generator
 
     # some mathematical operations that may be used
     from numpy import pi, sin, cos, linspace
@@ -96,13 +101,17 @@ mentioned in the above paragraph take in as input net\_params, and
 output a list of dictionary elements, with each element providing the
 attributes of the component to be specified.
 
+.. _defining-the-location-of-nodes:
+
 2.2 Defining the Location of Nodes
 ----------------------------------
 
 The nodes of a network are the positions of a select few points in the
-network. These points are connected together using edges (see section
-2.3). For the ring network, we place four nodes at the bottom, right, left,
+network. These points are connected together using edges (see `section
+2.3`_). For the ring network, we place four nodes at the bottom, right, left,
 and right of the ring.
+
+.. _section 2.3: defining-the-properties-of-edges_
 
 In order to specify the location of the nodes that will be placed in the
 network, the function ``specify_nodes`` is used. This function provides the
@@ -133,6 +142,8 @@ generator class:
 
         return nodes
 
+.. _defining-the-properties-of-edges:
+
 2.3 Defining the Properties of Edges
 ------------------------------------
 
@@ -144,7 +155,7 @@ function, and must include:
 -  **from**: name of the node the edge starts from
 -  **to**: the name of the node the edges ends at
 -  **length**: length of the edge
--  **numLanes** and **speed**: the number of lanes on the edge
+-  **numLanes**: the number of lanes on the edge
 -  **speed**: the speed limit for vehicles on the edge
 
 Other possible attributes can be found at:
@@ -199,7 +210,7 @@ In order to specify the routes a vehicle may take, the function
 ``specify_routes`` is used. This function outputs a single dict element, in which
 the keys are the names of all starting edges, and the items are the sequence of
 edges the vehicle must follow starting from the current edge. For this network,
-the available routes are is defined as follows:
+the available routes are defined as follows:
 
 ::
 
@@ -211,23 +222,28 @@ the available routes are is defined as follows:
 
         return rts
 
+.. _creating-a-scenario:
+
 3 Creating a Scenario
 =====================
 
-The scenario object is used to generate starting positions for vehicles in the
-network, and specify the location of edges relative to some reference.
+This section walks you through the steps required to create a scenario class.
+This class is used to generate starting positions for vehicles in the
+network, as well as specify the location of edges relative to some reference.
+
+.. _inheriting-the-base-scenario-class:
 
 3.1 Inheriting the Base Scenario Class
 --------------------------------------
 
 Similar to the generator we created in section 2, we begin by inheriting the
 methods from cistar's base scenario class. Create a new script called
-"my\_scenario.py" and begin the script as follows:
+``my_scenario.py`` and begin the script as follows:
 
 ::
 
     # import cistar's base scenario class
-    from cistar_dev.core.scenario import Scenario
+    from cistar.scenarios.base_scenario import Scenario
 
     # import some math functions we may use
     from numpy import pi
@@ -238,15 +254,21 @@ methods from cistar's base scenario class. Create a new script called
 
 The inputs to cistar's base scenario class are:
 
--  **name** (string): the name assigned to the scenario
--  **generator\_class** (generator type): the generator class we created
-   in section 2
--  **vehicles** (list of tuples): contains information on the vehicles in the
-   network for each time step.
--  **net\_params** (dict): see section 2.1
--  **initial\_config** (dict): parameters used to modify the initial
-   positions of vehicles in the network
+-  **name**: the name assigned to the scenario
+-  **generator\_class**: the generator class we created
+   in `section 2`_
+-  **vehicles**: used to initialize a set of vehicles in the network.
+   In addition, this object contains information on the state of the vehicles
+   in the network for each time step, which can be accessed during an experiment
+   through various "get" functions
+-  **net\_params**: see `section 2.1`_
+-  **initial\_config**: affects the positioning of vehicle in the network at
+   the start of a rollout. By default, vehicles are uniformly distributed in
+   the network.
 
+.. _section 2.1: inheriting-the-base-generator_
+
+.. _section 3.2:
 
 3.2 Specifying the Length of the Network (optional)
 ---------------------------------------------------
@@ -261,7 +283,7 @@ initializer. This is done by defining the initializer as follows:
 
 ::
 
-    def __init__(self, name, generator_class type_params, net_params, cfg_params=None,
+    def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         # add to net_params a characteristic length
         net_params.additional_params["length"] = 4 * pi * net_params.additional_params["radius"]
@@ -271,7 +293,7 @@ initializer:
 
 ::
 
-        super().__init__(name, generator_class, type_params, net_params, cfg_params, initial_config)
+        super().__init__(name, generator_class, vehicles, net_params, initial_config)
 
 3.3 Specifying the Starting Position of Edges
 ---------------------------------------------
@@ -307,7 +329,7 @@ edges as follows:
 ::
 
     def specify_edge_starts(self):
-        r = net_params.additional_params["radius"]
+        r = self.net_params.additional_params["radius"]
 
         edgestarts = [("bottom", 0),
                       ("right", r * 1/2 *pi),
@@ -330,7 +352,7 @@ network systems. These methods include:
 -  a **uniform** distribution, in which all vehicles are placed
    uniformly spaced across the length of the network
 -  a **gaussian** distribution, in which the vehicles are perturbed from
-   this uniform starting position following a gaussian distribution
+   their uniform starting position following a gaussian distribution
 -  a **gaussian-additive** distribution, in which vehicle are placed
    sequentially following a gaussian distribution, thereby causing the
    error to build up
@@ -342,7 +364,8 @@ not part of the scope of this tutorial, and will not be covered.
 4 Creating an Environment
 =========================
 
-The environment object is the most significant component once a
+This section walks you through creating an environment class.
+This class is the most significant component once a
 network is generated. This object ties the components of ``SUMO`` and
 ``rllab`` together, running a system of vehicles in a network for
 discrete time steps, while treating some of these vehicles as
@@ -352,15 +375,13 @@ reinforcement learning agents whose actions are specified by ``rllab``.
 -----------------------------------------
 
 For the third and final time, we will begin by inheriting a core base
-class from cistar.
-
-Create a new script called "my_environment.py", and begin by importing cistar's
-base environment class.
+class from cistar. Create a new script called ``my_environment.py``, and begin
+by importing cistar's base environment class.
 
 ::
 
     # import the base environment class
-    from cistar_dev.core.base_env import SumoEnvironment
+    from cistar.envs.base_env import SumoEnvironment
 
 In addition to cistar's base environment, we will import a few objects
 from ``gym``, which will make our environment class compatible with ``rllab``'s
@@ -397,10 +418,16 @@ trains the reinforcement learning agent(s) (i.e. the autonomous vehicles).
 
 The inputs to the environment class are:
 
-- **env\_params**: various environment and experiment-specific parameters
-- **sumo\_params**: sumo-specific parameters
-- **scenario**: The scenario class we created in section 3, which also contains
-  the generator from section 2, if needed.
+- **env\_params**: provides several environment and experiment-specific
+  parameters. This includes specifying the parameters of the action space
+  and relevant coefficients to the reward function.
+- **sumo\_params**: used to pass the time step and sumo-specified safety
+  modes, which constrain the dynamics of vehicles in the network to
+  prevent crashes. In addition, this parameter may be used to specify whether to
+  use sumo's gui during the experiment's runtime.
+- **scenario**: The scenario class we created in `section 3`_
+
+.. _section 3: creating-a-scenario_
 
 By inheriting cistar's base environment, a custom environment can be created
 by adding the following functions to the child class: ``action_space``,
@@ -449,9 +476,9 @@ containing these attributes is defined as follows:
 
 The observation space of an environment represents the number and types
 of observations that are provided to the reinforcement learning agent.
-For a network of vehicles in a single lane setting, the observation
-space consists of a vector of velocities :math:`v` and absolute positions
-:math:`x` for each vehicle in the network.
+Assuming the system of vehicles are **fully** observable,
+the observation space then consists of a vector of velocities :math:`v` and
+absolute positions :math:`x` for each vehicle in the network.
 
 We begin by defining our ``observation_space`` function:
 
@@ -462,8 +489,8 @@ We begin by defining our ``observation_space`` function:
 
 In this function, we create two Box elements; one for the absolute
 positions of the vehicles, and another for the speeds of the vehicles.
-These values may range from zero to infinity, and there are
-``self.scenario.num_vehicles`` number of unique values for each of them:
+These values may range from zero to infinity, and there is a separate value
+for each vehicles:
 
 ::
 
@@ -527,9 +554,11 @@ each vehicle its speed and absolute position:
 
         state = np.array([[self.vehicles.get_speed(veh_id),
                            self.vehicles.get_absolute_position(veh_id)]
-                          for veh_id in self.sorted_ids])
+                          for veh_id in self.ids])
 
         return state
+
+.. _section 4.6:
 
 4.6 Computing an Appropriate Reward Function
 --------------------------------------------
@@ -561,16 +590,14 @@ length :math:`k`, :math:`n` as the number of vehicles in the system, and
 .. math:: r(v) = \max{0, ||v_{des} \cdot 1^k ||_2 - || v - v_{des} \cdot 1^k ||_2}
 
 **4.6.1 Using Built-in Reward Functions** Cistar come with several
-built-in reward functions located in ``cistar_dev.core.rewards`` and
-``cistar_dev.core.multi_agent_rewards``. In order to use these reward
-function, we begin by importing these reward function at the top of the
-script:
+built-in reward functions located in ``cistar.core.rewards``.
+In order to use these reward function, we begin by importing these reward
+function at the top of the script:
 
 ::
 
     # cistar's built-in reward functions
-    from cistar_dev.core import rewards
-    from cistar_dev.core import multi_agent_rewards
+    from cistar.core import rewards
 
 One reward function located in the ``rewards`` file is the function
 ``desired_velocity``, which computes the reward described in this
@@ -626,9 +653,9 @@ below by zero.
 ----------------------------------------------------
 
 In order to run reinforcement learning experiments (see section 6), the
-experiment we created needs to be registered as a Gym Environment. In
+environment we created needs to be registered as a Gym Environment. In
 order for cistar to register your environment as a Gym Environment, go
-to ``cistar_dev/envs/__init__.py``, and add the following line:
+to ``cistar/envs/__init__.py``, and add the following line:
 
 ::
 
@@ -702,30 +729,22 @@ for each class, must be must be specified. These inputs are:
 ``sumo_params``, ``vehicles``, ``env_params``, ``net_params``, and (optionally)
 ``initial_config``.
 
-``sumo_params`` is used to pass the time step and sumo-specified safety
-modes, which constrain the dynamics of vehicles in the network to
-prevent crashes. In addition, this parameter may be used to specify whether to
-use sumo's gui during the experiment's runtime. We will use this parameter to
-specify a step size of a 0.1 s and turn on sumo's gui:
+For the ``sumo_params`` input, we specify a time step of 0.1 s and turn on
+sumo's gui to visualize the experiment as it happens:
 
 ::
 
     sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
-::
-
-    sumo_binary = "sumo-gui"
-
-``vehicles`` is used to initialize a set of vehicles in the network. We begin by
-initializing the object:
+Next, we initialize an empty vehicles object:
 
 ::
 
     vehicles = Vehicles()
 
-Next, we place 22 vehicles in the network. These vehicles are made to follow
-car-following dynamics defined by the Intelligent Driver
-Model (IDM), and are rerouting every time they reach the end of their route
+22 human-driven vehicles are introduced to the vehicles object. These vehicles
+are made to follow car-following dynamics defined by the Intelligent Driver
+Model (IDM), and are rerouted every time they reach the end of their route
 in order to ensure they stay in the ring indefinitely. This is done as follows:
 
 ::
@@ -735,12 +754,10 @@ in order to ensure they stay in the ring indefinitely. This is done as follows:
                           routing_controller=(ContinuousRouter, {}),
                           num_vehicles=22)
 
-``env_params`` provides several environment and experiment-specific
-parameters. This includes specifying the parameters of the action space
-and relevant coefficients to the reward function. Whether autonomous
-vehicles are placed within the network or not, the environment will
-attempt to create an action space. Accordingly, we provide
-``env_params`` with the necessary components for this method:
+For the ``env_params`` object, we specify the bounds of the action space.
+We do this because ``rllab`` will continue to try to create an action space
+object despite whether the outputted actions are used (such as in this base
+experiment). These terms are added to the "additional_params" portion:
 
 ::
 
@@ -748,9 +765,12 @@ attempt to create an action space. Accordingly, we provide
     env_params = EnvParams(additional_params=additional_env_params)
 
 
-``net_params`` consist of a dictionary of several network-specific
-values of interest. Given the generator class we created in section 2,
-these values include: "radius", "lanes", and "speed\_limit".
+In the  ``net_params`` object, we add the characteristic components of the
+network. These values include: "radius", "lanes",
+and "speed\_limit", and are added to the "additional_params" portion of the
+network we descibed in `section 2`_.
+
+.. _section 2: creating-a-generator_
 
 ::
 
@@ -758,7 +778,7 @@ these values include: "radius", "lanes", and "speed\_limit".
     net_params = NetParams(additional_params=additional_net_params)
 
 
-Note that, if section 3.2 was not implemented when creating the scenario
+Note that, if `section 3.2`_ was not implemented when creating the scenario
 class, an additional "length" component must be added to ``net_params``
 as follows:
 
@@ -766,10 +786,9 @@ as follows:
 
     net_params.additional_params["length"] = net_params.additional_params["radius"] * 2 * np.pi
 
-Finally, the variable ``initial_config`` affects the positioning of
-vehicle in the network at the start of a rollout. In order to prevent
-the system from being perfectly symmetric, we add a bunching component to the
-initial uniform spacing of the vehicles:
+Finally, in order to prevent the system from being perfectly symmetric, we add
+a bunching component to the initial positioning of the vehicles, which is by
+default "uniform":
 
 ::
 
@@ -782,11 +801,11 @@ variables can be initialized. Moreover, naming the experiment
 
 ::
 
-    # creating a scenario variable
+    # create a scenario object
     scenario = myScenario("ring_road_all_human", myGenerator, vehicles, net_params,
                           initial_config)
 
-    # creating an environment variable
+    # create an environment object
     env = myEnvironment(env_params, sumo_params, scenario)
 
 5.3 Setting up the Experiment Class
@@ -797,7 +816,7 @@ variable can be creating as follows:
 
 ::
 
-    # creating an experiment variable
+    # creating an experiment object
     exp = SumoExperiment(env, scenario)
 
 This allows us to run the experiment for as many runs and any number of
@@ -827,7 +846,10 @@ network. Click on the play
 button on the top-left corner of the gui, and the network will
 be filled with vehicles, which then begin to accelerate.
 
-(describe what's going on)
+As we can see, vehicles are not free-flowing in the ring. Instead, they seem to
+generate stop-and-go waves in the ring, which forces all vehicles to slow down
+constantly and prevents them from attaining their ideal equilibrium speeds.
+
 
 6. Running an Experiment with Autonomy
 ======================================
@@ -836,7 +858,8 @@ Finally, we will attempt to add autonomous vehicles in the ring road. We
 will begin by adding a single autonomous vehicles, in hopes that this
 vehicle may be able to learn to attenuate the waves we witnessed in section 5.
 
-## 6.1 Creating a Gym Environment
+6.1 Creating a Gym Environment
+------------------------------
 
 Unlike in section 5, we will not rely on cistar's ``SumoExperiment``
 object to run experiments, but rather we will create a Gym Environment
@@ -880,7 +903,7 @@ In additon, we will need several functions from ``rllab``:
     from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
     from rllab.envs.gym_env import GymEnv
 
-In this script, we will define a function called ``run_task`` that will
+Next, we define a function called ``run_task`` that will
 be used to create and run our gym environment:
 
 ::
@@ -889,7 +912,8 @@ be used to create and run our gym environment:
 
 Similar to section 5, we must now define the necessary input variables
 to the generator, scenario, and environment classes. These variable will
-largely remain the same but with the addition of a few component.
+largely remain unchanged from section 5, but with the addition of a few
+components.
 
 For one, in ``sumo_params`` we will want to specify an aggressive
 SUMO-defined speed mode for rl vehicles, which will prevent SUMO from enforcing
@@ -898,10 +922,10 @@ autonomous vehicles crashing into the vehicles ahead of them. This is
 done by setting "rl\_sm" to "aggressive".
 
 Moreover, in order to run rollouts with a max path length of 1500 steps
-(i.e. 150 s), we set "num\_steps" in ``env_params`` to 1500. In
-addition, in order to train the vehicle to move the vehicles in the
-network as fast as possible, we set "target\_velocity" in ``env_params``
-to 8 m/s (far beyond the expected equilibrium velocity).
+(i.e. 150 s), we set "num\_steps" in ``env_params`` to 1500. Also, in ordr to
+satisfy the reward function we specified in `section 4.6`_, we set
+"target\_velocity" in ``env_params`` to 8 m/s
+(which far beyond the expected equilibrium velocity).
 
 Finally we introduce an autonomous (rl) vehicle into the network by
 reducing the number of human vehicles by 1 and add a element to the
@@ -1013,7 +1037,7 @@ iterations.
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used
-        seed=seed,
+        seed=5,
         mode="local",
         exp_prefix="stabilizing-the-ring",
     )
@@ -1026,5 +1050,13 @@ specify the path to the location of ``rllab``'s python command within
 
         python_command="<acaconda2_directory>/envs/rllab-distributed/bin/python3.5"
 
-6.4 Visualizing Rollouts
-------------------------
+6.4 Running the Mixed-Autonomy Experiment
+-----------------------------------------
+
+We are finally ready to run our first experiment with reinforcement learning
+autonomous agents! Run the script and click on the "Play" button on sumo's gui
+as you had done in section 5. The experiment will now run for a maximum of 300
+iterations (as we had specified); however, the experiments converges much sooner.
+In fact, by around the 150th iteration, we notice that the vehicle had learned
+to stop crashing completely, and that the vehicles in the ring seem to be
+completely free-flowing, without the nuisance of stop-and-go waves.

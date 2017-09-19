@@ -2,16 +2,17 @@
 This file provides the interface for controlling a SUMO simulation. Using the environment class, you can
 start sumo, provide a scenario to specify a configuration and controllers, perform simulation steps, and
 reset the simulation to an initial configuration.
+
 SumoEnv must be be Serializable to allow for pickling of the policy.
+
 This class cannot be used as is: you must extend it to implement an action applicator method, and
-properties to define the MDP if you choose to use it with RLLab.
-A reinforcement learning environment can be built using SumoEnvironment as a parent class by
-adding the following functions:
- - action_space(self): specifies the action space of the rl vehicles
- - observation_space(self): specifies the observation space of the rl vehicles
- - apply_rl_action(self, rl_actions): Specifies the actions to be performed by rl_vehicles
- - getState(self):
- - compute_reward():
+properties to define the MDP if you choose to use it with RLLab. This can be done by overloading
+the following functions in a child class:
+ - action_space
+ - observation_space
+ - apply_rl_action
+ - get_state
+ - compute_reward
 """
 
 import logging
@@ -36,18 +37,6 @@ COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0), (0, 
 
 
 class SumoEnvironment(gym.Env, Serializable):
-    """ Base environment for all Sumo-based operations
-        [description]
-        Arguments:
-            env_params {dictionary} -- [description]
-            sumo_params {dictionary} -- {"port": {integer} connection to SUMO,
-                            "timestep": {float} default=0.01s, SUMO default=1.0s}
-            scenario {Scenario} -- @see Scenario; abstraction of the SUMO XML files
-                                    which specify the vehicles placed on the net
-
-        Raises:
-            ValueError -- Raised if a SUMO port not provided
-    """
 
     def __init__(self, env_params, sumo_params, scenario):
         Serializable.quick_init(self, locals())
@@ -102,6 +91,9 @@ class SumoEnvironment(gym.Env, Serializable):
         self.setup_initial_state()
 
     def restart_sumo(self, sumo_params, sumo_binary=None):
+        """
+        Restarts an already initialized environment. Used when visualizing a rollout.
+        """
         self.traci_connection.close(False)
         if sumo_binary:
             self.sumo_binary = sumo_binary
@@ -117,6 +109,10 @@ class SumoEnvironment(gym.Env, Serializable):
         self.setup_initial_state()
 
     def start_sumo(self):
+        """
+        Starts a sumo instance from the configuration files created by the generator.
+        Also initializes a traci connection to interact with sumo from Python.
+        """
         logging.info(" Starting SUMO on port " + str(self.port))
         logging.debug(" Cfg file " + str(self.scenario.cfg))
         logging.debug(" Emission file: " + str(self.emission_out))
@@ -143,10 +139,6 @@ class SumoEnvironment(gym.Env, Serializable):
         self.traci_connection = traci.connect(self.port, numRetries=100)
 
         self.traci_connection.simulationStep()
-
-        # Density = num vehicles / length (in meters)
-        # so density in vehicles/km would be 1000 * self.density
-        self.density = self.vehicles.num_vehicles / self.scenario.net_params.additional_params['length']
 
     def setup_initial_state(self):
         """
@@ -246,9 +238,11 @@ class SumoEnvironment(gym.Env, Serializable):
         step forward based on rl_actions, provided by the RL algorithm. Other cars
         will step forward based on their car following model. When end of episode
         is reached, reset() should be called to reset the environment's internal state.
+
         Input
         -----
         rl_actions : an action provided by the rl algorithm
+
         Outputs
         -------
         (observation, reward, done, info)
@@ -417,6 +411,7 @@ class SumoEnvironment(gym.Env, Serializable):
     def _reset(self):
         """
         Resets the state of the environment, returning an initial observation.
+
         Outputs
         -------
         observation : the initial observation of the space. (Initial reward is assumed to be 0.)
@@ -589,7 +584,6 @@ class SumoEnvironment(gym.Env, Serializable):
         :param veh_ids: vehicles to apply the lane change to
         :param direction: array on integers in {-1,1}; -1 to the right, 1 to the left
         :param target_lane: array of indices of lane to enter
-        :return: penalty value: 0 for successful lane change, -1 for impossible lane change
         """
         if direction is not None and target_lane is not None:
             raise ValueError("Cannot provide both a direction and target_lane.")
