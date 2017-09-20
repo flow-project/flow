@@ -54,7 +54,8 @@ class SumoParams():
 
 class EnvParams:
     def __init__(self, longitudinal_fail_safe='None', max_speed=55.0, lane_change_duration=None,
-                 shared_reward=False, shared_policy=False, additional_params=None):
+                 shared_reward=False, shared_policy=False, additional_params=None,
+                 observation_vel_std=0, observation_pos_std=0, human_acc_std=0, rl_acc_std=0):
         """
         :param longitudinal_fail_safe: Failsafe strategy to prevent bumper to bumper collisions
         :param max_speed: max speed of vehicles in the simulation; defaults to 55 m/s
@@ -70,6 +71,10 @@ class EnvParams:
         self.shared_reward = shared_reward
         self.shared_policy = shared_policy
         self.additional_params = additional_params
+        self.observation_vel_std = observation_vel_std
+        self.observation_pos_std = observation_pos_std
+        self.human_acc_std = human_acc_std
+        self.rl_acc_std = rl_acc_std
 
     def get_additional_param(self, key):
         return self.additional_params[key]
