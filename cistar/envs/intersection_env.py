@@ -13,11 +13,9 @@ class IntersectionEnvironment(SumoEnvironment):
                 self.intersection_edges.append(intersection_tuple[0])
 
 
-
     def get_distance_to_intersection(self, veh_id):
         """
         Determines the smallest distance from the current vehicle's position to any of the intersections.
-
         :param veh_id: vehicle identifier
         :return: a tuple containing the distance to the intersection and which side of the
                  intersection the vehicle will be arriving at.
@@ -30,10 +28,10 @@ class IntersectionEnvironment(SumoEnvironment):
         dist = []
         intersection = []
         for intersection_tuple in self.scenario.intersection_edgestarts:
-            dist.append((intersection_tuple[1] - this_pos) % self.scenario.length)
+            #dist.append((intersection_tuple[1] - this_pos) % self.scenario.length)
+            dist.append((intersection_tuple[1] - this_pos))
             intersection.append(intersection_tuple[0])
 
-        ind = np.argmin(dist)
+        ind = np.argmin(np.abs(dist))
 
         return dist[ind], intersection[ind]
-
