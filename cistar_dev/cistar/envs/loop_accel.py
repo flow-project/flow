@@ -11,16 +11,20 @@ from numpy.random import normal
 
 class SimpleAccelerationEnvironment(SumoEnvironment):
     """
-    Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
-    difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
-    velocities and absolute positions for each vehicle.
+    Fully functional environment for single lane closed loop settings. Takes in
+    an *acceleration* as an action. Reward function is negative norm of the
+    difference between the velocities of each vehicle, and the target velocity.
+    State function is a vector of the velocities and absolute positions for each
+    vehicle.
     """
 
     @property
     def action_space(self):
         """
         See parent class
-        Actions are a set of accelerations from max-deacc to max-acc for each rl vehicle.
+
+        Actions are a set of accelerations from max-deacc to max-acc for each
+        rl vehicle.
         """
         return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")),
                    high=self.env_params.get_additional_param("max-acc"),
@@ -30,7 +34,9 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
     def observation_space(self):
         """
         See parent class
-        An observation is an array the velocities and absolute positions for each vehicle
+
+        An observation is an array the velocities and absolute positions for
+        each vehicle
         """
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
@@ -40,6 +46,10 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
     def apply_rl_actions(self, rl_actions):
         """
         See parent class
+
+        Accelerations are applied to rl vehicles in accordance with the commands
+        provided by rllab. These actions may be altered by cistar's failsafes or
+        sumo-defined speed modes.
         """
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
@@ -56,7 +66,9 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
     def get_state(self, **kwargs):
         """
         See parent class
-        The state is an array of velocities and absolute positions for each vehicle
+
+        The state is an array of velocities and absolute positions for each
+        vehicle
         """
         scaled_pos = [self.vehicles.get_absolute_position(veh_id) /
                       self.scenario.length for veh_id in self.sorted_ids]
@@ -64,21 +76,24 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
                       self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
 
-        return np.array([[scaled_vel[i], scaled_pos[i]] for i in range(len(self.sorted_ids))])
+        return np.array([[scaled_vel[i], scaled_pos[i]]
+                         for i in range(len(self.sorted_ids))])
 
 
 class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
     """
-    An extension of SimpleAccelerationEnvironment which treats each autonomous vehicles as
-    a separate rl agent, thereby allowing autonomous vehicles to be trained in multi-agent
-    settings.
+    An extension of SimpleAccelerationEnvironment which treats each autonomous
+    vehicles as a separate rl agent, thereby allowing autonomous vehicles to be
+    trained in multi-agent settings.
     """
 
     @property
     def action_space(self):
         """
         See parent class
-        Actions are a set of accelerations from 0 to 15m/s
+
+        Actions are a set of accelerations from max-deacc to max-acc for each
+        rl vehicle.
         """
         action_space = []
         for veh_id in self.rl_ids:
@@ -90,7 +105,6 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
     def observation_space(self):
         """
         See parent class
-        An observation is an array the velocities for each vehicle
         """
         num_vehicles = self.scenario.num_vehicles
         observation_space = []
@@ -111,8 +125,8 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
     def get_state(self, **kwargs):
         """
         See parent class
-        The state is an array the velocities for each vehicle
-        :return: a matrix of velocities and absolute positions for each vehicle
+        The state is an array the velocities and absolute positions for
+        each vehicle.
         """
         obs_arr = []
         for i in range(self.scenario.num_rl_vehicles):
@@ -126,11 +140,13 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
 
 class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
     """
-    This environment is an extension of the SimpleAccelerationEnvironment, with the exception that
-    only local information is provided to the agent about the network; i.e. headway, velocity, and
-    velocity difference. The reward function, however, continues to reward global network performance.
+    This environment is an extension of the SimpleAccelerationEnvironment, with
+    the exception that only local information is provided to the agent about the
+    network; i.e. headway, velocity, and velocity difference. The reward
+    function, however, continues to reward global network performance.
 
-    NOTE: The environment also assumes that only one autonomous vehicle is in the network.
+    NOTE: The environment also assumes that there is only one autonomous vehicle
+    is in the network.
     """
 
     @property
@@ -138,18 +154,22 @@ class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
         """
         See parent class
         """
-        return Box(low=0, high=np.inf, shape=(3,))
+        return Box(low=-np.inf, high=np.inf, shape=(3,))
 
     def get_state(self, **kwargs):
         """
-        The state is an array consisting of the speed of the rl vehicle, the relative speed
-        of the vehicle ahead of it, and its headway with the vehicle ahead of it.
+        See parent class
+
+        The state is an array consisting of the speed of the rl vehicle, the
+        relative speed of the vehicle ahead of it, and the headway between the
+        rl vehicle and the vehicle ahead of it.
         """
         vehID = self.rl_ids[0]
         lead_id = self.vehicles[vehID]["leader"]
         max_speed = self.max_speed
 
-        # if a vehicle crashes into the car ahead of it, it no longer processes a lead vehicle
+        # if a vehicle crashes into the car ahead of it, it no longer processes
+        # a lead vehicle
         if lead_id is None:
             lead_id = vehID
             self.vehicles[vehID]["headway"] = 0

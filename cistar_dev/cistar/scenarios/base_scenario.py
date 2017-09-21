@@ -18,16 +18,24 @@ class Scenario(Serializable):
         function stores all the relevant parameters. The generate() function
         still needs to be called separately.
 
-        :param name: A tag associated with the scenario
-        :param generator_class: Class for generating a configuration files
-        and net files with placed vehicles, e.g. CircleGenerator
-        :param vehicles: See README.md
-        :param net_params: See README.md
-        :param initial_config:
-            { 'shuffle' : True }: Shuffle the starting positions of vehicles.
-            { 'positions' : [(route0, pos0), (route1, pos1), ... ]}: Places
-            vehicles on route route0, position on edge (pos0).
-            Note: this needs to be implemented in a child class.
+        Attributes
+        ----------
+        name: str
+            A tag associated with the scenario
+        generator_class: Generator type
+            Class for generating configuration and net files with placed
+            vehicles, e.g. CircleGenerator
+        vehicles: Vehicles type
+            see cistar/core/vehicles.py
+        net_params: NetParams type
+            see cistar/core/params.py
+        initial_config: InitialConfig type
+            see cistar/core/params.py
+
+        Raises
+        ------
+        ValueError
+            If no "length" is provided in net_params
         """
         Serializable.quick_init(self, locals())
 
@@ -37,23 +45,26 @@ class Scenario(Serializable):
         self.net_params = net_params
         self.initial_config = initial_config
 
-        # parameters to be specified under each unique subclass's __init__() function
+        # parameters to be specified under each unique subclass's
+        # __init__() function
         self.edgestarts = self.specify_edge_starts()
 
-        # these optional parameters need only be used if "no-internal-links" is set to "false"
-        # while calling sumo's netconvert function
+        # these optional parameters need only be used if "no-internal-links"
+        # is set to "false" while calling sumo's netconvert function
         self.internal_edgestarts = self.specify_internal_edge_starts()
         self.intersection_edgestarts = self.specify_intersection_edge_starts()
 
-        # in case the user did not write the intersection edge-starts in internal edge-starts as
-        # well (because of redundancy), merge the two together
+        # in case the user did not write the intersection edge-starts in
+        # internal edge-starts as well (because of redundancy), merge the two
+        # together
         self.internal_edgestarts += self.intersection_edgestarts
         seen = set()
-        self.internal_edgestarts = [item for item in self.internal_edgestarts
-                                    if item[1] not in seen and not seen.add(item[1])]
+        self.internal_edgestarts = \
+            [item for item in self.internal_edgestarts
+             if item[1] not in seen and not seen.add(item[1])]
 
-        # total_edgestarts and total_edgestarts_dict contain all of the above edges, with the
-        # former being ordered by position
+        # total_edgestarts and total_edgestarts_dict contain all of the above
+        # edges, with the former being ordered by position
         if self.net_params.no_internal_links:
             self.total_edgestarts = self.edgestarts
         else:
@@ -62,49 +73,63 @@ class Scenario(Serializable):
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
-        # length of the network, or the portion of the network in which cars are meant to be distributed
-        # (to be calculated during subclass __init__(), or specified in net_params)
+        # length of the network, or the portion of the network in which cars are
+        # meant to be distributed (to be calculated during subclass __init__(),
+        # or specified in net_params)
         if not hasattr(self, "length"):
             if "length" in self.net_params.additional_params:
                 self.length = self.net_params.additional_params["length"]
             else:
-                raise ValueError("The network does not have a characteristic length specified.")
+                raise ValueError("The network does not have a specified length.")
 
         # generate starting position for vehicles in the network
         if self.initial_config.positions is None:
-            self.initial_config.positions, self.initial_config.lanes = self.generate_starting_positions()
+            self.initial_config.positions, self.initial_config.lanes = \
+                self.generate_starting_positions()
 
         self.cfg = self.generate()
 
     def specify_edge_starts(self):
         """
-        Defines edge starts for road sections w.r.t. some global reference frame.
+        Defines edge starts for road sections with respect to some global
+        reference frame.
+        MUST BE implemented in any new scenario subclass.
 
-        :return: a list of edge names and starting positions [(edge0, pos0), (edge1, pos1), ...]
+        Returns
+        -------
+        edgestarts: list
+            list of edge names and starting positions,
+            ex: [(edge0, pos0), (edge1, pos1), ...]
         """
         raise NotImplementedError
 
     def specify_intersection_edge_starts(self):
         """
-        Defines edge starts for intersections w.r.t. some global reference frame. Need not
-        be specified if no intersections exist.
-        These values can be used to determine the distance of some agent from the nearest
-        and/or all intersections.
+        Defines edge starts for intersections with respect to some global
+        reference frame. Need not be specified if no intersections exist.
+        These values can be used to determine the distance of some agent from
+        the nearest and/or all intersections.
 
-        :return: a list of intersection names and starting positions
-                 [(intersection0, pos0), (intersection1, pos1), ...]
+        Returns
+        -------
+        intersection_edgestarts: list
+            list of intersection names and starting positions,
+            ex: [(intersection0, pos0), (intersection1, pos1), ...]
         """
         return []
 
     def specify_internal_edge_starts(self):
         """
         Defines the edge starts for internal edge nodes (caused by finite-length
-        connections between road sections) w.r.t. some global reference frame.
-        Need not be specified if "no-internal-links" is not specified or set to
+        connections between road sections) with respect to some global reference
+        frame. Does not need to be specified if "no-internal-links" is set to
         True in net_params.
 
-        :return: a list of internal junction names and starting positions
-                 [(internal0, pos0), (internal1, pos1), ...]
+        Returns
+        -------
+        internal_edgestarts: list
+            list of internal junction names and starting positions,
+            ex: [(internal0, pos0), (internal1, pos1), ...]
         """
         return []
 
@@ -112,12 +137,16 @@ class Scenario(Serializable):
         """
         Applies self.generator_class to create a net and corresponding cfg
         files, including placement of vehicles (name.rou.xml).
-        :return: (path to cfg files (the .sumo.cfg), path to output files {
-        "netstate", "amitran", "lanechange", "emission" })
+
+        Returns
+        -------
+        cfg: str
+            path to configuration (.sumo.cfg) file
         """
         logging.info("Config file not defined, generating using generator")
 
         # Default scenario parameters
+        # TODO: remove from generator class inputs
         net_path = self.net_params.net_path
         cfg_path = self.net_params.cfg_path
 
@@ -132,9 +161,17 @@ class Scenario(Serializable):
         """
         Given an absolute position x on the track, returns the edge (name) and
         relative position on that edge.
-        :param x: absolute position x
-        :return: (edge (name, such as bottom, right, etc.), relative position on
-        edge)
+
+        Parameters
+        ----------
+        x: float
+            absolute position in network
+
+        Returns
+        -------
+        edge position: tup
+            1st element: edge name (such as bottom, right, etc.)
+            2nd element: relative position on edge
         """
         starte = ""
         startx = 0
@@ -148,10 +185,20 @@ class Scenario(Serializable):
 
     def get_x(self, edge, position):
         """
-        Given an edge name and relative position, return the absolute position on the track.
-        :param edge: name of edge (string)
-        :param position: relative position on edge
-        :return: absolute position of the vehicle on the track given a reference (origin)
+        Given an edge name and relative position, return the absolute position
+        on the track.
+
+        Parameters
+        ----------
+        edge: str
+            name of the edge
+        position: float
+            relative position on the edge
+
+        Returns
+        -------
+        absolute_position: float
+            position with respect to some global reference
         """
         if edge in dict(self.edgestarts).keys():
             return self.total_edgestarts_dict[edge] + position
@@ -162,21 +209,34 @@ class Scenario(Serializable):
 
     def generate_starting_positions(self, **kwargs):
         """
-        Generates starting positions for vehicles in the network
+        Generates starting positions for vehicles in the network. Calls all
+        other starting position generating classes.
 
-        :param kwargs: additional arguments that may be updated beyond initial configurations,
-                       such as modifying the starting position
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-                 list of start lanes
+        Parameters
+        ----------
+        kwargs: dict
+            additional arguments that may be updated beyond initial
+            configurations, such as modifying the starting position
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
         """
         if self.initial_config.spacing == "gaussian_additive":
-            startpositions, startlanes = self.gen_gaussian_additive_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = \
+                self.gen_gaussian_additive_start_pos(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "gaussian":
-            startpositions, startlanes = self.gen_gaussian_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = \
+                self.gen_gaussian_start_pos(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "uniform":
-            startpositions, startlanes = self.gen_even_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = \
+                self.gen_even_start_pos(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "custom":
-            startpositions, startlanes = self.gen_custom_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = \
+                self.gen_custom_start_pos(self.initial_config, **kwargs)
         else:
             raise ValueError('"spacing" argument in initial_config does not contain a valid option')
 
@@ -184,13 +244,22 @@ class Scenario(Serializable):
 
     def gen_even_start_pos(self, initial_config, **kwargs):
         """
-        Generates start positions that are perturbed from a uniformly spaced distribution
-        by some gaussian noise.
+        Generates start positions that are uniformly spaced across the network.
 
-        :param kwargs:
-        :param initial_config:
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-                 list of start lanes
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see cistar/core/params.py
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
         """
         x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts,
@@ -210,7 +279,8 @@ class Scenario(Serializable):
 
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) * initial_config.lanes_distribution / self.vehicles.num_vehicles
+        increment = (distribution_length - bunching) * \
+            initial_config.lanes_distribution / self.vehicles.num_vehicles
 
         x = [x0] * initial_config.lanes_distribution
         car_count = 0
@@ -221,13 +291,13 @@ class Scenario(Serializable):
 
             # ensures that vehicles are not placed in an internal junction
             if pos[0] in dict(self.internal_edgestarts).keys():
-                # find the location of the internal edge in total_edgestarts, which has
-                # the edges ordered by position
+                # find the location of the internal edge in total_edgestarts,
+                # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
                 indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-                # take the next edge in the list, and place the car at the beginning of
-                # this edge
+                # take the next edge in the list, and place the car at the
+                # beginning of this edge
                 if indx_edge == len(edges)-1:
                     next_edge_pos = self.total_edgestarts[0]
                 else:
@@ -253,13 +323,23 @@ class Scenario(Serializable):
 
     def gen_gaussian_start_pos(self, initial_config, **kwargs):
         """
-        Generates start positions that are perturbed from a uniformly spaced distribution
-        by some gaussian noise.
+        Generates start positions that are perturbed from a uniformly spaced
+        distribution by some gaussian noise.
 
-        :param kwargs:
-        :param initial_config:
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-                 list of start lanes
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see cistar/core/params.py
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
         """
         x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts,
@@ -279,7 +359,8 @@ class Scenario(Serializable):
 
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) * initial_config.lanes_distribution / self.vehicles.num_vehicles
+        increment = (distribution_length - bunching) * \
+            initial_config.lanes_distribution / self.vehicles.num_vehicles
 
         x = [x0] * initial_config.lanes_distribution
         x_start = np.array([])
@@ -295,29 +376,29 @@ class Scenario(Serializable):
             # increment the car_count and lane_num
             car_count += 1
             lane_count += 1
-            # if the lane num exceeds the number of lanes the vehicles should be
-            # distributed on in the network, reset
+            # if the lane num exceeds the number of lanes the vehicles should
+            # be distributed on in the network, reset
             if lane_count >= initial_config.lanes_distribution:
                 lane_count = 0
 
         # perturb from uniform distribution
         for i in range(len(x_start)):
-            x_start[i] = \
-                (x_start[i] + min(initial_config.scale,
-                                  max(-initial_config.scale, np.random.normal(loc=0, scale=initial_config.scale)))) \
-                % distribution_length
+            perturb = np.random.normal(loc=0, scale=initial_config.scale)
+            perturb = min(initial_config.scale,
+                          max(-initial_config.scale, perturb))
+            x_start[i] = (x_start[i] + perturb) % distribution_length
 
             pos = self.get_edge(x_start[i])
 
             # ensures that vehicles are not placed in an internal junction
             if pos[0] in dict(self.internal_edgestarts).keys():
-                # find the location of the internal edge in total_edgestarts, which has
-                # the edges ordered by position
+                # find the location of the internal edge in total_edgestarts,
+                # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
                 indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-                # take the next edge in the list, and place the car at the beginning of
-                # this edge
+                # take the next edge in the list, and place the car at the
+                # beginning of this edge
                 if indx_edge == len(edges)-1:
                     next_edge_pos = self.total_edgestarts[0]
                 else:
@@ -333,11 +414,23 @@ class Scenario(Serializable):
     def gen_gaussian_additive_start_pos(self, initial_config, **kwargs):
         """
         Generate random start positions via additive Gaussian.
-
         WARNING: this does not absolutely gaurantee that the order of
         vehicles is preserved.
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-                 list of start lanes
+
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see cistar/core/params.py
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
         """
         x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts,
@@ -357,7 +450,8 @@ class Scenario(Serializable):
 
         startpositions = []
         startlanes = []
-        mean = (distribution_length - bunching) * initial_config.lanes_distribution / self.vehicles.num_vehicles
+        mean = (distribution_length - bunching) * \
+            initial_config.lanes_distribution / self.vehicles.num_vehicles
 
         x = [x0] * initial_config.lanes_distribution
         car_count = 0
@@ -368,13 +462,13 @@ class Scenario(Serializable):
 
             # ensures that vehicles are not placed in an internal junction
             if pos[0] in dict(self.internal_edgestarts).keys():
-                # find the location of the internal edge in total_edgestarts, which has
-                # the edges ordered by position
+                # find the location of the internal edge in total_edgestarts,
+                # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
                 indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-                # take the next edge in the list, and place the car at the beginning of
-                # this edge
+                # take the next edge in the list, and place the car at the
+                # beginning of this edge
                 if indx_edge == len(edges)-1:
                     next_edge_pos = self.total_edgestarts[0]
                 else:
@@ -387,27 +481,39 @@ class Scenario(Serializable):
             startpositions.append(pos)
             startlanes.append(lane_count)
 
-            x[lane_count] = \
-                (x[lane_count] + np.random.normal(scale=mean / initial_config.downscale, loc=mean)) % self.length
+            increment = np.random.normal(scale=mean / initial_config.downscale, loc=mean)
+
+            x[lane_count] = (x[lane_count] + increment) % self.length
 
             # increment the car_count and lane_num
             car_count += 1
             lane_count += 1
-            # if the lane num exceeds the number of lanes the vehicles should be distributed on in the network, reset
+            # if the lane num exceeds the number of lanes the vehicles should
+            # be distributed on in the network, reset
             if lane_count >= initial_config.lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes
 
-    def gen_upstream_start_pos(self, initial_config, **kwargs):
-        """
-
-        :param initial_config:
-        :param kwargs:
-        :return:
-        """
-
     def gen_custom_start_pos(self, initial_config, **kwargs):
+        """
+        Generates a user defined set of starting postions. Optional
+
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see cistar/core/params.py
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
+        """
         raise NotImplementedError
 
     def __str__(self):

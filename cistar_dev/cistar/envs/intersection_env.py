@@ -5,7 +5,10 @@ import numpy as np
 
 class IntersectionEnvironment(SumoEnvironment):
     """
-    A class that may be used to design environments with intersections.
+    A class that may be used to design environments with intersections. Allows
+    the user to calculate the distance a vehicle is from the nearest
+    intersection, assuming the function "specify_intersection_edge_starts" in
+    the scenario class is properly prepared.
     """
 
     def __init__(self, env_params, sumo_params, scenario):
@@ -18,11 +21,20 @@ class IntersectionEnvironment(SumoEnvironment):
 
     def get_distance_to_intersection(self, veh_id):
         """
-        Determines the smallest distance from the current vehicle's position to any of the intersections.
+        Determines the smallest distance from the current vehicle's position to
+        any of the intersections.
 
-        :param veh_id: vehicle identifier
-        :return: a tuple containing the distance to the intersection and which side of the
-                 intersection the vehicle will be arriving at.
+        Parameters
+        ----------
+        veh_id: str
+            vehicle identifier
+
+        Yields
+        ------
+        tup
+            1st element: distrnace to closest intersection
+            2nd element: intersection ID (which also specifies which side of the
+            intersection the vehicle will be arriving at)
         """
         this_pos = self.get_x_by_id(veh_id)
 
