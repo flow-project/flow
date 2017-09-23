@@ -44,8 +44,8 @@ class TwoIntersectionEnvironment(IntersectionEnvironment):
 
             # If we are outside the control region, just accelerate
             # up to the entering velocity
-            if ((self.get_distance_to_intersection(veh_id)[0] > 150 or self.get_distance_to_intersection(veh_id)[0] < 0)
-                and (this_edge == "bottom" or this_edge == "left")):
+            if (self.get_distance_to_intersection(veh_id)[0] > 150 and 
+                    (this_edge == "bottom" or this_edge == "left")):
                 # get up to max speed
                 if this_speed < self.scenario.initial_config["enter_speed"]:
                     # accelerate as fast as you are allowed
