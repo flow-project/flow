@@ -1,0 +1,6 @@
+numpy
+lxml
+theano=0.8.2
+pyprind
+lasagne
+tensorflow
