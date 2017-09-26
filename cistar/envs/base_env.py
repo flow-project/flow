@@ -114,13 +114,11 @@ class SumoEnvironment(gym.Env, Serializable):
         self.traci_connection.close(False)
         if sumo_binary:
             self.sumo_binary = sumo_binary
-        if "port" in sumo_params:
-            self.port = sumo_params['port']
 
-        if "emission_path" in sumo_params:
-            data_folder = sumo_params['emission_path']
-            ensure_dir(data_folder)
-            self.emission_out = data_folder + "{0}-emission.xml".format(self.scenario.name)
+        self.port = sumolib.miscutils.getFreeSocketPort()
+        data_folder = self.emission_path
+        ensure_dir(data_folder)
+        self.emission_out = data_folder + "{0}-emission.xml".format(self.scenario.name)
 
         self.start_sumo()
         self.setup_initial_state()

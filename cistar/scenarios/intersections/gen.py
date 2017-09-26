@@ -67,9 +67,9 @@ class TwoWayIntersectionGenerator(Generator):
                   "from": "left", "to": "center", "length": repr(horz_length_in)},
                  {"id": "right", "type": "horizontal", "priority": "78",
                   "from": "center", "to": "right", "length": repr(horz_length_out)},
-                 {"id": "bottom", "type": "vertical", "priority": "46",
+                 {"id": "bottom", "type": "vertical", "priority": "78",
                   "from": "bottom", "to": "center", "length": repr(vert_length_in)},
-                 {"id": "top", "type": "vertical", "priority": "46",
+                 {"id": "top", "type": "vertical", "priority": "78",
                   "from": "center", "to": "top", "length": repr(vert_length_out)}]
 
         return edges

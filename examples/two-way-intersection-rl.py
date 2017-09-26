@@ -51,12 +51,12 @@ def run_task(*_):
 
     intensity = .2
     v_enter = 10
-    env_params = EnvParams(additional_params={"target_velocity": v_enter, "max-deacc": -6, "max-acc": 3,
+    env_params = EnvParams(additional_params={"target_velocity": v_enter, "max-deacc": -4, "max-acc": 4,
                                               "control-length": 150, "max_speed": v_enter})
 
-    additional_net_params = {"horizontal_length_in": 400, "horizontal_length_out": 400, "horizontal_lanes": 1,
-                             "vertical_length_in": 400, "vertical_length_out": 400, "vertical_lanes": 1,
-                             "speed_limit": {"horizontal": 30, "vertical": 30}}
+    additional_net_params = {"horizontal_length_in": 400, "horizontal_length_out": 800, "horizontal_lanes": 1,
+                             "vertical_length_in": 400, "vertical_length_out": 800, "vertical_lanes": 1,
+                             "speed_limit": {"horizontal": v_enter, "vertical": v_enter}}
     net_params = NetParams(no_internal_links=False, additional_params=additional_net_params)
 
     cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
@@ -82,7 +82,7 @@ def run_task(*_):
 
     policy = GaussianMLPPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32, 32)
+        hidden_sizes=(64, 64)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -95,7 +95,7 @@ def run_task(*_):
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=200,
-        # discount=0.99,
+        discount=0.999,
         # step_size=0.01,
     )
     algo.train()
