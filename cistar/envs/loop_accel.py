@@ -62,7 +62,7 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         scaled_rel_pos = [(self.vehicles.get_absolute_position(veh_id) % self.scenario.length) / self.scenario.length
                           for veh_id in self.sorted_ids]
         scaled_pos = [self.vehicles.get_absolute_position(veh_id) / self.scenario.length for veh_id in self.sorted_ids]
-        scaled_vel = [self.vehicles.get_absolute_position(veh_id) / self.env_params.get_additional_param("target_velocity")
+        scaled_vel = [self.vehicles.get_speed(veh_id) / self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
 
         return np.array([[scaled_vel[i] + normal(0, self.observation_vel_std+1e-10),
