@@ -1,10 +1,18 @@
 import numpy as np
 import random
 
-class StaticLaneChanger:
-    # Equivalent to never_change_lanes_controller
 
+class StaticLaneChanger:
     def __init__(self, veh_id):
+        """
+        A lane-changing model used to perpetually keep a vehicle in the same
+        lane.
+
+        Attributes
+        ----------
+        veh_id: str
+            unique vehicle identifier
+        """
         self.veh_id = veh_id
 
     def get_action(self, env):
@@ -12,8 +20,8 @@ class StaticLaneChanger:
 
 
 class StochasticLaneChanger:
-
-    def __init__(self, veh_id, speedThreshold=5, prob=0.5, dxBack=0, dxForward=60, gapBack=10, gapForward=5):
+    def __init__(self, veh_id, speedThreshold=5, prob=0.5, dxBack=0,
+                 dxForward=60, gapBack=10, gapForward=5):
         self.veh_id = veh_id
         self.speedThreshold = speedThreshold
         self.prob = prob
@@ -25,8 +33,12 @@ class StochasticLaneChanger:
     def get_action(self, env):
         """
         Determines optimal lane
-        :param carID: id of the vehicle of interest
-        :param env: environment variable
+
+        Parameters
+        ----------
+        env: Environment type
+            environment variable (see cistar/envs/base_env.py)
+
         :return: controller specified velocity for specific car
         """
         num_lanes = env.scenario.lanes
@@ -54,37 +66,43 @@ class StochasticLaneChanger:
                 v[lane] = 0
                 continue
 
-            # otherwise set v[lane] to the mean velocity of all cars in the region
-            other_car_ids = env.get_cars(self.veh_id, dxBack = self.dxBack, dxForward = self.dxForward, lane = lane)
-            v[lane] = np.mean([env.vehicles[other_id]["speed"] for other_id in other_car_ids])
+            # otherwise set v[lane] to the mean velocity of all cars in the
+            # region
+            other_car_ids = env.get_cars(self.veh_id, dxBack=self.dxBack,
+                                         dxForward=self.dxForward, lane=lane)
+            v[lane] = np.mean([env.vehicles.get_speed(other_id)
+                               for other_id in other_car_ids])
 
         maxv = max(v)  # determine max velocity
         maxl = v.index(maxv)  # lane with max velocity
-        myv = v[env.vehicles[self.veh_id]['lane']]  # speed of lane where car with specified self.veh_id is located
+        # speed of lane where car with specified self.veh_id is located
+        myv = v[env.vehicles.get_lane(self.veh_id)]
 
         # choosing preferred lane:
         # new lane is chosen with a probability prob
         # if its velocity is sufficiently greater than that of the current lane
         if maxl != env.vehicles[self.veh_id]['lane'] and \
-           (maxv - myv) > self.speedThreshold and \
-           random.random() < self.prob:
-           return maxl
-        return env.vehicles[self.veh_id]['lane']        
+                (maxv - myv) > self.speedThreshold and \
+                random.random() < self.prob:
+            return maxl
+        return env.vehicles[self.veh_id]['lane']
 
 
-def stochastic_lane_changer(speedThreshold = 5, prob = 0.5,
-                            dxBack = 0, dxForward = 60,
-                            gapBack = 10, gapForward = 5):
+def stochastic_lane_changer(speedThreshold=5, prob=0.5,
+                            dxBack=0, dxForward=60,
+                            gapBack=10, gapForward=5):
     """
     Intelligent lane changer
     :param speedThreshold: minimum speed increase required
-    :param prob: probability change will be requested if warranted = this * speedFactor
+    :param prob: probability change will be requested if
+           warranted = this * speedFactor
     :param dxBack: Farthest distance back car can see
     :param dxForward: Farthest distance forward car can see
     :param gapBack: Minimum required clearance behind car
     :param gapForward: Minimum required clearance in front car
     :return: carFn to input to a carParams
     """
+
     def controller(carID, env):
         """
         Determines optimal lane
@@ -117,21 +135,25 @@ def stochastic_lane_changer(speedThreshold = 5, prob = 0.5,
                 v[lane] = 0
                 continue
 
-            # otherwise set v[lane] to the mean velocity of all cars in the region
-            other_car_ids = env.get_cars(carID, dxBack = dxBack, dxForward = dxForward, lane = lane)
-            v[lane] = np.mean([env.vehicles[other_id]["speed"] for other_id in other_car_ids])
+            # otherwise set v[lane] to the mean velocity of all cars in the
+            # region
+            other_car_ids = env.get_cars(carID, dxBack=dxBack,
+                                         dxForward=dxForward, lane=lane)
+            v[lane] = np.mean([env.vehicles.get_speed(other_id)
+                               for other_id in other_car_ids])
 
         maxv = max(v)  # determine max velocity
         maxl = v.index(maxv)  # lane with max velocity
-        myv = v[env.vehicles[carID]['lane']]  # speed of lane where car with specified carID is located
+        # speed of lane where car with specified carID is located
+        myv = v[env.vehicles.get_lane(carID)]
 
         # choosing preferred lane:
         # new lane is chosen with a probability prob
         # if its velocity is sufficiently greater than that of the current lane
-        if maxl != env.vehicles[carID]['lane'] and \
-           (maxv - myv) > speedThreshold and \
-           random.random() < prob:
-           return maxl
-        return env.vehicles[carID]['lane']
+        if maxl != env.vehicles.get_lane(carID) and \
+                (maxv - myv) > speedThreshold and \
+                random.random() < prob:
+            return maxl
+        return env.vehicles.get_lane(carID)
 
     return controller

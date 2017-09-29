@@ -72,7 +72,7 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         """
         scaled_pos = [self.vehicles.get_absolute_position(veh_id) /
                       self.scenario.length for veh_id in self.sorted_ids]
-        scaled_vel = [self.vehicles.get_absolute_position(veh_id) /
+        scaled_vel = [self.vehicles.get_speed(veh_id) /
                       self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
 
@@ -120,7 +120,9 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         See parent class
         """
         return multi_agent_rewards.desired_velocity(
-            state, rl_actions, fail=kwargs["fail"], target_velocity=self.env_params.get_additional_param("target_velocity"))
+            state, rl_actions,
+            fail=kwargs["fail"],
+            target_velocity=self.env_params.get_additional_param("target_velocity"))
 
     def get_state(self, **kwargs):
         """
@@ -130,8 +132,10 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         """
         obs_arr = []
         for i in range(self.scenario.num_rl_vehicles):
-            speed = [self.vehicles[veh_id]["speed"] for veh_id in self.sorted_ids]
-            abs_pos = [self.vehicles[veh_id]["absolute_position"] for veh_id in self.sorted_ids]
+            speed = [self.vehicles.get_speed(veh_id)
+                     for veh_id in self.sorted_ids]
+            abs_pos = [self.vehicles.get_absolute_position(veh_id)
+                       for veh_id in self.sorted_ids]
             tup = (speed, abs_pos)
             obs_arr.append(tup)
 
@@ -164,19 +168,20 @@ class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
         relative speed of the vehicle ahead of it, and the headway between the
         rl vehicle and the vehicle ahead of it.
         """
-        vehID = self.rl_ids[0]
-        lead_id = self.vehicles[vehID]["leader"]
+        rl_id = self.rl_ids[0]
+        lead_id = self.vehicles[rl_id]["leader"]
         max_speed = self.max_speed
 
         # if a vehicle crashes into the car ahead of it, it no longer processes
         # a lead vehicle
         if lead_id is None:
-            lead_id = vehID
-            self.vehicles[vehID]["headway"] = 0
+            lead_id = rl_id
+            self.vehicles[rl_id]["headway"] = 0
 
         observation = np.array([
-            [self.vehicles[vehID]["speed"] / max_speed],
-            [(self.vehicles[lead_id]["speed"] - self.vehicles[vehID]["speed"]) / max_speed],
-            [self.vehicles[vehID]["headway"] / self.scenario.length]])
+            [self.vehicles[rl_id]["speed"] / max_speed],
+            [(self.vehicles[lead_id]["speed"] - self.vehicles[rl_id]["speed"])
+             / max_speed],
+            [self.vehicles[rl_id]["headway"] / self.scenario.length]])
 
         return observation

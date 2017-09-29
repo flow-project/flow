@@ -115,14 +115,12 @@ class SumoEnvironment(gym.Env, Serializable):
         self.traci_connection.close(False)
         if sumo_binary:
             self.sumo_binary = sumo_binary
-        if "port" in sumo_params:
-            self.port = sumo_params['port']
 
-        if "emission_path" in sumo_params:
-            data_folder = sumo_params['emission_path']
-            ensure_dir(data_folder)
-            self.emission_out = \
-                data_folder + "{0}-emission.xml".format(self.scenario.name)
+        self.port = sumolib.miscutils.getFreeSocketPort()
+        data_folder = self.emission_path
+        ensure_dir(data_folder)
+        self.emission_out = \
+            data_folder + "{0}-emission.xml".format(self.scenario.name)
 
         self.start_sumo()
         self.setup_initial_state()
@@ -300,7 +298,7 @@ class SumoEnvironment(gym.Env, Serializable):
         rl_actions: numpy ndarray
             an list of actions provided by the rl algorithm
 
-        Outputs
+        Returns
         -------
         observation: numpy ndarray
             agent's observation of the current environment
@@ -684,18 +682,18 @@ class SumoEnvironment(gym.Env, Serializable):
                 acc[i] = safe_acc
 
         # issue traci command for requested acceleration
-        thisVel = np.array(self.vehicles.get_speed(veh_ids))
+        this_vel = np.array(self.vehicles.get_speed(veh_ids))
         if self.multi_agent and (veh_id in self.rl_ids):
             acc_arr = np.asarray([element2 for elem in acc for element in elem
                                   for element2 in element])
         else:
             acc_arr = np.array(acc)
 
-        requested_nextVel = thisVel + acc_arr * self.time_step
-        actual_nextVel = requested_nextVel.clip(min=0)
+        requested_next_vel = this_vel + acc_arr * self.time_step
+        actual_next_vel = requested_next_vel.clip(min=0)
 
         for i, vid in enumerate(veh_ids):
-            self.traci_connection.vehicle.slowDown(vid, actual_nextVel[i], 1)
+            self.traci_connection.vehicle.slowDown(vid, actual_next_vel[i], 1)
 
     def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """

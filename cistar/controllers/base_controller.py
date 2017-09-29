@@ -12,35 +12,42 @@ Two types of controllers are provided:
 import numpy as np
 import collections
 
-class BaseController:
-    """
-    Base class for cistar-controlled acceleration behavior.
 
-    Instantiates a controller and forces the user to pass a
-    maximum acceleration to the controller. Provides the method
-    safe_action to ensure that controls are never made that could
-    cause the system to crash.
-    """
+class BaseController:
 
     def __init__(self, veh_id, controller_params):
         """
-        Arguments
-        ---------
+        Base class for cistar-controlled acceleration behavior.
+
+        Instantiates a controller and forces the user to pass a
+        maximum acceleration to the controller. Provides the method
+        safe_action to ensure that controls are never made that could
+        cause the system to crash.
+
+        Attributes
+        ----------
         veh_id: string
             ID of the vehicle this controller is used for
         controller_params: dict
             Dictionary that optionally contains 'delay', the delay, and must
-            contain 'max_deaccel', the maximum deacceleration as well as all
+            contain 'max_deaccel', the maximum deceleration as well as all
             other parameters that dictate the driving behavior.
         """
         self.d = 0
         self.veh_id = veh_id
         self.controller_params = controller_params
 
+        # magnitude of gaussian noise
+        if "noise" not in controller_params:
+            self.acc_noise = 0
+        else:
+            self.acc_noise = controller_params["noise"]
+
         if not controller_params['delay']:
             self.delay = 0
         else:
             self.delay = controller_params['delay']
+
         # max deaccel should always be a positive
         self.max_deaccel = np.abs(controller_params['max_deaccel'])
         self.acc_queue = collections.deque()
@@ -48,11 +55,23 @@ class BaseController:
     def reset_delay(self, env):
         raise NotImplementedError
 
-    def get_action(self, env):
+    def get_accel(self, env):
         """
         Returns the acceleration of the controller
         """
         raise NotImplementedError
+
+    def get_action(self, env):
+        """
+        Returns the acceleration requested by get_accel pull some stochastic
+        noise (if requested by the controller).
+        """
+        accel = self.get_accel(env)
+
+        if self.acc_noise > 0:
+            accel += np.random.normal(0, self.acc_noise)
+
+        return accel
 
     def get_safe_action_instantaneous(self, env, action):
         """
@@ -98,7 +117,6 @@ class BaseController:
 
     def get_safe_action(self, env, action):
         """
-        USE THIS INSTEAD OF GET_ACTION for computing the actual controls.
         Checks if the computed acceleration would put us above safe velocity.
         If it would, output the acceleration that would put at to safe velocity.
 
@@ -147,7 +165,6 @@ class BaseController:
             maximum safe velocity given a maximum deceleration and delay in
             performing the breaking action
         """
-        this_lane = env.vehicles[self.veh_id]['lane']
         lead_id = env.vehicles[self.veh_id]["leader"]
 
         lead_pos = env.vehicles[lead_id]["absolute_position"]
@@ -164,38 +181,43 @@ class BaseController:
             loop_length = env.scenario.net_params["length"]
             dist = (this_pos + lead_length) - (lead_pos + loop_length)
 
-        d = dist - np.power((lead_vel - self.max_deaccel * env.time_step), 2)/(2*self.max_deaccel)
+        d = dist - np.power((lead_vel-self.max_deaccel*env.time_step), 2)\
+            / (2*self.max_deaccel)
 
         if -2*d+self.max_deaccel*self.delay**2 < 0:
             v_safe = 0
         else:
-            v_safe = (-self.max_deaccel*self.delay +
-                np.sqrt(self.max_deaccel)*np.sqrt(-2*d+self.max_deaccel*self.delay**2))
+            v_safe = \
+                (-self.max_deaccel*self.delay + np.sqrt(self.max_deaccel) *
+                 np.sqrt(-2*d+self.max_deaccel*self.delay**2))
 
         return v_safe
 
 
 # TODO: still a work in progress
 class SumoController:
-    """
-    Base class for sumo-controlled acceleration behavior.
-    """
 
     def __init__(self, veh_id, controller_params):
         """
-        Initializes a SUMO controller with information required by sumo.
+        Base class for sumo-controlled acceleration behavior.
 
-        :param veh_id {string} -- unique vehicle identifier
-        :param controller_params {dict} -- contains the parameters needed to instantiate a sumo controller
-               - model_type {string} -- type of SUMO car-following model to use. Must be one of: Krauss, KraussOrig1,
-                 PWagner2009, BKerner, IDM, IDMM, KraussPS, KraussAB, SmartSK, Wiedemann, Daniel1
-               - model_params {dict} -- dictionary of parameters applicable to sumo cars,
-                 see: http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        Attributes
+        ----------
+        veh_id: str
+            unique vehicle identifier
+        controller_params: dict, optional
+            contains the parameters needed to instantiate a sumo controller
+            - model_type {string} -- type of SUMO car-following model to use.
+              Must be one of: Krauss, KraussOrig1, PWagner2009, BKerner, IDM,
+              IDMM, KraussPS, KraussAB, SmartSK, Wiedemann, Daniel1
+            - model_params {dict} -- dictionary of parameters applicable to sumo
+              cars, see: http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
         """
         self.veh_id = veh_id
 
-        available_models = ["Krauss", "KraussOrig1", "PWagner2009", "BKerner", "IDM", "IDMM", "KraussPS",
-                            "KraussAB", "SmartSK", "Wiedemann", "Daniel1"]
+        available_models = ["Krauss", "KraussOrig1", "PWagner2009", "BKerner",
+                            "IDM", "IDMM", "KraussPS", "KraussAB", "SmartSK",
+                            "Wiedemann", "Daniel1"]
 
         if "model_type" in controller_params:
             # the model type specified must be available in sumo
@@ -204,7 +226,8 @@ class SumoController:
 
             self.model_type = controller_params["model"]
         else:
-            # if no model is specified, the controller defaults to sumo's Krauss model
+            # if no model is specified, the controller defaults to sumo's
+            # Krauss model
             self.model_type = "Krauss"
 
         if "model_params" in controller_params:

@@ -1,43 +1,53 @@
+"""
+This script contains several car-following control models for cistar-controlled
+vehicles.
+
+Controllers can have their output delayed by some duration. Each controller
+includes functions
+    get_accel(self, env) -> acc
+        - using the current state of the world and existing parameters,
+        uses the control model to return a vehicle acceleration.
+    reset_delay(self) -> None
+        - clears the queue of acceleration outputs used to generate
+        delayed output. used when the experiment is reset to clear out
+        old actions based on old states.
+"""
+
 import random
 import math
 from cistar.controllers.base_controller import BaseController
 import collections
 import numpy as np
 
-"""Contains a bunch of car-following control models for cistar.
-Controllers can have their output delayed by some duration.
-Each controller includes functions
-    get_action(self, env) -> acc
-        - using the current state of the world and existing parameters,
-        uses the control model to return a vehicle acceleration.
-    reset_delay(self) -> None
-        - clears the queue of acceleration outputs used to generate
-        delayed output. used when the experiment is reset to clear out 
-        old actions based on old states.
-"""
-
 
 class CFMController(BaseController):
-    """Basic car-following model. Only looks ahead.
-    """
 
-    def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8, acc_max=20, tau=0, dt=0.1):
-        """Instantiates a CFM controller
-        
-        Arguments:
-            veh_id -- Vehicle ID for SUMO identification
-        
-        Keyword Arguments:
-            k_d {number} -- [headway gain] (default: {1})
-            k_v {number} -- [gain on difference between lead velocity and current] (default: {1})
-            k_c {number} -- [gain on difference from desired velocity to current] (default: {1})
-            d_des {number} -- [desired headway] (default: {1})
-            v_des {number} -- [desired velocity] (default: {8})
-            acc_max {number} -- [max acceleration] (default: {15})
-            tau {number} -- [time delay] (default: {0})
-            dt {number} -- [timestep] (default: {0.1})
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
+                 acc_max=20, tau=0, dt=0.1):
         """
-
+        Instantiates a CFM controller
+        
+        Attributes
+        ----------
+        veh_id: str
+            Vehicle ID for SUMO identification
+        k_d: float
+            headway gain (default: 1)
+        k_v: float, optional
+            gain on difference between lead velocity and current (default: 1)
+        k_c: float, optional
+            gain on difference from desired velocity to current (default: 1)
+        d_des: float, optional
+            desired headway (default: 1)
+        v_des: float, optional
+            desired velocity (default: 8)
+        acc_max: float
+            max acceleration (default: 20)
+        tau: float, optional
+            time delay (default: 0)
+        dt: float, optional
+            timestep (default: 0.1)
+        """
         controller_params = {"delay": tau/dt, "max_deaccel": acc_max}
         BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
@@ -49,7 +59,7 @@ class CFMController(BaseController):
         self.acc_max = acc_max
         self.accel_queue = collections.deque()
 
-    def get_action(self, env):
+    def get_accel(self, env):
         lead_id = env.vehicles.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.acc_max
@@ -62,10 +72,12 @@ class CFMController(BaseController):
 
         d_l = (lead_pos - this_pos) % env.scenario.length
 
-        acc = self.k_d*(d_l - self.d_des) + self.k_v*(lead_vel - this_vel) + self.k_c*(self.v_des - this_vel)
+        acc = self.k_d*(d_l - self.d_des) + self.k_v*(lead_vel - this_vel) + \
+            self.k_c*(self.v_des - this_vel)
 
         while len(self.accel_queue) <= self.delay:
-            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            # Some behavior here for initial states - extrapolation, dumb
+            # filling (currently), etc
             self.accel_queue.appendleft(acc)
 
         return min(self.accel_queue.pop(), self.acc_max)
@@ -75,31 +87,39 @@ class CFMController(BaseController):
 
 
 class BCMController(BaseController):
-    """Bilateral car-following model. Looks ahead and behind.
-    
-    [description]
-    
-    Variables:
-    """
 
-    def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8, acc_max=15, deacc_max=-5, tau=0, dt=0.1):
-        """Instantiates a BCM controller
+    def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
+                 acc_max=15, deacc_max=-5, tau=0, dt=0.1, noise=0):
+        """
+        Instantiates a Bilateral car-following model controller. Looks ahead
+        and behind.
         
-        Arguments:
-            veh_id -- Vehicle ID for SUMO identification
-        
-        Keyword Arguments:
-            k_d {number} -- [gain on distances to lead/following cars] (default: {1})
-            k_v {number} -- [gain on vehicle velocity differences] (default: {1})
-            k_c {number} -- [gain on difference from desired velocity to current] (default: {1})
-            d_des {number} -- [desired headway] (default: {1})
-            v_des {number} -- [desired velocity] (default: {8})
-            acc_max {number} -- [max acceleration] (default: {15})
-            tau {number} -- [time delay] (default: {0})
-            dt {number} -- [timestep] (default: {0.1})
+        Attributes
+        ----------
+        veh_id: str
+            Vehicle ID for SUMO identification
+        k_d: float, optional
+            gain on distances to lead/following cars (default: 1)
+        k_v: float, optional
+            gain on vehicle velocity differences (default: 1)
+        k_c: float, optional
+            gain on difference from desired velocity to current (default: 1)
+        d_des: float, optional
+            desired headway (default: 1)
+        v_des: float, optional
+            desired velocity (default: 8)
+        acc_max: float, optional
+            max acceleration (default: 15)
+        tau: float, optional
+            time delay (default: 0)
+        dt: float, optional
+            timestep (default: 0.1)
+        noise: float, optional
+            std dev of normal perturbation to the acceleration (default: 0)
         """
 
-        controller_params = {"delay": tau/dt, "max_deaccel": deacc_max}
+        controller_params = {"delay": tau/dt, "max_deaccel": deacc_max,
+                             "noise": noise}
         BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.k_d = k_d
@@ -110,7 +130,7 @@ class BCMController(BaseController):
         self.acc_max = acc_max
         self.accel_queue = collections.deque()
 
-    def get_action(self, env):
+    def get_accel(self, env):
         """
         From the paper:
         There would also be additional control rules that take
@@ -141,7 +161,8 @@ class BCMController(BaseController):
             self.k_c * (self.v_des - this_vel)
 
         while len(self.accel_queue) <= self.delay:
-            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            # Some behavior here for initial states - extrapolation, dumb
+            # filling (currently), etc
             self.accel_queue.appendleft(acc)
 
         return min(self.accel_queue.pop(), self.acc_max)
@@ -151,32 +172,41 @@ class BCMController(BaseController):
 
 
 class OVMController(BaseController):
-    """Optimal Vehicle Model, per Gabor
-    
-    [description]
-    
-    Variables:
-    """
 
-    def __init__(self, veh_id, alpha=1, beta=1, h_st=2, h_go=15, v_max=30, acc_max=15, max_deaccel=5, tau=0, dt=0.1):
-        """Instantiates an OVM controller
-        
-         Arguments:
-            veh_id -- Vehicle ID for SUMO identification
-        
-        Keyword Arguments:
-            alpha {number} -- [gain on desired velocity to current velocity difference] (default: {0.6})
-            beta {number} -- [gain on lead car velocity and self velocity difference] (default: {0.9})
-            h_st {number} -- [headway for stopping] (default: {5})
-            h_go {number} -- [headway for full speed] (default: {35})
-            v_max {number} -- [max velocity] (default: {30})
-            acc_max {number} -- [max acceleration] (default: {15})
-            deacc_max {number} -- [max deceleration] (default: {-5})
-            tau {number} -- [time delay] (default: {0.4})
-            dt {number} -- [timestep] (default: {0.1})
+    def __init__(self, veh_id, alpha=1, beta=1, h_st=2, h_go=15, v_max=30,
+                 acc_max=15, max_deaccel=5, tau=0, dt=0.1, noise=0):
         """
+        Instantiates an Optimal Vehicle Model controller.
 
-        controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel}
+        Attributes
+        ----------
+        veh_id: str
+            Vehicle ID for SUMO identification
+        alpha: float, optional
+            gain on desired velocity to current velocity difference
+            (default: 0.6)
+        beta: float, optional
+            gain on lead car velocity and self velocity difference
+            (default: 0.9)
+        h_st: float, optional
+            headway for stopping (default: 5)
+        h_go: float, optional
+            headway for full speed (default: 35)
+        v_max: float, optional
+            max velocity (default: 30)
+        acc_max: float, optional
+            max acceleration (default: 15)
+        deacc_max: float, optional
+            max deceleration (default: -5)
+        tau: float, optional
+            time delay (default: 0.4)
+        dt: float, optional
+            timestep (default: 0.1)
+        noise: float, optional
+            std dev of normal perturbation to the acceleration (default: 0)
+        """
+        controller_params = {"delay": tau/dt, "max_deaccel": max_deaccel,
+                             "noise": noise}
         BaseController.__init__(self, veh_id, controller_params)
         self.accel_queue = collections.deque()
         self.max_deaccel = max_deaccel
@@ -190,7 +220,7 @@ class OVMController(BaseController):
         self.tau = tau
         self.dt = dt
         
-    def get_action(self, env):
+    def get_accel(self, env):
         lead_id = env.vehicles.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.acc_max
@@ -204,52 +234,58 @@ class OVMController(BaseController):
         if h <= self.h_st:
             Vh = 0
         elif self.h_st < h < self.h_go:
-            Vh = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) / (self.h_go - self.h_st)))
+            Vh = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) /
+                                                (self.h_go - self.h_st)))
         else:
             Vh = self.v_max
 
         acc = self.alpha*(Vh - this_vel) + self.beta*(h_dot)
 
         while len(self.accel_queue) <= self.delay:
-            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            # Some behavior here for initial states - extrapolation, dumb
+            # filling (currently), etc
             self.accel_queue.appendleft(acc)
 
-        return max(min(self.accel_queue.pop(), self.acc_max), -1 * self.max_deaccel)
+        return max(min(self.accel_queue.pop(), self.acc_max),
+                   -1 * self.max_deaccel)
 
     def reset_delay(self, env):
         self.accel_queue.clear()
 
 
 class LinearOVM(BaseController):
-    """Optimal Vehicle Model, 
-    sources: 
-        "Metastability in the formation of an experimental traffic jam", Nakayama
-        _Traffic Flow Dynamics_ (a textbook), Treiber & Kesting
-            like pg 170
-            includes a caveat about this OVM - is this a deal-breaker for use in experiments?
-            
-    
-    [description]
-    
-    Variables:
-    """
 
-    def __init__(self, veh_id, v_max=30, acc_max=15, max_deaccel=5, adaptation=0.65, h_st=5, delay_time=0, dt=0.1):
-        """Instantiates an OVM controller
-        
-        Arguments:
-            veh_id -- Vehicle ID for SUMO identification
-        
-        Keyword Arguments:
-            alpha {number} -- [gain on desired velocity to current velocity difference] (default: {0.6})
-            beta {number} -- [gain on lead car velocity and self velocity difference] (default: {0.9})
-            h_st {number} -- [headway for stopping] (default: {5})
-            h_go {number} -- [headway for full speed] (default: {35})
-            v_max {number} -- [max velocity] (default: {30})
-            acc_max {number} -- [max acceleration] (default: {15})
-            deacc_max {number} -- [max deceleration] (default: {-5})
-            tau {number} -- [time delay] (default: {0.4})
-            dt {number} -- [timestep] (default: {0.1})
+    def __init__(self, veh_id, v_max=30, acc_max=15, max_deaccel=5,
+                 adaptation=0.65, h_st=5, delay_time=0, dt=0.1, noise=0):
+        """
+        Instantiates a Linear OVM controller
+
+        Attributes
+        ----------
+        veh_id: str
+            Vehicle ID for SUMO identification
+        alpha: float, optional
+            gain on desired velocity to current velocity difference
+            (default: 0.6)
+        beta: float, optional
+            gain on lead car velocity and self velocity difference
+            (default: 0.9)
+        h_st: float, optional
+            headway for stopping (default: 5)
+        h_go: float, optional
+            headway for full speed (default: 35)
+        v_max: float, optional
+            max velocity (default: 30)
+        acc_max: float, optional
+            max acceleration (default: 15)
+        deacc_max: float, optional
+            max deceleration (default: -5)
+        tau: float, optional
+            time delay (default: 0.4)
+        dt: float, optional
+            timestep (default: 0.1)
+        noise: float, optional
+            std dev of normal perturbation to the acceleration (default: 0)
         """
 
         controller_params = {"delay": delay_time/dt, "max_deaccel": max_deaccel}
@@ -258,13 +294,15 @@ class LinearOVM(BaseController):
         self.max_deaccel = max_deaccel
         self.acc_max = acc_max
         self.veh_id = veh_id
-        self.v_max = v_max  # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
-        self.adaptation = adaptation  # TAU in Traffic Flow Dynamics textbook
+        # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
+        self.v_max = v_max
+        # TAU in Traffic Flow Dynamics textbook
+        self.adaptation = adaptation
         self.h_st = h_st
         self.delay_time = delay_time
         self.dt = dt
 
-    def get_action(self, env):
+    def get_accel(self, env):
         this_vel = env.vehicles.get_speed(self.veh_id)
         h = env.vehicles.get_headway(self.veh_id)
 
@@ -280,42 +318,52 @@ class LinearOVM(BaseController):
         acc = (Vh - this_vel) / self.adaptation
 
         while len(self.accel_queue) <= self.delay:
-            # Some behavior here for initial states - extrapolation, dumb filling (currently), etc
+            # Some behavior here for initial states - extrapolation, dumb
+            # filling (currently), etc
             self.accel_queue.appendleft(acc)
 
-        return max(min(self.accel_queue.pop(), self.acc_max), -1 * self.max_deaccel)
+        return max(min(self.accel_queue.pop(), self.acc_max), -1 *
+                   self.max_deaccel)
 
     def reset_delay(self, env):
         self.accel_queue.clear()
 
 
 class IDMController(BaseController):
-    """Intelligent Driver Model, per (blank)
 
-    [description]
+    def __init__(self, veh_id, v0=30, T=1, a=1, b=1.5, delta=4, s0=2, s1=0,
+                 max_deaccel=-5, dt=0.1, noise=0):
+        """
+        Instantiates an Intelligent Driver Model (IDM) controller
 
-    Variables:
-    """
-
-    def __init__(self, veh_id, v0=30, T=1, a=1, b=1.5, delta=4, s0=2, s1=0, max_deaccel=-5, dt=0.1):
-        """Instantiates an IDM controller
-
-         Arguments:
-            veh_id -- Vehicle ID for SUMO identification
-
-         Keyword Arguments:
-            v0 {number} -- [desirable velocity, in m/s] (default: {30})
-            T {number} -- [safe time headway, in s] (default: {1})
-            a {number} -- [maximum acceleration [m/s2] (default: {1})
-            b {number} -- [comfortable decceleration [m/s2] (default: {1.5})
-            delta {number} -- [acceleration exponent] (default: {4})
-            s0 {number} -- [linear jam distance, in m] (default: {2})
-            s1 {number} -- [nonlinear jam distance, in m] (default:  {0})
-            deacc_max {number} -- [max deceleration, in m/s2] (default: {-5})
-            dt {number} -- [timestep, in s] (default: {0.1})
+        Attributes
+        ----------
+        veh_id: str
+            Vehicle ID for SUMO identification
+        v0: float, optional
+            desirable velocity, in m/s (default: 30)
+        T: float, optional
+            safe time headway, in s (default: 1)
+        a: float, optional
+            maximum acceleration, in m/s2 (default: 1)
+        b: float, optional
+            comfortable deceleration, in m/s2 (default: 1.5)
+        delta: float, optional
+            acceleration exponent (default: 4)
+        s0: float, optional
+            linear jam distance, in m (default: 2)
+        s1: float, optional
+            nonlinear jam distance, in m (default: 0)
+        deacc_max: float, optional
+            max deceleration, in m/s2 (default: -5)
+        dt: float, optional
+            timestep, in s (default: 0.1)
+        noise: float, optional
+            std dev of normal perturbation to the acceleration (default: 0)
         """
         tau = T  # the time delay is taken to be the safe time headway
-        controller_params = {"delay": tau / dt, "max_deaccel": max_deaccel}
+        controller_params = {"delay": tau / dt, "max_deaccel": max_deaccel,
+                             "noise": noise}
         BaseController.__init__(self, veh_id, controller_params)
         self.v0 = v0
         self.T = T
@@ -327,7 +375,7 @@ class IDMController(BaseController):
         self.max_deaccel = max_deaccel
         self.dt = dt
 
-    def get_action(self, env):
+    def get_accel(self, env):
         this_vel = env.vehicles.get_speed(self.veh_id)
         lead_id = env.vehicles.get_leader(self.veh_id)
         h = env.vehicles.get_headway(self.veh_id)
@@ -336,37 +384,11 @@ class IDMController(BaseController):
             s_star = 0
         else:
             lead_vel = env.vehicles.get_speed(lead_id)
-            s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
+            s_star = \
+                self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel)
+                               / (2 * np.sqrt(self.a * self.b))])
 
         return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)
 
     def reset_delay(self, env):
         pass
-
-
-class DrunkDriver(IDMController):
-    """Drunk driver. Randomly perturbs every 50 time steps. """
-    def __init__(self, veh_id, v0=30, perturb_time=10, perturb_size=40):
-        IDMController.__init__(self, veh_id)
-        self.timer = 0
-        self.perturb_time = perturb_time
-        self.perturb_size = perturb_size
-
-    def get_action(self, env):
-        self.timer += 1
-
-        this_vel = env.vehicles.get_speed(self.veh_id)
-        lead_id = env.vehicles.get_leader(self.veh_id)
-        h = env.vehicles.get_headway(self.veh_id)
-
-        if lead_id is None:  # no car ahead
-            s_star = 0
-        else:
-            lead_vel = env.vehicles.get_speed(lead_id)
-            s_star = self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel) / (2 * np.sqrt(self.a * self.b))])
-
-        perturb = 0
-        if self.timer % self.perturb_time == 0:
-            perturb = self.perturb_size*random.random()  # - self.perturb_size/2.0
-
-        return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2) + perturb

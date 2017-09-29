@@ -76,19 +76,22 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[vehID]["acc_controller"] = \
-                acceleration_controller[0](veh_id=vehID, **acceleration_controller[1])
+                acceleration_controller[0](veh_id=vehID,
+                                           **acceleration_controller[1])
 
             # specify the lane-changing controller class
             if lane_change_controller is not None:
                 self.__vehicles[vehID]["lane_changer"] = \
-                    lane_change_controller[0](veh_id=vehID, **lane_change_controller[1])
+                    lane_change_controller[0](veh_id=vehID,
+                                              **lane_change_controller[1])
             else:
                 self.__vehicles[vehID]["lane_changer"] = None
 
             # specify the routing controller class
             if routing_controller is not None:
                 self.__vehicles[vehID]["router"] = \
-                    routing_controller[0](veh_id=vehID, router_params=routing_controller[1])
+                    routing_controller[0](veh_id=vehID,
+                                          router_params=routing_controller[1])
             else:
                 self.__vehicles[vehID]["router"] = None
 
