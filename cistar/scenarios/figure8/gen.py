@@ -7,7 +7,7 @@ E = etree.Element
 
 
 class Figure8Generator(Generator):
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         """
         Generator for figure 8 lanes. Requires from net_params:
          - ring_radius: radius of the circular portions of the network. Also
@@ -17,7 +17,7 @@ class Figure8Generator(Generator):
          - speed: max speed of vehicles in the network
          - no_internal_links: set to False to receive queueing at intersections.
         """
-        super().__init__(net_params, net_path, cfg_path, base)
+        super().__init__(net_params, base)
 
         r = net_params.additional_params["radius_ring"]
         lanes = net_params.additional_params["lanes"]

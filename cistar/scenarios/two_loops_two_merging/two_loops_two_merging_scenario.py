@@ -5,7 +5,7 @@ from numpy import pi, sin, cos
 
 class TwoLoopsTwoMergingScenario(Scenario):
 
-    def __init__(self, name, generator_class, vehicles, net_params, cfg_params=None,
+    def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         """
         Initializes a loop scenario. Required net_params: length, lanes,
@@ -18,7 +18,7 @@ class TwoLoopsTwoMergingScenario(Scenario):
 
         self.lanes = net_params["lanes"]
 
-        super().__init__(name, generator_class, vehicles, net_params, cfg_params=cfg_params,
+        super().__init__(name, generator_class, vehicles, net_params,
                          initial_config=initial_config)
 
     def specify_edge_starts(self):

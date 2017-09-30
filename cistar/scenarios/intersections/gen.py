@@ -20,11 +20,11 @@ class TwoWayIntersectionGenerator(Generator):
      - no-internal-links: set to False to receive queueing at intersections.
     """
 
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         """
         See parent class
         """
-        super().__init__(net_params, net_path, cfg_path, base)
+        super().__init__(net_params, base)
 
         horizontal_length_in = net_params.additional_params["horizontal_length_in"]
         horizontal_length_out = net_params.additional_params["horizontal_length_out"]

@@ -13,7 +13,7 @@ class CircleGenerator(Generator):
      - resolution: number of nodes resolution
     """
 
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         """
         See parent class
         """
@@ -21,7 +21,7 @@ class CircleGenerator(Generator):
         lanes = net_params.additional_params["lanes"]
         self.name = "%s-%dm%dl" % (base, length, lanes)
 
-        super().__init__(net_params, net_path, cfg_path, base)
+        super().__init__(net_params, base)
 
     def specify_nodes(self, net_params):
         """

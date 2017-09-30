@@ -150,7 +150,7 @@ class Scenario(Serializable):
         net_path = self.net_params.net_path
         cfg_path = self.net_params.cfg_path
 
-        self.generator = self.generator_class(self.net_params, net_path, cfg_path, self.name)
+        self.generator = self.generator_class(self.net_params, self.name)
         self.generator.generate_net(self.net_params)
         cfg_name = self.generator.generate_cfg(self.net_params)
         self.generator.make_routes(self, self.initial_config)
