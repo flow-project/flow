@@ -37,24 +37,23 @@ class TwoIntersectionEnvironment(IntersectionEnvironment):
         """
         See parent class
         """
+        self.sorted_ids = self.sort_by_intersection_dist()
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
         for i, veh_id in enumerate(sorted_rl_ids):
-            this_edge = self.vehicles.get_edge(veh_id)
             this_speed = self.vehicles.get_speed(veh_id)
+            enter_speed = self.scenario.initial_config.additional_params["enter_speed"]
 
             # If we are outside the control region, just accelerate
             # up to the entering velocity
-            if (self.get_distance_to_intersection(veh_id)[0] > 150 and 
-                    (this_edge == "bottom" or this_edge == "left")):
+            if self.get_distance_to_intersection(veh_id)[0] > 50 or self.get_distance_to_intersection(veh_id)[0] < 0:
                 # get up to max speed
-                if this_speed < self.scenario.initial_config["enter_speed"]:
+                if this_speed < enter_speed:
                     # accelerate as fast as you are allowed
-                    if ((self.scenario.initial_config["enter_speed"] -
-                        self.vehicles[veh_id]["speed"])/self.time_step > self.env_params.get_additional_param("max-acc")):
+                    if ((enter_speed - this_speed)/self.time_step > self.env_params.get_additional_param("max-acc")):
                         rl_actions[i] =  self.env_params.get_additional_param("max-acc")
                     # accelerate the exact amount needed to get up to target velocity
                     else:
-                        rl_actions[i] = ((self.scenario.initial_config["enter_speed"] - this_speed)/self.time_step)
+                        rl_actions[i] = ((enter_speed - this_speed)/self.time_step)
                 # at max speed, don't accelerate
                 else:
                     rl_actions[i] = 0.0
@@ -63,8 +62,8 @@ class TwoIntersectionEnvironment(IntersectionEnvironment):
             else:
                 self.traci_connection.vehicle.setSpeedMode(veh_id, 1)
             # cap the velocity 
-            if this_speed + self.time_step*rl_actions[i] > self.vehicles.get_state(veh_id, "max_speed"):
-                rl_actions[i] = ((self.vehicles.get_state(veh_id, "max_speed") - this_speed)/self.time_step)
+            if this_speed + self.time_step*rl_actions[i] > enter_speed:
+                rl_actions[i] = ((enter_speed - this_speed)/self.time_step)
 
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
@@ -80,6 +79,8 @@ class TwoIntersectionEnvironment(IntersectionEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        return np.array([[self.vehicles.get_speed(veh_id),
-                          self.vehicles.get_absolute_position(veh_id)]
+        length = self.scenario.net_params.additional_params["length"]
+        enter_speed = self.scenario.initial_config.additional_params["enter_speed"]
+        return np.array([[self.vehicles.get_speed(veh_id)/enter_speed,
+                          self.vehicles.get_absolute_position(veh_id)/length]
                          for veh_id in self.sorted_ids])

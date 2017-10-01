@@ -1,17 +1,13 @@
 from cistar.envs.loop_accel import SimpleAccelerationEnvironment
 
-from rllab.envs.base import Step
-
 import numpy as np
-import logging
 import random
-import traci
 
 
 class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
 
-    def __init__(self, env_params, sumo_binary, sumo_params, scenario):
-        super().__init__(env_params, sumo_binary, sumo_params, scenario)
+    def __init__(self, env_params, sumo_params, scenario):
+        super().__init__(env_params, sumo_params, scenario)
 
         if "perturbations" not in env_params:
             raise ValueError("Perturbation not specified")
@@ -31,10 +27,13 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
 
     def additional_command(self):
         if self.num_perturbations < len(self.perturbations):
-            if self.timer > self.perturbations[self.num_perturbations][0] \
-                    and self.timer < (self.perturbations[self.num_perturbations][0]
-                                          + self.perturbations[self.num_perturbations][1]):
-                self.apply_action(self.perturbed_id, self.env_params.get_additional_param("max-deacc"))
+            if self.perturbations[self.num_perturbations][0] < self.timer < \
+                    (self.perturbations[self.num_perturbations][0]
+                     + self.perturbations[self.num_perturbations][1]):
+                self.apply_acceleration(
+                    self.perturbed_id,
+                    self.env_params.get_additional_param("max-deacc"))
             if self.timer > (
-                self.perturbations[self.num_perturbations][0] + self.perturbations[self.num_perturbations][1]):
+                self.perturbations[self.num_perturbations][0] +
+                    self.perturbations[self.num_perturbations][1]):
                 self.num_perturbations += 1

@@ -1,33 +1,19 @@
 import logging
 import datetime
 
-"""
-Acts as a runner for a scenario and environment.
-"""
+
 class SumoExperiment():
 
     def __init__(self, env, scenario):
-
-        # TODO: NEEDS TO BE UPDATED
         """
-        name : tag to associate experiment with
-        env_class : Environment to be initialized
-        num_vehicles : number of total vehicles in the simulation
-        num_rl_vehicles :  these vehicles do not have a controller assigned to them
-        type_params : vehicle type string -> controller (method that takes in state, returns action)
-            example:
-             num_rl_vehicles=4
-             num_vehicles=10
-             vehicle params:
-               'acc' -> (2, acc_controller_fn)
-               'human-0.5-delay' -> (2, human-delay)
-               'human-1.0-delay' -> (2,human-delay)
-               'rl' -> (4, None)
+        This class acts as a runner for a scenario and environment.
 
-        sumo_binary : path to sumo executable
-        sumo_params : parameters to pass to sumo, e.g. step-length (can also be in sumo-cfg)
-        file_generator : Child of Generator that will create the net, cfg files
-        cfg : specify a configuration, rather than create a new one
+        Attributes
+        ----------
+        env: Environment type
+            the environment object the simulator will run
+        scenario: Scenario type
+            the scenario object the simulator will run
         """
         self.name = scenario.name
         self.num_vehicles = env.vehicles.num_vehicles
@@ -35,17 +21,29 @@ class SumoExperiment():
         self.vehicles = scenario.vehicles
         self.cfg = scenario.cfg
 
-        logging.info(" Starting experiment" + str(self.name) + " at " + str(datetime.datetime.utcnow()))
+        logging.info(" Starting experiment" + str(self.name) + " at "
+                     + str(datetime.datetime.utcnow()))
 
         logging.info("initializing environment.")
 
-    def getCfg(self):
-        return self.cfg
+    def run(self, num_runs, num_steps, rl_actions=None):
+        """
+        Runs the given scenario for a set number of runs and a set number of
+        steps per run.
 
-    def getEnv(self):
-        return self.env
+        Parameters
+        ----------
+        num_runs: int
+            number of runs the experiment should perform
+        num_steps: int
+            number of steps to be performs in each run of the experiment
+        rl_actions: list or numpy ndarray, optional
+            actions to be performed by rl vehicles in the network (if there are
+            any)
+        """
+        if rl_actions is None:
+            rl_actions = []
 
-    def run(self, num_runs, num_steps, rl_actions=[]):
         for i in range(num_runs):
             logging.info("Iter #" + str(i))
             for j in range(num_steps):

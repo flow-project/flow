@@ -20,11 +20,11 @@ class TwoWayIntersectionGenerator(Generator):
      - no-internal-links: set to False to receive queueing at intersections.
     """
 
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         """
         See parent class
         """
-        super().__init__(net_params, net_path, cfg_path, base)
+        super().__init__(net_params, base)
 
         horizontal_length_in = net_params.additional_params["horizontal_length_in"]
         horizontal_length_out = net_params.additional_params["horizontal_length_out"]
@@ -67,9 +67,9 @@ class TwoWayIntersectionGenerator(Generator):
                   "from": "left", "to": "center", "length": repr(horz_length_in)},
                  {"id": "right", "type": "horizontal", "priority": "78",
                   "from": "center", "to": "right", "length": repr(horz_length_out)},
-                 {"id": "bottom", "type": "vertical", "priority": "46",
+                 {"id": "bottom", "type": "vertical", "priority": "78",
                   "from": "bottom", "to": "center", "length": repr(vert_length_in)},
-                 {"id": "top", "type": "vertical", "priority": "46",
+                 {"id": "top", "type": "vertical", "priority": "78",
                   "from": "center", "to": "top", "length": repr(vert_length_out)}]
 
         return edges

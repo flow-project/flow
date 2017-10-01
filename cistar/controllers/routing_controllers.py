@@ -12,7 +12,8 @@ class ContinuousRouter(BaseRouter):
         """
         See parent class
         """
-        if env.vehicles.get_edge(self.veh_id) == env.vehicles.get_route(self.veh_id)[-1]:
+        if env.vehicles.get_edge(self.veh_id) == \
+                env.vehicles.get_route(self.veh_id)[-1]:
             new_route = env.available_routes[env.vehicles.get_edge(self.veh_id)]
         else:
             new_route = None

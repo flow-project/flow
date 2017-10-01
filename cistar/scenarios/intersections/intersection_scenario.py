@@ -66,15 +66,15 @@ class TwoWayIntersectionScenario(Scenario):
         edgestarts = \
             [("bottom", 0),
              ("top", self.bottom_len + self.vertical_junction_len),
-             ("left", 1000 * (self.bottom_len + self.vertical_junction_len + self.top_len)),
-             ("right", 1000 * (self.bottom_len + self.vertical_junction_len + self.top_len) +
+             ("left", (self.bottom_len + self.vertical_junction_len + self.top_len)),
+             ("right", (self.bottom_len + self.vertical_junction_len + self.top_len) +
               self.left_len + self.horizontal_junction_len)]
         return edgestarts
 
     def specify_intersection_edge_starts(self):
         intersection_edgestarts = \
             [(":center_%s" % (1+self.lanes["left"]), self.bottom_len),
-             (":center_1", 1000 * (self.bottom_len + self.vertical_junction_len + self.top_len) + self.left_len)]
+             (":center_1", (self.bottom_len + self.vertical_junction_len + self.top_len) + self.left_len)]
         return intersection_edgestarts
 
     def gen_custom_start_pos(self, initial_config, **kwargs):

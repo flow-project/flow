@@ -28,7 +28,6 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
 from cistar.core.vehicles import Vehicles
-from cistar.core import config as cistar_config
 from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 
 from cistar.controllers.routing_controllers import *
@@ -101,6 +100,5 @@ for seed in [10]:  # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="rl-acceleration",
-        python_command=cistar_config.PYTHON_COMMAND
         # plot=True,
     )

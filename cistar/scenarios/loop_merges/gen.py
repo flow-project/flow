@@ -1,5 +1,4 @@
 from cistar.core.generator import Generator
-from cistar.controllers.base_controller import SumoController
 
 from cistar.core.util import makexml
 from cistar.core.util import printxml
@@ -15,20 +14,22 @@ class LoopMergesGenerator(Generator):
     """
     Generator for loop with merges sim. Requires from net_params:
     - merge_in_length: length of the merging in lane
-    - merge_out_length: length of the merging out lane. May be set to None to remove
-    - merge_in_angle: angle between the horizontal line and the merge-in lane (in radians)
-    - merge_out_angle: angle between the horizontal line and the merge-out lane (in radians).
-                       MUST BE greater than the merge_in_angle
+    - merge_out_length: length of the merging out lane. May be set to None to
+      remove the merge-out lane.
+    - merge_in_angle: angle between the horizontal line and the merge-in lane
+      (in radians)
+    - merge_out_angle: angle between the horizontal line and the merge-out lane
+      (in radians). MUST BE greater than the merge_in_angle
     - ring_radius: radius of the circular portion of the network.
     - lanes: number of lanes in the network
     - speed: max speed of vehicles in the network
     """
 
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         """
         See parent class
         """
-        super().__init__(net_params, net_path, cfg_path, base)
+        super().__init__(net_params, base)
 
         merge_in_len = net_params.additional_params["merge_in_length"]
         merge_out_len = net_params.additional_params["merge_out_length"]
@@ -55,8 +56,10 @@ class LoopMergesGenerator(Generator):
                 random.shuffle(vehicle_ids)
 
             positions = initial_config.positions
-            ring_positions = positions[:scenario.vehicles.num_vehicles-scenario.num_merge_vehicles]
-            merge_positions = positions[scenario.vehicles.num_vehicles-scenario.num_merge_vehicles:]
+            ring_positions = positions[:scenario.vehicles.num_vehicles -
+                                       scenario.num_merge_vehicles]
+            merge_positions = positions[scenario.vehicles.num_vehicles -
+                                        scenario.num_merge_vehicles:]
             i_merge = 0
             i_ring = 0
             for i, id in enumerate(vehicle_ids):
@@ -69,8 +72,12 @@ class LoopMergesGenerator(Generator):
 
                 veh_type = scenario.vehicles.get_state(id, "type")
                 type_depart_speed = scenario.vehicles.get_initial_speed(id)
-                routes.append(self.vehicle(veh_type, "route" + route, depart="0",
-                              departSpeed=str(type_depart_speed), departPos=str(pos), id=id, color="1,0.0,0.0"))
+                routes.append(
+                    self.vehicle(veh_type, "route" + route,
+                                 depart="0",
+                                 departSpeed=str(type_depart_speed),
+                                 departPos=str(pos), id=id, color="1,0.0,0.0")
+                )
 
             printxml(routes, self.cfg_path + self.roufn)
 
@@ -129,36 +136,63 @@ class LoopMergesGenerator(Generator):
 
         if merge_out_len is not None:
             # edges associated with merges
-            edges = [{"id": "merge_in", "type": "edgeType",
-                      "from": "merge_in", "to": "ring_0", "length": repr(merge_in_len)},
+            edges = [{"id": "merge_in",
+                      "type": "edgeType",
+                      "from": "merge_in",
+                      "to": "ring_0",
+                      "length": repr(merge_in_len)},
 
-                     {"id": "merge_out", "type": "edgeType",
-                      "from": "ring_1", "to": "merge_out", "length": repr(merge_out_len)},
+                     {"id": "merge_out",
+                      "type": "edgeType",
+                      "from": "ring_1",
+                      "to": "merge_out",
+                      "length": repr(merge_out_len)},
 
-                     {"id": "ring_0", "type": "edgeType",
-                      "from": "ring_0", "to": "ring_1", "length": repr((out_angle - in_angle) % (2 * pi) * r),
+                     {"id": "ring_0",
+                      "type": "edgeType",
+                      "from": "ring_0",
+                      "to": "ring_1",
+                      "length": repr((out_angle - in_angle) % (2 * pi) * r),
                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
                                          for t in linspace(in_angle, out_angle, res)])},
 
-                     {"id": "ring_1", "type": "edgeType",
-                      "from": "ring_1", "to": "ring_0", "length": repr((in_angle - out_angle) % (2 * pi) * r),
+                     {"id": "ring_1",
+                      "type": "edgeType",
+                      "from": "ring_1",
+                      "to": "ring_0",
+                      "length": repr((in_angle - out_angle) % (2 * pi) * r),
                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
                                          for t in linspace(out_angle, 2 * pi + in_angle, res)])}]
         else:
             # edges associated with merges
             edges = [{"id": "merge_in",
-                      "from": "merge_in", "to": "ring_0", "type": "edgeType", "length": repr(merge_in_len)}]
+                      "from": "merge_in",
+                      "to": "ring_0",
+                      "type": "edgeType",
+                      "length": repr(merge_in_len)}]
 
             # edges associated with the ring
-            edges += [{"id": "ring_0", "type": "edgeType",
-                       "from": "ring_0", "to": "ring_1", "length": repr(pi * r),
-                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                          for t in linspace(in_angle, in_angle + pi, res)])},
+            edges += [{"id": "ring_0",
+                       "type": "edgeType",
+                       "from": "ring_0",
+                       "to": "ring_1",
+                       "length": repr(pi * r),
+                       "shape": " ".join(["%.2f,%.2f" % (
+                           r * cos(t), r * sin(t))
+                                          for t in linspace(in_angle,
+                                                            in_angle + pi,
+                                                            res)])},
 
-                      {"id": "ring_1", "type": "edgeType",
-                       "from": "ring_1", "to": "ring_0", "length": repr(pi * r),
-                       "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                          for t in linspace(in_angle + pi, in_angle + 2 * pi, res)])}]
+                      {"id": "ring_1",
+                       "type": "edgeType",
+                       "from": "ring_1",
+                       "to": "ring_0",
+                       "length": repr(pi * r),
+                       "shape": " ".join(["%.2f,%.2f" % (
+                           r * cos(t), r * sin(t))
+                                          for t in linspace(in_angle + pi,
+                                                            in_angle + 2 * pi,
+                                                            res)])}]
 
         return edges
 
@@ -168,7 +202,9 @@ class LoopMergesGenerator(Generator):
         """
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
-        types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
+        types = [{"id": "edgeType",
+                  "numLanes": repr(lanes),
+                  "speed": repr(speed_limit)}]
 
         return types
 

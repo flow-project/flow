@@ -5,19 +5,16 @@ import collections
 
 
 class Vehicles:
-    """
-    This class contains the base vehicle class used to describe all vehicles in the network.
-    Within this class, we set the characteristic variables of all vehicles and collect
-    information on the state of the vehicles at the current time step.
-    """
     def __init__(self):
         """
-        Instantiates a Vehicles class. All attributes are initialized as empty lists/dicts.
+        Base vehicle class used to describe the state of all vehicles in the
+        network. State information on the vehicles for a given time step can be
+        set or retreived from this class.
         """
-        self.__ids = []  # used to store the ids of all vehicles
-        self.__controlled_ids = []  # used to store the ids of cistar-controlled vehicles
-        self.__sumo_ids = []  # used to store the ids of sumo-controlled vehicles
-        self.__rl_ids = []  # used to store the ids of rllab-controlled vehicles
+        self.__ids = []  # stores the ids of all vehicles
+        self.__controlled_ids = []  # stores the ids of cistar-controlled vehicles
+        self.__sumo_ids = []  # stores the ids of sumo-controlled vehicles
+        self.__rl_ids = []  # stores the ids of rllab-controlled vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
@@ -29,17 +26,36 @@ class Vehicles:
         self.types = []  # types of vehicles in the network
         self.initial_speeds = []  # speed of vehicles at the start of a rollout
 
-    def add_vehicles(self, veh_id, acceleration_controller, lane_change_controller=None,
-                     routing_controller=None, initial_speed=0, num_vehicles=1):
+    def add_vehicles(self,
+                     veh_id,
+                     acceleration_controller,
+                     lane_change_controller=None,
+                     routing_controller=None,
+                     initial_speed=0,
+                     num_vehicles=1):
         """
         Adds a sequence of vehicles to the list of vehicles in the network.
 
-        :param veh_id: base vehicle identifier for the vehicles (will be appended by a number)
-        :param acceleration_controller: cistar-specified acceleration controller
-        :param lane_change_controller: cistar-specified lane-changer controller (may be set to None)
-        :param routing_controller: cistar-specified routing controller (may be set to None)
-        :param initial_speed: initial speed of the vehicles being added (in m/s)
-        :param num_vehicles: number of vehicles of this type to be added to the network
+        Parameters
+        ----------
+        veh_id: str
+            base vehicle ID for the vehicles (will be appended by a number)
+        acceleration_controller: tup
+            1st element: cistar-specified acceleration controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        lane_change_controller: tup, optional
+            1st elemnt: cistar-specified lane-changer controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        routing_controller: tup, optional
+            1st element: cistar-specified routing controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        initial_speed: float, optional
+            initial speed of the vehicles being added (in m/s)
+        num_vehicles: int, optional
+            number of vehicles of this type to be added to the network
         """
         if not veh_id:
             raise ValueError("No vehicle id is specified.")
@@ -60,26 +76,30 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[vehID]["acc_controller"] = \
-                acceleration_controller[0](veh_id=vehID, **acceleration_controller[1])
+                acceleration_controller[0](veh_id=vehID,
+                                           **acceleration_controller[1])
 
             # specify the lane-changing controller class
             if lane_change_controller is not None:
                 self.__vehicles[vehID]["lane_changer"] = \
-                    lane_change_controller[0](veh_id=vehID, **lane_change_controller[1])
+                    lane_change_controller[0](veh_id=vehID,
+                                              **lane_change_controller[1])
             else:
                 self.__vehicles[vehID]["lane_changer"] = None
 
             # specify the routing controller class
             if routing_controller is not None:
                 self.__vehicles[vehID]["router"] = \
-                    routing_controller[0](veh_id=vehID, router_params=routing_controller[1])
+                    routing_controller[0](veh_id=vehID,
+                                          router_params=routing_controller[1])
             else:
                 self.__vehicles[vehID]["router"] = None
 
             # specify the speed of vehicles at the start of a rollout
             self.__vehicles[vehID]["initial_speed"] = initial_speed
 
-            # determine the type of vehicle, and append it to its respective id list
+            # determine the type of vehicle, and append it to its respective
+            # id list
             if acceleration_controller[0] == SumoController:
                 self.__sumo_ids.append(vehID)
             elif acceleration_controller[0] == RLController:
@@ -91,8 +111,8 @@ class Vehicles:
         self.num_vehicles = len(self.__ids)
         self.num_rl_vehicles = len(self.__rl_ids)
 
-        # increase the number of unique types of vehicles in the network, and add the
-        # type to the list of types
+        # increase the number of unique types of vehicles in the network, and
+        # add the type to the list of types
         self.num_types += 1
         self.types.append(veh_id)
 
@@ -163,7 +183,8 @@ class Vehicles:
 
     def get_absolute_position(self, veh_id="all"):
         """
-        Return the absolute position of the specified vehicle at the current time step.
+        Return the absolute position of the specified vehicle at the current
+        time step.
 
         Accepts as input:
         - id of a specific vehicle
@@ -179,8 +200,8 @@ class Vehicles:
 
     def get_position(self, veh_id="all"):
         """
-        Returns the position of the specified vehicle (relative to the current edge)
-        at the current time step.
+        Returns the position of the specified vehicle (relative to the current
+        edge) at the current time step.
 
         Accepts as input:
         - id of a specific vehicle
@@ -196,8 +217,8 @@ class Vehicles:
 
     def get_edge(self, veh_id="all"):
         """
-        Returns the position of the specified vehicle (relative to the current edge)
-        at the current time step.
+        Returns the position of the specified vehicle (relative to the current
+        edge) at the current time step.
 
         Accepts as input:
         - id of a specific vehicle

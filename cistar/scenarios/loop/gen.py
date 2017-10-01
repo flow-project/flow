@@ -5,14 +5,15 @@ from numpy import pi, sin, cos, linspace
 
 class CircleGenerator(Generator):
     """
-    Generator for loop circle used in MIT traffic simulation. Requires from net_params:
+    Generator for loop circle used in MIT traffic simulation. Requires from
+    net_params:
      - length: length of the circle
      - lanes: number of lanes in the circle
      - speed_limit: max speed limit of the circle
      - resolution: number of nodes resolution
     """
 
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         """
         See parent class
         """
@@ -20,7 +21,7 @@ class CircleGenerator(Generator):
         lanes = net_params.additional_params["lanes"]
         self.name = "%s-%dm%dl" % (base, length, lanes)
 
-        super().__init__(net_params, net_path, cfg_path, base)
+        super().__init__(net_params, base)
 
     def specify_nodes(self, net_params):
         """
@@ -45,22 +46,36 @@ class CircleGenerator(Generator):
         r = length / (2 * pi)
         edgelen = length / 4.
 
-        edges = [{"id": "bottom", "type": "edgeType",
-                  "from": "bottom", "to": "right", "length": repr(edgelen),
-                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                     for t in linspace(-pi / 2, 0, resolution)])},
-                 {"id": "right", "type": "edgeType",
-                  "from": "right", "to": "top", "length": repr(edgelen),
-                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                     for t in linspace(0, pi / 2, resolution)])},
-                 {"id": "top", "type": "edgeType",
-                  "from": "top", "to": "left", "length": repr(edgelen),
-                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                     for t in linspace(pi / 2, pi, resolution)])},
-                 {"id": "left", "type": "edgeType",
-                  "from": "left", "to": "bottom", "length": repr(edgelen),
-                  "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                     for t in linspace(pi, 3 * pi / 2, resolution)])}]
+        edges = [
+            {"id": "bottom",
+             "type": "edgeType",
+             "from": "bottom",
+             "to": "right",
+             "length": repr(edgelen),
+             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                for t in linspace(-pi / 2, 0, resolution)])},
+            {"id": "right",
+             "type": "edgeType",
+             "from": "right",
+             "to": "top",
+             "length": repr(edgelen),
+             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                for t in linspace(0, pi / 2, resolution)])},
+            {"id": "top",
+             "type": "edgeType",
+             "from": "top",
+             "to": "left",
+             "length": repr(edgelen),
+             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                for t in linspace(pi / 2, pi, resolution)])},
+            {"id": "left",
+             "type": "edgeType",
+             "from": "left",
+             "to": "bottom",
+             "length": repr(edgelen),
+             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
+                                for t in linspace(pi, 3 * pi / 2, resolution)])}
+        ]
 
         return edges
 
@@ -70,7 +85,10 @@ class CircleGenerator(Generator):
         """
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
-        types = [{"id": "edgeType", "numLanes": repr(lanes), "speed": repr(speed_limit)}]
+
+        types = [{"id": "edgeType",
+                  "numLanes": repr(lanes),
+                  "speed": repr(speed_limit)}]
 
         return types
 

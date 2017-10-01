@@ -1,6 +1,6 @@
 from cistar.scenarios.base_scenario import Scenario
 
-from numpy import pi, sin, cos, arcsin
+from numpy import pi, arcsin
 
 
 class TwoLoopsOneMergingScenario(Scenario):
@@ -8,20 +8,22 @@ class TwoLoopsOneMergingScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         """
-        Initializes a two loop scenario where one loop merging in and out of the other.
-        Required net_params: length, lanes, speed_limit, resolution.
-        Required initial_config: positions.
+        Initializes a two loop scenario where one loop merging in and out of
+        the other. Required net_params: ring_radius, lanes, speed_limit,
+        resolution.
 
         See Scenario.py for description of params.
         """
         radius = net_params.additional_params["ring_radius"]
         radius_merge = 1.5 * radius
         angle_merge = arcsin(0.75)
-        net_params.additional_params["length"] = 2 * pi * radius + 2 * (pi - angle_merge) * radius
+        net_params.additional_params["length"] = \
+            2 * pi * radius + 2 * (pi - angle_merge) * radius
 
         self.lanes = net_params.additional_params["lanes"]
 
-        super().__init__(name, generator_class, vehicles, net_params, initial_config)
+        super().__init__(name, generator_class, vehicles, net_params,
+                         initial_config)
 
     def specify_edge_starts(self):
         """
@@ -55,15 +57,18 @@ class TwoLoopsOneMergingScenario(Scenario):
         angle_large = arcsin(0.75)
         merge_edgelen = (pi - angle_large) * (1.5 * r)
 
-        internal_edgestarts = [(":left", ring_edgelen),
-                               (":bottom", 2 * ring_edgelen + 0.3),
-                               (":top", 3 * ring_edgelen + 7.3),
-                               (":right", 3 * ring_edgelen + merge_edgelen + 14.3)]
+        internal_edgestarts = [
+            (":left", ring_edgelen),
+            (":bottom", 2 * ring_edgelen + 0.3),
+            (":top", 3 * ring_edgelen + 7.3),
+            (":right", 3 * ring_edgelen + merge_edgelen + 14.3)]
 
         return internal_edgestarts
 
     def gen_custom_start_pos(self, initial_config, **kwargs):
         """
+        See parent class
+
         Vehicles with the prefix "merge" are placed in the merge ring,
         while all other vehicles are placed in the ring.
         """
@@ -80,13 +85,13 @@ class TwoLoopsOneMergingScenario(Scenario):
             bunching = kwargs["bunching"]
 
         merge_bunching = 0
-        if initial_config.additional_params is not None:
-            if "merge_bunching" in initial_config.additional_params:
-                merge_bunching = initial_config.additional_params["merge_bunching"]
+        if "merge_bunching" in initial_config.additional_params:
+            merge_bunching = initial_config.additional_params["merge_bunching"]
 
         num_vehicles = self.vehicles.num_vehicles
-        num_merge_vehicles = sum(["merge" in self.vehicles.get_state(veh_id, "type")
-                                  for veh_id in self.vehicles.get_ids()])
+        num_merge_vehicles = \
+            sum(["merge" in self.vehicles.get_state(veh_id, "type")
+                 for veh_id in self.vehicles.get_ids()])
 
         radius = self.net_params.additional_params["ring_radius"]
         angle_large = arcsin(0.75)
@@ -94,7 +99,9 @@ class TwoLoopsOneMergingScenario(Scenario):
         startpositions = []
         startlanes = []
         length_loop = 2 * pi * radius
-        increment_loop = (length_loop - bunching) * initial_config.lanes_distribution / (num_vehicles - num_merge_vehicles)
+        increment_loop = \
+            (length_loop - bunching) * initial_config.lanes_distribution / \
+            (num_vehicles - num_merge_vehicles)
 
         x = [x0] * initial_config.lanes_distribution
         car_count = 0
@@ -126,9 +133,12 @@ class TwoLoopsOneMergingScenario(Scenario):
                 lane_count = 0
 
         length_merge = 2 * (pi - angle_large) * (1.5 * radius)
-        increment_merge = (length_merge - merge_bunching) * initial_config.lanes_distribution / num_merge_vehicles
+        increment_merge = \
+            (length_merge - merge_bunching) * \
+            initial_config.lanes_distribution / num_merge_vehicles
 
-        x = [dict(self.edgestarts)["right_bottom"]] * initial_config.lanes_distribution
+        x = [dict(self.edgestarts)["right_bottom"]] * \
+            initial_config.lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < num_merge_vehicles:

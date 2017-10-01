@@ -20,14 +20,13 @@ class Generator(Serializable):
     CFG_PATH = "./"
     NET_PATH = "./"
 
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         Serializable.quick_init(self, locals())
 
         self.net_params = net_params
-        self.net_path = net_path
-        self.cfg_path = cfg_path
+        self.net_path = net_params.net_path
+        self.cfg_path = net_params.cfg_path
         self.base = base
-        self.name = base
         self.netfn = ""
         self.vehicle_ids = []
 
@@ -41,8 +40,9 @@ class Generator(Serializable):
 
     def generate_net(self, net_params):
         """
-        Generates Net files for the transportation network. Different networks require
-        different net_params; see the separate sub-classes for more information.
+        Generates Net files for the transportation network. Different networks
+        require different net_params; see the separate sub-classes for more
+        information.
         """
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -54,7 +54,8 @@ class Generator(Serializable):
         # specify the attributes of the nodes
         nodes = self.specify_nodes(net_params)
 
-        # xml file for nodes; contains nodes for the boundary points with respect to the x and y axes
+        # xml file for nodes; contains nodes for the boundary points with
+        # respect to the x and y axes
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
         for node_attributes in nodes:
             x.append(E("node", **node_attributes))
@@ -72,7 +73,8 @@ class Generator(Serializable):
         # specify the types attributes (default is None)
         types = self.specify_types(net_params)
 
-        # xml file for types: contains the the number of lanes and the speed limit for the lanes
+        # xml file for types: contains the the number of lanes and the speed
+        # limit for the lanes
         if types is not None:
             x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
             for type_attributes in types:
@@ -82,24 +84,27 @@ class Generator(Serializable):
         # specify the connection attributes (default is None)
         connections = self.specify_connections(net_params)
 
-        # xml for connections: specifies which lanes connect to which in the edges
+        # xml for connections: specifies which lanes connect to which in the
+        # edges
         if connections is not None:
-            x = makexml("connections", "http://sumo.dlr.de/xsd/connections_file.xsd")
+            x = makexml("connections",
+                        "http://sumo.dlr.de/xsd/connections_file.xsd")
             for connection_attributes in connections:
                 x.append(E("connection", **connection_attributes))
             printxml(x, self.net_path + confn)
 
         # check whether the user requested no-internal-links (default="true")
         if net_params.no_internal_links:
-            self.no_internal_links = "true"
+            no_internal_links = "true"
         else:
-            self.no_internal_links = "false"
+            no_internal_links = "false"
 
-        # xml file for configuration
-        # - specifies the location of all files of interest for sumo
-        # - specifies output net file
-        # - specifies processing parameters for no internal links and no turnarounds
-        x = makexml("configuration", "http://sumo.dlr.de/xsd/netconvertConfiguration.xsd")
+        # xml file for configuration, which specifies:
+        # - the location of all files of interest for sumo
+        # - output net file
+        # - processing parameters for no internal links and no turnarounds
+        x = makexml("configuration",
+                    "http://sumo.dlr.de/xsd/netconvertConfiguration.xsd")
         t = E("input")
         t.append(E("node-files", value=nodfn))
         t.append(E("edge-files", value=edgfn))
@@ -112,14 +117,17 @@ class Generator(Serializable):
         t.append(E("output-file", value=netfn))
         x.append(t)
         t = E("processing")
-        t.append(E("no-internal-links", value="%s" % self.no_internal_links))
+        t.append(E("no-internal-links", value="%s" % no_internal_links))
         t.append(E("no-turnarounds", value="true"))
         x.append(t)
         printxml(x, self.net_path + cfgfn)
 
-        retcode = subprocess.call(["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
-                                   self.cfg_path + netfn + ' --no-internal-links="%s"' % self.no_internal_links],
-                                  stdout=sys.stdout, stderr=sys.stderr, shell=True)
+        retcode = subprocess.call(
+            ["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
+             self.cfg_path + netfn + ' --no-internal-links="%s"'
+             % no_internal_links],
+            stdout=sys.stdout, stderr=sys.stderr, shell=True)
+
         self.netfn = netfn
 
         return self.net_path + netfn
@@ -147,8 +155,9 @@ class Generator(Serializable):
         # specify routes vehicles can take
         self.rts = self.specify_routes(net_params)
 
-        # TODO: add functionality for multiple routes (do it for Braess)
-        add = makexml("additional", "http://sumo.dlr.de/xsd/additional_file.xsd")
+        # TODO: add functionality for multiple routes (such as Braess)
+        add = makexml("additional",
+                      "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (edge, route) in self.rts.items():
             add.append(E("route", id="route%s" % edge, edges=" ".join(route)))
 
@@ -157,8 +166,9 @@ class Generator(Serializable):
 
         if rerouting is not None:
             for rerouting_params in rerouting:
-                add.append(self.rerouter(rerouting_params["name"], rerouting_params["from"],
-                                         rerouting_params["route"]))
+                add.append(self._rerouter(rerouting_params["name"],
+                                          rerouting_params["from"],
+                                          rerouting_params["route"]))
 
         printxml(add, self.cfg_path + addfn)
 
@@ -166,11 +176,13 @@ class Generator(Serializable):
         gui.append(E("scheme", name="real world"))
         printxml(gui, self.cfg_path +guifn)
 
-        cfg = makexml("configuration", "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
+        cfg = makexml("configuration",
+                      "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
 
         logging.debug(self.netfn)
 
-        cfg.append(self.inputs(self.name, net=self.netfn, add=addfn, rou=self.roufn, gui=guifn))
+        cfg.append(self._inputs(self.name, net=self.netfn, add=addfn,
+                                rou=self.roufn, gui=guifn))
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
         if end_time:
@@ -186,32 +198,6 @@ class Generator(Serializable):
         type_list = vehicles.types
         if vehicles.num_vehicles > 0:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-            # for veh_id in vehicles.get_ids():
-            #     # TODO: work in progress
-            #     if vehicles.get_acc_controller(veh_id) == SumoController:
-            #         tp = type_params[i][0]
-            #
-            #         # if any IDM parameters are not specified, they are set to the default parameters specified
-            #         # by Treiber
-            #         if "accel" not in type_params[tp][1]:
-            #             type_params[i][2][1]["accel"] = 1
-            #
-            #         if "decel" not in type_params[tp][1]:
-            #             type_params[i][2][1]["decel"] = 1.5
-            #
-            #         if "delta" not in type_params[tp][1]:
-            #             type_params[i][2][1]["delta"] = 4
-            #
-            #         if "tau" not in type_params[tp][1]:
-            #             type_params[i][2][1]["tau"] = 1
-            #
-            #         routes.append(E("vType", attrib={"id": tp, "carFollowModel": "IDM", "minGap": "0",
-            #                                          "accel": repr(type_params[i][2][1]["accel"]),
-            #                                          "decel": repr(type_params[i][2][1]["decel"]),
-            #                                          "delta": repr(type_params[i][2][1]["delta"]),
-            #                                          "tau": repr(type_params[i][2][1]["tau"])}))
-            #     else:
-            #         routes.append(E("vType", id=type_params[i][0], minGap="0"))
 
             # add the types of vehicles to the xml file
             for veh_type in vehicles.types:
@@ -231,9 +217,10 @@ class Generator(Serializable):
                 lane = lanes[i]
                 indx_type = [i for i in range(len(type_list)) if type_list[i] == veh_type][0]
                 type_depart_speed = vehicles.get_initial_speed(id)
-                routes.append(self.vehicle(veh_type, "route" + edge, depart="0", id=id, color="1,0.0,0.0",
-                                           departSpeed=str(type_depart_speed), departPos=str(pos),
-                                           departLane=str(lane)))
+                routes.append(self._vehicle(
+                    veh_type, "route" + edge, depart="0", id=id,
+                    color="1,0.0,0.0", departSpeed=str(type_depart_speed),
+                    departPos=str(pos), departLane=str(lane)))
 
             printxml(routes, self.cfg_path + self.roufn)
 
@@ -241,32 +228,53 @@ class Generator(Serializable):
         """
         Specifies the attributes of nodes in the network.
 
-        :param net_params: network parameters provided during task initialization
-        :return: A list of node attributes (a separate dict for each node). Nodes attributes must include:
-                 - id {string} -- name of the node
-                 - x {float} -- x coordinate of the node
-                 - y {float} -- y coordinate of the node
-                 Other attributes may also be specified. See:
-                 http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
+        Parameters
+        ----------
+        net_params: NetParams type
+            see cistar/core/params.py
+
+        Returns
+        -------
+        nodes: list of dict
+            A list of node attributes (a separate dict for each node). Nodes
+            attributes must include:
+             - id {string} -- name of the node
+             - x {float} -- x coordinate of the node
+             - y {float} -- y coordinate of the node
+
+        Other attributes may also be specified. See:
+        http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
         """
         raise NotImplementedError
 
     def specify_edges(self, net_params):
         """
-        Specifies the attributes of edges containing pairs on nodes in the network.
+        Specifies the attributes of edges containing pairs on nodes in the
+        network.
 
-        :param net_params: network parameters provided during task initialization
-        :return: A list of edges attributes (a separate dict for each node). Edge attributes must include:
-                 - id {string} -- name of the edge
-                 - from {string} -- name of node the directed edge starts from
-                 - to {string} -- name of the node the directed edge ends at
-                 In addition, the attributes must contain at least on of the following:
-                 - "numLanes" {int} and "speed" {float} -- the number of lanes and speed limit
-                   of the edge, respectively
-                 - type {string} -- a type identifier for the edge, which can be used if several
-                   edges are supposed to possess the same number of lanes, speed limits, etc...
-                 Other attributes may also be specified. See:
-                 http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Edge_Descriptions
+        Parameters
+        ----------
+        net_params: NetParams type
+            see cistar/core/params.py
+
+        Returns
+        -------
+        edges: list of dict
+            A list of edges attributes (a separate dict for each edge). Edge
+            attributes must include:
+             - id {string} -- name of the edge
+             - from {string} -- name of node the directed edge starts from
+             - to {string} -- name of the node the directed edge ends at
+            In addition, the attributes must contain at least one of the
+            following:
+             - "numLanes" {int} and "speed" {float} -- the number of lanes and
+               speed limit of the edge, respectively
+             - type {string} -- a type identifier for the edge, which can be
+               used if several edges are supposed to possess the same number of
+               lanes, speed limits, etc...
+
+        Other attributes may also be specified. See:
+        http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Edge_Descriptions
         """
         raise NotImplementedError
 
@@ -274,23 +282,40 @@ class Generator(Serializable):
         """
         Specifies the attributes of various edge types (if any exist).
 
-        :param net_params: network parameters provided during task initialization
-        :return: A list of type attributes for specific groups of edges. If none are specified,
-                 no .typ.xml file is created.
-                 For information on type attributes, see:
-                 http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Type_Descriptions
+        Parameters
+        ----------
+        net_params: NetParams type
+            see cistar/core/params.py
+
+        Returns
+        -------
+        types: list of dict
+            A list of type attributes for specific groups of edges. If none are
+            specified, no .typ.xml file is created.
+
+        For information on type attributes, see:
+        http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Type_Descriptions
         """
         return None
 
     def specify_connections(self, net_params):
         """
-        Specifies the attributes of connections, used to describe how a node's incoming and
-        outgoing edges are connected.
+        Specifies the attributes of connections, used to describe how a node's
+        incoming and outgoing edges are connected.
 
-        :param net_params: network parameters provided during task initialization
-        :return: A list of connection attributes. If none are specified, no .con.xml file is created.
-                 For information on type attributes, see:
-                 http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Connection_Descriptions
+        Parameters
+        ----------
+        net_params: NetParams type
+            see cistar/core/params.py
+
+        Returns
+        -------
+        connections: list of dict
+            A list of connection attributes. If none are specified, no .con.xml
+            file is created.
+
+        For information on type attributes, see:
+        http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Connection_Descriptions
         """
         return None
 
@@ -298,39 +323,59 @@ class Generator(Serializable):
         """
         Specifies the routes vehicles can take starting from a specific node
 
-        :param net_params: network parameters provided during task initialization
-        :return: a route dict, with the key being the name of the starting edge, and the routes
-                 being the edges a vehicle must traverse, starting from the current edge.
+        Parameters
+        ----------
+        net_params: NetParams type
+            see cistar/core/params.py
+
+        Returns
+        -------
+        routes: dict
+            Key = name of the starting edge
+            Element = list of edges a vehicle starting from this edge must
+            traverse.
         """
         raise NotImplementedError
 
     def specify_rerouters(self, net_params):
         """
-        Specifies rerouting actions vehicles should perform once reaching a specific edge.
+        Specifies rerouting actions vehicles should perform once reaching a
+        specific edge.
 
-        :param net_params: network parameters provided during task initialization
-        :return: A list of rerouting attributes (a separate dict for each rerouter), with each dict containing:
-                 - name {string} -- name of the rerouter
-                 - from {string} -- the edge in which rerouting takes place
-                 - route {string} -- name of the route the vehicle is rerouted into
+        Parameters
+        ----------
+        net_params: NetParams type
+            see cistar/core/params.py
+
+        Returns
+        -------
+        rerouters: list of dict
+            A list of rerouting attributes (a separate dict for each rerouter),
+            with each dict containing:
+             - name {string} -- name of the rerouter
+             - from {string} -- the edge in which rerouting takes place
+             - route {string} -- name of the route the vehicle is rerouted into
         """
         return None
 
-    def vtype(self, name, maxSpeed=30, accel=1.5, decel=4.5, length=5, **kwargs):
-        return E("vType", accel=repr(accel), decel=repr(decel), id=name, length=repr(length),
-                 maxSpeed=repr(maxSpeed), **kwargs)
+    def _vtype(self, name, maxSpeed=30, accel=1.5, decel=4.5, length=5,
+               **kwargs):
+        return E("vType", accel=repr(accel), decel=repr(decel), id=name,
+                 length=repr(length), maxSpeed=repr(maxSpeed), **kwargs)
 
-    def flow(self, name, number, vtype, route, **kwargs):
-        return E("flow", id=name, number=repr(number), route=route, type=vtype, **kwargs)
+    def _flow(self, name, number, vtype, route, **kwargs):
+        return E("flow", id=name, number=repr(number), route=route, type=vtype,
+                 **kwargs)
 
-    def vehicle(self, type, route, departPos, number=0, id=None, **kwargs):
+    def _vehicle(self, type, route, departPos, number=0, id=None, **kwargs):
         if not id and not number:
             raise ValueError("Supply either ID or Number")
         if not id:
             id = type + "_" + str(number)
-        return E("vehicle", type=type, id=id, route=route, departPos=departPos, **kwargs)
+        return E("vehicle", type=type, id=id, route=route, departPos=departPos,
+                 **kwargs)
 
-    def inputs(self, name, net=None, rou=None, add=None, gui=None):
+    def _inputs(self, name, net=None, rou=None, add=None, gui=None):
         inp = E("input")
         if net is not False:
             if net is None:
@@ -354,7 +399,7 @@ class Generator(Serializable):
                 inp.append(E("gui-settings-file", value=gui))
         return inp
 
-    def rerouter(self, name, frm, to):
+    def _rerouter(self, name, frm, to):
         t = E("rerouter", id=name, edges=frm)
         i = E("interval", begin="0", end="10000000")
         i.append(E("routeProbReroute", id=to))

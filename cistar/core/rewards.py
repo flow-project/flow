@@ -5,7 +5,6 @@ This script contains of series of reward functions that can be used to train aut
 import numpy as np
 
 
-# TODO: create local version (for moving bottleneck, ...)
 def desired_velocity(env, fail=False):
     """
     A reward function used to encourage high system-level velocity.
@@ -84,7 +83,7 @@ def punish_small_rl_headways(vehicles, rl_ids, headway_threshold, penalty_gain=1
     return max_headway_penalty - headway_penalty
 
 
-def minimize_rl_lane_changes(vehicles, rl_ids, penalty=1):
+def punish_rl_lane_changes(vehicles, rl_ids, penalty=1):
     """
     A reward function that minimizes lane changes by producing a penalty every time an rl vehicle performs one.
 
@@ -98,14 +97,3 @@ def minimize_rl_lane_changes(vehicles, rl_ids, penalty=1):
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
-
-
-def distance_traveled(state=None, actions=None, **kwargs):
-    # TODO
-    pass
-
-
-def emission(state=None, actions=None, **kwargs):
-    # TODO
-    pass
-
