@@ -24,6 +24,11 @@
 
 Notes:
 
-If building SUMO fails, it may be necessary to update the patch. Build two files for /src/traci-server/TraCIServerAPI_Vehicle.cpp. In one, change the line from: return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Departure time in the past."; to: vehicleParams.depart = MSNet::getInstance()->getCurrentTimeStep();
-Now go to the outer sumo directory and run diff -Naur /path/to/originalTraciServerAPI /path/to/newtraciServer > sumo-departure-time.patch
-Upload this file to an AWS bucket, make its path private, and add the path to the dockerfile in the part that install SUMO.
+- If building SUMO fails, it may be necessary to update the patch. 
+- Build two files for /src/traci-server/TraCIServerAPI_Vehicle.cpp. In one, change the line 
+from: 
+return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Departure time in the past."; 
+to: 
+vehicleParams.depart = MSNet::getInstance()->getCurrentTimeStep();
+- Now go to the outer sumo directory and run diff -Naur /path/to/originalTraciServerAPI /path/to/newtraciServer > sumo-departure-time.patch
+- Upload this file to an AWS bucket, make its path private, and add the path to the dockerfile in the part that install SUMO.
