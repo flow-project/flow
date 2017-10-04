@@ -266,7 +266,7 @@ class SumoEnvironment(gym.Env, Serializable):
             headway = self.traci_connection.vehicle.getLeader(veh_id, 2000)
             if headway is None:
                 self.vehicles.set_leader(veh_id, None)
-                self.vehicles.set_headway(0)
+                self.vehicles.set_headway(veh_id, 9e9)
             else:
                 self.vehicles.set_leader(veh_id, headway[0])
                 self.vehicles.set_headway(veh_id, headway[1])
@@ -590,12 +590,14 @@ class SumoEnvironment(gym.Env, Serializable):
             headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
             if headway is None:
                 self.vehicles.set_leader(veh_id, None)
-                self.vehicles.set_headway(veh_id, 0)
+                self.vehicles.set_headway(veh_id, 9e9)
             else:
                 self.vehicles.set_leader(veh_id, headway[0])
                 self.vehicles.set_headway(veh_id, headway[1])
                 self.vehicles.set_follower(headway[0], veh_id)
 
+
+        for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = \
                 self.initial_state[veh_id]
 
