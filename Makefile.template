@@ -3,12 +3,12 @@
 # 2. Make a copy from Makefile.template to Makefile
 
 
-	RLLABDIR = <PATH TO RLLAB FOR cistar_dev DIR>
+	RLLABDIR = <PATH TO RLLAB FOR flow_dev DIR>
 
 prepare: 
 	rm -rf $(RLLABDIR)/debug
-	rm -rf $(RLLABDIR)/cistar_dev
-	cp -r cistar_dev $(RLLABDIR)
+	rm -rf $(RLLABDIR)/flow_dev
+	cp -r flow_dev $(RLLABDIR)
 
 clean:
 	rm -rf $(RLLABDIR)/debug

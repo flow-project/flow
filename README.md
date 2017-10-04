@@ -1,4 +1,4 @@
-# cistar_dev Documentation
+# flow_dev Documentation
 
 ## Getting Started
 
@@ -73,15 +73,15 @@ Testing
 ====
 To run the tests:
 
-    pushd cistar-dev; python -m unittest discover; popd
+    pushd flow-dev; python -m unittest discover; popd
 
 To run only the fast (eg. unit) tests:
 
-    pushd cistar-dev; python -m unittest discover tests/fast; popd
+    pushd flow-dev; python -m unittest discover tests/fast; popd
 
 To run only the slow (eg. integration) tests:
 
-    pushd cistar-dev; python -m unittest discover tests/slow; popd
+    pushd flow-dev; python -m unittest discover tests/slow; popd
 
 Development
 ====

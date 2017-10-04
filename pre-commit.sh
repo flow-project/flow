@@ -5,7 +5,7 @@
 git stash -q --keep-index
 
 # Test prospective commit
-pushd cistar_dev
+pushd flow_dev
 python -m unittest discover tests/fast
 RESULT=$?
 popd

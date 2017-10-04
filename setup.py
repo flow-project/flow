@@ -25,7 +25,7 @@ class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
 
-setup(name='cistar',
+setup(name='flow',
       version='0.0.1',
       distclass=BinaryDistribution,
       cmdclass={"build_ext": build_ext},
