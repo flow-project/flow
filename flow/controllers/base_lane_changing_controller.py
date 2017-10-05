@@ -74,7 +74,7 @@ class BaseLaneChangingController:
 
         time_step = env.time_step
 
-        max_acc = env.env_params.get_additional_param("max-acc")
+        max_acc = env.env_params.max_acc
         max_trail_vel = trail_vel + max_acc * time_step
         max_this_vel = this_vel + max_acc * time_step
 

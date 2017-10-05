@@ -82,7 +82,9 @@ class EnvParams:
                  lane_change_duration=None,
                  shared_reward=False,
                  shared_policy=False,
-                 additional_params=None):
+                 additional_params=None,
+                 max_deacc=-6,
+                 max_acc=3):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -113,6 +115,9 @@ class EnvParams:
         self.shared_reward = shared_reward
         self.shared_policy = shared_policy
         self.additional_params = additional_params
+        self.max_deacc = max_deacc
+        self.max_acc = max_acc
+
 
     def get_additional_param(self, key):
         return self.additional_params[key]

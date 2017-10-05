@@ -27,8 +27,8 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
          - a (continuous) lane-change action from -1 to 1, used to determine the
            lateral direction the vehicle will take.
         """
-        max_deacc = self.env_params.get_additional_param("max-deacc")
-        max_acc = self.env_params.get_additional_param("max-acc")
+        max_deacc = self.env_params.max_deacc
+        max_acc = self.env_params.max_acc
 
         lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
         ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
