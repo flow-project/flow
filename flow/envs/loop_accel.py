@@ -1,6 +1,6 @@
-from cistar.envs.base_env import SumoEnvironment
-from cistar.core import rewards
-from cistar.core import multi_agent_rewards
+from flow.envs.base_env import SumoEnvironment
+from flow.core import rewards
+from flow.core import multi_agent_rewards
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -48,7 +48,7 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         See parent class
 
         Accelerations are applied to rl vehicles in accordance with the commands
-        provided by rllab. These actions may be altered by cistar's failsafes or
+        provided by rllab. These actions may be altered by flow's failsafes or
         sumo-defined speed modes.
         """
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]

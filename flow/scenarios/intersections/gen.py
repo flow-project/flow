@@ -1,4 +1,4 @@
-from cistar.core.generator import Generator
+from flow.core.generator import Generator
 
 from lxml import etree
 

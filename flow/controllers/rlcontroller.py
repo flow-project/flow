@@ -1,4 +1,4 @@
-from cistar.controllers.base_controller import BaseController
+from flow.controllers.base_controller import BaseController
 
 
 class RLController(BaseController):

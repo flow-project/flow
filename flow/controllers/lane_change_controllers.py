@@ -37,7 +37,7 @@ class StochasticLaneChanger:
         Parameters
         ----------
         env: Environment type
-            environment variable (see cistar/envs/base_env.py)
+            environment variable (see flow/envs/base_env.py)
 
         :return: controller specified velocity for specific car
         """

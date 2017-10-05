@@ -1,9 +1,9 @@
 """
 Base class for generating transportation networks.
 """
-from cistar.core.util import makexml
-from cistar.core.util import printxml
-from cistar.core.util import ensure_dir
+from flow.core.util import makexml
+from flow.core.util import printxml
+from flow.core.util import ensure_dir
 
 import sys
 import subprocess
@@ -231,7 +231,7 @@ class Generator(Serializable):
         Parameters
         ----------
         net_params: NetParams type
-            see cistar/core/params.py
+            see flow/core/params.py
 
         Returns
         -------
@@ -255,7 +255,7 @@ class Generator(Serializable):
         Parameters
         ----------
         net_params: NetParams type
-            see cistar/core/params.py
+            see flow/core/params.py
 
         Returns
         -------
@@ -285,7 +285,7 @@ class Generator(Serializable):
         Parameters
         ----------
         net_params: NetParams type
-            see cistar/core/params.py
+            see flow/core/params.py
 
         Returns
         -------
@@ -306,7 +306,7 @@ class Generator(Serializable):
         Parameters
         ----------
         net_params: NetParams type
-            see cistar/core/params.py
+            see flow/core/params.py
 
         Returns
         -------
@@ -326,7 +326,7 @@ class Generator(Serializable):
         Parameters
         ----------
         net_params: NetParams type
-            see cistar/core/params.py
+            see flow/core/params.py
 
         Returns
         -------
@@ -345,7 +345,7 @@ class Generator(Serializable):
         Parameters
         ----------
         net_params: NetParams type
-            see cistar/core/params.py
+            see flow/core/params.py
 
         Returns
         -------

@@ -29,13 +29,13 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.core.vehicles import Vehicles
-from cistar.envs.two_intersection import TwoIntersectionEnvironment
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
+from flow.envs.two_intersection import TwoIntersectionEnvironment
 
-from cistar.scenarios.intersections.gen import TwoWayIntersectionGenerator
-from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
-from cistar.controllers.rlcontroller import RLController
+from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
+from flow.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
+from flow.controllers.rlcontroller import RLController
 
 logging.basicConfig(level=logging.INFO)
 
@@ -112,6 +112,6 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="intersection-exp",
-        # python_command=cistar_config.PYTHON_COMMAND
+        # python_command=flow_config.PYTHON_COMMAND
         # plot=True,
     )

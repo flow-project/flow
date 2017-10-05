@@ -1,7 +1,7 @@
 import numpy as np
 
-from cistar.core.params import InitialConfig
-from cistar.scenarios.base_scenario import Scenario
+from flow.core.params import InitialConfig
+from flow.scenarios.base_scenario import Scenario
 
 
 class Figure8Scenario(Scenario):

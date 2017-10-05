@@ -12,7 +12,7 @@ pushd $1
 svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo > /dev/null
 pushd sumo
 
-echo "Patching SUMO for cistar compatibility"
+echo "Patching SUMO for flow compatibility"
 # TODO add the patch code
 # TODO add patch for ../tools/build/version.py as well
 
@@ -25,6 +25,6 @@ autoreconf -i > /dev/null
 make -j`sysctl -n hw.ncpu` > /dev/null
 make install > /dev/null
 
-echo "Returning to cistar directory"
+echo "Returning to flow directory"
 popd
 popd

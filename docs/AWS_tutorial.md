@@ -10,15 +10,15 @@
   - Follow [rllab local setup instructions](https://rllab.readthedocs.io/en/latest/user/installation.html)
   - Follow [rllab cluster setup instructions](http://rllab.readthedocs.io/en/latest/user/cluster.html)
     - If prompted, region = us-west-1
-    - Note: the current Docker image path is "evinitsky/cistar-distributed". Your `rllab-distributed/rllab/config_personal.py` should reflect that.
+    - Note: the current Docker image path is "evinitsky/flow-distributed". Your `rllab-distributed/rllab/config_personal.py` should reflect that.
     - (Optional): As desired, add to `config_personal.py` files and 
     directories that you do not need uploaded to EC2 for every 
     experiment by modifying `FAST_CODE_SYNC_IGNORES`.
-  - Go to `Makefile.template` in `learning-traffic/cistar_dev` and update 
+  - Go to `Makefile.template` in `learning-traffic/flow_dev` and update
   the path to your rllab root directory (no trailing slash)
-    - The `cistar_dev` reference in the Makefile might need to be updated to `cistar`
+    - The `flow_dev` reference in the Makefile might need to be updated to `flow`
   - (See note below); Run `make prepare` 
-  - Try an example! Run any experiment from `cistar_dev/examples`, change
+  - Try an example! Run any experiment from `flow_dev/examples`, change
    mode to “ec2”
   - You can run it locally by changing the mode to local_docker. If this isn't working, make sure to check that your local docker image is the most current image. 
   - Log into AWS via: https://cathywu.signin.aws.amazon.com/console
@@ -37,15 +37,15 @@ directory to AWS. This way, the AWS instance has access to all files it
   workflow:
   - All code modification will happen in the learning-traffic directory
   - Before each experiment, run the command `make prepare` , which will
-   remove the cistar_dev directory in rllab root and copy 
-   `learning-traffic/cistar_dev-dev/cistar_dev` into your rllab root directory
-    - This means if you make modifications to cistar_dev in the rllab 
+   remove the flow_dev directory in rllab root and copy
+   `learning-traffic/flow_dev-dev/flow_dev` into your rllab root directory
+    - This means if you make modifications to flow_dev in the rllab
     directory, they may be lost
   - Before each experiment, always make sure you have a commit to that 
-  exact snapshot of the `cistar_dev` directory. This is because you may
-   modify cistar_dev later. When you want to run `visualizer.py` , which is
+  exact snapshot of the `flow_dev` directory. This is because you may
+   modify flow_dev later. When you want to run `visualizer.py` , which is
     our modified version of `sim_policy.py` , AKA when you want to 
-    create rollout plots, you need the files in `rllab/cistar_dev` to match 
+    create rollout plots, you need the files in `rllab/flow_dev` to match
     the files that were there when you originally ran the experiment.
      So when you want to create rollout plots, you will checkout the
       commit that matches when you ran the experiment and run make 

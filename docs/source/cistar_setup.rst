@@ -1,18 +1,18 @@
-setting up cistar
+setting up flow
 *****************************
 
-To get cistar\_dev running, you need three things: cistar\_dev (or
-CISTAR), SUMO, and rllab. Once each component is installed successfully,
+To get flow\_dev running, you need three things: flow\_dev (or
+flow), SUMO, and rllab. Once each component is installed successfully,
 you might get some missing module bugs from python. Just install the
 missing module using your OS-specific package manager / installation
 tool. Follow the shell commands below to get started.
 
-Installing CISTAR
+Installing flow
 =================
 
 1. ``git clone https://github.com/cathywu/learning-traffic.git``
 2. Make sure you have access to the repo!
-3. Add the ``cistar_dev`` directory to your ``PYTHONPATH`` environment
+3. Add the ``flow_dev`` directory to your ``PYTHONPATH`` environment
    variable. Visit the following links for OS-specific guides on how to
    do edit environment variables.
 4. For Windows 10 users:
@@ -51,7 +51,7 @@ follow these steps:
 7.  ``make -f Makefile.cvs``
 8.  ``make install``
 9.  Add the ``sumo/tools`` directory to your ``PYTHONPATH`` environment
-    variable. See instructions in ‘Installing CISTAR’ for how to edit
+    variable. See instructions in ‘Installing flow’ for how to edit
     environment variables.
 10. Set SUMO\_HOME environment variable (for local schema look-up):
     ``export SUMO_HOME=<path to SUMO>`` # Installing rllab
@@ -92,18 +92,18 @@ few seconds, a la (Sugiyama et al, 2008).
 ::
 
     source activate rllab-distributed
-    cd <path to learning-traffic>/cistar_dev/examples
+    cd <path to learning-traffic>/flow_dev/examples
     python sugiyama.py
 
-This means that you have cistar properly configured with SUMO.
+This means that you have flow properly configured with SUMO.
 
 ::
 
-    cd <path to learning-traffic>/cistar_dev/examples
+    cd <path to learning-traffic>/flow_dev/examples
     python mixed-rl-single-lane.py
 
-This means that you have cistar properly configured with both SUMO and
-rllab. Congratulations, you now have cistar set up!
+This means that you have flow properly configured with both SUMO and
+rllab. Congratulations, you now have flow set up!
 
 Common Bugs
 ===========
@@ -112,7 +112,7 @@ Common Bugs
 ----------------------------
 
 In order to avoid “Departure Time” bugs, follow the steps in
-/cistar\_dev/docs/sumo-depart-time-issue.md *NOTE:* in some nightly
+/flow\_dev/docs/sumo-depart-time-issue.md *NOTE:* in some nightly
 builds, the line number to fix is 1172 instead of 1200.
 
 ‘Fx.h No Such File or Directory’ Bug
@@ -239,7 +239,7 @@ libtool and running the ‘Troubleshooting’ commands again.
 ‘No Module Named X’ Bugs When Running Examples
 ----------------------------------------------
 
-While running a CISTAR example, you may get the following ‘no module
+While running a flow example, you may get the following ‘no module
 named ’ errors. This is because packages specified in the anaconda
 environment file haven’t been correctly installed. Just use
 ``pip install <package-name>`` to fix this.
@@ -253,7 +253,7 @@ rllab atari error
 
 Just ignore this. We don’t use atari.
 
-When running an rl experiment in cistar, I get theano errors concerning .theano/compiledir\_Darwin-15.5.0-x86\_64-i386-64bit-i386-3.5.2-64 (or similar)
+When running an rl experiment in flow, I get theano errors concerning .theano/compiledir\_Darwin-15.5.0-x86\_64-i386-64bit-i386-3.5.2-64 (or similar)
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Make sure you have an appropriate theano version installed:

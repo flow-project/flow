@@ -11,8 +11,8 @@ import gym
 
 import sumolib
 
-from cistar.controllers.car_following_models import *
-from cistar.core.util import ensure_dir
+from flow.controllers.car_following_models import *
+from flow.core.util import ensure_dir
 
 COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
@@ -41,11 +41,11 @@ class SumoEnvironment(gym.Env, Serializable):
          Attributes
          ----------
          env_params: EnvParams type:
-            see cistar/core/params.py
+            see flow/core/params.py
          sumo_params: SumoParams type
-            see cistar/core/params.py
+            see flow/core/params.py
         scenario: Scenario type
-            see cistar/scenarios/base_scenario.py
+            see flow/scenarios/base_scenario.py
         """
         Serializable.quick_init(self, locals())
 

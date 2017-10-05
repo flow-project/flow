@@ -1,9 +1,9 @@
-introduction to cistar
+introduction to flow
 ----------------------
 
 the team
 ********
-cistar was built by cool people in a cool place
+flow was built by cool people in a cool place
 
 cool people
 ============

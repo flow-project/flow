@@ -27,16 +27,16 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.vehicles import Vehicles
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 
-from cistar.controllers.routing_controllers import *
+from flow.controllers.routing_controllers import *
 
 
-from cistar.controllers.lane_change_controllers import *
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLController
+from flow.controllers.lane_change_controllers import *
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.controllers.rlcontroller import RLController
 logging.basicConfig(level=logging.DEBUG)
 
 

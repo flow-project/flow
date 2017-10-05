@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 
-from cistar.scenarios.base_scenario import Scenario
+from flow.scenarios.base_scenario import Scenario
 
 
 class TwoWayIntersectionScenario(Scenario):

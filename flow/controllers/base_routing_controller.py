@@ -22,7 +22,7 @@ class BaseRouter:
         Parameters
         ----------
         env: Environment type
-            see cistar/envs/base_env.py
+            see flow/envs/base_env.py
 
         Returns
         -------

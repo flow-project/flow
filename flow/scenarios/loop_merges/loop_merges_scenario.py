@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import pi
 
-from cistar.scenarios.base_scenario import Scenario
+from flow.scenarios.base_scenario import Scenario
 
 
 class LoopMergesScenario(Scenario):

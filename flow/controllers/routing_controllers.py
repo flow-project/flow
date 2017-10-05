@@ -1,5 +1,5 @@
 
-from cistar.controllers.base_routing_controller import BaseRouter
+from flow.controllers.base_routing_controller import BaseRouter
 
 
 class ContinuousRouter(BaseRouter):

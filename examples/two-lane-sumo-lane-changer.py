@@ -21,14 +21,14 @@ Variables:
 '''
 import logging
 
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.core.vehicles import Vehicles
-from cistar.controllers.routing_controllers import *
-from cistar.controllers.car_following_models import *
-from cistar.core.experiment import SumoExperiment
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.envs.loop import LoopEnvironment
-from cistar.scenarios.loop.loop_scenario import LoopScenario
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
+from flow.controllers.routing_controllers import *
+from flow.controllers.car_following_models import *
+from flow.core.experiment import SumoExperiment
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.envs.loop import LoopEnvironment
+from flow.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 

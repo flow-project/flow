@@ -1,4 +1,4 @@
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import SimpleAccelerationEnvironment
 
 import numpy as np
 import random

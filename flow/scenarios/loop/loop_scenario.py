@@ -1,4 +1,4 @@
-from cistar.scenarios.base_scenario import Scenario
+from flow.scenarios.base_scenario import Scenario
 
 
 class LoopScenario(Scenario):

@@ -5,10 +5,10 @@ import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
 
-from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
+from flow.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
 
 import logging
 

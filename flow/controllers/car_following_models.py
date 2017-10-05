@@ -1,5 +1,5 @@
 """
-This script contains several car-following control models for cistar-controlled
+This script contains several car-following control models for flow-controlled
 vehicles.
 
 Controllers can have their output delayed by some duration. Each controller
@@ -15,7 +15,7 @@ includes functions
 
 import random
 import math
-from cistar.controllers.base_controller import BaseController
+from flow.controllers.base_controller import BaseController
 import collections
 import numpy as np
 

@@ -5,15 +5,15 @@ import joblib
 import numpy as np
 from rllab.algos.trpo import TRPO
 from matplotlib import pyplot as plt
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
-from cistar.scenarios.figure8.gen import Figure8Generator
-from cistar.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
-from cistar.scenarios.intersections.gen import TwoWayIntersectionGenerator
-from cistar.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
-from cistar.scenarios.loop_merges.gen import LoopMergesGenerator
-#from cistar.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
+from flow.scenarios.figure8.gen import Figure8Generator
+from flow.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
+from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
+from flow.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
+from flow.scenarios.loop_merges.gen import LoopMergesGenerator
+#from flow.scenarios.braess_paradox.braess_paradox_scenario import BraessParadoxScenario
 
 import pickle
 

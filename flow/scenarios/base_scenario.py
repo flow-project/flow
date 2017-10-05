@@ -4,9 +4,9 @@ from collections import OrderedDict
 
 from rllab.core.serializable import Serializable
 
-from cistar.core.generator import Generator
-from cistar.core.params import InitialConfig
-from cistar.controllers.rlcontroller import RLController
+from flow.core.generator import Generator
+from flow.core.params import InitialConfig
+from flow.controllers.rlcontroller import RLController
 
 
 class Scenario(Serializable):
@@ -26,11 +26,11 @@ class Scenario(Serializable):
             Class for generating configuration and net files with placed
             vehicles, e.g. CircleGenerator
         vehicles: Vehicles type
-            see cistar/core/vehicles.py
+            see flow/core/vehicles.py
         net_params: NetParams type
-            see cistar/core/params.py
+            see flow/core/params.py
         initial_config: InitialConfig type
-            see cistar/core/params.py
+            see flow/core/params.py
 
         Raises
         ------
@@ -249,7 +249,7 @@ class Scenario(Serializable):
         Parameters
         ----------
         initial_config: InitialConfig type
-            see cistar/core/params.py
+            see flow/core/params.py
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -329,7 +329,7 @@ class Scenario(Serializable):
         Parameters
         ----------
         initial_config: InitialConfig type
-            see cistar/core/params.py
+            see flow/core/params.py
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -420,7 +420,7 @@ class Scenario(Serializable):
         Parameters
         ----------
         initial_config: InitialConfig type
-            see cistar/core/params.py
+            see flow/core/params.py
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -502,7 +502,7 @@ class Scenario(Serializable):
         Parameters
         ----------
         initial_config: InitialConfig type
-            see cistar/core/params.py
+            see flow/core/params.py
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters

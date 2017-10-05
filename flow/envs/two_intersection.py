@@ -2,8 +2,8 @@ import numpy as np
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
-from cistar.core import rewards
-from cistar.envs.intersection_env import IntersectionEnvironment
+from flow.core import rewards
+from flow.envs.intersection_env import IntersectionEnvironment
 
 
 class TwoIntersectionEnvironment(IntersectionEnvironment):

@@ -1,5 +1,5 @@
-from cistar.controllers.base_controller import SumoController
-from cistar.controllers.rlcontroller import RLController
+from flow.controllers.base_controller import SumoController
+from flow.controllers.rlcontroller import RLController
 
 import collections
 
@@ -12,7 +12,7 @@ class Vehicles:
         set or retreived from this class.
         """
         self.__ids = []  # stores the ids of all vehicles
-        self.__controlled_ids = []  # stores the ids of cistar-controlled vehicles
+        self.__controlled_ids = []  # stores the ids of flow-controlled vehicles
         self.__sumo_ids = []  # stores the ids of sumo-controlled vehicles
         self.__rl_ids = []  # stores the ids of rllab-controlled vehicles
 
@@ -41,15 +41,15 @@ class Vehicles:
         veh_id: str
             base vehicle ID for the vehicles (will be appended by a number)
         acceleration_controller: tup
-            1st element: cistar-specified acceleration controller
+            1st element: flow-specified acceleration controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
         lane_change_controller: tup, optional
-            1st elemnt: cistar-specified lane-changer controller
+            1st elemnt: flow-specified lane-changer controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
         routing_controller: tup, optional
-            1st element: cistar-specified routing controller
+            1st element: flow-specified routing controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
         initial_speed: float, optional

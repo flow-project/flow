@@ -1,7 +1,7 @@
-from cistar.core.generator import Generator
+from flow.core.generator import Generator
 
-from cistar.core.util import makexml
-from cistar.core.util import printxml
+from flow.core.util import makexml
+from flow.core.util import printxml
 
 from numpy import pi, sin, cos, linspace
 

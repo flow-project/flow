@@ -1,4 +1,4 @@
-from cistar.envs.base_env import SumoEnvironment
+from flow.envs.base_env import SumoEnvironment
 
 import numpy as np
 

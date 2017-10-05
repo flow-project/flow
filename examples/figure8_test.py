@@ -20,16 +20,16 @@ Variables:
     scenario {[type]} -- [Which road network to use]
 '''
 import logging
-from cistar.core.params import SumoParams, EnvParams, NetParams
-from cistar.controllers.routing_controllers import *
-from cistar.core.vehicles import Vehicles
+from flow.core.params import SumoParams, EnvParams, NetParams
+from flow.controllers.routing_controllers import *
+from flow.core.vehicles import Vehicles
 
-from cistar.core.experiment import SumoExperiment
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.figure8.gen import Figure8Generator
-from cistar.scenarios.figure8.figure8_scenario import Figure8Scenario
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
+from flow.core.experiment import SumoExperiment
+from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.scenarios.figure8.gen import Figure8Generator
+from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
+from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
 
 logging.basicConfig(level=logging.INFO)
 

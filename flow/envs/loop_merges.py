@@ -1,6 +1,6 @@
-from cistar.core import rewards
+from flow.core import rewards
 
-from cistar.envs.base_env import SumoEnvironment
+from flow.envs.base_env import SumoEnvironment
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple

@@ -1,6 +1,6 @@
-from cistar.envs.base_env import SumoEnvironment
-from cistar.core import rewards
-from cistar.controllers.car_following_models import *
+from flow.envs.base_env import SumoEnvironment
+from flow.core import rewards
+from flow.controllers.car_following_models import *
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple

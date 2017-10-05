@@ -12,7 +12,7 @@ def pass_params(env_name, sumo_params, sumo_binary,
         num_steps = env_params.get_additional_param["num_steps"]
     register(
         id=env_name+'-v0',
-        entry_point='cistar.envs:'+env_name,
+        entry_point='flow.envs:'+env_name,
         max_episode_steps=num_steps,
         kwargs={"env_params": env_params, "sumo_binary": sumo_binary, 
         "sumo_params": sumo_params, "scenario": scenario}

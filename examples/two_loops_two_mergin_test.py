@@ -22,16 +22,16 @@ Variables:
 import logging
 import numpy as np
 
-from cistar.core.experiment import SumoExperiment
-from cistar.core.vehicles import Vehicles
+from flow.core.experiment import SumoExperiment
+from flow.core.vehicles import Vehicles
 
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.routing_controllers import *
+from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
+from flow.controllers.routing_controllers import *
 
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.two_loops_two_merging.gen import TwoLoopTwoMergingGenerator
-from cistar.scenarios.two_loops_two_merging.two_loops_two_merging_scenario import TwoLoopsTwoMergingScenario
+from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.scenarios.two_loops_two_merging.gen import TwoLoopTwoMergingGenerator
+from flow.scenarios.two_loops_two_merging.two_loops_two_merging_scenario import TwoLoopsTwoMergingScenario
 
 logging.basicConfig(level=logging.INFO)
 

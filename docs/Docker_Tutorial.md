@@ -11,7 +11,7 @@
 - Note: environment.yml should be exactly the same as the one in rllab, except we have two more dependencies:
   - `libxml2=2.9.4`
   - `libxslt=1.1.29` 
-  - Takeaway: when updating `environment.yml` make sure to look at both the old version in cistar_dev and the newer ones in rllab, and don’t lose data
+  - Takeaway: when updating `environment.yml` make sure to look at both the old version in flow_dev and the newer ones in rllab, and don’t lose data
 - In the same directory that contains the Dockerfile and environment file, run:
   - `docker build -t <name_of_image> .` 
   - Check it’s there: `docker images` 

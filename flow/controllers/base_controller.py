@@ -3,7 +3,7 @@ This file contains the base controllers used by human-driven vehicle units.
 
 Two types of controllers are provided:
  - BaseController: A controller that instantiates a vehicle with car-following
-   dynamics controlled by acceleration models in cistar_dev (located in
+   dynamics controlled by acceleration models in flow_dev (located in
    car_following_models.py)
  - SumoController: A controller that instantiates a vehicle with car-following
    dynamics from sumo's built-in functions
@@ -17,7 +17,7 @@ class BaseController:
 
     def __init__(self, veh_id, controller_params):
         """
-        Base class for cistar-controlled acceleration behavior.
+        Base class for flow-controlled acceleration behavior.
 
         Instantiates a controller and forces the user to pass a
         maximum acceleration to the controller. Provides the method
