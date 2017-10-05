@@ -1,0 +1,28 @@
+introduction to flow
+----------------------
+
+the team
+********
+flow was built by cool people in a cool place
+
+cool people
+============
+cathy
+
+eugene
+
+nathan
+
+leah
+
+kanaad
+
+nishant
+
+kathy
+
+ananth
+
+cool place
+===========
+`berkeley <http://www.berkeley.edu>`_

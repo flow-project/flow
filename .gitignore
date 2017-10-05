@@ -87,3 +87,11 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Don't add xml
+.xml
+.DS_Store
+
+# Custom for learning-traffic
+.idea/**
+Makefile
