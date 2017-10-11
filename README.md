@@ -1,6 +1,27 @@
-# flow_dev Documentation
+[![Docs](https://readthedocs.org/projects/berkeleyflow/badge)](http://berkeleyflow.readthedocs.org/en/latest/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cathywu/flow/blob/master/LICENSE.md)
 
-## Getting Started
+# Flow
+
+Flow is a a computational framework for deep RL and control experiments for traffic microsimulation.
+
+
+# Documentation
+
+Documentation is available online: [https://berkeleyflow.readthedocs.org/en/latest/](https://berkeleyflow.readthedocs.org/en/latest/).
+
+# Citing Flow
+
+If you use Flow for academic research, you are highly encouraged to cite our upcoming journal paper:
+
+<!-- - Yan Duan, Xi Chen, Rein Houthooft, John Schulman, Pieter Abbeel. "[Benchmarking Deep Reinforcement Learning for Continuous Control](http://arxiv.org/abs/1604.06778)". _Proceedings of the 33rd International Conference on Machine Learning (ICML), 2016._ -->
+
+# Credits
+
+Flow was originally developed by members of [Professor Alexandre Bayen](http://bayen.eecs.berkeley.edu/)'s lab at UC Berkeley: Cathy Wu, Eugene Vinitsky, Kanaad Parvate, Aboudy Kreidieh, Nishant Kheterpal, Leah Dickstein, Nathan Mandi, Kathy Jang, and Ananth Kuchibhotla. Development on the framework continues by people at UC Berkeley.
+
+
+<!-- ## Getting Started
 
 - TODO: Tutorial for visualization / plot generating scripts
 
@@ -89,10 +110,10 @@ Development
   from the project root directory:
 
       ln -s ../../pre-commit.sh .git/hooks/pre-commit
-      
+
 Warnings:
 ====
-All car controllers come equipped with a fail-safe rule wherein cars are not allowed to 
-move at a speed that would cause them to crash if the car in front of them suddenly started 
-breaking with max acceleration. If they attempt to do so, they will be reset to move at $$v_safe$$ 
-where $$v_safe$$ is the speed such that the cars will come to rest at the same point. 
+All car controllers come equipped with a fail-safe rule wherein cars are not allowed to
+move at a speed that would cause them to crash if the car in front of them suddenly started
+breaking with max acceleration. If they attempt to do so, they will be reset to move at $$v_safe$$
+where $$v_safe$$ is the speed such that the cars will come to rest at the same point.  -->

@@ -11,7 +11,7 @@ class LoopMergesScenario(Scenario):
         """
         Initializes a two-way intersection scenario.
 
-        See Scenario.py for description of params.
+        See scenario.py for description of params.
         """
         self.merge_in_len = net_params.additional_params["merge_in_length"]
         self.merge_out_len = net_params.additional_params["merge_out_length"]
@@ -266,8 +266,13 @@ class LoopMergesScenario(Scenario):
 
         WARNING: this does not absolutely gaurantee that the order of
         vehicles is preserved.
-        :return: list of start positions [(edge0, pos0), (edge1, pos1), ...]
-                 list of start lanes
+        
+        Returns
+        -------
+        startpositions : list
+            start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes : list
+            start lanes
         """
         x0 = 1
         if "x0" in kwargs:
