@@ -3,6 +3,7 @@ from flow.core import rewards
 from flow.controllers.car_following_models import *
 
 from gym.spaces.box import Box
+from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 import numpy as np
 
@@ -26,12 +27,24 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
          - a (continuous) lane-change action from -1 to 1, used to determine the
            lateral direction the vehicle will take.
         """
-        max_deacc = self.env_params.get_additional_param("max-deacc")
-        max_acc = self.env_params.get_additional_param("max-acc")
+        acc_action_space = Box(
+            low=-abs(self.env_params.additional_params["max-deacc"]),
+            high=self.env_params.additional_params["max-acc"],
+            shape=(self.vehicles.num_rl_vehicles,))
 
-        lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
-        ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
-        return Box(np.array(lb), np.array(ub))
+        action_space = Tuple(
+            tuple([Discrete(3) for _ in range(self.vehicles.num_rl_vehicles)]) +
+            tuple([acc_action_space])
+        )
+
+        return action_space
+
+        # max_deacc = self.env_params.get_additional_param("max-deacc")
+        # max_acc = self.env_params.get_additional_param("max-acc")
+        #
+        # lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
+        # ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
+        # return Box(np.array(lb), np.array(ub))
 
     @property
     def observation_space(self):
@@ -89,11 +102,15 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
         if a lane change isn't applied, and sufficient time has passed, issue an
         acceleration like normal.
         """
-        acceleration = actions[::2]
-        direction = np.round(actions[1::2])
+        acceleration = actions[-1]
+        direction = np.array(actions[:-1]) - 1
+
+        # acceleration = actions[::2]
+        # direction = np.round(actions[1::2])
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+        # sorted_rl_ids = self.rl_ids
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \

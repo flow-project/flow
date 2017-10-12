@@ -380,13 +380,14 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.vehicles.set_position(
                     veh_id, network_observations[veh_id][tc.VAR_LANEPOSITION])
             except KeyError:
-                self.ids.remove(veh_id)
-                if veh_id in self.rl_ids:
-                    self.rl_ids.remove(veh_id)
-                elif veh_id in self.controlled_ids:
-                    self.controlled_ids.remove(veh_id)
-                else:
-                    self.sumo_ids.remove(veh_id)
+                # TODO: this is causing problems when vehicles can crash
+                # self.ids.remove(veh_id)
+                # if veh_id in self.rl_ids:
+                #     self.rl_ids.remove(veh_id)
+                # elif veh_id in self.controlled_ids:
+                #     self.controlled_ids.remove(veh_id)
+                # else:
+                #     self.sumo_ids.remove(veh_id)
                 continue
             self.vehicles.set_edge(
                 veh_id, network_observations[veh_id][tc.VAR_ROAD_ID])
@@ -586,18 +587,6 @@ class SumoEnvironment(gym.Env, Serializable):
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         for veh_id in self.ids:
-            # collect headway, leader id, and follower id data
-            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
-            if headway is None:
-                self.vehicles.set_leader(veh_id, None)
-                self.vehicles.set_headway(veh_id, 9e9)
-            else:
-                self.vehicles.set_leader(veh_id, headway[0])
-                self.vehicles.set_headway(veh_id, headway[1])
-                self.vehicles.set_follower(headway[0], veh_id)
-
-
-        for veh_id in self.ids:
             type_id, route_id, lane_index, lane_pos, speed, pos = \
                 self.initial_state[veh_id]
 
@@ -607,11 +596,19 @@ class SumoEnvironment(gym.Env, Serializable):
 
             # clear vehicles from traci connection and re-introduce vehicles
             # with pre-defined initial position
-            self.traci_connection.vehicle.remove(veh_id)
-            self.traci_connection.vehicle.addFull(
-                veh_id, route_id, typeID=str(type_id),
-                departLane=str(lane_index),
-                departPos=str(lane_pos), departSpeed=str(speed))
+            try:
+                self.traci_connection.vehicle.remove(veh_id)
+                self.traci_connection.vehicle.addFull(
+                    veh_id, route_id, typeID=str(type_id),
+                    departLane=str(lane_index),
+                    departPos=str(lane_pos), departSpeed=str(speed))
+            except:
+                # in case a vehicle is removed via a crash
+                self.traci_connection.vehicle.addFull(
+                    veh_id, route_id, typeID=str(type_id),
+                    departLane=str(lane_index),
+                    departPos=str(lane_pos), departSpeed=str(speed))
+
             self.traci_connection.vehicle.setColor(
                 veh_id, self.colors[self.vehicles.get_state(veh_id, 'type')])
 
@@ -625,6 +622,17 @@ class SumoEnvironment(gym.Env, Serializable):
             self.set_lane_change_mode(veh_id)
 
         self.traci_connection.simulationStep()
+
+        for veh_id in self.ids:
+            # collect headway, leader id, and follower id data
+            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
+            if headway is None:
+                self.vehicles.set_leader(veh_id, None)
+                self.vehicles.set_headway(veh_id, 1e-3)
+            else:
+                self.vehicles.set_leader(veh_id, headway[0])
+                self.vehicles.set_headway(veh_id, headway[1])
+                self.vehicles.set_follower(headway[0], veh_id)
 
         if self.multi_agent:
             self.state = self.get_state()
@@ -906,7 +914,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 if headway is None:
                     vehicles[veh_id]["leader"] = None
                     vehicles[veh_id]["follower"] = None
-                    vehicles[veh_id]["headway"] = np.inf
+                    vehicles[veh_id]["headway"] = 1e-3
                 else:
                     vehicles[veh_id]["headway"] = headway[1]
                     vehicles[veh_id]["leader"] = headway[0]
@@ -916,7 +924,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 # upon reset. It only applies for the very first time step
                 vehicles[veh_id]["leader"] = None
                 vehicles[veh_id]["follower"] = None
-                vehicles[veh_id]["headway"] = np.inf
+                vehicles[veh_id]["headway"] = 1e-3
 
         return vehicles
 
