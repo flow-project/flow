@@ -3,6 +3,8 @@ echo "Installing system dependencies for SUMO"
 # Read in desired path
 brew install Caskroom/cask/xquartz autoconf automake pkg-config libtool gdal proj xerces-c fox
 
+BASH_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 echo "Downloading SUMO to $1. This may take some time."
 echo "You may be prompted (twice) to authorize downloading from the repository (press (t) to temporarily accept)."
 mkdir -p $1
@@ -15,6 +17,8 @@ pushd sumo
 echo "Patching SUMO for flow compatibility"
 # TODO add the patch code
 # TODO add patch for ../tools/build/version.py as well
+patch -p1 < BASH_DIR/departure_time_issue.patch
+
 
 echo "Building SUMO"
 export CPPFLAGS="$CPPFLAGS -I/opt/X11/include/"
