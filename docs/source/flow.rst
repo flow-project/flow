@@ -1,37 +1,35 @@
-Flow package
-============
+Code Components
+===================
 
 Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 1
 
     flow.controllers
     flow.core
     flow.envs
     flow.scenarios
 
-Submodules
-----------
+Visualizers
+-----------
 
-flow\.visualizer\_CISTAR module
--------------------------------
+**flow\.visualizer\_CISTAR**
 
 .. automodule:: flow.visualizer_CISTAR
     :members:
     :undoc-members:
     :show-inheritance:
 
-flow\.visualizer\_CISTAR\_multiagent module
--------------------------------------------
+**flow\.visualizer\_CISTAR\_multiagent**
 
 .. automodule:: flow.visualizer_CISTAR_multiagent
     :members:
     :undoc-members:
     :show-inheritance:
 
-flow\.visualizer\_CISTAR\_tf module
------------------------------------
+**flow\.visualizer\_CISTAR\_tf**
 
 .. automodule:: flow.visualizer_CISTAR_tf
     :members:
