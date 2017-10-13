@@ -19,8 +19,8 @@ class TwoIntersectionEnvironment(IntersectionEnvironment):
         Actions are a set of accelerations from 0 to 15m/s
         :return:
         """
-        return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")),
-                   high=self.env_params.get_additional_param("max-acc"),
+        return Box(low=-np.abs(self.env_params.max_deacc),
+                   high=self.env_params.max_acc,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
@@ -49,8 +49,8 @@ class TwoIntersectionEnvironment(IntersectionEnvironment):
                 # get up to max speed
                 if this_speed < enter_speed:
                     # accelerate as fast as you are allowed
-                    if ((enter_speed - this_speed)/self.time_step > self.env_params.get_additional_param("max-acc")):
-                        rl_actions[i] =  self.env_params.get_additional_param("max-acc")
+                    if ((enter_speed - this_speed)/self.time_step > self.env_params.max_acc):
+                        rl_actions[i] =  self.env_params.max_acc
                     # accelerate the exact amount needed to get up to target velocity
                     else:
                         rl_actions[i] = ((enter_speed - this_speed)/self.time_step)

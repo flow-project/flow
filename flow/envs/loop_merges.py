@@ -21,8 +21,8 @@ class SimpleLoopMergesEnvironment(SumoEnvironment):
         """
         See parent class
         """
-        return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")),
-                   high=self.env_params.get_additional_param("max-acc"),
+        return Box(low=-np.abs(self.env_params.max_deacc),
+                   high=self.env_params.max_acc,
                    shape=(self.vehicles.num_rl_vehicles,))
 
     @property
