@@ -1,4 +1,4 @@
-Flow Components
+Code Components
 ===================
 
 Subpackages
