@@ -11,13 +11,13 @@ mkdir -p $1
 echo "Temporarily changing directories"
 pushd $1
 # TODO update with nightly build
-svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo > /dev/null
+svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@25706 > /dev/null
 pushd sumo
 
 echo "Patching SUMO for flow compatibility"
 # TODO add the patch code
 # TODO add patch for ../tools/build/version.py as well
-patch -p1 < BASH_DIR/departure_time_issue.patch
+patch -p1 < $BASH_DIR/departure_time_issue.patch
 
 
 echo "Building SUMO"
@@ -26,6 +26,7 @@ export LDFLAGS="-L/opt/X11/lib"
 
 autoreconf -i > /dev/null
 ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local > /dev/null
+
 make -j`sysctl -n hw.ncpu` > /dev/null
 make install > /dev/null
 
