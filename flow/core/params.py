@@ -5,7 +5,7 @@ class SumoParams():
                  time_step=0.1,
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
-                 emission_path="./data/",
+                 emission_path=None,
                  rl_speed_mode='no_collide',
                  human_speed_mode='no_collide',
                  rl_lane_change_mode="no_lat_collide",
