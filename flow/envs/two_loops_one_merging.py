@@ -5,7 +5,6 @@ from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
 import numpy as np
-from numpy.random import normal
 
 
 class TwoLoopsOneMergingEnvironment(SumoEnvironment):

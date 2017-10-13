@@ -12,7 +12,7 @@ E = etree.Element
 
 class LoopMergesGenerator(Generator):
     """
-    Generator for loop with merges sim. Requires from net_params:
+    Generator for loop with merges sim. Required from net_params:
     - merge_in_length: length of the merging in lane
     - merge_out_length: length of the merging out lane. May be set to None to
       remove the merge-out lane.

@@ -1,24 +1,24 @@
-cistar tutorial
+Tutorial
 ******************
 
 1. Introduction
 ===============
 
-This tutorial is intended for readers who are new to cistar. While some
+This tutorial is intended for readers who are new to Flow. While some
 reinforcement learning terms are presented within the contents of this tutorial,
 no prior background in the field is required to successfully complete any
-steps. Be sure to install cistar before starting this tutorial.
+steps. Be sure to install Flow before starting this tutorial.
 
-1.1. About cistar
+1.1. About Flow
 -----------------
 
-Cistar is a framework for deep reinforcement learning in
+Flow is a framework for deep reinforcement learning in
 mixed-autonomy traffic scenarios. It interfaces the RL library ``rllab``
-with the traffic microsimulator ``SUMO``. Through cistar, autonomous
+with the traffic microsimulator ``SUMO``. Through Flow, autonomous
 vehicles may be trained to perform various tasks that improve the
-performance of traffic networks. Currently, cistar v0.1 supports the
+performance of traffic networks. Currently, Flow v0.1 supports the
 implementation of simple closed networks, such as ring roads, figure
-eights, etc... In order to run an experiment on cistar, three objects are
+eights, etc... In order to run an experiment on Flow, three objects are
 required:
 
 -  A **Generator**: Generates the configuration files needed to create
@@ -69,13 +69,13 @@ of as a directed graph consisting of nodes, edges, routes, and other
 ---------------------------------
 
 We begin by creating a file called ``my_generator.py``. In this file, we
-create a class titled ``myGenerator`` that inherits the properties of cistar's
+create a class titled ``myGenerator`` that inherits the properties of Flow's
 base generator class.
 
 ::
 
-    # import cistar's base generator
-    from cistar.core.generator import Generator
+    # import Flow's base generator
+    from flow.core.generator import Generator
 
     # some mathematical operations that may be used
     from numpy import pi, sin, cos, linspace
@@ -125,7 +125,7 @@ attributes of the nodes. These attributes must include:
 Other possible attributes may be found at:
 http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
 
-In order to properly specify the nodes, add the follow function to the
+In order to properly specify the nodes, add the following method to the
 generator class:
 
 ::
@@ -237,13 +237,13 @@ network, as well as specify the location of edges relative to some reference.
 --------------------------------------
 
 Similar to the generator we created in section 2, we begin by inheriting the
-methods from cistar's base scenario class. Create a new script called
+methods from Flow's base scenario class. Create a new script called
 ``my_scenario.py`` and begin the script as follows:
 
 ::
 
-    # import cistar's base scenario class
-    from cistar.scenarios.base_scenario import Scenario
+    # import Flow's base scenario class
+    from flow.scenarios.base_scenario import Scenario
 
     # import some math functions we may use
     from numpy import pi
@@ -252,7 +252,7 @@ methods from cistar's base scenario class. Create a new script called
     class myScenario(Scenario):
 
 
-The inputs to cistar's base scenario class are:
+The inputs to Flow's base scenario class are:
 
 -  **name**: the name assigned to the scenario
 -  **generator\_class**: the generator class we created
@@ -286,13 +286,14 @@ initializer. This is done by defining the initializer as follows:
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         # add to net_params a characteristic length
-        net_params.additional_params["length"] = 4 * pi * net_params.additional_params["radius"]
+        net_params.additional_params["length"] = 2 * pi * net_params.additional_params["radius"]
 
-Then, the initializer is finished off by adding the base (super) class's
-initializer:
+Then, the initializer is finished off by setting the number of lanes
+and adding the base (super) class's initializer:
 
 ::
 
+        self.lanes = net_params.additional_params["lanes"]
         super().__init__(name, generator_class, vehicles, net_params, initial_config)
 
 3.3 Specifying the Starting Position of Edges
@@ -346,7 +347,7 @@ Accordingly, the methods ``specify_intersection_edge_starts`` and
 3.4 Controlling the Starting Positions of Vehicles
 --------------------------------------------------
 
-Cistar v0.1 supports the use of several positioning methods for closed
+Flow v0.1 supports the use of several positioning methods for closed
 network systems. These methods include:
 
 -  a **uniform** distribution, in which all vehicles are placed
@@ -375,15 +376,15 @@ reinforcement learning agents whose actions are specified by ``rllab``.
 -----------------------------------------
 
 For the third and final time, we will begin by inheriting a core base
-class from cistar. Create a new script called ``my_environment.py``, and begin
-by importing cistar's base environment class.
+class from Flow. Create a new script called ``my_environment.py``, and begin
+by importing Flow's base environment class.
 
 ::
 
     # import the base environment class
-    from cistar.envs.base_env import SumoEnvironment
+    from flow.envs.base_env import SumoEnvironment
 
-In addition to cistar's base environment, we will import a few objects
+In addition to Flow's base environment, we will import numpy and a few objects
 from ``gym``, which will make our environment class compatible with ``rllab``'s
 base Environment class.
 
@@ -401,6 +402,8 @@ multiple ``Box`` elements together.
 
     from gym.spaces.tuple_space import Tuple
 
+    import numpy as np
+
 Now, create your environment class titled ``myEnvironment`` with the
 base environment class as its parent.
 
@@ -409,7 +412,7 @@ base environment class as its parent.
     # define the environment class, and inherit properties from the base environment class
     class myEnvironment(SumoEnvironment):
 
-Cistar's base environment class contains the bulk of the SUMO-related operations
+Flow's base environment class contains the bulk of the SUMO-related operations
 needed, such as specifying actions to be performed by vehicles and collecting
 information on the network/vehicles for any given time step. In addition, the
 base environment accepts states, actions, and rewards for the new step, and
@@ -429,7 +432,7 @@ The inputs to the environment class are:
 
 .. _section 3: creating-a-scenario_
 
-By inheriting cistar's base environment, a custom environment can be created
+By inheriting Flow's base environment, a custom environment can be created
 by adding the following functions to the child class: ``action_space``,
 ``observation_space``, ``apply_rl_action``, ``get_state``, and
 ``compute_reward``, which are covered in the next few subsections.
@@ -551,12 +554,11 @@ loops through the vehicle ids of all vehicles in the network, and collects for
 each vehicle its speed and absolute position:
 
 ::
-
-        state = np.array([[self.vehicles.get_speed(veh_id),
+        def get_state(self, **kwargs):
+            state = np.array([[self.vehicles.get_speed(veh_id),
                            self.vehicles.get_absolute_position(veh_id)]
                           for veh_id in self.ids])
-
-        return state
+            return state
 
 .. _section 4.6:
 
@@ -589,15 +591,15 @@ length :math:`k`, :math:`n` as the number of vehicles in the system, and
 
 .. math:: r(v) = \max{0, ||v_{des} \cdot 1^k ||_2 - || v - v_{des} \cdot 1^k ||_2}
 
-**4.6.1 Using Built-in Reward Functions** Cistar come with several
-built-in reward functions located in ``cistar.core.rewards``.
+**4.6.1 Using Built-in Reward Functions** Flow comes with several
+built-in reward functions located in ``flow.core.rewards``.
 In order to use these reward function, we begin by importing these reward
 function at the top of the script:
 
 ::
 
-    # cistar's built-in reward functions
-    from cistar.core import rewards
+    # Flow's built-in reward functions
+    from flow.core import rewards
 
 One reward function located in the ``rewards`` file is the function
 ``desired_velocity``, which computes the reward described in this
@@ -611,7 +613,7 @@ be specified as follows:
 
         return rewards.desired_velocity(self, fail=kwargs["fail"])
 
-**4.6.2 Building the Reward Function** In addition to using cistar's
+**4.6.2 Building the Reward Function** In addition to using Flow's
 built-in reward functions, you may also choose to create your own
 functions from scratch. In doing so, you may choose to use as inputs the
 state, actions, or environment (self) variables, as they are presented
@@ -633,7 +635,7 @@ velocities of vehicles and their desired velocities.
 
 ::
 
-        vel = self.vehicles.get_speed(self.ids)
+        vel = np.array(self.vehicles.get_speed(self.ids))
 
         cost = vel - self.env_params.additional_params["target_velocity"]
         cost = np.linalg.norm(cost)
@@ -644,7 +646,7 @@ below by zero.
 
 ::
 
-        max_cost = np.array([self.env_params["target_velocity"]] * len(self.vehicles.num_vehicles))
+        max_cost = np.array([self.env_params.additional_params["target_velocity"]] * self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 
         return max(max_cost - cost, 0)
@@ -654,8 +656,8 @@ below by zero.
 
 In order to run reinforcement learning experiments (see section 6), the
 environment we created needs to be registered as a Gym Environment. In
-order for cistar to register your environment as a Gym Environment, go
-to ``cistar/envs/__init__.py``, and add the following line:
+order for Flow to register your environment as a Gym Environment, go
+to ``flow/envs/__init__.py``, and add the following line:
 
 ::
 
@@ -665,7 +667,7 @@ to ``cistar/envs/__init__.py``, and add the following line:
 =========================================
 
 Once the classes described in sections 2, 3, and 4 are created, we are
-now ready to run experiments with cistar. We begin by running an
+now ready to run experiments with Flow. We begin by running an
 experiment without any learning/autonomous agents. This experiment acts
 as our control case, and helps us ensure that the system exhibits the
 sorts of performance deficiencies we expect to witness. In the case of a
@@ -690,35 +692,35 @@ generator, scenario, and environment subclasses we developed.
 ::
 
     # this is the base experiment class
-    from cistar.core.exp import SumoExperiment
+    from flow.core.experiment import SumoExperiment
 
     # these are the classes I created
-    from ./my_generator import myGenerator
-    from ./my_scenario import myScenario
-    from ./my_environment import myEnvironment
+    from my_generator import myGenerator
+    from my_scenario import myScenario
+    from my_environment import myEnvironment
 
-    # for possible mathematical operation we may want to perform
+    # for possible mathematical operations we may want to perform
     import numpy as np
 
 In order to specify the inputs needed for each class, a few objects are also
-imported from cistar.
+imported from Flow.
 
 ::
 
     # input objects to my classes
-    from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-    from cistar.core.vehicles import Vehicles
+    from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+    from flow.core.vehicles import Vehicles
 
 Finally, in order to impose realistic vehicle dynamics on the vehicles in the
-network, cistar possesses a few acceleration, lane-changing, and routing
+network, Flow possesses a few acceleration, lane-changing, and routing
 controller classes. These classes are imported into the script as
 follows:
 
 ::
 
-    from cistar.controllers.car_following_models import *
-    from cistar.controllers.lane_change_controllers import *
-    from cistar.controllers.routing_controllers import *
+    from flow.controllers.car_following_models import *
+    from flow.controllers.lane_change_controllers import *
+    from flow.controllers.routing_controllers import *
 
 5.2 Setting Up the Environment and Scenario Classes
 ---------------------------------------------------
@@ -774,7 +776,7 @@ network we descibed in `section 2`_.
 
 ::
 
-    additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30}
+    additional_net_params = {"radius": 230 / (2*np.pi), "lanes": 1, "speed_limit": 30}
     net_params = NetParams(additional_params=additional_net_params)
 
 
@@ -826,7 +828,7 @@ time steps we would like. In order to run the experiment for 1 run of
 ::
 
     num_runs = 1  # I would like to run the experiment once
-    num_steps = 150 / sumo_params["time_step"]  # I would like the experiment to run for 150 sec
+    num_steps = 150 / sumo_params.time_step  # I would like the experiment to run for 150 sec
 
 Finally, we get the script to run the experiment by adding the following
 line:
@@ -861,36 +863,41 @@ vehicle may be able to learn to attenuate the waves we witnessed in section 5.
 6.1 Creating a Gym Environment
 ------------------------------
 
-Unlike in section 5, we will not rely on cistar's ``SumoExperiment``
+Unlike in section 5, we will not rely on Flow's ``SumoExperiment``
 object to run experiments, but rather we will create a Gym Environment
 and run it on ``rllab``.
 
 Create a new script entitled
 ``my_rl_experiment.py`` and import the generator and scenario
-subclasses, in addition to the dynamical model provided by cistar, as
+subclasses, in addition to the dynamical model provided by Flow, as
 you had done in section 5.1 for the control experiment:
 
 ::
 
     # these are the classes I created
-    from ./my_generator import myGenerator
-    from ./my_scenario import myScenario
+    from my_generator import myGenerator
+    from my_scenario import myScenario
 
-    # for possible mathematical operation we may want to perform
+    # for possible mathematical operations we may want to perform
     import numpy as np
 
+    # input objects to my classes
+    from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+    from flow.core.vehicles import Vehicles
+
     # acceleration and lane-changing controllers for human-driven vehicles
-    from cistar.controllers.car_following_models import *
-    from cistar.controllers.lane_change_controllers import *
+    from flow.controllers.car_following_models import *
+    from flow.controllers.lane_change_controllers import *
+    from flow.controllers.routing_controllers import *
 
 A new controller that is used in this experiment and needed in the case
 of mixed-autonomy is the ``RLController``, located in
-``cistar.controllers.rlcontroller``. Any types of vehicles with this
+``flow.controllers.rlcontroller``. Any types of vehicles with this
 controller will act as reinforcement learning agent(s).
 
 ::
 
-    from cistar.controllers.rlcontroller import RLController
+    from flow.controllers.rlcontroller import RLController
 
 In additon, we will need several functions from ``rllab``:
 
@@ -942,7 +949,7 @@ The final set of input variables are as follows:
         additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
         env_params = EnvParams(additional_params=additional_env_params)
 
-        additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30}
+        additional_net_params = {"radius": 230 / (2*np.pi), "lanes": 1, "speed_limit": 30}
         net_params = NetParams(additional_params=additional_net_params)
 
         initial_config = InitialConfig(bunching=20)
@@ -974,7 +981,7 @@ tuple:
 ::
 
         env_name = "myEnvironment"
-        pass_params = (env_name, sumo_params, type_params, env_params, net_params,
+        pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                        initial_config, scenario)
 
 Then, the Gym Environment, parameterized by ``pass_params``, is initialized

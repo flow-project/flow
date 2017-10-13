@@ -118,7 +118,6 @@ class EnvParams:
         self.max_deacc = max_deacc
         self.max_acc = max_acc
 
-
     def get_additional_param(self, key):
         return self.additional_params[key]
 
