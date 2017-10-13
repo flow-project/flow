@@ -73,7 +73,7 @@ class LoopMergesGenerator(Generator):
                 veh_type = scenario.vehicles.get_state(id, "type")
                 type_depart_speed = scenario.vehicles.get_initial_speed(id)
                 routes.append(
-                    self.vehicle(veh_type, "route" + route,
+                    self._vehicle(veh_type, "route" + route,
                                  depart="0",
                                  departSpeed=str(type_depart_speed),
                                  departPos=str(pos), id=id, color="1,0.0,0.0")
