@@ -10,18 +10,17 @@ tool. Follow the shell commands below to get started.
 Installing Flow
 =================
 
-Create a conda environment (add warning, that EVERYTHING is a specific version):
-:: 
-
-    conda create -n flow python=3.5.2
-    source activate flow
-
 Install rllab-multiagent (NOTE TO TEAM: For now, it's still rllab-distributed)
 ::
 
     git clone git@github.com:cathywu/rllab-multiagent.git
     cd rllab-multiagent
     git checkout flow_release  # TODO eliminate this step
+
+Create a conda environment (add warning, that EVERYTHING is a specific version):
+:: 
+
+    conda env create -f environment.yml
 
 For OSX
 ::
