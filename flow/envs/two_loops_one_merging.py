@@ -40,8 +40,9 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         self.obs_var_labels = ["speed", "lane_pos", "edge_id"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        edge_id = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        return Tuple((speed, absolute_pos, edge_id))
+        edge_id = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,))
+        is_rl = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,))
+        return Tuple((speed, absolute_pos, edge_id, is_rl))
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -54,6 +55,26 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         """
         See parent class
         """
+        # # Rewards high system level velocity for vehicles in the small loop.
+        # # This should encourage the system to allow the merging vehicles in.
+        # if any(state[0]) < 0 or kwargs["fail"]:
+        #     return 0
+        #
+        # edge_id = self.sorted_extra_data[1]
+        #
+        # vel = np.array([self.vehicles.get_speed(self.sorted_ids[i])
+        #                 for i in range(len(self.sorted_ids)) if edge_id[i] == 0])
+        #
+        # num_vehicles = len(vel)  # number of vehicles in the small loop
+        #
+        # max_cost = np.array([self.env_params.additional_params["target_velocity"]] * num_vehicles)
+        # max_cost = np.linalg.norm(max_cost)
+        #
+        # cost = vel - self.env_params.additional_params["target_velocity"]
+        # cost = np.linalg.norm(cost)
+        #
+        # return max(max_cost - cost, 0)
+
         return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
@@ -67,6 +88,7 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         pos = self.sorted_extra_data[0]
         edge = self.sorted_extra_data[1]
         max_speed = self.max_speed
+        is_rl = [int(veh_id in self.rl_ids) for veh_id in self.sorted_ids]
 
         # divide the values by the maximum attainable speed
         normalized_vel = np.array(vel) / max_speed
@@ -82,7 +104,7 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
                 # of the merge
                 normalized_pos.append(pos[i])
 
-        state = np.array([normalized_vel, normalized_pos, edge]).T
+        state = np.array([normalized_vel, normalized_pos, edge, is_rl]).T
         return state
 
     def sort_by_position(self):
