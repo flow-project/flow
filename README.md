@@ -7,9 +7,17 @@ Flow is a computational framework for deep RL and control experiments for traffi
 
 See [results and videos](https://sites.google.com/view/ieee-tro-flow/home) of the application of Flow to several mixed-autonomy traffic scenarios.
 
-# Documentation
+# More information
 
-Documentation is available online: [https://berkeleyflow.readthedocs.org/en/latest/](https://berkeleyflow.readthedocs.org/en/latest/).
+- [Documentation](https://berkeleyflow.readthedocs.org/en/latest/)
+- [Installation instructions](http://berkeleyflow.readthedocs.io/en/latest/flow_setup.html)
+- [Tutorial](http://berkeleyflow.readthedocs.io/en/latest/tutorial.html)
+
+# Getting involved
+
+- Ask questions on our mailing list: [flow-dev@googlegroups.com](https://groups.google.com/forum/#!forum/flow-dev).
+- Please report bugs by submitting a [GitHub issue](https://github.com/cathywu/flow/issues).
+- Submit contributions using [pull requests](https://github.com/cathywu/flow/pulls).
 
 # Citing Flow
 
