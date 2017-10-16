@@ -5,7 +5,7 @@
 
 Flow is a computational framework for deep RL and control experiments for traffic microsimulation.
 
-See [here](https://sites.google.com/view/ieee-tro-flow/home) for applications of Flow to several mixed-autonomy traffic scenarios.
+See [results and videos](https://sites.google.com/view/ieee-tro-flow/home) of the application of Flow to several mixed-autonomy traffic scenarios.
 
 # Documentation
 
@@ -21,7 +21,7 @@ Cathy Wu, Aboudy Kreidieh, Kanaad Parvate, Eugene Vinitsky, Alexandre M. Bayen. 
 
 # Credits
 
-Flow was originally developed by members of [Professor Alexandre Bayen](http://bayen.eecs.berkeley.edu/)'s lab at UC Berkeley: Cathy Wu, Eugene Vinitsky, Kanaad Parvate, Aboudy Kreidieh, Nishant Kheterpal, Leah Dickstein, Nathan Mandi, Kathy Jang, and Ananth Kuchibhotla. Development on the framework continues by people at UC Berkeley.
+Flow is created by and actively developed by members of [Professor Alexandre Bayen](http://bayen.eecs.berkeley.edu/)'s lab at UC Berkeley: Cathy Wu, Eugene Vinitsky, Kanaad Parvate, Aboudy Kreidieh, Nishant Kheterpal, Leah Dickstein, Nathan Mandi, Kathy Jang, and Ananth Kuchibhotla. <!-- Development on the framework continues by people at UC Berkeley. -->
 
 
 <!-- ## Getting Started
