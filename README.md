@@ -12,7 +12,7 @@ Documentation is available online: [https://berkeleyflow.readthedocs.org/en/late
 
 # Citing Flow
 
-If you use Flow for academic research, you are highly encouraged to cite our upcoming journal paper:
+If you use Flow for academic research, you are highly encouraged to cite our paper:
 
 C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and Benchmarking for Reinforcement Learning in Traffic Control," CoRR, vol. abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
