@@ -21,11 +21,9 @@ See [results and videos](https://sites.google.com/view/ieee-tro-flow/home) of th
 
 # Citing Flow
 
-If you use Flow for academic research, you are highly encouraged to cite our upcoming journal article:
+If you use Flow for academic research, you are highly encouraged to cite our paper:
 
-Cathy Wu, Aboudy Kreidieh, Kanaad Parvate, Eugene Vinitsky, Alexandre M. Bayen. "Flow: Architecture and Benchmarking for Reinforcement Learning in Traffic Control," In submission.
-
-<!-- - Yan Duan, Xi Chen, Rein Houthooft, John Schulman, Pieter Abbeel. "[Benchmarking Deep Reinforcement Learning for Continuous Control](http://arxiv.org/abs/1604.06778)". _Proceedings of the 33rd International Conference on Machine Learning (ICML), 2016._ -->
+C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and Benchmarking for Reinforcement Learning in Traffic Control," CoRR, vol. abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
 # Credits
 
