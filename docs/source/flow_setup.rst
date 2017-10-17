@@ -47,6 +47,8 @@ Install flow within the rllab-multiagent repo
     python setup.py develop  # (install flow, rllab, and dependencies)
     cp flow/core/config.template.py flow/core/config.py  # TODO eliminate or move to setup_osx.sh or add to commonly asked questions
 
+Finally, add <SUMO_DIR>/tools to your PYTHON_PATH to give Python access to TraCI and sumolib.
+
 Test the installation
 =====================
 
