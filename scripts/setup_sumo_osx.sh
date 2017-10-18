@@ -30,6 +30,13 @@ autoreconf -i > /dev/null
 make -j`sysctl -n hw.ncpu` > /dev/null
 make install > /dev/null
 
+echo "\n#############################\n"
+echo "add $1/sumo/tools to your PYTHON_PATH to complete the installation!\n"
+
+echo "This can be done by appending the following to your bash_profile:\n "
+echo "export PYTHON_PATH=$1/sumo/tools\n"
+echo "#############################\n"
 echo "Returning to flow directory"
+
 popd
 popd

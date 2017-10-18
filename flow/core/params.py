@@ -207,18 +207,7 @@ class InitialConfig:
         spacing: str, optional
             specifies the positioning of vehicles in the network relative to
             one another. May be one of:
-              - "uniform" (default)
-              - "gaussian"
-              - "gaussian_additive"
-              - "custom": a user-specified spacing method placed in
-                gen_custom_spacing(). If no method is employed in the scenario,
-                a NotImplementedError is returned.
-        scale: float, optional
-            determines the intensity of noise in the case of “gaussian” spacing
-        downscale: float, optional
-            determines the intensity of noise in the case of “gaussian_additive”
-            spacing
-        x0: float, optional
+
             position of the first vehicle to be placed in the network
         bunching: float, optional
             reduces the portion of the network that should be filled with
