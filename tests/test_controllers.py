@@ -267,7 +267,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
     """
     Tests that the instantaneous failsafe of the base acceleration controller
     does not allow vehicles to crash under situations where they otherwise
-    would.
+    would. This is tested on two crash-prone controllers: OVM and LinearOVM
     """
     def setUp_failsafe(self, vehicles):
         additional_env_params = {"target_velocity": 8, "max-deacc": 3,
@@ -294,38 +294,6 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         # free data used by the class
         self.exp = None
 
-    def test_no_crash_CFM(self):
-        vehicles = Vehicles()
-        vehicles.add_vehicles(
-            veh_id="test",
-            acceleration_controller=(CFMController, {}),
-            routing_controller=(ContinuousRouter, {}),
-            num_vehicles=10
-        )
-
-        self.setUp_failsafe(vehicles=vehicles)
-
-        # run the experiment, see if it fails
-        self.exp.run(1, 200)
-
-        self.tearDown_failsafe()
-
-    def test_no_crash_BCM(self):
-        vehicles = Vehicles()
-        vehicles.add_vehicles(
-            veh_id="test",
-            acceleration_controller=(BCMController, {}),
-            routing_controller=(ContinuousRouter, {}),
-            num_vehicles=10
-        )
-
-        self.setUp_failsafe(vehicles=vehicles)
-
-        # run the experiment, see if it fails
-        self.exp.run(1, 200)
-
-        self.tearDown_failsafe()
-
     def test_no_crash_OVM(self):
         vehicles = Vehicles()
         vehicles.add_vehicles(
@@ -347,22 +315,6 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         vehicles.add_vehicles(
             veh_id="test",
             acceleration_controller=(LinearOVM, {}),
-            routing_controller=(ContinuousRouter, {}),
-            num_vehicles=10
-        )
-
-        self.setUp_failsafe(vehicles=vehicles)
-
-        # run the experiment, see if it fails
-        self.exp.run(1, 200)
-
-        self.tearDown_failsafe()
-
-    def test_no_crash_IDM(self):
-        vehicles = Vehicles()
-        vehicles.add_vehicles(
-            veh_id="test",
-            acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=10
         )

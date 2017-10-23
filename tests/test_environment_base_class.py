@@ -113,6 +113,29 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
         self.assertCountEqual(before_reset, after_reset)
 
 
+class TestEmissionPath(unittest.TestCase):
+    """
+    Tests that the default emission path of an environment is set to None. If it
+    is not None, then sumo starts accumulating memory.
+    """
+    def setUp(self):
+        # set sumo_params to default
+        sumo_params = SumoParams()
+
+        # create the environment and scenario classes for a ring road
+        self.env, scenario = ring_road_exp_setup(sumo_params=sumo_params)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def runTest(self):
+        self.assertIsNone(self.env.emission_path)
+
+
 # class TestResetAfterVehicleCollision(unittest.TestCase):
 #     """
 #     Tests that colliding vehicles are properly introduced back into the network
