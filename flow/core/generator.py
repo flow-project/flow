@@ -201,7 +201,8 @@ class Generator(Serializable):
 
             # add the types of vehicles to the xml file
             for veh_type in vehicles.types:
-                routes.append(E("vType", id=veh_type, minGap="0"))
+                routes.append(E("vType", id=veh_type, minGap="0", accel="100",
+                                decel="100"))
 
             self.vehicle_ids = vehicles.get_ids()
 

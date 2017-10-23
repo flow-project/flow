@@ -23,14 +23,13 @@ from numpy import pi
 logging.basicConfig(level=logging.INFO)
 
 sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide",
-                         sumo_binary="sumo"
-                                     "-gui")
+                         sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 14)
 vehicles.add_vehicles("merge-idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 14)
 
-additional_env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3, "fail-safe": "None"}
+additional_env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3}
 env_params = EnvParams(additional_params=additional_env_params)
 
 additional_net_params = {"merge_in_length": 500, "merge_in_angle": pi/9,

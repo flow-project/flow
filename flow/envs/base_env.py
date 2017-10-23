@@ -2,6 +2,7 @@ import logging
 import subprocess
 import sys
 from copy import deepcopy
+import time
 
 import traci
 from traci import constants as tc
@@ -153,6 +154,10 @@ class SumoEnvironment(gym.Env, Serializable):
         subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
 
         logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
+
+        # wait a small period of time for the subprocess to activate before
+        # trying to connect with traci
+        time.sleep(0.02)
 
         self.traci_connection = traci.connect(self.port, numRetries=100)
 
@@ -497,7 +502,7 @@ class SumoEnvironment(gym.Env, Serializable):
         their starting positions. In "vehicle_arrangement_shuffle" is set to
         True in env_params, the vehicles swap initial positions with one another.
         Also, if a "starting_position_shuffle" is set to True, the initial
-        postion of vehicles is offsetted by some value.
+        position of vehicles is offset by some value.
 
         Returns
         -------
@@ -527,7 +532,7 @@ class SumoEnvironment(gym.Env, Serializable):
             if self.starting_position_shuffle:
                 x0 = np.random.uniform(0, self.scenario.length)
             else:
-                x0 = 1
+                x0 = self.scenario.initial_config.x0
 
             veh_ids = deepcopy(self.vehicles.get_ids())
             if self.vehicle_arrangement_shuffle:
@@ -726,6 +731,8 @@ class SumoEnvironment(gym.Env, Serializable):
         ValueError
             If either both or none of "direction" and "target_lane" are provided
             as inputs. Only one should be provided at a time.
+        ValueError
+            If any of the direction values are not -1, 0, or 1.
         """
         if direction is not None and target_lane is not None:
             raise ValueError("Cannot provide both a direction and target_lane.")
@@ -743,14 +750,18 @@ class SumoEnvironment(gym.Env, Serializable):
         current_lane = np.array(self.vehicles.get_lane(veh_ids))
 
         if target_lane is None:
-            target_lane = current_lane + direction
+            # if any of the directions are not -1, 0, or 1, raise a ValueError
+            if np.any(np.sign(direction) != np.array(direction)):
+                raise ValueError("Direction values for lane changes may only "
+                                 "be: -1, 0, or 1.")
 
-        safe_target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
+            target_lane = current_lane + np.array(direction)
+
+        target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
 
         for i, vid in enumerate(veh_ids):
             if vid in self.rl_ids:
-                if safe_target_lane[i] == target_lane[i] and target_lane[i] != \
-                        current_lane[i]:
+                if target_lane[i] != current_lane[i]:
                     self.traci_connection.vehicle.changeLane(vid, int(
                         target_lane[i]), 100000)
             else:
