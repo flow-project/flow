@@ -15,7 +15,6 @@ Install rllab-multiagent (NOTE TO TEAM: For now, it's still rllab-distributed)
 
     git clone git@github.com:cathywu/rllab-multiagent.git
     cd rllab-multiagent
-    git checkout flow_release  # TODO eliminate this step
 
 Create a conda environment (add warning, that EVERYTHING is a specific version):
 :: 
@@ -52,6 +51,10 @@ Finally, add <SUMO_DIR>/tools to your PYTHON_PATH to give Python access to TraCI
 Test the installation
 =====================
 
+To run any of the examples, make sure to run
+::
+    source activate flow
+    
 Running the following should result in the loading of the SUMO GUI.
 Click the run button and you should see unstable traffic form after a
 few seconds, a la (Sugiyama et al, 2008).
