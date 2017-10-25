@@ -1,7 +1,7 @@
 Setup Instructions
 *****************************
 
-To get flow\_dev running, you need three things: flow\_dev (or
+To get flow running, you need three things: flow (or
 flow), SUMO, and rllab. Once each component is installed successfully,
 you might get some missing module bugs from python. Just install the
 missing module using your OS-specific package manager / installation
@@ -10,7 +10,7 @@ tool. Follow the shell commands below to get started.
 Installing Flow
 =================
 
-Install rllab-multiagent (NOTE TO TEAM: For now, it's still rllab-distributed)
+Install rllab-multiagent 
 ::
 
     git clone https://github.com/cathywu/rllab-multiagent.git
