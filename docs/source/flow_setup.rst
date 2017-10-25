@@ -13,7 +13,7 @@ Installing Flow
 Install rllab-multiagent (NOTE TO TEAM: For now, it's still rllab-distributed)
 ::
 
-    git clone git@github.com:cathywu/rllab-multiagent.git
+    git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
 
 Create a conda environment (add warning, that EVERYTHING is a specific version):
