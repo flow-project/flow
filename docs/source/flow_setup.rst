@@ -35,6 +35,8 @@ For Linux
 
 ::
 
+Now for both Linux and OSX, run
+::
     python setup.py develop
 
 Install flow within the rllab-multiagent repo
