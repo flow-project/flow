@@ -23,14 +23,6 @@ class TestVisualizerFlow(unittest.TestCase):
 
         self.assertNotEqual(np.sum(np.sum(observations)), 0)
 
-    # def test_run_long(self):
-    #     """
-    #     Tests that the "run_long" parameter allows the rollout to run for a
-    #     multiple of what the original max_path_length was, and does not create
-    #     empty observation and rewards files.
-    #     """
-    #     pass
-
 
 if __name__ == '__main__':
     unittest.main()

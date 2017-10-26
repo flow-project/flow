@@ -39,13 +39,6 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
 
         return action_space
 
-        # max_deacc = self.env_params.get_additional_param("max-deacc")
-        # max_acc = self.env_params.get_additional_param("max-acc")
-        #
-        # lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
-        # ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
-        # return Box(np.array(lb), np.array(ub))
-
     @property
     def observation_space(self):
         """
@@ -104,9 +97,6 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
         """
         acceleration = actions[-1]
         direction = np.array(actions[:-1]) - 1
-
-        # acceleration = actions[::2]
-        # direction = np.round(actions[1::2])
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
