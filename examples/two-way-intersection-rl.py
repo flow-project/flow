@@ -51,7 +51,7 @@ def run_task(*_):
 
     intensity = .2
     v_enter = 10
-    env_params = EnvParams(additional_params={"target_velocity": v_enter, "max-deacc": -4, "max-acc": 4,
+    env_params = EnvParams(additional_params={"target_velocity": v_enter,
                                               "control-length": 150, "max_speed": v_enter})
 
     additional_net_params = {"horizontal_length_in": 400, "horizontal_length_out": 800, "horizontal_lanes": 1,

@@ -24,8 +24,8 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         Actions are a set of accelerations from max-deacc to max-acc for each
         rl vehicle.
         """
-        return Box(low=-np.abs(self.env_params.get_additional_param("max-deacc")),
-                   high=self.env_params.get_additional_param("max-acc"),
+        return Box(low=-np.abs(self.env_params.max_deacc),
+                   high=self.env_params.max_acc,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
@@ -95,8 +95,8 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         """
         action_space = []
         for veh_id in self.rl_ids:
-            action_space.append(Box(low=self.env_params.get_additional_param("max-deacc"),
-                high=self.env_params.get_additional_param("max-acc"), shape=(1, )))
+            action_space.append(Box(low=self.env_params.max_deacc,
+                high=self.env_params.max_acc, shape=(1, )))
         return action_space
 
     @property

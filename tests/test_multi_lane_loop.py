@@ -31,7 +31,7 @@ class SingleLaneOneController(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 22)
 
-        additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 100}
+        additional_env_params = {"target_velocity": 8, "num_steps": 100}
         env_params = EnvParams(additional_params=additional_env_params)
 
         additional_net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40}
@@ -63,7 +63,7 @@ class SingleLaneMixedSingleAgentRL(unittest.TestCase):
         vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, 2)
         vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 8)
 
-        additional_env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 100}
+        additional_env_params = {"target_velocity": 8, "num_steps": 100}
         env_params = EnvParams(additional_params=additional_env_params)
 
         additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40}

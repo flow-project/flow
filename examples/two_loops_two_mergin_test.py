@@ -24,10 +24,12 @@ import numpy as np
 
 from flow.core.experiment import SumoExperiment
 from flow.core.vehicles import Vehicles
+from flow.core.params import EnvParams, NetParams, InitialConfig, SumoParams
 
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import *
+
 
 from flow.envs.loop_accel import SimpleAccelerationEnvironment
 from flow.scenarios.two_loops_two_merging.gen import TwoLoopTwoMergingGenerator
@@ -35,26 +37,23 @@ from flow.scenarios.two_loops_two_merging.two_loops_two_merging_scenario import 
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = {"time_step": 0.1, "emission_path": "./data/", "human_sm": 1}
-
 sumo_binary = "sumo-gui"
+sumo_params = SumoParams(sumo_binary=sumo_binary)
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 15)
 
-env_params = {"max-deacc": -3, "max-acc": 3}
+env_params = EnvParams()
 
-net_params = {"ring_radius": 30, "lanes": 1, "speed_limit": 30, "resolution": 40,
-              "net_path": "debug/net/", "no-internal-links": False}
+additional_net_params = {"ring_radius": 30, "lanes": 1, "speed_limit": 30, "resolution": 40}
+net_params = NetParams( no_internal_links=False, additional_params=additional_net_params)
 
-cfg_params = {"start_time": 0, "end_time": 3000, "cfg_path": "debug/cfg/"}
-
-initial_config = {"shuffle": False, "distribution_length": 8 / 3 * np.pi * net_params["ring_radius"]}
+initial_config = InitialConfig(distribution_length=8 / 3 * np.pi * additional_net_params["ring_radius"])
 
 scenario = TwoLoopsTwoMergingScenario("two-loop-two-merging", TwoLoopTwoMergingGenerator, vehicles,
                                       net_params, initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_binary, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

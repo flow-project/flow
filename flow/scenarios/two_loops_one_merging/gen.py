@@ -14,14 +14,14 @@ class TwoLoopOneMergingGenerator(Generator):
      - resolution: number of nodes resolution
     """
 
-    def __init__(self, net_params, net_path, cfg_path, base):
+    def __init__(self, net_params, base):
         """
         See parent class
         """
         radius = net_params.additional_params["ring_radius"]
         lanes = net_params.additional_params["lanes"]
 
-        super().__init__(net_params, net_path, cfg_path, base)
+        super().__init__(net_params, base)
 
         self.name = "%s-%dr%dl" % (base, radius, lanes)
 
