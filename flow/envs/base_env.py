@@ -200,31 +200,28 @@ class SumoEnvironment(gym.Env, Serializable):
                 COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
+        # subscribe the requested states for traci-related speedups
         for veh_id in self.ids:
+            self.traci_connection.vehicle.subscribe(
+                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                         tc.VAR_ROAD_ID, tc.VAR_SPEED])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
+        # collect information on the network from sumo
+        network_observations = \
+            self.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.vehicles.set_sumo_observations(network_observations, self)
+
+        for veh_id in self.ids:
+
             # set the colors of the vehicles based on their unique types
             veh_type = self.vehicles.get_state(veh_id, "type")
             self.traci_connection.vehicle.setColor(veh_id,
                                                    self.colors[veh_type])
 
-            # add the initial states to the vehicles class
-            self.vehicles.set_edge(
-                veh_id, self.traci_connection.vehicle.getRoadID(veh_id))
-            self.vehicles.set_position(
-                veh_id, self.traci_connection.vehicle.getLanePosition(veh_id))
-            self.vehicles.set_lane(
-                veh_id, self.traci_connection.vehicle.getLaneIndex(veh_id))
-            self.vehicles.set_speed(
-                veh_id, self.traci_connection.vehicle.getSpeed(veh_id))
-            self.vehicles.set_route(
-                veh_id, self.available_routes[self.vehicles.get_edge(veh_id)])
-            self.vehicles.set_absolute_position(
-                veh_id, self.get_x_by_id(veh_id))
-            # the time step of the last lane change is always present in
-            # the environment,but only used by sub-classes that apply lane
-            # changing
-            self.vehicles.set_state(veh_id, "last_lc",
-                                    -1 * self.lane_change_duration)
-            # some constant vehicle parameters
+            # some constant vehicle parameters to the vehicles class
             self.vehicles.set_state(
                 veh_id, "length",
                 self.traci_connection.vehicle.getLength(veh_id))
@@ -282,13 +279,6 @@ class SumoEnvironment(gym.Env, Serializable):
         for veh_id in self.ids:
             self.prev_last_lc[veh_id] = self.vehicles.get_state(veh_id,
                                                                 "last_lc")
-
-        # subscribe the requested states for traci-related speedups
-        for veh_id in self.ids:
-            self.traci_connection.vehicle.subscribe(
-                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-                         tc.VAR_ROAD_ID, tc.VAR_SPEED])
-            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
     def _step(self, rl_actions):
         """
@@ -377,65 +367,9 @@ class SumoEnvironment(gym.Env, Serializable):
         # store new observations in the network after traci simulation step
         network_observations = \
             self.traci_connection.vehicle.getSubscriptionResults()
-        crash = False
-        for veh_id in self.ids:
-            prev_pos = self.get_x_by_id(veh_id)
-            prev_lane = self.vehicles.get_lane(veh_id)
-            try:
-                self.vehicles.set_position(
-                    veh_id, network_observations[veh_id][tc.VAR_LANEPOSITION])
-            except KeyError:
-                # TODO: this is causing problems when vehicles can crash
-                # self.ids.remove(veh_id)
-                # if veh_id in self.rl_ids:
-                #     self.rl_ids.remove(veh_id)
-                # elif veh_id in self.controlled_ids:
-                #     self.controlled_ids.remove(veh_id)
-                # else:
-                #     self.sumo_ids.remove(veh_id)
-                continue
-            self.vehicles.set_edge(
-                veh_id, network_observations[veh_id][tc.VAR_ROAD_ID])
-            self.vehicles.set_lane(
-                veh_id, network_observations[veh_id][tc.VAR_LANE_INDEX])
-            if network_observations[veh_id][tc.VAR_LANE_INDEX] != prev_lane \
-                    and veh_id in self.rl_ids:
-                self.vehicles.set_state(veh_id, "last_lc", self.timer)
-            self.vehicles.set_speed(
-                veh_id, network_observations[veh_id][tc.VAR_SPEED])
 
-            try:
-                change = self.get_x_by_id(veh_id) - prev_pos
-                if change < 0:
-                    change += self.scenario.length
-                new_abs_pos = self.vehicles.get_absolute_position(
-                    veh_id) + change
-                self.vehicles.set_absolute_position(veh_id, new_abs_pos)
-            except ValueError or TypeError:
-                self.vehicles.set_absolute_position(veh_id, -1001)
-
-            if self.vehicles.get_position(veh_id) < 0 or \
-                            self.vehicles.get_speed(veh_id) < 0:
-                crash = True
-
-            # collect headway, leader id, and follower id data
-            headway_data = \
-                self.get_headway_dict(network_observations=network_observations)
-
-            for veh_id in self.ids:
-                try:
-                    self.vehicles.set_headway(
-                        veh_id, headway_data[veh_id]["headway"])
-                    self.vehicles.set_leader(
-                        veh_id, headway_data[veh_id]["leader"])
-                    self.vehicles.set_follower(
-                        veh_id, headway_data[veh_id]["follower"])
-                except KeyError:
-                    # occurs in the case of crashes, so headway is assumed to
-                    # be very small
-                    self.vehicles.set_headway(veh_id, 1e-3)
-                    self.vehicles.set_leader(veh_id, None)
-                    self.vehicles.set_follower(veh_id, None)
+        # store the network observations in the vehicles class
+        self.vehicles.set_sumo_observations(network_observations, self)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -456,7 +390,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # crash encodes whether sumo experienced a crash
         crash = \
-            crash \
+            np.any(np.array([self.vehicles.get_position(veh_id) for veh_id in self.ids]) < 0) \
             or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
@@ -564,14 +498,6 @@ class SumoEnvironment(gym.Env, Serializable):
         # re-initialize the vehicles class with the states of the vehicles at
         # the start of a rollout
         for veh_id in self.ids:
-            self.vehicles.set_edge(
-                veh_id, self.initial_observations[veh_id]["edge"])
-            self.vehicles.set_position(
-                veh_id, self.initial_observations[veh_id]["position"])
-            self.vehicles.set_lane(
-                veh_id, self.initial_observations[veh_id]["lane"])
-            self.vehicles.set_speed(
-                veh_id, self.initial_observations[veh_id]["speed"])
             self.vehicles.set_route(
                 veh_id, self.initial_observations[veh_id]["route"])
             self.vehicles.set_absolute_position(
@@ -628,16 +554,12 @@ class SumoEnvironment(gym.Env, Serializable):
 
         self.traci_connection.simulationStep()
 
-        for veh_id in self.ids:
-            # collect headway, leader id, and follower id data
-            headway = self.traci_connection.vehicle.getLeader(veh_id, 200)
-            if headway is None:
-                self.vehicles.set_leader(veh_id, None)
-                self.vehicles.set_headway(veh_id, 1e-3)
-            else:
-                self.vehicles.set_leader(veh_id, headway[0])
-                self.vehicles.set_headway(veh_id, headway[1])
-                self.vehicles.set_follower(headway[0], veh_id)
+        # collect information on the network from sumo
+        network_observations = \
+            self.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.vehicles.set_sumo_observations(network_observations, self)
 
         if self.multi_agent:
             self.state = self.get_state()

@@ -3,6 +3,8 @@ from flow.controllers.rlcontroller import RLController
 
 import collections
 
+import traci.constants as tc
+
 
 class Vehicles:
     def __init__(self):
@@ -107,6 +109,10 @@ class Vehicles:
             else:
                 self.__controlled_ids.append(vehID)
 
+        # create a sumo_observations variable that will carry all information
+        # on the state of the vehicles for a given time step
+        self.__sumo_observations = None
+
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)
         self.num_rl_vehicles = len(self.__rl_ids)
@@ -115,6 +121,66 @@ class Vehicles:
         # add the type to the list of types
         self.num_types += 1
         self.types.append(veh_id)
+
+    def set_sumo_observations(self, sumo_observations, env):
+
+        if self.__sumo_observations is None:
+            for veh_id in self.__ids:
+                # update the sumo observations variable
+                self.__sumo_observations = sumo_observations
+
+                # set the initial last_lc
+                self.set_state(
+                    veh_id, "last_lc", -1 * env.lane_change_duration)
+
+                # set the initial absolute_position
+                self.set_absolute_position(veh_id, env.get_x_by_id(veh_id))
+        else:
+            for veh_id in self.__ids:
+                # update the "last_lc" variable
+                prev_lane = self.get_lane(veh_id)
+                try:
+                    if sumo_observations[veh_id][tc.VAR_LANE_INDEX] != \
+                            prev_lane and veh_id in self.__rl_ids:
+                        self.set_state(veh_id, "last_lc", env.timer)
+                except KeyError:
+                    # vehicle is not currently in the network (probably due to a
+                    # crash), so skip
+                    continue
+
+                # update the "absolute_position" variable
+                prev_pos = env.get_x_by_id(veh_id)
+                try:
+                    change = env.get_x_by_id(veh_id) - prev_pos
+                    if change < 0:
+                        change += env.scenario.length
+                    new_abs_pos = self.get_absolute_position(
+                        veh_id) + change
+                    self.set_absolute_position(veh_id, new_abs_pos)
+                except ValueError or TypeError:
+                    self.set_absolute_position(veh_id, -1001)
+
+                # update the "headway", "leader", and "follower" variables
+                try:
+                    headway = sumo_observations[veh_id][tc.VAR_LEADER]
+                    if headway is None:
+                        self.__vehicles[veh_id]["leader"] = None
+                        self.__vehicles[veh_id]["follower"] = None
+                        self.__vehicles[veh_id]["headway"] = 1e-3
+                    else:
+                        self.__vehicles[veh_id]["headway"] = headway[1]
+                        self.__vehicles[veh_id]["leader"] = headway[0]
+                        self.__vehicles[headway[0]]["follower"] = veh_id
+                except KeyError:
+                    # this is used to deal with the absence of network
+                    # observations upon reset. It only applies for the very
+                    # first time step
+                    self.__vehicles[veh_id]["leader"] = None
+                    self.__vehicles[veh_id]["follower"] = None
+                    self.__vehicles[veh_id]["headway"] = 1e-3
+
+        # update the sumo observations variable
+        self.__sumo_observations = sumo_observations
 
     def set_speed(self, veh_id, speed):
         self.__vehicles[veh_id]["speed"] = speed
@@ -175,11 +241,11 @@ class Vehicles:
         - "all", in which case a list of all the specified state is provided
         """
         if isinstance(veh_id, list):
-            return [self.__vehicles[vehID]["speed"] for vehID in veh_id]
+            return [self.__sumo_observations[vehID][tc.VAR_SPEED] for vehID in veh_id]
         if veh_id == "all":
-            return [self.__vehicles[vehID]["speed"] for vehID in self.__ids]
+            return [self.__sumo_observations[vehID][tc.VAR_SPEED] for vehID in self.__ids]
         else:
-            return self.__vehicles[veh_id]["speed"]
+            return self.__sumo_observations[veh_id][tc.VAR_SPEED]
 
     def get_absolute_position(self, veh_id="all"):
         """
@@ -209,11 +275,11 @@ class Vehicles:
         - "all", in which case a list of all the specified state is provided
         """
         if isinstance(veh_id, list):
-            return [self.__vehicles[vehID]["position"] for vehID in veh_id]
+            return [self.__sumo_observations[vehID][tc.VAR_LANEPOSITION] for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["position"] for vehID in self.__ids]
+            return [self.__sumo_observations[vehID][tc.VAR_LANEPOSITION] for vehID in self.__ids]
         else:
-            return self.__vehicles[veh_id]["position"]
+            return self.__sumo_observations[veh_id][tc.VAR_LANEPOSITION]
 
     def get_edge(self, veh_id="all"):
         """
@@ -226,11 +292,11 @@ class Vehicles:
         - "all", in which case a list of all the specified state is provided
         """
         if isinstance(veh_id, list):
-            return [self.__vehicles[vehID]["edge"] for vehID in veh_id]
+            return [self.__sumo_observations[vehID][tc.VAR_ROAD_ID] for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["edge"] for vehID in self.__ids]
+            return [self.__sumo_observations[vehID][tc.VAR_ROAD_ID] for vehID in self.__ids]
         else:
-            return self.__vehicles[veh_id]["edge"]
+            return self.__sumo_observations[veh_id][tc.VAR_ROAD_ID]
 
     def get_lane(self, veh_id="all"):
         """
@@ -242,11 +308,11 @@ class Vehicles:
         - "all", in which case a list of all the specified state is provided
         """
         if isinstance(veh_id, list):
-            return [self.__vehicles[vehID]["lane"] for vehID in veh_id]
+            return [self.__sumo_observations[vehID][tc.VAR_LANE_INDEX] for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane"] for vehID in self.__ids]
+            return [self.__sumo_observations[vehID][tc.VAR_LANE_INDEX] for vehID in self.__ids]
         else:
-            return self.__vehicles[veh_id]["lane"]
+            return self.__sumo_observations[veh_id][tc.VAR_LANE_INDEX]
 
     def get_acc_controller(self, veh_id="all"):
         """
@@ -381,4 +447,5 @@ class Vehicles:
         """
         Return a dict of all state variables of a specific vehicle:
         """
+        # FIXME: add sumo observations as well
         return self.__vehicles[veh_id]
