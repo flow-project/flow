@@ -1,6 +1,4 @@
 import unittest
-import logging
-import numpy as np
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -8,11 +6,6 @@ from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
-from flow.controllers.rlcontroller import RLController
-
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
 
 from setup_scripts import ring_road_exp_setup
 
