@@ -23,7 +23,7 @@ if __name__ == "__main__":
                         help='Flag for using sumo-gui vs sumo binary')
     parser.add_argument('--run_long', type=float, default=1,
                         help='Number by which to increase max_path_length')
-    parser.add_argument('--emission_to_csv', type=bool, default=True,
+    parser.add_argument('--emission_to_csv', action='store_true',
                         help='Specifies whether to convert the emission file '
                              'created by sumo into a csv file')
 
