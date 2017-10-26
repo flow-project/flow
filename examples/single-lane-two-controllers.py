@@ -21,15 +21,15 @@ Variables:
 '''
 
 import logging
-from cistar.envs.loop import LoopEnvironment
-from cistar.core.experiment import SumoExperiment
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.routing_controllers import *
-from cistar.core.vehicles import Vehicles
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.core.experiment import SumoExperiment
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
+from flow.controllers.routing_controllers import *
+from flow.core.vehicles import Vehicles
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,11 +38,11 @@ sumo_params = SumoParams(time_step= 0.1, human_speed_mode="no_collide",
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 15)
-vehicles.add_vehicles("idm2", (DrunkDriver, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 1)
+vehicles.add_vehicles("idm-2", (IDMController, {"v0":40}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 1)
 
 env_params = EnvParams()
 
-additional_net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40}
+additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 30, "resolution": 40}
 net_params = NetParams(additional_params=additional_net_params)
 
 initial_config = InitialConfig(bunching=20)
@@ -51,7 +51,7 @@ scenario = LoopScenario("single-lane-two-contr", CircleGenerator, vehicles, net_
                         initial_config)
 # data path needs to be relative to cfg location
 
-env = LoopEnvironment(env_params, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

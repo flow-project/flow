@@ -1,4 +1,4 @@
-This is the documentation folder for cistar documentation.
+This is the documentation folder for flow documentation.
 
 Idea: fill this folder with instructions and links for 
 how to write documentation.

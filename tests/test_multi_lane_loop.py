@@ -1,17 +1,17 @@
 import unittest
 import logging
 
-from cistar.core.experiment import SumoExperiment
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.core.vehicles import Vehicles
+from flow.core.experiment import SumoExperiment
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
 
-from cistar.controllers.routing_controllers import ContinuousRouter
-from cistar.controllers.car_following_models import *
-from cistar.controllers.rlcontroller import RLController
+from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers.car_following_models import *
+from flow.controllers.rlcontroller import RLController
 
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
+from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
 
 from rllab.envs.normalized_env import normalize
 from rllab.algos.trpo import TRPO
@@ -31,7 +31,7 @@ class SingleLaneOneController(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 22)
 
-        additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 100}
+        additional_env_params = {"target_velocity": 8, "num_steps": 100}
         env_params = EnvParams(additional_params=additional_env_params)
 
         additional_net_params = {"length": 230, "lanes": 2, "speed_limit": 30, "resolution": 40}
@@ -63,7 +63,7 @@ class SingleLaneMixedSingleAgentRL(unittest.TestCase):
         vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, 2)
         vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 8)
 
-        additional_env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 100}
+        additional_env_params = {"target_velocity": 8, "num_steps": 100}
         env_params = EnvParams(additional_params=additional_env_params)
 
         additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40}

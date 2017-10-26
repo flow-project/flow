@@ -1,17 +1,17 @@
 import unittest
 import logging
 
-from cistar.core.experiment import SumoExperiment
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.core.vehicles import Vehicles
+from flow.core.experiment import SumoExperiment
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
 
-from cistar.controllers.routing_controllers import ContinuousRouter
-from cistar.controllers.car_following_models import *
-from cistar.controllers.rlcontroller import RLController
+from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers.car_following_models import *
+from flow.controllers.rlcontroller import RLController
 
-from cistar.envs.loop_accel import SimpleAccelerationEnvironment
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
+from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
 
 from rllab.envs.normalized_env import normalize
 from rllab.algos.trpo import TRPO

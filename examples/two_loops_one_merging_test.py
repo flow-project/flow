@@ -4,17 +4,17 @@
 import logging
 import numpy as np
 
-from cistar.core.experiment import SumoExperiment
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.core.vehicles import Vehicles
+from flow.core.experiment import SumoExperiment
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
 
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.routing_controllers import *
+from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
+from flow.controllers.routing_controllers import *
 
-from cistar.envs.two_loops_one_merging import SimpleAccelerationEnvironment
-from cistar.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
-from cistar.scenarios.two_loops_one_merging.two_loops_one_merging_scenario import TwoLoopsOneMergingScenario
+from flow.envs.two_loops_one_merging import TwoLoopsOneMergingEnvironment
+from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
+from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario import TwoLoopsOneMergingScenario
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,7 +38,7 @@ initial_config = InitialConfig(spacing="custom")
 scenario = TwoLoopsOneMergingScenario("two-loop-one-merging", TwoLoopOneMergingGenerator, vehicles,
                                       net_params, initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
+env = TwoLoopsOneMergingEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

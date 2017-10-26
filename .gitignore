@@ -95,3 +95,5 @@ ENV/
 # Custom for learning-traffic
 .idea/**
 Makefile
+data/
+debug/

@@ -1,6 +1,36 @@
-# cistar_dev Documentation
+[![Docs](https://readthedocs.org/projects/berkeleyflow/badge)](http://berkeleyflow.readthedocs.org/en/latest/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cathywu/flow/blob/master/LICENSE.md)
 
-## Getting Started
+# Flow
+
+Flow is a computational framework for deep RL and control experiments for traffic microsimulation.
+
+See [results and videos](https://sites.google.com/view/ieee-tro-flow/home) of the application of Flow to several mixed-autonomy traffic scenarios.
+
+# More information
+
+- [Documentation](https://berkeleyflow.readthedocs.org/en/latest/)
+- [Installation instructions](http://berkeleyflow.readthedocs.io/en/latest/flow_setup.html)
+- [Tutorial](http://berkeleyflow.readthedocs.io/en/latest/tutorial.html)
+
+# Getting involved
+
+- Ask questions on our mailing list: [flow-dev@googlegroups.com](https://groups.google.com/forum/#!forum/flow-dev).
+- Please report bugs by submitting a [GitHub issue](https://github.com/cathywu/flow/issues).
+- Submit contributions using [pull requests](https://github.com/cathywu/flow/pulls).
+
+# Citing Flow
+
+If you use Flow for academic research, you are highly encouraged to cite our paper:
+
+C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and Benchmarking for Reinforcement Learning in Traffic Control," CoRR, vol. abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
+
+# Credits
+
+Flow is created by and actively developed by members of [Professor Alexandre Bayen](http://bayen.eecs.berkeley.edu/)'s lab at UC Berkeley: Cathy Wu, Eugene Vinitsky, Kanaad Parvate, Aboudy Kreidieh, Nishant Kheterpal, Leah Dickstein, Nathan Mandi, Kathy Jang, and Ananth Kuchibhotla. <!-- Development on the framework continues by people at UC Berkeley. -->
+
+
+<!-- ## Getting Started
 
 - TODO: Tutorial for visualization / plot generating scripts
 
@@ -73,15 +103,15 @@ Testing
 ====
 To run the tests:
 
-    pushd cistar-dev; python -m unittest discover; popd
+    pushd flow-dev; python -m unittest discover; popd
 
 To run only the fast (eg. unit) tests:
 
-    pushd cistar-dev; python -m unittest discover tests/fast; popd
+    pushd flow-dev; python -m unittest discover tests/fast; popd
 
 To run only the slow (eg. integration) tests:
 
-    pushd cistar-dev; python -m unittest discover tests/slow; popd
+    pushd flow-dev; python -m unittest discover tests/slow; popd
 
 Development
 ====
@@ -89,10 +119,10 @@ Development
   from the project root directory:
 
       ln -s ../../pre-commit.sh .git/hooks/pre-commit
-      
+
 Warnings:
 ====
-All car controllers come equipped with a fail-safe rule wherein cars are not allowed to 
-move at a speed that would cause them to crash if the car in front of them suddenly started 
-breaking with max acceleration. If they attempt to do so, they will be reset to move at $$v_safe$$ 
-where $$v_safe$$ is the speed such that the cars will come to rest at the same point. 
+All car controllers come equipped with a fail-safe rule wherein cars are not allowed to
+move at a speed that would cause them to crash if the car in front of them suddenly started
+breaking with max acceleration. If they attempt to do so, they will be reset to move at $$v_safe$$
+where $$v_safe$$ is the speed such that the cars will come to rest at the same point.  -->

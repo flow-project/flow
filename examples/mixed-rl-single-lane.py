@@ -27,28 +27,28 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.core.vehicles import Vehicles
-from cistar.core import config as cistar_config
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
+from flow.core import config as flow_config
 
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
-from cistar.controllers.routing_controllers import *
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
+from flow.controllers.routing_controllers import *
 
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.car_following_models import *
-from cistar.controllers.lane_change_controllers import *
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
 
-from cistar.core.params import SumoParams
-from cistar.core.params import EnvParams
+from flow.core.params import SumoParams
+from flow.core.params import EnvParams
 
 def run_task(*_):
-    import cistar.envs as cistar_envs
+    import flow.envs as flow_envs
     logging.basicConfig(level=logging.INFO)
 
     tot_cars = 8
@@ -62,7 +62,7 @@ def run_task(*_):
     vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
     vehicles.add_vehicles("cfm", (CFMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, human_cars)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
+    additional_env_params = {"target_velocity": 8, "num_steps": 1000}
     env_params = EnvParams(additional_params=additional_env_params)
 
     additional_net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40}
@@ -118,6 +118,6 @@ for seed in [1]:  # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="leah-test-exp",
-        python_command=cistar_config.PYTHON_COMMAND
+        python_command=flow_config.PYTHON_COMMAND
         # plot=True,
     )

@@ -29,16 +29,16 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from cistar.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from cistar.core.vehicles import Vehicles
-from cistar.core import config as cistar_config
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
+from flow.core import config as flow_config
 
-from cistar.controllers.routing_controllers import *
+from flow.controllers.routing_controllers import *
 
-from cistar.scenarios.loop.gen import CircleGenerator
-from cistar.scenarios.loop.loop_scenario import LoopScenario
-from cistar.controllers.rlcontroller import RLController
-from cistar.controllers.car_following_models import *
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -111,6 +111,6 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="leah-test-exp",
-        python_command=cistar_config.PYTHON_COMMAND
+        python_command=flow_config.PYTHON_COMMAND
         # plot=True,
     )
