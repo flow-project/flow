@@ -145,7 +145,8 @@ class SumoEnvironment(gym.Env, Serializable):
         sumo_call = [self.sumo_binary,
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
-                     "--step-length", str(self.time_step)]
+                     "--step-length", str(self.time_step),
+                     "--step-method.ballistic", "true"]
         logging.info("Traci on port: ", self.port)
         if self.emission_out:
             sumo_call.append("--emission-output")
@@ -412,8 +413,6 @@ class SumoEnvironment(gym.Env, Serializable):
 
             if crash:
                 done_n = self.vehicles.num_rl_vehicles * [1]
-                if self.fail_safe:
-                    logging.error("Crash has occurred! Check your failsafes")
 
             info_n['done_n'] = done_n
             info_n['state'] = self.state
@@ -422,7 +421,6 @@ class SumoEnvironment(gym.Env, Serializable):
 
         else:
             if crash:
-                logging.info("Crash has occurred! Check failsafes!")
                 return Step(observation=next_observation, reward=reward,
                             done=True)
             else:
@@ -529,16 +527,13 @@ class SumoEnvironment(gym.Env, Serializable):
             # with pre-defined initial position
             try:
                 self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.addFull(
-                    veh_id, route_id, typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(lane_pos), departSpeed=str(speed))
             except:
-                # in case a vehicle is removed via a crash
-                self.traci_connection.vehicle.addFull(
-                    veh_id, route_id, typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(lane_pos), departSpeed=str(speed))
+                pass
+
+            self.traci_connection.vehicle.addFull(
+                veh_id, route_id, typeID=str(type_id),
+                departLane=str(lane_index),
+                departPos=str(lane_pos), departSpeed=str(speed))
 
             self.traci_connection.vehicle.setColor(
                 veh_id, self.colors[self.vehicles.get_state(veh_id, 'type')])
@@ -817,49 +812,6 @@ class SumoEnvironment(gym.Env, Serializable):
         sorted_indx = np.argsort(self.vehicles.get_absolute_position(self.ids))
         sorted_ids = np.array(self.ids)[sorted_indx]
         return sorted_ids, None
-
-    def get_headway_dict(self, network_observations):
-        """
-        Collects the headways, leaders, and followers of all vehicles at once.
-        The base environment does by using traci calls.
-
-        Parameters
-        ----------
-        network_observations: dictionary
-            key = vehicle IDs
-            elements = variable state properties of the vehicle (including
-            headway)
-
-        Yields
-        ------
-        dictionary
-            key = vehicle IDs
-            elements = headway, leader id, and follower id for the vehicle
-        """
-        vehicles = dict.fromkeys(self.ids)
-
-        for veh_id in self.ids:
-            vehicles[veh_id] = dict()
-
-        for veh_id in self.ids:
-            try:
-                headway = network_observations[veh_id][tc.VAR_LEADER]
-                if headway is None:
-                    vehicles[veh_id]["leader"] = None
-                    vehicles[veh_id]["follower"] = None
-                    vehicles[veh_id]["headway"] = 1e-3
-                else:
-                    vehicles[veh_id]["headway"] = headway[1]
-                    vehicles[veh_id]["leader"] = headway[0]
-                    vehicles[headway[0]]["follower"] = veh_id
-            except KeyError:
-                # this is used to deal with the absence of network observations
-                # upon reset. It only applies for the very first time step
-                vehicles[veh_id]["leader"] = None
-                vehicles[veh_id]["follower"] = None
-                vehicles[veh_id]["headway"] = 1e-3
-
-        return vehicles
 
     def get_state(self):
         """

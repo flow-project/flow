@@ -182,20 +182,8 @@ class Vehicles:
         # update the sumo observations variable
         self.__sumo_observations = sumo_observations
 
-    def set_speed(self, veh_id, speed):
-        self.__vehicles[veh_id]["speed"] = speed
-
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
-
-    def set_position(self, veh_id, position):
-        self.__vehicles[veh_id]["position"] = position
-
-    def set_edge(self, veh_id, edge):
-        self.__vehicles[veh_id]["edge"] = edge
-
-    def set_lane(self, veh_id, lane):
-        self.__vehicles[veh_id]["lane"] = lane
 
     def set_route(self, veh_id, route):
         self.__vehicles[veh_id]["route"] = route
@@ -208,13 +196,6 @@ class Vehicles:
 
     def set_headway(self, veh_id, headway):
         self.__vehicles[veh_id]["headway"] = headway
-
-    def set_state(self, veh_id, state_name, state):
-        """
-        Generic set function. Updates the state *state_name* of the vehicle with
-        id *veh_id* with the value *state*.
-        """
-        self.__vehicles[veh_id][state_name] = state
 
     def get_ids(self):
         return self.__ids
@@ -240,12 +221,19 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
+        # if a list of vehicle ids are requested, call the function for each
+        # requested vehicle id
         if isinstance(veh_id, list):
-            return [self.__sumo_observations[vehID][tc.VAR_SPEED] for vehID in veh_id]
-        if veh_id == "all":
-            return [self.__sumo_observations[vehID][tc.VAR_SPEED] for vehID in self.__ids]
-        else:
+            return [self.get_speed(vehID) for vehID in veh_id]
+        elif veh_id == "all":
+            return [self.get_speed(vehID) for vehID in self.__ids]
+
+        # perform the value retrieval for a specific vehicle
+        try:
             return self.__sumo_observations[veh_id][tc.VAR_SPEED]
+        except KeyError:
+            # if the vehicle does not exist, return an error value (-1001)
+            return -1001
 
     def get_absolute_position(self, veh_id="all"):
         """
@@ -274,12 +262,19 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
+        # if a list of vehicle ids are requested, call the function for each
+        # requested vehicle id
         if isinstance(veh_id, list):
-            return [self.__sumo_observations[vehID][tc.VAR_LANEPOSITION] for vehID in veh_id]
+            return [self.get_position(vehID) for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__sumo_observations[vehID][tc.VAR_LANEPOSITION] for vehID in self.__ids]
-        else:
+            return [self.get_position(vehID) for vehID in self.__ids]
+
+        # perform the value retrieval for a specific vehicle
+        try:
             return self.__sumo_observations[veh_id][tc.VAR_LANEPOSITION]
+        except KeyError:
+            # if the vehicle does not exist, return an error value (-1001)
+            return -1001
 
     def get_edge(self, veh_id="all"):
         """
@@ -291,12 +286,19 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
+        # if a list of vehicle ids are requested, call the function for each
+        # requested vehicle id
         if isinstance(veh_id, list):
-            return [self.__sumo_observations[vehID][tc.VAR_ROAD_ID] for vehID in veh_id]
+            return [self.get_edge(vehID) for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__sumo_observations[vehID][tc.VAR_ROAD_ID] for vehID in self.__ids]
-        else:
+            return [self.get_edge(vehID) for vehID in self.__ids]
+
+        # perform the value retrieval for a specific vehicle
+        try:
             return self.__sumo_observations[veh_id][tc.VAR_ROAD_ID]
+        except KeyError:
+            # if the vehicle does not exist, return an empty edge value
+            return ""
 
     def get_lane(self, veh_id="all"):
         """
@@ -307,12 +309,19 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
+        # if a list of vehicle ids are requested, call the function for each
+        # requested vehicle id
         if isinstance(veh_id, list):
-            return [self.__sumo_observations[vehID][tc.VAR_LANE_INDEX] for vehID in veh_id]
+            return [self.get_lane(vehID) for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__sumo_observations[vehID][tc.VAR_LANE_INDEX] for vehID in self.__ids]
-        else:
+            return [self.get_lane(vehID) for vehID in self.__ids]
+
+        # perform the value retrieval for a specific vehicle
+        try:
             return self.__sumo_observations[veh_id][tc.VAR_LANE_INDEX]
+        except KeyError:
+            # if the vehicle does not exist, return an error value (-1001)
+            return -1001
 
     def get_acc_controller(self, veh_id="all"):
         """
@@ -425,6 +434,14 @@ class Vehicles:
             return [self.__vehicles[vehID]["headway"] for vehID in self.__ids]
         else:
             return self.__vehicles[veh_id]["headway"]
+
+    # TODO: everything past here must be thought through
+    def set_state(self, veh_id, state_name, state):
+        """
+        Generic set function. Updates the state *state_name* of the vehicle with
+        id *veh_id* with the value *state*.
+        """
+        self.__vehicles[veh_id][state_name] = state
 
     def get_state(self, veh_id, state_name):
         """

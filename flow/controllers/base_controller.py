@@ -182,10 +182,21 @@ class BaseController:
         return v_safe
 
 
-# TODO: still a work in progress
 class SumoController:
 
-    def __init__(self, veh_id, controller_params):
+    def __init__(self,
+                 veh_id,
+                 accel=2.6,
+                 decel=4.5,
+                 sigma=0.5,
+                 tau=0.5,
+                 minGap=1.0,
+                 maxSpeed=30,
+                 speedFactor=1.0,
+                 speedDev=0.0,
+                 impatience=0.0,
+                 carFollowModel="IDM",
+                 laneChangeModel="LC2013"):
         """
         Base class for sumo-controlled acceleration behavior.
 
@@ -193,32 +204,36 @@ class SumoController:
         ----------
         veh_id: str
             unique vehicle identifier
-        controller_params: dict, optional
-            contains the parameters needed to instantiate a sumo controller
-            - model_type {string} -- type of SUMO car-following model to use.
-              Must be one of: Krauss, KraussOrig1, PWagner2009, BKerner, IDM,
-              IDMM, KraussPS, KraussAB, SmartSK, Wiedemann, Daniel1
-            - model_params {dict} -- dictionary of parameters applicable to sumo
-              cars, see: http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        accel: float
+        decel: float
+        sigma: float
+        tau: float
+        minGap: float
+        maxSpeed: float
+        speedFactor: float
+        speedDev: float
+        impatience: float
+        carFollowModel: str
+        laneChangeModel: str
+
+        Note
+        ----
+        For a description of all params, see:
+        http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
         """
         self.veh_id = veh_id
 
-        available_models = ["Krauss", "KraussOrig1", "PWagner2009", "BKerner",
-                            "IDM", "IDMM", "KraussPS", "KraussAB", "SmartSK",
-                            "Wiedemann", "Daniel1"]
-
-        if "model_type" in controller_params:
-            # the model type specified must be available in sumo
-            if controller_params["model_type"] not in available_models:
-                raise ValueError("Model type is not available in SUMO.")
-
-            self.model_type = controller_params["model"]
-        else:
-            # if no model is specified, the controller defaults to sumo's
-            # Krauss model
-            self.model_type = "Krauss"
-
-        if "model_params" in controller_params:
-            self.model_params = controller_params["model_params"]
-        else:
-            self.model_params = dict()
+        # create a controller_params dict with all the specified parameters
+        self.controller_params = {
+            "accel": accel,
+            "decel": decel,
+            "sigma": sigma,
+            "tau": tau,
+            "minGap": minGap,
+            "maxSpeed": maxSpeed,
+            "speedFactor": speedFactor,
+            "speedDev": speedDev,
+            "impatience": impatience,
+            "carFollowModel": carFollowModel,
+            "laneChangeModel": laneChangeModel,
+        }
