@@ -23,7 +23,7 @@ class TestCFMController(unittest.TestCase):
 
         vehicles = Vehicles()
         vehicles.add_vehicles(
-            veh_id="test",
+            veh_id="test_0",
             acceleration_controller=(CFMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=5
@@ -44,15 +44,13 @@ class TestCFMController(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
 
         test_headways = [5, 10, 15, 20, 25]
-        test_speeds = [5, 10, 5, 10, 5]
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
-            self.env.vehicles.set_speed(veh_id, test_speeds[i])
 
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [12, 2, 20, 12, 20]
+        expected_accel = [12., 17., 20., 20., 20.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -91,15 +89,13 @@ class TestBCMController(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
 
         test_headways = [5, 10, 15, 20, 25]
-        test_speeds = [5, 10, 5, 10, 5]
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
-            self.env.vehicles.set_speed(veh_id, test_speeds[i])
 
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [-12, -7, 15, -7, 13]
+        expected_accel = [-12., 13., 13., 13., 13.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -138,15 +134,13 @@ class TestOVMController(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
 
         test_headways = [0, 10, 5, 5, 5]
-        test_speeds = [5, 10, 5, 10, 5]
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
-            self.env.vehicles.set_speed(veh_id, test_speeds[i])
 
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [0, 5.319073, 3.772339, -5., -1.227661]
+        expected_accel = [0., 15., 3.772339, 3.772339, 3.772339]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -186,15 +180,13 @@ class TestLinearOVM(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
 
         test_headways = [5, 10, 10, 15, 0]
-        test_speeds = [5, 10, 5, 10, 5]
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
-            self.env.vehicles.set_speed(veh_id, test_speeds[i])
 
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [-5., -2.392308, 5.3, 10.6, -5.]
+        expected_accel = [0., 12.992308, 12.992308, 15., 0.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -235,13 +227,12 @@ class TestIDMController(unittest.TestCase):
         test_speeds = [5, 10, 5, 10, 5]
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
-            self.env.vehicles.set_speed(veh_id, test_speeds[i])
+            # self.env.vehicles.set_speed(veh_id, test_speeds[i])
 
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = \
-            [0.959228, -1.638757,  0.994784,  0.331051,  0.979628]
+        expected_accel = [0.96, 0.99, 0.995556, 0.9975, 0.9984]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -369,6 +360,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         self.env = None
 
     def runTest(self):
+        self.env.reset()
         ids = self.env.vehicles.get_ids()
 
         # run the experiment for a few iterations and collect the lane index
@@ -392,59 +384,6 @@ class TestStaticLaneChanger(unittest.TestCase):
 
         # assert that all lane indices are zero
         self.assertEqual(sum(np.array(lanes)), 0)
-
-
-class TestContinuousRouter(unittest.TestCase):
-    """
-    Tests that the continuous router operates properly if there is no need to
-    reroute, and if there is a need to do so.
-    """
-    def setUp(self):
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup()
-
-    def tearDown(self):
-        # terminate the traci instance
-        self.env.terminate()
-
-        # free data used by the class
-        self.env = None
-
-    def runTest(self):
-        veh_id = self.env.vehicles.get_ids()[0]
-
-        # set the perceived route of the vehicle
-        self.env.vehicles.set_route(veh_id, ["bottom", "right", "top", "left"])
-
-        # set the perceived edge of the vehicle at the beginning of its route
-        self.env.vehicles.set_edge(veh_id, "bottom")
-
-        # assert that the controller is returning a None value
-        requested_route = self.env.vehicles.get_routing_controller(
-            veh_id).choose_route(self.env)
-
-        self.assertIsNone(requested_route)
-
-        # set the perceived edge of the vehicle at the middle of its route
-        self.env.vehicles.set_edge(veh_id, "right")
-
-        # assert that the controller is returning a None value
-        requested_route = self.env.vehicles.get_routing_controller(
-            veh_id).choose_route(self.env)
-
-        self.assertIsNone(requested_route)
-
-        # set the perceived edge of the vehicle at the end of its route
-        self.env.vehicles.set_edge(veh_id, "left")
-
-        # assert that the controller is returning a list of edges starting at
-        # this link and then containing the route of the link ahead of it
-        requested_route = self.env.vehicles.get_routing_controller(
-            veh_id).choose_route(self.env)
-
-        expected_route = ["left", "bottom", "right", "top"]
-
-        self.assertSequenceEqual(requested_route, expected_route)
 
 
 if __name__ == '__main__':

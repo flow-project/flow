@@ -108,7 +108,10 @@ class BaseController:
         h = env.vehicles.get_headway(self.veh_id)
 
         if next_vel > 0:
-            if h < time_step * next_vel + this_vel * 1e-3:
+            # the second and third terms cover (conservatively) the extra
+            # distance the vehicle will cover before it fully decelerates
+            if h < time_step * next_vel + this_vel * 1e-3 + \
+                    0.5 * this_vel * time_step:
                 # if the vehicle will crash into the vehicle ahead of it in the
                 # next time step (assuming the vehicle ahead of it is not
                 # moving), then stop immediately
