@@ -32,7 +32,7 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
                      + self.perturbations[self.num_perturbations][1]):
                 self.apply_acceleration(
                     self.perturbed_id,
-                    self.env_params.get_additional_param("max-deacc"))
+                    self.env_params.max_deacc)
             if self.timer > (
                 self.perturbations[self.num_perturbations][0] +
                     self.perturbations[self.num_perturbations][1]):

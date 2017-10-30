@@ -62,7 +62,7 @@ def run_task(*_):
     vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
     vehicles.add_vehicles("cfm", (CFMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, human_cars)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
+    additional_env_params = {"target_velocity": 8, "num_steps": 1000}
     env_params = EnvParams(additional_params=additional_env_params)
 
     additional_net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40}

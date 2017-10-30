@@ -29,7 +29,7 @@ vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 14)
 vehicles.add_vehicles("merge-idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 14)
 
-additional_env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3}
+additional_env_params = {"target_velocity": 8, "fail-safe": "None"}
 env_params = EnvParams(additional_params=additional_env_params)
 
 additional_net_params = {"merge_in_length": 500, "merge_in_angle": pi/9,

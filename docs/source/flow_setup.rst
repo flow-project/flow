@@ -10,18 +10,17 @@ tool. Follow the shell commands below to get started.
 Installing Flow
 =================
 
-Create a conda environment (add warning, that EVERYTHING is a specific version):
-:: 
-
-    conda create -n flow python=3.5.2
-    source activate flow
-
 Install rllab-multiagent (NOTE TO TEAM: For now, it's still rllab-distributed)
 ::
 
     git clone git@github.com:cathywu/rllab-multiagent.git
     cd rllab-multiagent
     git checkout flow_release  # TODO eliminate this step
+
+Create a conda environment (add warning, that EVERYTHING is a specific version):
+:: 
+
+    conda env create -f environment.yml
 
 For OSX
 ::
@@ -47,6 +46,8 @@ Install flow within the rllab-multiagent repo
     ./scripts/setup_sumo_osx.sh <DESIRED_PATH_TO_SUMO> # installs sumo
     python setup.py develop  # (install flow, rllab, and dependencies)
     cp flow/core/config.template.py flow/core/config.py  # TODO eliminate or move to setup_osx.sh or add to commonly asked questions
+
+Finally, add <SUMO_DIR>/tools to your PYTHON_PATH to give Python access to TraCI and sumolib.
 
 Test the installation
 =====================

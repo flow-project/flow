@@ -125,7 +125,7 @@ attributes of the nodes. These attributes must include:
 Other possible attributes may be found at:
 http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
 
-In order to properly specify the nodes, add the follow function to the
+In order to properly specify the nodes, add the following method to the
 generator class:
 
 ::
@@ -286,13 +286,14 @@ initializer. This is done by defining the initializer as follows:
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         # add to net_params a characteristic length
-        net_params.additional_params["length"] = 4 * pi * net_params.additional_params["radius"]
+        net_params.additional_params["length"] = 2 * pi * net_params.additional_params["radius"]
 
-Then, the initializer is finished off by adding the base (super) class's
-initializer:
+Then, the initializer is finished off by setting the number of lanes
+and adding the base (super) class's initializer:
 
 ::
 
+        self.lanes = net_params.additional_params["lanes"]
         super().__init__(name, generator_class, vehicles, net_params, initial_config)
 
 3.3 Specifying the Starting Position of Edges
@@ -383,7 +384,7 @@ by importing Flow's base environment class.
     # import the base environment class
     from flow.envs.base_env import SumoEnvironment
 
-In addition to Flow's base environment, we will import a few objects
+In addition to Flow's base environment, we will import numpy and a few objects
 from ``gym``, which will make our environment class compatible with ``rllab``'s
 base Environment class.
 
@@ -400,6 +401,8 @@ multiple ``Box`` elements together.
 ::
 
     from gym.spaces.tuple_space import Tuple
+
+    import numpy as np
 
 Now, create your environment class titled ``myEnvironment`` with the
 base environment class as its parent.
@@ -551,12 +554,11 @@ loops through the vehicle ids of all vehicles in the network, and collects for
 each vehicle its speed and absolute position:
 
 ::
-
-        state = np.array([[self.vehicles.get_speed(veh_id),
+        def get_state(self, **kwargs):
+            state = np.array([[self.vehicles.get_speed(veh_id),
                            self.vehicles.get_absolute_position(veh_id)]
                           for veh_id in self.ids])
-
-        return state
+            return state
 
 .. _section 4.6:
 
@@ -633,7 +635,7 @@ velocities of vehicles and their desired velocities.
 
 ::
 
-        vel = self.vehicles.get_speed(self.ids)
+        vel = np.array(self.vehicles.get_speed(self.ids))
 
         cost = vel - self.env_params.additional_params["target_velocity"]
         cost = np.linalg.norm(cost)
@@ -644,7 +646,7 @@ below by zero.
 
 ::
 
-        max_cost = np.array([self.env_params["target_velocity"]] * len(self.vehicles.num_vehicles))
+        max_cost = np.array([self.env_params.additional_params["target_velocity"]] * self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
 
         return max(max_cost - cost, 0)
@@ -690,14 +692,14 @@ generator, scenario, and environment subclasses we developed.
 ::
 
     # this is the base experiment class
-    from flow.core.exp import SumoExperiment
+    from flow.core.experiment import SumoExperiment
 
     # these are the classes I created
-    from ./my_generator import myGenerator
-    from ./my_scenario import myScenario
-    from ./my_environment import myEnvironment
+    from my_generator import myGenerator
+    from my_scenario import myScenario
+    from my_environment import myEnvironment
 
-    # for possible mathematical operation we may want to perform
+    # for possible mathematical operations we may want to perform
     import numpy as np
 
 In order to specify the inputs needed for each class, a few objects are also
@@ -774,7 +776,7 @@ network we descibed in `section 2`_.
 
 ::
 
-    additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30}
+    additional_net_params = {"radius": 230 / (2*np.pi), "lanes": 1, "speed_limit": 30}
     net_params = NetParams(additional_params=additional_net_params)
 
 
@@ -826,7 +828,7 @@ time steps we would like. In order to run the experiment for 1 run of
 ::
 
     num_runs = 1  # I would like to run the experiment once
-    num_steps = 150 / sumo_params["time_step"]  # I would like the experiment to run for 150 sec
+    num_steps = 150 / sumo_params.time_step  # I would like the experiment to run for 150 sec
 
 Finally, we get the script to run the experiment by adding the following
 line:
@@ -873,15 +875,20 @@ you had done in section 5.1 for the control experiment:
 ::
 
     # these are the classes I created
-    from ./my_generator import myGenerator
-    from ./my_scenario import myScenario
+    from my_generator import myGenerator
+    from my_scenario import myScenario
 
-    # for possible mathematical operation we may want to perform
+    # for possible mathematical operations we may want to perform
     import numpy as np
+
+    # input objects to my classes
+    from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+    from flow.core.vehicles import Vehicles
 
     # acceleration and lane-changing controllers for human-driven vehicles
     from flow.controllers.car_following_models import *
     from flow.controllers.lane_change_controllers import *
+    from flow.controllers.routing_controllers import *
 
 A new controller that is used in this experiment and needed in the case
 of mixed-autonomy is the ``RLController``, located in
@@ -942,7 +949,7 @@ The final set of input variables are as follows:
         additional_env_params = {"target_velocity": 8, "max-deacc": 3, "max-acc": 3, "num_steps": 1000}
         env_params = EnvParams(additional_params=additional_env_params)
 
-        additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30}
+        additional_net_params = {"radius": 230 / (2*np.pi), "lanes": 1, "speed_limit": 30}
         net_params = NetParams(additional_params=additional_net_params)
 
         initial_config = InitialConfig(bunching=20)
@@ -974,7 +981,7 @@ tuple:
 ::
 
         env_name = "myEnvironment"
-        pass_params = (env_name, sumo_params, type_params, env_params, net_params,
+        pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                        initial_config, scenario)
 
 Then, the Gym Environment, parameterized by ``pass_params``, is initialized
