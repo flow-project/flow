@@ -3,6 +3,8 @@ from flow.controllers.rlcontroller import RLController
 
 import collections
 
+import numpy as np
+from copy import deepcopy
 import traci.constants as tc
 
 
@@ -124,10 +126,10 @@ class Vehicles:
 
     def set_sumo_observations(self, sumo_observations, env):
 
-        if self.__sumo_observations is None:
+        if env.timer == 0:
             for veh_id in self.__ids:
                 # update the sumo observations variable
-                self.__sumo_observations = sumo_observations
+                self.__sumo_observations = deepcopy(sumo_observations)
 
                 # set the initial last_lc
                 self.set_state(
@@ -150,8 +152,10 @@ class Vehicles:
 
                 # update the "absolute_position" variable
                 prev_pos = env.get_x_by_id(veh_id)
+                this_edge = sumo_observations[veh_id][tc.VAR_ROAD_ID]
+                this_pos = sumo_observations[veh_id][tc.VAR_LANEPOSITION]
                 try:
-                    change = env.get_x_by_id(veh_id) - prev_pos
+                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
                     if change < 0:
                         change += env.scenario.length
                     new_abs_pos = self.get_absolute_position(
@@ -179,8 +183,8 @@ class Vehicles:
                     self.__vehicles[veh_id]["follower"] = None
                     self.__vehicles[veh_id]["headway"] = 1e-3
 
-        # update the sumo observations variable
-        self.__sumo_observations = sumo_observations
+            # update the sumo observations variable
+            self.__sumo_observations = deepcopy(sumo_observations)
 
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
@@ -223,7 +227,7 @@ class Vehicles:
         """
         # if a list of vehicle ids are requested, call the function for each
         # requested vehicle id
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.get_speed(vehID) for vehID in veh_id]
         elif veh_id == "all":
             return [self.get_speed(vehID) for vehID in self.__ids]
@@ -245,7 +249,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["absolute_position"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["absolute_position"] for vehID in self.__ids]
@@ -264,7 +268,7 @@ class Vehicles:
         """
         # if a list of vehicle ids are requested, call the function for each
         # requested vehicle id
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.get_position(vehID) for vehID in veh_id]
         elif veh_id == "all":
             return [self.get_position(vehID) for vehID in self.__ids]
@@ -288,7 +292,7 @@ class Vehicles:
         """
         # if a list of vehicle ids are requested, call the function for each
         # requested vehicle id
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.get_edge(vehID) for vehID in veh_id]
         elif veh_id == "all":
             return [self.get_edge(vehID) for vehID in self.__ids]
@@ -311,7 +315,7 @@ class Vehicles:
         """
         # if a list of vehicle ids are requested, call the function for each
         # requested vehicle id
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.get_lane(vehID) for vehID in veh_id]
         elif veh_id == "all":
             return [self.get_lane(vehID) for vehID in self.__ids]
@@ -332,7 +336,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["acc_controller"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["acc_controller"] for vehID in self.__ids]
@@ -348,7 +352,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["lane_changer"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["lane_changer"] for vehID in self.__ids]
@@ -364,7 +368,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["router"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["router"] for vehID in self.__ids]
@@ -380,7 +384,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["route"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["route"] for vehID in self.__ids]
@@ -396,7 +400,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["leader"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["leader"] for vehID in self.__ids]
@@ -412,7 +416,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["follower"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["follower"] for vehID in self.__ids]
@@ -428,7 +432,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID]["headway"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["headway"] for vehID in self.__ids]
@@ -453,7 +457,7 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
-        if isinstance(veh_id, list):
+        if not isinstance(veh_id, str):
             return [self.__vehicles[vehID][state_name] for vehID in veh_id]
         if veh_id == "all":
             return [self.__vehicles[vehID][state_name] for vehID in self.__ids]

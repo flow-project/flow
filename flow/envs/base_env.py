@@ -365,7 +365,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         self.traci_connection.simulationStep()
 
-        # store new observations in the network after traci simulation step
+        # collect new network observations from sumo
         network_observations = \
             self.traci_connection.vehicle.getSubscriptionResults()
 
