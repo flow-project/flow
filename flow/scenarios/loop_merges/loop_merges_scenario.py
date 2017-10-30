@@ -268,7 +268,7 @@ class LoopMergesScenario(Scenario):
 
         WARNING: this does not absolutely gaurantee that the order of
         vehicles is preserved.
-        
+
         Returns
         -------
         startpositions : list

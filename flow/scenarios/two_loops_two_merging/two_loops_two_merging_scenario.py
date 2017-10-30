@@ -13,10 +13,10 @@ class TwoLoopsTwoMergingScenario(Scenario):
 
         See Scenario.py for description of params.
         """
-        radius = net_params["ring_radius"]
-        net_params["length"] = 8 / 3 * pi * radius + 2 * radius * sin(pi / 3)
+        radius = net_params.additional_params["ring_radius"]
+        net_params.additional_params["length"] = 8 / 3 * pi * radius + 2 * radius * sin(pi / 3)
 
-        self.lanes = net_params["lanes"]
+        self.lanes = net_params.additional_params["lanes"]
 
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config=initial_config)
@@ -25,7 +25,7 @@ class TwoLoopsTwoMergingScenario(Scenario):
         """
         See parent class
         """
-        r = self.net_params["ring_radius"]
+        r = self.net_params.additional_params["ring_radius"]
         ring_edgelen = 2 / 3 * pi * r
 
         edgestarts = [("right_top", 0),
@@ -40,7 +40,7 @@ class TwoLoopsTwoMergingScenario(Scenario):
         """
         See base class
         """
-        r = self.net_params["ring_radius"]
+        r = self.net_params.additional_params["ring_radius"]
         ring_edgelen = 2 / 3 * pi * r
 
         internal_edgestarts = \

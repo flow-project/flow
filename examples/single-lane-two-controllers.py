@@ -21,7 +21,7 @@ Variables:
 '''
 
 import logging
-from flow.envs.loop import LoopEnvironment
+from flow.envs.loop_accel import SimpleAccelerationEnvironment
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
@@ -38,11 +38,11 @@ sumo_params = SumoParams(time_step= 0.1, human_speed_mode="no_collide",
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 15)
-vehicles.add_vehicles("idm2", (DrunkDriver, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 1)
+vehicles.add_vehicles("idm-2", (IDMController, {"v0":40}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 1)
 
 env_params = EnvParams()
 
-additional_net_params = {"length": 200, "lanes": 1, "speed_limit": 30, "resolution": 40}
+additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 30, "resolution": 40}
 net_params = NetParams(additional_params=additional_net_params)
 
 initial_config = InitialConfig(bunching=20)
@@ -51,7 +51,7 @@ scenario = LoopScenario("single-lane-two-contr", CircleGenerator, vehicles, net_
                         initial_config)
 # data path needs to be relative to cfg location
 
-env = LoopEnvironment(env_params, sumo_params, scenario)
+env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 
