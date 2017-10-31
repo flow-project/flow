@@ -385,14 +385,6 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.vehicles.set_position(
                     veh_id, network_observations[veh_id][tc.VAR_LANEPOSITION])
             except KeyError:
-                # TODO: this is causing problems when vehicles can crash
-                # self.ids.remove(veh_id)
-                # if veh_id in self.rl_ids:
-                #     self.rl_ids.remove(veh_id)
-                # elif veh_id in self.controlled_ids:
-                #     self.controlled_ids.remove(veh_id)
-                # else:
-                #     self.sumo_ids.remove(veh_id)
                 continue
             self.vehicles.set_edge(
                 veh_id, network_observations[veh_id][tc.VAR_ROAD_ID])
