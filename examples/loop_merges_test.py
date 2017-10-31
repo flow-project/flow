@@ -23,8 +23,7 @@ from numpy import pi
 logging.basicConfig(level=logging.INFO)
 
 sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide",
-                         sumo_binary="sumo"
-                                     "-gui")
+                         sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), None, 0, 14)
@@ -38,7 +37,8 @@ additional_net_params = {"merge_in_length": 500, "merge_in_angle": pi/9,
                          "ring_radius": 400 / (2 * pi), "resolution": 40, "lanes": 1, "speed_limit": 30}
 net_params = NetParams(no_internal_links=False, additional_params=additional_net_params)
 
-initial_config = InitialConfig(additional_params={"merge_bunching": 250})
+initial_config = InitialConfig(spacing="custom",
+                               additional_params={"merge_bunching": 250})
 
 scenario = LoopMergesScenario("loop-merges", LoopMergesGenerator, vehicles, net_params,
                               initial_config=initial_config)
@@ -49,6 +49,6 @@ exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 1500)
+exp.run(1, 550)
 
 exp.env.terminate()
