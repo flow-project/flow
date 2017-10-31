@@ -108,7 +108,7 @@ class LoopMergesScenario(Scenario):
 
         return internal_edgestarts
 
-    def gen_even_start_pos(self, initial_config, **kwargs):
+    def gen_custom_start_pos(self, initial_config, **kwargs):
         """
         See base class
         """
@@ -133,72 +133,74 @@ class LoopMergesScenario(Scenario):
         startlanes = []
 
         # generate starting positions for non-merging vehicles
-        # in order to avoid placing cars in the internal edges, their length is
-        # removed from the distribution length
-        distribution_len = self.length - self.ring_0_n_len - self.ring_1_n_len
-        increment = (distribution_len - bunching) * lanes_distribution / \
-                    (self.vehicles.num_vehicles - self.num_merge_vehicles)
+        if self.vehicles.num_vehicles - self.num_merge_vehicles > 0:
+            # in order to avoid placing cars in the internal edges, their length is
+            # removed from the distribution length
+            distribution_len = self.length - self.ring_0_n_len - self.ring_1_n_len
+            increment = (distribution_len - bunching) * lanes_distribution / \
+                        (self.vehicles.num_vehicles - self.num_merge_vehicles)
 
-        x = [x0] * lanes_distribution
-        car_count = 0
-        lane_count = 0
-        while car_count < self.vehicles.num_vehicles - self.num_merge_vehicles:
-            # collect the position and lane number of each new vehicle
-            pos = self.get_edge(x[lane_count])
-
-            if ":ring_0" in pos[0]:
-                x[lane_count] += self.ring_0_n_len
-                pos = self.get_edge(x[lane_count])
-            elif ":ring_1" in pos[0]:
-                x[lane_count] += self.ring_1_n_len
+            x = [x0] * lanes_distribution
+            car_count = 0
+            lane_count = 0
+            while car_count < self.vehicles.num_vehicles - self.num_merge_vehicles:
+                # collect the position and lane number of each new vehicle
                 pos = self.get_edge(x[lane_count])
 
-            startpositions.append(pos)
-            startlanes.append(lane_count)
+                if ":ring_0" in pos[0]:
+                    x[lane_count] += self.ring_0_n_len
+                    pos = self.get_edge(x[lane_count])
+                elif ":ring_1" in pos[0]:
+                    x[lane_count] += self.ring_1_n_len
+                    pos = self.get_edge(x[lane_count])
 
-            x[lane_count] = (x[lane_count] + increment) % self.length
+                startpositions.append(pos)
+                startlanes.append(lane_count)
 
-            # increment the car_count and lane_count
-            car_count += 1
-            lane_count += 1
-            # if the lane num exceeds the number of lanes the vehicles should
-            # be distributed on in the network, reset
-            if lane_count >= lanes_distribution:
-                lane_count = 0
+                x[lane_count] = (x[lane_count] + increment) % self.length
+
+                # increment the car_count and lane_count
+                car_count += 1
+                lane_count += 1
+                # if the lane num exceeds the number of lanes the vehicles should
+                # be distributed on in the network, reset
+                if lane_count >= lanes_distribution:
+                    lane_count = 0
 
         # generate starting positions for merging vehicles
-        x = [self.get_x(edge="merge_in", position=0)] * lanes_distribution
-        car_count = 0
-        lane_count = 0
-        while car_count < self.num_merge_vehicles:
-            if n_merge_platoons is None:
-                # if no platooning is requested for merging vehicles, the
-                # vehicles are uniformly distributed across the appropriate
-                # section of the merge_in length
-                increment = (self.merge_in_len - merge_bunching) * \
-                            lanes_distribution / self.num_merge_vehicles
-            else:
-                if True:  # FIXME
-                    # some small value (to ensure vehicles are bunched together)
-                    increment = 8
+        if self.num_merge_vehicles > 0:
+            x = [self.get_x(edge="merge_in", position=0)] * lanes_distribution
+            car_count = 0
+            lane_count = 0
+            while car_count < self.num_merge_vehicles:
+                if n_merge_platoons is None:
+                    # if no platooning is requested for merging vehicles, the
+                    # vehicles are uniformly distributed across the appropriate
+                    # section of the merge_in length
+                    increment = (self.merge_in_len - merge_bunching) * \
+                                lanes_distribution / self.num_merge_vehicles
                 else:
-                    increment = 1  # FIXME
+                    if True:  # FIXME
+                        # some small value (to ensure vehicles are bunched together)
+                        increment = 8
+                    else:
+                        increment = 1  # FIXME
 
-            # collect the position and lane number of each new vehicle
-            pos = self.get_edge(x[lane_count])
+                # collect the position and lane number of each new vehicle
+                pos = self.get_edge(x[lane_count])
 
-            startpositions.append(pos)
-            startlanes.append(lane_count)
+                startpositions.append(pos)
+                startlanes.append(lane_count)
 
-            x[lane_count] += increment
+                x[lane_count] += increment
 
-            # increment the car_count and lane_count
-            car_count += 1
-            lane_count += 1
-            # if the lane num exceeds the number of lanes the vehicles should
-            # be distributed on in the network, reset
-            if lane_count >= lanes_distribution:
-                lane_count = 0
+                # increment the car_count and lane_count
+                car_count += 1
+                lane_count += 1
+                # if the lane num exceeds the number of lanes the vehicles should
+                # be distributed on in the network, reset
+                if lane_count >= lanes_distribution:
+                    lane_count = 0
 
         return startpositions, startlanes
 
