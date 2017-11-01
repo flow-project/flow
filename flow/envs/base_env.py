@@ -88,7 +88,6 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             self.emission_out = None
 
-        self.fail_safe = env_params.fail_safe
         self.max_speed = env_params.max_speed
         self.lane_change_duration = \
             env_params.get_lane_change_duration(self.time_step)
