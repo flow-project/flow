@@ -55,26 +55,6 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         """
         See parent class
         """
-        # # Rewards high system level velocity for vehicles in the small loop.
-        # # This should encourage the system to allow the merging vehicles in.
-        # if any(state[0]) < 0 or kwargs["fail"]:
-        #     return 0
-        #
-        # edge_id = self.sorted_extra_data[1]
-        #
-        # vel = np.array([self.vehicles.get_speed(self.sorted_ids[i])
-        #                 for i in range(len(self.sorted_ids)) if edge_id[i] == 0])
-        #
-        # num_vehicles = len(vel)  # number of vehicles in the small loop
-        #
-        # max_cost = np.array([self.env_params.additional_params["target_velocity"]] * num_vehicles)
-        # max_cost = np.linalg.norm(max_cost)
-        #
-        # cost = vel - self.env_params.additional_params["target_velocity"]
-        # cost = np.linalg.norm(cost)
-        #
-        # return max(max_cost - cost, 0)
-
         return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
