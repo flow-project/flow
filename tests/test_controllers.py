@@ -224,10 +224,8 @@ class TestIDMController(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
 
         test_headways = [10, 20, 30, 40, 50]
-        test_speeds = [5, 10, 5, 10, 5]
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
-            # self.env.vehicles.set_speed(veh_id, test_speeds[i])
 
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
@@ -256,8 +254,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
     def setUp_failsafe(self, vehicles):
         additional_env_params = {"target_velocity": 8, "max-deacc": 3,
                                  "max-acc": 3}
-        env_params = EnvParams(additional_params=additional_env_params,
-                               longitudinal_fail_safe="instantaneous")
+        env_params = EnvParams(additional_params=additional_env_params)
 
         additional_net_params = {"length": 100, "lanes": 1, "speed_limit": 30,
                                  "resolution": 40}
@@ -282,9 +279,10 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add_vehicles(
             veh_id="test",
-            acceleration_controller=(OVMController, {}),
+            acceleration_controller=(OVMController,
+                                     {"fail_safe": "instantaneous"}),
             routing_controller=(ContinuousRouter, {}),
-            num_vehicles=10
+            num_vehicles=10,
         )
 
         self.setUp_failsafe(vehicles=vehicles)
@@ -298,7 +296,8 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add_vehicles(
             veh_id="test",
-            acceleration_controller=(LinearOVM, {}),
+            acceleration_controller=(LinearOVM,
+                                     {"fail_safe": "instantaneous"}),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=10
         )
@@ -316,26 +315,39 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
     Tests that the safe velocity failsafe of the base acceleration controller
     does not fail under extreme conditions.
     """
-    def setUp_failsafe(self, vehicles):
-        additional_env_params = {"target_velocity": 8, "max-deacc": 3,
-                                 "max-acc": 3}
-        env_params = EnvParams(additional_params=additional_env_params,
-                               longitudinal_fail_safe="safe_velocity")
+    def test_no_crash_OVM(self):
+        vehicles = Vehicles()
+        vehicles.add_vehicles(
+            veh_id="test",
+            acceleration_controller=(OVMController,
+                                     {"fail_safe": "safe_velocity"}),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
 
-        additional_net_params = {"length": 100, "lanes": 1, "speed_limit": 30,
-                                 "resolution": 40}
-        net_params = NetParams(additional_params=additional_net_params)
+        self.setUp_failsafe(vehicles=vehicles)
 
-        initial_config = InitialConfig(bunching=10)
+        # run the experiment, see if it fails
+        self.exp.run(1, 200)
 
-        # create the environment and scenario classes for a ring road
-        env, scenario = ring_road_exp_setup(vehicles=vehicles,
-                                            env_params=env_params,
-                                            net_params=net_params,
-                                            initial_config=initial_config)
+        self.tearDown_failsafe()
 
-        # instantiate an experiment class
-        self.exp = SumoExperiment(env, scenario)
+    def test_no_crash_LinearOVM(self):
+        vehicles = Vehicles()
+        vehicles.add_vehicles(
+            veh_id="test",
+            acceleration_controller=(LinearOVM,
+                                     {"fail_safe": "safe_velocity"}),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=10,
+        )
+
+        self.setUp_failsafe(vehicles=vehicles)
+
+        # run the experiment, see if it fails
+        self.exp.run(1, 200)
+
+        self.tearDown_failsafe()
 
 
 class TestStaticLaneChanger(unittest.TestCase):

@@ -595,24 +595,6 @@ class SumoEnvironment(gym.Env, Serializable):
         acc: numpy array or list of float
             requested accelerations from the vehicles
         """
-        for i, veh_id in enumerate(veh_ids):
-            acc_contr = self.vehicles.get_acc_controller(veh_id)
-            if self.fail_safe == 'instantaneous':
-                safe_acc = acc_contr.get_safe_action_instantaneous(self, acc[i])
-            elif self.fail_safe == 'safe_velocity':
-                safe_acc = acc_contr.get_safe_action(self, acc[i])
-            else:
-                # Test for multi-agent
-                if self.multi_agent and (veh_id in self.rl_ids):
-                    safe_acc = acc[i][0]
-                else:
-                    safe_acc = acc[i]
-
-            if self.multi_agent and (veh_id in self.rl_ids):
-                acc[i][0] = safe_acc
-            else:
-                acc[i] = safe_acc
-
         # issue traci command for requested acceleration
         this_vel = np.array(self.vehicles.get_speed(veh_ids))
         if self.multi_agent and (veh_id in self.rl_ids):
@@ -621,11 +603,10 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             acc_arr = np.array(acc)
 
-        requested_next_vel = this_vel + acc_arr * self.time_step
-        actual_next_vel = requested_next_vel.clip(min=0)
+        next_vel = np.array(this_vel + acc_arr * self.time_step).clip(min=0)
 
         for i, vid in enumerate(veh_ids):
-            self.traci_connection.vehicle.slowDown(vid, actual_next_vel[i], 1)
+            self.traci_connection.vehicle.slowDown(vid, next_vel[i], 1)
 
     def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """

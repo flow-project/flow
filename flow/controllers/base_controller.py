@@ -43,10 +43,17 @@ class BaseController:
         else:
             self.acc_noise = controller_params["noise"]
 
+        # delay used by the safe_velocity failsafe
         if not controller_params['delay']:
             self.delay = 0
         else:
             self.delay = controller_params['delay']
+
+        # longitudinal failsafe used by the vehicle
+        if not controller_params["fail_safe"]:
+            self.fail_safe = None
+        else:
+            self.fail_safe = controller_params["fail_safe"]
 
         # max deaccel should always be a positive
         self.max_deaccel = np.abs(controller_params['max_deaccel'])
@@ -68,8 +75,15 @@ class BaseController:
         """
         accel = self.get_accel(env)
 
+        # add noise to the accelerations, if requested
         if self.acc_noise > 0:
             accel += np.random.normal(0, self.acc_noise)
+
+        # run the failsafes, if requested
+        if self.fail_safe == 'instantaneous':
+            accel = self.get_safe_action_instantaneous(env, accel)
+        elif self.fail_safe == 'safe_velocity':
+            accel = self.get_safe_action(env, accel)
 
         return accel
 
