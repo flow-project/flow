@@ -61,7 +61,6 @@ class SumoParams():
 
 class EnvParams:
     def __init__(self,
-                 longitudinal_fail_safe='None',
                  max_speed=55.0,
                  lane_change_duration=None,
                  shared_reward=False,
@@ -93,7 +92,6 @@ class EnvParams:
             Specify additional environment params for a specific environment
             configuration
         """
-        self.fail_safe = longitudinal_fail_safe
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
         self.shared_reward = shared_reward

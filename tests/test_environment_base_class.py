@@ -218,9 +218,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
-        # update the speed values in the vehicles class
-        for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_speed(veh_id, vel1[i])
+        # collect new network observations from sumo
+        network_observations = \
+            self.env.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.env.vehicles.set_sumo_observations(network_observations, self.env)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
@@ -282,9 +285,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # update the lane values in the vehicles class
-        for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_lane(veh_id, lane1[i])
+        # collect new network observations from sumo
+        network_observations = \
+            self.env.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.env.vehicles.set_sumo_observations(network_observations, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
@@ -325,9 +331,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # update the lane values in the vehicles class
-        for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_lane(veh_id, lane1[i])
+        # collect new network observations from sumo
+        network_observations = \
+            self.env.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.env.vehicles.set_sumo_observations(network_observations, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
