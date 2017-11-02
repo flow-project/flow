@@ -48,9 +48,7 @@ def run_task(*_):
     auton_cars = 5
     human_cars = tot_cars - auton_cars
 
-    sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", rl_speed_mode= "no_collide",
-                             human_lane_change_mode="strategic", rl_lane_change_mode="no_lat_collide",
-                             sumo_binary="sumo-gui")
+    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
     vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, auton_cars)

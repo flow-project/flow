@@ -6,10 +6,6 @@ class SumoParams():
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
                  emission_path=None,
-                 rl_speed_mode='no_collide',
-                 human_speed_mode='no_collide',
-                 rl_lane_change_mode="no_lat_collide",
-                 human_lane_change_mode="no_lat_collide",
                  sumo_binary="sumo"):
         """
         Parameters used to pass the time step and sumo-specified safety
@@ -50,14 +46,6 @@ class SumoParams():
         emission_path: str, optional
             Path to the folder in which to create the emissions output.
             Emissions output is not generated if this value is not specified
-        rl_speed_mode: str, optional
-            may be one of: 'aggressive' or 'no collide'
-        human_speed_mode: str, optional
-            may be one of: 'aggressive' or 'no collide'
-        rl_lane_change_mode: str, optional
-            may be one of 'no_lat_collide' or 'strategic' or 'aggressive'
-        human_lane_change_mode: str, optional
-            may be one of 'no_lat_collide' or 'strategic' or 'aggressive'
         sumo_binary: str, optional
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
@@ -68,10 +56,6 @@ class SumoParams():
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
         self.emission_path = emission_path
-        self.rl_speed_mode = rl_speed_mode
-        self.human_speed_mode = human_speed_mode
-        self.rl_lane_change_mode = rl_lane_change_mode
-        self.human_lane_change_mode = human_lane_change_mode
         self.sumo_binary = sumo_binary
 
 
@@ -114,7 +98,7 @@ class EnvParams:
         self.lane_change_duration = lane_change_duration
         self.shared_reward = shared_reward
         self.shared_policy = shared_policy
-        self.additional_params = additional_params
+        self.additional_params = additional_params if additional_params != None else {}
         self.max_deacc = max_deacc
         self.max_acc = max_acc
 

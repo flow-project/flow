@@ -186,6 +186,12 @@ class SumoEnvironment(gym.Env, Serializable):
         self.sumo_ids = self.vehicles.get_sumo_ids()
         self.rl_ids = self.vehicles.get_rl_ids()
 
+        # check to make sure all vehicles have been spawned
+        num_spawned_veh = len(self.traci_connection.simulation.getDepartedIDList())
+        if num_spawned_veh != self.vehicles.num_vehicles:
+            logging.error("Not enough vehicles have spawned! Bad start?")
+            exit()
+
         # dictionary of initial observations used while resetting vehicles after
         # each rollout
         self.initial_observations = dict.fromkeys(self.ids)
@@ -247,10 +253,10 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.get_x_by_id(veh_id)
 
             # set speed mode
-            self.set_speed_mode(veh_id)
+            self.traci_connection.vehicle.setSpeedMode(veh_id, self.vehicles.get_speed_mode(veh_id))
 
             # set lane change mode
-            self.set_lane_change_mode(veh_id)
+            self.traci_connection.vehicle.setLaneChangeMode(veh_id, self.vehicles.get_lane_change_mode(veh_id))
 
             # save the initial state. This is used in the _reset function
             #
@@ -612,11 +618,11 @@ class SumoEnvironment(gym.Env, Serializable):
             # set top speed
             self.traci_connection.vehicle.setMaxSpeed(veh_id, self.max_speed)
 
-            # reset speed mode
-            self.set_speed_mode(veh_id)
+            # set speed mode
+            self.traci_connection.vehicle.setSpeedMode(veh_id, self.vehicles.get_speed_mode(veh_id))
 
-            # reset lane change mode
-            self.set_lane_change_mode(veh_id)
+            # set lane change mode
+            self.traci_connection.vehicle.setLaneChangeMode(veh_id, self.vehicles.get_lane_change_mode(veh_id))
 
         self.traci_connection.simulationStep()
 
@@ -779,74 +785,6 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.traci_connection.vehicle.setRoute(
                     vehID=veh_id, edgeList=route_choices[i])
                 self.vehicles.set_route(veh_id, route_choices[i])
-
-    def set_speed_mode(self, veh_id):
-        """
-        Sets the SUMO-defined speed mode with Traci. This is used to constrain
-        acceleration actions.
-
-        The available speed modes are as follows:
-         - "no_collide" (default): Human and RL cars are preventing from
-           reaching speeds that may cause crashes (also serves as a failsafe).
-         - "aggressive": Human and RL cars are not limited by sumo with regard
-           to their accelerations, and can crash longitudinally
-
-        Parameters
-        ----------
-        veh_id: string
-            vehicle identifier
-        """
-        speed_mode_id = 1
-        if veh_id in self.rl_ids:
-            speed_mode = self.sumo_params.rl_speed_mode
-        else:
-            speed_mode = self.sumo_params.human_speed_mode
-
-        if speed_mode == "aggressive":
-            speed_mode_id = 0
-        elif speed_mode == "no_collide":
-            speed_mode_id = 1
-        else:
-            logging.error("Invalid Speed Mode!! Defaulting to no collision.")
-
-        self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode_id)
-
-    def set_lane_change_mode(self, veh_id):
-        """
-        Sets the SUMO-defined lane-change mode with Traci. This is used to
-        constrain lane-changing actions.
-
-        The available lane-changing modes are as follows:
-         - default: Human and RL cars can only safely change into lanes
-         - "strategic": Human cars make lane changes in accordance with SUMO to
-           provide speed boosts
-         - "no_lat_collide": RL cars can lane change into any space, no matter
-           how likely it is to crash
-         - "aggressive": RL cars are not limited by sumo with regard to their
-           lane-change actions, and can crash longitudinally
-
-        Parameters
-        ----------
-        veh_id: string
-            vehicle identifier
-        """
-        lc_mode_id = 256
-
-        if veh_id in self.rl_ids:
-            lc_mode = self.sumo_params.rl_lane_change_mode
-        else:
-            lc_mode = self.sumo_params.human_lane_change_mode
-
-        if lc_mode == "aggressive":
-            lc_mode_id = 0
-        elif lc_mode == "no_lat_collide":
-            lc_mode_id = 256
-        elif lc_mode == "strategic":
-            lc_mode_id = 853
-        else:
-            logging.error("Invalid Speed Mode!!")
-
-        self.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode_id)
 
     def get_x_by_id(self, veh_id):
         """
