@@ -32,13 +32,12 @@ from flow.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", human_lane_change_mode="strategic",
-                         sumo_binary="sumo-gui")
+sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 20)
+vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 20, lane_change_mode="strategic")
 
-env_params = EnvParams()
+env_params = EnvParams(additional_params={"target_velocity":20})
 
 additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40}
 net_params = NetParams(additional_params=additional_net_params)

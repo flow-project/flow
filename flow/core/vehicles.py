@@ -2,9 +2,13 @@ from flow.controllers.base_controller import SumoController
 from flow.controllers.rlcontroller import RLController
 
 import collections
-
+import logging
 
 class Vehicles:
+
+    speed_modes = {"aggressive": 0, "no_collide": 1}
+    lane_changing_modes = {"aggressive" : 0, "no_lat_collide":256, "strategic": 853, "execute_all":597}
+
     def __init__(self):
         """
         Base vehicle class used to describe the state of all vehicles in the
@@ -32,7 +36,11 @@ class Vehicles:
                      lane_change_controller=None,
                      routing_controller=None,
                      initial_speed=0,
-                     num_vehicles=1):
+                     num_vehicles=1,
+                     speed_mode = 'no_collide',
+                     custom_speed_mode = None,
+                     lane_change_mode = "no_lat_collide",
+                     custom_lane_change_mode=256):
         """
         Adds a sequence of vehicles to the list of vehicles in the network.
 
@@ -45,7 +53,7 @@ class Vehicles:
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
         lane_change_controller: tup, optional
-            1st elemnt: flow-specified lane-changer controller
+            1st element: flow-specified lane-changer controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
         routing_controller: tup, optional
@@ -56,6 +64,26 @@ class Vehicles:
             initial speed of the vehicles being added (in m/s)
         num_vehicles: int, optional
             number of vehicles of this type to be added to the network
+        speed_mode: str, optional
+            may be one of the following:
+             - "no_collide" (default): Human and RL cars are preventing from
+               reaching speeds that may cause crashes (also serves as a failsafe).
+             - "aggressive": Human and RL cars are not limited by sumo with regard
+               to their accelerations, and can crash longitudinally
+             - "custom": uses the number provided with custom_speed_mode,
+        custom_speed_mode: int, optional:
+            custom speed mode for the given vehicles. specified at:
+            http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
+        lane_change_mode: str, optional
+            - "strategic": Human cars make lane changes in accordance with SUMO to
+                provide speed boosts
+            - "no_lat_collide": Human cars will not make lane changes, RL cars can
+                lane change into any space, no matter how likely it is to crash (default)
+            - "aggressive": RL cars are not limited by sumo with regard to their
+                lane-change actions, and can crash longitudinally
+        custom_lane_change_mode: int, optional:
+            custom speed mode for the given vehicles. specified at:
+            http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
         """
         if not veh_id:
             raise ValueError("No vehicle id is specified.")
@@ -106,6 +134,27 @@ class Vehicles:
                 self.__rl_ids.append(vehID)
             else:
                 self.__controlled_ids.append(vehID)
+
+            # set the speed mode for the vehicle
+            self.__vehicles[vehID]["speed_mode_name"] = speed_mode
+            if speed_mode in Vehicles.speed_modes:
+                self.__vehicles[vehID]["speed_mode_value"] = Vehicles.speed_modes[speed_mode]
+            elif speed_mode == "custom":
+                self.__vehicles[vehID]["speed_mode_value"] = custom_speed_mode
+            else:
+                logging.error("Invalid speed mode!")
+                self.__vehicles[vehID]["speed_mode_value"] = Vehicles.speed_modes["no_collide"]
+
+            # set the lane changing mode for the vehicle
+            self.__vehicles[vehID]["lane_change_mode_name"] = lane_change_mode
+            if lane_change_mode in Vehicles.lane_changing_modes:
+                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.lane_changing_modes[lane_change_mode]
+            elif lane_change_mode == "custom":
+                self.__vehicles[vehID]["lane_change_mode_value"] = custom_lane_change_mode
+            else:
+                logging.error("Invalid lane change mode!")
+                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.speed_modes["no_lat_collide"]
+
 
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)
@@ -164,6 +213,18 @@ class Vehicles:
 
     def get_initial_speed(self, veh_id):
         return self.__vehicles[veh_id]["initial_speed"]
+
+    def get_lane_change_mode(self, veh_id):
+        return self.__vehicles[veh_id]["lane_change_mode_value"]
+
+    def get_lane_change_mode_name(self, veh_id):
+        return self.__vehicles[veh_id]["lane_change_mode_name"]
+
+    def get_speed_mode(self, veh_id):
+        return self.__vehicles[veh_id]["speed_mode_value"]
+
+    def get_speed_mode_name(self, veh_id):
+        return self.__vehicles[veh_id]["speed_mode_name"]
 
     def get_speed(self, veh_id="all"):
         """
@@ -382,3 +443,4 @@ class Vehicles:
         Return a dict of all state variables of a specific vehicle:
         """
         return self.__vehicles[veh_id]
+
