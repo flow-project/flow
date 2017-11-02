@@ -358,7 +358,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 if self.scenario.lanes > 1:
                     lc_contr = self.vehicles.get_lane_changing_controller(
                         veh_id)
-                    if lc_contr is not None:
+                    if lc_contr is not None and not lc_contr.isSumoController():
                         new_lane = lc_contr.get_action(self)
                         self.apply_lane_change([veh_id], target_lane=[new_lane])
 

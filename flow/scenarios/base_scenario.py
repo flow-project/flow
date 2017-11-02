@@ -223,6 +223,9 @@ class Scenario(Serializable):
         if self.initial_config.spacing == "gaussian_additive":
             startpositions, startlanes = \
                 self.gen_gaussian_additive_start_pos(self.initial_config, **kwargs)
+        elif self.initial_config.spacing == "uniform_random":
+            startpositions, startlanes = \
+                self.gen_uniform_random_spacing(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "gaussian":
             startpositions, startlanes = \
                 self.gen_gaussian_start_pos(self.initial_config, **kwargs)
@@ -236,6 +239,96 @@ class Scenario(Serializable):
             raise ValueError('"spacing" argument in initial_config does not contain a valid option')
 
         return startpositions, startlanes
+
+    def gen_uniform_random_spacing(self, initial_config, **kwargs):
+        """
+        Generate random start positions via uniform random distribution.
+        WARNING: this does not absolutely gaurantee that the order of
+        vehicles is preserved.
+
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see flow/core/params.py
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
+        """
+        x0 = initial_config.x0
+        # changes to x0 in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "x0" in kwargs:
+            x0 = kwargs["x0"]
+
+        bunching = initial_config.bunching
+        # changes to bunching in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "bunching" in kwargs:
+            bunching = kwargs["bunching"]
+
+        distribution_length = self.length
+        if initial_config.distribution_length is not None:
+            distribution_length = initial_config.distribution_length
+
+        startpositions = []
+        startlanes = []
+        increment = (distribution_length - bunching) * \
+            initial_config.lanes_distribution / self.vehicles.num_vehicles
+
+        x = [x0] * initial_config.lanes_distribution
+        x_start = np.array([])
+        car_count = 0
+        lane_count = 0
+        while car_count < self.vehicles.num_vehicles:
+            # collect the position and lane number of each new vehicle
+            x_start = np.append(x_start, x[lane_count])
+            startlanes.append(lane_count)
+
+            x[lane_count] = (x[lane_count] + increment) % distribution_length
+
+            # increment the car_count and lane_num
+            car_count += 1
+            lane_count += 1
+            # if the lane num exceeds the number of lanes the vehicles should
+            # be distributed on in the network, reset
+            if lane_count >= initial_config.lanes_distribution:
+                lane_count = 0
+
+        # perturb from uniform distribution
+        for i in range(len(x_start)):
+            perturb = np.random.uniform(-initial_config.scale, initial_config.scale, None)
+            x_start[i] = (x_start[i] + perturb) % distribution_length
+
+            pos = self.get_edge(x_start[i])
+
+            # ensures that vehicles are not placed in an internal junction
+            if pos[0] in dict(self.internal_edgestarts).keys():
+                # find the location of the internal edge in total_edgestarts,
+                # which has the edges ordered by position
+                edges = [tup[0] for tup in self.total_edgestarts]
+                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+
+                # take the next edge in the list, and place the car at the
+                # beginning of this edge
+                if indx_edge == len(edges)-1:
+                    next_edge_pos = self.total_edgestarts[0]
+                else:
+                    next_edge_pos = self.total_edgestarts[indx_edge+1]
+
+                x[lane_count] = next_edge_pos[1]
+                pos = (next_edge_pos[0], 0)
+
+            startpositions.append(pos)
+
+        return startpositions, startlanes
+
 
     def gen_even_start_pos(self, initial_config, **kwargs):
         """

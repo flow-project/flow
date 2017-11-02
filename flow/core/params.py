@@ -1,3 +1,5 @@
+import logging
+
 class SumoParams():
 
     def __init__(self,
@@ -228,3 +230,60 @@ class InitialConfig:
 
     def get_additional_params(self, key):
         return self.additional_params[key]
+
+class SumoLCParams:
+    def __init__(self,
+                 model="LC2013",
+                 lcStrategic=1.0,
+                 lcCooperative=1.0,
+                 lcSpeedGain=1.0,
+                 lcKeepRight=1.0,
+                 lcLookaheadLeft=2.0,
+                 lcSpeedGainRight=1.0,
+                 lcSublane=1.0,
+                 lcPushy=0,
+                 lcPushyGap=0.6,
+                 lcAssertive=1,
+                 lcImpatience=0,
+                 lcTimeToImpatience=float("inf"),
+                 lcAccelLat=1.0):
+
+        if model == "LC2013":
+            self.lc_args = {"laneChangeModel": model,
+                            "lcStrategic": str(lcStrategic),
+                            # "lcCooperative": str(lcCooperative),
+                            "lcSpeedGain": str(lcSpeedGain),
+                            "lcKeepRight": str(lcKeepRight),
+                            "lcLookaheadLeft": str(lcLookaheadLeft),
+                            "lcSpeedGainRight": str(lcSpeedGainRight)}
+        elif model == "SL2015":
+            self.lc_args = {"laneChangeModel": model,
+                            "lcStrategic": str(lcStrategic),
+                            "lcCooperative": str(lcCooperative),
+                            "lcSpeedGain": str(lcSpeedGain),
+                            "lcKeepRight": str(lcKeepRight),
+                            "lcLookaheadLeft": str(lcLookaheadLeft),
+                            "lcSpeedGainRight": str(lcSpeedGainRight),
+                            "lcSublane": str(lcSublane),
+                            "lcPushy": str(lcPushy),
+                            "lcPushyGap": str(lcPushyGap),
+                            "lcAssertive": str(lcAssertive),
+                            "lcImpatience": str(lcImpatience),
+                            "lcTimeToImpatience": str(lcTimeToImpatience),
+                            "lcAccelLat": str(lcAccelLat)}
+        else:
+            logging.error("Invalid lc model! Defaulting to LC2013")
+            self.lc_args = {"laneChangeModel": "LC2013",
+                            "lcStrategic": str(lcStrategic),
+                            "lcCooperative": str(lcCooperative),
+                            "lcSpeedGain": str(lcSpeedGain),
+                            "lcKeepRight": str(lcKeepRight),
+                            "lcLookaheadLeft": str(lcLookaheadLeft),
+                            "lcSpeedGainRight": str(lcSpeedGainRight),
+                            "lcSublane": str(lcSublane),
+                            "lcPushy": str(lcPushy),
+                            "lcPushyGap": str(lcPushyGap),
+                            "lcAssertive": str(lcAssertive),
+                            "lcImpatience": str(lcImpatience),
+                            "lcTimeToImpatience": str(lcTimeToImpatience),
+                            "lcAccelLat": str(lcAccelLat)}
