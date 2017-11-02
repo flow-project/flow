@@ -145,11 +145,6 @@ class Scenario(Serializable):
         """
         logging.info("Config file not defined, generating using generator")
 
-        # Default scenario parameters
-        # TODO: remove from generator class inputs
-        net_path = self.net_params.net_path
-        cfg_path = self.net_params.cfg_path
-
         self.generator = self.generator_class(self.net_params, self.name)
         self.generator.generate_net(self.net_params)
         cfg_name = self.generator.generate_cfg(self.net_params)
@@ -268,6 +263,10 @@ class Scenario(Serializable):
             x0 = kwargs["x0"]
 
         bunching = initial_config.bunching
+        # check if requested bunching value is not valid (negative)
+        if bunching < 0:
+            logging.warning('"bunching" cannot be negative; setting to 0')
+            bunching = 0
         # changes to bunching in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
         if "bunching" in kwargs:
@@ -275,14 +274,34 @@ class Scenario(Serializable):
 
         distribution_length = self.length
         if initial_config.distribution_length is not None:
-            distribution_length = initial_config.distribution_length
+            if initial_config.distribution_length > self.length:
+                logging.warning('"distribution_length" cannot be larger than '
+                                'the length of network; setting to max value')
+            else:
+                distribution_length = initial_config.distribution_length
+
+        if initial_config.lanes_distribution > self.lanes:
+            logging.warning('"lanes_distribution" is greater than the number '
+                            'of lanes in the network; distributing over all '
+                            'lanes instead.')
+            lanes_distribution = self.lanes
+        elif initial_config.lanes_distribution < 1:
+            logging.warning('"lanes_distribution" is too small; setting to 1')
+            lanes_distribution = 1
+        else:
+            lanes_distribution = initial_config.lanes_distribution
 
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) * \
-            initial_config.lanes_distribution / self.vehicles.num_vehicles
+        increment = (distribution_length - bunching) / np.ceil(
+            self.vehicles.num_vehicles / lanes_distribution)
 
-        x = [x0] * initial_config.lanes_distribution
+        if increment < 5:  # 5 is the length of all vehicles
+            logging.warning("distribution is too compact; replacing with tight"
+                            " (zero headway) starting positions")
+            increment = 5
+
+        x = [x0] * lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.vehicles.num_vehicles:
@@ -290,7 +309,7 @@ class Scenario(Serializable):
             pos = self.get_edge(x[lane_count])
 
             # ensures that vehicles are not placed in an internal junction
-            if pos[0] in dict(self.internal_edgestarts).keys():
+            while pos[0] in dict(self.internal_edgestarts).keys():
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
@@ -316,7 +335,7 @@ class Scenario(Serializable):
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should be
             # distributed on in the network, reset
-            if lane_count >= initial_config.lanes_distribution:
+            if lane_count >= lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes
@@ -348,6 +367,10 @@ class Scenario(Serializable):
             x0 = kwargs["x0"]
 
         bunching = initial_config.bunching
+        # check if requested bunching value is not valid (negative)
+        if bunching < 0:
+            logging.warning('"bunching" cannot be negative; setting to 0')
+            bunching = 0
         # changes to bunching in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
         if "bunching" in kwargs:
@@ -355,14 +378,34 @@ class Scenario(Serializable):
 
         distribution_length = self.length
         if initial_config.distribution_length is not None:
-            distribution_length = initial_config.distribution_length
+            if initial_config.distribution_length > self.length:
+                logging.warning('"distribution_length" cannot be larger than '
+                                'the length of network; setting to max value')
+            else:
+                distribution_length = initial_config.distribution_length
+
+        if initial_config.lanes_distribution > self.lanes:
+            logging.warning('"lanes_distribution" is greater than the number '
+                            'of lanes in the network; distributing over all '
+                            'lanes instead.')
+            lanes_distribution = self.lanes
+        elif initial_config.lanes_distribution < 1:
+            logging.warning('"lanes_distribution" is too small; setting to 1')
+            lanes_distribution = 1
+        else:
+            lanes_distribution = initial_config.lanes_distribution
 
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) * \
-            initial_config.lanes_distribution / self.vehicles.num_vehicles
+        increment = (distribution_length - bunching) / np.ceil(
+            self.vehicles.num_vehicles / lanes_distribution)
 
-        x = [x0] * initial_config.lanes_distribution
+        # if the increment is too small, bunch vehicles as close together as
+        # possible
+        if increment < 5:  # 5 is the length of all vehicles
+            return self.gen_even_start_pos(initial_config, **kwargs)
+
+        x = [x0] * lanes_distribution
         x_start = np.array([])
         car_count = 0
         lane_count = 0
@@ -378,20 +421,18 @@ class Scenario(Serializable):
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should
             # be distributed on in the network, reset
-            if lane_count >= initial_config.lanes_distribution:
+            if lane_count >= lanes_distribution:
                 lane_count = 0
 
         # perturb from uniform distribution
         for i in range(len(x_start)):
             perturb = np.random.normal(loc=0, scale=initial_config.scale)
-            perturb = min(initial_config.scale,
-                          max(-initial_config.scale, perturb))
             x_start[i] = (x_start[i] + perturb) % distribution_length
 
             pos = self.get_edge(x_start[i])
 
             # ensures that vehicles are not placed in an internal junction
-            if pos[0] in dict(self.internal_edgestarts).keys():
+            while pos[0] in dict(self.internal_edgestarts).keys():
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
@@ -439,6 +480,10 @@ class Scenario(Serializable):
             x0 = kwargs["x0"]
 
         bunching = initial_config.bunching
+        # check if requested bunching value is not valid (negative)
+        if bunching < 0:
+            logging.warning('"bunching" cannot be negative; setting to 0')
+            bunching = 0
         # changes to bunching in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
         if "bunching" in kwargs:
@@ -446,14 +491,34 @@ class Scenario(Serializable):
 
         distribution_length = self.length
         if initial_config.distribution_length is not None:
-            distribution_length = initial_config.distribution_length
+            if initial_config.distribution_length > self.length:
+                logging.warning('"distribution_length" cannot be larger than '
+                                'the length of network; setting to max value')
+            else:
+                distribution_length = initial_config.distribution_length
+
+        if initial_config.lanes_distribution > self.lanes:
+            logging.warning('"lanes_distribution" is greater than the number '
+                            'of lanes in the network; distributing over all '
+                            'lanes instead.')
+            lanes_distribution = self.lanes
+        elif initial_config.lanes_distribution < 1:
+            logging.warning('"lanes_distribution" is too small; setting to 1')
+            lanes_distribution = 1
+        else:
+            lanes_distribution = initial_config.lanes_distribution
 
         startpositions = []
         startlanes = []
-        mean = (distribution_length - bunching) * \
-            initial_config.lanes_distribution / self.vehicles.num_vehicles
+        mean = (distribution_length - bunching) / np.ceil(
+            self.vehicles.num_vehicles / lanes_distribution)
 
-        x = [x0] * initial_config.lanes_distribution
+        # if the mean (increment) is too small, bunch vehicles as close together
+        # as possible
+        if mean < 5:  # 5 is the length of all vehicles
+            return self.gen_even_start_pos(initial_config, **kwargs)
+
+        x = [x0] * lanes_distribution
         car_count = 0
         lane_count = 0
         while car_count < self.vehicles.num_vehicles:
@@ -461,7 +526,7 @@ class Scenario(Serializable):
             pos = self.get_edge(x[lane_count])
 
             # ensures that vehicles are not placed in an internal junction
-            if pos[0] in dict(self.internal_edgestarts).keys():
+            while pos[0] in dict(self.internal_edgestarts).keys():
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
@@ -481,7 +546,13 @@ class Scenario(Serializable):
             startpositions.append(pos)
             startlanes.append(lane_count)
 
-            increment = np.random.normal(scale=mean / initial_config.downscale, loc=mean)
+            # calculate the increment given the mean, and ensure that the
+            # increment is never too large or too small (between 0 and the
+            # length of the network)
+            increment = np.clip(
+                np.random.normal(scale=mean/initial_config.downscale, loc=mean),
+                a_min=0, a_max=self.length
+            )
 
             x[lane_count] = (x[lane_count] + increment) % self.length
 
@@ -490,7 +561,7 @@ class Scenario(Serializable):
             lane_count += 1
             # if the lane num exceeds the number of lanes the vehicles should
             # be distributed on in the network, reset
-            if lane_count >= initial_config.lanes_distribution:
+            if lane_count >= lanes_distribution:
                 lane_count = 0
 
         return startpositions, startlanes

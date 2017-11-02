@@ -92,25 +92,30 @@ class BaseController:
             the requested action if it does not lead to a crash; and a stopping
             action otherwise
         """
-        # if there is only one vehicle in the environment, all actions are safe
-        if len(env.vehicles) == 1:
+        # if there is only one vehicle in the network, all actions are safe
+        if env.vehicles.num_vehicles == 1:
             return action
 
-        lead_id = env.vehicles[self.veh_id]["leader"]
+        lead_id = env.vehicles.get_leader(self.veh_id)
 
         # if there is no other vehicle in the current lane, all actions are safe
         if lead_id is None:
             return action
 
-        this_vel = env.vehicles[self.veh_id]['speed']
+        this_vel = env.vehicles.get_speed(self.veh_id)
         time_step = env.time_step
         next_vel = this_vel + action * time_step
-        h = env.vehicles[self.veh_id]["headway"]
+        h = env.vehicles.get_headway(self.veh_id)
 
         if next_vel > 0:
             if h < time_step * next_vel + this_vel * 1e-3:
+                # if the vehicle will crash into the vehicle ahead of it in the
+                # next time step (assuming the vehicle ahead of it is not
+                # moving), then stop immediately
                 return -this_vel / time_step
             else:
+                # if the vehicle is not in danger of crashing, continue with the
+                # requested action
                 return action
         else:
             return action
@@ -133,13 +138,13 @@ class BaseController:
         safe_action: float
             the requested action clipped by the safe velocity
         """
-
-        if len(env.vehicles) == 1:
+        if env.vehicles.num_vehicles == 1:
+            # if there is only one vehicle in the network, all actions are safe
             return action
         else:
             safe_velocity = self.safe_velocity(env)
 
-            this_vel = env.vehicles[self.veh_id]['speed']
+            this_vel = env.vehicles.get_speed(self.veh_id)
             time_step = env.time_step
 
             if this_vel + action * time_step > safe_velocity:
@@ -149,9 +154,9 @@ class BaseController:
 
     def safe_velocity(self, env):
         """
-        Finds maximum velocity such that if the lead vehicle breaks
-        with max deceleration, we can bring the following vehicle to rest
-        at the point at which the headway is zero.
+        Finds maximum velocity such that if the lead vehicle were to stop
+        entirely, we can bring the following vehicle to rest at the point at
+        which the headway is zero.
 
         Parameters
         ----------
@@ -165,31 +170,14 @@ class BaseController:
             maximum safe velocity given a maximum deceleration and delay in
             performing the breaking action
         """
-        lead_id = env.vehicles[self.veh_id]["leader"]
+        lead_id = env.vehicles.get_leader(self.veh_id)
+        lead_vel = env.vehicles.get_speed(lead_id)
+        this_vel = env.vehicles.get_speed(self.veh_id)
 
-        lead_pos = env.vehicles[lead_id]["absolute_position"]
-        lead_vel = env.vehicles[lead_id]['speed']
-        lead_length = env.vehicles[lead_id]['length']
+        h = env.vehicles.get_headway(self.veh_id)
+        dv = lead_vel - this_vel
 
-        this_pos = env.vehicles[self.veh_id]["absolute_position"]
-
-        # need to account for the position being reset around the length
-        self.max_deaccel = np.abs(self.max_deaccel)
-        if lead_pos > this_pos:
-            dist = lead_pos - (this_pos + lead_length)
-        else:
-            loop_length = env.scenario.net_params["length"]
-            dist = (this_pos + lead_length) - (lead_pos + loop_length)
-
-        d = dist - np.power((lead_vel-self.max_deaccel*env.time_step), 2)\
-            / (2*self.max_deaccel)
-
-        if -2*d+self.max_deaccel*self.delay**2 < 0:
-            v_safe = 0
-        else:
-            v_safe = \
-                (-self.max_deaccel*self.delay + np.sqrt(self.max_deaccel) *
-                 np.sqrt(-2*d+self.max_deaccel*self.delay**2))
+        v_safe = 2 * h / env.time_step + dv - this_vel * (2 * self.delay)
 
         return v_safe
 
