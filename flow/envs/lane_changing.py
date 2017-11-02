@@ -3,6 +3,7 @@ from flow.core import rewards
 from flow.controllers.car_following_models import *
 
 from gym.spaces.box import Box
+from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 import numpy as np
 
@@ -31,6 +32,7 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
 
         lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
         ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
+
         return Box(np.array(lb), np.array(ub))
 
     @property
@@ -94,6 +96,7 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+        # sorted_rl_ids = self.rl_ids
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
