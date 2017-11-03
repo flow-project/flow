@@ -20,8 +20,8 @@ class BaseLaneChangeController:
 
 
 class SumoLaneChangeController(BaseLaneChangeController):
-    def __init__(self, vehID):
-        super().__init__(vehID)
+    def __init__(self, veh_id):
+        super().__init__(veh_id)
         self.SumoController = True
 
 class StaticLaneChanger(BaseLaneChangeController):

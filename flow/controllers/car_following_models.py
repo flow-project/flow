@@ -23,7 +23,8 @@ import numpy as np
 class CFMController(BaseController):
 
     def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
-                 accel_max=20, decel_max=-5, tau=0.5, dt=0.1, noise=0):
+                 accel_max=20, decel_max=-5, tau=0.5, dt=0.1, noise=0,
+                 fail_safe=None):
         """
         Instantiates a CFM controller
         
@@ -51,9 +52,12 @@ class CFMController(BaseController):
             timestep (default: 0.1)
         noise: float, optional
             std dev of normal perturbation to the acceleration (default: 0)
+        fail_safe: str, optional
+            type of flow-imposed failsafe the vehicle should posses, defaults
+            to no failsafe (None)
         """
         controller_params = {"delay": tau/dt, "max_deaccel": decel_max,
-                             "noise": noise}
+                             "noise": noise, "fail_safe": fail_safe}
         BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.k_d = k_d
@@ -91,7 +95,8 @@ class CFMController(BaseController):
 class BCMController(BaseController):
 
     def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
-                 accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0):
+                 accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0,
+                 fail_safe=None):
         """
         Instantiates a Bilateral car-following model controller. Looks ahead
         and behind.
@@ -120,9 +125,12 @@ class BCMController(BaseController):
             timestep (default: 0.1)
         noise: float, optional
             std dev of normal perturbation to the acceleration (default: 0)
+        fail_safe: str, optional
+            type of flow-imposed failsafe the vehicle should posses, defaults
+            to no failsafe (None)
         """
         controller_params = {"delay": tau / dt, "max_deaccel": decel_max,
-                             "noise": noise}
+                             "noise": noise, "fail_safe": fail_safe}
         BaseController.__init__(self, veh_id, controller_params)
         self.veh_id = veh_id
         self.k_d = k_d
@@ -172,7 +180,8 @@ class BCMController(BaseController):
 class OVMController(BaseController):
 
     def __init__(self, veh_id, alpha=1, beta=1, h_st=2, h_go=15, v_max=30,
-                 accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0):
+                 accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0,
+                 fail_safe=None):
         """
         Instantiates an Optimal Vehicle Model controller.
 
@@ -202,9 +211,12 @@ class OVMController(BaseController):
             timestep (default: 0.1)
         noise: float, optional
             std dev of normal perturbation to the acceleration (default: 0)
+        fail_safe: str, optional
+            type of flow-imposed failsafe the vehicle should posses, defaults
+            to no failsafe (None)
         """
         controller_params = {"delay": tau/dt, "max_deaccel": decel_max,
-                             "noise": noise}
+                             "noise": noise, "fail_safe": fail_safe}
         BaseController.__init__(self, veh_id, controller_params)
         self.accel_queue = collections.deque()
         self.decel_max = decel_max
@@ -254,7 +266,8 @@ class OVMController(BaseController):
 class LinearOVM(BaseController):
 
     def __init__(self, veh_id, v_max=30, accel_max=15, decel_max=-5,
-                 adaptation=0.65, h_st=5, tau=0.5, dt=0.1, noise=0):
+                 adaptation=0.65, h_st=5, tau=0.5, dt=0.1, noise=0,
+                 fail_safe=None):
         """
         Instantiates a Linear OVM controller
 
@@ -278,9 +291,12 @@ class LinearOVM(BaseController):
             timestep (default: 0.1)
         noise: float, optional
             std dev of normal perturbation to the acceleration (default: 0)
+        fail_safe: str, optional
+            type of flow-imposed failsafe the vehicle should posses, defaults
+            to no failsafe (None)
         """
         controller_params = {"delay": tau / dt, "max_deaccel": decel_max,
-                             "noise": noise}
+                             "noise": noise, "fail_safe": fail_safe}
         BaseController.__init__(self, veh_id, controller_params)
         self.accel_queue = collections.deque()
         self.decel_max = decel_max
@@ -324,7 +340,7 @@ class LinearOVM(BaseController):
 class IDMController(BaseController):
 
     def __init__(self, veh_id, v0=30, T=1, a=1, b=1.5, delta=4, s0=2, s1=0,
-                 decel_max=-5, dt=0.1, noise=0):
+                 decel_max=-5, dt=0.1, noise=0, fail_safe=None):
         """
         Instantiates an Intelligent Driver Model (IDM) controller
 
@@ -352,10 +368,13 @@ class IDMController(BaseController):
             timestep, in s (default: 0.1)
         noise: float, optional
             std dev of normal perturbation to the acceleration (default: 0)
+        fail_safe: str, optional
+            type of flow-imposed failsafe the vehicle should posses, defaults
+            to no failsafe (None)
         """
         tau = T  # the time delay is taken to be the safe time headway
         controller_params = {"delay": tau / dt, "max_deaccel": decel_max,
-                             "noise": noise}
+                             "noise": noise, "fail_safe": fail_safe}
         BaseController.__init__(self, veh_id, controller_params)
         self.v0 = v0
         self.T = T
@@ -391,3 +410,11 @@ class IDMController(BaseController):
 
     def reset_delay(self, env):
         pass
+
+class SumoCarFollowingController:
+
+    def __init__(self, veh_id):
+        self.sumo_controller = True
+
+    def get_action(self, env):
+        return None

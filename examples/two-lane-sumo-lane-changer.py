@@ -24,6 +24,7 @@ import logging
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.controllers.routing_controllers import *
+from flow.controllers.lane_change_controllers import *
 from flow.controllers.car_following_models import *
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.loop.gen import CircleGenerator
@@ -44,7 +45,7 @@ net_params = NetParams(additional_params=additional_net_params)
 
 initial_config = InitialConfig()
 
-scenario = LoopScenario("single-lane-one-contr", CircleGenerator, vehicles, net_params,
+scenario = LoopScenario("two-lane-one-contr", CircleGenerator, vehicles, net_params,
                         initial_config)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)

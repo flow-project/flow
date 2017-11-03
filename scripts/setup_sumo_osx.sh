@@ -11,7 +11,7 @@ mkdir -p $1
 echo "Temporarily changing directories"
 pushd $1
 # TODO update with nightly build
-svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@25706 > /dev/null
+svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@26784
 pushd sumo
 
 echo "Patching SUMO for flow compatibility"

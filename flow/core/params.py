@@ -63,7 +63,6 @@ class SumoParams():
 
 class EnvParams:
     def __init__(self,
-                 longitudinal_fail_safe='None',
                  max_speed=55.0,
                  lane_change_duration=None,
                  shared_reward=False,
@@ -95,7 +94,6 @@ class EnvParams:
             Specify additional environment params for a specific environment
             configuration
         """
-        self.fail_safe = longitudinal_fail_safe
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
         self.shared_reward = shared_reward
@@ -231,7 +229,56 @@ class InitialConfig:
     def get_additional_params(self, key):
         return self.additional_params[key]
 
-class SumoLCParams:
+class SumoCarFollowingParams:
+    def __init__(self,
+                 accel=2.6,
+                 decel=4.5,
+                 sigma=0.5,
+                 tau=1.0,
+                 minGap=1.0,
+                 maxSpeed=30,
+                 speedFactor=1.0,
+                 speedDev=0.0,
+                 impatience=0.0,
+                 carFollowModel="IDM"):
+        """
+        Base class for sumo-controlled acceleration behavior.
+
+        Attributes
+        ----------
+        accel: float
+        decel: float
+        sigma: float
+        tau: float
+        minGap: float
+        maxSpeed: float
+        speedFactor: float
+        speedDev: float
+        impatience: float
+        carFollowModel: str
+        laneChangeModel: str
+
+        Note
+        ----
+        For a description of all params, see:
+        http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        """
+
+        # create a controller_params dict with all the specified parameters
+        self.controller_params = {
+            "accel": accel,
+            "decel": decel,
+            "sigma": sigma,
+            "tau": tau,
+            "minGap": minGap,
+            "maxSpeed": maxSpeed,
+            "speedFactor": speedFactor,
+            "speedDev": speedDev,
+            "impatience": impatience,
+            "carFollowModel": carFollowModel,
+        }
+
+class SumoLaneChangeParams:
     def __init__(self,
                  model="LC2013",
                  lcStrategic=1.0,
@@ -249,15 +296,16 @@ class SumoLCParams:
                  lcAccelLat=1.0):
 
         if model == "LC2013":
-            self.lc_args = {"laneChangeModel": model,
+            self.controller_params = {"laneChangeModel": model,
                             "lcStrategic": str(lcStrategic),
-                            # "lcCooperative": str(lcCooperative),
+                            "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
                             "lcKeepRight": str(lcKeepRight),
                             "lcLookaheadLeft": str(lcLookaheadLeft),
-                            "lcSpeedGainRight": str(lcSpeedGainRight)}
+                            "lcSpeedGainRight": str(lcSpeedGainRight)
+                            }
         elif model == "SL2015":
-            self.lc_args = {"laneChangeModel": model,
+            self.controller_params = {"laneChangeModel": model,
                             "lcStrategic": str(lcStrategic),
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
@@ -270,10 +318,11 @@ class SumoLCParams:
                             "lcAssertive": str(lcAssertive),
                             "lcImpatience": str(lcImpatience),
                             "lcTimeToImpatience": str(lcTimeToImpatience),
-                            "lcAccelLat": str(lcAccelLat)}
+                            "lcAccelLat": str(lcAccelLat)
+                            }
         else:
             logging.error("Invalid lc model! Defaulting to LC2013")
-            self.lc_args = {"laneChangeModel": "LC2013",
+            self.controller_params = {"laneChangeModel": model,
                             "lcStrategic": str(lcStrategic),
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
