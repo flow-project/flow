@@ -410,3 +410,11 @@ class IDMController(BaseController):
 
     def reset_delay(self, env):
         pass
+
+class SumoCarFollowingController:
+
+    def __init__(self, veh_id):
+        self.sumo_controller = True
+
+    def get_action(self, env):
+        return None

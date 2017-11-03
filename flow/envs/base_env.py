@@ -202,7 +202,7 @@ class SumoEnvironment(gym.Env, Serializable):
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for i in range(self.vehicles.num_types):
-            self.colors[self.vehicles.types[i]] = \
+            self.colors[self.vehicles.types[i][0]] = \
                 COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
@@ -330,9 +330,10 @@ class SumoEnvironment(gym.Env, Serializable):
                 else:
                     if self.scenario.lanes > 1:
                         lane_flag = 1
-
-                if self.vehicles.get_lane_changing_controller(veh_id) \
+                if self.vehicles.get_lane_changing_controller(veh_id)\
+                    and not self.vehicles.get_lane_changing_controller(veh_id).isSumoController()\
                         is not None and lane_flag:
+
                     new_lane = \
                         self.vehicles.get_lane_changing_controller(
                             veh_id).get_action(self)
@@ -342,13 +343,15 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # perform (optionally) lane change actions for sumo-controlled
         # human-driven vehicles
+        # this does the exact same thing as the lane changing action in the previous loop
+        # other than use ia lane_flag
         if len(self.sumo_ids) > 0:
             for veh_id in self.sumo_ids:
                 # lane changing action
                 if self.scenario.lanes > 1:
                     lc_contr = self.vehicles.get_lane_changing_controller(
                         veh_id)
-                    if lc_contr is not None:
+                    if lc_contr is not None and not lc_contr.isSumoController():
                         new_lane = lc_contr.get_action(self)
                         self.apply_lane_change([veh_id], target_lane=[new_lane])
 
@@ -460,7 +463,7 @@ class SumoEnvironment(gym.Env, Serializable):
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for i in range(self.vehicles.num_types):
-            self.colors[self.vehicles.types[i]] = \
+            self.colors[self.vehicles.types[i][0]] = \
                 COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
