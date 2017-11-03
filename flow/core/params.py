@@ -288,11 +288,11 @@ class SumoLaneChangeParams:
                  lcLookaheadLeft=2.0,
                  lcSpeedGainRight=1.0,
                  lcSublane=1.0,
-                 lcPushy=0,
+                 lcPushy=0.0,
                  lcPushyGap=0.6,
-                 lcAssertive=1,
-                 lcImpatience=0,
-                 lcTimeToImpatience=float("inf"),
+                 lcAssertive=1.0,
+                 lcImpatience=0.0,
+                 # lcTimeToImpatience=float("inf"),
                  lcAccelLat=1.0):
 
         if model == "LC2013":
@@ -301,8 +301,8 @@ class SumoLaneChangeParams:
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
                             "lcKeepRight": str(lcKeepRight),
-                            "lcLookaheadLeft": str(lcLookaheadLeft),
-                            "lcSpeedGainRight": str(lcSpeedGainRight)
+                            # "lcLookaheadLeft": str(lcLookaheadLeft),
+                            # "lcSpeedGainRight": str(lcSpeedGainRight)
                             }
         elif model == "SL2015":
             self.controller_params = {"laneChangeModel": model,
@@ -310,15 +310,15 @@ class SumoLaneChangeParams:
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
                             "lcKeepRight": str(lcKeepRight),
-                            "lcLookaheadLeft": str(lcLookaheadLeft),
-                            "lcSpeedGainRight": str(lcSpeedGainRight),
+                            # "lcLookaheadLeft": str(lcLookaheadLeft),
+                            # "lcSpeedGainRight": str(lcSpeedGainRight),
                             "lcSublane": str(lcSublane),
                             "lcPushy": str(lcPushy),
-                            "lcPushyGap": str(lcPushyGap),
+                            # "lcPushyGap": str(lcPushyGap),
                             "lcAssertive": str(lcAssertive),
                             "lcImpatience": str(lcImpatience),
-                            "lcTimeToImpatience": str(lcTimeToImpatience),
-                            "lcAccelLat": str(lcAccelLat)
+                            # "lcTimeToImpatience": str(lcTimeToImpatience),
+                            # "lcAccelLat": str(lcAccelLat)
                             }
         else:
             logging.error("Invalid lc model! Defaulting to LC2013")
@@ -327,8 +327,8 @@ class SumoLaneChangeParams:
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
                             "lcKeepRight": str(lcKeepRight),
-                            "lcLookaheadLeft": str(lcLookaheadLeft),
-                            "lcSpeedGainRight": str(lcSpeedGainRight),
+                            # "lcLookaheadLeft": str(lcLookaheadLeft),
+                            # "lcSpeedGainRight": str(lcSpeedGainRight),
                             "lcSublane": str(lcSublane),
                             "lcPushy": str(lcPushy),
                             "lcPushyGap": str(lcPushyGap),

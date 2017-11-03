@@ -8,5 +8,5 @@ class SheppherdingEnv(SimpleAccelerationEnvironment):
 
     def additional_command(self):
         if self.timer % 10 == 0:
-            print("aggressive vehicle moving at %+.2f" % self.vehicles.get_speed("aggressive-human_0"))
-            print("human vehicle moving at %+.2f" % self.vehicles.get_speed("human_0"))
+            print(self.vehicles.get_lane("aggressive-human_0"))
+            # print("human vehicle moving at %+.2f" % self.vehicles.get_speed("human_0"))

@@ -145,7 +145,9 @@ class SumoEnvironment(gym.Env, Serializable):
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step),
-                     "--step-method.ballistic", "true"]
+                     "--step-method.ballistic", "true",
+                     "--lanechange.overtake-right", "true",
+                     "--lateral-resolution", "1.0"]
         logging.info("Traci on port: ", self.port)
         if self.emission_out:
             sumo_call.append("--emission-output")
