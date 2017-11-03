@@ -36,6 +36,7 @@ class BaseController:
         self.d = 0
         self.veh_id = veh_id
         self.controller_params = controller_params
+        self.sumo_controller = False
 
         # magnitude of gaussian noise
         if "noise" not in controller_params:
@@ -58,6 +59,9 @@ class BaseController:
         # max deaccel should always be a positive
         self.max_deaccel = np.abs(controller_params['max_deaccel'])
         self.acc_queue = collections.deque()
+
+    def uses_sumo(self):
+        return self.sumo_controller
 
     def reset_delay(self, env):
         raise NotImplementedError
@@ -198,59 +202,3 @@ class BaseController:
 
         return v_safe
 
-
-class SumoController:
-
-    def __init__(self,
-                 veh_id,
-                 accel=2.6,
-                 decel=4.5,
-                 sigma=0.5,
-                 tau=0.5,
-                 minGap=1.0,
-                 maxSpeed=30,
-                 speedFactor=1.0,
-                 speedDev=0.0,
-                 impatience=0.0,
-                 carFollowModel="IDM",
-                 laneChangeModel="LC2013"):
-        """
-        Base class for sumo-controlled acceleration behavior.
-
-        Attributes
-        ----------
-        veh_id: str
-            unique vehicle identifier
-        accel: float
-        decel: float
-        sigma: float
-        tau: float
-        minGap: float
-        maxSpeed: float
-        speedFactor: float
-        speedDev: float
-        impatience: float
-        carFollowModel: str
-        laneChangeModel: str
-
-        Note
-        ----
-        For a description of all params, see:
-        http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-        """
-        self.veh_id = veh_id
-
-        # create a controller_params dict with all the specified parameters
-        self.controller_params = {
-            "accel": accel,
-            "decel": decel,
-            "sigma": sigma,
-            "tau": tau,
-            "minGap": minGap,
-            "maxSpeed": maxSpeed,
-            "speedFactor": speedFactor,
-            "speedDev": speedDev,
-            "impatience": impatience,
-            "carFollowModel": carFollowModel,
-            "laneChangeModel": laneChangeModel,
-        }

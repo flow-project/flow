@@ -4,7 +4,7 @@ Base class for generating transportation networks.
 from flow.core.util import makexml
 from flow.core.util import printxml
 from flow.core.util import ensure_dir
-from flow.controllers.base_controller import SumoController
+from flow.controllers.car_following_models import SumoCarFollowingController
 
 import sys
 import subprocess
@@ -200,27 +200,9 @@ class Generator(Serializable):
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
             # add the types of vehicles to the xml file
-            for veh_type in vehicles.types:
-                # find a vehicle with this type, and collect its acceleration
-                # controller
-                for veh_id in vehicles.get_ids():
-                    if vehicles.get_state(veh_id, "type") == veh_type:
-                        acc_controller = vehicles.get_acc_controller(veh_id)
-                        break
-
-                # check if the vehicle type uses SumoController
-                if type(acc_controller) == SumoController:
-                    # adopt the parameters specified by the SumoController
-                    contr_params = acc_controller.controller_params
-                    for key in contr_params.keys():
-                        contr_params[key] = str(contr_params[key])
-
-                    routes.append(E("vType", id=veh_type, **contr_params))
-                else:
-                    # default vehicle parameters, intended to provide the user
-                    # with a high level of control over the vehicle
-                    routes.append(E("vType", id=veh_type, minGap="0",
-                                    accel="100", decel="100"))
+            for type, type_params in vehicles.types:
+                type_params_str = {key:str(type_params[key]) for key in type_params}
+                routes.append(E("vType", id=type, **type_params_str))
 
             self.vehicle_ids = vehicles.get_ids()
 

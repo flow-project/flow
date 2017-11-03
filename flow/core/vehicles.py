@@ -1,11 +1,13 @@
-from flow.controllers.base_controller import SumoController
+from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.rlcontroller import RLController
-
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
 import collections
 import logging
 
 from copy import deepcopy
 import traci.constants as tc
+
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 
 class Vehicles:
@@ -37,14 +39,16 @@ class Vehicles:
     def add_vehicles(self,
                      veh_id,
                      acceleration_controller,
-                     lane_change_controller=None,
+                     lane_change_controller,
                      routing_controller=None,
                      initial_speed=0,
                      num_vehicles=1,
                      speed_mode = 'no_collide',
                      custom_speed_mode = None,
                      lane_change_mode = "no_lat_collide",
-                     custom_lane_change_mode=256):
+                     custom_lane_change_mode=256,
+                     sumo_car_following_params=None,
+                     sumo_lc_params=None):
         """
         Adds a sequence of vehicles to the list of vehicles in the network.
 
@@ -88,12 +92,35 @@ class Vehicles:
         custom_lane_change_mode: int, optional:
             custom speed mode for the given vehicles. specified at:
             http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
+        sumo_car_following_params:
+            Params object specifying attributes for Sumo CFM.
+        sumo_lc_params:
+            Params object specifying attributes for Sumo lane changing model.
         """
         if not veh_id:
             raise ValueError("No vehicle id is specified.")
 
         if not acceleration_controller:
             raise ValueError("No acceleration controller is specified.")
+
+        if not lane_change_controller:
+            raise ValueError("No lane change controller is specified.")
+
+        type_params = {}
+
+        if acceleration_controller[0] == SumoCarFollowingController:
+            if sumo_car_following_params ==None:
+                sumo_car_following_params = SumoCarFollowingParams()
+            type_params.update(sumo_car_following_params.controller_params)
+            print(sumo_car_following_params.controller_params)
+
+        if lane_change_controller[0] == SumoLaneChangeController:
+            if sumo_lc_params == None:
+                sumo_lc_params = SumoLaneChangeParams()
+            type_params.update(sumo_lc_params.controller_params)
+            print(sumo_lc_params.controller_params)
+
+        print(type_params)
 
         for i in range(num_vehicles):
             vehID = veh_id + '_%d' % i
@@ -132,7 +159,7 @@ class Vehicles:
 
             # determine the type of vehicle, and append it to its respective
             # id list
-            if acceleration_controller[0] == SumoController:
+            if acceleration_controller[0] == SumoCarFollowingController:
                 self.__sumo_ids.append(vehID)
             elif acceleration_controller[0] == RLController:
                 self.__rl_ids.append(vehID)
@@ -170,7 +197,7 @@ class Vehicles:
         # increase the number of unique types of vehicles in the network, and
         # add the type to the list of types
         self.num_types += 1
-        self.types.append(veh_id)
+        self.types.append((veh_id, type_params))
 
     def set_sumo_observations(self, sumo_observations, env):
 
