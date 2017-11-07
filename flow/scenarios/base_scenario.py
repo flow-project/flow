@@ -282,7 +282,8 @@ class Scenario(Serializable):
         increment = (distribution_length - bunching) * \
             initial_config.lanes_distribution / self.vehicles.num_vehicles
 
-        x = [x0] * initial_config.lanes_distribution
+        x = np.random.uniform(0, x0, initial_config.lanes_distribution)
+        print(x)
         x_start = np.array([])
         car_count = 0
         lane_count = 0
