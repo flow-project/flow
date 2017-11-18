@@ -174,6 +174,7 @@ class InitialConfig:
                  x0=0,
                  bunching=0,
                  lanes_distribution=1,
+                 starting_lane=0,
                  distribution_length=None,
                  positions=None,
                  lanes=None,
@@ -221,6 +222,7 @@ class InitialConfig:
         self.distribution_length = distribution_length
         self.positions = positions
         self.lanes = lanes
+        self.starting_lane = starting_lane
         if additional_params is None:
             self.additional_params = dict()
         else:
@@ -275,7 +277,7 @@ class SumoCarFollowingParams:
             "speedFactor": speedFactor,
             "speedDev": speedDev,
             "impatience": impatience,
-            "carFollowModel": carFollowModel,
+            "carFollowModel": carFollowModel
         }
 
 class SumoLaneChangeParams:

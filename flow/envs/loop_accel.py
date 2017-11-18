@@ -77,6 +77,24 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         return np.array([[scaled_vel[i], scaled_pos[i]]
                          for i in range(len(self.sorted_ids))])
 
+    def get_leader_blocker_headways(self, ego_id):
+        """
+        returns a list of headways for each lane
+        :param ego_id: the ego vehicle
+        :return: array of headways
+        """
+        curr_pos = self.get_x_by_id(ego_id)
+        min_headways = [float("inf")] * self.scenario.lanes
+        min_reverse_headways = [float("inf")] * self.scenario.lanes
+
+        for veh_id in self.ids:
+            if veh_id != ego_id:
+                lane = self.vehicles.get_lane(veh_id)
+                min_headways[lane] = min((self.get_x_by_id(veh_id) - curr_pos) % self.scenario.length, min_headways[lane])
+                min_reverse_headways[lane] = min((curr_pos - self.get_x_by_id(veh_id)) % self.scenario.length, min_reverse_headways[lane])
+
+        # print(min_headways, min_reverse_headways)
+        return min_headways, min_reverse_headways
 
 class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
     """
@@ -138,7 +156,6 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
             obs_arr.append(tup)
 
         return obs_arr
-
 
 class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
     """

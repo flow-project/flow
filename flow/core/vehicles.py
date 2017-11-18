@@ -109,18 +109,14 @@ class Vehicles:
         type_params = {}
 
         if acceleration_controller[0] == SumoCarFollowingController:
-            if sumo_car_following_params ==None:
+            if sumo_car_following_params == None:
                 sumo_car_following_params = SumoCarFollowingParams()
             type_params.update(sumo_car_following_params.controller_params)
-            print(sumo_car_following_params.controller_params)
 
         if lane_change_controller[0] == SumoLaneChangeController:
             if sumo_lc_params == None:
                 sumo_lc_params = SumoLaneChangeParams()
             type_params.update(sumo_lc_params.controller_params)
-            print(sumo_lc_params.controller_params)
-
-        print(type_params)
 
         for i in range(num_vehicles):
             vehID = veh_id + '_%d' % i
@@ -239,6 +235,12 @@ class Vehicles:
                 except ValueError or TypeError:
                     self.set_absolute_position(veh_id, -1001)
 
+                # store previous speed
+                self.__vehicles[veh_id]["prev_speed"] = self.__sumo_observations[veh_id][tc.VAR_SPEED]
+
+                self.__vehicles[veh_id]["accel"] = (sumo_observations[veh_id][tc.VAR_SPEED] -
+                                                    self.__sumo_observations[veh_id][tc.VAR_SPEED]) / env.time_step
+
                 # update the "headway", "leader", and "follower" variables
                 try:
                     headway = sumo_observations[veh_id][tc.VAR_LEADER]
@@ -260,6 +262,7 @@ class Vehicles:
 
             # update the sumo observations variable
             self.__sumo_observations = deepcopy(sumo_observations)
+
 
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
@@ -325,6 +328,30 @@ class Vehicles:
         except KeyError:
             # if the vehicle does not exist, return an error value (-1001)
             return -1001
+
+    def get_accel(self, veh_id="all"):
+        """
+        Return the speed of the specified vehicle at the current time step.
+
+        Accepts as input:
+        - id of a specific vehicle
+        - list of vehicle ids
+        - "all", in which case a list of all the specified state is provided
+        """
+        # if a list of vehicle ids are requested, call the function for each
+        # requested vehicle id
+        if not isinstance(veh_id, str):
+            return [self.get_accel(vehID) for vehID in veh_id]
+        elif veh_id == "all":
+            return [self.get_accel(vehID) for vehID in self.__ids]
+
+        # perform the value retrieval for a specific vehicle
+        try:
+            return self.__vehicles[veh_id]["accel"]
+        except KeyError:
+            # if the vehicle does not exist, return an error value (-1001)
+            return -1001
+
 
     def get_absolute_position(self, veh_id="all"):
         """

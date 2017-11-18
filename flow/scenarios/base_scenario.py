@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import math
 from collections import OrderedDict
 
 from rllab.core.serializable import Serializable
@@ -234,11 +235,15 @@ class Scenario(Serializable):
                 self.gen_even_start_pos(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "custom":
             startpositions, startlanes = \
-                self.gen_custom_start_pos(self.initial_config, **kwargs)
+                self.get_uniform_in_lane(self.initial_config, **kwargs)
+        elif self.initial_config.spacing == "gen_no_overlap_lane_starts":
+            startpositions, startlanes = \
+                self.gen_no_overlap_lane_starts(self.initial_config, **kwargs)
         else:
             raise ValueError('"spacing" argument in initial_config does not contain a valid option')
 
         return startpositions, startlanes
+
 
     def gen_uniform_random_spacing(self, initial_config, **kwargs):
         """
@@ -283,7 +288,6 @@ class Scenario(Serializable):
             initial_config.lanes_distribution / self.vehicles.num_vehicles
 
         x = np.random.uniform(0, x0, initial_config.lanes_distribution)
-        print(x)
         x_start = np.array([])
         car_count = 0
         lane_count = 0
@@ -329,7 +333,6 @@ class Scenario(Serializable):
             startpositions.append(pos)
 
         return startpositions, startlanes
-
 
     def gen_even_start_pos(self, initial_config, **kwargs):
         """
@@ -431,6 +434,87 @@ class Scenario(Serializable):
             # distributed on in the network, reset
             if lane_count >= lanes_distribution:
                 lane_count = 0
+
+        return startpositions, startlanes
+
+
+    def get_uniform_in_lane(self, initial_config, **kwargs):
+        """
+        Generates start positions that are uniformly spaced across the network.
+
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see flow/core/params.py
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
+        """
+        x0 = initial_config.x0
+        # changes to x0 in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "x0" in kwargs:
+            x0 = kwargs["x0"]
+
+        bunching = initial_config.bunching
+        # check if requested bunching value is not valid (negative)
+        if bunching < 0:
+            logging.warning('"bunching" cannot be negative; setting to 0')
+            bunching = 0
+        # changes to bunching in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "bunching" in kwargs:
+            bunching = kwargs["bunching"]
+
+        distribution_length = self.length
+        if initial_config.distribution_length is not None:
+            if initial_config.distribution_length > self.length:
+                logging.warning('"distribution_length" cannot be larger than '
+                                'the length of network; setting to max value')
+            else:
+                distribution_length = initial_config.distribution_length
+
+        if initial_config.lanes_distribution > self.lanes:
+            logging.warning('"lanes_distribution" is greater than the number '
+                            'of lanes in the network; distributing over all '
+                            'lanes instead.')
+            lanes_distribution = self.lanes
+        elif initial_config.lanes_distribution - initial_config.starting_lane  < 1:
+            logging.warning('"lanes_distribution" is too small; setting to 1')
+            lanes_distribution = 1
+        elif initial_config.starting_lane > self.lanes:
+            logging.warning('starting lane is too high!')
+        else:
+            lanes_distribution = initial_config.lanes_distribution - initial_config.starting_lane
+
+        startpositions = []
+        startlanes = []
+
+        cars_per_lane = [0] * initial_config.starting_lane + [math.floor(self.vehicles.num_vehicles / lanes_distribution)] * lanes_distribution
+
+        print(cars_per_lane)
+
+        i = 0
+        while sum(cars_per_lane) < self.vehicles.num_vehicles:
+            cars_per_lane[i] += 1
+            i += 1
+        car_distributions = [np.random.choice(int((distribution_length - bunching) / 8), num_cars, replace=False).tolist() for num_cars in cars_per_lane]
+        car_distributions = [[x * 8 + x0 for x in lane_dist] for lane_dist in car_distributions]
+        print([sorted(x) for x in car_distributions])
+
+        for lane, lane_poses in enumerate(car_distributions):
+            for car_pos in lane_poses:
+                pos = self.get_edge(car_pos)
+                startpositions.append(pos)
+                startlanes.append(lane)
+
 
         return startpositions, startlanes
 
@@ -649,6 +733,120 @@ class Scenario(Serializable):
             )
 
             x[lane_count] = (x[lane_count] + increment) % self.length
+
+            # increment the car_count and lane_num
+            car_count += 1
+            lane_count += 1
+            # if the lane num exceeds the number of lanes the vehicles should
+            # be distributed on in the network, reset
+            if lane_count >= lanes_distribution:
+                lane_count = 0
+
+        return startpositions, startlanes
+
+    def gen_no_overlap_lane_starts(self, initial_config, **kwargs):
+        """
+        Generate random start positions via additive Gaussian.
+        WARNING: this does not absolutely gaurantee that the order of
+        vehicles is preserved.
+
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see flow/core/params.py
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions: list
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes: list
+            list of start lanes
+        """
+        x0 = initial_config.x0
+        # changes to x0 in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "x0" in kwargs:
+            x0 = kwargs["x0"]
+
+        bunching = initial_config.bunching
+        # check if requested bunching value is not valid (negative)
+        if bunching < 0:
+            logging.warning('"bunching" cannot be negative; setting to 0')
+            bunching = 0
+        # changes to bunching in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "bunching" in kwargs:
+            bunching = kwargs["bunching"]
+
+        distribution_length = self.length
+        if initial_config.distribution_length is not None:
+            if initial_config.distribution_length > self.length:
+                logging.warning('"distribution_length" cannot be larger than '
+                                'the length of network; setting to max value')
+            else:
+                distribution_length = initial_config.distribution_length
+
+        if initial_config.lanes_distribution > self.lanes:
+            logging.warning('"lanes_distribution" is greater than the number '
+                            'of lanes in the network; distributing over all '
+                            'lanes instead.')
+            lanes_distribution = self.lanes
+        elif initial_config.lanes_distribution < 1:
+            logging.warning('"lanes_distribution" is too small; setting to 1')
+            lanes_distribution = 1
+        else:
+            lanes_distribution = initial_config.lanes_distribution
+
+        startpositions = []
+        startlanes = []
+        mean = (distribution_length - bunching) / np.ceil(
+            self.vehicles.num_vehicles / lanes_distribution)
+
+        # if the mean (increment) is too small, bunch vehicles as close together
+        # as possible
+        if mean < 5:  # 5 is the length of all vehicles
+            return self.gen_even_start_pos(initial_config, **kwargs)
+
+        x = x0
+        car_count = 0
+        lane_count = 0
+        while car_count < self.vehicles.num_vehicles:
+
+            pos = self.get_edge(x)
+
+            # ensures that vehicles are not placed in an internal junction
+            while pos[0] in dict(self.internal_edgestarts).keys():
+                # find the location of the internal edge in total_edgestarts,
+                # which has the edges ordered by position
+                edges = [tup[0] for tup in self.total_edgestarts]
+                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+
+                # take the next edge in the list, and place the car at the
+                # beginning of this edge
+                if indx_edge == len(edges)-1:
+                    next_edge_pos = self.total_edgestarts[0]
+                else:
+                    next_edge_pos = self.total_edgestarts[indx_edge+1]
+
+                x = next_edge_pos[1]
+                pos = (next_edge_pos[0], 0)
+
+            # collect the position and lane number of each new vehicle
+            startpositions.append(pos)
+            startlanes.append(lane_count)
+
+            # calculate the increment given the mean, and ensure that the
+            # increment is never too large or too small (between 0 and the
+            # length of the network)
+            increment = np.clip(
+                np.random.normal(scale=mean/initial_config.downscale, loc=mean),
+                a_min=0, a_max=self.length
+            )
+
+            x = (x + increment) % self.length
 
             # increment the car_count and lane_num
             car_count += 1

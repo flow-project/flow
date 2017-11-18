@@ -146,8 +146,8 @@ class SumoEnvironment(gym.Env, Serializable):
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step),
                      "--step-method.ballistic", "true",
-                     "--lanechange.overtake-right", "true",
-                     "--lateral-resolution", "1.0"]
+                     "--lanechange.overtake-right", "true"]
+                     # "--lateral-resolution", "1.0"
         logging.info("Traci on port: ", self.port)
         if self.emission_out:
             sumo_call.append("--emission-output")
@@ -316,8 +316,8 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # perform acceleration and (optionally) lane change actions for
         # traci-controlled human-driven vehicles
+        accel = []
         if len(self.controlled_ids) > 0:
-            accel = []
             for veh_id in self.controlled_ids:
                 # acceleration action
                 action = self.vehicles.get_acc_controller(veh_id).get_action(
@@ -406,10 +406,7 @@ class SumoEnvironment(gym.Env, Serializable):
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
-        if self.vehicles.num_rl_vehicles > 0:
-            reward = self.compute_reward(self.state, rl_actions, fail=crash)
-        else:
-            reward = 0
+        reward = self.compute_reward(self.state, rl_actions, fail=crash, accel=accel)
 
         # Are we in a multi-agent scenario? If so, the action space is a list.
         if self.multi_agent:
@@ -671,11 +668,11 @@ class SumoEnvironment(gym.Env, Serializable):
             if vid in self.rl_ids:
                 if target_lane[i] != current_lane[i]:
                     self.traci_connection.vehicle.changeLane(vid, int(
-                        target_lane[i]), 100000)
+                        target_lane[i]), 0)
             else:
                 self.traci_connection.vehicle.changeLane(vid,
                                                          int(target_lane[i]),
-                                                         100000)
+                                                         0)
 
     def choose_routes(self, veh_ids, route_choices):
         """

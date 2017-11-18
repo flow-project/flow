@@ -21,7 +21,7 @@ Variables:
 '''
 
 import logging
-from sheppherding_env import SheppherdingEnv
+from shepherding_env import ShepherdingEnv
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
@@ -35,39 +35,46 @@ logging.basicConfig(level=logging.INFO)
 
 sumo_params = SumoParams(time_step= 0.1, sumo_binary="sumo-gui")
 
-human_cfm_params = SumoCarFollowingParams(sigma=1.0, speedDev=0.1)
-human_lc_params = SumoLaneChangeParams(lcKeepRight=0, model="SL2015")
-aggressive_cfm_params = SumoCarFollowingParams(speedFactor=2.0, maxSpeed=30, minGap=0.05, decel=7.5, tau=0.1)
-aggressive_lc_params = SumoLaneChangeParams(lcAssertive=20, lcPushy=0.8, lcSpeedGain=2.0, model="SL2015")
+human_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", sigma=1.0, tau=3.0, speedDev=0.1, minGap=3.0)
+human_lc_params = SumoLaneChangeParams(lcKeepRight=0, lcAssertive=0.5, lcSpeedGain=1.5, lcSpeedGainRight=1.0, model="SL2015")
+aggressive_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", speedFactor=1.75, decel=7.5, tau=0.1, minGap=0.5)
+aggressive_lc_params = SumoLaneChangeParams(lcAssertive=150, lcPushy=0.9, lcSpeedGain=1000.0, lcAccelLat=6,
+                                            lcSpeedGainRight=1.0, model="SL2015", lcImpatience=3.0)
 
 vehicles = Vehicles()
 vehicles.add_vehicles("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}), (ContinuousRouter, {}),
-                      0, 40, lane_change_mode="custom", custom_lane_change_mode=0b1000010101,
+                      0, 13,
+                      lane_change_mode="execute_all",
                       sumo_car_following_params=human_cfm_params,
-                      sumo_lc_params=human_lc_params)
-vehicles.add_vehicles("aggressive-human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
-                      (ContinuousRouter, {}), 0, 1, lane_change_mode="execute_all",
-                      sumo_car_following_params=aggressive_cfm_params,
-                      sumo_lc_params=aggressive_lc_params)
+                      sumo_lc_params=human_lc_params,
+                      )
 
-env_params = EnvParams(additional_params={"target_velocity":30})
+#"v0":22.25, "a":4, "b":1, "s0":0
+vehicles.add_vehicles("aggressive-human", (SumoCarFollowingController, {}), (SafeAggressiveLaneChanger, {"target_velocity":22.25, "threshold":0.7}),
+                      (ContinuousRouter, {}), 0, 1,
+                      lane_change_mode="custom",custom_lane_change_mode=0b0100000000,
+                      sumo_car_following_params=aggressive_cfm_params)
+
+env_params = EnvParams(additional_params={"target_velocity":15}, lane_change_duration=0)
 # env_params.fail_safe = "safe_velocity"
 
-additional_net_params = {"length": 300, "lanes": 3, "speed_limit": 20, "resolution": 40}
+additional_net_params = {"length": 300, "lanes": 3, "speed_limit": 15, "resolution": 40}
 net_params = NetParams(additional_params=additional_net_params)
 
-initial_config = InitialConfig(spacing="uniform_random", scale=3, lanes_distribution=3, shuffle=True)
+initial_config = InitialConfig(spacing="custom", lanes_distribution=3, shuffle=True)
 
 scenario = LoopScenario("single-lane-two-contr", CircleGenerator, vehicles, net_params,
                         initial_config)
 # data path needs to be relative to cfg location
 
-env = SheppherdingEnv(env_params, sumo_params, scenario)
+env = ShepherdingEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 5000)
+avg_reward = exp.run(1, 1000)
 
 exp.env.terminate()
+
+print(avg_reward)

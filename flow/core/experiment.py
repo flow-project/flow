@@ -41,18 +41,26 @@ class SumoExperiment():
         rl_actions: list or numpy ndarray, optional
             actions to be performed by rl vehicles in the network (if there are
             any)
-        convert_to_csv: bool
+        convert_to_sv: bool
             Specifies whether to convert the emission file created by sumo into
             a csv file
         """
+
+        total_avg_reward = 0
+
         if rl_actions is None:
             rl_actions = []
 
         for i in range(num_runs):
+            agg_reward = 0
             logging.info("Iter #" + str(i))
             self.env.reset()
             for j in range(num_steps):
-                self.env.step(rl_actions)
+                step_result = self.env.step(rl_actions)
+                agg_reward += step_result[1]
+            total_avg_reward += agg_reward / float(num_steps)
+
+
         self.env.terminate()
 
         if convert_to_csv:
@@ -65,3 +73,5 @@ class SumoExperiment():
 
             # convert the emission file into a csv
             emission_to_csv(emission_path)
+
+        return total_avg_reward / num_runs

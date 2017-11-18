@@ -336,7 +336,6 @@ class LinearOVM(BaseController):
     def reset_delay(self, env):
         self.accel_queue.clear()
 
-
 class IDMController(BaseController):
 
     def __init__(self, veh_id, v0=30, T=1, a=1, b=1.5, delta=4, s0=2, s1=0,
@@ -410,6 +409,92 @@ class IDMController(BaseController):
 
     def reset_delay(self, env):
         pass
+
+class IDMDelayedController(BaseController):
+
+    def __init__(self, veh_id, v0=30, T=1.5, a=2.4, b=1.5, delta=4, min_gap=2, s1=0,
+                 decel_max=-2.0, dt=0.1, noise=1.5, fail_safe=None, human_rxn_time=0.15):
+        """
+        Instantiates an Intelligent Driver Model (IDM) controller with a time Delay
+
+        Attributes
+        ----------
+        veh_id: str
+            Vehicle ID for SUMO identification
+        v0: float, optional
+            desirable velocity, in m/s (default: 30)
+        T: float, optional
+            safe time headway, in s (default: 1)
+        a: float, optional
+            maximum acceleration, in m/s2 (default: 1)
+        b: float, optional
+            comfortable deceleration, in m/s2 (default: 1.5)
+        delta: float, optional
+            acceleration exponent (default: 4)
+        min_gap: float, optional
+            linear jam distance, in m (default: 2)
+        s1: float, optional
+            nonlinear jam distance, in m (default: 0)
+        decel_max: float, optional
+            max deceleration, in m/s2 (default: -5)
+        dt: float, optional
+            timestep, in s (default: 0.1)
+        noise: float, optional
+            std dev of normal perturbation to the acceleration (default: 0)
+        fail_safe: str, optional
+            type of flow-imposed failsafe the vehicle should posses, defaults
+            to no failsafe (None)
+        human_rxn_time: time to delay human actions
+
+        """
+        tau = T  # the time delay is taken to be the safe time headway
+        controller_params = {"delay": tau / dt, "max_deaccel": decel_max,
+                             "noise": noise, "fail_safe": fail_safe}
+        BaseController.__init__(self, veh_id, controller_params)
+        self.v0 = v0
+        self.T = T
+        self.a = a
+        self.b = b
+        self.delta = delta
+        self.s0 = min_gap
+        self.s1 = s1
+        self.max_deaccel = decel_max
+        self.dt = dt
+        self.rxn_time = human_rxn_time / dt
+        self.accel_queue = collections.deque()
+
+    def get_accel(self, env):
+        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_id = env.vehicles.get_leader(self.veh_id)
+        h = env.vehicles.get_headway(self.veh_id)
+
+        # negative headways may be registered by sumo at intersections/junctions
+        # setting them to 0 causes vehicles to not move; therefore, we maintain
+        # these negative headways to let sumo control the dynamics as it sees
+        # fit at these points
+        if abs(h) < 1e-3:
+            h = 1e-3
+
+        if lead_id is None or lead_id == '':  # no car ahead
+            s_star = 0
+        else:
+            lead_vel = env.vehicles.get_speed(lead_id)
+            s_star = \
+                self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel)
+                               / (2 * np.sqrt(self.a * self.b))])
+
+        acc = self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)
+
+        while len(self.accel_queue) <= self.delay:
+            # Some behavior here for initial states - extrapolation, dumb
+            # filling (currently), etc
+            self.accel_queue.appendleft(acc)
+
+        return self.accel_queue.pop()
+
+    def reset_delay(self, env):
+        pass
+
 
 class SumoCarFollowingController:
 
