@@ -39,7 +39,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 def run_task(*_):
 
-    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
 
