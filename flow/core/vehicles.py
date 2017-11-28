@@ -1,5 +1,5 @@
 from flow.controllers.car_following_models import SumoCarFollowingController
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 import collections
 import logging
@@ -103,8 +103,8 @@ class Vehicles:
         if not acceleration_controller:
             raise ValueError("No acceleration controller is specified.")
 
-        if not lane_change_controller:
-            raise ValueError("No lane change controller is specified.")
+        # if not lane_change_controller:
+        #     raise ValueError("No lane change controller is specified.")
 
         type_params = {}
 
@@ -113,7 +113,7 @@ class Vehicles:
                 sumo_car_following_params = SumoCarFollowingParams()
             type_params.update(sumo_car_following_params.controller_params)
 
-        if lane_change_controller[0] == SumoLaneChangeController:
+        if lane_change_controller and lane_change_controller[0] == SumoLaneChangeController:
             if sumo_lc_params == None:
                 sumo_lc_params = SumoLaneChangeParams()
             type_params.update(sumo_lc_params.controller_params)
@@ -157,7 +157,7 @@ class Vehicles:
             # id list
             if acceleration_controller[0] == SumoCarFollowingController:
                 self.__sumo_ids.append(vehID)
-            elif acceleration_controller[0] == RLController:
+            elif acceleration_controller[0] == RLCarFollowingController:
                 self.__rl_ids.append(vehID)
             else:
                 self.__controlled_ids.append(vehID)

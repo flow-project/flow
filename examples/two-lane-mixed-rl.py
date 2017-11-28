@@ -37,7 +37,7 @@ from flow.controllers.routing_controllers import *
 
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 from flow.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
@@ -51,7 +51,7 @@ def run_task(*_):
     sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, auton_cars)
+    vehicles.add_vehicles("rl", (RLCarFollowingController, {}), None, (ContinuousRouter, {}), 0, auton_cars)
     vehicles.add_vehicles("cfm", (IDMController, {}), None, (ContinuousRouter, {}), 0, human_cars)
 
     additional_env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 500}

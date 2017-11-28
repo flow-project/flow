@@ -235,7 +235,7 @@ class SafeAggressiveLaneChanger(BaseLaneChangeController):
             available_headways = headways[max(curr_lane-1,0): min(curr_lane + 1, env.scenario.lanes) +1]
             desired_available_lane = np.argmax(available_headways)
             desired_lane = available_lanes[desired_available_lane]
-            if reverse_headways[desired_lane] < 8:
+            if reverse_headways[desired_lane] < 10:
                 # print("blocked!")
                 return env.vehicles.get_lane(self.veh_id)
             else:

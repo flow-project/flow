@@ -7,7 +7,7 @@ from rllab.core.serializable import Serializable
 
 from flow.core.generator import Generator
 from flow.core.params import InitialConfig
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 
 
 class Scenario(Serializable):
@@ -499,7 +499,6 @@ class Scenario(Serializable):
 
         cars_per_lane = [0] * initial_config.starting_lane + [math.floor(self.vehicles.num_vehicles / lanes_distribution)] * lanes_distribution
 
-        print(cars_per_lane)
 
         i = 0
         while sum(cars_per_lane) < self.vehicles.num_vehicles:
@@ -507,7 +506,6 @@ class Scenario(Serializable):
             i += 1
         car_distributions = [np.random.choice(int((distribution_length - bunching) / 8), num_cars, replace=False).tolist() for num_cars in cars_per_lane]
         car_distributions = [[x * 8 + x0 for x in lane_dist] for lane_dist in car_distributions]
-        print([sorted(x) for x in car_distributions])
 
         for lane, lane_poses in enumerate(car_distributions):
             for car_pos in lane_poses:

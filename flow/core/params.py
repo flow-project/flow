@@ -68,8 +68,8 @@ class EnvParams:
                  shared_reward=False,
                  shared_policy=False,
                  additional_params=None,
-                 max_deacc=-6,
-                 max_acc=3):
+                 max_deacc=-4.5,
+                 max_acc=2.6):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -293,7 +293,7 @@ class SumoLaneChangeParams:
                  lcPushy=0.0,
                  lcPushyGap=0.6,
                  lcAssertive=1.0,
-                 lcImpatience=0.0,
+                 # lcImpatience=0.0,
                  # lcTimeToImpatience=float("inf"),
                  lcAccelLat=1.0):
 
@@ -318,7 +318,7 @@ class SumoLaneChangeParams:
                             "lcPushy": str(lcPushy),
                             # "lcPushyGap": str(lcPushyGap),
                             "lcAssertive": str(lcAssertive),
-                            "lcImpatience": str(lcImpatience),
+                            # "lcImpatience": str(lcImpatience),
                             # "lcTimeToImpatience": str(lcTimeToImpatience),
                             # "lcAccelLat": str(lcAccelLat)
                             }
@@ -335,6 +335,6 @@ class SumoLaneChangeParams:
                             "lcPushy": str(lcPushy),
                             "lcPushyGap": str(lcPushyGap),
                             "lcAssertive": str(lcAssertive),
-                            "lcImpatience": str(lcImpatience),
-                            "lcTimeToImpatience": str(lcTimeToImpatience),
+                            # "lcImpatience": str(lcImpatience),
+                            # "lcTimeToImpatience": str(lcTimeToImpatience),
                             "lcAccelLat": str(lcAccelLat)}

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     env = data['env']
 
     # extract the flow environment
-    unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
+    unwrapped_env = env._wrapped_env.env.unwrapped
 
     # Input
     if unwrapped_env.obs_var_labels:

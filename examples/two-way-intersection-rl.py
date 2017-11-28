@@ -36,7 +36,7 @@ import flow.core.config as flow_config
 
 from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
 from flow.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 
 logging.basicConfig(level=logging.INFO)
 
@@ -48,7 +48,7 @@ def run_task(*_):
                              sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles("idm", (RLController, {}), None, None, 0, 20)
+    vehicles.add_vehicles("idm", (RLCarFollowingController, {}), None, None, 0, 20)
 
     intensity = .2
     v_enter = 10

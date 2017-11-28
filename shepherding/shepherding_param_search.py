@@ -1,13 +1,12 @@
-import logging
-from shepherding_env import ShepherdingEnv
-from flow.core.experiment import SumoExperiment
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
+from envs.shepherding_env import ShepherdingEnv
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import *
-from flow.core.vehicles import Vehicles
+from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, SumoCarFollowingParams, SumoLaneChangeParams
+from flow.core.vehicles import Vehicles
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 

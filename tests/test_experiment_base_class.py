@@ -7,7 +7,7 @@ from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 
 from flow.envs.loop_accel import SimpleAccelerationEnvironment
 from flow.scenarios.loop.gen import CircleGenerator

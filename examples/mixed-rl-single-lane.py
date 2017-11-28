@@ -31,7 +31,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.core import config as flow_config
 
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import *
@@ -40,7 +40,7 @@ from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
 
@@ -58,7 +58,7 @@ def run_task(*_):
     sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
+    vehicles.add_vehicles("rl", (RLCarFollowingController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, auton_cars)
     vehicles.add_vehicles("cfm", (CFMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, human_cars)
 
     additional_env_params = {"target_velocity": 8, "num_steps": 1000}

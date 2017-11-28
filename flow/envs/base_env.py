@@ -252,6 +252,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.get_x_by_id(veh_id)
 
             # set speed mode
+            print(veh_id,self.vehicles.get_speed_mode(veh_id))
             self.traci_connection.vehicle.setSpeedMode(veh_id, self.vehicles.get_speed_mode(veh_id))
 
             # set lane change mode
