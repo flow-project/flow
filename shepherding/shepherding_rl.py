@@ -19,7 +19,6 @@ Variables:
                                 bunching: how close to place cars at experiment start]
     scenario {[type]} -- [Which road network to use]
 '''
-
 import flow.core.config as flow_config
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
@@ -40,13 +39,15 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 def run_task(*_):
 
-    sumo_params = SumoParams(time_step= 0.1, sumo_binary="sumo")
+    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
 
     human_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", sigma=1.0, tau=3.0, speedDev=0.1, minGap=3.0)
-    human_lc_params = SumoLaneChangeParams(lcKeepRight=0, lcAssertive=0.5, lcSpeedGain=1.5, lcSpeedGainRight=1.0, model="SL2015")
-    vehicles.add_vehicles("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}), (ContinuousRouter, {}),
+    human_lc_params = SumoLaneChangeParams(lcKeepRight=0, lcAssertive=0.5,
+                                           lcSpeedGain=1.5, lcSpeedGainRight=1.0, model="SL2015")
+    vehicles.add_vehicles("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
+                          (ContinuousRouter, {}),
                           0, 14,
                           lane_change_mode="execute_all",
                           sumo_car_following_params=human_cfm_params,
@@ -54,17 +55,16 @@ def run_task(*_):
                           )
 
     aggressive_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", speedFactor=1.75, tau=0.1, minGap=0.5)
-    vehicles.add_vehicles("aggressive-human", (SumoCarFollowingController, {}), (SafeAggressiveLaneChanger, {"target_velocity":22.25, "threshold":0.7}),
+    vehicles.add_vehicles("aggressive-human", (SumoCarFollowingController, {}),
+                          (SafeAggressiveLaneChanger, {"target_velocity": 22.25, "threshold": 0.7}),
                           (ContinuousRouter, {}), 0, 1,
-                          lane_change_mode="custom",custom_lane_change_mode=0b0100000000,
+                          lane_change_mode="custom", custom_lane_change_mode=0b0100000000,
                           sumo_car_following_params=aggressive_cfm_params)
 
     vehicles.add_vehicles("rl", (RLCarFollowingController, {}), None, (ContinuousRouter, {}), 0, 3,
-                          lane_change_mode="custom", custom_lane_change_mode=512 )
+                          lane_change_mode="custom", custom_lane_change_mode=512)
 
-
-    env_params = EnvParams(additional_params={"target_velocity":15, "num_steps": 1000}, lane_change_duration=0)
-    # env_params.fail_safe = "safe_velocity"
+    env_params = EnvParams(additional_params={"target_velocity": 15, "num_steps": 1000}, lane_change_duration=0)
 
     additional_net_params = {"length": 300, "lanes": 3, "speed_limit": 15, "resolution": 40}
     net_params = NetParams(additional_params=additional_net_params)
@@ -93,19 +93,23 @@ def run_task(*_):
         baseline=baseline,
         batch_size=15000,
         max_path_length=horizon,
-        n_itr=500,
+        n_itr=2000,
     )
     algo.train()
 
 run_experiment_lite(
     run_task,
-    # Number of parallel workers for sampling
-    n_parallel=16,
     # Only keep the snapshot parameters for the last iteration
     snapshot_mode="last",
     # Specifies the seed for the experiment. If this is not provided, a random seed
     # will be used,
-    mode="ec2",
     exp_prefix="shepherding",
-    python_command=flow_config.PYTHON_COMMAND
+    # Number of parallel workers for sampling
+    n_parallel=16,
+    python_command=flow_config.PYTHON_COMMAND,
+    mode="ec2",
+    seed=60,
+    # n_parallel=1,
+    # python_command="/Users/kanaad/anaconda3/envs/flow/bin/python",
+    # mode="local"
 )
