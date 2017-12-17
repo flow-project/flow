@@ -12,11 +12,11 @@ class TestEmissionToCSV(unittest.TestCase):
     """
     def runTest(self):
         # run the emission_to_csv function on a small emission file
-        emission_to_csv("./test_files/test-emission.xml")
+        emission_to_csv("./tests/test_files/test-emission.xml")
 
         # import the generated csv file and its headers
         dict1 = []
-        with open("./test_files/test-emission.csv", "r") as infile:
+        with open("./tests/test_files/test-emission.csv", "r") as infile:
             reader = csv.reader(infile)
             headers = next(reader)
             for row in reader:
