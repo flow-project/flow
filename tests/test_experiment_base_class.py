@@ -13,7 +13,7 @@ from flow.envs.loop_accel import SimpleAccelerationEnvironment
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
 
-from setup_scripts import ring_road_exp_setup
+from tests.setup_scripts import ring_road_exp_setup
 
 
 class TestNumSteps(unittest.TestCase):

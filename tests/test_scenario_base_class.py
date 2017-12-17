@@ -6,7 +6,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
-from setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
+from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
 
 
 class TestGetX(unittest.TestCase):
