@@ -6,7 +6,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
-from setup_scripts import ring_road_exp_setup
+from tests.setup_scripts import ring_road_exp_setup
 
 
 class TestStartingPositionShuffle(unittest.TestCase):
@@ -137,21 +137,6 @@ class TestEmissionPath(unittest.TestCase):
 #     def setUp(self):
 #         # TODO: figure out when it occurs exactly (its not always), and what
 #         # TODO: the exact fix is
-#         pass
-#
-#     def tearDown(self):
-#         pass
-#
-#     def runTest(self):
-#         pass
-
-
-# class TestGetHeadwayDict(unittest.TestCase):
-#     """
-#     Tests that get_headway_dict is functioning correctly at the start of a
-#     run, in the middle of a run, upon reset, and when a collision occurs.
-#     """
-#     def setUp(self):
 #         pass
 #
 #     def tearDown(self):

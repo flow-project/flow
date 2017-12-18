@@ -1,6 +1,7 @@
 import logging
 
-class SumoParams():
+
+class SumoParams:
 
     def __init__(self,
                  port=None,
@@ -8,6 +9,7 @@ class SumoParams():
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
                  emission_path=None,
+                 lateral_resolution=None,
                  sumo_binary="sumo"):
         """
         Parameters used to pass the time step and sumo-specified safety
@@ -48,6 +50,10 @@ class SumoParams():
         emission_path: str, optional
             Path to the folder in which to create the emissions output.
             Emissions output is not generated if this value is not specified
+        lateral_resolution: float, optional
+            width of the divided sublanes within a lane, defaults to None (i.e.
+            no sublanes). If this value is specified, the vehicle in the network
+            cannot use the "LC2013" lane change model.
         sumo_binary: str, optional
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
@@ -58,6 +64,7 @@ class SumoParams():
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
         self.emission_path = emission_path
+        self.lateral_resolution = lateral_resolution
         self.sumo_binary = sumo_binary
 
 
@@ -77,9 +84,6 @@ class EnvParams:
 
         Attributes
         ----------
-        longitudinal_fail_safe: str, optional
-            Failsafe strategy to prevent bumper to bumper collisions; may be
-            one of "None", "safe velocity", or "instantaneous"
         max_speed: float, optional
             max speed of vehicles in the simulation; defaults to 55 m/s
         lane_change_duration: float, optional
@@ -98,7 +102,8 @@ class EnvParams:
         self.lane_change_duration = lane_change_duration
         self.shared_reward = shared_reward
         self.shared_policy = shared_policy
-        self.additional_params = additional_params if additional_params != None else {}
+        self.additional_params = \
+            additional_params if additional_params is not None else {}
         self.max_deacc = max_deacc
         self.max_acc = max_acc
 
@@ -257,7 +262,6 @@ class SumoCarFollowingParams:
         speedDev: float
         impatience: float
         carFollowModel: str
-        laneChangeModel: str
 
         Note
         ----
@@ -279,6 +283,7 @@ class SumoCarFollowingParams:
             "carFollowModel": carFollowModel,
         }
 
+
 class SumoLaneChangeParams:
     def __init__(self,
                  model="LC2013",
@@ -297,36 +302,38 @@ class SumoLaneChangeParams:
                  lcAccelLat=1.0):
 
         if model == "LC2013":
-            self.controller_params = {"laneChangeModel": model,
-                            "lcStrategic": str(lcStrategic),
-                            "lcCooperative": str(lcCooperative),
-                            "lcSpeedGain": str(lcSpeedGain),
-                            "lcKeepRight": str(lcKeepRight),
-                            "lcLookaheadLeft": str(lcLookaheadLeft),
-                            "lcSpeedGainRight": str(lcSpeedGainRight)
-                            }
+            self.controller_params = {
+                "laneChangeModel": model,
+                "lcStrategic": str(lcStrategic),
+                "lcCooperative": str(lcCooperative),
+                "lcSpeedGain": str(lcSpeedGain),
+                "lcKeepRight": str(lcKeepRight),
+                # "lcLookaheadLeft": str(lcLookaheadLeft),
+                # "lcSpeedGainRight": str(lcSpeedGainRight)
+            }
         elif model == "SL2015":
-            self.controller_params = {"laneChangeModel": model,
-                            "lcStrategic": str(lcStrategic),
-                            "lcCooperative": str(lcCooperative),
-                            "lcSpeedGain": str(lcSpeedGain),
-                            "lcKeepRight": str(lcKeepRight),
-                            "lcLookaheadLeft": str(lcLookaheadLeft),
-                            "lcSpeedGainRight": str(lcSpeedGainRight),
-                            "lcSublane": str(lcSublane),
-                            "lcPushy": str(lcPushy),
-                            "lcPushyGap": str(lcPushyGap),
-                            "lcAssertive": str(lcAssertive),
-                            "lcImpatience": str(lcImpatience),
-                            "lcTimeToImpatience": str(lcTimeToImpatience),
-                            "lcAccelLat": str(lcAccelLat)
-                            }
+            self.controller_params = {
+                "laneChangeModel": model,
+                "lcStrategic": str(lcStrategic),
+                "lcCooperative": str(lcCooperative),
+                "lcSpeedGain": str(lcSpeedGain),
+                "lcKeepRight": str(lcKeepRight),
+                "lcLookaheadLeft": str(lcLookaheadLeft),
+                "lcSpeedGainRight": str(lcSpeedGainRight),
+                "lcSublane": str(lcSublane),
+                "lcPushy": str(lcPushy),
+                "lcPushyGap": str(lcPushyGap),
+                "lcAssertive": str(lcAssertive),
+                "lcImpatience": str(lcImpatience),
+                "lcTimeToImpatience": str(lcTimeToImpatience),
+                "lcAccelLat": str(lcAccelLat)}
         else:
             logging.error("Invalid lc model! Defaulting to LC2013")
-            self.controller_params = {"laneChangeModel": model,
-                            "lcStrategic": str(lcStrategic),
-                            "lcCooperative": str(lcCooperative),
-                            "lcSpeedGain": str(lcSpeedGain),
-                            "lcKeepRight": str(lcKeepRight),
-                            "lcLookaheadLeft": str(lcLookaheadLeft),
-                            "lcSpeedGainRight": str(lcSpeedGainRight)}
+            self.controller_params = {
+                "laneChangeModel": model,
+                "lcStrategic": str(lcStrategic),
+                "lcCooperative": str(lcCooperative),
+                "lcSpeedGain": str(lcSpeedGain),
+                "lcKeepRight": str(lcKeepRight),
+                "lcLookaheadLeft": str(lcLookaheadLeft),
+                "lcSpeedGainRight": str(lcSpeedGainRight)}

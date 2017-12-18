@@ -13,13 +13,14 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 class Vehicles:
 
     speed_modes = {"aggressive": 0, "no_collide": 1}
-    lane_changing_modes = {"aggressive" : 0, "no_lat_collide":256, "strategic": 853, "execute_all":597}
+    lane_changing_modes = {"aggressive": 0, "no_lat_collide": 256,
+                           "strategic": 853, "execute_all": 597}
 
     def __init__(self):
         """
         Base vehicle class used to describe the state of all vehicles in the
         network. State information on the vehicles for a given time step can be
-        set or retreived from this class.
+        set or retrieved from this class.
         """
         self.__ids = []  # stores the ids of all vehicles
         self.__controlled_ids = []  # stores the ids of flow-controlled vehicles
@@ -30,6 +31,10 @@ class Vehicles:
         # Ordered dictionary used to keep neural net inputs in order
         self.__vehicles = collections.OrderedDict()
 
+        # create a sumo_observations variable that will carry all information
+        # on the state of the vehicles for a given time step
+        self.__sumo_observations = None
+
         self.num_vehicles = 0  # total number of vehicles in the network
         self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
@@ -38,14 +43,14 @@ class Vehicles:
 
     def add_vehicles(self,
                      veh_id,
-                     acceleration_controller,
-                     lane_change_controller,
+                     acceleration_controller=(SumoCarFollowingController, {}),
+                     lane_change_controller=(SumoLaneChangeController, {}),
                      routing_controller=None,
                      initial_speed=0,
                      num_vehicles=1,
-                     speed_mode = 'no_collide',
-                     custom_speed_mode = None,
-                     lane_change_mode = "no_lat_collide",
+                     speed_mode='no_collide',
+                     custom_speed_mode=None,
+                     lane_change_mode="no_lat_collide",
                      custom_lane_change_mode=256,
                      sumo_car_following_params=None,
                      sumo_lc_params=None):
@@ -56,7 +61,7 @@ class Vehicles:
         ----------
         veh_id: str
             base vehicle ID for the vehicles (will be appended by a number)
-        acceleration_controller: tup
+        acceleration_controller: tup, optional
             1st element: flow-specified acceleration controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
@@ -100,27 +105,24 @@ class Vehicles:
         if not veh_id:
             raise ValueError("No vehicle id is specified.")
 
-        if not acceleration_controller:
-            raise ValueError("No acceleration controller is specified.")
+        if sumo_car_following_params is None:
+            sumo_car_following_params = SumoCarFollowingParams()
 
-        if not lane_change_controller:
-            raise ValueError("No lane change controller is specified.")
+        if sumo_lc_params is None:
+            sumo_lc_params = SumoLaneChangeParams()
 
         type_params = {}
+        type_params.update(sumo_car_following_params.controller_params)
+        type_params.update(sumo_lc_params.controller_params)
 
-        if acceleration_controller[0] == SumoCarFollowingController:
-            if sumo_car_following_params ==None:
-                sumo_car_following_params = SumoCarFollowingParams()
-            type_params.update(sumo_car_following_params.controller_params)
-            print(sumo_car_following_params.controller_params)
-
-        if lane_change_controller[0] == SumoLaneChangeController:
-            if sumo_lc_params == None:
-                sumo_lc_params = SumoLaneChangeParams()
-            type_params.update(sumo_lc_params.controller_params)
-            print(sumo_lc_params.controller_params)
-
-        print(type_params)
+        # If the vehicle is not a sumo vehicle, set its max acceleration /
+        # deceleration to a very large (pseudo-infinite) value to allow fuller
+        # control, and set the minGap to zero so that all headway values are
+        # correct.
+        if acceleration_controller[0] != SumoCarFollowingController:
+            type_params["minGap"] = 0.0
+            type_params["accel"] = 100
+            type_params["decel"] = 100
 
         for i in range(num_vehicles):
             vehID = veh_id + '_%d' % i
@@ -139,12 +141,9 @@ class Vehicles:
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
-            if lane_change_controller is not None:
-                self.__vehicles[vehID]["lane_changer"] = \
-                    lane_change_controller[0](veh_id=vehID,
-                                              **lane_change_controller[1])
-            else:
-                self.__vehicles[vehID]["lane_changer"] = None
+            self.__vehicles[vehID]["lane_changer"] = \
+                lane_change_controller[0](veh_id=vehID,
+                                          **lane_change_controller[1])
 
             # specify the routing controller class
             if routing_controller is not None:
@@ -185,10 +184,6 @@ class Vehicles:
             else:
                 logging.error("Invalid lane change mode!")
                 self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.speed_modes["no_lat_collide"]
-
-        # create a sumo_observations variable that will carry all information
-        # on the state of the vehicles for a given time step
-        self.__sumo_observations = None
 
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)

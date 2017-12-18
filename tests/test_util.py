@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import csv
+import os
 
 from flow.core.util import emission_to_csv
 
@@ -11,12 +12,15 @@ class TestEmissionToCSV(unittest.TestCase):
     are correct, the length is correct, and some of the components are correct.
     """
     def runTest(self):
+        # current path
+        current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
+
         # run the emission_to_csv function on a small emission file
-        emission_to_csv("./test_files/test-emission.xml")
+        emission_to_csv(current_path + "/test_files/test-emission.xml")
 
         # import the generated csv file and its headers
         dict1 = []
-        with open("./test_files/test-emission.csv", "r") as infile:
+        with open(current_path + "/test_files/test-emission.csv", "r") as infile:
             reader = csv.reader(infile)
             headers = next(reader)
             for row in reader:

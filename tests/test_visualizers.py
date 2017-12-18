@@ -12,14 +12,18 @@ class TestVisualizerFlow(unittest.TestCase):
       crash, and that observations are still being stored
     """
     def runTest(self):
+        # current path
+        current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
+
         # run the experiment and check it doesn't crash
-        os.system("python ../flow/visualizer_flow.py "
-                  "test_files/params-collide.pkl --num_rollouts 1")
+        os.system("python %s/../flow/visualizer_flow.py "
+                  "tests/test_files/params-collide.pkl --num_rollouts 1"
+                  % current_path)
 
         self.assert_(True)
 
         # open the generated observations file, and check it isn't all zeros
-        observations = pickle.load(open("observations.pkl", "rb"))
+        observations = pickle.load(open(current_path + "/observations.pkl", "rb"))
 
         self.assertNotEqual(np.sum(np.sum(observations)), 0)
 
