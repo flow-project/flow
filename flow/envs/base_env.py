@@ -138,18 +138,24 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # Opening the I/O thread to SUMO
         cfg_file = self.scenario.cfg
-        # if "mode" in self.env_params and self.env_params["mode"] == "ec2":
-        #     cfg_file = "/root/code/rllab/" + cfg_file
 
         sumo_call = [self.sumo_binary,
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step),
                      "--step-method.ballistic", "true"]
-        logging.info("Traci on port: ", self.port)
+
+        # add the lateral resolution of the sublanes (if one is requested)
+        if self.sumo_params.lateral_resolution is not None:
+            sumo_call.append("--lateral-resolution")
+            sumo_call.append(str(self.sumo_params.lateral_resolution))
+
+        # add the emission path to the sumo command (if one is requested)
         if self.emission_out:
             sumo_call.append("--emission-output")
             sumo_call.append(self.emission_out)
+
+        logging.info("Traci on port: ", self.port)
 
         subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
 
@@ -393,8 +399,8 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.state = self.state.T
         else:
             self.state = []
-        # collect observation new state associated with action
 
+        # collect observation new state associated with action
         next_observation = list(self.state)
 
         # crash encodes whether sumo experienced a crash

@@ -29,8 +29,7 @@ def loop_merge_exp_setup(vehicles=None):
                               speed_mode="no_collide",
                               num_vehicles=5)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc": -6,
-                             "max-acc": 3}
+    additional_env_params = {"target_velocity": 8}
     env_params = EnvParams(additional_params=additional_env_params)
 
     additional_net_params = {"merge_in_length": 200, "merge_in_angle": pi / 9,
