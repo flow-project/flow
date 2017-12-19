@@ -6,8 +6,6 @@ import time
 
 import traci
 from traci import constants as tc
-from rllab.core.serializable import Serializable
-from rllab.envs.base import Step
 import gym
 
 import sumolib
@@ -20,15 +18,13 @@ COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
 
 
-class SumoEnvironment(gym.Env, Serializable):
+class SumoEnvironment(gym.Env):
     def __init__(self, env_params, sumo_params, scenario):
         """
         Base environment class. Provides the interface for controlling a SUMO
         simulation. Using this class, you can start sumo, provide a scenario to
         specify a configuration and controllers, perform simulation steps, and
         reset the simulation to an initial configuration.
-
-        SumoEnvironment is Serializable to allow for pickling of the policy.
 
         This class cannot be used as is: you must extend it to implement an
         action applicator method, and properties to define the MDP if you choose
@@ -49,8 +45,6 @@ class SumoEnvironment(gym.Env, Serializable):
         scenario: Scenario type
             see flow/scenarios/base_scenario.py
         """
-        Serializable.quick_init(self, locals())
-
         self.env_params = env_params
         self.scenario = scenario
         self.sumo_params = sumo_params
@@ -119,10 +113,11 @@ class SumoEnvironment(gym.Env, Serializable):
             self.sumo_binary = sumo_binary
 
         self.port = sumolib.miscutils.getFreeSocketPort()
-        data_folder = self.emission_path
-        ensure_dir(data_folder)
-        self.emission_out = \
-            data_folder + "{0}-emission.xml".format(self.scenario.name)
+        if self.emission_path:
+            data_folder = self.emission_path
+            ensure_dir(data_folder)
+            self.emission_out = \
+                data_folder + "{0}-emission.xml".format(self.scenario.name)
 
         self.start_sumo()
         self.setup_initial_state()
@@ -482,11 +477,9 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             if crash:
                 logging.info("Crash has occurred! Check failsafes!")
-                return Step(observation=next_observation, reward=reward,
-                            done=True)
+                return next_observation, reward, True, {}
             else:
-                return Step(observation=next_observation, reward=reward,
-                            done=False)
+                return next_observation, reward, False, {}
 
     # @property
     def _reset(self):
