@@ -2,7 +2,7 @@ import logging
 import datetime
 
 
-class SumoExperiment():
+class SumoExperiment:
 
     def __init__(self, env, scenario):
         """
