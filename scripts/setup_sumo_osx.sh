@@ -10,13 +10,10 @@ echo "You may be prompted (twice) to authorize downloading from the repository (
 mkdir -p $1
 echo "Temporarily changing directories"
 pushd $1
-# TODO update with nightly build
-svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@26784
+svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@25706 > /dev/null
 pushd sumo
 
 echo "Patching SUMO for flow compatibility"
-# TODO add the patch code
-# TODO add patch for ../tools/build/version.py as well
 patch -p1 < $BASH_DIR/departure_time_issue.patch
 
 
@@ -31,10 +28,11 @@ make -j`sysctl -n hw.ncpu` > /dev/null
 make install > /dev/null
 
 echo "\n#############################\n"
-echo "add $1/sumo/tools to your PYTHON_PATH to complete the installation!\n"
+echo "add $1/sumo/tools to your PYTHON_PATH and set SUMO_HOME to complete the installation!\n"
 
 echo "This can be done by appending the following to your bash_profile:\n "
 echo "export PYTHON_PATH=$1/sumo/tools\n"
+echo "export SUMO_HOME=\"$1/sumo\""
 echo "#############################\n"
 echo "Returning to flow directory"
 
