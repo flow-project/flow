@@ -4,4 +4,5 @@ Contains config variables unique to the user.
 Copy this file to config.py and make any necessary changes.
 """
 
-PYTHON_COMMAND = "/Users/kanaad/anaconda3/envs/flow/bin/python"
+PYTHON_COMMAND = "python"
+SUMO_SLEEP = 0.02  # Delay between initializing SUMO and connecting with TraCI
