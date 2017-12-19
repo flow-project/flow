@@ -35,7 +35,8 @@ from flow.core import config as flow_config
 ray.init()
 # ray.init(redirect_output=True)
 config = ppo.DEFAULT_CONFIG.copy()
-config["num_sgd_itr"] = 20
+config["num_sgd_iter"] = 20
+config["timesteps_per_batch"] = 8000  # 36000
 
 flow_env_name = "PartiallyObservableWaveAttenuationEnvironment"
 env_name = flow_env_name+'-v0'
@@ -99,6 +100,6 @@ def create_env():
 # Register as rllib env
 register_rllib_env(env_name, create_env)
 
-alg = ppo.PPOAgent(env=env_name, registry=get_registry())
+alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
 for i in range(20):
     alg.train()
