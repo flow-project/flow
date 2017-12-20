@@ -32,12 +32,13 @@ from flow.core.vehicles import Vehicles
 from flow.core import config as flow_config
 
 
-ray.init()
-# ray.init(redirect_output=True)
+# ray.init(num_cpus=16)
+ray.init(num_cpus=8, redirect_output=True)
 config = ppo.DEFAULT_CONFIG.copy()
 config["num_sgd_iter"] = 20
 config["timesteps_per_batch"] = 3600 * 32
 config["model"].update({"fcnet_hiddens": [16, 16]})
+config["num_workers"] = 16
 
 flow_env_name = "PartiallyObservableWaveAttenuationEnvironment"
 env_name = flow_env_name+'-v0'
@@ -102,5 +103,5 @@ def create_env():
 register_rllib_env(env_name, create_env)
 
 alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-for i in range(20):
+for i in range(5):
     alg.train()
