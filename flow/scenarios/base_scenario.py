@@ -2,14 +2,12 @@ import logging
 import numpy as np
 from collections import OrderedDict
 
-from rllab.core.serializable import Serializable
-
 from flow.core.generator import Generator
 from flow.core.params import InitialConfig
 from flow.controllers.rlcontroller import RLController
 
 
-class Scenario(Serializable):
+class Scenario:
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig()):
         """
