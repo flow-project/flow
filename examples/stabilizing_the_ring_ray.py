@@ -36,7 +36,7 @@ ray.init()
 # ray.init(redirect_output=True)
 config = ppo.DEFAULT_CONFIG.copy()
 config["num_sgd_iter"] = 20
-config["timesteps_per_batch"] = 36000
+config["timesteps_per_batch"] = 3600 * 32
 config["model"].update({"fcnet_hiddens": [16, 16]})
 
 flow_env_name = "PartiallyObservableWaveAttenuationEnvironment"
