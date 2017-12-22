@@ -1,8 +1,8 @@
 language: python
-  python:
-    - "3.5"
-  script:
-    - nose2
+python:
+  - "3.5"
+script:
+  - nose2
 
 sudo: required
 
