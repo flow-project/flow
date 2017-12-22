@@ -35,7 +35,6 @@ class Scenario:
         ValueError
             If no "length" is provided in net_params
         """
-        Serializable.quick_init(self, locals())
 
         self.name = name
         self.generator_class = generator_class

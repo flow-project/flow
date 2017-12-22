@@ -34,9 +34,10 @@ from flow.core import config as flow_config
 
 config = ppo.DEFAULT_CONFIG.copy()
 # ray.init(num_cpus=16)
+ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
 num_cpus=16
-ray.init(num_cpus=num_cpus, redirect_output=True)
-config["num_workers"] = num_cpus
+# ray.init(num_cpus=num_cpus, redirect_output=True)
+config["num_workers"] = max(100, num_cpus)
 config["timesteps_per_batch"] = 3600 * 32
 config["num_sgd_iter"] = 20
 config["model"].update({"fcnet_hiddens": [16, 16]})
