@@ -15,9 +15,9 @@ before_install:
   - ls
   - pwd
   - echo $HOME
-  - sudo apt-get install swig
-  - sudo apt-get build-dep python-pygame
-  - sudo apt-get build-dep python-scipy
+  - sudo apt-get install swig -y
+  - sudo apt-get build-dep python-pygame -y
+  - sudo apt-get build-dep python-scipy -y
   - docker pull evinitsky/flow
   - docker ps -a
   - docker run -d evinitsky/flow
