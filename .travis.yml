@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 script:
-    - docker run -v $HOME/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; cd /root/code/rllab/learning-traffic; nose2;'
+    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; cd /root/code/rllab/learning-traffic; nose2;'
 
 sudo: required
 
@@ -15,6 +15,9 @@ before_install:
   - ls
   - pwd
   - echo $HOME
+  - sudo apt-get install swig
+  - sudo apt-get build-dep python-pygame
+  - sudo apt-get build-dep python-scipy
   - docker pull evinitsky/flow
   - docker ps -a
   - docker run -d evinitsky/flow
