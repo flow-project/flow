@@ -10,7 +10,10 @@ services:
   - docker
 
 before_install:
+  - pushd ../
   - git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git
+  - popd
+  - ls ../
   - ls $HOME
   - ls
   - pwd
