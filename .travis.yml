@@ -13,3 +13,11 @@ before_install:
   - docker pull evinitsky/flow
   - docker ps -a
   - docker run -d evinitsky/flow
+  - docker run evinitsky/flow /bin/sh -c "cd /root;"
+  - docker run evinitsky/flow /bin/sh -c "ls /root;"
+  - docker run evinitsky/flow /bin/sh -c "cd /root/code;"
+  - docker run evinitsky/flow /bin/sh -c "ls /root/code;"
+  - docker run evinitsky/flow /bin/sh -c "cd /root/learning-traffic;"
+  - docker run evinitsky/flow /bin/sh -c "ls /root/learning-traffic;"
+  - docker run evinitsky/flow /bin/sh -c "cd /root/code/rllab;"
+  - docker run evinitsky/flow /bin/sh -c "ls /root/code/rllab;"
