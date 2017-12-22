@@ -1,0 +1,13 @@
+language: python
+  python:
+    - "3.5"
+  script:
+    - nose2
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker pull evinitsky/flow
