@@ -10,11 +10,11 @@ services:
   - docker
 
 before_install:
-  - docker pull evinitsky/flow
-  - docker ps -a
-  - docker run -d evinitsky/flow
+  - git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git
+  - ls $HOME
   - ls
   - pwd
   - echo $HOME
-  - ls $HOME
-  - git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git
+  - docker pull evinitsky/flow
+  - docker ps -a
+  - docker run -d evinitsky/flow
