@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 script:
-    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; cd /root/code/rllab/learning-traffic; nose2;'
+    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; cd /root/code/rllab/learning-traffic; python setup.py develop; nose2;'
 
 sudo: required
 
@@ -10,14 +10,8 @@ services:
   - docker
 
 before_install:
-  - pushd ../
-  - git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git
-  - popd
+  - pushd ../; git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git; popd
   - ls ../
-  - ls $HOME
-  - ls
-  - pwd
-  - echo $HOME
   - sudo apt-get install swig -y
   - sudo apt-get build-dep python-pygame -y
   - sudo apt-get build-dep python-scipy -y
