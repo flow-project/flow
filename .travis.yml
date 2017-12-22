@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 script:
-  - nose2
+  - docker run -d evinitsky/flow /bin/sh -c "cd /root/code/rllab/learning-traffic; nose2;"
 
 sudo: required
 
@@ -11,3 +11,5 @@ services:
 
 before_install:
   - docker pull evinitsky/flow
+  - docker ps -a
+  - docker run -d evinitsky/flow /bin/sh -c "cd /root/code/rllab/learning-traffic; nose2;"
