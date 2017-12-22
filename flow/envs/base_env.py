@@ -143,7 +143,8 @@ class SumoEnvironment(gym.Env, Serializable):
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step),
-                     "--step-method.ballistic", "true"]
+                     "--step-method.ballistic", "true",
+                     "--no-step-log"]
 
         # add the lateral resolution of the sublanes (if one is requested)
         if self.sumo_params.lateral_resolution is not None:
