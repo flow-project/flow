@@ -16,7 +16,7 @@ Install rllab-multiagent
     git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
 
-Create a conda environment (add warning, that EVERYTHING is a specific version):
+Create a conda environment named `flow`:
 :: 
 
     conda env create -f environment.yml
@@ -44,11 +44,11 @@ Install flow within the rllab-multiagent repo
 
     git clone https://github.com/cathywu/flow.git  # Needs to be here for AWS experiments using rllab  
     cd flow 
-    ./scripts/setup_sumo_osx.sh <DESIRED_PATH_TO_SUMO> # installs sumo
-    python setup.py develop  # (install flow, rllab, and dependencies)
+    bash scripts/setup_sumo_osx.sh <DESIRED_PATH_TO_SUMO> # installs sumo at <DESIRED_PATH_TO_SUMO>/sumo
+    python setup.py develop  # (install flow and dependencies)
     cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm 
 
-Finally, add <SUMO_DIR>/tools to your PYTHON_PATH to give Python access to TraCI and sumolib.
+Finally, add <DESIRED_PATH_TO_SUMO>/sumo/tools to your PYTHON_PATH to give Python access to TraCI and sumolib.
 
 Test the installation
 =====================

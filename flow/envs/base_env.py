@@ -12,6 +12,7 @@ import gym
 
 import sumolib
 
+import flow.core.config as config
 from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
 
@@ -157,7 +158,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # wait a small period of time for the subprocess to activate before
         # trying to connect with traci
-        time.sleep(0.02)
+        time.sleep(config.SUMO_SLEEP)
 
         self.traci_connection = traci.connect(self.port, numRetries=100)
 
