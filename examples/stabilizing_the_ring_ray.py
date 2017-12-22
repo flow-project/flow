@@ -34,7 +34,7 @@ from flow.core import config as flow_config
 
 config = ppo.DEFAULT_CONFIG.copy()
 # ray.init(num_cpus=16)
-num_cpus=32
+num_cpus=16
 ray.init(num_cpus=num_cpus, redirect_output=True)
 config["num_workers"] = num_cpus
 config["timesteps_per_batch"] = 3600 * 32
@@ -104,5 +104,7 @@ def create_env():
 register_rllib_env(env_name, create_env)
 
 alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-for i in range(5):
+for i in range(1000):
     alg.train()
+    if i % 20 == 0:
+        print("XXXX checkpoint path is", alg.save())
