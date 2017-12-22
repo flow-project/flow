@@ -3,6 +3,7 @@ import subprocess
 import sys
 from copy import deepcopy
 import time
+import traceback
 
 import traci
 from traci import constants as tc
@@ -13,6 +14,9 @@ import sumolib
 import flow.core.config as config
 from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
+
+# Number of retries on restarting SUMO before giving up
+RETRIES_ON_ERROR = 5
 
 COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
@@ -108,19 +112,28 @@ class SumoEnvironment(gym.Env):
         Restarts an already initialized environment. Used when visualizing a
         rollout.
         """
-        self.traci_connection.close(False)
-        if sumo_binary:
-            self.sumo_binary = sumo_binary
+        error = None
+        for _ in range(RETRIES_ON_ERROR):
+            try:
+                self.traci_connection.close(False)
+                if sumo_binary:
+                    self.sumo_binary = sumo_binary
 
-        self.port = sumolib.miscutils.getFreeSocketPort()
-        if self.emission_path:
-            data_folder = self.emission_path
-            ensure_dir(data_folder)
-            self.emission_out = \
-                data_folder + "{0}-emission.xml".format(self.scenario.name)
+                self.port = sumolib.miscutils.getFreeSocketPort()
+                if self.emission_path:
+                    data_folder = self.emission_path
+                    ensure_dir(data_folder)
+                    self.emission_out = \
+                        data_folder + "{0}-emission.xml".format(self.scenario.name)
 
-        self.start_sumo()
-        self.setup_initial_state()
+                self.start_sumo()
+                self.setup_initial_state()
+                return
+            except Exception as e:
+                print("Error during reset: {}".format(traceback.format_exc()))
+                self.clear_server_state()
+                error = e
+        raise error
 
     def start_sumo(self):
         """
