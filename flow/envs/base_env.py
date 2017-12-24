@@ -11,6 +11,12 @@ import gym
 
 import sumolib
 
+try:
+    # Import serialiable if rllab is installed
+    from rllab.core.serializable import Serializable
+except ImportError as e:
+    Serializable = object
+
 import flow.core.config as config
 from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
@@ -22,13 +28,15 @@ COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
 
 
-class SumoEnvironment(gym.Env):
+class SumoEnvironment(gym.Env, Serializable):
     def __init__(self, env_params, sumo_params, scenario):
         """
         Base environment class. Provides the interface for controlling a SUMO
         simulation. Using this class, you can start sumo, provide a scenario to
         specify a configuration and controllers, perform simulation steps, and
         reset the simulation to an initial configuration.
+
+        SumoEnvironment is Serializable to allow for pickling of the policy.
 
         This class cannot be used as is: you must extend it to implement an
         action applicator method, and properties to define the MDP if you choose
@@ -49,6 +57,10 @@ class SumoEnvironment(gym.Env):
         scenario: Scenario type
             see flow/scenarios/base_scenario.py
         """
+        # Invoke serialiable if using rllab
+        if Serializable is not object:
+            Serializable.quick_init(self, locals())
+
         self.env_params = env_params
         self.scenario = scenario
         self.sumo_params = sumo_params
