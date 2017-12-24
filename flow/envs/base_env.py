@@ -182,6 +182,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.traci_connection = traci.connect(self.port, numRetries=100)
 
                 self.traci_connection.simulationStep()
+                return
             except Exception as e:
                 print("Error during reset: {}".format(traceback.format_exc()))
                 error = e
