@@ -7,7 +7,49 @@ you might get some missing module bugs from python. Just install the
 missing module using your OS-specific package manager / installation
 tool. Follow the shell commands below to get started.
 
-Installing Flow
+Installing Flow (rllib version)
+=================
+
+Install [Anaconda](https://www.anaconda.com/download) for python and enable
+it right away.
+::
+
+    source ~/.bashrc
+
+Optionally create a conda environment named `flow`:
+::
+
+    conda create -n flow python=3.6 anaconda
+
+Install flow
+::
+
+    git clone https://github.com/cathywu/flow.git
+    cd flow
+    bash scripts/setup_sumo_osx.sh <DESIRED_PATH_TO_SUMO>  # installs sumo at <DESIRED_PATH_TO_SUMO>/sumo
+    python setup.py develop  # (install flow and dependencies)
+    cp flow/core/config.template.py flow/core/config.py  # User config
+
+Add the following to `~/.bashrc`
+::
+
+    export SUMO_HOME="<DESIRED_PATH_TO_SUMO>/sumo"
+    export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+    export PATH="$SUMO_HOME/bin:$PATH"
+
+Install ray
+::
+
+    git clone https://github.com/ray-project/ray.git
+    pushd ray/python
+    sudo apt-get install -y cmake
+    python setup.py develop
+    popd
+    conda install opencv  # ray dependency
+
+Next, proceed to: `Test the installation`__.
+
+Installing Flow (rllab version)
 =================
 
 Install rllab-multiagent 
@@ -48,7 +90,8 @@ Install flow within the rllab-multiagent repo
     python setup.py develop  # (install flow and dependencies)
     cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm 
 
-Finally, add <DESIRED_PATH_TO_SUMO>/sumo/tools to your PYTHON_PATH to give Python access to TraCI and sumolib.
+Finally, add `<DESIRED_PATH_TO_SUMO>/sumo/tools` to your `PYTHONPATH` to give
+Python access to TraCI and sumolib.
 
 Test the installation
 =====================
