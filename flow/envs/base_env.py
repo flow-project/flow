@@ -1,4 +1,6 @@
 import logging
+import os
+import signal
 import subprocess
 import sys
 from copy import deepcopy
@@ -166,7 +168,8 @@ class SumoEnvironment(gym.Env, Serializable):
                     sumo_call.append("--emission-output")
                     sumo_call.append(self.emission_out)
 
-                subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
+                self.sumo_proc = subprocess.Popen(sumo_call, stdout=sys.stdout,
+                                 stderr=sys.stderr, preexec_fn=os.setsid)
 
                 logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
 
@@ -181,6 +184,7 @@ class SumoEnvironment(gym.Env, Serializable):
             except Exception as e:
                 print("Error during reset: {}".format(traceback.format_exc()))
                 error = e
+                self.teardown_sumo()
         raise error
 
     def setup_initial_state(self):
@@ -1022,6 +1026,13 @@ class SumoEnvironment(gym.Env, Serializable):
 
     def _close(self):
         self.traci_connection.close()
+
+    def teardown_sumo(self):
+        try:
+            os.killpg(self.sumo_proc.pid, signal.SIGTERM)
+        except Exception as e:
+            print("Error during teardown: {}".format(traceback.format_exc()))
+            error = e
 
     def _seed(self, seed=None):
         return []
