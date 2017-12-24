@@ -124,27 +124,19 @@ class SumoEnvironment(gym.Env, Serializable):
         Restarts an already initialized environment. Used when visualizing a
         rollout.
         """
-        error = None
-        for _ in range(RETRIES_ON_ERROR):
-            try:
-                self.traci_connection.close(False)
-                if sumo_binary:
-                    self.sumo_binary = sumo_binary
+        self.traci_connection.close(False)
+        if sumo_binary:
+            self.sumo_binary = sumo_binary
 
-                self.port = sumolib.miscutils.getFreeSocketPort()
-                if self.emission_path:
-                    data_folder = self.emission_path
-                    ensure_dir(data_folder)
-                    self.emission_out = \
-                        data_folder + "{0}-emission.xml".format(self.scenario.name)
+        self.port = sumolib.miscutils.getFreeSocketPort()
+        if self.emission_path:
+            data_folder = self.emission_path
+            ensure_dir(data_folder)
+            self.emission_out = \
+                data_folder + "{0}-emission.xml".format(self.scenario.name)
 
-                self.start_sumo()
-                self.setup_initial_state()
-                return
-            except Exception as e:
-                print("Error during reset: {}".format(traceback.format_exc()))
-                error = e
-        raise error
+        self.start_sumo()
+        self.setup_initial_state()
 
     def start_sumo(self):
         """
@@ -152,36 +144,43 @@ class SumoEnvironment(gym.Env, Serializable):
         generator class. Also initializes a traci connection to interface with
         sumo from Python.
         """
-        logging.info(" Starting SUMO on port " + str(self.port))
-        logging.debug(" Cfg file " + str(self.scenario.cfg))
-        logging.debug(" Emission file: " + str(self.emission_out))
-        logging.debug(" Time step: " + str(self.time_step))
+        error = None
+        for _ in range(RETRIES_ON_ERROR):
+            try:
+                logging.info(" Starting SUMO on port " + str(self.port))
+                logging.debug(" Cfg file " + str(self.scenario.cfg))
+                logging.debug(" Emission file: " + str(self.emission_out))
+                logging.debug(" Time step: " + str(self.time_step))
 
-        # Opening the I/O thread to SUMO
-        cfg_file = self.scenario.cfg
-        # if "mode" in self.env_params and self.env_params["mode"] == "ec2":
-        #     cfg_file = "/root/code/rllab/" + cfg_file
+                # Opening the I/O thread to SUMO
+                cfg_file = self.scenario.cfg
+                # if "mode" in self.env_params and self.env_params["mode"] == "ec2":
+                #     cfg_file = "/root/code/rllab/" + cfg_file
 
-        sumo_call = [self.sumo_binary,
-                     "-c", cfg_file,
-                     "--remote-port", str(self.port),
-                     "--step-length", str(self.time_step)]
-        logging.info("Traci on port: ", self.port)
-        if self.emission_out:
-            sumo_call.append("--emission-output")
-            sumo_call.append(self.emission_out)
+                sumo_call = [self.sumo_binary,
+                             "-c", cfg_file,
+                             "--remote-port", str(self.port),
+                             "--step-length", str(self.time_step)]
+                logging.info("Traci on port: ", self.port)
+                if self.emission_out:
+                    sumo_call.append("--emission-output")
+                    sumo_call.append(self.emission_out)
 
-        subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
+                subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
 
-        logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
+                logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
 
-        # wait a small period of time for the subprocess to activate before
-        # trying to connect with traci
-        time.sleep(config.SUMO_SLEEP)
+                # wait a small period of time for the subprocess to activate before
+                # trying to connect with traci
+                time.sleep(config.SUMO_SLEEP)
 
-        self.traci_connection = traci.connect(self.port, numRetries=100)
+                self.traci_connection = traci.connect(self.port, numRetries=100)
 
-        self.traci_connection.simulationStep()
+                self.traci_connection.simulationStep()
+            except Exception as e:
+                print("Error during reset: {}".format(traceback.format_exc()))
+                error = e
+        raise error
 
     def setup_initial_state(self):
         """
