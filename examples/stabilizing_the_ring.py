@@ -89,9 +89,9 @@ def run_task(v):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=36000,
+        batch_size=3600 * 72 * 2,
         max_path_length=horizon,
-        n_itr=300,
+        n_itr=5,
         # whole_paths=True,
         # discount=0.999,
         # step_size=v["step_size"],
@@ -104,7 +104,7 @@ for seed in [5]:  # , 20, 68]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=16,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a random seed
