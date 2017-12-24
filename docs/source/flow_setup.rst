@@ -49,6 +49,16 @@ Install ray
 
 Next, proceed to: `Test the installation`__.
 
+For information on how to deploy a cluster, see [instructions]
+(http://ray.readthedocs.io/en/latest/autoscaling.html). The basic workflow is
+ running the following locally, ssh-ing into the host machine, and starting
+ jobs from there.
+::
+
+    ray create_or_update flow_ray_autoscale.yaml
+    ray teardown flow_ray_autoscale.yaml
+
+
 Installing Flow (rllab version)
 =================
 
