@@ -11,10 +11,16 @@ import logging
 import random
 from lxml import etree
 
+try:
+    # Import serialiable if rllab is installed
+    from rllab.core.serializable import Serializable
+except ImportError as e:
+    Serializable = object
+
 E = etree.Element
 
 
-class Generator:
+class Generator(Serializable):
     CFG_PATH = "./"
     NET_PATH = "./"
 

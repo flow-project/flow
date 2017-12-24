@@ -2,12 +2,18 @@ import logging
 import numpy as np
 from collections import OrderedDict
 
+try:
+    # Import serialiable if rllab is installed
+    from rllab.core.serializable import Serializable
+except ImportError as e:
+    Serializable = object
+
 from flow.core.generator import Generator
 from flow.core.params import InitialConfig
 from flow.controllers.rlcontroller import RLController
 
 
-class Scenario:
+class Scenario(Serializable):
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig()):
         """
@@ -35,6 +41,9 @@ class Scenario:
         ValueError
             If no "length" is provided in net_params
         """
+        # Invoke serialiable if using rllab
+        if Serializable is not object:
+            Serializable.quick_init(self, locals())
 
         self.name = name
         self.generator_class = generator_class
