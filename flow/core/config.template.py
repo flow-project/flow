@@ -5,4 +5,4 @@ Copy this file to config.py and make any necessary changes.
 """
 
 PYTHON_COMMAND = "python"
-SUMO_SLEEP = 0.02  # Delay between initializing SUMO and connecting with TraCI
+SUMO_SLEEP = 2.00  # Delay between initializing SUMO and connecting with TraCI
