@@ -147,6 +147,11 @@ class SumoEnvironment(gym.Env, Serializable):
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
+                if self.sumo_params.port:
+                    self.port = self.sumo_params.port
+                else:
+                    self.port = sumolib.miscutils.getFreeSocketPort()
+
                 logging.info(" Starting SUMO on port " + str(self.port))
                 logging.debug(" Cfg file " + str(self.scenario.cfg))
                 logging.debug(" Emission file: " + str(self.emission_out))
