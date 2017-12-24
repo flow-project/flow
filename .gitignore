@@ -89,7 +89,7 @@ ENV/
 .ropeproject
 
 # Don't add xml
-.xml
+*.xml
 .DS_Store
 
 # Custom for learning-traffic
@@ -97,3 +97,4 @@ ENV/
 Makefile
 data/
 debug/
+flow/core/config.py

@@ -1,0 +1,20 @@
+language: python
+python:
+  - "3.5"
+script:
+    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; cd /root/code/rllab/learning-traffic; cp flow/core/config.template.py flow/core/config.py; nose2;'
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - pushd ../; git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git; popd
+  - ls ../
+  - sudo apt-get install swig -y
+  - sudo apt-get build-dep python-pygame -y
+  - sudo apt-get build-dep python-scipy -y
+  - docker pull evinitsky/flow
+  - docker ps -a
+  - docker run -d evinitsky/flow

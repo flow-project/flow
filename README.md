@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/cathywu/learning-traffic.svg?token=wbU1B66dmFhiJUsJezgC&branch=master)](https://travis-ci.com/cathywu/learning-traffic)
 [![Docs](https://readthedocs.org/projects/berkeleyflow/badge)](http://berkeleyflow.readthedocs.org/en/latest/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cathywu/flow/blob/master/LICENSE.md)
 
@@ -27,7 +28,7 @@ C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and B
 
 # Credits
 
-Flow is created by and actively developed by members of [Professor Alexandre Bayen](http://bayen.eecs.berkeley.edu/)'s lab at UC Berkeley: Cathy Wu, Eugene Vinitsky, Kanaad Parvate, Aboudy Kreidieh, Nishant Kheterpal, Leah Dickstein, Nathan Mandi, Kathy Jang, and Ananth Kuchibhotla. <!-- Development on the framework continues by people at UC Berkeley. -->
+Flow is created by and actively developed by members of the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley: Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Saleh Albeaik, Kathy Jang, and Ananth Kuchibhotla. Alumni contributors include Leah Dickstein and Nathan Mandi.
 
 
 <!-- ## Getting Started
@@ -95,30 +96,6 @@ Lane changing models:
 
 - No lane changing
 - Stochastic lane changer
-
-
-# learning-traffic
-
-Testing
-====
-To run the tests:
-
-    pushd flow-dev; python -m unittest discover; popd
-
-To run only the fast (eg. unit) tests:
-
-    pushd flow-dev; python -m unittest discover tests/fast; popd
-
-To run only the slow (eg. integration) tests:
-
-    pushd flow-dev; python -m unittest discover tests/slow; popd
-
-Development
-====
-* For this project, and any derived from it, please run the following command
-  from the project root directory:
-
-      ln -s ../../pre-commit.sh .git/hooks/pre-commit
 
 Warnings:
 ====
