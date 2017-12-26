@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/cathywu/learning-traffic.svg?token=wbU1B66dmFhiJUsJezgC&branch=master)](https://travis-ci.com/cathywu/learning-traffic)
 [![Docs](https://readthedocs.org/projects/berkeleyflow/badge)](http://berkeleyflow.readthedocs.org/en/latest/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cathywu/flow/blob/master/LICENSE.md)
 
