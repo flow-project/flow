@@ -13,7 +13,12 @@ import gym
 
 import sumolib
 
-import flow.core.config as config
+try:
+    # Load user config if exists, else load default config
+    import flow.core.config as config
+except Exception as e:
+    import flow.config_default as config
+
 from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
 
@@ -74,10 +79,14 @@ class SumoEnvironment(gym.Env, Serializable):
         self.obs_var_labels = []
 
         # SUMO Params
-        if sumo_params.port:
+        if sumo_params.port is not None:
             self.port = sumo_params.port
         else:
             self.port = sumolib.miscutils.getFreeSocketPort()
+        if sumo_params.seed is not None:
+            self.seed = sumo_params.seed
+        else:
+            self.seed = np.random.randint(1e8)
         self.time_step = sumo_params.time_step
         self.vehicle_arrangement_shuffle = \
             sumo_params.vehicle_arrangement_shuffle
@@ -158,7 +167,8 @@ class SumoEnvironment(gym.Env, Serializable):
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step),
                      "--step-method.ballistic", "true",
-                     "--no-step-log"]
+                     "--no-step-log",
+                     "--seed", str(self.seed)]
 
         # add the lateral resolution of the sublanes (if one is requested)
         if self.sumo_params.lateral_resolution is not None:

@@ -10,7 +10,8 @@ class SumoParams:
                  starting_position_shuffle=False,
                  emission_path=None,
                  lateral_resolution=None,
-                 sumo_binary="sumo"):
+                 sumo_binary="sumo",
+                 seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
@@ -66,6 +67,7 @@ class SumoParams:
         self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
         self.sumo_binary = sumo_binary
+        self.seed = seed
 
 
 class EnvParams:
