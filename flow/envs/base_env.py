@@ -13,7 +13,12 @@ import gym
 
 import sumolib
 
-import flow.core.config as config
+try:
+    # Load user config if exists, else load default config
+    import flow.core.config as config
+except Exception as e:
+    import flow.config_default as config
+
 from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
 
