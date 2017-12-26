@@ -79,10 +79,14 @@ class SumoEnvironment(gym.Env, Serializable):
         self.obs_var_labels = []
 
         # SUMO Params
-        if sumo_params.port:
+        if sumo_params.port is not None:
             self.port = sumo_params.port
         else:
             self.port = sumolib.miscutils.getFreeSocketPort()
+        if sumo_params.seed is not None:
+            self.seed = sumo_params.seed
+        else:
+            self.seed = np.random.randint(1e8)
         self.time_step = sumo_params.time_step
         self.vehicle_arrangement_shuffle = \
             sumo_params.vehicle_arrangement_shuffle
@@ -164,7 +168,8 @@ class SumoEnvironment(gym.Env, Serializable):
         sumo_call = [self.sumo_binary,
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
-                     "--step-length", str(self.time_step)]
+                     "--step-length", str(self.time_step),
+                     "--seed", str(self.seed)]
         logging.info("Traci on port: ", self.port)
         if self.emission_out:
             sumo_call.append("--emission-output")
