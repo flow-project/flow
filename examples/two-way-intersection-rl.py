@@ -32,6 +32,7 @@ from rllab.envs.gym_env import GymEnv
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.two_intersection import TwoIntersectionEnvironment
+import flow.core.config as flow_config
 
 from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
 from flow.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
@@ -43,7 +44,7 @@ logging.basicConfig(level=logging.INFO)
 def run_task(*_):
     auton_cars = 20
 
-    sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", rl_speed_mode= "no_collide",
+    sumo_params = SumoParams(time_step=0.1,
                              sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
@@ -112,6 +113,6 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="intersection-exp",
-        # python_command=flow_config.PYTHON_COMMAND
+        python_command=flow_config.PYTHON_COMMAND
         # plot=True,
     )

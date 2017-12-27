@@ -1,28 +1,51 @@
-import numpy as np
 import random
 
+import numpy as np
+import logging
 
-class StaticLaneChanger:
+
+class BaseLaneChangeController:
+
     def __init__(self, veh_id):
         """
-        A lane-changing model used to perpetually keep a vehicle in the same
-        lane.
+        Base Class for Lane Change controllers.
 
         Attributes
         ----------
         veh_id: str
             unique vehicle identifier
         """
+        self.SumoController = False
         self.veh_id = veh_id
 
+    def isSumoController(self):
+        return self.SumoController
+
+    def get_action(self, env):
+        return None
+
+
+class SumoLaneChangeController(BaseLaneChangeController):
+    """
+    A class used to enforce sumo lane-change dynamics on a vehicle.
+    """
+    def __init__(self, veh_id):
+        super().__init__(veh_id)
+        self.SumoController = True
+
+
+class StaticLaneChanger(BaseLaneChangeController):
+    """
+    A lane-changing model used to keep a vehicle in the same lane.
+    """
     def get_action(self, env):
         return env.vehicles.get_lane(self.veh_id)
 
 
-class StochasticLaneChanger:
+class StochasticLaneChanger(BaseLaneChangeController):
     def __init__(self, veh_id, speedThreshold=5, prob=0.5, dxBack=0,
                  dxForward=60, gapBack=10, gapForward=5):
-        self.veh_id = veh_id
+        super().__init__(veh_id)
         self.speedThreshold = speedThreshold
         self.prob = prob
         self.dxBack = dxBack
@@ -82,8 +105,8 @@ class StochasticLaneChanger:
         # new lane is chosen with a probability prob
         # if its velocity is sufficiently greater than that of the current lane
         if maxl != env.vehicles[self.veh_id]['lane'] and \
-                (maxv - myv) > self.speedThreshold and \
-                random.random() < self.prob:
+                        (maxv - myv) > self.speedThreshold and \
+                        random.random() < self.prob:
             return maxl
         return env.vehicles[self.veh_id]['lane']
 
@@ -151,8 +174,8 @@ def stochastic_lane_changer(speedThreshold=5, prob=0.5,
         # new lane is chosen with a probability prob
         # if its velocity is sufficiently greater than that of the current lane
         if maxl != env.vehicles.get_lane(carID) and \
-                (maxv - myv) > speedThreshold and \
-                random.random() < prob:
+                        (maxv - myv) > speedThreshold and \
+                        random.random() < prob:
             return maxl
         return env.vehicles.get_lane(carID)
 

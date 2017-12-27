@@ -47,36 +47,38 @@ class LoopMergesGenerator(Generator):
         if num_cars > 0:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
-            for veh_type in scenario.vehicles.types:
-                routes.append(E("vType", id=veh_type, minGap="0"))
+            for type, type_params in scenario.vehicles.types:
+                type_params_str = {key:str(type_params[key]) for key in type_params}
+                routes.append(E("vType", id=type, **type_params_str))
 
-            vehicle_ids = scenario.vehicles.get_ids()
+            self.vehicle_ids = scenario.vehicles.get_ids()
 
             if initial_config.shuffle:
-                random.shuffle(vehicle_ids)
+                random.shuffle(self.vehicle_ids)
 
             positions = initial_config.positions
+            lanes = initial_config.lanes
             ring_positions = positions[:scenario.vehicles.num_vehicles -
                                        scenario.num_merge_vehicles]
             merge_positions = positions[scenario.vehicles.num_vehicles -
                                         scenario.num_merge_vehicles:]
             i_merge = 0
             i_ring = 0
-            for i, id in enumerate(vehicle_ids):
+            for i, id in enumerate(self.vehicle_ids):
                 if "merge" in scenario.vehicles.get_state(id, "type"):
-                    route, pos = merge_positions[i_merge]
+                    edge, pos = merge_positions[i_merge]
                     i_merge += 1
                 else:
-                    route, pos = ring_positions[i_ring]
+                    edge, pos = ring_positions[i_ring]
                     i_ring += 1
+                lane = lanes[i]
 
                 veh_type = scenario.vehicles.get_state(id, "type")
                 type_depart_speed = scenario.vehicles.get_initial_speed(id)
-                routes.append(
-                    self._vehicle(veh_type, "route" + route,
-                                  depart="0",
-                                  departSpeed=str(type_depart_speed),
-                                  departPos=str(pos), id=id, color="1,0.0,0.0")
+                routes.append(self._vehicle(
+                    veh_type, "route" + edge, depart="0", id=id,
+                    color="1,0.0,0.0", departSpeed=str(type_depart_speed),
+                    departPos=str(pos), departLane=str(lane))
                 )
 
             printxml(routes, self.cfg_path + self.roufn)

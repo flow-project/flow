@@ -48,8 +48,6 @@ def ring_road_exp_setup(sumo_params=None,
     if sumo_params is None:
         # set default sumo_params configuration
         sumo_params = SumoParams(time_step=0.1,
-                                 human_speed_mode="aggressive",
-                                 rl_speed_mode="aggressive",
                                  sumo_binary="sumo")
 
     if vehicles is None:
@@ -58,6 +56,7 @@ def ring_road_exp_setup(sumo_params=None,
         vehicles.add_vehicles(veh_id="idm",
                               acceleration_controller=(IDMController, {}),
                               routing_controller=(ContinuousRouter, {}),
+                              speed_mode="aggressive",
                               num_vehicles=1)
 
     if env_params is None:
@@ -122,8 +121,6 @@ def figure_eight_exp_setup(sumo_params=None,
     if sumo_params is None:
         # set default sumo_params configuration
         sumo_params = SumoParams(time_step=0.1,
-                                 human_speed_mode="aggressive",
-                                 rl_speed_mode="aggressive",
                                  sumo_binary="sumo")
 
     if vehicles is None:
@@ -131,6 +128,7 @@ def figure_eight_exp_setup(sumo_params=None,
         vehicles = Vehicles()
         vehicles.add_vehicles(veh_id="idm",
                               acceleration_controller=(IDMController, {}),
+                              speed_mode="aggressive",
                               routing_controller=(ContinuousRouter, {}),
                               num_vehicles=1)
 

@@ -43,7 +43,7 @@ sumo_params = SumoParams(sumo_binary=sumo_binary)
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 15)
 
-env_params = EnvParams()
+env_params = EnvParams(additional_params={"target_velocity":30})
 
 additional_net_params = {"ring_radius": 30, "lanes": 1, "speed_limit": 30, "resolution": 40}
 net_params = NetParams( no_internal_links=False, additional_params=additional_net_params)
