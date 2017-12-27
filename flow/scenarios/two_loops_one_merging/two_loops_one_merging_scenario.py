@@ -18,7 +18,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         radius_merge = 1.5 * radius
         angle_merge = arcsin(0.75)
         net_params.additional_params["length"] = \
-            2 * pi * radius + 2 * (pi - angle_merge) * radius
+            2 * pi * radius + 2 * (pi - angle_merge) * radius_merge
 
         self.lanes = net_params.additional_params["lanes"]
 
@@ -111,13 +111,21 @@ class TwoLoopsOneMergingScenario(Scenario):
             pos = self.get_edge(x[lane_count])
 
             # ensures that vehicles are not placed in an internal junction
-            if ":left" in pos[0]:
-                x[lane_count] += 0.3
-                pos = self.get_edge(x[lane_count])
+            while pos[0] in dict(self.internal_edgestarts).keys():
+                # find the location of the internal edge in total_edgestarts,
+                # which has the edges ordered by position
+                edges = [tup[0] for tup in self.total_edgestarts]
+                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-            elif ":bottom" in pos[0]:
-                x[lane_count] += 7
-                pos = self.get_edge(x[lane_count])
+                # take the next edge in the list, and place the car at the
+                # beginning of this edge
+                if indx_edge == len(edges)-1:
+                    next_edge_pos = self.total_edgestarts[0]
+                else:
+                    next_edge_pos = self.total_edgestarts[indx_edge+1]
+
+                x[lane_count] = next_edge_pos[1]
+                pos = (next_edge_pos[0], 0)
 
             startpositions.append(pos)
             startlanes.append(lane_count)
@@ -146,13 +154,21 @@ class TwoLoopsOneMergingScenario(Scenario):
             pos = self.get_edge(x[lane_count])
 
             # ensures that vehicles are not placed in an internal junction
-            if ":right" in pos[0]:
-                x[lane_count] += 0.3
-                pos = self.get_edge(x[lane_count])
+            while pos[0] in dict(self.internal_edgestarts).keys():
+                # find the location of the internal edge in total_edgestarts,
+                # which has the edges ordered by position
+                edges = [tup[0] for tup in self.total_edgestarts]
+                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
 
-            elif ":top" in pos[0]:
-                x[lane_count] += 7
-                pos = self.get_edge(x[lane_count])
+                # take the next edge in the list, and place the car at the
+                # beginning of this edge
+                if indx_edge == len(edges)-1:
+                    next_edge_pos = self.total_edgestarts[0]
+                else:
+                    next_edge_pos = self.total_edgestarts[indx_edge+1]
+
+                x[lane_count] = next_edge_pos[1]
+                pos = (next_edge_pos[0], 0)
 
             startpositions.append(pos)
             startlanes.append(lane_count)

@@ -34,7 +34,7 @@ from flow.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.1, human_speed_mode="aggressive", sumo_binary="sumo-gui")
+sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 vehicles.add_vehicles("idm", (IDMController, {}), None, (ContinuousRouter, {}), 0, 22)

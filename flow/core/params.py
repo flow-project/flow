@@ -1,4 +1,7 @@
-class SumoParams():
+import logging
+
+
+class SumoParams:
 
     def __init__(self,
                  port=None,
@@ -6,11 +9,9 @@ class SumoParams():
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
                  emission_path=None,
-                 rl_speed_mode='no_collide',
-                 human_speed_mode='no_collide',
-                 rl_lane_change_mode="no_lat_collide",
-                 human_lane_change_mode="no_lat_collide",
-                 sumo_binary="sumo"):
+                 lateral_resolution=None,
+                 sumo_binary="sumo",
+                 seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
@@ -50,14 +51,10 @@ class SumoParams():
         emission_path: str, optional
             Path to the folder in which to create the emissions output.
             Emissions output is not generated if this value is not specified
-        rl_speed_mode: str, optional
-            may be one of: 'aggressive' or 'no collide'
-        human_speed_mode: str, optional
-            may be one of: 'aggressive' or 'no collide'
-        rl_lane_change_mode: str, optional
-            may be one of 'no_lat_collide' or 'strategic' or 'aggressive'
-        human_lane_change_mode: str, optional
-            may be one of 'no_lat_collide' or 'strategic' or 'aggressive'
+        lateral_resolution: float, optional
+            width of the divided sublanes within a lane, defaults to None (i.e.
+            no sublanes). If this value is specified, the vehicle in the network
+            cannot use the "LC2013" lane change model.
         sumo_binary: str, optional
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
@@ -68,16 +65,13 @@ class SumoParams():
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
         self.emission_path = emission_path
-        self.rl_speed_mode = rl_speed_mode
-        self.human_speed_mode = human_speed_mode
-        self.rl_lane_change_mode = rl_lane_change_mode
-        self.human_lane_change_mode = human_lane_change_mode
+        self.lateral_resolution = lateral_resolution
         self.sumo_binary = sumo_binary
+        self.seed = seed
 
 
 class EnvParams:
     def __init__(self,
-                 longitudinal_fail_safe='None',
                  max_speed=55.0,
                  lane_change_duration=None,
                  shared_reward=False,
@@ -92,9 +86,6 @@ class EnvParams:
 
         Attributes
         ----------
-        longitudinal_fail_safe: str, optional
-            Failsafe strategy to prevent bumper to bumper collisions; may be
-            one of "None", "safe velocity", or "instantaneous"
         max_speed: float, optional
             max speed of vehicles in the simulation; defaults to 55 m/s
         lane_change_duration: float, optional
@@ -109,12 +100,12 @@ class EnvParams:
             Specify additional environment params for a specific environment
             configuration
         """
-        self.fail_safe = longitudinal_fail_safe
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
         self.shared_reward = shared_reward
         self.shared_policy = shared_policy
-        self.additional_params = additional_params
+        self.additional_params = \
+            additional_params if additional_params is not None else {}
         self.max_deacc = max_deacc
         self.max_acc = max_acc
 
@@ -244,3 +235,107 @@ class InitialConfig:
 
     def get_additional_params(self, key):
         return self.additional_params[key]
+
+
+class SumoCarFollowingParams:
+    def __init__(self,
+                 accel=2.6,
+                 decel=4.5,
+                 sigma=0.5,
+                 tau=1.0,
+                 minGap=1.0,
+                 maxSpeed=30,
+                 speedFactor=1.0,
+                 speedDev=0.0,
+                 impatience=0.0,
+                 carFollowModel="IDM"):
+        """
+        Base class for sumo-controlled acceleration behavior.
+
+        Attributes
+        ----------
+        accel: float
+        decel: float
+        sigma: float
+        tau: float
+        minGap: float
+        maxSpeed: float
+        speedFactor: float
+        speedDev: float
+        impatience: float
+        carFollowModel: str
+
+        Note
+        ----
+        For a description of all params, see:
+        http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        """
+
+        # create a controller_params dict with all the specified parameters
+        self.controller_params = {
+            "accel": accel,
+            "decel": decel,
+            "sigma": sigma,
+            "tau": tau,
+            "minGap": minGap,
+            "maxSpeed": maxSpeed,
+            "speedFactor": speedFactor,
+            "speedDev": speedDev,
+            "impatience": impatience,
+            "carFollowModel": carFollowModel,
+        }
+
+
+class SumoLaneChangeParams:
+    def __init__(self,
+                 model="LC2013",
+                 lcStrategic=1.0,
+                 lcCooperative=1.0,
+                 lcSpeedGain=1.0,
+                 lcKeepRight=1.0,
+                 lcLookaheadLeft=2.0,
+                 lcSpeedGainRight=1.0,
+                 lcSublane=1.0,
+                 lcPushy=0,
+                 lcPushyGap=0.6,
+                 lcAssertive=1,
+                 lcImpatience=0,
+                 lcTimeToImpatience=float("inf"),
+                 lcAccelLat=1.0):
+
+        if model == "LC2013":
+            self.controller_params = {
+                "laneChangeModel": model,
+                "lcStrategic": str(lcStrategic),
+                "lcCooperative": str(lcCooperative),
+                "lcSpeedGain": str(lcSpeedGain),
+                "lcKeepRight": str(lcKeepRight),
+                # "lcLookaheadLeft": str(lcLookaheadLeft),
+                # "lcSpeedGainRight": str(lcSpeedGainRight)
+            }
+        elif model == "SL2015":
+            self.controller_params = {
+                "laneChangeModel": model,
+                "lcStrategic": str(lcStrategic),
+                "lcCooperative": str(lcCooperative),
+                "lcSpeedGain": str(lcSpeedGain),
+                "lcKeepRight": str(lcKeepRight),
+                "lcLookaheadLeft": str(lcLookaheadLeft),
+                "lcSpeedGainRight": str(lcSpeedGainRight),
+                "lcSublane": str(lcSublane),
+                "lcPushy": str(lcPushy),
+                "lcPushyGap": str(lcPushyGap),
+                "lcAssertive": str(lcAssertive),
+                "lcImpatience": str(lcImpatience),
+                "lcTimeToImpatience": str(lcTimeToImpatience),
+                "lcAccelLat": str(lcAccelLat)}
+        else:
+            logging.error("Invalid lc model! Defaulting to LC2013")
+            self.controller_params = {
+                "laneChangeModel": model,
+                "lcStrategic": str(lcStrategic),
+                "lcCooperative": str(lcCooperative),
+                "lcSpeedGain": str(lcSpeedGain),
+                "lcKeepRight": str(lcKeepRight),
+                "lcLookaheadLeft": str(lcLookaheadLeft),
+                "lcSpeedGainRight": str(lcSpeedGainRight)}

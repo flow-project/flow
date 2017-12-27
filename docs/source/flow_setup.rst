@@ -141,7 +141,17 @@ Install flow within the rllab-multiagent repo
     cd flow
     bash scripts/setup_sumo_osx.sh <DESIRED_PATH_TO_SUMO> # installs sumo at <DESIRED_PATH_TO_SUMO>/sumo
     python setup.py develop  # (install flow and dependencies)
-    cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
 
-Finally, add `<DESIRED_PATH_TO_SUMO>/sumo/tools` to your `PYTHONPATH` to give
-Python access to TraCI and sumolib.
+Add the following to `~/.bashrc`
+::
+
+    export SUMO_HOME="<DESIRED_PATH_TO_SUMO>/sumo"
+    export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+    export PATH="$SUMO_HOME/bin:$PATH"
+
+Custom configuration
+=====================
+
+You may define user-specific config parameters as follows
+::
+    cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
