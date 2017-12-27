@@ -16,7 +16,8 @@ class TestStartingPositionShuffle(unittest.TestCase):
     """
     def setUp(self):
         # turn on starting position shuffle
-        sumo_params = SumoParams(starting_position_shuffle=True)
+        env_params = EnvParams(starting_position_shuffle=True,
+                               additional_params={"target_velocity": 30})
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -28,7 +29,7 @@ class TestStartingPositionShuffle(unittest.TestCase):
         initial_config = InitialConfig(x0=5)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sumo_params=sumo_params,
+        self.env, scenario = ring_road_exp_setup(env_params=env_params,
                                                  initial_config=initial_config,
                                                  vehicles=vehicles)
 
@@ -68,7 +69,8 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
     """
     def setUp(self):
         # turn on vehicle arrangement shuffle
-        sumo_params = SumoParams(vehicle_arrangement_shuffle=True)
+        env_params = EnvParams(vehicle_arrangement_shuffle=True,
+                               additional_params={"target_velocity": 30})
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -80,7 +82,7 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
         initial_config = InitialConfig(x0=5)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sumo_params=sumo_params,
+        self.env, scenario = ring_road_exp_setup(env_params=env_params,
                                                  initial_config=initial_config,
                                                  vehicles=vehicles)
 
@@ -158,7 +160,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # turn on starting position shuffle
-        sumo_params = SumoParams(starting_position_shuffle=True)
+        env_params = EnvParams(starting_position_shuffle=True,
+                               additional_params={"target_velocity": 30})
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -169,7 +172,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(net_params=net_params,
-                                                 sumo_params=sumo_params,
+                                                 env_params=env_params,
                                                  vehicles=vehicles)
 
     def tearDown(self):

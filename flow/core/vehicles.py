@@ -196,7 +196,7 @@ class Vehicles:
 
     def set_sumo_observations(self, sumo_observations, env):
 
-        if env.timer == 0:
+        if env.time_counter == 0:
             for veh_id in self.__ids:
                 # update the sumo observations variable
                 self.__sumo_observations = deepcopy(sumo_observations)
@@ -214,7 +214,7 @@ class Vehicles:
                 try:
                     if sumo_observations[veh_id][tc.VAR_LANE_INDEX] != \
                             prev_lane and veh_id in self.__rl_ids:
-                        self.set_state(veh_id, "last_lc", env.timer)
+                        self.set_state(veh_id, "last_lc", env.time_counter)
                 except KeyError:
                     # vehicle is not currently in the network (probably due to a
                     # crash), so skip
