@@ -47,7 +47,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(time_step=0.1,
+        sumo_params = SumoParams(sim_step=0.1,
                                  sumo_binary="sumo")
 
     if vehicles is None:
@@ -120,7 +120,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(time_step=0.1,
+        sumo_params = SumoParams(sim_step=0.1,
                                  sumo_binary="sumo")
 
     if vehicles is None:
