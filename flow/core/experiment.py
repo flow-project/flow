@@ -1,5 +1,6 @@
 import logging
 import datetime
+from flow.core.util import emission_to_csv
 
 
 class SumoExperiment:
@@ -26,7 +27,7 @@ class SumoExperiment:
 
         logging.info("initializing environment.")
 
-    def run(self, num_runs, num_steps, rl_actions=None):
+    def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
         """
         Runs the given scenario for a set number of runs and a set number of
         steps per run.
@@ -40,6 +41,9 @@ class SumoExperiment:
         rl_actions: list or numpy ndarray, optional
             actions to be performed by rl vehicles in the network (if there are
             any)
+        convert_to_csv: bool
+            Specifies whether to convert the emission file created by sumo into
+            a csv file
         """
         if rl_actions is None:
             rl_actions = []
@@ -50,3 +54,14 @@ class SumoExperiment:
             for j in range(num_steps):
                 self.env.step(rl_actions)
         self.env.terminate()
+
+        if convert_to_csv:
+            # collect the location of the emission file
+            dir_path = self.env.sumo_params.emission_path
+            emission_filename = \
+                "{0}-emission.xml".format(self.env.scenario.name)
+            emission_path = \
+                "{0}/{1}".format(dir_path, emission_filename)
+
+            # convert the emission file into a csv
+            emission_to_csv(emission_path)

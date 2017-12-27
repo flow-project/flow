@@ -4,6 +4,7 @@ Base class for generating transportation networks.
 from flow.core.util import makexml
 from flow.core.util import printxml
 from flow.core.util import ensure_dir
+from flow.controllers.car_following_models import SumoCarFollowingController
 
 import sys
 import subprocess
@@ -197,14 +198,13 @@ class Generator(Serializable):
     def make_routes(self, scenario, initial_config):
 
         vehicles = scenario.vehicles
-        type_list = vehicles.types
         if vehicles.num_vehicles > 0:
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
             # add the types of vehicles to the xml file
-            for veh_type in vehicles.types:
-                routes.append(E("vType", id=veh_type, minGap="0", accel="100",
-                                decel="100"))
+            for type, type_params in vehicles.types:
+                type_params_str = {key:str(type_params[key]) for key in type_params}
+                routes.append(E("vType", id=type, **type_params_str))
 
             self.vehicle_ids = vehicles.get_ids()
 
@@ -218,7 +218,6 @@ class Generator(Serializable):
                 veh_type = vehicles.get_state(id, "type")
                 edge, pos = positions[i]
                 lane = lanes[i]
-                indx_type = [i for i in range(len(type_list)) if type_list[i] == veh_type][0]
                 type_depart_speed = vehicles.get_initial_speed(id)
                 routes.append(self._vehicle(
                     veh_type, "route" + edge, depart="0", id=id,
