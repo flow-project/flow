@@ -18,7 +18,7 @@ from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario import 
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.1, emission_path="./data/", human_speed_mode="no_collide",
+sumo_params = SumoParams(time_step=0.1, emission_path="./data/",
                          sumo_binary="sumo-gui")
 
 # note that the vehicles are added sequentially by the generator,
