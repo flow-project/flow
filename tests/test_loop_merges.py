@@ -13,7 +13,7 @@ from flow.envs.loop_merges import SimpleLoopMergesEnvironment
 
 
 def loop_merge_exp_setup(vehicles=None):
-    sumo_params = SumoParams(time_step=0.1,
+    sumo_params = SumoParams(sim_step=0.1,
                              sumo_binary="sumo")
 
     if vehicles is None:
