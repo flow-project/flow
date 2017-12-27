@@ -10,7 +10,8 @@ class SumoParams():
                  human_speed_mode='no_collide',
                  rl_lane_change_mode="no_lat_collide",
                  human_lane_change_mode="no_lat_collide",
-                 sumo_binary="sumo"):
+                 sumo_binary="sumo",
+                 seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
@@ -73,6 +74,7 @@ class SumoParams():
         self.rl_lane_change_mode = rl_lane_change_mode
         self.human_lane_change_mode = human_lane_change_mode
         self.sumo_binary = sumo_binary
+        self.seed = seed
 
 
 class EnvParams:

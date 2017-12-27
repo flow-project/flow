@@ -3,6 +3,7 @@ import subprocess
 import sys
 from copy import deepcopy
 import time
+import traceback
 
 import traci
 from traci import constants as tc
@@ -12,9 +13,17 @@ import gym
 
 import sumolib
 
-import flow.core.config as config
+try:
+    # Load user config if exists, else load default config
+    import flow.core.config as config
+except Exception as e:
+    import flow.config_default as config
+
 from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
+
+# Number of retries on restarting SUMO before giving up
+RETRIES_ON_ERROR = 10
 
 COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
@@ -70,10 +79,14 @@ class SumoEnvironment(gym.Env, Serializable):
         self.obs_var_labels = []
 
         # SUMO Params
-        if sumo_params.port:
+        if sumo_params.port is not None:
             self.port = sumo_params.port
         else:
             self.port = sumolib.miscutils.getFreeSocketPort()
+        if sumo_params.seed is not None:
+            self.seed = sumo_params.seed
+        else:
+            self.seed = np.random.randint(1e8)
         self.time_step = sumo_params.time_step
         self.vehicle_arrangement_shuffle = \
             sumo_params.vehicle_arrangement_shuffle
@@ -114,18 +127,27 @@ class SumoEnvironment(gym.Env, Serializable):
         Restarts an already initialized environment. Used when visualizing a
         rollout.
         """
-        self.traci_connection.close(False)
-        if sumo_binary:
-            self.sumo_binary = sumo_binary
+        error = None
+        for _ in range(RETRIES_ON_ERROR):
+            try:
+                self.traci_connection.close(False)
+                if sumo_binary:
+                    self.sumo_binary = sumo_binary
 
-        self.port = sumolib.miscutils.getFreeSocketPort()
-        data_folder = self.emission_path
-        ensure_dir(data_folder)
-        self.emission_out = \
-            data_folder + "{0}-emission.xml".format(self.scenario.name)
+                self.port = sumolib.miscutils.getFreeSocketPort()
+                if self.emission_path:
+                    data_folder = self.emission_path
+                    ensure_dir(data_folder)
+                    self.emission_out = \
+                        data_folder + "{0}-emission.xml".format(self.scenario.name)
 
-        self.start_sumo()
-        self.setup_initial_state()
+                self.start_sumo()
+                self.setup_initial_state()
+                return
+            except Exception as e:
+                print("Error during reset: {}".format(traceback.format_exc()))
+                error = e
+        raise error
 
     def start_sumo(self):
         """
@@ -146,7 +168,8 @@ class SumoEnvironment(gym.Env, Serializable):
         sumo_call = [self.sumo_binary,
                      "-c", cfg_file,
                      "--remote-port", str(self.port),
-                     "--step-length", str(self.time_step)]
+                     "--step-length", str(self.time_step),
+                     "--seed", str(self.seed)]
         logging.info("Traci on port: ", self.port)
         if self.emission_out:
             sumo_call.append("--emission-output")
@@ -482,11 +505,9 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             if crash:
                 logging.info("Crash has occurred! Check failsafes!")
-                return Step(observation=next_observation, reward=reward,
-                            done=True)
+                return next_observation, reward, True, {}
             else:
-                return Step(observation=next_observation, reward=reward,
-                            done=False)
+                return next_observation, reward, False, {}
 
     # @property
     def _reset(self):
