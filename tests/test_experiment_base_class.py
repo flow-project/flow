@@ -34,7 +34,7 @@ class TestNumSteps(unittest.TestCase):
     def runTest(self):
         self.exp.run(num_runs=1, num_steps=10)
 
-        self.assertEqual(self.exp.env.timer, 10)
+        self.assertEqual(self.exp.env.time_counter, 10)
 
 
 class TestNumRuns(unittest.TestCase):

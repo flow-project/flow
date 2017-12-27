@@ -73,8 +73,8 @@ class SumoEnvironment(gym.Env, Serializable):
         self.sumo_params = sumo_params
         self.sumo_binary = self.sumo_params.sumo_binary
         self.vehicles = scenario.vehicles
-        # timer: Represents number of steps taken since the start of a rollout
-        self.timer = 0
+        # time_counter: number of steps taken since the start of a rollout
+        self.time_counter = 0
         # initial_state:
         #   Key = Vehicle ID,
         #   Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
@@ -95,10 +95,10 @@ class SumoEnvironment(gym.Env, Serializable):
             self.seed = sumo_params.seed
         else:
             self.seed = np.random.randint(1e8)
-        self.time_step = sumo_params.time_step
+        self.sim_step = sumo_params.sim_step
         self.vehicle_arrangement_shuffle = \
-            sumo_params.vehicle_arrangement_shuffle
-        self.starting_position_shuffle = sumo_params.starting_position_shuffle
+            env_params.vehicle_arrangement_shuffle
+        self.starting_position_shuffle = env_params.starting_position_shuffle
         self.emission_path = sumo_params.emission_path
 
         # path to the output (emission) file provided by sumo
@@ -112,7 +112,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         self.max_speed = env_params.max_speed
         self.lane_change_duration = \
-            env_params.get_lane_change_duration(self.time_step)
+            env_params.get_lane_change_duration(self.sim_step)
         self.shared_reward = env_params.shared_reward
         self.shared_policy = env_params.shared_policy
 
@@ -160,7 +160,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 logging.info(" Starting SUMO on port " + str(self.port))
                 logging.debug(" Cfg file " + str(self.scenario.cfg))
                 logging.debug(" Emission file: " + str(self.emission_out))
-                logging.debug(" Time step: " + str(self.time_step))
+                logging.debug(" Step length: " + str(self.sim_step))
 
                 # Opening the I/O thread to SUMO
                 cfg_file = self.scenario.cfg
@@ -168,10 +168,13 @@ class SumoEnvironment(gym.Env, Serializable):
                 sumo_call = [self.sumo_binary,
                              "-c", cfg_file,
                              "--remote-port", str(self.port),
-                             "--step-length", str(self.time_step),
+                            "--step-length", str(self.sim_step),
                              "--step-method.ballistic", "true",
-                             "--no-step-log",
                              "--seed", str(self.seed)]
+
+                # add step logs (if requested)
+                if self.sumo_params.no_step_log:
+                    sumo_call.append("--no-step-log")
 
                 # add the lateral resolution of the sublanes (if one is requested)
                 if self.sumo_params.lateral_resolution is not None:
@@ -351,7 +354,7 @@ class SumoEnvironment(gym.Env, Serializable):
         info: dictionary
             contains other diagnostic information from the previous action
         """
-        self.timer += 1
+        self.time_counter += 1
 
         # perform acceleration and (optionally) lane change actions for
         # traci-controlled human-driven vehicles
@@ -498,7 +501,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # create the list of colors used to visually distinguish between
         # different types of vehicles
-        self.timer = 0
+        self.time_counter = 0
         self.colors = {}
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
@@ -651,7 +654,7 @@ class SumoEnvironment(gym.Env, Serializable):
         else:
             acc_arr = np.array(acc)
 
-        next_vel = np.array(this_vel + acc_arr * self.time_step).clip(min=0)
+        next_vel = np.array(this_vel + acc_arr * self.sim_step).clip(min=0)
 
         for i, vid in enumerate(veh_ids):
             self.traci_connection.vehicle.slowDown(vid, next_vel[i], 1)

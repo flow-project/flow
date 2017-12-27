@@ -5,11 +5,10 @@ class SumoParams:
 
     def __init__(self,
                  port=None,
-                 time_step=0.1,
-                 vehicle_arrangement_shuffle=False,
-                 starting_position_shuffle=False,
+                 sim_step=0.1,
                  emission_path=None,
                  lateral_resolution=None,
+                 no_step_log=True,
                  sumo_binary="sumo",
                  seed=None):
         """
@@ -18,36 +17,12 @@ class SumoParams:
         prevent crashes. In addition, this parameter may be used to specify
         whether to use sumo's gui during the experiment's runtime
 
-        Specify the rl_speed_mode and human_speed_mode as the SUMO-defined speed
-        mode used to constrain acceleration actions.
-        The available speed modes are as follows:
-         - "no_collide" (default): Human and RL cars are preventing from
-           reaching speeds that may cause crashes (also serves as a failsafe).
-         - "aggressive": Human and RL cars are not limited by sumo with regard
-           to their accelerations, and can crash longitudinally
-
-        Specify the SUMO-defined lane-changing mode used to constrain
-        lane-changing actions. The available lane-changing modes are as follows:
-         - default: Human and RL cars can only safely change into lanes
-         - "strategic": Human cars make lane changes in accordance with SUMO to
-           provide speed boosts
-         - "no_lat_collide": RL cars can lane change into any space, no matter
-           how likely it is to crash
-         - "aggressive": RL cars are not limited by sumo with regard to their
-           lane-change actions, and can crash longitudinally
-
         Attributes
         ----------
         port: int, optional
             Port for Traci to connect to; finds an empty port by default
-        time_step: float optional
+        sim_step: float optional
             seconds per simulation step; 0.1 by default
-        vehicle_arrangement_shuffle: bool, optional
-            determines if initial conditions of vehicles are shuffled at reset;
-            False by default
-        starting_position_shuffle: bool, optional
-            determines if starting position of vehicles should be updated
-            between rollouts; False by default
         emission_path: str, optional
             Path to the folder in which to create the emissions output.
             Emissions output is not generated if this value is not specified
@@ -55,17 +30,21 @@ class SumoParams:
             width of the divided sublanes within a lane, defaults to None (i.e.
             no sublanes). If this value is specified, the vehicle in the network
             cannot use the "LC2013" lane change model.
+        no_step_log: bool, optional
+            specifies whether to add sumo's step logs to the log file, and print
+            them into the terminal during runtime, defaults to True
         sumo_binary: str, optional
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
                 - 'sumo' to run without the gui (default)
+        seed: int, optional
+            seed for sumo instance
         """
         self.port = port
-        self.time_step = time_step
-        self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
-        self.starting_position_shuffle = starting_position_shuffle
+        self.sim_step = sim_step
         self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
+        self.no_step_log = no_step_log
         self.sumo_binary = sumo_binary
         self.seed = seed
 
@@ -74,6 +53,8 @@ class EnvParams:
     def __init__(self,
                  max_speed=55.0,
                  lane_change_duration=None,
+                 vehicle_arrangement_shuffle=False,
+                 starting_position_shuffle=False,
                  shared_reward=False,
                  shared_policy=False,
                  additional_params=None,
@@ -92,6 +73,12 @@ class EnvParams:
             lane changing duration is always present in the environment, but
             only used by sub-classes that apply lane changing; defaults to
             5 seconds
+        vehicle_arrangement_shuffle: bool, optional
+            determines if initial conditions of vehicles are shuffled at reset;
+            False by default
+        starting_position_shuffle: bool, optional
+            determines if starting position of vehicles should be updated
+            between rollouts; False by default
         shared_reward: bool, optional
             use a shared reward; defaults to False
         shared_policy: bool, optional
@@ -99,9 +86,15 @@ class EnvParams:
         additional_params: dict, optional
             Specify additional environment params for a specific environment
             configuration
+        max_deacc: float, optional
+            maximum deceleration of autonomous vehicles, defaults to -6 m/s2
+        max_acc: float, optional
+            maximum acceleration of autonomous vehicles, defaults to 3 m/s2
         """
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
+        self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
+        self.starting_position_shuffle = starting_position_shuffle
         self.shared_reward = shared_reward
         self.shared_policy = shared_policy
         self.additional_params = \
@@ -136,8 +129,6 @@ class NetParams:
                  net_path="debug/net/",
                  cfg_path="debug/cfg/",
                  no_internal_links=True,
-                 lanes=1,
-                 speed_limit=55,
                  additional_params=None):
         """
         Network configuration parameters
@@ -151,23 +142,15 @@ class NetParams:
         no_internal_links: bool, optional
             determines whether the space between edges is finite. Important
             when using networks with intersections; default is False
-        lanes: int or dict, optional
-            number of lanes for each edge in the network. May be specified as a
-            single integer (in which case all lanes are assumed to have the same
-            number of lanes), or a dict, ex: {"edge_1": 2, "edge_2": 1, ...}
-        speed_limit: float or dict, optional
-            speed limit for each edge in the network. May be specified as a
-            single value (in which case all edges are assumed to have the same
-            speed limit), or a dict, ex: {"edge_1": 30, "edge_2": 35, ...}
         additional_params: dict, optional
             network specific parameters; see each subclass for a description of
             what is needed
         """
+        if additional_params is None:
+            additional_params = {}
         self.net_path = net_path
         self.cfg_path = cfg_path
         self.no_internal_links = no_internal_links
-        self.lanes = lanes
-        self.speed_limit = speed_limit
         self.additional_params = additional_params
 
 
@@ -197,8 +180,11 @@ class InitialConfig:
             should be shuffled upon initialization.
         spacing: str, optional
             specifies the positioning of vehicles in the network relative to
-            one another. May be one of:
-
+            one another. May be one of: "uniform", "random", or "custom".
+            Default is "uniform".
+        scale: float, optional
+        downscale: float, optional
+        x0: float, optional
             position of the first vehicle to be placed in the network
         bunching: float, optional
             reduces the portion of the network that should be filled with
