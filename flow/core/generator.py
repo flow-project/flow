@@ -26,6 +26,9 @@ class Generator(Serializable):
     NET_PATH = "./"
 
     def __init__(self, net_params, base):
+        # Invoke serialiable if using rllab
+        if Serializable is not object:
+            Serializable.quick_init(self, locals())
         self.net_params = net_params
         self.net_path = net_params.net_path
         self.cfg_path = net_params.cfg_path
