@@ -46,7 +46,6 @@ Install flow within the rllab-multiagent repo
     cd flow 
     bash scripts/setup_sumo_osx.sh <DESIRED_PATH_TO_SUMO> # installs sumo at <DESIRED_PATH_TO_SUMO>/sumo
     python setup.py develop  # (install flow and dependencies)
-    cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm 
 
 Finally, add <DESIRED_PATH_TO_SUMO>/sumo/tools to your PYTHON_PATH to give Python access to TraCI and sumolib.
 
@@ -81,3 +80,10 @@ This means that you have Flow properly configured with SUMO.
 
 This means that you have Flow properly configured with both SUMO and
 rllab. Congratulations, you now have Flow set up!
+
+Custom configuration
+=====================
+
+You may define user-specific config parameters as follows
+::
+    cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
