@@ -48,14 +48,16 @@ class WaveAttenuationEnv(SumoEnvironment):
         """
         See parent class
         """
-        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                         if veh_id in self.vehicles.get_rl_ids()]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
         """
-        vel = np.array([self.vehicles.get_speed(veh_id) for veh_id in self.ids])
+        vel = np.array([self.vehicles.get_speed(veh_id)
+                        for veh_id in self.vehicles.get_ids()])
 
         if any(vel < -100) or kwargs["fail"]:
             return 0.
@@ -84,14 +86,19 @@ class WaveAttenuationEnv(SumoEnvironment):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        scaled_vel = [self.vehicles.get_speed(veh_id) / self.env_params.additional_params["target_velocity"]
+        target_vel = self.env_params.additional_params["target_velocity"]
+        length = self.scenario.length
+        scaled_vel = [self.vehicles.get_speed(veh_id) / target_vel
                       for veh_id in self.sorted_ids]
-        scaled_headway = [(self.vehicles.get_headway(veh_id) % self.scenario.length) / self.scenario.length
+        scaled_headway = [(self.vehicles.get_headway(veh_id) % length) / length
                           for veh_id in self.sorted_ids]
 
-        # for stabilizing the ring: place the rl car at index 0 to maintain continuity between rollouts
-        indx_rl = [ind for ind in range(len(self.sorted_ids)) if self.sorted_ids[ind] in self.rl_ids][0]
-        indx_sorted_ids = np.mod(np.arange(len(self.sorted_ids)) + indx_rl, len(self.sorted_ids))
+        # for stabilizing the ring: place the rl car at index 0 to maintain
+        # continuity between rollouts
+        indx_rl = [ind for ind in range(len(self.sorted_ids))
+                   if self.sorted_ids[ind] in self.vehicles.get_rl_ids()][0]
+        indx_sorted_ids = np.mod(np.arange(len(self.sorted_ids)) + indx_rl,
+                                 len(self.sorted_ids))
 
         return np.array([[scaled_vel[i], scaled_headway[i]]
                          for i in indx_sorted_ids])
@@ -99,8 +106,8 @@ class WaveAttenuationEnv(SumoEnvironment):
     def _reset(self):
         """
         See parent class.
-        The sumo instance is restart with a new ring length, and a number of steps are
-        performed with the rl vehicle acting as a human vehicle.
+        The sumo instance is restart with a new ring length, and a number of
+        steps are performed with the rl vehicle acting as a human vehicle.
         """
         # update the scenario
         initial_config = InitialConfig(bunching=50)
@@ -136,58 +143,67 @@ class WaveAttenuationEnv(SumoEnvironment):
         print('-----------------------')
 
         # restart the sumo instance
-        self.restart_sumo(sumo_params=self.sumo_params, sumo_binary=self.sumo_params.sumo_binary)
+        self.restart_sumo(sumo_params=self.sumo_params,
+                          sumo_binary=self.sumo_params.sumo_binary)
 
         # perform the generic reset function
         observation = super()._reset()
 
-        # run the experiment for a few steps with the rl vehicle acting as a human
-        # vehicle (before beginning the learning portion of the rollout)
+        # run the experiment for a few steps with the rl vehicle acting as a
+        # human vehicle (before beginning the learning portion of the rollout)
         num_pre_steps = 750
         if num_pre_steps > 0:
             for i in range(num_pre_steps):
                 observation = self.pre_step()
 
-                # for veh_id in self.ids:
-                #     self.vel[veh_id].append(self.vehicles[veh_id]["speed"])
-                #     self.pos[veh_id].append(self.vehicles[veh_id]["absolute_position"])
+        # reset the timer to zero
+        self.time_counter = 0
 
         return observation
 
     def pre_step(self):
-        # rl controllers are embedded with IDM Controllers to simulate human driving at first
-        self.embedded_controller = dict.fromkeys(self.rl_ids)
-        for veh_id in self.rl_ids:
+        self.time_counter += 1
+
+        # rl controllers are embedded with IDM Controllers to simulate human
+        rl_ids = self.vehicles.get_rl_ids()
+        # driving at first
+        self.embedded_controller = dict.fromkeys(rl_ids)
+        for veh_id in rl_ids:
             self.embedded_controller[veh_id] = IDMController(veh_id)
 
-        # perform accelerations for all vehicles, with rl vehicles moving like human vehicles
+        # perform accelerations for rl vehicles moving like human vehicles
         accel = []
-        for veh_id in self.controlled_ids:
-            # acceleration action
-            action = self.vehicles.get_acc_controller(veh_id).get_action(self)
-            accel.append(action)
-        self.apply_acceleration(self.controlled_ids, acc=accel)
-
-        accel = []
-        for veh_id in self.rl_ids:
+        for veh_id in rl_ids:
             action = self.embedded_controller[veh_id].get_action(self)
             accel.append(action)
-        self.apply_acceleration(self.rl_ids, acc=accel)
+        self.apply_acceleration(rl_ids, acc=accel)
 
-        # perform (optionally) routing actions for all vehicle in the network, including rl vehicles
+        # perform acceleration actions for controlled human-driven vehicles
+        if len(self.vehicles.get_controlled_ids()) > 0:
+            accel = []
+            for veh_id in self.vehicles.get_controlled_ids():
+                accel_contr = self.vehicles.get_acc_controller(veh_id)
+                action = accel_contr.get_action(self)
+                accel.append(action)
+            self.apply_acceleration(self.vehicles.get_controlled_ids(), accel)
+
+        # perform (optionally) routing actions for all vehicle in the network,
+        # including rl and sumo-controlled vehicles
         routing_ids = []
         routing_actions = []
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             if self.vehicles.get_routing_controller(veh_id) is not None:
                 routing_ids.append(veh_id)
-                routing_actions.append(self.vehicles.get_routing_controller(veh_id).choose_route(self))
+                route_contr = self.vehicles.get_routing_controller(veh_id)
+                routing_actions.append(route_contr.choose_route(self))
 
         self.choose_routes(veh_ids=routing_ids, route_choices=routing_actions)
 
         self.traci_connection.simulationStep()
 
-        # store new observations in the network after traci simulation step
-        network_observations = self.traci_connection.vehicle.getSubscriptionResults()
+        # collect new network observations from sumo
+        network_observations = \
+            self.traci_connection.vehicle.getSubscriptionResults()
 
         # store the network observations in the vehicles class
         self.vehicles.set_sumo_observations(network_observations, self)
@@ -195,7 +211,8 @@ class WaveAttenuationEnv(SumoEnvironment):
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        # collect information of the state of the network based on the environment class used
+        # collect information of the state of the network based on the
+        # environment class used
         if self.vehicles.num_rl_vehicles > 0:
             self.state = self.get_state()
             # rllab requires non-multi agent to have state shape as
@@ -204,8 +221,8 @@ class WaveAttenuationEnv(SumoEnvironment):
                 self.state = self.state.T
         else:
             self.state = []
-        # collect observation new state associated with action
 
+        # collect observation new state associated with action
         next_observation = list(self.state)
 
         return next_observation
@@ -231,7 +248,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         The state is an array the velocities for each vehicle
         :return: a matrix of velocities and absolute positions for each vehicle
         """
-        vehID = self.rl_ids[0]
+        vehID = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(vehID)
         max_speed = 15.
         max_scenario_length = 350.

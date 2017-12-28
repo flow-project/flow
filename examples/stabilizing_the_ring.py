@@ -37,7 +37,7 @@ import sys
 def run_task(v):
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo", seed=0)
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo", seed=0)
 
     vehicles = Vehicles()
     vehicles.add_vehicles(veh_id="rl",
@@ -107,11 +107,10 @@ for seed in [5]:  # , 20, 68]:
         n_parallel=16,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
-        # Specifies the seed for the experiment. If this is not provided, a random seed
-        # will be used
+        # Specifies the seed for the experiment. If this is not provided, a
+        # random seed will be used
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab-distributed/bin/python3.5"
         # plot=True,
     )

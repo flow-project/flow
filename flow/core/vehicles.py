@@ -23,8 +23,9 @@ class Vehicles:
         set or retrieved from this class.
         """
         self.__ids = []  # stores the ids of all vehicles
+        self.__human_ids = []  # stores the ids of human-driven vehicles
         self.__controlled_ids = []  # stores the ids of flow-controlled vehicles
-        self.__sumo_ids = []  # stores the ids of sumo-controlled vehicles
+        self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
         self.__rl_ids = []  # stores the ids of rllab-controlled vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
@@ -156,14 +157,18 @@ class Vehicles:
             # specify the speed of vehicles at the start of a rollout
             self.__vehicles[vehID]["initial_speed"] = initial_speed
 
-            # determine the type of vehicle, and append it to its respective
-            # id list
-            if acceleration_controller[0] == SumoCarFollowingController:
-                self.__sumo_ids.append(vehID)
-            elif acceleration_controller[0] == RLController:
+            # check if the vehicle is human-driven or autonomous
+            if acceleration_controller[0] == RLController:
                 self.__rl_ids.append(vehID)
             else:
-                self.__controlled_ids.append(vehID)
+                self.__human_ids.append(vehID)
+
+                # check if the vehicle's lane-changing / acceleration actions
+                # are controlled by sumo or not.
+                if acceleration_controller[0] != SumoCarFollowingController:
+                    self.__controlled_ids.append(vehID)
+                if lane_change_controller[0] != SumoLaneChangeController:
+                    self.__controlled_lc_ids.append(vehID)
 
             # set the speed mode for the vehicle
             self.__vehicles[vehID]["speed_mode_name"] = speed_mode
@@ -274,11 +279,14 @@ class Vehicles:
     def get_ids(self):
         return self.__ids
 
+    def get_human_ids(self):
+        return self.__human_ids
+
     def get_controlled_ids(self):
         return self.__controlled_ids
 
-    def get_sumo_ids(self):
-        return self.__sumo_ids
+    def get_controlled_lc_ids(self):
+        return self.__controlled_lc_ids
 
     def get_rl_ids(self):
         return self.__rl_ids
@@ -552,4 +560,3 @@ class Vehicles:
         """
         # FIXME: add sumo observations as well
         return self.__vehicles[veh_id]
-
