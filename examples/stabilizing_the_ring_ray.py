@@ -66,7 +66,7 @@ def create_env():
     import flow.envs as flow_envs
     logging.basicConfig(level=logging.INFO)
 
-    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo")
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
     vehicles.add_vehicles(veh_id="rl",
