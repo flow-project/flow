@@ -1,5 +1,5 @@
-""" Example of ring road with larger merging ring.
-
+"""
+Example of ring road with larger merging ring.
 """
 import logging
 import numpy as np
@@ -18,7 +18,7 @@ from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario import 
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(time_step=0.1, emission_path="./data/",
+sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
                          sumo_binary="sumo-gui")
 
 # note that the vehicles are added sequentially by the generator,
@@ -62,6 +62,6 @@ exp = SumoExperiment(env, scenario)
 
 logging.info("Experiment Set Up complete")
 
-exp.run(1, 3000)
+exp.run(1, 1500)
 
 exp.env.terminate()
