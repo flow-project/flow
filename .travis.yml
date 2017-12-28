@@ -22,6 +22,10 @@ before_install:
   - pushd ../
   - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
   - git clone https://github.com/cathywu/ray.git
+  - pushd ray
+  - pwd
+  - git checkout testing
+  - popd
   # - pushd ray/python
   # - pip install cython # ray dependency
   # - pip install numpy
@@ -34,6 +38,9 @@ before_install:
   - python -c "import ray; print(ray.__path__)"
   - export PYTHONPATH="$HOME/build/cathywu/ray/python/ray:$PYTHONPATH"
   - python -c "import ray; print(ray.__path__)"
+  - export PYTHONPATH="$HOME/build/cathywu/ray:$PYTHONPATH"
+  - python -c "import ray; print(ray.__path__)"
+  - echo $PYTHONPATH
   # Setup SUMO
   - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
   - export SUMO_HOME="$HOME/build/cathywu/sumo"
