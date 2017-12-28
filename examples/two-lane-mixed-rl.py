@@ -1,26 +1,7 @@
-''' Basic test of fully rl environment with accelerations as actions. Two lane. Mixed human and rl.  
-
-Variables:
-    sumo_params {dict} -- [Pass time step, whether safe mode is on or off
-                                    human_lc: strategic -> all advantageous lane changes made
-                                    rl_lc: no_lat_collide -> no lateral collsions
-                                    aggressive -> all lane changes permitted]
-    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
-    type_params {dict} -- [Types of cars in the system. 
-    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
-    env_params {dict} -- [Params for reward function]
-    net_params {dict} -- [Params for network.
-                            length: road length
-                            lanes
-                            speed limit
-                            resolution: number of edges comprising ring
-                            net_path: where to store net]
-    cfg_params {dict} -- [description]
-    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
-                                spacing: if gaussian, add noise in start positions
-                                bunching: how close to place cars at experiment start]
-    scenario {[type]} -- [Which road network to use]
-'''
+"""
+Basic implementation of a mixed-rl multi-lane environment with accelerations and
+lane-changes as actions for the autonomous vehicles.
+"""
 import logging
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite, stub
@@ -48,23 +29,32 @@ def run_task(*_):
     auton_cars = 5
     human_cars = tot_cars - auton_cars
 
-    sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", rl_speed_mode= "no_collide",
-                             human_lane_change_mode="strategic", rl_lane_change_mode="no_lat_collide",
-                             sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles("rl", (RLController, {}), None, (ContinuousRouter, {}), 0, auton_cars)
-    vehicles.add_vehicles("cfm", (IDMController, {}), None, (ContinuousRouter, {}), 0, human_cars)
+    vehicles.add_vehicles(veh_id="rl",
+                          acceleration_controller=(RLController, {}),
+                          routing_controller=(ContinuousRouter, {}),
+                          num_vehicles=auton_cars)
+    vehicles.add_vehicles(veh_id="human",
+                          acceleration_controller=(IDMController, {}),
+                          routing_controller=(ContinuousRouter, {}),
+                          num_vehicles=human_cars)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc":3, "max-acc":3, "num_steps": 500}
+    additional_env_params = {"target_velocity": 8, "num_steps": 500}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35, "resolution": 40}
+    additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
+                             "resolution": 40}
     net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig()
 
-    scenario = LoopScenario("rl-test", CircleGenerator, vehicles, net_params, initial_config)
+    scenario = LoopScenario(name="rl-test",
+                            generator_class=CircleGenerator,
+                            vehicles=vehicles,
+                            net_params=net_params,
+                            initial_config=initial_config)
 
     env_name = "SimpleLaneChangingAccelerationEnvironment"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
@@ -106,8 +96,8 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="last",
-        # Specifies the seed for the experiment. If this is not provided, a random seed
-        # will be used
+        # Specifies the seed for the experiment. If this is not provided, a
+        # random seed will be used
         seed=seed,
         mode="local",
         exp_prefix="leah-test-exp",

@@ -24,8 +24,8 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         Actions are a set of accelerations from max-deacc to max-acc for each
         rl vehicle.
         """
-        max_acc = self.env_params.additional_params["max-acc"]
-        max_deacc = - abs(self.env_params.additional_params["max-deacc"])
+        max_acc = self.env_params.max_acc
+        max_deacc = - abs(self.env_params.max_deacc)
 
         return Box(low=-max_deacc, high=max_acc, shape=(self.vehicles.num_rl_vehicles,))
 
@@ -48,7 +48,8 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         """
         See parent class.
         """
-        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                         if veh_id in self.vehicles.get_rl_ids()]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -68,7 +69,8 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         pos = self.sorted_extra_data[0]
         edge = self.sorted_extra_data[1]
         max_speed = self.max_speed
-        is_rl = [int(veh_id in self.rl_ids) for veh_id in self.sorted_ids]
+        is_rl = [int(veh_id in self.vehicles.get_rl_ids())
+                 for veh_id in self.sorted_ids]
 
         # divide the values by the maximum attainable speed
         normalized_vel = np.array(vel) / max_speed
@@ -99,15 +101,17 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         sorted_edges = []
         sorted_pos = []
 
-        veh_edges = self.vehicles.get_edge(self.ids)
-        veh_pos = self.vehicles.get_position(self.ids)
+        ids = self.vehicles.get_ids()
+
+        veh_edges = self.vehicles.get_edge(ids)
+        veh_pos = self.vehicles.get_position(ids)
 
         edge_list = [tup[0] for tup in self.scenario.total_edgestarts]
         edge_start_pos = [tup[1] for tup in self.scenario.total_edgestarts]
 
         for i, edge in enumerate(edge_list):
-            veh_id_by_edge = [(self.ids[j], veh_pos[j] + edge_start_pos[i])
-                              for j in range(len(self.ids)) if edge in veh_edges[j]]
+            veh_id_by_edge = [(ids[j], veh_pos[j] + edge_start_pos[i])
+                              for j in range(len(ids)) if edge in veh_edges[j]]
             veh_id_by_edge.sort(key=lambda tup: tup[1])
 
             sorted_ids += [tup[0] for tup in veh_id_by_edge]

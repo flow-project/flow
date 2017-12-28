@@ -1,26 +1,6 @@
-''' Basic test of fully rl intersection environment with accelerations as actions. Two lane. Fully rl.
-
-Variables:
-    sumo_params {dict} -- [Pass time step, whether safe mode is on or off
-                                    human_lc: strategic -> all advantageous lane changes made
-                                    rl_lc: no_lat_collide -> no lateral collsions
-                                    aggressive -> all lane changes permitted]
-    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
-    type_params {dict} -- [Types of cars in the system.
-    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
-    env_params {dict} -- [Params for reward function]
-    net_params {dict} -- [Params for network.
-                            length: road length
-                            lanes
-                            speed limit
-                            resolution: number of edges comprising ring
-                            net_path: where to store net]
-    cfg_params {dict} -- [description]
-    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
-                                spacing: if gaussian, add noise in start positions
-                                bunching: how close to place cars at experiment start]
-    scenario {[type]} -- [Which road network to use]
-'''
+"""
+Basic test of fully rl intersection environment with accelerations as actions.
+"""
 import logging
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite, stub
@@ -32,6 +12,7 @@ from rllab.envs.gym_env import GymEnv
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.two_intersection import TwoIntersectionEnvironment
+import flow.core.config as flow_config
 
 from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
 from flow.scenarios.intersections.intersection_scenario import TwoWayIntersectionScenario
@@ -43,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 def run_task(*_):
     auton_cars = 20
 
-    sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide", rl_speed_mode= "no_collide",
+    sumo_params = SumoParams(sim_step=0.1,
                              sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
@@ -112,6 +93,6 @@ for seed in [1]: # [1, 5, 10, 73, 56]
         seed=seed,
         mode="local",
         exp_prefix="intersection-exp",
-        # python_command=flow_config.PYTHON_COMMAND
+        python_command=flow_config.PYTHON_COMMAND
         # plot=True,
     )

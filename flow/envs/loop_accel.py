@@ -49,7 +49,8 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         provided by rllab. These actions may be altered by flow's failsafes or
         sumo-defined speed modes.
         """
-        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                         if veh_id in self.vehicles.get_rl_ids()]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -94,7 +95,7 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         rl vehicle.
         """
         action_space = []
-        for veh_id in self.rl_ids:
+        for veh_id in self.vehicles.get_rl_ids():
             action_space.append(Box(low=self.env_params.max_deacc,
                 high=self.env_params.max_acc, shape=(1, )))
         return action_space
@@ -107,9 +108,9 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         num_vehicles = self.vehicles.num_vehicles
         observation_space = []
         speed = Box(low=0, high=np.inf, shape=(num_vehicles,))
-        headway = Box(low=0., high=np.inf, shape=(num_vehicles,))
-        obs_tuple = Tuple((speed, headway))
-        for veh_id in self.rl_ids:
+        absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,))
+        obs_tuple = Tuple((speed, absolute_pos))
+        for veh_id in self.vehicles.get_rl_ids():
             observation_space.append(obs_tuple)
         return observation_space
 
@@ -174,7 +175,7 @@ class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
         relative speed of the vehicle ahead of it, and the headway between the
         rl vehicle and the vehicle ahead of it.
         """
-        rl_id = self.rl_ids[0]
+        rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles[rl_id]["leader"]
         max_speed = self.max_speed
 
