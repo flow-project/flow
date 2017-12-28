@@ -16,7 +16,7 @@ from traci import constants as tc
 import pdb
 
 
-class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
+class WaveAttenuationEnv(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
@@ -188,52 +188,9 @@ class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
 
         # store new observations in the network after traci simulation step
         network_observations = self.traci_connection.vehicle.getSubscriptionResults()
-        crash = False
-        for veh_id in self.ids:
-            prev_pos = self.get_x_by_id(veh_id)
-            prev_lane = self.vehicles.get_lane(veh_id)
-            try:
-                self.vehicles.set_position(veh_id, network_observations[veh_id][tc.VAR_LANEPOSITION])
-            except KeyError:
-                self.ids.remove(veh_id)
-                if veh_id in self.rl_ids:
-                    self.rl_ids.remove(veh_id)
-                elif veh_id in self.controlled_ids:
-                    self.controlled_ids.remove(veh_id)
-                else:
-                    self.sumo_ids.remove(veh_id)
-                continue
-            self.vehicles.set_edge(veh_id, network_observations[veh_id][tc.VAR_ROAD_ID])
-            self.vehicles.set_lane(veh_id, network_observations[veh_id][tc.VAR_LANE_INDEX])
-            if network_observations[veh_id][tc.VAR_LANE_INDEX] != prev_lane:
-                self.vehicles.set_state(veh_id, "last_lc", self.timer)
-            self.vehicles.set_speed(veh_id, network_observations[veh_id][tc.VAR_SPEED])
 
-            try:
-                change = self.get_x_by_id(veh_id) - prev_pos
-                if change < 0:
-                    change += self.scenario.length
-                new_abs_pos = self.vehicles.get_absolute_position(veh_id) + change
-                self.vehicles.set_absolute_position(veh_id, new_abs_pos)
-            except ValueError or TypeError:
-                self.vehicles.set_absolute_position(veh_id, -1001)
-
-            if self.vehicles.get_position(veh_id) < 0 or self.vehicles.get_speed(veh_id) < 0:
-                crash = True
-
-        # collect headway, leader id, and follower id data
-        headway_data = self.get_headway_dict(network_observations=network_observations)
-
-        for veh_id in self.ids:
-            try:
-                self.vehicles.set_headway(veh_id, headway_data[veh_id]["headway"])
-                self.vehicles.set_leader(veh_id, headway_data[veh_id]["leader"])
-                self.vehicles.set_follower(veh_id, headway_data[veh_id]["follower"])
-            except KeyError:
-                # occurs in the case of crashes, so headway is assumed to be very small
-                self.vehicles.set_headway(veh_id, 1e-3)
-                self.vehicles.set_leader(veh_id, None)
-                self.vehicles.set_follower(veh_id, None)
+        # store the network observations in the vehicles class
+        self.vehicles.set_sumo_observations(network_observations, self)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -254,7 +211,10 @@ class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
         return next_observation
 
 
-class PartiallyObservableWaveAttenuationEnvironment(FullyObservableWaveAttenuationEnvironment):
+class WaveAttenuationPOEnv(WaveAttenuationEnv):
+    """
+    POMDP version of wave attenuation env
+    """
 
     @property
     def observation_space(self):
