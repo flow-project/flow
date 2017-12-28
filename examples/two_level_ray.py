@@ -3,6 +3,8 @@ Example script for use of two-level fully connected network policy,
 using the single-lane ring road setting.
 """
 
+import cloudpickle
+
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
@@ -28,8 +30,11 @@ if __name__ == "__main__":
     config["horizon"] = horizon
 
     config["model"].update(
-        {"num_subpolicies": 2, "fcnet_hiddens": [[5, 3]] * 2,
-         "choose_policy": lambda x: 0})
+        {"fcnet_hiddens": [[5, 3]] * 2})
+    config["model"]["user_data"] = {}
+    config["model"]["user_data"].update({"num_subpolicies": 2,
+                                         "fn_choose_subpolicy": list(
+                                             cloudpickle.dumps(choose_policy))})
     # config["model"].update(
     #     {"num_subpolicies": 2, "fcnet_hiddens": [[5, 3]] * 2,
     #      "choose_policy": marshal.dumps(choose_policy.__code__)})
