@@ -27,7 +27,7 @@ before_install:
   - python setup.py develop
   - conda install opencv  # ray dependency
   - python -c "import ray; print(ray.__path__)"
-  - popd
+  - popd; popd
   - python -c "import ray; print(ray.__path__)"
   # Setup SUMO
   - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
