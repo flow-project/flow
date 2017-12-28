@@ -6,9 +6,6 @@ script:
 
 sudo: required
 
-install:
-  - python setup.py develop
-
 before_install:
   # Setup conda
   # - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -33,14 +30,11 @@ before_install:
   # - python setup.py develop
   # - conda install opencv  # ray dependency
   - python -c "import ray; print(ray.__path__)"
+  - RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
+  - rm -rf $RAY_SITE_DIR
+  - cp -r python/ray $RAY_SITE_DIR 
   - popd
   # - popd
-  - python -c "import ray; print(ray.__path__)"
-  - export PYTHONPATH="$HOME/build/cathywu/ray/python/ray:$PYTHONPATH"
-  - python -c "import ray; print(ray.__path__)"
-  - export PYTHONPATH="$HOME/build/cathywu/ray:$PYTHONPATH"
-  - python -c "import ray; print(ray.__path__)"
-  - echo $PYTHONPATH
   # Setup SUMO
   - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
   - export SUMO_HOME="$HOME/build/cathywu/sumo"
@@ -55,4 +49,3 @@ before_install:
   # - docker pull evinitsky/flow
   # - docker ps -a
   # - docker run -d evinitsky/flow
-  #
