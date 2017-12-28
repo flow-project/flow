@@ -20,6 +20,7 @@ before_install:
   - sudo apt-get install -y cmake
   - python setup.py develop
   - popd; popd
+  - pip install cython # ray dependency
   - conda install opencv  # ray dependency
   - docker pull evinitsky/flow
   - docker ps -a
