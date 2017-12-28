@@ -15,6 +15,12 @@ before_install:
   - sudo apt-get install swig -y
   - sudo apt-get build-dep python-pygame -y
   - sudo apt-get build-dep python-scipy -y
+  - pushd ../; git clone https://github.com/ray-project/ray.git
+  - pushd ray/python
+  - sudo apt-get install -y cmake
+  - python setup.py develop
+  - popd; popd
+  - conda install opencv  # ray dependency
   - docker pull evinitsky/flow
   - docker ps -a
   - docker run -d evinitsky/flow
