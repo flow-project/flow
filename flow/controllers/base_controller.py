@@ -36,6 +36,7 @@ class BaseController:
         self.d = 0
         self.veh_id = veh_id
         self.controller_params = controller_params
+        self.sumo_controller = False
 
         # magnitude of gaussian noise
         if "noise" not in controller_params:
@@ -43,14 +44,24 @@ class BaseController:
         else:
             self.acc_noise = controller_params["noise"]
 
+        # delay used by the safe_velocity failsafe
         if not controller_params['delay']:
             self.delay = 0
         else:
             self.delay = controller_params['delay']
 
+        # longitudinal failsafe used by the vehicle
+        if not controller_params["fail_safe"]:
+            self.fail_safe = None
+        else:
+            self.fail_safe = controller_params["fail_safe"]
+
         # max deaccel should always be a positive
         self.max_deaccel = np.abs(controller_params['max_deaccel'])
         self.acc_queue = collections.deque()
+
+    def uses_sumo(self):
+        return self.sumo_controller
 
     def reset_delay(self, env):
         raise NotImplementedError
@@ -68,8 +79,15 @@ class BaseController:
         """
         accel = self.get_accel(env)
 
+        # add noise to the accelerations, if requested
         if self.acc_noise > 0:
             accel += np.random.normal(0, self.acc_noise)
+
+        # run the failsafes, if requested
+        if self.fail_safe == 'instantaneous':
+            accel = self.get_safe_action_instantaneous(env, accel)
+        elif self.fail_safe == 'safe_velocity':
+            accel = self.get_safe_action(env, accel)
 
         return accel
 
@@ -103,16 +121,19 @@ class BaseController:
             return action
 
         this_vel = env.vehicles.get_speed(self.veh_id)
-        time_step = env.time_step
-        next_vel = this_vel + action * time_step
+        sim_step = env.sim_step
+        next_vel = this_vel + action * sim_step
         h = env.vehicles.get_headway(self.veh_id)
 
         if next_vel > 0:
-            if h < time_step * next_vel + this_vel * 1e-3:
+            # the second and third terms cover (conservatively) the extra
+            # distance the vehicle will cover before it fully decelerates
+            if h < sim_step * next_vel + this_vel * 1e-3 + \
+                    0.5 * this_vel * sim_step:
                 # if the vehicle will crash into the vehicle ahead of it in the
                 # next time step (assuming the vehicle ahead of it is not
                 # moving), then stop immediately
-                return -this_vel / time_step
+                return -this_vel / sim_step
             else:
                 # if the vehicle is not in danger of crashing, continue with the
                 # requested action
@@ -145,10 +166,10 @@ class BaseController:
             safe_velocity = self.safe_velocity(env)
 
             this_vel = env.vehicles.get_speed(self.veh_id)
-            time_step = env.time_step
+            sim_step = env.sim_step
 
-            if this_vel + action * time_step > safe_velocity:
-                return (safe_velocity - this_vel)/time_step
+            if this_vel + action * sim_step > safe_velocity:
+                return (safe_velocity - this_vel)/sim_step
             else:
                 return action
 
@@ -177,48 +198,7 @@ class BaseController:
         h = env.vehicles.get_headway(self.veh_id)
         dv = lead_vel - this_vel
 
-        v_safe = 2 * h / env.time_step + dv - this_vel * (2 * self.delay)
+        v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
 
         return v_safe
 
-
-# TODO: still a work in progress
-class SumoController:
-
-    def __init__(self, veh_id, controller_params):
-        """
-        Base class for sumo-controlled acceleration behavior.
-
-        Attributes
-        ----------
-        veh_id: str
-            unique vehicle identifier
-        controller_params: dict, optional
-            contains the parameters needed to instantiate a sumo controller
-            - model_type {string} -- type of SUMO car-following model to use.
-              Must be one of: Krauss, KraussOrig1, PWagner2009, BKerner, IDM,
-              IDMM, KraussPS, KraussAB, SmartSK, Wiedemann, Daniel1
-            - model_params {dict} -- dictionary of parameters applicable to sumo
-              cars, see: http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
-        """
-        self.veh_id = veh_id
-
-        available_models = ["Krauss", "KraussOrig1", "PWagner2009", "BKerner",
-                            "IDM", "IDMM", "KraussPS", "KraussAB", "SmartSK",
-                            "Wiedemann", "Daniel1"]
-
-        if "model_type" in controller_params:
-            # the model type specified must be available in sumo
-            if controller_params["model_type"] not in available_models:
-                raise ValueError("Model type is not available in SUMO.")
-
-            self.model_type = controller_params["model"]
-        else:
-            # if no model is specified, the controller defaults to sumo's
-            # Krauss model
-            self.model_type = "Krauss"
-
-        if "model_params" in controller_params:
-            self.model_params = controller_params["model_params"]
-        else:
-            self.model_params = dict()

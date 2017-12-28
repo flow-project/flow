@@ -16,7 +16,8 @@ class TestStartingPositionShuffle(unittest.TestCase):
     """
     def setUp(self):
         # turn on starting position shuffle
-        sumo_params = SumoParams(starting_position_shuffle=True)
+        env_params = EnvParams(starting_position_shuffle=True,
+                               additional_params={"target_velocity": 30})
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -28,7 +29,7 @@ class TestStartingPositionShuffle(unittest.TestCase):
         initial_config = InitialConfig(x0=5)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sumo_params=sumo_params,
+        self.env, scenario = ring_road_exp_setup(env_params=env_params,
                                                  initial_config=initial_config,
                                                  vehicles=vehicles)
 
@@ -68,7 +69,8 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
     """
     def setUp(self):
         # turn on vehicle arrangement shuffle
-        sumo_params = SumoParams(vehicle_arrangement_shuffle=True)
+        env_params = EnvParams(vehicle_arrangement_shuffle=True,
+                               additional_params={"target_velocity": 30})
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -80,7 +82,7 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
         initial_config = InitialConfig(x0=5)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sumo_params=sumo_params,
+        self.env, scenario = ring_road_exp_setup(env_params=env_params,
                                                  initial_config=initial_config,
                                                  vehicles=vehicles)
 
@@ -146,21 +148,6 @@ class TestEmissionPath(unittest.TestCase):
 #         pass
 
 
-# class TestGetHeadwayDict(unittest.TestCase):
-#     """
-#     Tests that get_headway_dict is functioning correctly at the start of a
-#     run, in the middle of a run, upon reset, and when a collision occurs.
-#     """
-#     def setUp(self):
-#         pass
-#
-#     def tearDown(self):
-#         pass
-#
-#     def runTest(self):
-#         pass
-
-
 class TestApplyingActionsWithSumo(unittest.TestCase):
     """
     Tests the apply_acceleration, apply_lane_change, and choose_routes functions
@@ -173,7 +160,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # turn on starting position shuffle
-        sumo_params = SumoParams(starting_position_shuffle=True)
+        env_params = EnvParams(starting_position_shuffle=True,
+                               additional_params={"target_velocity": 30})
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -184,7 +172,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(net_params=net_params,
-                                                 sumo_params=sumo_params,
+                                                 env_params=env_params,
                                                  vehicles=vehicles)
 
     def tearDown(self):
@@ -218,9 +206,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
-        # update the speed values in the vehicles class
-        for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_speed(veh_id, vel1[i])
+        # collect new network observations from sumo
+        network_observations = \
+            self.env.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.env.vehicles.set_sumo_observations(network_observations, self.env)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
@@ -282,9 +273,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # update the lane values in the vehicles class
-        for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_lane(veh_id, lane1[i])
+        # collect new network observations from sumo
+        network_observations = \
+            self.env.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.env.vehicles.set_sumo_observations(network_observations, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
@@ -325,9 +319,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # update the lane values in the vehicles class
-        for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_lane(veh_id, lane1[i])
+        # collect new network observations from sumo
+        network_observations = \
+            self.env.traci_connection.vehicle.getSubscriptionResults()
+
+        # store the network observations in the vehicles class
+        self.env.vehicles.set_sumo_observations(network_observations, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right

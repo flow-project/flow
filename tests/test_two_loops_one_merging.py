@@ -14,8 +14,7 @@ from flow.envs.two_loops_one_merging import TwoLoopsOneMergingEnvironment
 
 
 def two_loops_one_merging_exp_setup(vehicles=None):
-    sumo_params = SumoParams(time_step=0.1,
-                             human_speed_mode="no_collide",
+    sumo_params = SumoParams(sim_step=0.1,
                              sumo_binary="sumo")
 
     if vehicles is None:
@@ -23,10 +22,12 @@ def two_loops_one_merging_exp_setup(vehicles=None):
         vehicles.add_vehicles(veh_id="idm",
                               acceleration_controller=(IDMController, {}),
                               lane_change_controller=(StaticLaneChanger, {}),
+                              speed_mode="no_collide",
                               num_vehicles=5)
         vehicles.add_vehicles(veh_id="merge-idm",
                               acceleration_controller=(IDMController, {}),
                               lane_change_controller=(StaticLaneChanger, {}),
+                              speed_mode="no_collide",
                               num_vehicles=5)
 
     additional_env_params = {"target_velocity": 8, "max-deacc": -6,

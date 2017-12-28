@@ -1,24 +1,6 @@
-''' Example of figure 8 with car following models on it. 
-
-
-Variables:
-    sumo_params {dict} -- [Pass time step, where to save data, whether safe mode is on or off]
-    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
-    type_params {dict} -- [Types of cars in the system. 
-    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
-    env_params {dict} -- []
-    net_params {dict} -- [Params for network.
-                            radius_ring
-                            lanes
-                            speed limit
-                            resolution: number of edges comprising ring
-                            net_path: where to store net]
-    cfg_params {dict} -- [description]
-    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
-                                spacing: if gaussian, add noise in start positions
-                                bunching: how close to place cars at experiment start]
-    scenario {[type]} -- [Which road network to use]
-'''
+"""
+Example of a figure 8 network with human-driven vehicles.
+"""
 import logging
 from flow.core.params import SumoParams, EnvParams, NetParams
 from flow.controllers.routing_controllers import *
@@ -36,15 +18,25 @@ logging.basicConfig(level=logging.INFO)
 sumo_params = SumoParams(sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles("idm", (IDMController, {}), (StaticLaneChanger, {}), (ContinuousRouter, {}), 0, 14)
+vehicles.add_vehicles(veh_id="idm",
+                      acceleration_controller=(IDMController, {}),
+                      lane_change_controller=(StaticLaneChanger, {}),
+                      routing_controller=(ContinuousRouter, {}),
+                      initial_speed=0,
+                      num_vehicles=14)
 
 additional_env_params = {"target_velocity": 8, "num_steps": 500}
 env_params = EnvParams(additional_params=additional_env_params)
 
-additional_net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30, "resolution": 40}
-net_params = NetParams(no_internal_links=False, additional_params=additional_net_params)
+additional_net_params = {"radius_ring": 30, "lanes": 1,
+                         "speed_limit": 30, "resolution": 40}
+net_params = NetParams(no_internal_links=False,
+                       additional_params=additional_net_params)
 
-scenario = Figure8Scenario("figure8", Figure8Generator, vehicles, net_params)
+scenario = Figure8Scenario(name="figure8",
+                           generator_class=Figure8Generator,
+                           vehicles=vehicles,
+                           net_params=net_params)
 
 env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
 
