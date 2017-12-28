@@ -3,7 +3,7 @@ import datetime
 from flow.core.util import emission_to_csv
 
 
-class SumoExperiment():
+class SumoExperiment:
 
     def __init__(self, env, scenario):
         """

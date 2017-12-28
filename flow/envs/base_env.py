@@ -1,4 +1,6 @@
 import logging
+import os
+import signal
 import subprocess
 import sys
 from copy import deepcopy
@@ -7,11 +9,15 @@ import traceback
 
 import traci
 from traci import constants as tc
-from rllab.core.serializable import Serializable
-from rllab.envs.base import Step
 import gym
 
 import sumolib
+
+try:
+    # Import serialiable if rllab is installed
+    from rllab.core.serializable import Serializable
+except ImportError as e:
+    Serializable = object
 
 try:
     # Load user config if exists, else load default config
@@ -58,7 +64,9 @@ class SumoEnvironment(gym.Env, Serializable):
         scenario: Scenario type
             see flow/scenarios/base_scenario.py
         """
-        Serializable.quick_init(self, locals())
+        # Invoke serialiable if using rllab
+        if Serializable is not object:
+            Serializable.quick_init(self, locals())
 
         self.env_params = env_params
         self.scenario = scenario
@@ -126,27 +134,19 @@ class SumoEnvironment(gym.Env, Serializable):
         Restarts an already initialized environment. Used when visualizing a
         rollout.
         """
-        error = None
-        for _ in range(RETRIES_ON_ERROR):
-            try:
-                self.traci_connection.close(False)
-                if sumo_binary:
-                    self.sumo_binary = sumo_binary
+        self.traci_connection.close(False)
+        if sumo_binary:
+            self.sumo_binary = sumo_binary
 
-                self.port = sumolib.miscutils.getFreeSocketPort()
-                if self.emission_path:
-                    data_folder = self.emission_path
-                    ensure_dir(data_folder)
-                    self.emission_out = \
-                        data_folder + "{0}-emission.xml".format(self.scenario.name)
+        self.port = sumolib.miscutils.getFreeSocketPort()
+        if self.emission_path:
+            data_folder = self.emission_path
+            ensure_dir(data_folder)
+            self.emission_out = \
+                data_folder + "{0}-emission.xml".format(self.scenario.name)
 
-                self.start_sumo()
-                self.setup_initial_state()
-                return
-            except Exception as e:
-                print("Error during reset: {}".format(traceback.format_exc()))
-                error = e
-        raise error
+        self.start_sumo()
+        self.setup_initial_state()
 
     def start_sumo(self):
         """
@@ -154,48 +154,58 @@ class SumoEnvironment(gym.Env, Serializable):
         generator class. Also initializes a traci connection to interface with
         sumo from Python.
         """
-        logging.info(" Starting SUMO on port " + str(self.port))
-        logging.debug(" Cfg file " + str(self.scenario.cfg))
-        logging.debug(" Emission file: " + str(self.emission_out))
-        logging.debug(" Step length: " + str(self.sim_step))
+        error = None
+        for _ in range(RETRIES_ON_ERROR):
+            try:
+                logging.info(" Starting SUMO on port " + str(self.port))
+                logging.debug(" Cfg file " + str(self.scenario.cfg))
+                logging.debug(" Emission file: " + str(self.emission_out))
+                logging.debug(" Step length: " + str(self.sim_step))
 
-        # Opening the I/O thread to SUMO
-        cfg_file = self.scenario.cfg
+                # Opening the I/O thread to SUMO
+                cfg_file = self.scenario.cfg
 
-        sumo_call = [self.sumo_binary,
-                     "-c", cfg_file,
-                     "--remote-port", str(self.port),
-                     "--step-length", str(self.sim_step),
-                     "--step-method.ballistic", "true",
-                     "--seed", str(self.seed)]
+                sumo_call = [self.sumo_binary,
+                             "-c", cfg_file,
+                             "--remote-port", str(self.port),
+                            "--step-length", str(self.sim_step),
+                             "--step-method.ballistic", "true",
+                             "--seed", str(self.seed)]
 
-        # add step logs (if requested)
-        if self.sumo_params.no_step_log:
-            sumo_call.append("--no-step-log")
+                # add step logs (if requested)
+                if self.sumo_params.no_step_log:
+                    sumo_call.append("--no-step-log")
 
-        # add the lateral resolution of the sublanes (if one is requested)
-        if self.sumo_params.lateral_resolution is not None:
-            sumo_call.append("--lateral-resolution")
-            sumo_call.append(str(self.sumo_params.lateral_resolution))
+                # add the lateral resolution of the sublanes (if one is requested)
+                if self.sumo_params.lateral_resolution is not None:
+                    sumo_call.append("--lateral-resolution")
+                    sumo_call.append(str(self.sumo_params.lateral_resolution))
 
-        # add the emission path to the sumo command (if one is requested)
-        if self.emission_out:
-            sumo_call.append("--emission-output")
-            sumo_call.append(self.emission_out)
+                # add the emission path to the sumo command (if one is requested)
+                if self.emission_out:
+                    sumo_call.append("--emission-output")
+                    sumo_call.append(self.emission_out)
 
-        logging.info("Traci on port: ", self.port)
+                logging.info("Traci on port: ", self.port)
 
-        subprocess.Popen(sumo_call, stdout=sys.stdout, stderr=sys.stderr)
+                self.sumo_proc = subprocess.Popen(sumo_call, stdout=sys.stdout,
+                                 stderr=sys.stderr, preexec_fn=os.setsid)
 
-        logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
+                logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
 
-        # wait a small period of time for the subprocess to activate before
-        # trying to connect with traci
-        time.sleep(config.SUMO_SLEEP)
+                # wait a small period of time for the subprocess to activate before
+                # trying to connect with traci
+                time.sleep(config.SUMO_SLEEP)
 
-        self.traci_connection = traci.connect(self.port, numRetries=100)
+                self.traci_connection = traci.connect(self.port, numRetries=100)
 
-        self.traci_connection.simulationStep()
+                self.traci_connection.simulationStep()
+                return
+            except Exception as e:
+                print("Error during reset: {}".format(traceback.format_exc()))
+                error = e
+                self.teardown_sumo()
+        raise error
 
     def setup_initial_state(self):
         """
@@ -840,6 +850,13 @@ class SumoEnvironment(gym.Env, Serializable):
 
     def _close(self):
         self.traci_connection.close()
+
+    def teardown_sumo(self):
+        try:
+            os.killpg(self.sumo_proc.pid, signal.SIGTERM)
+        except Exception as e:
+            print("Error during teardown: {}".format(traceback.format_exc()))
+            error = e
 
     def _seed(self, seed=None):
         return []
