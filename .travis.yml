@@ -6,9 +6,6 @@ script:
 
 sudo: required
 
-services:
-  - docker
-
 before_install:
   # Setup SUMO
   - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
