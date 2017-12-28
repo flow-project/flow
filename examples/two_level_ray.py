@@ -28,7 +28,8 @@ if __name__ == "__main__":
     config["horizon"] = horizon
 
     config["model"].update(
-        {"num_subpolicies": 2, "fcnet_hiddens": [[5, 3]] * 2})
+        {"num_subpolicies": 2, "fcnet_hiddens": [[5, 3]] * 2,
+         "choose_policy": lambda x: 0})
     # config["model"].update(
     #     {"num_subpolicies": 2, "fcnet_hiddens": [[5, 3]] * 2,
     #      "choose_policy": marshal.dumps(choose_policy.__code__)})
