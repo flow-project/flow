@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 script:
-    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -v $HOME/build/cathywu/ray:/root/code/ray -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; export PYTHONPATH="/root/code/ray:$PYTHONPATH"; cd /root/code/rllab/learning-traffic; nose2;'
+    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -v $HOME/build/cathywu/ray:/root/code/flow -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; export PYTHONPATH="/root/code/flow:$PYTHONPATH"; cd /root/code/flow; python -c "import ray; print(ray.__path__)"; cd /root/code/rllab/learning-traffic; nose2;'
 
 sudo: required
 
@@ -22,7 +22,7 @@ before_install:
   - pushd ray/python
   - pip install cython # ray dependency
   - sudo apt-get install -y cmake
-  - python setup.py develop
+  - python setup.py install
   - python -c "import ray; print(ray.__path__)"
   - popd; popd
   - pushd ../; git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git; popd
