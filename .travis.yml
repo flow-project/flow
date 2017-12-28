@@ -10,6 +10,14 @@ services:
   - docker
 
 before_install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - conda install opencv  # ray dependency
   - pushd ../; git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git; popd
   - ls ../
   - sudo apt-get install swig -y
@@ -21,7 +29,6 @@ before_install:
   - sudo apt-get install -y cmake
   - python setup.py develop
   - popd; popd
-  - conda install opencv  # ray dependency
   - docker pull evinitsky/flow
   - docker ps -a
   - docker run -d evinitsky/flow
