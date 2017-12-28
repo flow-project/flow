@@ -79,10 +79,6 @@ class SumoEnvironment(gym.Env, Serializable):
         #   Key = Vehicle ID,
         #   Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
         self.initial_state = {}
-        # vehicle identifiers for all vehicles
-        self.ids = []
-        # vehicle identifiers for specific types of vehicles
-        self.controlled_ids, self.sumo_ids, self.rl_ids = [], [], []
         self.state = None
         self.obs_var_labels = []
 
@@ -224,12 +220,6 @@ class SumoEnvironment(gym.Env, Serializable):
             value = sparse state information (only what is needed to add a
             vehicle in a sumo network with traci)
         """
-        # collect the ids of vehicles in the network
-        self.ids = self.vehicles.get_ids()
-        self.controlled_ids = self.vehicles.get_controlled_ids()
-        self.sumo_ids = self.vehicles.get_sumo_ids()
-        self.rl_ids = self.vehicles.get_rl_ids()
-
         # check to make sure all vehicles have been spawned
         num_spawned_veh = len(self.traci_connection.simulation.getDepartedIDList())
         if num_spawned_veh != self.vehicles.num_vehicles:
@@ -238,7 +228,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # dictionary of initial observations used while resetting vehicles after
         # each rollout
-        self.initial_observations = dict.fromkeys(self.ids)
+        self.initial_observations = dict.fromkeys(self.vehicles.get_ids())
 
         # create the list of colors used to different between different types of
         # vehicles visually on sumo's gui
@@ -251,7 +241,7 @@ class SumoEnvironment(gym.Env, Serializable):
             key_index += 1
 
         # subscribe the requested states for traci-related speedups
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             self.traci_connection.vehicle.subscribe(
                 veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
                          tc.VAR_ROAD_ID, tc.VAR_SPEED])
@@ -264,7 +254,7 @@ class SumoEnvironment(gym.Env, Serializable):
         # store the network observations in the vehicles class
         self.vehicles.set_sumo_observations(network_observations, self)
 
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
 
             # set the colors of the vehicles based on their unique types
             veh_type = self.vehicles.get_state(veh_id, "type")
@@ -294,10 +284,12 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.get_x_by_id(veh_id)
 
             # set speed mode
-            self.traci_connection.vehicle.setSpeedMode(veh_id, self.vehicles.get_speed_mode(veh_id))
+            self.traci_connection.vehicle.setSpeedMode(
+                veh_id, self.vehicles.get_speed_mode(veh_id))
 
             # set lane change mode
-            self.traci_connection.vehicle.setLaneChangeMode(veh_id, self.vehicles.get_lane_change_mode(veh_id))
+            self.traci_connection.vehicle.setLaneChangeMode(
+                veh_id, self.vehicles.get_lane_change_mode(veh_id))
 
             # save the initial state. This is used in the _reset function
             #
@@ -314,7 +306,7 @@ class SumoEnvironment(gym.Env, Serializable):
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         # collect headway, leader id, and follower id data
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             headway = self.traci_connection.vehicle.getLeader(veh_id, 2000)
             if headway is None:
                 self.vehicles.set_leader(veh_id, None)
@@ -326,7 +318,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # contains the last lc before the current step
         self.prev_last_lc = dict()
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             self.prev_last_lc[veh_id] = self.vehicles.get_state(veh_id,
                                                                 "last_lc")
 
@@ -356,54 +348,30 @@ class SumoEnvironment(gym.Env, Serializable):
         """
         self.time_counter += 1
 
-        # perform acceleration and (optionally) lane change actions for
-        # traci-controlled human-driven vehicles
-        if len(self.controlled_ids) > 0:
+        # perform acceleration actions for controlled human-driven vehicles
+        if len(self.vehicles.get_controlled_ids()) > 0:
             accel = []
-            for veh_id in self.controlled_ids:
-                # acceleration action
-                action = self.vehicles.get_acc_controller(veh_id).get_action(
-                    self)
+            for veh_id in self.vehicles.get_controlled_ids():
+                accel_contr = self.vehicles.get_acc_controller(veh_id)
+                action = accel_contr.get_action(self)
                 accel.append(action)
+            self.apply_acceleration(self.vehicles.get_controlled_ids(), accel)
 
-                # lane changing action
-                lane_flag = 0
-                if type(self.scenario.lanes) is dict:
-                    if any(v > 1 for v in self.scenario.lanes.values()):
-                        lane_flag = 1
-                else:
-                    if self.scenario.lanes > 1:
-                        lane_flag = 1
-                if self.vehicles.get_lane_changing_controller(veh_id)\
-                    and not self.vehicles.get_lane_changing_controller(veh_id).isSumoController()\
-                        is not None and lane_flag:
-
-                    new_lane = \
-                        self.vehicles.get_lane_changing_controller(
-                            veh_id).get_action(self)
-                    self.apply_lane_change([veh_id], target_lane=[new_lane])
-
-            self.apply_acceleration(self.controlled_ids, acc=accel)
-
-        # perform (optionally) lane change actions for sumo-controlled
-        # human-driven vehicles
-        # this does the exact same thing as the lane changing action in the previous loop
-        # other than use ia lane_flag
-        if len(self.sumo_ids) > 0:
-            for veh_id in self.sumo_ids:
-                # lane changing action
-                if self.scenario.lanes > 1:
-                    lc_contr = self.vehicles.get_lane_changing_controller(
-                        veh_id)
-                    if lc_contr is not None and not lc_contr.isSumoController():
-                        new_lane = lc_contr.get_action(self)
-                        self.apply_lane_change([veh_id], target_lane=[new_lane])
+        # perform lane change actions for controlled human-driven vehicles
+        if len(self.vehicles.get_controlled_lc_ids()) > 0:
+            new_lane = []
+            for veh_id in self.vehicles.get_controlled_lc_ids():
+                lc_contr = self.vehicles.get_lane_changing_controller(veh_id)
+                target_lane = lc_contr.get_action(self)
+                new_lane.append(target_lane)
+            self.apply_lane_change(self.vehicles.get_controlled_lc_ids(),
+                                   target_lane=new_lane)
 
         # perform (optionally) routing actions for all vehicle in the network,
-        # including rl vehicles
+        # including rl and sumo-controlled vehicles
         routing_ids = []
         routing_actions = []
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             if self.vehicles.get_routing_controller(veh_id) is not None:
                 routing_ids.append(veh_id)
                 route_contr = self.vehicles.get_routing_controller(veh_id)
@@ -443,7 +411,8 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # crash encodes whether sumo experienced a crash
         crash = \
-            np.any(np.array([self.vehicles.get_position(veh_id) for veh_id in self.ids]) < 0) \
+            np.any(np.array([self.vehicles.get_position(veh_id)
+                             for veh_id in self.vehicles.get_ids()]) < 0) \
             or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
@@ -493,12 +462,6 @@ class SumoEnvironment(gym.Env, Serializable):
             the initial observation of the space. The initial reward is assumed
             to be zero.
         """
-        # reset the lists of the ids of vehicles in the network
-        self.ids = self.vehicles.get_ids()
-        self.controlled_ids = self.vehicles.get_controlled_ids()
-        self.sumo_ids = self.vehicles.get_sumo_ids()
-        self.rl_ids = self.vehicles.get_rl_ids()
-
         # create the list of colors used to visually distinguish between
         # different types of vehicles
         self.time_counter = 0
@@ -546,7 +509,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # re-initialize the vehicles class with the states of the vehicles at
         # the start of a rollout
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             self.vehicles.set_route(
                 veh_id, self.initial_observations[veh_id]["route"])
             self.vehicles.set_absolute_position(
@@ -559,19 +522,19 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # re-initialize memory on last lc
         self.prev_last_lc = dict()
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             self.prev_last_lc[veh_id] = self.vehicles.get_state(veh_id,
                                                                 "last_lc")
 
         # reset the list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             type_id, route_id, lane_index, lane_pos, speed, pos = \
                 self.initial_state[veh_id]
 
             # clear controller acceleration queue of traci-controlled vehicles
-            if veh_id in self.controlled_ids:
+            if veh_id in self.vehicles.get_controlled_ids():
                 self.vehicles.get_acc_controller(veh_id).reset_delay(self)
 
             # clear vehicles from traci connection and re-introduce vehicles
@@ -593,10 +556,12 @@ class SumoEnvironment(gym.Env, Serializable):
             self.traci_connection.vehicle.setMaxSpeed(veh_id, self.max_speed)
 
             # set speed mode
-            self.traci_connection.vehicle.setSpeedMode(veh_id, self.vehicles.get_speed_mode(veh_id))
+            self.traci_connection.vehicle.setSpeedMode(
+                veh_id, self.vehicles.get_speed_mode(veh_id))
 
             # set lane change mode
-            self.traci_connection.vehicle.setLaneChangeMode(veh_id, self.vehicles.get_lane_change_mode(veh_id))
+            self.traci_connection.vehicle.setLaneChangeMode(
+                veh_id, self.vehicles.get_lane_change_mode(veh_id))
 
         self.traci_connection.simulationStep()
 
@@ -648,7 +613,7 @@ class SumoEnvironment(gym.Env, Serializable):
         """
         # issue traci command for requested acceleration
         this_vel = np.array(self.vehicles.get_speed(veh_ids))
-        if self.multi_agent and (veh_id in self.rl_ids):
+        if self.multi_agent and (veh_id in self.vehicles.get_rl_ids()):
             acc_arr = np.asarray([element2 for elem in acc for element in elem
                                   for element2 in element])
         else:
@@ -693,7 +658,6 @@ class SumoEnvironment(gym.Env, Serializable):
                                                                 "last_lc")
 
         if self.scenario.lanes == 1:
-            logging.error("Uh oh, single lane track.")
             return -1
 
         current_lane = np.array(self.vehicles.get_lane(veh_ids))
@@ -709,7 +673,7 @@ class SumoEnvironment(gym.Env, Serializable):
         target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
 
         for i, vid in enumerate(veh_ids):
-            if vid in self.rl_ids:
+            if vid in self.vehicles.get_rl_ids():
                 if target_lane[i] != current_lane[i]:
                     self.traci_connection.vehicle.changeLane(vid, int(
                         target_lane[i]), 100000)
@@ -773,8 +737,9 @@ class SumoEnvironment(gym.Env, Serializable):
             data, such as positions. If no extra component is needed, a value
             of None should be returned
         """
-        sorted_indx = np.argsort(self.vehicles.get_absolute_position(self.ids))
-        sorted_ids = np.array(self.ids)[sorted_indx]
+        ids = self.vehicles.get_ids()  # unsorted vehicle ids
+        sorted_indx = np.argsort(self.vehicles.get_absolute_position(ids))
+        sorted_ids = np.array(ids)[sorted_indx]
         return sorted_ids, None
 
     def get_state(self):

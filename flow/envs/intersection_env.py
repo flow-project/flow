@@ -75,6 +75,7 @@ class IntersectionEnvironment(SumoEnvironment):
             data, such as positions. If no extra component is needed, a value
             of None should be returned
         """
-        sorted_indx = np.argsort(self.get_distance_to_intersection(self.ids))
-        sorted_ids = np.array(self.ids)[sorted_indx]
+        ids = self.vehicles.get_ids()
+        sorted_indx = np.argsort(self.get_distance_to_intersection(ids))
+        sorted_ids = np.array(ids)[sorted_indx]
         return sorted_ids
