@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 script:
-    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; cd /root/code/rllab/learning-traffic; nose2;'
+    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -v $HOME/build/cathywu/ray:/root/code/flow -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; export PYTHONPATH="/root/code/flow:$PYTHONPATH"; cd /root/code/flow; python -c "import ray; print(ray.__path__)"; cd /root/code/rllab/learning-traffic; nose2;'
 
 sudo: required
 
@@ -10,6 +10,21 @@ services:
   - docker
 
 before_install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - conda install opencv  # ray dependency
+  - pushd ../; git clone https://github.com/ray-project/ray.git
+  - pushd ray/python
+  - pip install cython # ray dependency
+  - sudo apt-get install -y cmake
+  - python setup.py install
+  - python -c "import ray; print(ray.__path__)"
+  - popd; popd
   - pushd ../; git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git; popd
   - ls ../
   - sudo apt-get install swig -y
