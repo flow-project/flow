@@ -1,23 +1,7 @@
-''' Basic test of fully rl environment with accelerations as actions. Single lane. Mixed human and rl.
-
-Variables:
-    sumo_params {dict} -- [Pass time step, whether safe mode is on or off]
-    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
-    type_params {dict} -- [Types of cars in the system.
-    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
-    env_params {dict} -- [Params for reward function]
-    net_params {dict} -- [Params for network.
-                            length: road length
-                            lanes
-                            speed limit
-                            resolution: number of edges comprising ring
-                            net_path: where to store net]
-    cfg_params {dict} -- [description]
-    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
-                                spacing: if gaussian, add noise in start positions
-                                bunching: how close to place cars at experiment start]
-    scenario {[type]} -- [Which road network to use]
-'''
+"""
+Basic implementation of a mixed-rl single-lane environment with accelerations as
+actions for the autonomous vehicles.
+"""
 import logging
 
 import gym
@@ -39,8 +23,6 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.car_following_models import CFMController
 from flow.controllers.routing_controllers import ContinuousRouter
-
-from flow.core import config as flow_config
 
 
 ray.init()
@@ -71,8 +53,7 @@ def create_env():
     auton_cars = 4
     human_cars = tot_cars - auton_cars
 
-    sumo_params = SumoParams(time_step=0.1, human_speed_mode="no_collide",
-                             rl_speed_mode="no_collide", sumo_binary="sumo")
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
     vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}),
