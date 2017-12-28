@@ -12,7 +12,11 @@ import logging
 import random
 from lxml import etree
 
-from rllab.core.serializable import Serializable
+try:
+    # Import serialiable if rllab is installed
+    from rllab.core.serializable import Serializable
+except ImportError as e:
+    Serializable = object
 
 E = etree.Element
 
@@ -22,8 +26,9 @@ class Generator(Serializable):
     NET_PATH = "./"
 
     def __init__(self, net_params, base):
-        Serializable.quick_init(self, locals())
-
+        # Invoke serialiable if using rllab
+        if Serializable is not object:
+            Serializable.quick_init(self, locals())
         self.net_params = net_params
         self.net_path = net_params.net_path
         self.cfg_path = net_params.cfg_path
