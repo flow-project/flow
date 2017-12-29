@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get upgrade -y
   - sudo apt-get install -y subversion autoconf build-essential libtool
   - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev proj-bin proj-data libgdal1-dev libfox-1.6-0 libfox-1.6-dev
-  - pushd ../; wget https://s3.amazonaws.com/cathywu/sumo/sumo
+  - pushd ../; wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
   - chmod u+x sumo
   - export SUMO_HOME="$HOME/build/cathywu"
   - export PATH="$SUMO_HOME:$PATH"
