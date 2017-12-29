@@ -42,6 +42,9 @@ class Vehicles:
         self.types = []  # types of vehicles in the network
         self.initial_speeds = []  # speed of vehicles at the start of a rollout
 
+        # contains the parameters associated with each type of vehicle
+        self.type_parameters = dict()
+
     def add_vehicles(self,
                      veh_id,
                      acceleration_controller=(SumoCarFollowingController, {}),
@@ -103,9 +106,6 @@ class Vehicles:
         sumo_lc_params:
             Params object specifying attributes for Sumo lane changing model.
         """
-        if not veh_id:
-            raise ValueError("No vehicle id is specified.")
-
         if sumo_car_following_params is None:
             sumo_car_following_params = SumoCarFollowingParams()
 
@@ -122,10 +122,37 @@ class Vehicles:
         # correct.
         if acceleration_controller[0] != SumoCarFollowingController:
             type_params["minGap"] = 0.0
-            type_params["accel"] = 100
-            type_params["decel"] = 100
+            type_params["accel"] = 1000
+            type_params["decel"] = 1000
 
-        for i in range(num_vehicles):
+        if veh_id not in self.type_parameters:
+            # this dict will be used when trying to introduce new vehicles into
+            # the network via a flow
+            self.type_parameters[veh_id] = \
+                {"acceleration_controller": acceleration_controller,
+                 "lane_change_controller": lane_change_controller,
+                 "routing_controller": routing_controller,
+                 "initial_speed": initial_speed,
+                 "speed_mode": speed_mode,
+                 "custom_speed_mode": custom_speed_mode,
+                 "lane_change_mode": lane_change_mode,
+                 "custom_lane_change_mode": custom_lane_change_mode,
+                 "sumo_car_following_params": sumo_car_following_params,
+                 "sumo_lc_params": sumo_lc_params,
+                 "num_vehicles": num_vehicles}
+            init_num_vehicles = 0
+            final_num_vehicles = num_vehicles
+
+            # increase the number of unique types of vehicles in the network,
+            # and add the type to the list of types
+            self.num_types += 1
+            self.types.append((veh_id, type_params))
+        else:
+            init_num_vehicles = self.type_parameters[veh_id]["num_vehicles"]
+            final_num_vehicles = init_num_vehicles + num_vehicles
+            self.type_parameters[veh_id]["num_vehicles"] += num_vehicles
+
+        for i in range(init_num_vehicles, final_num_vehicles):
             vehID = veh_id + '_%d' % i
 
             # add the vehicle to the list of vehicle ids
@@ -183,21 +210,19 @@ class Vehicles:
             # set the lane changing mode for the vehicle
             self.__vehicles[vehID]["lane_change_mode_name"] = lane_change_mode
             if lane_change_mode in Vehicles.lane_changing_modes:
-                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.lane_changing_modes[lane_change_mode]
+                self.__vehicles[vehID]["lane_change_mode_value"] = \
+                    Vehicles.lane_changing_modes[lane_change_mode]
             elif lane_change_mode == "custom":
-                self.__vehicles[vehID]["lane_change_mode_value"] = custom_lane_change_mode
+                self.__vehicles[vehID]["lane_change_mode_value"] = \
+                    custom_lane_change_mode
             else:
                 logging.error("Invalid lane change mode!")
-                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.speed_modes["no_lat_collide"]
+                self.__vehicles[vehID]["lane_change_mode_value"] = \
+                    Vehicles.speed_modes["no_lat_collide"]
 
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)
         self.num_rl_vehicles = len(self.__rl_ids)
-
-        # increase the number of unique types of vehicles in the network, and
-        # add the type to the list of types
-        self.num_types += 1
-        self.types.append((veh_id, type_params))
 
     def set_sumo_observations(self, sumo_observations, veh_ids, env):
 
@@ -220,8 +245,9 @@ class Vehicles:
 
             # check for entering vehicles (vehicles in veh_ids but not in
             # self.__ids)
-            for veh_id in list(set(self.__ids) - set(veh_ids)):
-                pass
+            for veh_id in list(set(veh_ids) - set(self.__ids)):
+                veh_type = env.traci_connection.vehicle.getTypeID(veh_id)
+                self.add_inflow_vehicle(veh_id, veh_type, env)
 
             for veh_id in self.__ids:
                 # update the "last_lc" variable
@@ -241,7 +267,7 @@ class Vehicles:
                     new_abs_pos = self.get_absolute_position(
                         veh_id) + change
                     self.set_absolute_position(veh_id, new_abs_pos)
-                except ValueError or TypeError:
+                except (ValueError, TypeError):
                     self.set_absolute_position(veh_id, -1001)
 
                 # update the "headway", "leader", and "follower" variables
@@ -265,6 +291,107 @@ class Vehicles:
 
             # update the sumo observations variable
             self.__sumo_observations = deepcopy(sumo_observations)
+
+    def add_inflow_vehicle(self, veh_id, veh_type, env):
+        """
+        Adds a vehicle that entered the network from an inflow.
+        """
+        if veh_type not in self.type_parameters:
+            raise KeyError("Entering vehicle is not a valid type.")
+
+        self.num_vehicles += 1
+        self.__ids.append(veh_id)
+        self.__vehicles[veh_id] = dict()
+
+        # specify the type
+        self.__vehicles[veh_id]["type"] = veh_type
+
+        # specify the acceleration controller class
+        accel_controller = self.type_parameters[veh_type]["acceleration_controller"]
+        self.__vehicles[veh_id]["acc_controller"] = \
+            accel_controller[0](veh_id=veh_id, **accel_controller[1])
+
+        # specify the lane-changing controller class
+        lc_controller = self.type_parameters[veh_type]["lane_change_controller"]
+        self.__vehicles[veh_id]["lane_changer"] = \
+            lc_controller[0](veh_id=veh_id, **lc_controller[1])
+
+        # specify the routing controller class
+        rt_controller = self.type_parameters[veh_type]["routing_controller"]
+        if rt_controller is not None:
+            self.__vehicles[veh_id]["router"] = \
+                rt_controller[0](veh_id=veh_id, router_params=rt_controller[1])
+        else:
+            self.__vehicles[veh_id]["router"] = None
+
+        # check if the vehicle is human-driven or autonomous
+        if accel_controller[0] == RLController:
+            self.__rl_ids.append(veh_id)
+        else:
+            self.__human_ids.append(veh_id)
+
+            # check if the vehicle's lane-changing / acceleration actions
+            # are controlled by sumo or not.
+            if accel_controller[0] != SumoCarFollowingController:
+                self.__controlled_ids.append(veh_id)
+            if lc_controller[0] != SumoLaneChangeController:
+                self.__controlled_lc_ids.append(veh_id)
+
+        # subscribe the new vehicle
+        env.traci_connection.vehicle.subscribe(
+            veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                     tc.VAR_ROAD_ID, tc.VAR_SPEED])
+        env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
+        # set the speed mode for the vehicle
+        speed_mode = self.type_parameters[veh_type]["speed_mode"]
+        custom_speed_mode = self.type_parameters[veh_type]["custom_speed_mode"]
+        self.__vehicles[veh_id]["speed_mode_name"] = speed_mode
+        if speed_mode in Vehicles.speed_modes:
+            self.__vehicles[veh_id]["speed_mode_value"] = Vehicles.speed_modes[
+                speed_mode]
+        elif speed_mode == "custom":
+            self.__vehicles[veh_id]["speed_mode_value"] = custom_speed_mode
+        else:
+            logging.error("Invalid speed mode!")
+            self.__vehicles[veh_id]["speed_mode_value"] = Vehicles.speed_modes[
+                "no_collide"]
+
+        # set the absolute position of the vehicle
+        self.set_absolute_position(veh_id, 0)
+
+        # set the absolute position of the vehicle
+        self.set_state(veh_id, "last_lc", env.time_counter)
+
+        # set the absolute position of the vehicle
+        self.set_route(
+            veh_id, "route" + env.traci_connection.vehicle.getRoadID(veh_id))
+
+        # set speed mode in sumo
+        env.traci_connection.vehicle.setSpeedMode(
+            veh_id, self.get_speed_mode(veh_id))
+
+        # set the lane changing mode for the vehicle
+        lc_mode = self.type_parameters[veh_type]["lane_change_mode"]
+        custom_lc_mode = self.type_parameters[veh_type]["custom_lane_change_mode"]
+        self.__vehicles[veh_id]["lane_change_mode_name"] = lc_mode
+        if lc_mode in Vehicles.lane_changing_modes:
+            self.__vehicles[veh_id]["lane_change_mode_value"] = \
+                Vehicles.lane_changing_modes[lc_mode]
+        elif lc_mode == "custom":
+            self.__vehicles[veh_id]["lane_change_mode_value"] = \
+                custom_lc_mode
+        else:
+            logging.error("Invalid lane change mode!")
+            self.__vehicles[veh_id]["lane_change_mode_value"] = \
+                Vehicles.speed_modes["no_lat_collide"]
+
+        # set lane change mode in sumo
+        env.traci_connection.vehicle.setLaneChangeMode(
+            veh_id, self.get_lane_change_mode(veh_id))
+
+        # change the color of the vehicle based on its type
+        env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
 
     def remove_vehicle(self, veh_id):
         """
