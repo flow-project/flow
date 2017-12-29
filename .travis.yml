@@ -17,18 +17,17 @@ before_install:
   - chmod u+x sumo
   - wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
   - chmod u+x netconvert
-  - export SUMO_HOME="$HOME/build/cathywu/sumo/bin"
-  - export PATH="$SUMO_HOME:$PATH"
+  - export SUMO_HOME="$HOME/build/cathywu/sumo"
+  - export PATH="$SUMO_HOME/bin:$PATH"
   - popd; popd
   - LD_DEBUG=libs sumo
   - LD_DEBUG=libs netconvert
-  - pushd ../
-  - mkdir sumo/tools; pushd sumo/tools
+  - pushd ../; mkdir sumo/tools; pushd sumo/tools
   - wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
   - tar xzf traci.tar.gz
   - wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
   - tar xzf sumolib.tar.gz
-  - popd; popd;
+  - popd; popd
   - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
   # - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
   # - export SUMO_HOME="$HOME/build/cathywu/sumo"
