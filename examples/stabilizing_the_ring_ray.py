@@ -30,54 +30,57 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
 
-flow_env_name = "WaveAttenuationPOEnv"
-env_name = flow_env_name+'-v0'
 
-def create_env():
-    # Experiment prefix
-    exp_tag = "22-car-stabilizing-the-ring-local-robust-0-std"
 
-    import flow.envs as flow_envs
-    logging.basicConfig(level=logging.INFO)
+def make_create_env(flow_env_name, version):
+    env_name = flow_env_name+'-v%s' % version
 
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+    def create_env():
+        # Experiment prefix
+        exp_tag = "22-car-stabilizing-the-ring-local-robust-0-std"
 
-    vehicles = Vehicles()
-    vehicles.add_vehicles(veh_id="rl",
-                          acceleration_controller=(RLController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=1)
-    vehicles.add_vehicles(veh_id="idm",
-                          acceleration_controller=(IDMController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=21)
+        import flow.envs as flow_envs
+        logging.basicConfig(level=logging.INFO)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                             "max-acc": 1, "num_steps": 3600,
-                             "scenario_type": LoopScenario}
-    env_params = EnvParams(additional_params=additional_env_params)
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
-    additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
-                             "resolution": 40}
-    net_params = NetParams(additional_params=additional_net_params)
+        vehicles = Vehicles()
+        vehicles.add_vehicles(veh_id="rl",
+                              acceleration_controller=(RLController, {}),
+                              routing_controller=(ContinuousRouter, {}),
+                              num_vehicles=1)
+        vehicles.add_vehicles(veh_id="idm",
+                              acceleration_controller=(IDMController, {}),
+                              routing_controller=(ContinuousRouter, {}),
+                              num_vehicles=21)
 
-    initial_config = InitialConfig(spacing="uniform", bunching=50)
+        additional_env_params = {"target_velocity": 8, "max-deacc": -1,
+                                 "max-acc": 1, "num_steps": 3600,
+                                 "scenario_type": LoopScenario}
+        env_params = EnvParams(additional_params=additional_env_params)
 
-    scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
-                            initial_config=initial_config)
+        additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
+                                 "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
 
-    pass_params = (flow_env_name, sumo_params, vehicles, env_params, net_params,
-                   initial_config, scenario)
+        initial_config = InitialConfig(spacing="uniform", bunching=50)
 
-    register_env(*pass_params)
-    env = gym.envs.make(env_name)
+        scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
+                                initial_config=initial_config)
 
-    env.observation_space.shape = (
-        int(np.sum([c.shape for c in env.observation_space.spaces])),)
+        pass_params = (flow_env_name, sumo_params, vehicles, env_params,
+                       net_params, initial_config, scenario, version)
 
-    ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
+        register_env(*pass_params)
+        env = gym.envs.make(env_name)
 
-    return env
+        env.observation_space.shape = (
+            int(np.sum([c.shape for c in env.observation_space.spaces])),)
+
+        ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
+
+        return env
+    return create_env, env_name
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
@@ -93,6 +96,8 @@ if __name__ == "__main__":
     config["gamma"] = 0.999
     config["horizon"] = horizon
 
+    flow_env_name = "WaveAttenuationPOEnv"
+    create_env, env_name = make_create_env(flow_env_name, 0)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
