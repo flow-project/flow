@@ -2,7 +2,7 @@
 Example of a multi-lane network with human-driven vehicles.
 """
 import logging
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, InFlows
 from flow.controllers.routing_controllers import *
 from flow.core.vehicles import Vehicles
 
@@ -18,22 +18,36 @@ logging.basicConfig(level=logging.INFO)
 sumo_params = SumoParams(sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
+vehicles.add_vehicles(veh_id="human",
                       acceleration_controller=(IDMController, {}),
                       lane_change_controller=(StaticLaneChanger, {}),
                       routing_controller=(ContinuousRouter, {}),
                       initial_speed=0,
-                      num_vehicles=40)
+                      num_vehicles=20)
+vehicles.add_vehicles(veh_id="human2",
+                      acceleration_controller=(IDMController, {}),
+                      lane_change_controller=(StaticLaneChanger, {}),
+                      routing_controller=(ContinuousRouter, {}),
+                      initial_speed=0,
+                      num_vehicles=20)
 
 additional_env_params = {"target_velocity": 8}
 env_params = EnvParams(additional_params=additional_env_params)
 
+inflow = InFlows()
+inflow.add(veh_type="human", edge="highway", probability=0.25,
+           departLane="free", departSpeed=20)
+inflow.add(veh_type="human2", edge="highway", probability=0.25,
+           departLane="free", departSpeed=20)
+
 additional_net_params = {"length": 1000, "lanes": 4,
                          "speed_limit": 30}
-net_params = NetParams(additional_params=additional_net_params)
+net_params = NetParams(in_flows=inflow,
+                       additional_params=additional_net_params)
 
 initial_config = InitialConfig(spacing="gaussian_additive",
-                               lanes_distribution=4)
+                               lanes_distribution=4,
+                               shuffle=True)
 
 scenario = HighwayScenario(name="highway",
                            generator_class=HighwayGenerator,

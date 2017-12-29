@@ -61,8 +61,8 @@ class TestVehiclesClass(unittest.TestCase):
                     speed_mode='no_collide',
                     lane_change_mode="no_lat_collide")
         self.assertEqual(vehicles.types[0][1]["minGap"], 0)
-        self.assertEqual(vehicles.types[0][1]["accel"], 100)
-        self.assertEqual(vehicles.types[0][1]["decel"], 100)
+        self.assertEqual(vehicles.types[0][1]["accel"], 1000)
+        self.assertEqual(vehicles.types[0][1]["decel"], 1000)
 
         # check that, if the vehicle is a SumoCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
