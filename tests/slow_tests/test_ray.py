@@ -17,7 +17,6 @@ class TestRay(unittest.TestCase):
         """
         Integration test for two-level fcnet policies
         """
-        reload(ray)
         reload(ppo)
         reload(registry)
         import cloudpickle
