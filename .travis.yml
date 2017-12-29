@@ -7,6 +7,29 @@ script:
 sudo: required
 
 before_install:
+  # Setup SUMO
+  - sudo apt-get update
+  - sudo apt-get upgrade -y
+  - sudo apt-get install -y subversion autoconf build-essential libtool libtool-bin
+  - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev proj-bin proj-data libgdal1-dev libfox-1.6-0 libfox-1.6-dev
+  - pushd ../; wget https://s3.amazonaws.com/cathywu/sumo/sumo
+  - export SUMO_HOME="$HOME/build/cathywu"
+  - export PATH="$SUMO_HOME:$PATH"
+  - popd
+  - LD_DEBUG=libs sumo
+  - pushd ../
+  - mkdir tools; pushd tool
+  - wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
+  - tar xzf traci.tar.gz
+  - wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
+  - tar xzf sumolib.tar.gz
+  - popd; popd;
+  - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+  # - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
+  # - export SUMO_HOME="$HOME/build/cathywu/sumo"
+  # - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+  # - export PATH="$SUMO_HOME/bin:$PATH"
+
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pushd ../
   - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
@@ -24,11 +47,6 @@ before_install:
   - popd
   - popd
 
-  # Setup SUMO
-  - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
-  - export SUMO_HOME="$HOME/build/cathywu/sumo"
-  - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
-  - export PATH="$SUMO_HOME/bin:$PATH"
   - ls ../
 
   # Requirements for ray
