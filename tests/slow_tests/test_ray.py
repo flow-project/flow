@@ -72,7 +72,7 @@ class TestRay(unittest.TestCase):
 
         alg = ppo.PPOAgent(env=env_name, registry=registry.get_registry(),
                            config=config)
-        for i in range(1):
+        for i in range(2):
             alg.train()
             checkpoint_path = alg.save()
             self.assertTrue("%s.index" % os.path.exists(checkpoint_path))
