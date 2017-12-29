@@ -30,8 +30,8 @@ before_install:
   # - conda install opencv  # ray dependency
   - python -c "import ray; print(ray.__path__)"
   - RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
-  - rm -rf $RAY_SITE_DIR
-  - cp -r python/ray $RAY_SITE_DIR 
+  - rm -rf $RAY_SITE_DIR/rllib
+  - cp -r python/ray/rllib $RAY_SITE_DIR/rllib
   - popd
   - popd
   - python -c "import ray; print(ray.__path__)"
