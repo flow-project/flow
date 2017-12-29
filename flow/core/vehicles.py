@@ -138,21 +138,9 @@ class Vehicles:
                  "lane_change_mode": lane_change_mode,
                  "custom_lane_change_mode": custom_lane_change_mode,
                  "sumo_car_following_params": sumo_car_following_params,
-                 "sumo_lc_params": sumo_lc_params,
-                 "num_vehicles": num_vehicles}
-            init_num_vehicles = 0
-            final_num_vehicles = num_vehicles
+                 "sumo_lc_params": sumo_lc_params}
 
-            # increase the number of unique types of vehicles in the network,
-            # and add the type to the list of types
-            self.num_types += 1
-            self.types.append((veh_id, type_params))
-        else:
-            init_num_vehicles = self.type_parameters[veh_id]["num_vehicles"]
-            final_num_vehicles = init_num_vehicles + num_vehicles
-            self.type_parameters[veh_id]["num_vehicles"] += num_vehicles
-
-        for i in range(init_num_vehicles, final_num_vehicles):
+        for i in range(num_vehicles):
             vehID = veh_id + '_%d' % i
 
             # add the vehicle to the list of vehicle ids
@@ -210,19 +198,21 @@ class Vehicles:
             # set the lane changing mode for the vehicle
             self.__vehicles[vehID]["lane_change_mode_name"] = lane_change_mode
             if lane_change_mode in Vehicles.lane_changing_modes:
-                self.__vehicles[vehID]["lane_change_mode_value"] = \
-                    Vehicles.lane_changing_modes[lane_change_mode]
+                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.lane_changing_modes[lane_change_mode]
             elif lane_change_mode == "custom":
-                self.__vehicles[vehID]["lane_change_mode_value"] = \
-                    custom_lane_change_mode
+                self.__vehicles[vehID]["lane_change_mode_value"] = custom_lane_change_mode
             else:
                 logging.error("Invalid lane change mode!")
-                self.__vehicles[vehID]["lane_change_mode_value"] = \
-                    Vehicles.speed_modes["no_lat_collide"]
+                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.speed_modes["no_lat_collide"]
 
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)
         self.num_rl_vehicles = len(self.__rl_ids)
+
+        # increase the number of unique types of vehicles in the network, and
+        # add the type to the list of types
+        self.num_types += 1
+        self.types.append((veh_id, type_params))
 
     def set_sumo_observations(self, sumo_observations, veh_ids, env):
 
