@@ -66,4 +66,5 @@ before_install:
   - ls ../
 
   # Requirements for ray
+  - sudo apt-get install -y python-opencv
   - pip install tensorflow
