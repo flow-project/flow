@@ -59,8 +59,8 @@ before_install:
   -     popd
   -     export SUMO_HOME="$HOME/build/cathywu/sumo"
   -     export PATH="$SUMO_HOME/bin:$PATH"
-  -     LD_DEBUG=libs sumo
-  -     LD_DEBUG=libs netconvert
+  # -     LD_DEBUG=libs sumo  # debug sumo library dependencies
+  # -     LD_DEBUG=libs netconvert  # debug netconvert library dependencies
   #     [sumo] Add data directory
   -     pushd sumo
   -         wget https://s3.amazonaws.com/cathywu/sumo/data.tar.gz
