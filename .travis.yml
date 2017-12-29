@@ -2,34 +2,31 @@ language: python
 python:
   - "3.5"
 script:
-    - docker run -v $HOME/build/cathywu/rllab-multiagent:/root/code/rllab -v $HOME/build/cathywu/learning-traffic:/root/code/rllab/learning-traffic -v $HOME/build/cathywu/ray:/root/code/flow -ti evinitsky/flow /bin/sh -c 'echo "Running in docker"; export PYTHONPATH="/root/code/flow:$PYTHONPATH"; cd /root/code/flow; python -c "import ray; print(ray.__path__)"; cd /root/code/rllab/learning-traffic; nose2;'
+    - nose2
 
 sudo: required
 
-services:
-  - docker
-
 before_install:
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda info -a
-  - conda install opencv  # ray dependency
-  - pushd ../; git clone https://github.com/ray-project/ray.git
-  - pushd ray/python
-  - pip install cython # ray dependency
-  - sudo apt-get install -y cmake
-  - python setup.py install
-  - python -c "import ray; print(ray.__path__)"
-  - popd; popd
-  - pushd ../; git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git; popd
+  # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
+  - pushd ../
+  - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
+
+  # Copy over local rllib changes (testing branch)
+  - git clone https://github.com/cathywu/ray.git
+  - pushd ray
+  - pwd
+  - git checkout testing
+  - RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
+  - ls $RAY_SITE_DIR
+  - ls $RAY_SITE_DIR/rllib
+  - rm -rf $RAY_SITE_DIR/rllib
+  - cp -r python/ray/rllib $RAY_SITE_DIR/rllib
+  - popd
+  - popd
+
+  # Setup SUMO
+  - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
+  - export SUMO_HOME="$HOME/build/cathywu/sumo"
+  - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+  - export PATH="$SUMO_HOME/bin:$PATH"
   - ls ../
-  - sudo apt-get install swig -y
-  - sudo apt-get build-dep python-pygame -y
-  - sudo apt-get build-dep python-scipy -y
-  - docker pull evinitsky/flow
-  - docker ps -a
-  - docker run -d evinitsky/flow
