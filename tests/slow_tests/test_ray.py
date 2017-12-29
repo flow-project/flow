@@ -1,6 +1,8 @@
 import os
 import unittest
 
+import ray
+
 
 class TestRay(unittest.TestCase):
     """
@@ -31,19 +33,16 @@ class TestRay(unittest.TestCase):
                                          "fn_choose_subpolicy": list(
                                              cloudpickle.dumps(lambda x: 0))})
         flow_env_name = "WaveAttenuationPOEnv"
-        env_name = flow_env_name+'-v0'
+        env_name = flow_env_name+'-v1'
 
         # Register as rllib env
         register_rllib_env(env_name, create_env)
 
         alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-        for i in range(2):
+        for i in range(1):
             alg.train()
-            checkpoint_path = alg.save()
-            self.assertTrue("%s.index" % os.path.exists(checkpoint_path))
 
     def test_ray(self):
-        import ray
         import ray.rllib.ppo as ppo
         from ray.tune.registry import get_registry, register_env as register_rllib_env
         from examples.stabilizing_the_ring_ray import create_env
@@ -69,6 +68,9 @@ class TestRay(unittest.TestCase):
             alg.train()
             checkpoint_path = alg.save()
             self.assertTrue("%s.index" % os.path.exists(checkpoint_path))
+
+    def tearDown(self):
+        ray.worker.cleanup()
 
 
 if __name__ == '__main__':
