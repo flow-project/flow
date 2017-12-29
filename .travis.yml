@@ -7,6 +7,10 @@ script:
 sudo: required
 
 before_install:
+  # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
+  - pushd ../
+  - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
+
   # Setup conda
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
@@ -15,10 +19,7 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-
-  # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pushd ../
-  - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
+  - python -V
 
   # Requirements for ray
   - conda install opencv
