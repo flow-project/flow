@@ -236,7 +236,7 @@ class Vehicles:
                     new_abs_pos = self.get_absolute_position(
                         veh_id) + change
                     self.set_absolute_position(veh_id, new_abs_pos)
-                except ValueError or TypeError:
+                except (ValueError, TypeError):
                     self.set_absolute_position(veh_id, -1001)
 
                 # update the "headway", "leader", and "follower" variables
