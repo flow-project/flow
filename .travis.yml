@@ -19,7 +19,7 @@ before_install:
   - popd
   - LD_DEBUG=libs sumo
   - pushd ../
-  - mkdir tools; pushd tool
+  - mkdir tools; pushd tools
   - wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
   - tar xzf traci.tar.gz
   - wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
