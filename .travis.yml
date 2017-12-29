@@ -30,3 +30,6 @@ before_install:
   - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
   - export PATH="$SUMO_HOME/bin:$PATH"
   - ls ../
+
+  # Requirements for ray
+  - pip install tensorflow
