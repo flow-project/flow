@@ -7,28 +7,40 @@ script:
 sudo: required
 
 before_install:
-  # Setup SUMO
+  # [sumo] dependencies and binaries
   - sudo apt-get update
   - sudo apt-get upgrade -y
   - sudo apt-get install -y subversion autoconf build-essential libtool
-  - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev proj-bin proj-data libgdal1-dev libfox-1.6-0 libfox-1.6-dev
-  - pushd ../; mkdir -p sumo/bin; pushd sumo/bin
-  - wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
-  - chmod u+x sumo
-  - wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
-  - chmod u+x netconvert
-  - export SUMO_HOME="$HOME/build/cathywu/sumo"
-  - export PATH="$SUMO_HOME/bin:$PATH"
-  - popd; popd
-  - LD_DEBUG=libs sumo
-  - LD_DEBUG=libs netconvert
-  - pushd ../; mkdir sumo/tools; pushd sumo/tools
-  - wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
-  - tar xzf traci.tar.gz
-  - wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
-  - tar xzf sumolib.tar.gz
-  - popd; popd
-  - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+  - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
+  - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
+  - sudo apt-get install -y libfox-1.6-dev
+  - pushd $HOME
+  -     mkdir -p sumo/bin
+  -     pushd sumo/bin
+  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
+  -         chmod u+x sumo
+  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
+  -         chmod u+x netconvert
+  -     popd
+  -     export SUMO_HOME="$HOME/build/cathywu/sumo"
+  -     export PATH="$SUMO_HOME/bin:$PATH"
+  -     LD_DEBUG=libs sumo
+  -     LD_DEBUG=libs netconvert
+  #     [sumo] Add data directory
+  -     pushd sumo
+  -         wget https://s3.amazonaws.com/cathywu/sumo/data.tar.gz
+  -         tar xzf data.tar.gz
+  -     popd
+  #     [sumo] Add python tools traci and sumolib
+  -     mkdir -p sumo/tools
+  -     pushd sumo/tools
+  -         wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
+  -         tar xzf traci.tar.gz
+  -         wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
+  -         tar xzf sumolib.tar.gz
+  -         export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+  -     popd
+  - popd
   # - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
   # - export SUMO_HOME="$HOME/build/cathywu/sumo"
   # - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
