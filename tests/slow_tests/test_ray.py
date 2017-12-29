@@ -30,7 +30,7 @@ class TestRay(unittest.TestCase):
         register_rllib_env(env_name, create_env)
 
         alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-        for i in range(2):
+        for i in range(1):
             alg.train()
             checkpoint_path = alg.save()
             self.assertTrue("%s.index" % os.path.exists(checkpoint_path))

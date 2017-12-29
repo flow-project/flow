@@ -7,7 +7,8 @@ script:
 sudo: required
 
 before_install:
-  # Setup conda
+  # Setup conda (needed for opencv, ray dependency)
+  # WARNING: enforces py3.6
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
@@ -18,33 +19,28 @@ before_install:
   - python -V
 
   # Requirements for ray
-  # - sudo apt-get install -y python-opencv
   - conda install opencv
   - pip install tensorflow
 
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pushd ../
   - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/22c7c87e1450a06bd0fdcfa7b6c1b15565b2f336/ray-0.3.0-cp36-cp36m-manylinux1_x86_64.whl
-  # - pip install https://s3-us-west-2.amazonaws
-  # .com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3
-  # .0-cp35-cp35m-manylinux1_x86_64.whl
+  # - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
 
   # Copy over local rllib changes (testing branch)
-  - git clone https://github.com/cathywu/ray.git
-  - pushd ray
-  - pwd
-  - git checkout testing
-  - RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
-  - ls $RAY_SITE_DIR
-  - ls $RAY_SITE_DIR/rllib
-  - rm -rf $RAY_SITE_DIR/rllib
-  - cp -r python/ray/rllib $RAY_SITE_DIR/rllib
-  - popd
+  - pushd $HOME/build/cathywu
+  -     git clone https://github.com/cathywu/ray.git
+  -     pushd ray
+  -         git checkout testing
+  -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
+  -         rm -rf $RAY_SITE_DIR/rllib
+  -         ls $RAY_SITE_DIR
+  -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
+  -     popd
   - popd
 
   # [sumo] dependencies and binaries
   - sudo apt-get update
-  - sudo apt-get upgrade -y
+  # - sudo apt-get upgrade -y
   - sudo apt-get install -y subversion autoconf build-essential libtool
   - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
   - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
@@ -76,10 +72,6 @@ before_install:
   -         export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
   -     popd
   - popd
-  # - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
-  # - export SUMO_HOME="$HOME/build/cathywu/sumo"
-  # - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
-  # - export PATH="$SUMO_HOME/bin:$PATH"
 
   - ls ../
 
