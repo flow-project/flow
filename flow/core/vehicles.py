@@ -199,7 +199,7 @@ class Vehicles:
         self.num_types += 1
         self.types.append((veh_id, type_params))
 
-    def set_sumo_observations(self, sumo_observations, env):
+    def set_sumo_observations(self, sumo_observations, veh_ids, env):
 
         if env.time_counter == 0:
             for veh_id in self.__ids:
@@ -213,17 +213,22 @@ class Vehicles:
                 # set the initial absolute_position
                 self.set_absolute_position(veh_id, env.get_x_by_id(veh_id))
         else:
+            # check for exiting vehicles (vehicles in self.__ids but not in
+            # veh_ids)
+            for veh_id in list(set(self.__ids) - set(veh_ids)):
+                self.remove_vehicle(veh_id)
+
+            # check for entering vehicles (vehicles in veh_ids but not in
+            # self.__ids)
+            for veh_id in list(set(self.__ids) - set(veh_ids)):
+                pass
+
             for veh_id in self.__ids:
                 # update the "last_lc" variable
                 prev_lane = self.get_lane(veh_id)
-                try:
-                    if sumo_observations[veh_id][tc.VAR_LANE_INDEX] != \
-                            prev_lane and veh_id in self.__rl_ids:
-                        self.set_state(veh_id, "last_lc", env.time_counter)
-                except KeyError:
-                    # vehicle is not currently in the network (probably due to a
-                    # crash), so skip
-                    continue
+                if sumo_observations[veh_id][tc.VAR_LANE_INDEX] != \
+                        prev_lane and veh_id in self.__rl_ids:
+                    self.set_state(veh_id, "last_lc", env.time_counter)
 
                 # update the "absolute_position" variable
                 prev_pos = env.get_x_by_id(veh_id)
@@ -260,6 +265,30 @@ class Vehicles:
 
             # update the sumo observations variable
             self.__sumo_observations = deepcopy(sumo_observations)
+
+    def remove_vehicle(self, veh_id):
+        """
+        Removes a vehicle from the vehicles class and all valid ID lists, and
+        decrements the total number of vehicles in this class.
+
+        Parameters
+        ----------
+        veh_id: str
+            unique identifier of th vehicle to be removed
+        """
+        del self.__vehicles[veh_id]
+        self.__ids.remove(veh_id)
+        self.num_vehicles -= 1
+
+        # remove it from all other ids (if it is there)
+        if veh_id in self.__human_ids:
+            self.__human_ids.remove(veh_id)
+            if veh_id in self.__controlled_ids:
+                self.__controlled_ids.remove(veh_id)
+            if veh_id in self.__controlled_lc_ids:
+                self.__controlled_lc_ids.remove(veh_id)
+        else:
+            self.__rl_ids.remove(veh_id)
 
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
