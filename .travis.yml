@@ -7,28 +7,15 @@ script:
 sudo: required
 
 before_install:
-  # Setup conda
-  # - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  # - bash miniconda.sh -b -p $HOME/miniconda
-  # - export PATH="$HOME/miniconda/bin:$PATH"
-  # - hash -r
-  # - conda config --set always_yes yes --set changeps1 no
-  # - conda update -q conda
-  # - conda info -a
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pushd ../
   - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
+
+  # Copy over local rllib changes (testing branch)
   - git clone https://github.com/cathywu/ray.git
   - pushd ray
   - pwd
   - git checkout testing
-  # - pushd ray/python
-  # - pip install cython # ray dependency
-  # - pip install numpy
-  # - sudo apt-get install -y cmake
-  # - python setup.py develop
-  # - conda install opencv  # ray dependency
-  - python -c "import ray; print(ray.__path__)"
   - RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
   - ls $RAY_SITE_DIR
   - ls $RAY_SITE_DIR/rllib
@@ -36,19 +23,10 @@ before_install:
   - cp -r python/ray/rllib $RAY_SITE_DIR/rllib
   - popd
   - popd
-  - python -c "import ray; print(ray.__path__)"
-  # - popd
+
   # Setup SUMO
   - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
   - export SUMO_HOME="$HOME/build/cathywu/sumo"
   - export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
   - export PATH="$SUMO_HOME/bin:$PATH"
-  # Setup rllab
-  # - pushd ../; git clone --depth=50 git@github.com:cathywu/rllab-multiagent.git; popd
   - ls ../
-  # - sudo apt-get install swig -y
-  # - sudo apt-get build-dep python-pygame -y
-  # - sudo apt-get build-dep python-scipy -y
-  # - docker pull evinitsky/flow
-  # - docker ps -a
-  # - docker run -d evinitsky/flow
