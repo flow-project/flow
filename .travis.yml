@@ -22,7 +22,6 @@ before_install:
   - pushd ray
   - pwd
   - git checkout testing
-  - popd
   # - pushd ray/python
   # - pip install cython # ray dependency
   # - pip install numpy
@@ -34,6 +33,8 @@ before_install:
   - rm -rf $RAY_SITE_DIR
   - cp -r python/ray $RAY_SITE_DIR 
   - popd
+  - popd
+  - python -c "import ray; print(ray.__path__)"
   # - popd
   # Setup SUMO
   - bash scripts/setup_sumo_linux.sh $HOME/build/cathywu
