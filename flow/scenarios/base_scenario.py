@@ -1,6 +1,5 @@
 import logging
 import numpy as np
-from collections import OrderedDict
 
 try:
     # Import serialiable if rllab is installed
@@ -8,9 +7,10 @@ try:
 except ImportError as e:
     Serializable = object
 
-from flow.core.generator import Generator
 from flow.core.params import InitialConfig
-from flow.controllers.rlcontroller import RLController
+
+
+VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
 class Scenario(Serializable):
@@ -35,11 +35,6 @@ class Scenario(Serializable):
             see flow/core/params.py
         initial_config: InitialConfig type
             see flow/core/params.py
-
-        Raises
-        ------
-        ValueError
-            If no "length" is provided in net_params
         """
         # Invoke serialiable if using rllab
         if Serializable is not object:
@@ -50,6 +45,12 @@ class Scenario(Serializable):
         self.vehicles = vehicles
         self.net_params = net_params
         self.initial_config = initial_config
+
+        # create a generator instance
+        self.generator = self.generator_class(self.net_params, self.name)
+
+        # create the network configuration file from the generator
+        self.edges = self.generator.generate_net(self.net_params)
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -80,20 +81,22 @@ class Scenario(Serializable):
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
         # length of the network, or the portion of the network in which cars are
-        # meant to be distributed (to be calculated during subclass __init__(),
-        # or specified in net_params)
+        # meant to be distributed (may be overridden by subclass __init__())
         if not hasattr(self, "length"):
-            if "length" in self.net_params.additional_params:
-                self.length = self.net_params.additional_params["length"]
-            else:
-                raise ValueError("The network does not have a specified length.")
+            self.length = sum([self.edge_length(edge_id)]
+                              for edge_id in self.get_edge_list())
 
         # generate starting position for vehicles in the network
         if self.initial_config.positions is None:
             self.initial_config.positions, self.initial_config.lanes = \
                 self.generate_starting_positions()
 
-        self.cfg = self.generate()
+        # create the sumo configuration files using the generator class
+        cfg_name = self.generator.generate_cfg(self.net_params)
+        self.generator.make_routes(self, self.initial_config)
+
+        # specify the location of the sumo configuration file
+        self.cfg = self.generator.cfg_path + cfg_name
 
     def specify_edge_starts(self):
         """
@@ -593,6 +596,43 @@ class Scenario(Serializable):
         """
         raise NotImplementedError
 
+    def edge_length(self, edge_id):
+        """
+        Returns the length of a given edge.
+        """
+        if ":" in edge_id:  # junctions have no length in this sense
+            return 0
+        return self.edges[edge_id]["length"]
+
+    def speed_limit(self, edge_id):
+        """
+        Returns the speed limit of a given edge.
+        """
+        if ":" in edge_id:  # give vehicles in junctions a default speed limit
+            return 30
+        return self.edges[edge_id]["speed"]
+
+    def num_lanes(self, edge_id):
+        """
+        Returns the number of lanes of a given edge.
+        """
+        if ":" in edge_id:  # treat all junctions as single lane
+            return 1
+        return self.edges[edge_id]["lanes"]
+
+    def get_edge_list(self):
+        """
+        Returns the name of all edges in the network.
+        """
+        return list(self.edges.keys())
+
+    def length(self):
+        """
+        Returns the total length of the network.
+        """
+        return self.length
+
     def __str__(self):
         # TODO(cathywu) return the parameters too.
-        return "Scenario " + self.name + " with " + str(self.vehicles.num_vehicles) + " vehicles."
+        return "Scenario " + self.name + " with " + \
+               str(self.vehicles.num_vehicles) + " vehicles."
