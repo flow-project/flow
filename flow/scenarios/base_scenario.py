@@ -83,8 +83,8 @@ class Scenario(Serializable):
         # length of the network, or the portion of the network in which cars are
         # meant to be distributed (may be overridden by subclass __init__())
         if not hasattr(self, "length"):
-            self.length = sum([self.edge_length(edge_id)]
-                              for edge_id in self.get_edge_list())
+            self.length = sum([self.edge_length(edge_id)
+                               for edge_id in self.get_edge_list()])
 
         # generate starting position for vehicles in the network
         if self.initial_config.positions is None:
@@ -625,12 +625,6 @@ class Scenario(Serializable):
         Returns the name of all edges in the network.
         """
         return list(self.edges.keys())
-
-    def length(self):
-        """
-        Returns the total length of the network.
-        """
-        return self.length
 
     def __str__(self):
         # TODO(cathywu) return the parameters too.
