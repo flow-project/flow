@@ -63,7 +63,7 @@ Run the unit tests:
 
 ::
 
-    nose2
+    nose2 -s tests/fast_tests
 
 Let’s see some traffic action:
 
