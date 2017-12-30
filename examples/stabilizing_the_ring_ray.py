@@ -30,8 +30,6 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
 
-
-
 def make_create_env(flow_env_name, version):
     env_name = flow_env_name+'-v%s' % version
 
