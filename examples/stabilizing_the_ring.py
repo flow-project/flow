@@ -5,7 +5,7 @@ RL vehicles are bunched together. The emergent behavior we are hoping to witness
 is that rl-vehicles group together in other to allow non rl-vehicles a larger headway,
 and thus larger equilibrium speeds.
 
-One concern is whether rl-vehicles will start trail-gating human vehicles.
+One concern is whether rl-vehicles will start tail-gating human vehicles.
 """
 
 import logging
@@ -64,7 +64,7 @@ def run_task(v):
     scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
                             initial_config=initial_config)
 
-    env_name = "PartiallyObservableWaveAttenuationEnvironment"
+    env_name = "WaveAttenuationPOEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
