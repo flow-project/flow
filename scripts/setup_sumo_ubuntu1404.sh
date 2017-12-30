@@ -2,7 +2,7 @@
 echo "Installing system dependencies for SUMO"
 sudo apt-get update
 sudo apt-get upgrade -y
-sudo apt-get install -y subversion autoconf build-essential libtool libtool-bin
+sudo apt-get install -y subversion autoconf build-essential libtool
 sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev proj-bin proj-data libgdal1-dev libfox-1.6-0 libfox-1.6-dev
 # clang
 
@@ -15,7 +15,7 @@ echo "You may be prompted (twice) to authorize downloading from the repository (
 mkdir -p $1
 echo "Temporarily changing directories"
 pushd $1
-svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@25706 > /dev/null
+svn checkout --non-interactive -q https://svn.code.sf.net/p/sumo/code/trunk/sumo@25706
 pushd sumo
 
 echo "\nPatching SUMO for flow compatibility"
