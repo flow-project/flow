@@ -7,6 +7,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
 from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
+from tests.setup_scripts import variable_lanes_exp_setup
 
 
 class TestGetX(unittest.TestCase):
@@ -452,6 +453,63 @@ class TestRandomStartPos(unittest.TestCase):
         for veh_id in self.env.vehicles.get_ids():
             if self.env.vehicles.get_edge(veh_id) not in edges:
                 raise AssertionError
+
+
+class TestEvenStartPosVariableLanes(unittest.TestCase):
+    def setUp(self):
+        # place 15 vehicles in the network (we need at least more than 1)
+        vehicles = Vehicles()
+        vehicles.add_vehicles(veh_id="test",
+                              acceleration_controller=(IDMController, {}),
+                              routing_controller=(ContinuousRouter, {}),
+                              num_vehicles=50)
+
+        initial_config = InitialConfig(lanes_distribution=5)
+
+        # create the environment and scenario classes for a variable lanes per
+        # edge ring road
+        self.env, scenario = variable_lanes_exp_setup(
+            vehicles=vehicles, initial_config=initial_config)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def runTest(self):
+        """
+        Ensures that enough vehicles are placed in the network, and they cover
+        all possible lanes.
+        """
+        expected_num_vehicles = self.env.vehicles.num_vehicles
+        actual_num_vehicles = len(self.env.traci_connection.vehicle.getIDList())
+
+        # check that enough vehicles are in the network
+        self.assertEqual(expected_num_vehicles, actual_num_vehicles)
+
+        # check that all possible lanes are covered
+        lanes = self.env.vehicles.get_lane()
+        if any([i not in lanes for i in range(4)]):
+            raise AssertionError
+
+
+class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
+    def setUp(self):
+        # place 15 vehicles in the network (we need at least more than 1)
+        vehicles = Vehicles()
+        vehicles.add_vehicles(veh_id="test",
+                              acceleration_controller=(IDMController, {}),
+                              routing_controller=(ContinuousRouter, {}),
+                              num_vehicles=50)
+
+        initial_config = InitialConfig(spacing="random", lanes_distribution=5)
+
+        # create the environment and scenario classes for a variable lanes per
+        # edge ring road
+        self.env, scenario = variable_lanes_exp_setup(
+            vehicles=vehicles, initial_config=initial_config)
 
 
 class TestEdgeLength(unittest.TestCase):
