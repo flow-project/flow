@@ -272,6 +272,13 @@ class Scenario(Serializable):
 
         increment = available_length / self.vehicles.num_vehicles
 
+        # if not all lanes are equal, then we must ensure that vehicles are in
+        # two edges at the same time
+        flag = False
+        lanes = [self.num_lanes(edge) for edge in self.get_edge_list()]
+        if any([lanes[0] != lanes[i] for i in range(1, len(lanes))]):
+            flag = True
+
         x = x0
         car_count = 0
         startpositions, startlanes = [], []
@@ -302,6 +309,16 @@ class Scenario(Serializable):
             while pos[0] not in available_edges:
                 x = (x + self.edge_length(pos[0])) % self.length
                 pos = self.get_edge(x)
+
+            # ensure that in variable lane settings vehicles always start a
+            # vehicle's length away from the start of the edge. This, however,
+            # prevents the spacing to be completely uniform.
+            if flag and pos[1] < VEHICLE_LENGTH:
+                pos0, pos1 = pos
+                pos = (pos0, VEHICLE_LENGTH)
+                x += VEHICLE_LENGTH
+                increment -= (VEHICLE_LENGTH * self.num_lanes(pos0)) / \
+                             (self.vehicles.num_vehicles - car_count)
 
             # place vehicles side-by-side in all available lanes on this edge
             for lane in range(min([self.num_lanes(pos[0]), lanes_distr])):
