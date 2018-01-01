@@ -376,7 +376,7 @@ class InFlows:
         ----
         For information on the parameters start, end, vehsPerHour, period,
         probability, number, as well as other vehicle type and routing
-        parameters that may add via **kwargs, be refer to:
+        parameters that may be added via **kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
         """
         new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
