@@ -82,14 +82,14 @@ def make_create_env(flow_env_name, version):
         )
 
         scenario = TwoLoopsOneMergingScenario(
-            name="two-loop-one-merging",
+            name=exp_tag,
             generator_class=TwoLoopOneMergingGenerator,
             vehicles=vehicles,
             net_params=net_params,
             initial_config=initial_config
         )
 
-        pass_params = (env_name, sumo_params, vehicles, env_params,
+        pass_params = (flow_env_name, sumo_params, vehicles, env_params,
                        net_params, initial_config, scenario, version)
 
         register_env(*pass_params)

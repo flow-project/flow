@@ -35,7 +35,7 @@ def make_create_env(flow_env_name, version):
 
     def create_env():
         # Experiment prefix
-        exp_tag = "22-car-stabilizing-the-ring-local-robust-0-std"
+        exp_tag = "stabilizing_ring_example"
 
         import flow.envs as flow_envs
         logging.basicConfig(level=logging.INFO)
@@ -61,7 +61,8 @@ def make_create_env(flow_env_name, version):
                                  "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
 
-        initial_config = InitialConfig(spacing="uniform", bunching=50, min_gap=0)
+        initial_config = InitialConfig(spacing="uniform", bunching=30,
+                                       min_gap=0)
 
         scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
                                 initial_config=initial_config)
