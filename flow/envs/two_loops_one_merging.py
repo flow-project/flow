@@ -7,7 +7,7 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 
-class TwoLoopsOneMergingEnvironment(SumoEnvironment):
+class TwoLoopsMergeEnv(SumoEnvironment):
     """
     Fully functional environment. Differs from the SimpleAccelerationEnvironment
     in loop_accel in that vehicles in this environment may follow one of two

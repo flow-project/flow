@@ -12,7 +12,7 @@ from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import *
 
-from flow.envs.two_loops_one_merging import TwoLoopsOneMergingEnvironment
+from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
 from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario import TwoLoopsOneMergingScenario
 
@@ -56,7 +56,7 @@ scenario = TwoLoopsOneMergingScenario(
     initial_config=initial_config
 )
 
-env = TwoLoopsOneMergingEnvironment(env_params, sumo_params, scenario)
+env = TwoLoopsMergeEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 
