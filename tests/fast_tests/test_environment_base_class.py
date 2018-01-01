@@ -210,8 +210,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         network_observations = \
             self.env.traci_connection.vehicle.getSubscriptionResults()
 
+        # get the list of vehicles currently in the network
+        id_list = self.env.traci_connection.vehicle.getIDList()
+
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(network_observations, self.env)
+        self.env.vehicles.set_sumo_observations(network_observations, id_list,
+                                                self.env)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
@@ -277,8 +281,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         network_observations = \
             self.env.traci_connection.vehicle.getSubscriptionResults()
 
+        # get the list of vehicles currently in the network
+        id_list = self.env.traci_connection.vehicle.getIDList()
+
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(network_observations, self.env)
+        self.env.vehicles.set_sumo_observations(network_observations, id_list,
+                                                self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
@@ -323,8 +331,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         network_observations = \
             self.env.traci_connection.vehicle.getSubscriptionResults()
 
+        # get the list of vehicles currently in the network
+        id_list = self.env.traci_connection.vehicle.getIDList()
+
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(network_observations, self.env)
+        self.env.vehicles.set_sumo_observations(network_observations, id_list,
+                                                self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right

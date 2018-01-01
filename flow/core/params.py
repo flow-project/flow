@@ -129,6 +129,7 @@ class NetParams:
                  net_path="debug/net/",
                  cfg_path="debug/cfg/",
                  no_internal_links=True,
+                 in_flows=None,
                  additional_params=None):
         """
         Network configuration parameters
@@ -142,6 +143,9 @@ class NetParams:
         no_internal_links: bool, optional
             determines whether the space between edges is finite. Important
             when using networks with intersections; default is False
+        in_flows: InFlows type, optional
+            specifies the inflows of specific edges and the types of vehicles
+            entering the network from these edges
         additional_params: dict, optional
             network specific parameters; see each subclass for a description of
             what is needed
@@ -151,6 +155,7 @@ class NetParams:
         self.net_path = net_path
         self.cfg_path = cfg_path
         self.no_internal_links = no_internal_links
+        self.in_flows = in_flows
         self.additional_params = additional_params
 
 
@@ -159,12 +164,12 @@ class InitialConfig:
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
-                 scale=2.5,
-                 downscale=5,
+                 min_gap=2.0,
+                 perturbation=0.0,
                  x0=0,
                  bunching=0,
                  lanes_distribution=1,
-                 distribution_length=None,
+                 edges_distribution="all",
                  positions=None,
                  lanes=None,
                  additional_params=None):
@@ -182,19 +187,23 @@ class InitialConfig:
             specifies the positioning of vehicles in the network relative to
             one another. May be one of: "uniform", "random", or "custom".
             Default is "uniform".
-        scale: float, optional
-        downscale: float, optional
+        min_gap: float, optional
+            minimum gap between two vehicles upon initialization, in meters.
+            Default is 2 m.
         x0: float, optional
             position of the first vehicle to be placed in the network
+        perturbation: float, optional
+            standard deviation used to perturb vehicles from their uniform
+            position, in meters. Default is 0 m.
         bunching: float, optional
             reduces the portion of the network that should be filled with
             vehicles by this amount.
         lanes_distribution: int, optional
             number of lanes vehicles should be dispersed into (cannot be greater
             than the number of lanes in the network)
-        distribution_length: float, optional
-            length that vehicles should be disperse in; default is network
-            length
+        edges_distribution: list <str>, optional
+            list of edges vehicles may be placed on initialization, default is
+            all lanes (stated as "all")
         positions: list, optional
             used if the user would like to specify user-generated initial
             positions.
@@ -206,12 +215,12 @@ class InitialConfig:
         """
         self.shuffle = shuffle
         self.spacing = spacing
-        self.scale = scale
-        self.downscale = downscale
+        self.min_gap = min_gap
+        self.perturbation = perturbation
         self.x0 = x0
         self.bunching = bunching
         self.lanes_distribution = lanes_distribution
-        self.distribution_length = distribution_length
+        self.edges_distribution = edges_distribution
         self.positions = positions
         self.lanes = lanes
         if additional_params is None:
@@ -325,3 +334,72 @@ class SumoLaneChangeParams:
                 "lcKeepRight": str(lcKeepRight),
                 "lcLookaheadLeft": str(lcLookaheadLeft),
                 "lcSpeedGainRight": str(lcSpeedGainRight)}
+
+
+class InFlows:
+    def __init__(self):
+        """
+        Used to add inflows to a network. Inflows can be specified for any edge
+        that has a specified route or routes.
+        """
+        self.num_flows = 0
+        self.__flows = []
+
+    def add(self, veh_type, edge, start=None, end=None, vehsPerHour=None,
+            period=None, probability=None, number=None, **kwargs):
+        """
+        Specifies a new inflow for a given type of vehicles and edge.
+
+        Parameters
+        ----------
+        veh_type: str
+            type of vehicles entering the edge, must match one of the types set
+            in the Vehicles class.
+        edge: str
+            starting edge for vehicles in this inflow.
+        start: float, optional
+            see Note
+        end: float, optional
+            see Note
+        vehsPerHour: float, optional
+            see Note
+        period: float, optional
+            see Note
+        probability: float, optional
+            see Note
+        number: int, optional
+            see Note
+        kwargs: dict, optional
+            see Note
+
+        Note
+        ----
+        For information on the parameters start, end, vehsPerHour, period,
+        probability, number, as well as other vehicle type and routing
+        parameters that may be added via **kwargs, refer to:
+        http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        """
+        new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
+                      "route": "route"+edge}
+
+        new_inflow.update(kwargs)
+
+        if start is not None:
+            new_inflow["start"] = start
+        if end is not None:
+            new_inflow["end"] = end
+        if vehsPerHour is not None:
+            new_inflow["vehPerHour"] = vehsPerHour
+        if period is not None:
+            new_inflow["period"] = period
+        if probability is not None:
+            new_inflow["probability"] = probability
+        if number is not None:
+            new_inflow["number"] = number
+
+        self.__flows.append(new_inflow)
+
+        self.num_flows += 1
+
+    def get(self):
+        return self.__flows
