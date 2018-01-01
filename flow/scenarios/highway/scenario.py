@@ -11,16 +11,15 @@ class HighwayScenario(Scenario):
 
         See Scenario.py for description of params.
         """
-        if "length" not in net_params.additional_params:
-            raise ValueError("length of highway not supplied")
+        REQUIRED_NET_PARAMS = ["length", "lanes", "speed_limit"]
+
+        for param in REQUIRED_NET_PARAMS:
+            if param not in net_params.additional_params:
+                raise ValueError(
+                    "highway network parameter {} not supplied".format(param))
+
         self.length = net_params.additional_params["length"]
-
-        if "lanes" not in net_params.additional_params:
-            raise ValueError("lanes of highway not supplied")
         self.lanes = net_params.additional_params["lanes"]
-
-        if "speed_limit" not in net_params.additional_params:
-            raise ValueError("speed limit of highway not supplied")
         self.speed_limit = net_params.additional_params["speed_limit"]
 
         super().__init__(name, generator_class, vehicles, net_params,

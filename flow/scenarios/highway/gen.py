@@ -5,8 +5,7 @@ from numpy import pi, sin, cos, linspace
 
 class HighwayGenerator(Generator):
     """
-    Generator for loop circle used in MIT traffic simulation. Requires from
-    net_params:
+    Generator for multi-lane highways. Requires from net_params:
      - length: length of the circle
      - lanes: number of lanes in the circle
      - speed_limit: max speed limit of the circle
