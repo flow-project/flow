@@ -164,12 +164,12 @@ class InitialConfig:
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
-                 scale=2.5,
-                 downscale=5,
+                 min_gap=2.0,
+                 perturbation=0.0,
                  x0=0,
                  bunching=0,
                  lanes_distribution=1,
-                 distribution_length=None,
+                 edges_distribution="all",
                  positions=None,
                  lanes=None,
                  additional_params=None):
@@ -187,19 +187,23 @@ class InitialConfig:
             specifies the positioning of vehicles in the network relative to
             one another. May be one of: "uniform", "random", or "custom".
             Default is "uniform".
-        scale: float, optional
-        downscale: float, optional
+        min_gap: float, optional
+            minimum gap between two vehicles upon initialization, in meters.
+            Default is 2 m.
         x0: float, optional
             position of the first vehicle to be placed in the network
+        perturbation: float, optional
+            standard deviation used to perturb vehicles from their uniform
+            position, in meters. Default is 0 m.
         bunching: float, optional
             reduces the portion of the network that should be filled with
             vehicles by this amount.
         lanes_distribution: int, optional
             number of lanes vehicles should be dispersed into (cannot be greater
             than the number of lanes in the network)
-        distribution_length: float, optional
-            length that vehicles should be disperse in; default is network
-            length
+        edges_distribution: list <str>, optional
+            list of edges vehicles may be placed on initialization, default is
+            all lanes (stated as "all")
         positions: list, optional
             used if the user would like to specify user-generated initial
             positions.
@@ -211,12 +215,12 @@ class InitialConfig:
         """
         self.shuffle = shuffle
         self.spacing = spacing
-        self.scale = scale
-        self.downscale = downscale
+        self.min_gap = min_gap
+        self.perturbation = perturbation
         self.x0 = x0
         self.bunching = bunching
         self.lanes_distribution = lanes_distribution
-        self.distribution_length = distribution_length
+        self.edges_distribution = edges_distribution
         self.positions = positions
         self.lanes = lanes
         if additional_params is None:
