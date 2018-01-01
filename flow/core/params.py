@@ -170,7 +170,7 @@ class InitialConfig:
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
-                 min_gap=2.0,
+                 min_gap=0,
                  perturbation=0.0,
                  x0=0,
                  bunching=0,
@@ -195,7 +195,7 @@ class InitialConfig:
             Default is "uniform".
         min_gap: float, optional
             minimum gap between two vehicles upon initialization, in meters.
-            Default is 2 m.
+            Default is 0 m.
         x0: float, optional
             position of the first vehicle to be placed in the network
         perturbation: float, optional
