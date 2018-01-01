@@ -130,6 +130,7 @@ class NetParams:
                  cfg_path="debug/cfg/",
                  no_internal_links=True,
                  in_flows=None,
+                 osm_path=None,
                  additional_params=None):
         """
         Network configuration parameters
@@ -146,6 +147,10 @@ class NetParams:
         in_flows: InFlows type, optional
             specifies the inflows of specific edges and the types of vehicles
             entering the network from these edges
+        osm_path: str, optional
+            path to the .osm file that should be used to generate the network
+            configuration files. This parameter is only needed / used if the
+            OpenStreetMapGenerator generator class is used.
         additional_params: dict, optional
             network specific parameters; see each subclass for a description of
             what is needed
@@ -156,6 +161,7 @@ class NetParams:
         self.cfg_path = cfg_path
         self.no_internal_links = no_internal_links
         self.in_flows = in_flows
+        self.osm_path = osm_path
         self.additional_params = additional_params
 
 
