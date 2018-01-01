@@ -61,7 +61,7 @@ def create_env():
                              "resolution": 40}
     net_params = NetParams(additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="uniform", bunching=50)
+    initial_config = InitialConfig(spacing="uniform", bunching=50, min_gap=0)
 
     scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
                             initial_config=initial_config)

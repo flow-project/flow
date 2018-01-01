@@ -666,16 +666,10 @@ class SumoEnvironment(gym.Env, Serializable):
         elif direction is None and target_lane is None:
             raise ValueError("A direction or target_lane must be specified.")
 
-        for veh_id in veh_ids:
-            self.prev_last_lc[veh_id] = self.vehicles.get_state(veh_id,
-                                                                "last_lc")
-
-        if self.scenario.lanes == 1:
-            return -1
-
-        current_lane = np.array(self.vehicles.get_lane(veh_ids))
-
+        # if the direction is given, compute the target lane for vehicles
         if target_lane is None:
+            current_lane = np.array(self.vehicles.get_lane(veh_ids))
+
             # if any of the directions are not -1, 0, or 1, raise a ValueError
             if np.any(np.sign(direction) != np.array(direction)):
                 raise ValueError("Direction values for lane changes may only "
@@ -683,17 +677,30 @@ class SumoEnvironment(gym.Env, Serializable):
 
             target_lane = current_lane + np.array(direction)
 
-        target_lane = np.clip(target_lane, 0, self.scenario.lanes - 1)
+        for i, veh_id in enumerate(veh_ids):
 
-        for i, vid in enumerate(veh_ids):
-            if vid in self.vehicles.get_rl_ids():
+            this_edge = self.vehicles.get_edge(veh_id)
+
+            # check for multiple lanes
+            if self.scenario.num_lanes(this_edge) == 1:
+                continue
+
+            target_lane[i] = min(
+                max(target_lane[i], 0), self.scenario.num_lanes(this_edge) - 1)
+
+            if veh_id in self.vehicles.get_rl_ids():
                 if target_lane[i] != current_lane[i]:
-                    self.traci_connection.vehicle.changeLane(vid, int(
-                        target_lane[i]), 100000)
+                    self.traci_connection.vehicle.changeLane(
+                        veh_id, int(target_lane[i]), 100000)
+
+                    self.prev_last_lc[veh_id] = \
+                        self.vehicles.get_state(veh_id, "last_lc")
             else:
-                self.traci_connection.vehicle.changeLane(vid,
-                                                         int(target_lane[i]),
-                                                         100000)
+                self.traci_connection.vehicle.changeLane(
+                    veh_id, int(target_lane[i]), 100000)
+
+                self.prev_last_lc[veh_id] = \
+                    self.vehicles.get_state(veh_id, "last_lc")
 
     def choose_routes(self, veh_ids, route_choices):
         """
