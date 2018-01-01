@@ -205,9 +205,9 @@ class Generator(Serializable):
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
             # add the types of vehicles to the xml file
-            for type, type_params in vehicles.types:
+            for vtype, type_params in vehicles.types:
                 type_params_str = {key:str(type_params[key]) for key in type_params}
-                routes.append(E("vType", id=type, **type_params_str))
+                routes.append(E("vType", id=vtype, **type_params_str))
 
             self.vehicle_ids = vehicles.get_ids()
 
@@ -226,6 +226,15 @@ class Generator(Serializable):
                     veh_type, "route" + edge, depart="0", id=id,
                     color="1,0.0,0.0", departSpeed=str(type_depart_speed),
                     departPos=str(pos), departLane=str(lane)))
+
+            # add the in-flows from various edges to the xml file
+            if self.net_params.in_flows is not None:
+                total_inflows = self.net_params.in_flows.get()
+                for inflow in total_inflows:
+                    for key in inflow:
+                        if isinstance(inflow[key], str):
+                            inflow[key] = repr(inflow[key])
+                    routes.append(self._flow(**inflow))
 
             printxml(routes, self.cfg_path + self.roufn)
 
@@ -368,9 +377,8 @@ class Generator(Serializable):
         return E("vType", accel=repr(accel), decel=repr(decel), id=name,
                  length=repr(length), maxSpeed=repr(maxSpeed), **kwargs)
 
-    def _flow(self, name, number, vtype, route, **kwargs):
-        return E("flow", id=name, number=repr(number), route=route, type=vtype,
-                 **kwargs)
+    def _flow(self, name, vtype, route, **kwargs):
+        return E("flow", id=name, route=route, type=vtype, **kwargs)
 
     def _vehicle(self, type, route, departPos, number=0, id=None, **kwargs):
         if not id and not number:
