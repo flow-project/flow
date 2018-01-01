@@ -145,15 +145,25 @@ class Generator(Serializable):
         # location of the .net.xml file
         self.netfn = netfn
 
-        types_dict = dict()
+        # Create "edge type" dicts compatible with SUMO, which applies to all
+        # edges on the network of a particular category type_category, and is
+        # based on types specified in specify_types function in child generator
+        # classes. For an example, see flow/scenarios/highway/gen.py.
+        # Permitted attributes: http://sumo.dlr.de/wiki/Networks/Building_
+        # Networks_from_own_XML-descriptions#Edge_Descriptions
+        # Supported attributes: id, length, numLanes, speed
+        edge_type_categories = dict()
         if types is not None:
-            for type_i in types:
-                type_id = type_i["id"]
-                types_dict[type_id] = dict()
-                for key in type_i:
-                    types_dict[type_id][key] = type_i[key]
+            for type_category in types:
+                type_id = type_category["id"]
+                edge_type_categories[type_id] = dict()
+                for key in type_category:
+                    edge_type_categories[type_id][key] = type_category[key]
 
-        # create a dict element containing data on all edges
+        # Create dict containing "edge type" specific to each edge. Sets
+        # attributes used by speed_limit(), edge_length(), num_lanes(),
+        # and get_edge_list() getter functions of the Scenario class.
+        # Supported attributes:
         # - length: edge length
         # - lanes: number of lanes
         # - speed: speed limit
@@ -169,13 +179,13 @@ class Generator(Serializable):
                 edges_dict[edge_id]["lanes"] = int(edge_i["numLanes"])
             else:
                 edges_dict[edge_id]["lanes"] = \
-                    int(types_dict[edge_i["type"]]["numLanes"])
+                    int(edge_type_categories[edge_i["type"]]["numLanes"])
 
             if "speed" in edge_i:
                 edges_dict[edge_id]["speed"] = float(edge_i["speed"])
             else:
                 edges_dict[edge_id]["speed"] = \
-                    float(types_dict[edge_i["type"]]["speed"])
+                    float(edge_type_categories[edge_i["type"]]["speed"])
 
         return edges_dict
 

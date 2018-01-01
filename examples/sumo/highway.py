@@ -45,7 +45,7 @@ additional_net_params = {"length": 1000, "lanes": 4,
 net_params = NetParams(in_flows=inflow,
                        additional_params=additional_net_params)
 
-initial_config = InitialConfig(spacing="gaussian_additive",
+initial_config = InitialConfig(spacing="random",
                                lanes_distribution=4,
                                shuffle=True)
 
