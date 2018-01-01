@@ -194,7 +194,7 @@ class InitialConfig:
             position of the first vehicle to be placed in the network
         perturbation: float, optional
             standard deviation used to perturb vehicles from their uniform
-            position, in meters. Default is 2.5 m.
+            position, in meters. Default is 0 m.
         bunching: float, optional
             reduces the portion of the network that should be filled with
             vehicles by this amount.
