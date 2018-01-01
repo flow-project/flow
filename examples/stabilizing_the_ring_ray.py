@@ -5,7 +5,7 @@ RL vehicles are bunched together. The emergent behavior we are hoping to witness
 is that rl-vehicles group together in other to allow non rl-vehicles a larger headway,
 and thus larger equilibrium speeds.
 
-One concern is whether rl-vehicles will start trail-gating human vehicles.
+One concern is whether rl-vehicles will start tail-gating human vehicles.
 """
 
 import logging
@@ -16,10 +16,10 @@ import numpy as np
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
-from ray.rllib.models.preprocessors import Preprocessor
 from ray.rllib.models import ModelCatalog
 
 from flow.core.util import register_env
+from flow.utils.tuple_preprocessor import TuplePreprocessor
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.scenarios.loop.gen import CircleGenerator
@@ -29,40 +29,14 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
-from flow.core import config as flow_config
 
-
-config = ppo.DEFAULT_CONFIG.copy()
-horizon = 3600
-# ray.init(num_cpus=16)
-ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
-num_cpus=16
-# ray.init(num_cpus=num_cpus, redirect_output=True)
-config["num_workers"] = max(100, num_cpus)
-config["timesteps_per_batch"] = horizon * 32
-config["num_sgd_iter"] = 10
-config["model"].update({"fcnet_hiddens": [16, 16]})
-config["gamma"] = 0.999
-config["horizon"] = horizon
-
-
-flow_env_name = "PartiallyObservableWaveAttenuationEnvironment"
+flow_env_name = "WaveAttenuationPOEnv"
 env_name = flow_env_name+'-v0'
 
-# Experiment prefix
-exp_tag = "22-car-stabilizing-the-ring-local-robust-0-std"
-
-
-class TuplePreprocessor(Preprocessor):
-
-    def _init(self):
-        self.shape = self._obs_space.shape
-
-    def transform(self, observation):
-        return np.concatenate(observation)
-
-
 def create_env():
+    # Experiment prefix
+    exp_tag = "22-car-stabilizing-the-ring-local-robust-0-std"
+
     import flow.envs as flow_envs
     logging.basicConfig(level=logging.INFO)
 
@@ -105,11 +79,26 @@ def create_env():
 
     return env
 
-# Register as rllib env
-register_rllib_env(env_name, create_env)
+if __name__ == "__main__":
+    config = ppo.DEFAULT_CONFIG.copy()
+    horizon = 3600
+    # ray.init(num_cpus=16)
+    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    num_cpus=4
+    ray.init(num_cpus=num_cpus, redirect_output=True)
+    config["num_workers"] = max(100, num_cpus)
+    config["timesteps_per_batch"] = horizon * 4
+    config["num_sgd_iter"] = 10
+    config["model"].update({"fcnet_hiddens": [16, 16]})
+    config["gamma"] = 0.999
+    config["horizon"] = horizon
 
-alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-for i in range(1000):
-    alg.train()
-    if i % 20 == 0:
-        print("XXXX checkpoint path is", alg.save())
+
+    # Register as rllib env
+    register_rllib_env(env_name, create_env)
+
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
+    for i in range(2):
+        alg.train()
+        if i % 20 == 0:
+            print("XXXX checkpoint path is", alg.save())
