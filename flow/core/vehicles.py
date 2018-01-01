@@ -45,6 +45,9 @@ class Vehicles:
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
 
+        # contain the minGap attribute of each type of vehicle
+        self.minGap = dict()
+
     def add_vehicles(self,
                      veh_id,
                      acceleration_controller=(SumoCarFollowingController, {}),
@@ -117,28 +120,33 @@ class Vehicles:
         type_params.update(sumo_lc_params.controller_params)
 
         # If the vehicle is not a sumo vehicle, set its max acceleration /
-        # deceleration to a very large (pseudo-infinite) value to allow fuller
-        # control, and set the minGap to zero so that all headway values are
-        # correct.
+        # deceleration to a very large value to allow fuller control
         if acceleration_controller[0] != SumoCarFollowingController:
-            type_params["minGap"] = 0.0
             type_params["accel"] = 1000
             type_params["decel"] = 1000
 
-        if veh_id not in self.type_parameters:
-            # this dict will be used when trying to introduce new vehicles into
-            # the network via a flow
-            self.type_parameters[veh_id] = \
-                {"acceleration_controller": acceleration_controller,
-                 "lane_change_controller": lane_change_controller,
-                 "routing_controller": routing_controller,
-                 "initial_speed": initial_speed,
-                 "speed_mode": speed_mode,
-                 "custom_speed_mode": custom_speed_mode,
-                 "lane_change_mode": lane_change_mode,
-                 "custom_lane_change_mode": custom_lane_change_mode,
-                 "sumo_car_following_params": sumo_car_following_params,
-                 "sumo_lc_params": sumo_lc_params}
+        # If a vehicle is not sumo or RL, let the minGap be as small as possible
+        # so that it does not tamper with the dynamics of the controller
+        if acceleration_controller[0] != SumoCarFollowingController \
+                and acceleration_controller[0] != RLController:
+            type_params["minGap"] = 0.0
+
+        # this dict will be used when trying to introduce new vehicles into
+        # the network via a flow
+        self.type_parameters[veh_id] = \
+            {"acceleration_controller": acceleration_controller,
+             "lane_change_controller": lane_change_controller,
+             "routing_controller": routing_controller,
+             "initial_speed": initial_speed,
+             "speed_mode": speed_mode,
+             "custom_speed_mode": custom_speed_mode,
+             "lane_change_mode": lane_change_mode,
+             "custom_lane_change_mode": custom_lane_change_mode,
+             "sumo_car_following_params": sumo_car_following_params,
+             "sumo_lc_params": sumo_lc_params}
+
+        # this is used to return the actual headways from the vehicles class
+        self.minGap[veh_id] = type_params["minGap"]
 
         for i in range(num_vehicles):
             vehID = veh_id + '_%d' % i
@@ -214,7 +222,11 @@ class Vehicles:
         self.num_types += 1
         self.types.append((veh_id, type_params))
 
-    def set_sumo_observations(self, sumo_observations, veh_ids, env):
+    def set_sumo_observations(self, sumo_observations, veh_ids, env,
+                              tele_ids=None):
+
+        if tele_ids is None:
+            tele_ids = []
 
         if env.time_counter == 0:
             for veh_id in self.__ids:
@@ -231,7 +243,8 @@ class Vehicles:
             # check for exiting vehicles (vehicles in self.__ids but not in
             # veh_ids)
             for veh_id in list(set(self.__ids) - set(veh_ids)):
-                self.remove_vehicle(veh_id)
+                if veh_id not in tele_ids:
+                    self.remove_vehicle(veh_id)
 
             # check for entering vehicles (vehicles in veh_ids but not in
             # self.__ids)
@@ -263,12 +276,14 @@ class Vehicles:
                 # update the "headway", "leader", and "follower" variables
                 try:
                     headway = sumo_observations[veh_id][tc.VAR_LEADER]
+                    vtype = self.get_state(veh_id, "type")
+                    minGap = self.minGap[vtype]
                     if headway is None:
                         self.__vehicles[veh_id]["leader"] = None
                         self.__vehicles[veh_id]["follower"] = None
                         self.__vehicles[veh_id]["headway"] = 1e-3
                     else:
-                        self.__vehicles[veh_id]["headway"] = headway[1]
+                        self.__vehicles[veh_id]["headway"] = headway[1] + minGap
                         self.__vehicles[veh_id]["leader"] = headway[0]
                         self.__vehicles[headway[0]]["follower"] = veh_id
                 except KeyError:
