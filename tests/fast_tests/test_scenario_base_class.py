@@ -676,5 +676,89 @@ class TestGaussianAdditiveStartPosInternalLinks(TestEvenStartPosInternalLinks):
         )
 
 
+class TestEdgeLength(unittest.TestCase):
+    """
+    Tests the edge_length() method in the base scenario class.
+    """
+    def setUp(self):
+        additional_net_params = {"length": 1000, "lanes": 2,
+                                 "speed_limit": 60, "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = ring_road_exp_setup(net_params=net_params)
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        self.assertEqual(self.scenario.edge_length("top"), 250)
+
+
+class TestSpeedLimit(unittest.TestCase):
+    """
+    Tests the speed_limit() method in the base scenario class.
+    """
+    def setUp(self):
+        additional_net_params = {"length": 230, "lanes": 2,
+                                 "speed_limit": 60, "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = ring_road_exp_setup(net_params=net_params)
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        self.assertEqual(int(self.scenario.speed_limit("top")), 60)
+
+
+class TestNumLanes(unittest.TestCase):
+    """
+    Tests the num_lanes() method in the base scenario class.
+    """
+    def setUp(self):
+        additional_net_params = {"length": 230, "lanes": 2,
+                                 "speed_limit": 30, "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = ring_road_exp_setup(net_params=net_params)
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        self.assertEqual(self.scenario.num_lanes("top"), 2)
+
+
+class TestGetEdgeList(unittest.TestCase):
+    """
+    Tests that the get_edge_list() in the scenario class properly returns all
+    edges, and not junctions.
+    """
+    def setUp(self):
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = figure_eight_exp_setup()
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        edge_list = self.scenario.get_edge_list()
+        expected_edge_list = ["bottom_lower_ring", "right_lower_ring_in",
+                              "right_lower_ring_out", "left_upper_ring",
+                              "top_upper_ring", "right_upper_ring",
+                              "bottom_upper_ring_in", "bottom_upper_ring_out",
+                              "top_lower_ring", "left_lower_ring"]
+
+        self.assertCountEqual(edge_list, expected_edge_list)
+
+
 if __name__ == '__main__':
     unittest.main()
