@@ -164,7 +164,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 sumo_call = [self.sumo_binary,
                              "-c", cfg_file,
                              "--remote-port", str(self.port),
-                            "--step-length", str(self.sim_step),
+                             "--step-length", str(self.sim_step),
                              "--step-method.ballistic", "true",
                              "--seed", str(self.seed)]
 
@@ -251,8 +251,11 @@ class SumoEnvironment(gym.Env, Serializable):
         network_observations = \
             self.traci_connection.vehicle.getSubscriptionResults()
 
+        # get the list of vehicles currently in the network
+        id_list = self.traci_connection.vehicle.getIDList()
+
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(network_observations, self)
+        self.vehicles.set_sumo_observations(network_observations, id_list, self)
 
         for veh_id in self.vehicles.get_ids():
 
@@ -389,8 +392,15 @@ class SumoEnvironment(gym.Env, Serializable):
         network_observations = \
             self.traci_connection.vehicle.getSubscriptionResults()
 
+        # get the list of vehicles currently in the network
+        id_list = self.traci_connection.vehicle.getIDList()
+
+        # list of teleported vehicles (in case of a collision)
+        tele_ids = self.traci_connection.simulation.getStartingTeleportIDList()
+
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(network_observations, self)
+        self.vehicles.set_sumo_observations(network_observations,
+                                            id_list, self, tele_ids=tele_ids)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -569,8 +579,11 @@ class SumoEnvironment(gym.Env, Serializable):
         network_observations = \
             self.traci_connection.vehicle.getSubscriptionResults()
 
+        # get the list of vehicles currently in the network
+        id_list = self.traci_connection.vehicle.getIDList()
+
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(network_observations, self)
+        self.vehicles.set_sumo_observations(network_observations, id_list, self)
 
         if self.multi_agent:
             self.state = self.get_state()
