@@ -16,7 +16,7 @@ from traci import constants as tc
 import pdb
 
 
-class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
+class WaveAttenuationEnv(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
@@ -231,7 +231,10 @@ class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
         return next_observation
 
 
-class PartiallyObservableWaveAttenuationEnvironment(FullyObservableWaveAttenuationEnvironment):
+class WaveAttenuationPOEnv(WaveAttenuationEnv):
+    """
+    POMDP version of wave attenuation env
+    """
 
     @property
     def observation_space(self):
