@@ -6,7 +6,7 @@ import ray
 import ray.rllib.ppo as ppo
 import ray.tune.registry as registry
 
-from examples.stabilizing_the_ring_ray import make_create_env
+from examples.rllib.stabilizing_the_ring import make_create_env
 
 
 class TestRay(unittest.TestCase):
