@@ -126,3 +126,77 @@ class TwoLoopsMergeEnv(SumoEnvironment):
 
         return sorted_ids, None
         # return self.ids, None
+
+
+class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
+    """
+    POMDP version of two-loop merge env
+    """
+
+    @property
+    def observation_space(self):
+        """
+        See parent class.
+
+        Observes the RL vehicle, the two vehicles preceding and following the RL
+        vehicle on the inner ring, as well as the two vehicles closest to
+        merging in.
+
+        WARNING: only supports 1 RL vehicle
+
+        An observation is an array the velocities, positions, and edges for
+        each vehicle
+        """
+        self.num_preceding = 2  # FIXME(cathywu) see below
+        self.num_following = 2  # FIXME(cathywu) see below
+        self.num_merging_in = 2
+        num_vehicles = 1 + self.num_preceding + self.num_following + \
+                        self.num_merging_in
+        self.obs_var_labels = ["speed", "pos", "dist_to_merge"]
+        speed = Box(low=0, high=np.inf, shape=(num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,))
+        # dist_to_merge = Box(low=-1, high=1, shape=(1,))
+        return Tuple((speed, absolute_pos))
+
+    def get_state(self, **kwargs):
+        """
+        See parent class.
+
+        The state is an array the velocities, edge counts, and relative
+        positions on the edge, for each vehicle.
+        """
+        rl_vehID = self.vehicles.get_rl_ids()[0]
+        # FIXME(cathywu) hardcoded for self.num_preceding = 2
+        lead_id1 = self.vehicles.get_leader(rl_vehID)
+        lead_id2 = self.vehicles.get_leader(lead_id1)
+        # FIXME(cathywu) hardcoded for self.num_following = 2
+        follow_id1 = self.vehicles.get_follower(rl_vehID)
+        follow_id2 = self.vehicles.get_follower(follow_id1)
+        vehicles = [rl_vehID, lead_id1, lead_id2, follow_id1, follow_id2]
+
+        vel = self.vehicles.get_speed(vehicles)
+        pos = [self.get_x_by_id(veh_id) for veh_id in vehicles]
+        # is_rl = [int(veh_id in self.rl_ids) for veh_id in self.sorted_ids]
+
+        outer_ids = self.sorted_ids[-self.scenario.num_outer_vehicles:]
+        # Retrieve the vel/pos for the vehicles closest to merging in
+        merge_in_count = 0
+        for id in outer_ids:
+            p = self.get_x_by_id(id)
+            if p < self.scenario.length_loop:
+                continue
+            pos.append(p)
+            vel.append(self.vehicles.get_speed(id))
+            merge_in_count += 1
+            if merge_in_count >= self.num_merging_in:
+                break
+
+        # normalize the speed
+        normalized_vel = np.array(vel) / 30.
+
+        # normalize the position
+        normalized_pos = np.array(pos) / self.scenario.length
+
+        print(normalized_vel.shape)
+        return np.array([normalized_vel, normalized_pos]).T
+        # return np.array([vel, pos]).T
