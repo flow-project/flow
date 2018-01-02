@@ -61,7 +61,7 @@ def make_create_env(flow_env_name, version=0, exp_tag="example"):
                                 initial_config=initial_config)
 
         pass_params = (flow_env_name, sumo_params, vehicles, env_params,
-                       net_params, initial_config, scenario)
+                       net_params, initial_config, scenario, version)
 
         register_env(*pass_params)
         env = gym.envs.make(env_name)
