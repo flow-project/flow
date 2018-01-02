@@ -10,7 +10,7 @@ from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario \
     import TwoLoopsOneMergingScenario
-from flow.envs.two_loops_one_merging import TwoLoopsOneMergingEnvironment
+from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
 
 
 def two_loops_one_merging_exp_setup(vehicles=None):
@@ -48,7 +48,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
         "loop-merges", TwoLoopOneMergingGenerator, vehicles, net_params,
         initial_config=initial_config)
 
-    env = TwoLoopsOneMergingEnvironment(env_params, sumo_params, scenario)
+    env = TwoLoopsMergeEnv(env_params, sumo_params, scenario)
 
     return env, scenario
 
