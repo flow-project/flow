@@ -96,6 +96,8 @@ class TwoLoopsOneMergingScenario(Scenario):
         num_merge_vehicles = \
             sum(["merge" in self.vehicles.get_state(veh_id, "type")
                  for veh_id in self.vehicles.get_ids()])
+        self.n_inner_vehicles = num_merge_vehicles
+        self.n_outer_vehicles = num_vehicles - num_merge_vehicles
 
         radius = self.net_params.additional_params["ring_radius"]
         lane_length = self.net_params.additional_params["lane_length"]
@@ -103,6 +105,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         startpositions = []
         startlanes = []
         length_loop = 2 * pi * radius
+        self.length_loop = length_loop
 
         try:
             increment_loop = \
