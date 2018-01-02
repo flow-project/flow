@@ -29,17 +29,11 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
-
-def make_create_env(flow_env_name, version):
-    env_name = flow_env_name+'-v%s' % version
+def make_create_env(flow_env_name, version=0, exp_tag="example"):
+    env_name = flow_env_name + '-v%s' % version
 
     def create_env():
-        # Experiment prefix
-        exp_tag = "stabilizing_ring_example"
-
         import flow.envs as flow_envs
-        logging.basicConfig(level=logging.INFO)
-
         sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
         vehicles = Vehicles()
@@ -96,13 +90,15 @@ if __name__ == "__main__":
     config["model"].update({"fcnet_hiddens": [16, 16]})
 
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, 1024 * num_cpus)
+    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
 
     flow_env_name = "WaveAttenuationPOEnv"
-    create_env, env_name = make_create_env(flow_env_name, 0)
+    exp_tag = "stabilizing_the_ring_example"
+    create_env, env_name = make_create_env(flow_env_name, version=0,
+                                           exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
