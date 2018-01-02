@@ -43,10 +43,11 @@ if __name__ == "__main__":
     #                         "to_subpolicy_state": to_subpolicy_state,
     #                         "choose_policy": choose_policy})
 
-    from examples.stabilizing_the_ring_ray import create_env
+    from examples.rllib.stabilizing_the_ring import make_create_env
     flow_env_name = "WaveAttenuationPOEnv"
     env_name = flow_env_name+'-v0'
     # Register as rllib env
+    create_env, env_name = make_create_env()
     register_rllib_env(env_name, create_env)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)

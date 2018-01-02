@@ -93,13 +93,15 @@ if __name__ == "__main__":
     config["model"].update({"fcnet_hiddens": [16, 16]})
 
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, 1024 * num_cpus)
+    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
 
     flow_env_name = "WaveAttenuationPOEnv"
-    create_env, env_name = make_create_env(flow_env_name, 0)
+    exp_tag = "stabilizing_the_ring_example"
+    create_env, env_name = make_create_env(flow_env_name, version=0,
+                                           exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
