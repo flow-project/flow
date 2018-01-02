@@ -274,7 +274,7 @@ class Generator(Serializable):
                 total_inflows = self.net_params.in_flows.get()
                 for inflow in total_inflows:
                     for key in inflow:
-                        if isinstance(inflow[key], str):
+                        if not isinstance(inflow[key], str):
                             inflow[key] = repr(inflow[key])
                     routes.append(self._flow(**inflow))
 

@@ -206,16 +206,14 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
-        # collect new network observations from sumo
-        network_observations = \
-            self.env.traci_connection.vehicle.getSubscriptionResults()
+        # collect information on the vehicle in the network from sumo
+        vehicle_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
 
-        # get the list of vehicles currently in the network
-        id_list = self.env.traci_connection.vehicle.getIDList()
+        # get vehicle ids for the entering, exiting, and colliding vehicles
+        id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(network_observations, id_list,
-                                                self.env)
+        self.env.vehicles.set_sumo_observations(vehicle_obs, id_lists, self.env)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
@@ -277,16 +275,14 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # collect new network observations from sumo
-        network_observations = \
-            self.env.traci_connection.vehicle.getSubscriptionResults()
+        # collect information on the vehicle in the network from sumo
+        vehicle_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
 
-        # get the list of vehicles currently in the network
-        id_list = self.env.traci_connection.vehicle.getIDList()
+        # get vehicle ids for the entering, exiting, and colliding vehicles
+        id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(network_observations, id_list,
-                                                self.env)
+        self.env.vehicles.set_sumo_observations(vehicle_obs, id_lists, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
@@ -327,16 +323,14 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # collect new network observations from sumo
-        network_observations = \
-            self.env.traci_connection.vehicle.getSubscriptionResults()
+        # collect information on the vehicle in the network from sumo
+        vehicle_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
 
-        # get the list of vehicles currently in the network
-        id_list = self.env.traci_connection.vehicle.getIDList()
+        # get vehicle ids for the entering, exiting, and colliding vehicles
+        id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(network_observations, id_list,
-                                                self.env)
+        self.env.vehicles.set_sumo_observations(vehicle_obs, id_lists, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
