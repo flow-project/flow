@@ -25,16 +25,17 @@ from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 
 
-def make_create_env(flow_env_name, version=0, exp_tag="example"):
+def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
 
     def create_env():
         import flow.envs as flow_envs
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary=sumo)
 
         # note that the vehicles are added sequentially by the generator,
         # so place the merging vehicles after the vehicles in the ring
         vehicles = Vehicles()
+        # Inner ring vehicles
         vehicles.add_vehicles(veh_id="human",
                               acceleration_controller=(
                                     IDMController, {"noise": 0.2}),
@@ -46,27 +47,28 @@ def make_create_env(flow_env_name, version=0, exp_tag="example"):
                                   minGap=0.0, tau=0.5),
                               sumo_lc_params=SumoLaneChangeParams())
 
+        vehicles.add_vehicles(veh_id="rl",
+                              acceleration_controller=(
+                                  RLController, {"fail_safe": "safe_velocity"}),
+                              lane_change_controller=(
+                                  SumoLaneChangeController, {}),
+                              routing_controller=(ContinuousRouter, {}),
+                              speed_mode="no_collide",
+                              num_vehicles=1,
+                              sumo_car_following_params=SumoCarFollowingParams(
+                                  minGap=0.01, tau=0.5),
+                              sumo_lc_params=SumoLaneChangeParams())
+
+        # Outer ring vehicles
         vehicles.add_vehicles(veh_id="merge-human",
                               acceleration_controller=(
                                   IDMController, {"noise": 0.2}),
                               lane_change_controller=(
                                   SumoLaneChangeController, {}),
                               routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=9,
+                              num_vehicles=10,
                               sumo_car_following_params=SumoCarFollowingParams(
                                   minGap=0.0, tau=0.5),
-                              sumo_lc_params=SumoLaneChangeParams())
-
-        vehicles.add_vehicles(veh_id="merge-rl",
-                              acceleration_controller=(
-                                RLController, {"fail_safe": "safe_velocity"}),
-                              lane_change_controller=(
-                                SumoLaneChangeController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              speed_mode="no_collide",
-                              num_vehicles=1,
-                              sumo_car_following_params=SumoCarFollowingParams(
-                                  minGap=0.01, tau=0.5),
                               sumo_lc_params=SumoLaneChangeParams())
 
         additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,

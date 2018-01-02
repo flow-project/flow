@@ -156,7 +156,8 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         speed = Box(low=0, high=np.inf, shape=(self.n_obs_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,))
         # dist_to_merge = Box(low=-1, high=1, shape=(1,))
-        return Tuple((speed, absolute_pos))
+        queue_length = Box(low=0, high=np.inf, shape=(1,))
+        return Tuple((speed, absolute_pos, queue_length))
 
     def get_state(self, **kwargs):
         """
@@ -212,5 +213,9 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         # normalize the position
         normalized_pos = np.array(pos) / self.scenario.length
 
-        return np.array([normalized_vel, normalized_pos]).T
+        # Compute number of vehicles in the outer ring
+        queue_length = np.zeros(1)
+        queue_length[0] = len(self.sorted_ids) - merge_in_id
+
+        return np.array([normalized_vel, normalized_pos, queue_length]).T
         # return np.array([vel, pos]).T
