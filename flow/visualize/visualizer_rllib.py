@@ -1,7 +1,10 @@
 import argparse
 
+import numpy as np
+
 import gym
 import ray
+import ray.rllib.ppo as ppo
 from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 
@@ -43,20 +46,49 @@ if __name__ == "__main__":
     ray.init(num_cpus=1)
 
     cls = get_agent_class(args.run)
-    flow_env_name = "TwoLoopsMergeEnv"
-    exp_tag = "two_loops_straight_merge_example"  # experiment prefix
-    from examples.rllib.two_loops_straight_merge import make_create_env
+    if args.flowenv == "TwoLoopsMergeEnv":
+        flow_env_name = "TwoLoopsMergeEnv"
+        exp_tag = "two_loops_straight_merge_example"  # experiment prefix
+        config = ppo.DEFAULT_CONFIG.copy()
+        # TODO(cathywu) load params.json instead
+        config["horizon"] = 1000
+        config["model"].update({"fcnet_hiddens": [32, 32]})
+        config["gamma"] = 0.999
+        from examples.rllib.two_loops_straight_merge import make_create_env
+    elif args.flowenv == "TwoLoopsMergePOEnv":
+        flow_env_name = "TwoLoopsMergePOEnv"
+        exp_tag = "two_loops_straight_merge_example"  # experiment prefix
+        config = ppo.DEFAULT_CONFIG.copy()
+        config["horizon"] = 1000
+        config["model"].update({"fcnet_hiddens": [16, 16, 16]})
+        config["gamma"] = 0.999
+        from examples.rllib.cooperative_merge import make_create_env
+    else:
+        raise(NotImplementedError, "flowenv %s not supported yet" %
+              args.flowenv)
+
+    # Overwrite config for rendering purposes
+    config["num_workers"] = 1
+
+    # Create and register a gym+rllib env
     create_env, env_name = make_create_env(flow_env_name, version=0,
-                                           exp_tag=exp_tag, sumo="sumo")
-    # Register as rllib env
+                                           sumo="sumo")
     register_rllib_env(env_name, create_env)
 
-    agent = cls(env=env_name, registry=get_registry())
+    agent = cls(env=env_name, registry=get_registry(), config=config)
     agent.restore(args.checkpoint)
 
-    env = gym.make(env_name)
-    state = env.reset()
-    done = False
-    while args.loop_forever or not done:
-        action = agent.compute_action(state)
-        state, reward, done, _ = env.step(action)
+    # Create and register a new gym environment for rendering rollout
+    create_render_env, env_render_name = make_create_env(flow_env_name,
+                                                         version=1,
+                                                         sumo="sumo-gui")
+    create_render_env()
+    env = gym.make(env_render_name)
+    for i in range(10):
+        state = env.reset()
+        done = False
+        while not done:
+            if isinstance(state, list):
+                state = np.concatenate(state)
+            action = agent.compute_action(state)
+            state, reward, done, _ = env.step(action)
