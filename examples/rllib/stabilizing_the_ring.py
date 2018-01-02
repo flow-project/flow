@@ -30,13 +30,10 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
 
-def make_create_env(flow_env_name, version):
+def make_create_env(flow_env_name, version=0, exp_tag="example"):
     env_name = flow_env_name+'-v%s' % version
 
     def create_env():
-        # Experiment prefix
-        exp_tag = "22-car-stabilizing-the-ring-local-robust-0-std"
-
         import flow.envs as flow_envs
         logging.basicConfig(level=logging.INFO)
 
@@ -85,17 +82,24 @@ if __name__ == "__main__":
     horizon = 3600
     # ray.init(num_cpus=16)
     # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
-    num_cpus=4
+    num_cpus=3
     ray.init(num_cpus=num_cpus, redirect_output=True)
-    config["num_workers"] = max(100, num_cpus)
-    config["timesteps_per_batch"] = horizon * 4
-    config["num_sgd_iter"] = 10
-    config["model"].update({"fcnet_hiddens": [16, 16]})
+
+    config["num_workers"] = num_cpus
+    config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999
+    config["model"].update({"fcnet_hiddens": [16, 16]})
+
+    config["lambda"] = 0.97
+    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
+    config["kl_target"] = 0.02
+    config["num_sgd_iter"] = 10
     config["horizon"] = horizon
 
     flow_env_name = "WaveAttenuationPOEnv"
-    create_env, env_name = make_create_env(flow_env_name, 0)
+    exp_tag = "stabilizing_ring_example"  # experiment prefix
+    create_env, env_name = make_create_env(flow_env_name, version=0,
+                                           exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
