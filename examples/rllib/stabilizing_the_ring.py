@@ -55,7 +55,7 @@ def make_create_env(flow_env_name, version=0, exp_tag="example"):
                                  "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
 
-        initial_config = InitialConfig(spacing="uniform", bunching=50, min_gap=0)
+        initial_config = InitialConfig(spacing="uniform", bunching=30, min_gap=0)
 
         scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
                                 initial_config=initial_config)
