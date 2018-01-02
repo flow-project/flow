@@ -11,7 +11,7 @@ class TestRay(unittest.TestCase):
         import ray
         import ray.rllib.ppo as ppo
         from ray.tune.registry import get_registry, register_env as register_rllib_env
-        from examples.stabilizing_the_ring_ray import create_env
+        from examples.rllib.stabilizing_the_ring import create_env
 
         config = ppo.DEFAULT_CONFIG.copy()
         horizon = 500
