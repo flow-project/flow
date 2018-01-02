@@ -110,7 +110,7 @@ class WaveAttenuationEnv(SumoEnvironment):
         steps are performed with the rl vehicle acting as a human vehicle.
         """
         # update the scenario
-        initial_config = InitialConfig(bunching=50)
+        initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {"length": np.random.choice(np.arange(200, 350)),
                                  "lanes": 1, "speed_limit": 30, "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
@@ -201,15 +201,14 @@ class WaveAttenuationEnv(SumoEnvironment):
 
         self.traci_connection.simulationStep()
 
-        # collect new network observations from sumo
-        network_observations = \
-            self.traci_connection.vehicle.getSubscriptionResults()
+        # collect information on the vehicle in the network from sumo
+        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
 
-        # get the list of vehicles currently in the network
-        id_list = self.traci_connection.vehicle.getIDList()
+        # get vehicle ids for the entering, exiting, and colliding vehicles
+        id_lists = self.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(network_observations, id_list, self)
+        self.vehicles.set_sumo_observations(vehicle_obs, id_lists, self)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
