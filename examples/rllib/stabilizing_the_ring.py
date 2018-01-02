@@ -81,18 +81,24 @@ def create_env():
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
-    horizon = 3600
-    # ray.init(num_cpus=16)
-    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
-    num_cpus=4
-    ray.init(num_cpus=num_cpus, redirect_output=True)
-    config["num_workers"] = max(100, num_cpus)
-    config["timesteps_per_batch"] = horizon * 4
-    config["num_sgd_iter"] = 10
-    config["model"].update({"fcnet_hiddens": [16, 16]})
-    config["gamma"] = 0.999
-    config["horizon"] = horizon
 
+    horizon = 3600
+    num_cpus = 3
+    n_rollouts = num_cpus
+
+    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    ray.init(num_cpus=num_cpus, redirect_output=True)
+
+    config["num_workers"] = num_cpus
+    config["timesteps_per_batch"] = horizon * n_rollouts
+    config["gamma"] = 0.999
+    config["model"].update({"fcnet_hiddens": [16, 16]})
+
+    config["lambda"] = 0.97
+    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
+    config["kl_target"] = 0.02
+    config["num_sgd_iter"] = 10
+    config["horizon"] = horizon
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
