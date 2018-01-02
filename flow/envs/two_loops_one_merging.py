@@ -144,8 +144,8 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
         WARNING: only supports 1 RL vehicle
 
-        An observation is an array the velocities, positions, and edges for
-        each vehicle
+        An observation is an array the velocities, positions for each vehicle
+        and some aggregate statistics (queue length, average velocity)
         """
         self.n_preceding = 2  # FIXME(cathywu) see below
         self.n_following = 2  # FIXME(cathywu) see below
@@ -162,10 +162,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
     def get_state(self, **kwargs):
         """
-        See parent class.
-
-        The state is an array the velocities, edge counts, and relative
-        positions on the edge, for each vehicle.
+        See parent class and defined observation_space.
         """
         vel = np.zeros(self.n_obs_vehicles)
         pos = np.zeros(self.n_obs_vehicles)
@@ -218,7 +215,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         # is_rl = [int(veh_id in self.rl_ids) for veh_id in self.sorted_ids]
 
         # normalize the speed
-        # FIXME(cathywu) pull user-defined speed limit?
+        # FIXME(cathywu) can divide by self.max_speed
         normalized_vel = np.array(vel) / 30.
 
         # normalize the position
