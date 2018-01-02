@@ -222,35 +222,29 @@ class Vehicles:
         self.num_types += 1
         self.types.append((veh_id, type_params))
 
-    def set_sumo_observations(self, sumo_observations, veh_ids, env,
-                              tele_ids=None):
+    def set_sumo_observations(self, sumo_observations, veh_ids, env):
 
-        if tele_ids is None:
-            tele_ids = []
+        # remove exiting vehicles from the vehicles class
+        for veh_id in veh_ids[tc.VAR_ARRIVED_VEHICLES_IDS]:
+            if veh_id not in veh_ids[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
+                self.remove(veh_id)
+            else:
+                # this is meant to resolve the KeyError bug when there are
+                # collisions
+                sumo_observations[veh_id] = self.__sumo_observations[veh_id]
+
+        # add entering vehicles into the vehicles class
+        for veh_id in veh_ids[tc.VAR_DEPARTED_VEHICLES_IDS]:
+            veh_type = env.traci_connection.vehicle.getTypeID(veh_id)
+            self.add_departed(veh_id, veh_type, env)
 
         if env.time_counter == 0:
+            # if the time_counter is 0, this we need to reset all necessary
+            # values
             for veh_id in self.__ids:
-                # update the sumo observations variable
-                self.__sumo_observations = deepcopy(sumo_observations)
-
                 # set the initial last_lc
-                self.set_state(
-                    veh_id, "last_lc", -1 * env.lane_change_duration)
-
-                # set the initial absolute_position
-                self.set_absolute_position(veh_id, env.get_x_by_id(veh_id))
+                self.set_state(veh_id, "last_lc", -1 * env.lane_change_duration)
         else:
-            # check for exiting vehicles (vehicles in self.__ids but not in
-            # veh_ids)
-            for veh_id in list(set(self.__ids) - set(veh_ids)):
-                if veh_id not in tele_ids:
-                    self.remove_vehicle(veh_id)
-
-            # check for entering vehicles (vehicles in veh_ids but not in
-            # self.__ids)
-            for veh_id in list(set(veh_ids) - set(self.__ids)):
-                veh_type = env.traci_connection.vehicle.getTypeID(veh_id)
-                self.add_inflow_vehicle(veh_id, veh_type, env)
 
             for veh_id in self.__ids:
                 # update the "last_lc" variable
@@ -273,33 +267,26 @@ class Vehicles:
                 except (ValueError, TypeError):
                     self.set_absolute_position(veh_id, -1001)
 
-                # update the "headway", "leader", and "follower" variables
-                try:
-                    headway = sumo_observations[veh_id][tc.VAR_LEADER]
-                    vtype = self.get_state(veh_id, "type")
-                    minGap = self.minGap[vtype]
-                    if headway is None:
-                        self.__vehicles[veh_id]["leader"] = None
-                        self.__vehicles[veh_id]["follower"] = None
-                        self.__vehicles[veh_id]["headway"] = 1e-3
-                    else:
-                        self.__vehicles[veh_id]["headway"] = headway[1] + minGap
-                        self.__vehicles[veh_id]["leader"] = headway[0]
-                        self.__vehicles[headway[0]]["follower"] = veh_id
-                except KeyError:
-                    # this is used to deal with the absence of network
-                    # observations upon reset. It only applies for the very
-                    # first time step
-                    self.__vehicles[veh_id]["leader"] = None
-                    self.__vehicles[veh_id]["follower"] = None
-                    self.__vehicles[veh_id]["headway"] = 1e-3
+        # update the "headway", "leader", and "follower" variables
+        for veh_id in self.__ids:
+            headway = sumo_observations[veh_id][tc.VAR_LEADER]
+            vtype = self.get_state(veh_id, "type")
+            minGap = self.minGap[vtype]
+            if headway is None:
+                self.__vehicles[veh_id]["leader"] = None
+                self.__vehicles[veh_id]["follower"] = None
+                self.__vehicles[veh_id]["headway"] = 1e-3
+            else:
+                self.__vehicles[veh_id]["headway"] = headway[1] + minGap
+                self.__vehicles[veh_id]["leader"] = headway[0]
+                self.__vehicles[headway[0]]["follower"] = veh_id
 
-            # update the sumo observations variable
-            self.__sumo_observations = deepcopy(sumo_observations)
+        # update the sumo observations variable
+        self.__sumo_observations = deepcopy(sumo_observations)
 
-    def add_inflow_vehicle(self, veh_id, veh_type, env):
+    def add_departed(self, veh_id, veh_type, env):
         """
-        Adds a vehicle that entered the network from an inflow.
+        Adds a vehicle that entered the network from an inflow or reset.
         """
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
@@ -329,14 +316,12 @@ class Vehicles:
         else:
             self.__vehicles[veh_id]["router"] = None
 
-        # check if the vehicle is human-driven or autonomous
+        # add the vehicle's id to the list of vehicle ids
         if accel_controller[0] == RLController:
             self.__rl_ids.append(veh_id)
+            self.num_rl_vehicles += 1
         else:
             self.__human_ids.append(veh_id)
-
-            # check if the vehicle's lane-changing / acceleration actions
-            # are controlled by sumo or not.
             if accel_controller[0] != SumoCarFollowingController:
                 self.__controlled_ids.append(veh_id)
             if lc_controller[0] != SumoLaneChangeController:
@@ -347,6 +332,20 @@ class Vehicles:
             veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
                      tc.VAR_ROAD_ID, tc.VAR_SPEED])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
+        # set the absolute position of the vehicle
+        self.set_absolute_position(veh_id, 0)
+
+        # set the "last_lc" parameter of the vehicle
+        self.set_state(veh_id, "last_lc", env.time_counter)
+
+        # specify the initial speed
+        self.__vehicles[veh_id]["initial_speed"] = \
+            self.type_parameters[veh_type]["initial_speed"]
+
+        # set the absolute position of the vehicle
+        self.set_route(
+            veh_id, "route" + env.traci_connection.vehicle.getRoadID(veh_id))
 
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type]["speed_mode"]
@@ -361,20 +360,6 @@ class Vehicles:
             logging.error("Invalid speed mode!")
             self.__vehicles[veh_id]["speed_mode_value"] = Vehicles.speed_modes[
                 "no_collide"]
-
-        # set the absolute position of the vehicle
-        self.set_absolute_position(veh_id, 0)
-
-        # set the absolute position of the vehicle
-        self.set_state(veh_id, "last_lc", env.time_counter)
-
-        # set the absolute position of the vehicle
-        self.set_route(
-            veh_id, "route" + env.traci_connection.vehicle.getRoadID(veh_id))
-
-        # set speed mode in sumo
-        env.traci_connection.vehicle.setSpeedMode(
-            veh_id, self.get_speed_mode(veh_id))
 
         # set the lane changing mode for the vehicle
         lc_mode = self.type_parameters[veh_type]["lane_change_mode"]
@@ -391,14 +376,21 @@ class Vehicles:
             self.__vehicles[veh_id]["lane_change_mode_value"] = \
                 Vehicles.speed_modes["no_lat_collide"]
 
+        # set speed mode in sumo
+        env.traci_connection.vehicle.setSpeedMode(
+            veh_id, self.get_speed_mode(veh_id))
+
         # set lane change mode in sumo
         env.traci_connection.vehicle.setLaneChangeMode(
             veh_id, self.get_lane_change_mode(veh_id))
 
+        # set the max speed in sumo
+        env.traci_connection.vehicle.setMaxSpeed(veh_id, env.max_speed)
+
         # change the color of the vehicle based on its type
         env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
 
-    def remove_vehicle(self, veh_id):
+    def remove(self, veh_id):
         """
         Removes a vehicle from the vehicles class and all valid ID lists, and
         decrements the total number of vehicles in this class.
@@ -421,6 +413,7 @@ class Vehicles:
                 self.__controlled_lc_ids.remove(veh_id)
         else:
             self.__rl_ids.remove(veh_id)
+            self.num_rl_vehicles -= 1
 
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
