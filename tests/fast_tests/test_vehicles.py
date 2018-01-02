@@ -120,7 +120,7 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertEqual(len(vehicles.get_controlled_ids()), 0)
         self.assertEqual(len(vehicles.get_controlled_lc_ids()), 0)
 
-    def test_remove_vehicle(self):
+    def test_remove(self):
         """
         Checks that there is no trace of the vehicle ID of the vehicle meant to
         be removed in the vehicles class.
@@ -132,8 +132,8 @@ class TestVehiclesClass(unittest.TestCase):
                               acceleration_controller=(RLController, {}))
 
         # remove one human-driven vehicle and on rl vehicle
-        vehicles.remove_vehicle("test_0")
-        vehicles.remove_vehicle("test_rl_0")
+        vehicles.remove("test_0")
+        vehicles.remove("test_rl_0")
 
         # ensure that the removed vehicle's ID is not in any lists of vehicles
         if "test_0" in vehicles.get_ids():
@@ -156,6 +156,10 @@ class TestVehiclesClass(unittest.TestCase):
 
         # ensure that the num_vehicles matches the actual number of vehicles
         self.assertEqual(vehicles.num_vehicles, len(vehicles.get_ids()))
+
+        # ensures that then num_rl_vehicles matches the actual number of rl veh
+        self.assertEqual(vehicles.num_rl_vehicles, len(vehicles.get_rl_ids()))
+
 
 if __name__ == '__main__':
     unittest.main()
