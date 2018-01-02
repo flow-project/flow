@@ -24,10 +24,9 @@ class TwoLoopsMergeEnv(SumoEnvironment):
         Actions are a set of accelerations from max-deacc to max-acc for each
         rl vehicle.
         """
-        max_acc = self.env_params.max_acc
-        max_deacc = - abs(self.env_params.max_deacc)
-
-        return Box(low=-max_deacc, high=max_acc, shape=(self.vehicles.num_rl_vehicles,))
+        return Box(low=-np.abs(self.env_params.max_deacc),
+                   high=self.env_params.max_acc,
+                   shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
@@ -37,12 +36,16 @@ class TwoLoopsMergeEnv(SumoEnvironment):
         An observation is an array the velocities, positions, and edges for
         each vehicle
         """
-        self.obs_var_labels = ["speed", "lane_pos", "edge_id"]
+        self.obs_var_labels = ["speed", "pos", "is_rl"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        edge_id = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,))
-        is_rl = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,))
-        return Tuple((speed, absolute_pos, edge_id, is_rl))
+        return Tuple((speed, absolute_pos))
+
+        # headway = Box(low=0., high=np.inf,
+        #               shape=(self.vehicles.num_rl_vehicles + 1,))
+        # speed = Box(low=0, high=np.inf,
+        #             shape=(self.vehicles.num_rl_vehicles + 1,))
+        # return Tuple((speed, headway))
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -55,7 +58,10 @@ class TwoLoopsMergeEnv(SumoEnvironment):
     def compute_reward(self, state, rl_actions, **kwargs):
         """
         See parent class
+
+        Rewards high system-level velocities in the rl vehicles.
         """
+        # return np.mean(self.vehicles.get_speed())
         return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
@@ -66,28 +72,35 @@ class TwoLoopsMergeEnv(SumoEnvironment):
         positions on the edge, for each vehicle.
         """
         vel = self.vehicles.get_speed(self.sorted_ids)
-        pos = self.sorted_extra_data[0]
-        edge = self.sorted_extra_data[1]
-        max_speed = self.max_speed
-        is_rl = [int(veh_id in self.vehicles.get_rl_ids())
-                 for veh_id in self.sorted_ids]
+        pos = [self.get_x_by_id(veh_id) for veh_id in self.sorted_ids]
+        # is_rl = [int(veh_id in self.rl_ids) for veh_id in self.sorted_ids]
 
-        # divide the values by the maximum attainable speed
-        normalized_vel = np.array(vel) / max_speed
+        # # normalize the speed
+        # normalized_vel = np.array(vel) / 30.
+        #
+        # # normalize the position
+        # normalized_pos = np.array(pos) / self.scenario.length
 
-        normalized_pos = []
-        for i in range(len(pos)):
-            if edge[i] == 0:
-                # positions of vehicles in the ring are divided by the length
-                # of the ring
-                normalized_pos.append(pos[i])
-            elif edge[i] == 1:
-                # positions of vehicles in the merge are divided by the length
-                # of the merge
-                normalized_pos.append(pos[i])
+        # return np.array([normalized_vel, normalized_pos, is_rl]).T
+        return np.array([vel, pos]).T
 
-        state = np.array([normalized_vel, normalized_pos, edge, is_rl]).T
-        return state
+        # # The first observation is the position of the closest human vehicle
+        # # behind the intersection and its speed. Each subsequent observation is
+        # # the headway for the rl vehicle and the vehicle's speed
+        # sorted_rl_ids = [veh_id for veh_id in self.sorted_ids if veh_id in self.rl_ids]
+        # headways = self.vehicles.get_headway(sorted_rl_ids)
+        # speeds = self.vehicles.get_speed(sorted_rl_ids)
+        #
+        # sorted_human_ids = [veh_id for veh_id in self.sorted_ids if veh_id not in self.rl_ids]
+        # r = self.scenario.net_params.additional_params["ring_radius"]
+        # junction_length = 0.3
+        # intersection_length = 25.5
+        # lead_gap = 2 * np.pi * r + junction_length + 2 * intersection_length \
+        #     - self.get_x_by_id(sorted_human_ids[0])
+        # lead_vel = self.vehicles.get_speed(sorted_human_ids[0])
+        #
+        # return np.array([[lead_vel] + speeds,
+        #                  [lead_gap] + headways]).T
 
     def sort_by_position(self):
         """
@@ -97,35 +110,19 @@ class TwoLoopsMergeEnv(SumoEnvironment):
         environment are sorted with regards to which ring this currently
         reside on.
         """
-        sorted_ids = []
-        sorted_edges = []
-        sorted_pos = []
+        pos = [self.get_x_by_id(veh_id) for veh_id in self.vehicles.get_ids()]
+        sorted_indx = np.argsort(pos)
+        sorted_ids = np.array(self.vehicles.get_ids())[sorted_indx]
 
-        ids = self.vehicles.get_ids()
+        sorted_human_ids = [veh_id for veh_id in sorted_ids
+                            if veh_id not in self.vehicles.get_rl_ids()]
+        # sorted_human_ids = sorted_human_ids[::-1]
 
-        veh_edges = self.vehicles.get_edge(ids)
-        veh_pos = self.vehicles.get_position(ids)
+        sorted_rl_ids = [veh_id for veh_id in sorted_ids
+                         if veh_id in self.vehicles.get_rl_ids()]
+        # sorted_rl_ids = sorted_rl_ids[::-1]
 
-        edge_list = [tup[0] for tup in self.scenario.total_edgestarts]
-        edge_start_pos = [tup[1] for tup in self.scenario.total_edgestarts]
+        sorted_ids = sorted_human_ids + sorted_rl_ids
 
-        for i, edge in enumerate(edge_list):
-            veh_id_by_edge = [(ids[j], veh_pos[j] + edge_start_pos[i]) for j in
-                              range(len(ids)) if veh_edges[j].startswith(edge)]
-            veh_id_by_edge.sort(key=lambda tup: tup[1])
-
-            sorted_ids += [tup[0] for tup in veh_id_by_edge]
-            # The edge ids of vehicles in the ring is set to 0, while those of
-            # vehicles outside the ring are set to 1. In addition, the positions
-            # of vehicles in the ring are their position on the ring starting
-            # from the left_top edge, while the positions of vehicles on the
-            # merge is their position on the merge starting from the left_bottom
-            # edge.
-            if i < 6:
-                sorted_pos += [tup[1] for tup in veh_id_by_edge]
-                sorted_edges += [0] * len(veh_id_by_edge)
-            else:
-                sorted_pos += [tup[1] - edge_start_pos[6] for tup in veh_id_by_edge]
-                sorted_edges += [1] * len(veh_id_by_edge)
-
-        return sorted_ids, (sorted_pos, sorted_edges)
+        return sorted_ids, None
+        # return self.ids, None
