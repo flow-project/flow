@@ -110,8 +110,8 @@ class TwoLoopsMergeEnv(SumoEnvironment):
         edge_start_pos = [tup[1] for tup in self.scenario.total_edgestarts]
 
         for i, edge in enumerate(edge_list):
-            veh_id_by_edge = [(ids[j], veh_pos[j] + edge_start_pos[i])
-                              for j in range(len(ids)) if edge in veh_edges[j]]
+            veh_id_by_edge = [(ids[j], veh_pos[j] + edge_start_pos[i]) for j in
+                              range(len(ids)) if veh_edges[j].startswith(edge)]
             veh_id_by_edge.sort(key=lambda tup: tup[1])
 
             sorted_ids += [tup[0] for tup in veh_id_by_edge]
