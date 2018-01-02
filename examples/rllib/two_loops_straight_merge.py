@@ -1,9 +1,7 @@
 """
 (description)
 """
-import cloudpickle
 import gym
-import numpy as np
 
 import ray
 import ray.rllib.ppo as ppo
@@ -27,13 +25,10 @@ from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 
 
-def make_create_env(flow_env_name, version):
+def make_create_env(flow_env_name, version=0, exp_tag="example"):
     env_name = flow_env_name+'-v%s' % version
 
     def create_env():
-        # Experiment prefix
-        exp_tag = "two_loops_straight_merge_example"
-
         import flow.envs as flow_envs
         sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
@@ -115,23 +110,18 @@ if __name__ == "__main__":
     config["num_workers"] = num_cpus
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
+    config["model"].update({"fcnet_hiddens": [32, 32]})
 
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, 1024 * num_cpus)
+    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
 
-    # Two-level policy parameters
-    config["model"].update(
-        {"fcnet_hiddens": [[32, 32]] * 2})
-    config["model"]["user_data"] = {}
-    config["model"]["user_data"].update({"num_subpolicies": 2,
-                                         "fn_choose_subpolicy": list(
-                                             cloudpickle.dumps(lambda x: 0))})
-
     flow_env_name = "TwoLoopsMergeEnv"
-    create_env, env_name = make_create_env(flow_env_name, 0)
+    exp_tag = "two_loops_straight_merge_example"  # experiment prefix
+    create_env, env_name = make_create_env(flow_env_name, version=0,
+                                           exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
