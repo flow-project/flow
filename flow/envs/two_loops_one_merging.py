@@ -36,7 +36,7 @@ class TwoLoopsMergeEnv(SumoEnvironment):
         An observation is an array the velocities, positions, and edges for
         each vehicle
         """
-        self.obs_var_labels = ["speed", "pos", "is_rl"]
+        self.obs_var_labels = ["speed", "pos"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, absolute_pos))
