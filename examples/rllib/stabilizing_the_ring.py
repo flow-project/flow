@@ -55,7 +55,8 @@ def make_create_env(flow_env_name, version=0, exp_tag="example"):
                                  "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
 
-        initial_config = InitialConfig(spacing="uniform", bunching=30, min_gap=0)
+        initial_config = InitialConfig(spacing="uniform", bunching=30,
+                                       min_gap=0)
 
         scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
                                 initial_config=initial_config)
@@ -72,18 +73,16 @@ def make_create_env(flow_env_name, version=0, exp_tag="example"):
         ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
 
         return env
-
     return create_env, env_name
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
-
-    horizon = 3600
+    horizon = 3600  # FIXME(cathywu) streamline; need to manually match above
     num_cpus = 3
     n_rollouts = num_cpus
 
-    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
     ray.init(num_cpus=num_cpus, redirect_output=True)
+    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
 
     config["num_workers"] = num_cpus
     config["timesteps_per_batch"] = horizon * n_rollouts

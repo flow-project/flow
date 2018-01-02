@@ -74,7 +74,7 @@ def run_task(*_):
         initial_config=initial_config
     )
 
-    env_name = "TwoLoopsOneMergingEnvironment"
+    env_name = "TwoLoopsMergeEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 

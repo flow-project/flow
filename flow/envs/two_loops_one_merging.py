@@ -7,7 +7,7 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 
-class TwoLoopsOneMergingEnvironment(SumoEnvironment):
+class TwoLoopsMergeEnv(SumoEnvironment):
     """
     Fully functional environment. Differs from the SimpleAccelerationEnvironment
     in loop_accel in that vehicles in this environment may follow one of two
@@ -36,7 +36,7 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
         An observation is an array the velocities, positions, and edges for
         each vehicle
         """
-        self.obs_var_labels = ["speed", "pos", "is_rl"]
+        self.obs_var_labels = ["speed", "pos"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, absolute_pos))
@@ -126,3 +126,91 @@ class TwoLoopsOneMergingEnvironment(SumoEnvironment):
 
         return sorted_ids, None
         # return self.ids, None
+
+
+class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
+    """
+    POMDP version of two-loop merge env
+    """
+
+    @property
+    def observation_space(self):
+        """
+        See parent class.
+
+        Observes the RL vehicle, the two vehicles preceding and following the RL
+        vehicle on the inner ring, as well as the two vehicles closest to
+        merging in.
+
+        WARNING: only supports 1 RL vehicle
+
+        An observation is an array the velocities, positions, and edges for
+        each vehicle
+        """
+        self.n_preceding = 2  # FIXME(cathywu) see below
+        self.n_following = 2  # FIXME(cathywu) see below
+        self.n_merging_in = 2
+        self.n_obs_vehicles = 1 + self.n_preceding + self.n_following + \
+                        self.n_merging_in
+        self.obs_var_labels = ["speed", "pos", "dist_to_merge"]
+        speed = Box(low=0, high=np.inf, shape=(self.n_obs_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,))
+        # dist_to_merge = Box(low=-1, high=1, shape=(1,))
+        return Tuple((speed, absolute_pos))
+
+    def get_state(self, **kwargs):
+        """
+        See parent class.
+
+        The state is an array the velocities, edge counts, and relative
+        positions on the edge, for each vehicle.
+        """
+        vel = np.zeros(self.n_obs_vehicles)
+        pos = np.zeros(self.n_obs_vehicles)
+
+        outer_ids = self.sorted_ids[-self.scenario.n_outer_vehicles:]
+        # Retrieve the vel/pos for the vehicles closest to merging in
+        merge_in_count = 0
+        merge_in_id = None
+        for i, id in enumerate(outer_ids):
+            p = self.get_x_by_id(id)
+            if p < self.scenario.length_loop:
+                continue
+            if merge_in_id is None:
+                merge_in_id = i + (len(
+                    self.sorted_ids)-self.scenario.n_outer_vehicles)
+            pos[self.n_obs_vehicles-self.n_merging_in+merge_in_count] = p
+            v = self.vehicles.get_speed(id)
+            vel[self.n_obs_vehicles-self.n_merging_in+merge_in_count] = v
+            merge_in_count += 1
+            if merge_in_count >= self.n_merging_in:
+                break
+        if merge_in_id is None:
+            merge_in_id = len(self.sorted_ids)
+
+        rl_vehID = self.vehicles.get_rl_ids()[0]
+        rl_srtID = self.sorted_ids.index(rl_vehID)
+
+        # FIXME(cathywu) hardcoded for self.num_preceding = 2
+        lead_id1 = self.sorted_ids[(rl_srtID-1) % merge_in_id]
+        lead_id2 = self.sorted_ids[(rl_srtID-2) % merge_in_id]
+        # FIXME(cathywu) hardcoded for self.num_following = 2
+        follow_id1 = self.sorted_ids[(rl_srtID+1) % merge_in_id]
+        follow_id2 = self.sorted_ids[(rl_srtID+2) % merge_in_id]
+        vehicles = [rl_vehID, lead_id1, lead_id2, follow_id1, follow_id2]
+
+        vel[:self.n_obs_vehicles - self.n_merging_in] = np.array(
+            self.vehicles.get_speed(vehicles))
+        pos[:self.n_obs_vehicles - self.n_merging_in] = np.array(
+            [self.get_x_by_id(veh_id) for veh_id in vehicles])
+        # is_rl = [int(veh_id in self.rl_ids) for veh_id in self.sorted_ids]
+
+        # normalize the speed
+        # FIXME(cathywu) pull user-defined speed limit?
+        normalized_vel = np.array(vel) / 30.
+
+        # normalize the position
+        normalized_pos = np.array(pos) / self.scenario.length
+
+        return np.array([normalized_vel, normalized_pos]).T
+        # return np.array([vel, pos]).T
