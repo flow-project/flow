@@ -9,12 +9,20 @@ from gym.spaces.tuple_space import Tuple
 class ShepherdingEnv(SimpleAccelerationEnvironment):
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        desired_vel = np.array([self.env_params.additional_params["target_velocity"]] * self.vehicles.num_vehicles)
-        curr_vel = np.array(self.vehicles.get_speed())
-        diff_vel = np.linalg.norm(desired_vel - curr_vel)
-        accel = self.vehicles.get_accel(veh_id="all")
-        deaccel =  np.linalg.norm([min(0, x) for x in accel])
-        return -(0.5 * diff_vel + 0.5 * deaccel)
+        num_non_rl = (self.vehicles.num_vehicles-self.vehicles.num_rl_vehicles)
+        desired_vel = np.array([self.env_params.additional_params["target_velocity"]] * num_non_rl)
+        maxdiff = np.linalg.norm(np.array([0] * num_non_rl) - desired_vel)
+        curr_vel = [np.array(self.vehicles.get_speed(veh_id)) for veh_id in self.vehicles.get_sumo_ids()]
+
+        max_diff_vel = np.max(np.abs(desired_vel - curr_vel))
+        min_diff_vel = np.min(np.abs(desired_vel - curr_vel))
+        norm_diff_vel = np.linalg.norm(np.abs(desired_vel - curr_vel))
+        # accel = self.vehicles.get_accel(veh_id="all")
+        # deaccel =  np.linalg.norm([min(0, x) for x in accel])
+        # print(max(curr_vel), min(curr_vel), self.env_params.additional_params["target_velocity"] - diff_vel)
+
+        rl_speeds = np.linalg.norm([max(10 - x,0) for x in self.vehicles.get_speed(self.vehicles.get_rl_ids())])
+        return self.env_params.additional_params["target_velocity"] - max_diff_vel**2 # - 0.5 * rl_speeds - norm_diff_vel
 
     @property
     def action_space(self):
@@ -85,3 +93,32 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
 
         self.apply_acceleration(sorted_rl_ids, acc=acceleration)
         self.apply_lane_change(sorted_rl_ids, direction=direction)
+
+
+    def __init__(self, env_params, sumo_params, scenario):
+        super().__init__(env_params, sumo_params, scenario)
+        self.tau_delay_aggro_driver = False
+        for veh_type, params in self.vehicles.types:
+            if veh_type == "aggressive-human":
+                self.tau_delay_aggro_driver = True
+                self.impatient_tau = params["tau"]
+                self.init_tau = params["tau"]
+
+                self.time_steps_stuck = 0
+
+    def additional_command(self):
+        # print(self.vehicles.get_speed("aggressive-human_0"))
+        if self.tau_delay_aggro_driver:
+            if self.vehicles.get_speed("aggressive-human_0") < 20 and self.vehicles.get_headway("aggressive-human_0") < 10:
+                self.time_steps_stuck += 1
+            else:
+                self.time_steps_stuck = 0
+                if self.impatient_tau != self.init_tau:
+                    self.impatient_tau = self.init_tau
+                    self.traci_connection.vehicle.setTau("aggressive-human_0", self.impatient_tau)
+
+            if self.time_steps_stuck > 50:
+                if self.impatient_tau < 3.0:
+                    self.impatient_tau *= 1.05
+                    self.traci_connection.vehicle.setTau("aggressive-human_0", self.impatient_tau)
+

@@ -146,7 +146,9 @@ class SumoEnvironment(gym.Env, Serializable):
                      "--remote-port", str(self.port),
                      "--step-length", str(self.time_step),
                      "--step-method.ballistic", "true",
-                     "--lanechange.overtake-right", "true"]
+                     "--lanechange.overtake-right", "true",
+                     "--no-step-log", "True"
+                     ]
                      # "--lateral-resolution", "1.0"
         logging.info("Traci on port: ", self.port)
         if self.emission_out:
@@ -193,7 +195,6 @@ class SumoEnvironment(gym.Env, Serializable):
         if num_spawned_veh != self.vehicles.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
             exit()
-
         # dictionary of initial observations used while resetting vehicles after
         # each rollout
         self.initial_observations = dict.fromkeys(self.ids)
@@ -367,6 +368,11 @@ class SumoEnvironment(gym.Env, Serializable):
                 route_contr = self.vehicles.get_routing_controller(veh_id)
                 routing_actions.append(route_contr.choose_route(self))
 
+
+        old_lanes = [(veh_id, self.vehicles.get_lane(veh_id)) for veh_id in self.vehicles.get_ids()]
+        old_positions = [(veh_id, self.vehicles.get_position(veh_id)) for veh_id in self.vehicles.get_ids()]
+        old_velocities = [(veh_id, self.vehicles.get_speed(veh_id)) for veh_id in self.vehicles.get_ids()]
+
         self.choose_routes(veh_ids=routing_ids, route_choices=routing_actions)
 
         self.apply_rl_actions(rl_actions)
@@ -404,6 +410,20 @@ class SumoEnvironment(gym.Env, Serializable):
             np.any(np.array([self.vehicles.get_position(veh_id) for veh_id in self.ids]) < 0) \
             or self.traci_connection.simulation.getEndingTeleportNumber() != 0 \
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+
+        if crash:
+            print("Crash detected!")
+            print("actions applied for the previous step: ", rl_actions)
+
+            new_lanes = [(veh_id, self.vehicles.get_lane(veh_id)) for veh_id in self.vehicles.get_ids()]
+            new_positions = [(veh_id, self.vehicles.get_position(veh_id)) for veh_id in self.vehicles.get_ids()]
+            new_velocities = [(veh_id, self.vehicles.get_speed(veh_id)) for veh_id in self.vehicles.get_ids()]
+            print(old_lanes)
+            print(new_lanes)
+            print(old_positions)
+            print(new_positions)
+            print(old_velocities)
+            print(new_velocities)
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash, accel=accel)

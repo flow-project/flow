@@ -12,7 +12,7 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 class Vehicles:
 
-    speed_modes = {"aggressive": 0, "no_collide": 1}
+    speed_modes = {"aggressive": 0, "no_collide": 31}
     lane_changing_modes = {"aggressive" : 0, "no_lat_collide":256, "strategic": 853, "execute_all":597}
 
     def __init__(self):
@@ -48,7 +48,8 @@ class Vehicles:
                      lane_change_mode = "no_lat_collide",
                      custom_lane_change_mode=256,
                      sumo_car_following_params=None,
-                     sumo_lc_params=None):
+                     sumo_lc_params=None,
+                     additional_params=None):
         """
         Adds a sequence of vehicles to the list of vehicles in the network.
 
@@ -106,12 +107,14 @@ class Vehicles:
         # if not lane_change_controller:
         #     raise ValueError("No lane change controller is specified.")
 
-        type_params = {}
+        if additional_params:
+            type_params = additional_params
+        else:
+            type_params = {}
 
-        if acceleration_controller[0] == SumoCarFollowingController:
-            if sumo_car_following_params == None:
-                sumo_car_following_params = SumoCarFollowingParams()
-            type_params.update(sumo_car_following_params.controller_params)
+        if sumo_car_following_params is None:
+            sumo_car_following_params = SumoCarFollowingParams()
+        type_params.update(sumo_car_following_params.controller_params)
 
         if lane_change_controller and lane_change_controller[0] == SumoLaneChangeController:
             if sumo_lc_params == None:
@@ -232,7 +235,8 @@ class Vehicles:
                     new_abs_pos = self.get_absolute_position(
                         veh_id) + change
                     self.set_absolute_position(veh_id, new_abs_pos)
-                except ValueError or TypeError:
+                except (ValueError, TypeError) as error:
+                    print(error)
                     self.set_absolute_position(veh_id, -1001)
 
                 # store previous speed

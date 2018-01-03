@@ -233,6 +233,9 @@ class Scenario(Serializable):
         elif self.initial_config.spacing == "uniform":
             startpositions, startlanes = \
                 self.gen_even_start_pos(self.initial_config, **kwargs)
+        elif self.initial_config.spacing == "uniform_in_lane":
+            startpositions, startlanes = \
+                self.get_uniform_in_lane(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "custom":
             startpositions, startlanes = \
                 self.get_uniform_in_lane(self.initial_config, **kwargs)

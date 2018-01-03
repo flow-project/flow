@@ -90,8 +90,9 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         for veh_id in self.ids:
             if veh_id != ego_id:
                 lane = self.vehicles.get_lane(veh_id)
-                min_headways[lane] = min((self.get_x_by_id(veh_id) - curr_pos) % self.scenario.length, min_headways[lane])
-                min_reverse_headways[lane] = min((curr_pos - self.get_x_by_id(veh_id)) % self.scenario.length, min_reverse_headways[lane])
+                if lane >= 0:
+                    min_headways[lane] = min((self.get_x_by_id(veh_id) - curr_pos) % self.scenario.length, min_headways[lane])
+                    min_reverse_headways[lane] = min((curr_pos - self.get_x_by_id(veh_id)) % self.scenario.length, min_reverse_headways[lane])
 
         # print(min_headways, min_reverse_headways)
         return min_headways, min_reverse_headways
