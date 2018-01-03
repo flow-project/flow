@@ -22,7 +22,7 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
         # print(max(curr_vel), min(curr_vel), self.env_params.additional_params["target_velocity"] - diff_vel)
 
         rl_speeds = np.linalg.norm([max(10 - x,0) for x in self.vehicles.get_speed(self.vehicles.get_rl_ids())])
-        return self.env_params.additional_params["target_velocity"] - max_diff_vel**2 # - 0.5 * rl_speeds - norm_diff_vel
+        return self.env_params.additional_params["target_velocity"] - max_diff_vel**2 - 0.5 * np.linalg.norm(rl_actions[::2]) # - 0.5 * rl_speeds - norm_diff_vel
 
     @property
     def action_space(self):

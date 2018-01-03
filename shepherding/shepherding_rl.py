@@ -38,7 +38,7 @@ from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
 def run_task(*_):
 
-    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
 
@@ -84,7 +84,7 @@ def run_task(*_):
 
     policy = GaussianGRUPolicy(
         env_spec=env.spec,
-        hidden_sizes=(16,)
+        hidden_sizes=(32,)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -108,11 +108,11 @@ for seed in [50, 55, 60, 65, 70]:
         snapshot_gap=50,
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used,
-        exp_prefix="shepherding_base_case_big_loop_1k_itr_hidden_size_16",
+        exp_prefix="_shepherding_base_case_big_loop_1k_itr_l2_regularization",
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         seed=seed,
         # python_command="/Users/kanaad/anaconda3/envs/flow/bin/python",
-        mode="local",
+        mode="ec2",
         # n_parallel=1,
     )
