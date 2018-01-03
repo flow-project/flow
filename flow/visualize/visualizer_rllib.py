@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     ray.init(num_cpus=1)
 
-    cls = get_agent_class(args.run)
+    agent_cls = get_agent_class(args.run)
     if args.flowenv == "TwoLoopsMergeEnv":
         flow_env_name = "TwoLoopsMergeEnv"
         exp_tag = "two_loops_straight_merge_example"  # experiment prefix
@@ -75,15 +75,14 @@ if __name__ == "__main__":
                                            sumo="sumo")
     register_rllib_env(env_name, create_env)
 
-    agent = cls(env=env_name, registry=get_registry(), config=config)
+    agent = agent_cls(env=env_name, registry=get_registry(), config=config)
     agent.restore(args.checkpoint)
 
     # Create and register a new gym environment for rendering rollout
     create_render_env, env_render_name = make_create_env(flow_env_name,
                                                          version=1,
                                                          sumo="sumo-gui")
-    create_render_env()
-    env = gym.make(env_render_name)
+    env = create_render_env()
     for i in range(10):
         state = env.reset()
         done = False
