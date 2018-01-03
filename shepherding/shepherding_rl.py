@@ -42,9 +42,9 @@ def run_task(*_):
 
     vehicles = Vehicles()
 
-    # human_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", tau=3.0, speedDev=0.1, minGap=1.0)
-    # human_lc_params = SumoLaneChangeParams(lcKeepRight=0, lcAssertive=0.5,
-    #                                        lcSpeedGain=1.5, lcSpeedGainRight=1.0)
+    human_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", tau=3.0, speedDev=0.1, minGap=1.0)
+    human_lc_params = SumoLaneChangeParams(lcKeepRight=0, lcAssertive=0.5,
+                                           lcSpeedGain=1.5, lcSpeedGainRight=1.0)
     # vehicles.add_vehicles("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
     #                       (ContinuousRouter, {}),
     #                       0, 10,
@@ -69,10 +69,10 @@ def run_task(*_):
     env_params = EnvParams(additional_params={"target_velocity": 15, "num_steps": 1000},
                            lane_change_duration=0.1, max_speed=30)
 
-    additional_net_params = {"length": 800, "lanes": 3, "speed_limit": 15, "resolution": 40}
+    additional_net_params = {"length": 300, "lanes": 3, "speed_limit": 15, "resolution": 40}
     net_params = NetParams(additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="custom", bunching=750, lanes_distribution=3, shuffle=False)
+    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, shuffle=False)
 
     # scenario = LoopScenario("3-lane-aggressive-driver", CircleGenerator, vehicles, net_params, initial_config)
     scenario = LoopScenario("3-lane-aggressive-driver", ShepherdingGenerator, vehicles, net_params, initial_config)
@@ -108,7 +108,7 @@ for seed in [50, 55, 60, 65, 70]:
         snapshot_gap=50,
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used,
-        exp_prefix="_shepherding_base_case_big_loop_1k_itr_l2_regularization",
+        exp_prefix="_shepherding_base_case_small_loop_1k_itr_l2_regularization",
         # Number of parallel workers for sampling
         n_parallel=8,
         seed=seed,
