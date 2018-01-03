@@ -157,9 +157,8 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,))
         # dist_to_merge = Box(low=-1, high=1, shape=(1,))
         queue_length = Box(low=0, high=np.inf, shape=(1,))
-        return Tuple((speed, absolute_pos, queue_length))
-        # vel_stats = Box(low=-np.inf, high=np.inf, shape=(2,))
-        # return Tuple((speed, absolute_pos, queue_length, vel_stats))
+        vel_stats = Box(low=-np.inf, high=np.inf, shape=(2,))
+        return Tuple((speed, absolute_pos, queue_length, vel_stats))
 
     def get_state(self, **kwargs):
         """
@@ -232,6 +231,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         vel_all = self.vehicles.get_speed(sorted)
         vel_stats[0] = np.mean(vel_all[:num_inner])
         vel_stats[1] = np.mean(vel_all[num_inner:])
+        vel_stats = np.nan_to_num(vel_stats)
 
         # print("XX state", vel[0], vel[1], vel[5], vel[6], queue_length)
         # print("XX vel", vel, vel[0], min(vel), max(vel), queue_length)
@@ -240,7 +240,6 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         # print("XXX pos", pos_all)
         # print("XXX vel", vel_all)
 
-        return np.array([normalized_vel, normalized_pos, queue_length]).T
-        # return np.array([normalized_vel, normalized_pos, queue_length,
-        #                  vel_stats]).T
+        return np.array([normalized_vel, normalized_pos, queue_length,
+                         vel_stats]).T
         # return np.array([vel, pos]).T
