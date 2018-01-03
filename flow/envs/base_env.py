@@ -500,8 +500,11 @@ class SumoEnvironment(gym.Env, Serializable):
         # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList() + \
                 self.traci_connection.simulation.getStartingTeleportIDList():
-            self.traci_connection.vehicle.remove(veh_id)
-            self.vehicles.remove(veh_id)
+            try:
+                self.traci_connection.vehicle.remove(veh_id)
+                self.vehicles.remove(veh_id)
+            except Exception:
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
