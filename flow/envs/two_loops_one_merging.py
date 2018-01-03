@@ -176,8 +176,20 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         # the merge are at the end of the list (effectively reverse sorted).
         if self.get_x_by_id(sorted[0]) < merge_len and self.get_x_by_id(
             sorted[1]) < merge_len:
-            vid1 = sorted[1]
-            vid2 = sorted[0]
+            if not sorted[0].startswith("merge") and \
+                    not sorted[1].startswith("merge"):
+                vid1 = sorted[-1]
+                vid2 = sorted[-2]
+            elif not sorted[0].startswith("merge"):
+                vid1 = sorted[1]
+                vid2 = sorted[-1]
+            elif not sorted[1].startswith("merge"):
+                vid1 = sorted[0]
+                vid2 = sorted[-1]
+            else:
+                vid1 = sorted[1]
+                vid2 = sorted[0]
+            # print("actively merging", vid1, vid2)
         elif self.get_x_by_id(sorted[0]) < merge_len:
             vid1 = sorted[0]
             vid2 = sorted[-1]
@@ -233,12 +245,14 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         vel_stats[1] = np.mean(vel_all[num_inner:])
         vel_stats = np.nan_to_num(vel_stats)
 
+        # print("XXX obs", vel, pos, queue_length, vel_stats)
         # print("XX state", vel[0], vel[1], vel[5], vel[6], queue_length)
         # print("XX vel", vel, vel[0], min(vel), max(vel), queue_length)
         # print("XXX mean vel", np.mean(vel_all))
         # pos_all = [self.get_x_by_id(id) for id in sorted]
         # print("XXX pos", pos_all)
         # print("XXX vel", vel_all)
+        # print("XXX", sorted)
 
         return np.array([normalized_vel, normalized_pos, queue_length,
                          vel_stats]).T
