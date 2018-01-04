@@ -198,7 +198,7 @@ class SumoEnvironment(gym.Env, Serializable):
                 self.traci_connection.simulationStep()
                 return
             except Exception as e:
-                print("Error during reset: {}".format(traceback.format_exc()))
+                print("Error during start: {}".format(traceback.format_exc()))
                 error = e
                 self.teardown_sumo()
         raise error
