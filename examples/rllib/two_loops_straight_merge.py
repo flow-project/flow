@@ -25,12 +25,12 @@ from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 
 
-def make_create_env(flow_env_name, version=0, exp_tag="example"):
+def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
 
     def create_env():
         import flow.envs as flow_envs
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary=sumo)
 
         # note that the vehicles are added sequentially by the generator,
         # so place the merging vehicles after the vehicles in the ring

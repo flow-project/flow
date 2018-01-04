@@ -29,12 +29,15 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
-def make_create_env(flow_env_name, version=0, exp_tag="example"):
-    env_name = flow_env_name + '-v%s' % version
+
+def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
+    env_name = flow_env_name+'-v%s' % version
 
     def create_env():
         import flow.envs as flow_envs
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        logging.basicConfig(level=logging.INFO)
+
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary=sumo)
 
         vehicles = Vehicles()
         vehicles.add_vehicles(veh_id="rl",
