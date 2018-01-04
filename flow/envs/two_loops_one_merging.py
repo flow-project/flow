@@ -257,3 +257,20 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         return np.array([normalized_vel, normalized_pos, queue_length,
                          vel_stats]).T
         # return np.array([vel, pos]).T
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """
+        Rewards high system-level velocities and large headways.
+        """
+        # return np.mean(self.vehicles.get_speed())
+        vel_reward = rewards.desired_velocity(self, fail=kwargs["fail"])
+
+        normalization = self.scenario.length / self.vehicles.num_vehicles
+        max_cost = np.array([self.env_params.additional_params[
+                                 "target_velocity"]] *
+                            self.vehicles.num_vehicles)
+        max_cost = np.linalg.norm(max_cost)
+        headway_reward = max_cost * rewards.penalize_headway_variance(
+            self.vehicles, self.sorted_extra_data, normalization)
+        # print("Rewards", vel_reward, headway_reward)
+        return vel_reward + headway_reward
