@@ -246,12 +246,14 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         vel_stats = np.nan_to_num(vel_stats)
 
         # print("XXX obs", vel, pos, queue_length, vel_stats)
-        # print("XX state", vel[0], vel[1], vel[5], vel[6], queue_length)
         # print("XX vel", vel, vel[0], min(vel), max(vel), queue_length)
         # print("XXX mean vel", np.mean(vel_all))
+        # print("XX state", vel[0], vel[1], vel[5], vel[6], queue_length)
         # pos_all = [self.get_x_by_id(id) for id in sorted]
         # print("XXX pos", pos_all)
         # print("XXX vel", vel_all)
+        # headway_all = [self.vehicles.get_headway(id) for id in sorted]
+        # print("XXX head", headway_all)
         # print("XXX", sorted)
 
         return np.array([normalized_vel, normalized_pos, queue_length,
@@ -270,7 +272,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
                                  "target_velocity"]] *
                             self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
-        headway_reward = max_cost * rewards.penalize_headway_variance(
+        headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
             self.vehicles, self.sorted_extra_data, normalization)
         # print("Rewards", vel_reward, headway_reward)
         return vel_reward + headway_reward
