@@ -10,7 +10,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
 
@@ -39,7 +39,7 @@ scenario = LoopScenario(name="sugiyama",
                         net_params=net_params,
                         initial_config=initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
+env = AccelEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

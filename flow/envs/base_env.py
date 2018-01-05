@@ -35,7 +35,7 @@ COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
 
 
-class SumoEnvironment(gym.Env, Serializable):
+class Env(gym.Env, Serializable):
     def __init__(self, env_params, sumo_params, scenario):
         """
         Base environment class. Provides the interface for controlling a SUMO

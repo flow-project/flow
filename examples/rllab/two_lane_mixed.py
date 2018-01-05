@@ -56,7 +56,7 @@ def run_task(*_):
                             net_params=net_params,
                             initial_config=initial_config)
 
-    env_name = "SimpleLaneChangingAccelerationEnvironment"
+    env_name = "AccelEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
