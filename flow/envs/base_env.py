@@ -31,8 +31,10 @@ from flow.core.util import ensure_dir
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
-COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
+# Colors are [red, green, yellow, cyan, purple, white]
+COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
+
 
 
 class SumoEnvironment(gym.Env, Serializable):
