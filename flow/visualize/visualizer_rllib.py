@@ -39,7 +39,7 @@ required_named.add_argument(
 #     help="The flow example to use.")
 optional_named = parser.add_argument_group("optional named arguments")
 optional_named.add_argument(
-    '--num_rollouts', type=int, default=1,
+    '--num_rollouts', type=int, default=10,
     help="The number of rollouts to visualize.")
 
 
@@ -92,11 +92,21 @@ if __name__ == "__main__":
                                                          version=1,
                                                          sumo="sumo-gui")
     env = create_render_env()
+    env_num_steps = env.env.env_params.additional_params['num_steps']
+    if env_num_steps != horizon:
+        print("WARNING: mismatch of experiment horizon and rendering horizon "
+              "{} != {}".format(horizon, env_num_steps))
+    rets = []
     for i in range(args.num_rollouts):
         state = env.reset()
         done = False
+        ret = 0
         while not done:
             if isinstance(state, list):
                 state = np.concatenate(state)
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
+            ret += reward
+        rets.append(ret)
+        print("Return:", ret)
+    print("Average Return", np.mean(rets))
