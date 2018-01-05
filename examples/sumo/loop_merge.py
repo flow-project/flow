@@ -9,15 +9,12 @@ import logging
 from flow.core.experiment import SumoExperiment
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
-from flow.envs.loop_merges import SimpleLoopMergesEnvironment
-from flow.scenarios.loop_merges.gen import LoopMergesGenerator
-from flow.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 
 from flow.core.params import *
 from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 
-from flow.envs.loop_merges import SimpleLoopMergesEnvironment
+from flow.envs.loop_merges import LoopMergesEnv
 from flow.scenarios.loop_merges.gen import LoopMergesGenerator
 from flow.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 
@@ -37,7 +34,7 @@ vehicles.add(veh_id="merge-idm",
              lane_change_controller=(StaticLaneChanger, {}),
              num_vehicles=14)
 
-additional_env_params = {"target_velocity": 8, "fail-safe": "None"}
+additional_env_params = {"target_velocity": 8}
 env_params = EnvParams(additional_params=additional_env_params)
 
 additional_net_params = {"merge_in_length": 500, "merge_in_angle": pi/9,
@@ -56,7 +53,7 @@ scenario = LoopMergesScenario(name="loop-merges",
                               net_params=net_params,
                               initial_config=initial_config)
 
-env = SimpleLoopMergesEnvironment(env_params, sumo_params, scenario)
+env = LoopMergesEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

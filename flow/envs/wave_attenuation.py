@@ -1,4 +1,4 @@
-from flow.envs.base_env import SumoEnvironment
+from flow.envs.base_env import Env
 from flow.core import rewards
 from flow.core import multi_agent_rewards
 from flow.controllers.car_following_models import IDMController
@@ -11,12 +11,10 @@ import numpy as np
 from numpy.random import normal
 from scipy.optimize import fsolve
 
-from traci import constants as tc
-
 import pdb
 
 
-class WaveAttenuationEnv(SumoEnvironment):
+class WaveAttenuationEnv(Env):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the

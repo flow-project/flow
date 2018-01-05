@@ -1,4 +1,4 @@
-from flow.envs.base_env import SumoEnvironment
+from flow.envs.base_env import Env
 from flow.core import rewards
 from flow.controllers.car_following_models import *
 
@@ -8,7 +8,7 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 
-class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
+class LaneChangeAccelEnv(Env):
     """
     Fully functional environment for multi lane closed loop settings. Takes in
     an *acceleration* and *lane-change* as an action. Reward function is
@@ -109,7 +109,7 @@ class SimpleLaneChangingAccelerationEnvironment(SumoEnvironment):
         self.apply_lane_change(sorted_rl_ids, direction=direction)
 
 
-class LaneChangeOnlyEnvironment(SimpleLaneChangingAccelerationEnvironment):
+class LaneChangeOnlyEnv(LaneChangeAccelEnv):
     """
     Am extension of SimpleLaneChangingAccelerationEnvironment. Autonomous
     vehicles in this environment can only make lane-changing decisions. Their

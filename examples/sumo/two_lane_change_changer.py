@@ -10,7 +10,7 @@ from flow.controllers.lane_change_controllers import *
 from flow.controllers.car_following_models import *
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.loop.gen import CircleGenerator
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +38,7 @@ scenario = LoopScenario(name="two-lane-one-contr",
                         net_params=net_params,
                         initial_config=initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
+env = AccelEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

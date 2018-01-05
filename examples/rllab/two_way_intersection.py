@@ -48,7 +48,7 @@ def run_task(*_):
                                           vehicles, net_params, initial_config=initial_config)
 
     env = TwoIntersectionEnvironment(env_params, sumo_params, scenario)
-    env_name = "TwoIntersectionEnvironment"
+    env_name = "TwoIntersectionEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 

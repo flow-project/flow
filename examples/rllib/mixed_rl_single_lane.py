@@ -30,7 +30,7 @@ ray.init()
 config = ppo.DEFAULT_CONFIG.copy()
 config["num_sgd_itr"] = 20
 
-flow_env_name = "SimpleAccelerationEnvironment"
+flow_env_name = "AccelEnv"
 
 env_version_num = 0
 env_name = flow_env_name+'-v'+str(env_version_num)

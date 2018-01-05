@@ -12,7 +12,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 from flow.controllers.rlcontroller import RLController
 
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
@@ -85,9 +85,9 @@ def ring_road_exp_setup(sumo_params=None,
                             initial_config=initial_config)
 
     # create the environment
-    env = SimpleAccelerationEnvironment(env_params=env_params,
-                                        sumo_params=sumo_params,
-                                        scenario=scenario)
+    env = AccelEnv(env_params=env_params,
+                   sumo_params=sumo_params,
+                   scenario=scenario)
 
     return env, scenario
 
@@ -158,9 +158,9 @@ def figure_eight_exp_setup(sumo_params=None,
                                initial_config=initial_config)
 
     # create the environment
-    env = SimpleAccelerationEnvironment(env_params=env_params,
-                                        sumo_params=sumo_params,
-                                        scenario=scenario)
+    env = AccelEnv(env_params=env_params,
+                   sumo_params=sumo_params,
+                   scenario=scenario)
 
     return env, scenario
 
@@ -231,9 +231,9 @@ def variable_lanes_exp_setup(sumo_params=None,
                             initial_config=initial_config)
 
     # create the environment
-    env = SimpleAccelerationEnvironment(env_params=env_params,
-                                        sumo_params=sumo_params,
-                                        scenario=scenario)
+    env = AccelEnv(env_params=env_params,
+                   sumo_params=sumo_params,
+                   scenario=scenario)
 
     return env, scenario
 
