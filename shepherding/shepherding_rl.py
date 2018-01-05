@@ -45,15 +45,15 @@ def run_task(*_):
     human_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", tau=3.0, speedDev=0.1, minGap=1.0)
     human_lc_params = SumoLaneChangeParams(lcKeepRight=0, lcAssertive=0.5,
                                            lcSpeedGain=1.5, lcSpeedGainRight=1.0)
-    # vehicles.add_vehicles("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
-    #                       (ContinuousRouter, {}),
-    #                       0, 10,
-    #                       lane_change_mode="execute_all",
-    #                       sumo_car_following_params=human_cfm_params,
-    #                       sumo_lc_params=human_lc_params,
-    #                       )
+    vehicles.add_vehicles("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
+                          (ContinuousRouter, {}),
+                          0, 10,
+                          lane_change_mode="execute_all",
+                          sumo_car_following_params=human_cfm_params,
+                          sumo_lc_params=human_lc_params,
+                          )
 
-    aggressive_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", speedFactor=2, tau=0.2, minGap=1.0, accel=4.5)
+    aggressive_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", speedFactor=2, tau=0.2, minGap=1.0, accel=8)
     vehicles.add_vehicles("aggressive-human", (SumoCarFollowingController, {}),
                           (SafeAggressiveLaneChanger, {"target_velocity": 22.25, "threshold": 0.8}),
                           (ContinuousRouter, {}), 0, 1,
@@ -69,10 +69,10 @@ def run_task(*_):
     env_params = EnvParams(additional_params={"target_velocity": 15, "num_steps": 1000},
                            lane_change_duration=0.1, max_speed=30)
 
-    additional_net_params = {"length": 300, "lanes": 3, "speed_limit": 15, "resolution": 40}
+    additional_net_params = {"length": 500, "lanes": 3, "speed_limit": 15, "resolution": 40}
     net_params = NetParams(additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, shuffle=False)
+    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, shuffle=True)
 
     # scenario = LoopScenario("3-lane-aggressive-driver", CircleGenerator, vehicles, net_params, initial_config)
     scenario = LoopScenario("3-lane-aggressive-driver", ShepherdingGenerator, vehicles, net_params, initial_config)
@@ -95,12 +95,12 @@ def run_task(*_):
         baseline=baseline,
         batch_size=30000,
         max_path_length=horizon,
-        n_itr=1001,
+        n_itr=4001,
     )
     algo.train()
 
 
-for seed in [50, 55, 60, 65, 70]:
+for seed in [50, 55, 60, 70]:
     run_experiment_lite(
         run_task,
         # Only keep the snapshot parameters for the last iteration
@@ -108,7 +108,7 @@ for seed in [50, 55, 60, 65, 70]:
         snapshot_gap=50,
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used,
-        exp_prefix="_shepherding_base_case_small_loop_1k_itr_l2_regularization",
+        exp_prefix="_shepherding_big_loop_4k_itr_no_shuffle",
         # Number of parallel workers for sampling
         n_parallel=8,
         seed=seed,

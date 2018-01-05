@@ -9,20 +9,21 @@ from gym.spaces.tuple_space import Tuple
 class ShepherdingEnv(SimpleAccelerationEnvironment):
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        num_non_rl = (self.vehicles.num_vehicles-self.vehicles.num_rl_vehicles)
-        desired_vel = np.array([self.env_params.additional_params["target_velocity"]] * num_non_rl)
-        maxdiff = np.linalg.norm(np.array([0] * num_non_rl) - desired_vel)
-        curr_vel = [np.array(self.vehicles.get_speed(veh_id)) for veh_id in self.vehicles.get_sumo_ids()]
-
-        max_diff_vel = np.max(np.abs(desired_vel - curr_vel))
-        min_diff_vel = np.min(np.abs(desired_vel - curr_vel))
-        norm_diff_vel = np.linalg.norm(np.abs(desired_vel - curr_vel))
-        # accel = self.vehicles.get_accel(veh_id="all")
-        # deaccel =  np.linalg.norm([min(0, x) for x in accel])
-        # print(max(curr_vel), min(curr_vel), self.env_params.additional_params["target_velocity"] - diff_vel)
-
-        rl_speeds = np.linalg.norm([max(10 - x,0) for x in self.vehicles.get_speed(self.vehicles.get_rl_ids())])
-        return self.env_params.additional_params["target_velocity"] - max_diff_vel**2 - 0.5 * np.linalg.norm(rl_actions[::2]) # - 0.5 * rl_speeds - norm_diff_vel
+        deviation = (self.env_params.additional_params["target_velocity"]-self.vehicles.get_speed("aggressive-human_0"))**2
+        # num_non_rl = (self.vehicles.num_vehicles-self.vehicles.num_rl_vehicles)
+        # desired_vel = np.array([self.env_params.additional_params["target_velocity"]] * num_non_rl)
+        # maxdiff = np.linalg.norm(np.array([0] * num_non_rl) - desired_vel)
+        # curr_vel = [np.array(self.vehicles.get_speed(veh_id)) for veh_id in self.vehicles.get_sumo_ids()]
+        #
+        # max_diff_vel = np.max(np.abs(desired_vel - curr_vel))
+        # min_diff_vel = np.min(np.abs(desired_vel - curr_vel))
+        # norm_diff_vel = np.linalg.norm(np.abs(desired_vel - curr_vel))
+        # # accel = self.vehicles.get_accel(veh_id="all")
+        # # deaccel =  np.linalg.norm([min(0, x) for x in accel])
+        # # print(max(curr_vel), min(curr_vel), self.env_params.additional_params["target_velocity"] - diff_vel)
+        #
+        # rl_speeds = np.linalg.norm([max(10 - x,0) for x in self.vehicles.get_speed(self.vehicles.get_rl_ids())])
+        return self.env_params.additional_params["target_velocity"]**2 - deviation
 
     @property
     def action_space(self):
