@@ -56,11 +56,11 @@ def ring_road_exp_setup(sumo_params=None,
     if vehicles is None:
         # set default vehicles configuration
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="idm",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              speed_mode="aggressive",
-                              num_vehicles=1)
+        vehicles.add(veh_id="idm",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     speed_mode="aggressive",
+                     num_vehicles=1)
 
     if env_params is None:
         # set default env_params configuration
@@ -128,11 +128,11 @@ def figure_eight_exp_setup(sumo_params=None,
     if vehicles is None:
         # set default vehicles configuration
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="idm",
-                              acceleration_controller=(IDMController, {}),
-                              speed_mode="aggressive",
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=1)
+        vehicles.add(veh_id="idm",
+                     acceleration_controller=(IDMController, {}),
+                     speed_mode="aggressive",
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=1)
 
     if env_params is None:
         # set default env_params configuration
@@ -202,11 +202,11 @@ def variable_lanes_exp_setup(sumo_params=None,
     if vehicles is None:
         # set default vehicles configuration
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="idm",
-                              acceleration_controller=(IDMController, {}),
-                              speed_mode="aggressive",
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=1)
+        vehicles.add(veh_id="idm",
+                     acceleration_controller=(IDMController, {}),
+                     speed_mode="aggressive",
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=1)
 
     if env_params is None:
         # set default env_params configuration

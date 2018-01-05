@@ -28,7 +28,7 @@ def run_task(*_):
                              sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles("idm", (RLController, {}), None, None, 0, 20)
+    vehicles.add("idm", (RLController, {}), None, None, 0, 20)
 
     intensity = .2
     v_enter = 10

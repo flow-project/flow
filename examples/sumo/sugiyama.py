@@ -19,10 +19,10 @@ logging.basicConfig(level=logging.INFO)
 sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
-                      acceleration_controller=(IDMController, {}),
-                      routing_controller=(ContinuousRouter, {}),
-                      num_vehicles=22)
+vehicles.add(veh_id="idm",
+             acceleration_controller=(IDMController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             num_vehicles=22)
 
 additional_env_params = {"target_velocity": 8}
 env_params = EnvParams(additional_params=additional_env_params)

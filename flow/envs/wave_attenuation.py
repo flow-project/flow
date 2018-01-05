@@ -208,7 +208,7 @@ class WaveAttenuationEnv(SumoEnvironment):
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(vehicle_obs, id_lists, self)
+        self.vehicles.update(vehicle_obs, id_lists, self)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()

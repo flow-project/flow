@@ -32,14 +32,14 @@ def run_task(*_):
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles(veh_id="rl",
-                          acceleration_controller=(RLController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=auton_cars)
-    vehicles.add_vehicles(veh_id="human",
-                          acceleration_controller=(IDMController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=human_cars)
+    vehicles.add(veh_id="rl",
+                 acceleration_controller=(RLController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=auton_cars)
+    vehicles.add(veh_id="human",
+                 acceleration_controller=(IDMController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=human_cars)
 
     additional_env_params = {"target_velocity": 8, "num_steps": 500}
     env_params = EnvParams(additional_params=additional_env_params)
