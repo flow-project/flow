@@ -13,8 +13,7 @@ from ray.tune.registry import get_registry, register_env as register_rllib_env
 
 EXAMPLE_USAGE = """
 example usage:
-    ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
-    --flowenv TwoLoopsMergeEnv
+    python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
 """
 
 parser = argparse.ArgumentParser(
