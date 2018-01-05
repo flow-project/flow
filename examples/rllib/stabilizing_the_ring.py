@@ -9,6 +9,7 @@ One concern is whether rl-vehicles will start tail-gating human vehicles.
 """
 
 import logging
+import os 
 
 import gym
 import numpy as np
@@ -29,6 +30,7 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
+HORIZON = 3600
 
 def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
@@ -50,7 +52,7 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
                               num_vehicles=21)
 
         additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                                 "max-acc": 1, "num_steps": 3600,
+                                 "max-acc": 1, "num_steps": HORIZON,
                                  "scenario_type": LoopScenario}
         env_params = EnvParams(additional_params=additional_env_params)
 
@@ -80,16 +82,16 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
-    horizon = 3600  # FIXME(cathywu) streamline; need to manually match above
+    horizon = HORIZON 
     num_cpus = 3
-    n_rollouts = num_cpus
+    n_rollouts = 30
 
     ray.init(num_cpus=num_cpus, redirect_output=True)
     # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
 
     config["num_workers"] = num_cpus
     config["timesteps_per_batch"] = horizon * n_rollouts
-    config["gamma"] = 0.999
+    config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16]})
 
     config["lambda"] = 0.97
@@ -99,7 +101,12 @@ if __name__ == "__main__":
     config["horizon"] = horizon
 
     flow_env_name = "WaveAttenuationPOEnv"
-    exp_tag = "stabilizing_the_ring_example"
+    exp_tag = "stabilizing_the_ring_example"  # experiment prefix
+    this_file = os.path.basename(__file__)[:-3]  # filename without '.py'
+    config['user_data'].update({'flowenv': flow_env_name,
+                                'exp_tag': exp_tag,
+                                'module': this_file})
+
     create_env, env_name = make_create_env(flow_env_name, version=0,
                                            exp_tag=exp_tag)
 
@@ -110,4 +117,4 @@ if __name__ == "__main__":
     for i in range(2):
         alg.train()
         if i % 20 == 0:
-            print("XXXX checkpoint path is", alg.save())
+            alg.save()  # save checkpoint
