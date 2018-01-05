@@ -1,6 +1,7 @@
 """
 (description)
 """
+import os
 import gym
 
 import ray
@@ -24,6 +25,7 @@ from flow.scenarios.two_loops_one_merging_new.gen import TwoLoopOneMergingGenera
 from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 
+HORIZON = 1000
 
 def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
@@ -72,7 +74,7 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
                               sumo_lc_params=SumoLaneChangeParams())
 
         additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
-                                 "max-acc": 1, "num_steps": 1000}
+                                 "max-acc": 1, "num_steps": HORIZON}
         env_params = EnvParams(additional_params=additional_env_params)
 
         additional_net_params = {"ring_radius": 50, "lanes": 1,
@@ -113,7 +115,7 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
-    horizon = 1000  # FIXME(cathywu) streamline; need to manually match above
+    horizon = HORIZON
     num_cpus = 3
     n_rollouts = 30
 
@@ -133,6 +135,11 @@ if __name__ == "__main__":
 
     flow_env_name = "TwoLoopsMergePOEnv"
     exp_tag = "cooperative_merge_example"  # experiment prefix
+    this_file = os.path.basename(__file__)[:-3]  # filename without '.py'
+    config['user_data'].update({'flowenv': flow_env_name,
+                                'exp_tag': exp_tag,
+                                'module': this_file})
+
     create_env, env_name = make_create_env(flow_env_name, version=0,
                                            exp_tag=exp_tag)
 
