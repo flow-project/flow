@@ -81,10 +81,10 @@ class TestEvenStartPos(unittest.TestCase):
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=15)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(net_params=net_params,
@@ -340,10 +340,10 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=15)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=15)
 
         initial_config = InitialConfig(x0=150)
 
@@ -404,10 +404,10 @@ class TestRandomStartPos(unittest.TestCase):
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=5)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(net_params=net_params,
@@ -459,10 +459,10 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=50)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=50)
 
         initial_config = InitialConfig(lanes_distribution=5)
 
@@ -499,10 +499,10 @@ class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=50)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=50)
 
         initial_config = InitialConfig(spacing="random", lanes_distribution=5)
 

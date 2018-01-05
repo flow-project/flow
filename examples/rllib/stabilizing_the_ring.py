@@ -42,14 +42,14 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
         sumo_params = SumoParams(sim_step=0.1, sumo_binary=sumo)
 
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="rl",
-                              acceleration_controller=(RLController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=1)
-        vehicles.add_vehicles(veh_id="idm",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=21)
+        vehicles.add(veh_id="rl",
+                     acceleration_controller=(RLController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=1)
+        vehicles.add(veh_id="idm",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=21)
 
         additional_env_params = {"target_velocity": 8, "max-deacc": -1,
                                  "max-acc": 1, "num_steps": HORIZON,

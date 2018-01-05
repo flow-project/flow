@@ -21,9 +21,9 @@ sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
                          sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
-                      acceleration_controller=(IDMController, {}),
-                      num_vehicles=20)
+vehicles.add(veh_id="idm",
+             acceleration_controller=(IDMController, {}),
+             num_vehicles=20)
 
 intensity = .2
 v_enter = 10

@@ -18,16 +18,16 @@ def loop_merge_exp_setup(vehicles=None):
 
     if vehicles is None:
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="idm",
-                              acceleration_controller=(IDMController, {}),
-                              lane_change_controller=(StaticLaneChanger, {}),
-                              speed_mode="no_collide",
-                              num_vehicles=5)
-        vehicles.add_vehicles(veh_id="merge-idm",
-                              acceleration_controller=(IDMController, {}),
-                              lane_change_controller=(StaticLaneChanger, {}),
-                              speed_mode="no_collide",
-                              num_vehicles=5)
+        vehicles.add(veh_id="idm",
+                     acceleration_controller=(IDMController, {}),
+                     lane_change_controller=(StaticLaneChanger, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=5)
+        vehicles.add(veh_id="merge-idm",
+                     acceleration_controller=(IDMController, {}),
+                     lane_change_controller=(StaticLaneChanger, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=5)
 
     additional_env_params = {"target_velocity": 8}
     env_params = EnvParams(additional_params=additional_env_params)

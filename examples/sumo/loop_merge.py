@@ -29,13 +29,13 @@ sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
                          sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
-                      acceleration_controller=(IDMController, {}),
-                      num_vehicles=14)
-vehicles.add_vehicles(veh_id="merge-idm",
-                      acceleration_controller=(IDMController, {}),
-                      lane_change_controller=(StaticLaneChanger, {}),
-                      num_vehicles=14)
+vehicles.add(veh_id="idm",
+             acceleration_controller=(IDMController, {}),
+             num_vehicles=14)
+vehicles.add(veh_id="merge-idm",
+             acceleration_controller=(IDMController, {}),
+             lane_change_controller=(StaticLaneChanger, {}),
+             num_vehicles=14)
 
 additional_env_params = {"target_velocity": 8, "fail-safe": "None"}
 env_params = EnvParams(additional_params=additional_env_params)

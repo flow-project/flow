@@ -56,10 +56,10 @@ def create_env():
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}),
-                          (ContinuousRouter, {}), 0, auton_cars)
-    vehicles.add_vehicles("cfm", (CFMController, {}), (StaticLaneChanger, {}),
-                          (ContinuousRouter, {}), 0, human_cars)
+    vehicles.add("rl", (RLController, {}), (StaticLaneChanger, {}),
+                 (ContinuousRouter, {}), 0, auton_cars)
+    vehicles.add("cfm", (CFMController, {}), (StaticLaneChanger, {}),
+                 (ContinuousRouter, {}), 0, human_cars)
 
     additional_env_params = {"target_velocity": 8, "num_steps": 1000}
     env_params = EnvParams(additional_params=additional_env_params)
