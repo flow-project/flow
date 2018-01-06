@@ -9,6 +9,8 @@ import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 
+from examples.rllib.cooperative_merge import make_create_env
+
 HORIZON = 1000
 
 
@@ -49,7 +51,6 @@ if __name__ == "__main__":
     config['user_data'].update({'flowenv': flow_env_name,
                                 'exp_tag': exp_tag,
                                 'module': this_file})
-    from examples.rllib.cooperative_merge import make_create_env
     create_env, env_name = make_create_env(flow_env_name, version=0,
                                            exp_tag=exp_tag)
 

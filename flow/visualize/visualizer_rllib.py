@@ -71,7 +71,8 @@ if __name__ == "__main__":
 
     config = ppo.DEFAULT_CONFIG.copy()        
     config['horizon'] = horizon
-    config["model"].update({"fcnet_hiddens": hidden_layers})
+    # config["model"].update({"fcnet_hiddens": hidden_layers})
+    config["model"] = jsondata["model"]
     config["gamma"] = gamma
 
     # Overwrite config for rendering purposes
