@@ -1,5 +1,7 @@
 """
-(description)
+Cooperative merging example, consisting of 1 learning agent and 6 additional
+vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
+merge into the inner ring.
 """
 import os
 import gym
@@ -27,6 +29,7 @@ from flow.scenarios.two_loops_one_merging_new.scenario \
 
 HORIZON = 1000
 
+
 def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
 
@@ -49,6 +52,7 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
                                   minGap=0.0, tau=0.5),
                               sumo_lc_params=SumoLaneChangeParams())
 
+        # A single learning agent in the inner ring
         vehicles.add_vehicles(veh_id="rl",
                               acceleration_controller=(
                                   RLController, {"fail_safe": "safe_velocity"}),
