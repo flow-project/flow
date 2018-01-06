@@ -224,7 +224,6 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
             self.vehicles.get_speed(vehicles))
         pos[:self.n_obs_vehicles - self.n_merging_in] = np.array(
             [self.get_x_by_id(veh_id) for veh_id in vehicles])
-        # is_rl = [int(veh_id in self.rl_ids) for veh_id in self.sorted_ids]
 
         # normalize the speed
         # FIXME(cathywu) can divide by self.max_speed
@@ -245,10 +244,9 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         vel_stats[1] = np.mean(vel_all[num_inner:])
         vel_stats = np.nan_to_num(vel_stats)
 
+        # Useful debug statements for analyzing experiment results
         # print("XXX obs", vel, pos, queue_length, vel_stats)
-        # print("XX vel", vel, vel[0], min(vel), max(vel), queue_length)
         # print("XXX mean vel", np.mean(vel_all))
-        # print("XX state", vel[0], vel[1], vel[5], vel[6], queue_length)
         # pos_all = [self.get_x_by_id(id) for id in sorted]
         # print("XXX pos", pos_all)
         # print("XXX vel", vel_all)
@@ -258,20 +256,20 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
         return np.array([normalized_vel, normalized_pos, queue_length,
                          vel_stats]).T
-        # return np.array([vel, pos]).T
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """
         Rewards high system-level velocities and large headways.
         """
-        # return np.mean(self.vehicles.get_speed())
         vel_reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
-        normalization = self.scenario.length / self.vehicles.num_vehicles
+        # Use a similar weighting of of the headway reward as the velocity
+        # reward
         max_cost = np.array([self.env_params.additional_params[
                                  "target_velocity"]] *
                             self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
+        normalization = self.scenario.length / self.vehicles.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
             self.vehicles, self.sorted_extra_data, normalization)
         # print("Rewards", vel_reward, headway_reward)
