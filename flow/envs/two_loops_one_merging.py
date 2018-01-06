@@ -138,14 +138,11 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         """
         See parent class.
 
-        Observes the RL vehicle, the two vehicles preceding and following the RL
-        vehicle on the inner ring, as well as the two vehicles closest to
-        merging in.
+        Observation space is the single RL vehicle, the 2 vehicles preceding it,
+        the 2 vehicles following it, the next 2 vehicles to merge in, the queue
+        length, and the average velocity of the inner and outer rings.
 
         WARNING: only supports 1 RL vehicle
-
-        An observation is an array the velocities, positions for each vehicle
-        and some aggregate statistics (queue length, average velocity)
         """
         self.n_preceding = 2  # FIXME(cathywu) see below
         self.n_following = 2  # FIXME(cathywu) see below
