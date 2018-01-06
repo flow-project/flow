@@ -66,12 +66,16 @@ def penalize_headway_variance(vehicles, vids, normalization=1, penalty_gain=1,
     A reward function used to train rl vehicles to encourage large
     headways among a pre-specified list of vehicles vids.
 
-    :param vehicles {dict} - contains the state of all vehicles in the network (generally self.vehicles)
+    :param vehicles {dict} - contains the state of all vehicles in the
+    network (generally self.vehicles)
     :param vids: {list} - list of ids for vehicles
     :param normalization {float} - constant for scaling (down) the headways
-    :param penalty_gain {float} - sets the penalty for each vehicle between 0 and this value
-    :param penalty_exponent {float} - used to allow exponential punishing of smaller headways
-    :return: a (non-negative) penalty on vehicles whose headway is below the headway_threshold
+    :param penalty_gain {float} - sets the penalty for each vehicle between
+    0 and this value
+    :param penalty_exponent {float} - used to allow exponential punishing of
+    smaller headways
+    :return: a (non-negative) penalty on vehicles whose headway is below the
+    headway_threshold
     """
     headways = penalty_gain * np.power(np.array(
         [vehicles.get_headway(veh_id) / normalization for veh_id in vids]),
