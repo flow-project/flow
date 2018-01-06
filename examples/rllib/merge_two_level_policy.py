@@ -13,9 +13,10 @@ from examples.rllib.cooperative_merge import make_create_env
 
 HORIZON = 1000
 
-
-def choose_subpolicy(inputs):
+fn_choose_subpolicy = """
+def choose_policy(inputs):
     return tf.cast(inputs[:, 7] > 210, tf.int32)
+"""
 
 
 if __name__ == "__main__":
@@ -41,9 +42,9 @@ if __name__ == "__main__":
         {"fcnet_hiddens": [[32, 32]] * 2})
     config["model"]["user_data"] = {}
     # fn = list(cloudpickle.dumps(lambda x: 0))
-    fn = list(cloudpickle.dumps(choose_subpolicy))
+    # fn = list(cloudpickle.dumps(choose_subpolicy))
     config["model"]["user_data"].update({"num_subpolicies": 2,
-                                         "fn_choose_subpolicy": fn})
+                                         "fn_choose_subpolicy": fn_choose_subpolicy})
 
     flow_env_name = "TwoLoopsMergePOEnv"
     exp_tag = "merge_two_level_policy_example"
