@@ -27,8 +27,8 @@ class WaveAttenuationEnv(Env):
         Actions are a set of accelerations from 0 to 15m/s
         :return:
         """
-        return Box(low=-np.abs(self.env_params.additional_params["max-deacc"]),
-                   high=self.env_params.additional_params["max-acc"],
+        return Box(low=-np.abs(self.env_params.max_decel),
+                   high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property

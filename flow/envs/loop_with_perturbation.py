@@ -1,10 +1,10 @@
-from flow.envs.loop_accel import Env
+from flow.envs.loop_accel import AccelEnv
 
 import numpy as np
 import random
 
 
-class PerturbationAccelerationLoop(Env):
+class PerturbationAccelerationLoop(AccelEnv):
 
     def __init__(self, env_params, sumo_params, scenario):
         super().__init__(env_params, sumo_params, scenario)

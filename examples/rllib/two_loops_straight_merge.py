@@ -58,9 +58,9 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
                          minGap=0.01, tau=0.5),
                      sumo_lc_params=SumoLaneChangeParams())
 
-        additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
-                                 "max-acc": 1, "num_steps": HORIZON}
-        env_params = EnvParams(additional_params=additional_env_params)
+        additional_env_params = {"target_velocity": 20, "num_steps": HORIZON}
+        env_params = EnvParams(max_accel=1, max_decel=1.5,
+                               additional_params=additional_env_params)
 
         additional_net_params = {"ring_radius": 50, "lanes": 1,
                                  "lane_length": 75, "speed_limit": 30,
