@@ -25,8 +25,8 @@ class AccelEnv(Env):
         Actions are a set of accelerations from max-deacc to max-acc for each
         rl vehicle.
         """
-        return Box(low=-np.abs(self.env_params.max_deacc),
-                   high=self.env_params.max_acc,
+        return Box(low=-np.abs(self.env_params.max_decel),
+                   high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
@@ -80,7 +80,7 @@ class AccelEnv(Env):
                          for i in range(len(self.sorted_ids))])
 
 
-class AccelMAEnv(Env):
+class AccelMAEnv(AccelEnv):
     """
     An extension of SimpleAccelerationEnvironment which treats each autonomous
     vehicles as a separate rl agent, thereby allowing autonomous vehicles to be
@@ -142,7 +142,7 @@ class AccelMAEnv(Env):
         return obs_arr
 
 
-class AccelPOEnv(Env):
+class AccelPOEnv(AccelEnv):
     """
     This environment is an extension of the SimpleAccelerationEnvironment, with
     the exception that only local information is provided to the agent about the

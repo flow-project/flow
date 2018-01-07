@@ -27,11 +27,11 @@ class LaneChangeAccelEnv(Env):
          - a (continuous) lane-change action from -1 to 1, used to determine the
            lateral direction the vehicle will take.
         """
-        max_deacc = self.env_params.max_deacc
-        max_acc = self.env_params.max_acc
+        max_decel = self.env_params.max_decel
+        max_accel = self.env_params.max_accel
 
-        lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
-        ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
+        lb = [-abs(max_decel), -1] * self.vehicles.num_rl_vehicles
+        ub = [max_accel, 1] * self.vehicles.num_rl_vehicles
 
         return Box(np.array(lb), np.array(ub))
 

@@ -49,10 +49,10 @@ def run_task(v):
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=21)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                             "max-acc": 1, "num_steps": 3600,
+    additional_env_params = {"target_velocity": 8, "num_steps": 3600,
                              "scenario_type": LoopScenario}
-    env_params = EnvParams(additional_params=additional_env_params)
+    env_params = EnvParams(max_decel=-1, max_accel=1,
+                           additional_params=additional_env_params)
 
     additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                              "resolution": 40}
@@ -72,16 +72,16 @@ def run_task(v):
     horizon = env.horizon
     env = normalize(env)
 
-    # policy = GaussianGRUPolicy(
-    #     env_spec=env.spec,
-    #     hidden_sizes=(5,)
-    # )
-
-    policy = GaussianMLPPolicy(
+    policy = GaussianGRUPolicy(
         env_spec=env.spec,
-        hidden_sizes=(16, 16)
-        # hidden_sizes=(100, 50, 25)
+        hidden_sizes=(5,)
     )
+
+    # policy = GaussianMLPPolicy(
+    #     env_spec=env.spec,
+    #     hidden_sizes=(16, 16)
+    #     # hidden_sizes=(100, 50, 25)
+    # )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
 
@@ -89,9 +89,9 @@ def run_task(v):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=3600 * 72 * 2,
+        batch_size=72000,
         max_path_length=horizon,
-        n_itr=5,
+        n_itr=250,
         # whole_paths=True,
         # discount=0.999,
         # step_size=v["step_size"],
@@ -104,7 +104,7 @@ for seed in [5]:  # , 20, 68]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=16,
+        n_parallel=2,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a

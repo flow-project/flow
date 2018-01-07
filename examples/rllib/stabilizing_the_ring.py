@@ -51,10 +51,10 @@ def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
                      routing_controller=(ContinuousRouter, {}),
                      num_vehicles=21)
 
-        additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                                 "max-acc": 1, "num_steps": HORIZON,
+        additional_env_params = {"target_velocity": 8, "num_steps": HORIZON,
                                  "scenario_type": LoopScenario}
-        env_params = EnvParams(additional_params=additional_env_params)
+        env_params = EnvParams(max_accel=1, max_decel=1,
+                               additional_params=additional_env_params)
 
         additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                                  "resolution": 40}
