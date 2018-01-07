@@ -271,3 +271,13 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
             self.vehicles, self.sorted_extra_data, normalization)
         # print("Rewards", vel_reward, headway_reward)
         return vel_reward + headway_reward
+
+
+class TwoLoopsMergeNoRLPOEnv(TwoLoopsMergePOEnv):
+    """
+    POMDP Merge env compatible for SUMO-only run
+    """
+
+    def get_state(self, **kwargs):
+        return np.zeros(1)
+
