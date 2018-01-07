@@ -13,9 +13,10 @@ from examples.rllib.cooperative_merge import make_create_env
 
 HORIZON = 1000
 
+# Inner ring distances closest to the merge are range 300 to 365-ish
 fn_choose_subpolicy = """
 def choose_policy(inputs):
-    return tf.cast(inputs[:, 7] > 210, tf.int32)
+    return tf.cast(inputs[:, 7] > 300, tf.int32)
 """
 
 
@@ -33,8 +34,8 @@ if __name__ == "__main__":
 
     config["lambda"] = 0.97
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
+    config["kl_target"] = 0.00002
+    config["num_sgd_iter"] = 30
     config["horizon"] = horizon
 
     # Two-level policy parameters
