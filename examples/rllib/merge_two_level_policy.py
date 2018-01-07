@@ -13,10 +13,10 @@ from examples.rllib.cooperative_merge import make_create_env
 
 HORIZON = 1000
 
-# Inner ring distances closest to the merge are range 300 to 365-ish
+# Inner ring distances closest to the merge are range 300-365 (normalized)
 fn_choose_subpolicy = """
 def choose_policy(inputs):
-    return tf.cast(inputs[:, 7] > 300, tf.int32)
+    return tf.cast(inputs[:, 7] > 0.482496, tf.int32)
 """
 
 

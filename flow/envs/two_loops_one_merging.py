@@ -243,6 +243,9 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
         # Useful debug statements for analyzing experiment results
         # print("XXX obs", vel, pos, queue_length, vel_stats)
+        # print("XXX nobs", normalized_vel, normalized_pos, queue_length,
+        #       vel_stats)
+
         # print("XXX mean vel", np.mean(vel_all))
         # pos_all = [self.get_x_by_id(id) for id in sorted]
         # print("XXX pos", pos_all)
