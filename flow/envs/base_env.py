@@ -408,10 +408,7 @@ class SumoEnvironment(gym.Env, Serializable):
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
-        if self.vehicles.num_rl_vehicles > 0:
-            reward = self.compute_reward(self.state, rl_actions, fail=crash)
-        else:
-            reward = 0
+        reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
         # Are we in a multi-agent scenario? If so, the action space is a list.
         if self.multi_agent:
@@ -768,6 +765,7 @@ class SumoEnvironment(gym.Env, Serializable):
         """
         Reward function for RL.
         MUST BE implemented in new environments.
+        Defaults to 0 for non-implemented environments.
 
         Parameters
         ----------
@@ -783,7 +781,7 @@ class SumoEnvironment(gym.Env, Serializable):
         -------
         reward: float
         """
-        raise NotImplementedError
+        return 0
 
     def terminate(self):
         """
