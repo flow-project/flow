@@ -140,7 +140,8 @@ def punish_small_rl_headways(vehicles, rl_ids, headway_threshold, penalty_gain=1
     # in order to keep headway penalty (and thus reward function) positive
     max_headway_penalty = len(rl_ids) * penalty_gain
 
-    return max_headway_penalty - headway_penalty
+    #return max_headway_penalty - headway_penalty
+    return -np.abs(headway_penalty)
 
 
 def punish_rl_lane_changes(vehicles, rl_ids, penalty=1):
