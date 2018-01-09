@@ -1,3 +1,50 @@
+<<<<<<< HEAD
+''' Basic test of fully rl environment with accelerations as actions. Single lane. Mixed human and rl.
+
+Variables:
+    sumo_params {dict} -- [Pass time step, whether safe mode is on or off]
+    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
+    type_params {dict} -- [Types of cars in the system.
+    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
+    env_params {dict} -- [Params for reward function]
+    net_params {dict} -- [Params for network.
+                            length: road length
+                            lanes
+                            speed limit
+                            resolution: number of edges comprising ring
+                            net_path: where to store net]
+    cfg_params {dict} -- [description]
+    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
+                                spacing: if gaussian, add noise in start positions
+                                bunching: how close to place cars at experiment start]
+    scenario {[type]} -- [Which road network to use]
+'''
+import logging
+
+import gym
+from gym.envs.registration import register
+
+import ray
+import ray.rllib.ppo as ppo
+from ray.tune.registry import get_registry, register_env
+from ray.rllib.models.preprocessors import Preprocessor
+from ray.rllib.models import ModelCatalog
+
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.vehicles import Vehicles
+from flow.controllers.routing_controllers import *
+
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
+
+from flow.core.params import SumoParams
+from flow.core.params import EnvParams
+
+ray.init(redirect_output=True)
+=======
 """
 Basic implementation of a mixed-rl single-lane environment with accelerations as
 actions for the autonomous vehicles.
@@ -27,6 +74,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 
 ray.init()
 # ray.init(redirect_output=True)
+>>>>>>> 1ec2a03781c0045756a5c61d34fbd2e08238929e
 config = ppo.DEFAULT_CONFIG.copy()
 config["num_sgd_itr"] = 20
 
@@ -53,6 +101,7 @@ def create_env():
     auton_cars = 4
     human_cars = tot_cars - auton_cars
 
+
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
@@ -74,6 +123,7 @@ def create_env():
     pass_params = (flow_env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
+
     register_env(*pass_params)
     env = gym.envs.make(env_name)
 
@@ -92,6 +142,3 @@ for i in range(20):
     alg.train()
 
 # alg = ppo.PPOAgent(config=config, env="CartPole-v1")
-
-
-
