@@ -113,6 +113,8 @@ class WaveAttenuationEnv(Env):
                                  "lanes": 1, "speed_limit": 30, "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
 
+        # TODO(nish): figure out what exactly this does (ask @cathywu?)
+        # - shouldn't need to reinstantiate scenario, right? 
         self.scenario = self.env_params.additional_params["scenario_type"](
             self.scenario.name, self.scenario.generator_class,
             self.scenario.vehicles, net_params, initial_config)

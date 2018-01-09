@@ -1,3 +1,7 @@
+"""
+Unit tests for Ray
+"""
+
 from importlib import reload
 import os
 import unittest
@@ -8,6 +12,11 @@ import ray.tune.registry as registry
 
 from examples.rllib.stabilizing_the_ring import make_create_env
 
+from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.routing_controllers import ContinuousRouter
+
 
 class TestRay(unittest.TestCase):
     # def setUp(self):
@@ -17,6 +26,7 @@ class TestRay(unittest.TestCase):
         """
         Integration test for ray/rllib + flow
         """
+
         # Test 1: test_two_level_ray
         config = ppo.DEFAULT_CONFIG.copy()
         horizon = 500
@@ -29,8 +39,30 @@ class TestRay(unittest.TestCase):
         config["gamma"] = 0.999
         config["horizon"] = horizon
 
+        additional_env_params = {"target_velocity": 8, "max-deacc": -1,
+                         "max-acc": 1, "num_steps": horizon,
+                         "scenario_type": LoopScenario}
+        additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
+                                 "resolution": 40}
+        vehicle_params = [dict(veh_id="rl", num_vehicles=1,
+                               acceleration_controller=(RLController, {}),
+                               routing_controller=(ContinuousRouter, {})),
+                          dict(veh_id="idm", num_vehicles=21,
+                               acceleration_controller=(IDMController, {}),
+                               routing_controller=(ContinuousRouter, {}))
+                         ]
+
+        flow_params = dict(
+                        sumo=dict(sim_step=0.1),
+                        env=dict(additional_params=additional_env_params),
+                        net=dict(no_internal_links=False,
+                            additional_params=additional_net_params),
+                        veh=vehicle_params,
+                        initial=dict(spacing="uniform", bunching=30, min_gap=0)
+                      )
+
         flow_env_name = "WaveAttenuationPOEnv"
-        create_env, env_name = make_create_env(flow_env_name, 0)
+        create_env, env_name = make_create_env(flow_env_name, flow_params, 0)
 
         # Register as rllib env
         registry.register_env(env_name, create_env)
@@ -67,7 +99,7 @@ class TestRay(unittest.TestCase):
                                                  cloudpickle.dumps(lambda x: 0))})
 
         flow_env_name = "WaveAttenuationPOEnv"
-        create_env, env_name = make_create_env(flow_env_name, 1)
+        create_env, env_name = make_create_env(flow_env_name, flow_params, 1)
 
         # Register as rllib env
         registry.register_env(env_name, create_env)

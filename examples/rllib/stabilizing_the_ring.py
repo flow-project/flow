@@ -6,10 +6,27 @@ is that rl-vehicles group together in other to allow non rl-vehicles a larger he
 and thus larger equilibrium speeds.
 
 One concern is whether rl-vehicles will start tail-gating human vehicles.
+
+Attributes
+----------
+additional_env_params : dict
+    Extra environment params
+additional_net_params : dict
+    Extra network parameters
+flow_params : dict
+    Large dictionary of flow parameters for experiment,
+    passed in to `make_create_env` and used to create
+    `flow_params.json` file used by exp visualizer
+HORIZON : int
+    Length of rollout, in steps
+vehicle_params : list of dict
+    List of dictionaries specifying vehicle characteristics
+    and the number of each vehicle
 """
 
+import json
 import logging
-import os 
+import os
 
 import gym
 import numpy as np
@@ -18,8 +35,9 @@ import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.rllib.models import ModelCatalog
+from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
-from flow.core.util import register_env
+from flow.core.util import register_env, NameEncoder
 from flow.utils.tuple_preprocessor import TuplePreprocessor
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -32,36 +50,66 @@ from flow.core.vehicles import Vehicles
 
 HORIZON = 3600
 
-def make_create_env(flow_env_name, version=0, exp_tag="example", sumo="sumo"):
+additional_env_params = {"target_velocity": 8, "max-deacc": -1,
+                         "max-acc": 1, "num_steps": HORIZON,
+                         "scenario_type": LoopScenario} # Any way to avoid specifying this here? - nish 
+additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
+                         "resolution": 40}
+vehicle_params = [dict(veh_id="rl",
+                       acceleration_controller=(RLController, {}),
+                       routing_controller=(ContinuousRouter, {}),
+                       num_vehicles=1),
+                  dict(veh_id="idm",
+                       acceleration_controller=(IDMController, {}),
+                       routing_controller=(ContinuousRouter, {}),
+                       num_vehicles=21)
+                 ]
+
+flow_params = dict(
+                sumo=dict(
+                    sim_step=0.1
+                  ),
+                env=dict(
+                    additional_params=additional_env_params
+                  ),
+                net=dict(
+                    no_internal_links=False,
+                    additional_params=additional_net_params
+                  ),
+                veh=vehicle_params,
+                initial=dict(
+                    spacing="uniform", bunching=30, min_gap=0
+                  )
+              )
+
+
+def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
+
+    sumo_params_dict = flow_params['sumo']
+    sumo_params_dict['sumo_binary'] = sumo
+    sumo_params = SumoParams(**sumo_params_dict)
+
+    env_params_dict = flow_params['env']
+    env_params = EnvParams(**env_params_dict)
+
+    net_params_dict = flow_params['net']
+    net_params = NetParams(**net_params_dict)
+
+    # vehicle_params is used directly and not read from flow_params
+
+    init_params = flow_params['initial']
 
     def create_env():
         import flow.envs as flow_envs
-        logging.basicConfig(level=logging.INFO)
 
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary=sumo)
-
+        # note that the vehicles are added sequentially by the generator,
+        # so place the merging vehicles after the vehicles in the ring
         vehicles = Vehicles()
-        vehicles.add(veh_id="rl",
-                     acceleration_controller=(RLController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=1)
-        vehicles.add(veh_id="idm",
-                     acceleration_controller=(IDMController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=21)
+        for i in range(len(vehicle_params)):
+            vehicles.add(**vehicle_params[i])
 
-        additional_env_params = {"target_velocity": 8, "num_steps": HORIZON,
-                                 "scenario_type": LoopScenario}
-        env_params = EnvParams(max_accel=1, max_decel=1,
-                               additional_params=additional_env_params)
-
-        additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
-                                 "resolution": 40}
-        net_params = NetParams(additional_params=additional_net_params)
-
-        initial_config = InitialConfig(spacing="uniform", bunching=30,
-                                       min_gap=0)
+        initial_config = InitialConfig(**init_params)
 
         scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
                                 initial_config=initial_config)
@@ -102,18 +150,24 @@ if __name__ == "__main__":
 
     flow_env_name = "WaveAttenuationPOEnv"
     exp_tag = "stabilizing_the_ring_example"  # experiment prefix
-    this_file = os.path.basename(__file__)[:-3]  # filename without '.py'
-    config['user_data'].update({'flowenv': flow_env_name,
-                                'exp_tag': exp_tag,
-                                'module': this_file})
 
-    create_env, env_name = make_create_env(flow_env_name, version=0,
+    flow_params['flowenv'] = flow_env_name
+    flow_params['exp_tag'] = exp_tag
+    flow_params['module'] = os.path.basename(__file__)[:-3]  # filename without '.py'
+
+    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
                                            exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
+    
+    # Logging out flow_params to ray's experiment result folder
+    json_out_file = alg.logdir + '/flow_params.json'
+    with open(json_out_file, 'w') as outfile:  
+        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+
     for i in range(2):
         alg.train()
         if i % 20 == 0:
