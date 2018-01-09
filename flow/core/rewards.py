@@ -70,7 +70,7 @@ def merge_desired_velocity(env, fail=False):
     cost = np.linalg.norm(cost)
 
 
-    return max((max_cost - cost)/np.sqrt(num_vehicles), 0)
+    return max((max_cost - cost), 0)
 
 
 def min_delay(state=None, actions=None, **kwargs):
