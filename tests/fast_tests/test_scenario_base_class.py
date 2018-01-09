@@ -7,6 +7,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
 from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
+from tests.setup_scripts import variable_lanes_exp_setup
 
 
 class TestGetX(unittest.TestCase):
@@ -215,92 +216,6 @@ class TestEvenStartPos(unittest.TestCase):
         # delete the created environment
         self.tearDown_gen_start_pos()
 
-    def test_distribution_length(self):
-        """
-        Tests that vehicles are uniformly distributed given a certain
-        distribution length
-        """
-        # set the initial_config parameters with a distribution length in
-        # between zero and the length of the network
-        distribution_length = 150
-        initial_config = InitialConfig(distribution_length=distribution_length)
-
-        # create the environment
-        self.setUp_gen_start_pos(initial_config)
-
-        # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
-
-        # difference in position between the nth vehicle and the vehicle ahead
-        # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
-
-        # check that all vehicles except the last vehicle have the same spacing
-        self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
-
-        # check that the spacing of the last vehicle is just offset by the
-        # difference between the distribution length and the length of the
-        # network
-        self.assertAlmostEqual(nth_headway[-1] - nth_headway[-2],
-                               self.env.scenario.length - distribution_length)
-
-        # delete the created environment
-        self.tearDown_gen_start_pos()
-
-    def test_distribution_length_too_large(self):
-        """
-        Tests that if the distribution_length is greater than the length of the
-        network, the distribution length is set to the length of the network
-        instead
-        """
-        # set the initial_config parameters with a very large distribution
-        # length
-        distribution_length = np.inf
-        initial_config = InitialConfig(distribution_length=distribution_length)
-
-        # create the environment
-        self.setUp_gen_start_pos(initial_config)
-
-        # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
-
-        # difference in position between the nth vehicle and the vehicle ahead
-        # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
-
-        # check that all vehicles, including the last vehicle, have the same
-        # spacing
-        self.assertEqual(np.unique(np.around(nth_headway, 2)).size, 1)
-
-        # delete the created environment
-        self.tearDown_gen_start_pos()
-
-    def test_bunching_distribution_length_too_compact(self):
-        """
-        Tests that if bunching is too large or the distribution length is too
-        small, the vehicles are bunched as close to each other as possible
-        """
-        # set the initial_config parameters with a very large bunching term
-        bunching = np.inf
-        initial_config = InitialConfig(bunching=bunching)
-
-        # create the environment
-        self.setUp_gen_start_pos(initial_config)
-
-        # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        headway = [self.env.vehicles.get_headway(veh_id) for veh_id in ids]
-
-        # check that all headways (except that of the front vehicle) are zero
-        self.assertEqual(sum(headway[:-1]), 0)
-
-        # delete the created environment
-        self.tearDown_gen_start_pos()
-
     def test_lanes_distribution(self):
         """
         Tests that if lanes_distribution is less than the total number of lanes,
@@ -324,7 +239,7 @@ class TestEvenStartPos(unittest.TestCase):
                             if self.env.vehicles.get_lane(veh_id) == i])
 
         # check that the vehicles are uniformly distributed in the number of
-        # requested lanes lanes
+        # requested lanes
         for i in range(lanes_distribution):
             # difference in position between the nth vehicle and the vehicle
             # ahead of it
@@ -332,13 +247,7 @@ class TestEvenStartPos(unittest.TestCase):
                 np.mod(np.append(veh_pos[i][1:], veh_pos[i][0]) - veh_pos[i],
                        self.env.scenario.length)
 
-            # if all element are equal, there should only be one unique value
-            if i >= lanes_distribution - \
-                    self.env.vehicles.num_vehicles % lanes_distribution:
-                # in the case of an odd number of vehicles, the second
-                self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
-            else:
-                self.assertEqual(np.unique(np.around(nth_headway, 2)).size, 1)
+            self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
 
         # check that there are no vehicles in the remaining lanes
         for i in range(self.env.scenario.lanes - lanes_distribution):
@@ -390,182 +299,35 @@ class TestEvenStartPos(unittest.TestCase):
         # check that the vehicles are uniformly distributed in the number of
         # requested lanes lanes
         for i in range(self.env.scenario.lanes):
-            # difference in position between the nth vehicle and the vehicle ahead
-            # of it
+            # difference in position between the nth vehicle and the vehicle
+            # ahead of it
             nth_headway = \
                 np.mod(np.append(veh_pos[i][1:], veh_pos[i][0]) - veh_pos[i],
                        self.env.scenario.length)
 
-            # if all element are equal, there should only be one unique value
-            if i >= self.env.scenario.lanes - \
-                    self.env.vehicles.num_vehicles % self.env.scenario.lanes:
-                # in the case of an odd number of vehicles, the second
-                self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
-            else:
-                self.assertEqual(np.unique(np.around(nth_headway, 2)).size, 1)
+            self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
 
         # delete the created environment
         self.tearDown_gen_start_pos()
 
-
-class TestGaussianStartPos(TestEvenStartPos):
-    """
-    Tests the function gen_gaussian_start_pos in base_scenario.py. This function
-    can be used on any scenario subclass, and therefore may be tested on any of
-    these classes. In order to perform this testing, replace the scenario in
-    setUp() with the scenario to be tested.
-    """
-    def setUp_gen_start_pos(self, initial_config=InitialConfig()):
+    def test_edges_distribution(self):
         """
-        Replace with any scenario you would like to test gen_gaussian_start_pos
-        on. In ordering for all the tests to be meaningful, the scenario must
-        contain MORE THAN TWO LANES.
+        Tests that vehicles are only placed in edges listed in the
+        edges_distribution parameter, when edges are specified
         """
-        # create a multi-lane ring road network
-        additional_net_params = {"length": 230, "lanes": 4, "speed_limit": 30,
-                                 "resolution": 40}
-        net_params = NetParams(additional_params=additional_net_params)
-
-        # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=15)
-
-        # makes sure that all tests are being perform on a gaussian starting pos
-        initial_config.spacing = "gaussian"
-        if initial_config.scale == InitialConfig().scale:
-            initial_config.scale = 0
-
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(net_params=net_params,
-                                                 initial_config=initial_config,
-                                                 vehicles=vehicles)
-
-    def tearDown_gen_start_pos(self):
-        # terminate the traci instance
-        self.env.terminate()
-
-        # free data used by the class
-        self.env = None
-
-    def test_base(self):
-        """
-        Ignore from parent class
-        """
-        pass
-
-    def test_zero_scale(self):
-        """
-        Tests that get_gaussian_start_pos distributes vehicles evenly when
-        scale is zero.
-        """
-        # set the initial_config parameters with an x0 value that is something
-        # in between zero and the length of the network
-        initial_config = InitialConfig(spacing="gaussian", scale=0)
+        # set the initial_config parameters with an edges_distribution term for
+        # only a few edges
+        edges = ["top", "bottom"]
+        initial_config = InitialConfig(edges_distribution=edges)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
 
-        # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
-
-        # difference in position between the nth vehicle and the vehicle ahead
-        # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
-
-        # check that the position of the first vehicle is at 0
-        self.assertEqual(veh_pos[0], 0)
-
-        # if all element are equal, there should only be one unique value
-        self.assertEqual(np.unique(np.around(nth_headway, 2)).size, 1)
-
-        # delete the created environment
-        self.tearDown_gen_start_pos()
-
-
-class TestGaussianAdditiveStartPos(TestEvenStartPos):
-    """
-    Tests the function gen_gaussian_additive_start_pos in base_scenario.py. This
-    function can be used on any scenario subclass, and therefore may be tested
-    on any of these classes. In order to perform this testing, replace the
-    scenario in setUp() with the scenario to be tested.
-    """
-
-    def setUp_gen_start_pos(
-            self, initial_config=InitialConfig()):
-        """
-        Replace with any scenario you would like to test gen_gaussian_start_pos
-        on. In ordering for all the tests to be meaningful, the scenario must
-        contain MORE THAN TWO LANES.
-        """
-        # create a multi-lane ring road network
-        additional_net_params = {"length": 230, "lanes": 4, "speed_limit": 30,
-                                 "resolution": 40}
-        net_params = NetParams(additional_params=additional_net_params)
-
-        # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=15)
-
-        initial_config.spacing = "gaussian_additive"
-        if initial_config.downscale == InitialConfig().downscale:
-            initial_config.downscale = np.inf
-
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(net_params=net_params,
-                                                 initial_config=initial_config,
-                                                 vehicles=vehicles)
-
-    def tearDown_gen_start_pos(self):
-        # terminate the traci instance
-        self.env.terminate()
-
-        # free data used by the class
-        self.env = None
-
-    def test_base(self):
-        """
-        Ignore from parent class
-        """
-        pass
-
-    def test_infinite_downscale(self):
-        """
-        Tests that get_gaussian_additive_start_pos produces a uniform
-        distribution when downscale is infinite.
-        """
-        # set the initial_config parameters with an x0 value that is something
-        # in between zero and the length of the network
-        initial_config = InitialConfig(spacing="gaussian_additive",
-                                       downscale=np.inf)
-
-        # create the environment, test that it can be created without failing
-        self.setUp_gen_start_pos(initial_config)
-
-        # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
-
-        # difference in position between the nth vehicle and the vehicle ahead
-        # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
-
-        # check that the position of the first vehicle is at 0
-        self.assertEqual(veh_pos[0], 0)
-
-        # if all element are equal, there should only be one unique value
-        self.assertEqual(np.unique(np.around(nth_headway, 2)).size, 1)
-
-        # delete the created environment
-        self.tearDown_gen_start_pos()
+        # check that all vehicles are only placed in edges specified in the
+        # edges_distribution term
+        for veh_id in self.env.vehicles.get_ids():
+            if self.env.vehicles.get_edge(veh_id) not in edges:
+                raise AssertionError
 
 
 class TestEvenStartPosInternalLinks(unittest.TestCase):
@@ -627,53 +389,211 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
                     self.assertTrue(np.any(np.array(rel_pos) == 0))
 
 
-class TestGaussianStartPosInternalLinks(TestEvenStartPosInternalLinks):
+class TestRandomStartPos(unittest.TestCase):
     """
-    Tests the function gen_gaussian_start_pos when internal links are being
-    used. Ensures that, if the scale is 0, all vehicles are evenly spaced except
-    when a vehicle is supposed to be placed at an internal link, in which case
-    the vehicle is placed right outside the internal link.
+    Tests the function gen_random_start_pos in base_scenario.py.
     """
+    def setUp_gen_start_pos(self, initial_config=InitialConfig()):
+        # ensures that the random starting position method is being used
+        initial_config.spacing = "random"
+
+        # create a multi-lane ring road network
+        additional_net_params = {"length": 230, "lanes": 4, "speed_limit": 30,
+                                 "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # place 5 vehicles in the network (we need at least more than 1)
+        vehicles = Vehicles()
+        vehicles.add_vehicles(veh_id="test",
+                              acceleration_controller=(IDMController, {}),
+                              routing_controller=(ContinuousRouter, {}),
+                              num_vehicles=5)
+
+        # create the environment and scenario classes for a ring road
+        self.env, scenario = ring_road_exp_setup(net_params=net_params,
+                                                 initial_config=initial_config,
+                                                 vehicles=vehicles)
+
+    def tearDown_gen_start_pos(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def test_lanes_distribution(self):
+        """
+        Tests that vehicles are only placed in the requested number of lanes.
+        """
+        # create the environment
+        initial_config = InitialConfig(spacing="random", lanes_distribution=2)
+        self.setUp_gen_start_pos(initial_config)
+
+        # verify that all vehicles are located in the number of allocated lanes
+        for veh_id in self.env.vehicles.get_ids():
+            if self.env.vehicles.get_lane(veh_id) >= \
+                    initial_config.lanes_distribution:
+                raise AssertionError
+
+    def test_edges_distribution(self):
+        """
+        Tests that vehicles are only placed in the requested edges.
+        """
+        # set the initial_config parameters with an edges_distribution term for
+        # only a few edges
+        edges = ["top", "bottom"]
+        initial_config = InitialConfig(spacing="random",
+                                       edges_distribution=edges)
+
+        # create the environment
+        self.setUp_gen_start_pos(initial_config)
+
+        # check that all vehicles are only placed in edges specified in the
+        # edges_distribution term
+        for veh_id in self.env.vehicles.get_ids():
+            if self.env.vehicles.get_edge(veh_id) not in edges:
+                raise AssertionError
+
+
+class TestEvenStartPosVariableLanes(unittest.TestCase):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
         vehicles.add_vehicles(veh_id="test",
                               acceleration_controller=(IDMController, {}),
                               routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=15)
+                              num_vehicles=50)
 
-        initial_config = InitialConfig(spacing="gaussian", scale=0, x0=150)
+        initial_config = InitialConfig(lanes_distribution=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = figure_eight_exp_setup(
-            initial_config=initial_config,
-            vehicles=vehicles
-        )
+        # create the environment and scenario classes for a variable lanes per
+        # edge ring road
+        self.env, scenario = variable_lanes_exp_setup(
+            vehicles=vehicles, initial_config=initial_config)
+
+    def tearDown(self):
+        # terminate the traci instance
+        self.env.terminate()
+
+        # free data used by the class
+        self.env = None
+
+    def runTest(self):
+        """
+        Ensures that enough vehicles are placed in the network, and they cover
+        all possible lanes.
+        """
+        expected_num_vehicles = self.env.vehicles.num_vehicles
+        actual_num_vehicles = len(self.env.traci_connection.vehicle.getIDList())
+
+        # check that enough vehicles are in the network
+        self.assertEqual(expected_num_vehicles, actual_num_vehicles)
+
+        # check that all possible lanes are covered
+        lanes = self.env.vehicles.get_lane()
+        if any([i not in lanes for i in range(4)]):
+            raise AssertionError
 
 
-class TestGaussianAdditiveStartPosInternalLinks(TestEvenStartPosInternalLinks):
-    """
-    Tests the function gen_gaussian_additive_start_pos when internal links are
-    being used. Ensures that, if the scale is 0, all vehicles are evenly spaced
-    except when a vehicle is supposed to be placed at an internal link, in which
-    case the vehicle is placed right outside the internal link.
-    """
+class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
         vehicles.add_vehicles(veh_id="test",
                               acceleration_controller=(IDMController, {}),
                               routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=15)
+                              num_vehicles=50)
 
-        initial_config = InitialConfig(spacing="gaussian_additive",
-                                       downscale=np.inf, x0=150)
+        initial_config = InitialConfig(spacing="random", lanes_distribution=5)
 
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = figure_eight_exp_setup(
-            initial_config=initial_config,
-            vehicles=vehicles
-        )
+        # create the environment and scenario classes for a variable lanes per
+        # edge ring road
+        self.env, scenario = variable_lanes_exp_setup(
+            vehicles=vehicles, initial_config=initial_config)
+
+
+class TestEdgeLength(unittest.TestCase):
+    """
+    Tests the edge_length() method in the base scenario class.
+    """
+    def setUp(self):
+        additional_net_params = {"length": 1000, "lanes": 2,
+                                 "speed_limit": 60, "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = ring_road_exp_setup(net_params=net_params)
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        self.assertEqual(self.scenario.edge_length("top"), 250)
+
+
+class TestSpeedLimit(unittest.TestCase):
+    """
+    Tests the speed_limit() method in the base scenario class.
+    """
+    def setUp(self):
+        additional_net_params = {"length": 230, "lanes": 2,
+                                 "speed_limit": 60, "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = ring_road_exp_setup(net_params=net_params)
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        self.assertEqual(int(self.scenario.speed_limit("top")), 60)
+
+
+class TestNumLanes(unittest.TestCase):
+    """
+    Tests the num_lanes() method in the base scenario class.
+    """
+    def setUp(self):
+        additional_net_params = {"length": 230, "lanes": 2,
+                                 "speed_limit": 30, "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = ring_road_exp_setup(net_params=net_params)
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        self.assertEqual(self.scenario.num_lanes("top"), 2)
+
+
+class TestGetEdgeList(unittest.TestCase):
+    """
+    Tests that the get_edge_list() in the scenario class properly returns all
+    edges, and not junctions.
+    """
+    def setUp(self):
+        # create the environment and scenario classes for a figure eight
+        env, self.scenario = figure_eight_exp_setup()
+
+    def tearDown(self):
+        # free data used by the class
+        self.scenario = None
+
+    def runTest(self):
+        edge_list = self.scenario.get_edge_list()
+        expected_edge_list = ["bottom_lower_ring", "right_lower_ring_in",
+                              "right_lower_ring_out", "left_upper_ring",
+                              "top_upper_ring", "right_upper_ring",
+                              "bottom_upper_ring_in", "bottom_upper_ring_out",
+                              "top_lower_ring", "left_lower_ring"]
+
+        self.assertCountEqual(edge_list, expected_edge_list)
 
 
 if __name__ == '__main__':

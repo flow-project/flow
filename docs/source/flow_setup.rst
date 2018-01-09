@@ -25,10 +25,13 @@ Install flow
 ::
 
     git clone https://github.com/cathywu/flow.git
-    cd flow
+    pushd flow
     bash scripts/setup_sumo_osx.sh <DESIRED_PATH_TO_SUMO>  # installs sumo at <DESIRED_PATH_TO_SUMO>/sumo
     python setup.py develop  # (install flow and dependencies)
-    cp flow/core/config.template.py flow/core/config.py  # User config
+    popd
+
+If using Ubuntu, run the appropriate SUMO setup script in the `scripts`
+directory.
 
 Add the following to `~/.bashrc`
 ::
@@ -40,8 +43,9 @@ Add the following to `~/.bashrc`
 Install ray
 ::
 
-    git clone https://github.com/ray-project/ray.git
+    git clone https://github.com/cathywu/ray.git
     pushd ray/python
+    git checkout testing
     sudo apt-get install -y cmake
     python setup.py develop
     popd
@@ -63,19 +67,19 @@ Run the unit tests:
 
 ::
 
-    nose2
+    nose2 -s tests/fast_tests
 
 Let’s see some traffic action:
 
 ::
 
-    python examples/sugiyama.py
+    python examples/sumo/sugiyama.py
 
 This means that you have Flow properly configured with SUMO.
 
 ::
 
-    python examples/mixed_rl_single_lane_ray.py
+    python examples/rllib/stabilizing_the_ring.py
 
 This means that you have Flow properly configured with both SUMO and
 rllib. Congratulations, you now have Flow set up!
@@ -98,8 +102,8 @@ For information on how to deploy a cluster, see [instructions]
  jobs from there.
 ::
 
-    ray create_or_update flow_ray_autoscale.yaml
-    ray teardown flow_ray_autoscale.yaml
+    ray create_or_update scripts/ray_autoscale.yaml
+    ray teardown scripts/ray_autoscale.yaml
 
 
 Installation (rllab version)
