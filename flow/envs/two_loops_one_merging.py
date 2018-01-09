@@ -272,7 +272,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         max_cost = np.linalg.norm(max_cost)
         normalization = self.scenario.length / self.vehicles.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.punish_small_rl_headways(
-            self.vehicles, self.sorted_extra_data, 10,penalty_exponent=2)
+            self.vehicles, self.vehicles.get_ids(), 10,penalty_exponent=1)
         # print("Rewards", vel_reward, headway_reward)
         return vel_reward + headway_reward
 
