@@ -31,7 +31,8 @@ from flow.core.util import ensure_dir
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
-COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (0, 0, 255, 0), (255, 255, 0, 0),
+# Colors are [red, green, yellow, cyan, purple, white]
+COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
 
 
@@ -406,10 +407,7 @@ class Env(gym.Env, Serializable):
             or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
-        if self.vehicles.num_rl_vehicles > 0:
-            reward = self.compute_reward(self.state, rl_actions, fail=crash)
-        else:
-            reward = 0
+        reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
         # Are we in a multi-agent scenario? If so, the action space is a list.
         if self.multi_agent:
@@ -500,8 +498,11 @@ class Env(gym.Env, Serializable):
         # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList() + \
                 self.traci_connection.simulation.getStartingTeleportIDList():
-            self.traci_connection.vehicle.remove(veh_id)
-            self.vehicles.remove(veh_id)
+            try:
+                self.traci_connection.vehicle.remove(veh_id)
+                self.vehicles.remove(veh_id)
+            except Exception:
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -763,6 +764,7 @@ class Env(gym.Env, Serializable):
         """
         Reward function for RL.
         MUST BE implemented in new environments.
+        Defaults to 0 for non-implemented environments.
 
         Parameters
         ----------
@@ -778,7 +780,7 @@ class Env(gym.Env, Serializable):
         -------
         reward: float
         """
-        raise NotImplementedError
+        return 0
 
     def terminate(self):
         """
