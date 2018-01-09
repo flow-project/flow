@@ -24,8 +24,8 @@ def choose_policy(inputs):
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 1
-    n_rollouts = 30
+    num_cpus = 6
+    n_rollouts = 100
 
     ray.init(num_cpus=num_cpus, redirect_output=True)
 

@@ -69,7 +69,8 @@ def merge_desired_velocity(env, fail=False):
     cost = inner_vel - env.env_params.additional_params["target_velocity"]
     cost = np.linalg.norm(cost)
 
-    return max(max_cost - cost, 0)
+
+    return max((max_cost - cost)/np.sqrt(num_vehicles), 0)
 
 
 def min_delay(state=None, actions=None, **kwargs):
