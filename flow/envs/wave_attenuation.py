@@ -16,7 +16,7 @@ from traci import constants as tc
 import pdb
 
 
-class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
+class WaveAttenuationEnv(SumoEnvironment):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
@@ -110,11 +110,13 @@ class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
         steps are performed with the rl vehicle acting as a human vehicle.
         """
         # update the scenario
-        initial_config = InitialConfig(bunching=50)
+        initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {"length": np.random.choice(np.arange(200, 350)),
                                  "lanes": 1, "speed_limit": 30, "resolution": 40}
         net_params = NetParams(additional_params=additional_net_params)
 
+        # TODO(nish): figure out what exactly this does (ask @cathywu?)
+        # - shouldn't need to reinstantiate scenario, right? 
         self.scenario = self.env_params.additional_params["scenario_type"](
             self.scenario.name, self.scenario.generator_class,
             self.scenario.vehicles, net_params, initial_config)
@@ -201,12 +203,14 @@ class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
 
         self.traci_connection.simulationStep()
 
-        # collect new network observations from sumo
-        network_observations = \
-            self.traci_connection.vehicle.getSubscriptionResults()
+        # collect information on the vehicle in the network from sumo
+        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+
+        # get vehicle ids for the entering, exiting, and colliding vehicles
+        id_lists = self.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(network_observations, self)
+        self.vehicles.set_sumo_observations(vehicle_obs, id_lists, self)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -228,7 +232,10 @@ class FullyObservableWaveAttenuationEnvironment(SumoEnvironment):
         return next_observation
 
 
-class PartiallyObservableWaveAttenuationEnvironment(FullyObservableWaveAttenuationEnvironment):
+class WaveAttenuationPOEnv(WaveAttenuationEnv):
+    """
+    POMDP version of wave attenuation env
+    """
 
     @property
     def observation_space(self):
