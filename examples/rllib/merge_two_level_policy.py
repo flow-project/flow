@@ -51,17 +51,20 @@ if __name__ == "__main__":
     flow_env_name = "TwoLoopsMergePOEnv"
     exp_tag = "merge_two_level_policy_example"
     this_file = os.path.basename(__file__)[:-3]  # filename without '.py'
+    flow_params["flowenv"] = flow_env_name
+    flow_params["exp_tag"] = exp_tag
+    flow_params["module"] = os.path.basename(__file__)[:-3]
     config['user_data'].update({'flowenv': flow_env_name,
                                 'exp_tag': exp_tag,
                                 'module': this_file})
-    create_env, env_name = make_create_env(flow_env_name, version=0,
+    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
                                            exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-    for i in range(2):
+    for i in range(200):
         alg.train()
         if i % 20 == 0:
             alg.save()  # save checkpoint
