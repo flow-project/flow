@@ -39,6 +39,13 @@ OR
     python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO \
         --module cooperative_merge --flowenv TwoLoopsMergePOEnv \
         --exp_tag cooperative_merge_example    
+
+Here the arguments are:
+1 - the number of the checkpoint
+PPO - the name of the algorithm the code was run with
+cooperative_merge - the run script
+TwoLoopsMergePOEnv - the gym environment that was used
+cooperative_merge_example - Not actually used. Anything can be passed here.
 """
 
 parser = argparse.ArgumentParser(
