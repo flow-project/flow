@@ -13,54 +13,67 @@ from flow.scenarios.highway.scenario import HighwayScenario
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
 
-logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sumo_binary="sumo-gui")
+def highway_example(sumo_binary=None):
 
-vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(IDMController, {}),
-             lane_change_controller=(StaticLaneChanger, {}),
-             routing_controller=(ContinuousRouter, {}),
-             initial_speed=0,
-             num_vehicles=20)
-vehicles.add(veh_id="human2",
-             acceleration_controller=(IDMController, {}),
-             lane_change_controller=(StaticLaneChanger, {}),
-             routing_controller=(ContinuousRouter, {}),
-             initial_speed=0,
-             num_vehicles=20)
+    logging.basicConfig(level=logging.INFO)
 
-additional_env_params = {"target_velocity": 8}
-env_params = EnvParams(additional_params=additional_env_params)
+    sumo_params = SumoParams(sumo_binary="sumo-gui")
 
-inflow = InFlows()
-inflow.add(veh_type="human", edge="highway", probability=0.25,
-           departLane="free", departSpeed=20)
-inflow.add(veh_type="human2", edge="highway", probability=0.25,
-           departLane="free", departSpeed=20)
+    if sumo_binary is not None:
+        sumo_params.sumo_binary = sumo_binary
 
-additional_net_params = {"length": 1000, "lanes": 4,
-                         "speed_limit": 30}
-net_params = NetParams(in_flows=inflow,
-                       additional_params=additional_net_params)
+    vehicles = Vehicles()
+    vehicles.add(veh_id="human",
+                 acceleration_controller=(IDMController, {}),
+                 lane_change_controller=(StaticLaneChanger, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 initial_speed=0,
+                 num_vehicles=20)
+    vehicles.add(veh_id="human2",
+                 acceleration_controller=(IDMController, {}),
+                 lane_change_controller=(StaticLaneChanger, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 initial_speed=0,
+                 num_vehicles=20)
 
-initial_config = InitialConfig(spacing="random",
-                               lanes_distribution=4,
-                               shuffle=True)
+    additional_env_params = {"target_velocity": 8}
+    env_params = EnvParams(additional_params=additional_env_params)
 
-scenario = HighwayScenario(name="highway",
-                           generator_class=HighwayGenerator,
-                           vehicles=vehicles,
-                           net_params=net_params,
-                           initial_config=initial_config)
+    inflow = InFlows()
+    inflow.add(veh_type="human", edge="highway", probability=0.25,
+               departLane="free", departSpeed=20)
+    inflow.add(veh_type="human2", edge="highway", probability=0.25,
+               departLane="free", departSpeed=20)
 
-env = AccelEnv(env_params, sumo_params, scenario)
+    additional_net_params = {"length": 1000, "lanes": 4,
+                             "speed_limit": 30}
+    net_params = NetParams(in_flows=inflow,
+                           additional_params=additional_net_params)
 
-exp = SumoExperiment(env, scenario)
+    initial_config = InitialConfig(spacing="random",
+                                   lanes_distribution=4,
+                                   shuffle=True)
 
-logging.info("Experiment Set Up complete")
+    scenario = HighwayScenario(name="highway",
+                               generator_class=HighwayGenerator,
+                               vehicles=vehicles,
+                               net_params=net_params,
+                               initial_config=initial_config)
 
-exp.run(1, 1500)
+    env = AccelEnv(env_params, sumo_params, scenario)
 
-exp.env.terminate()
+    exp = SumoExperiment(env, scenario)
+
+    logging.info("Experiment Set Up complete")
+
+    return exp
+
+
+if __name__ == "__main__":
+
+    # import the experiment variable
+    exp = highway_example()
+
+    # run for a set number of rollouts / time steps
+    exp.run(1, 1500)
