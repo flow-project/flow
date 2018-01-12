@@ -14,35 +14,50 @@ from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
 
-logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+def sugiyama_example(sumo_binary=None):
 
-vehicles = Vehicles()
-vehicles.add(veh_id="idm",
-             acceleration_controller=(IDMController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=22)
+    logging.basicConfig(level=logging.INFO)
 
-additional_env_params = {"target_velocity": 8}
-env_params = EnvParams(additional_params=additional_env_params)
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
-additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30,
-                         "resolution": 40}
-net_params = NetParams(additional_params=additional_net_params)
+    if sumo_binary is not None:
+        sumo_params.sumo_binary = sumo_binary
 
-initial_config = InitialConfig(bunching=20)
+    vehicles = Vehicles()
+    vehicles.add(veh_id="idm",
+                 acceleration_controller=(IDMController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=22)
 
-scenario = LoopScenario(name="sugiyama",
-                        generator_class=CircleGenerator,
-                        vehicles=vehicles,
-                        net_params=net_params,
-                        initial_config=initial_config)
+    additional_env_params = {"target_velocity": 8}
+    env_params = EnvParams(additional_params=additional_env_params)
 
-env = AccelEnv(env_params, sumo_params, scenario)
+    additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30,
+                             "resolution": 40}
+    net_params = NetParams(additional_params=additional_net_params)
 
-exp = SumoExperiment(env, scenario)
+    initial_config = InitialConfig(bunching=20)
 
-logging.info("Experiment Set Up complete")
+    scenario = LoopScenario(name="sugiyama",
+                            generator_class=CircleGenerator,
+                            vehicles=vehicles,
+                            net_params=net_params,
+                            initial_config=initial_config)
 
-exp.run(1, 1500)
+    env = AccelEnv(env_params, sumo_params, scenario)
+
+    exp = SumoExperiment(env, scenario)
+
+    logging.info("Experiment Set Up complete")
+
+    return exp
+
+
+if __name__ == "__main__":
+
+    # import the experiment variable
+    exp = sugiyama_example()
+
+    # run for a set number of rollouts / time steps
+    exp.run(1, 1500)
