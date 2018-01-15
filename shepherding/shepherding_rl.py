@@ -100,7 +100,7 @@ def run_task(*_):
     algo.train()
 
 
-for seed in [50, 500, 800, 1200, 1717]:
+for seed in [800, 1200, 1717, 1919, 2018]:
     run_experiment_lite(
         run_task,
         # Only keep the snapshot parameters for the last iteration
@@ -108,11 +108,10 @@ for seed in [50, 500, 800, 1200, 1717]:
         snapshot_gap=50,
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used,
-        exp_prefix="_shepherding_big_loop_rl_out_front_10_human_cars",
+        exp_prefix="_shepherding_rl_out_front_ordered_observations",
         # Number of parallel workers for sampling
         n_parallel=8,
         seed=seed,
         # python_command="/Users/kanaad/anaconda3/envs/flow/bin/python",
         mode="ec2",
-        # n_parallel=1,
     )

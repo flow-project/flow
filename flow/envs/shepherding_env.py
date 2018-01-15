@@ -53,9 +53,9 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
         An observation consists of the velocity, absolute position, and lane
         index of each vehicle in the fleet
         """
-        speed = Box(low=-np.inf, high=1, shape=(self.vehicles.num_vehicles,))
-        lane = Box(low=0, high=self.scenario.lanes - 1, shape=(self.vehicles.num_vehicles,))
-        absolute_pos = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0.0, high=2, shape=(self.vehicles.num_vehicles,))
+        lane = Box(low=0.0, high=self.scenario.lanes - 1, shape=(self.vehicles.num_vehicles,))
+        absolute_pos = Box(low=0.0, high=1, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, absolute_pos, lane))
 
     def get_state(self):
@@ -70,7 +70,7 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
         scaled_vel = [self.vehicles.get_speed(veh_id) /
                       self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
-        lane = [self.vehicles.get_speed(veh_id) for veh_id in self.sorted_ids]
+        lane = [self.vehicles.get_lane(veh_id) for veh_id in self.sorted_ids]
         return np.array([[scaled_vel[i], scaled_pos[i], lane[i]]
                          for i in range(len(self.sorted_ids))])
 
