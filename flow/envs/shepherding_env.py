@@ -130,3 +130,21 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
                     self.impatient_tau *= 1.05
                     self.traci_connection.vehicle.setTau("aggressive-human_0", self.impatient_tau)
 
+    def sort_by_position(self):
+        """
+        Sorts the vehicle ids first by type and then by position.
+        The RL cars are first by default.
+        Returns
+        -------
+        sorted_ids: list
+            a list of all vehicle IDs sorted by type andt then by position
+        sorted_extra_data: list or tuple
+            an extra component (list, tuple, etc...) containing extra sorted
+            data, such as positions. If no extra component is needed, a value
+            of None should be returned
+        """
+        non_aggressive_humans = list(self.vehicles.get_sumo_ids())
+        non_aggressive_humans.remove("aggressive-human_0")
+        sorted_indx = np.argsort(self.vehicles.get_absolute_position(non_aggressive_humans))
+        sorted_ids = np.concatenate([np.array(["rl_0", "rl_1", "rl_2", "aggressive-human_0"]), np.array(non_aggressive_humans)[sorted_indx]])
+        return sorted_ids, None
