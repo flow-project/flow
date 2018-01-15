@@ -9,7 +9,6 @@ from gym.spaces.tuple_space import Tuple
 class ShepherdingEnv(SimpleAccelerationEnvironment):
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        deviation = np.abs(self.env_params.additional_params["target_velocity"]-self.vehicles.get_speed("aggressive-human_0"))
         # num_non_rl = (self.vehicles.num_vehicles-self.vehicles.num_rl_vehicles)
         # desired_vel = np.array([self.env_params.additional_params["target_velocity"]] * num_non_rl)
         # maxdiff = np.linalg.norm(np.array([0] * num_non_rl) - desired_vel)
@@ -24,6 +23,8 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
         #
         # rl_speeds = np.linalg.norm([max(10 - x,0) for x in self.vehicles.get_speed(self.vehicles.get_rl_ids())])
         # print((self.env_params.additional_params["target_velocity"] - deviation)**2)
+
+        deviation = np.abs(self.env_params.additional_params["target_velocity"]-self.vehicles.get_speed("aggressive-human_0"))
         return (self.env_params.additional_params["target_velocity"] - deviation)**2
 
     @property
@@ -52,9 +53,9 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
         An observation consists of the velocity, absolute position, and lane
         index of each vehicle in the fleet
         """
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=-np.inf, high=1, shape=(self.vehicles.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes - 1, shape=(self.vehicles.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        absolute_pos = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, absolute_pos, lane))
 
     def get_state(self):
@@ -64,10 +65,15 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
         The state is an array the velocities, absolute positions, and lane
         numbers for each vehicle.
         """
-        return np.array([[self.vehicles.get_speed(veh_id),
-                          self.get_x_by_id(veh_id),
-                          self.vehicles.get_lane(veh_id)]
-                         for veh_id in self.sorted_ids])
+        scaled_pos = [self.vehicles.get_absolute_position(veh_id) /
+                      self.scenario.length for veh_id in self.sorted_ids]
+        scaled_vel = [self.vehicles.get_speed(veh_id) /
+                      self.env_params.get_additional_param("target_velocity")
+                      for veh_id in self.sorted_ids]
+        lane = [self.vehicles.get_speed(veh_id) for veh_id in self.sorted_ids]
+        return np.array([[scaled_vel[i], scaled_pos[i], lane[i]]
+                         for i in range(len(self.sorted_ids))])
+
 
     def apply_rl_actions(self, actions):
         """
