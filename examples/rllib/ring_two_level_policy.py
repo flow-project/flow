@@ -31,10 +31,10 @@ if __name__ == "__main__":
 
     config["model"].update(
         {"fcnet_hiddens": [[5, 3]] * 2})
-    config["model"]["user_data"] = {}
-    config["model"]["user_data"].update({"num_subpolicies": 2,
-                                         "fn_choose_subpolicy": list(
-                                             cloudpickle.dumps(choose_policy))})
+    options = {"num_subpolicies": 2,
+                "fn_choose_subpolicy": list(
+                cloudpickle.dumps(choose_policy))}
+    config["model"].update({"custom_options": options})
     # config["model"].update(
     #     {"num_subpolicies": 2, "fcnet_hiddens": [[5, 3]] * 2,
     #      "choose_policy": marshal.dumps(choose_policy.__code__)})
