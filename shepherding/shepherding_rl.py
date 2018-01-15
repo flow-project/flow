@@ -69,10 +69,10 @@ def run_task(*_):
     env_params = EnvParams(additional_params={"target_velocity": 15, "num_steps": 1000},
                            lane_change_duration=0.1, max_speed=30)
 
-    additional_net_params = {"length": 500, "lanes": 3, "speed_limit": 15, "resolution": 40}
+    additional_net_params = {"length": 3000, "lanes": 3, "speed_limit": 15, "resolution": 200}
     net_params = NetParams(additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, shuffle=True)
+    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, bunching=2700, shuffle=True)
 
     # scenario = LoopScenario("3-lane-aggressive-driver", CircleGenerator, vehicles, net_params, initial_config)
     scenario = LoopScenario("3-lane-aggressive-driver", ShepherdingGenerator, vehicles, net_params, initial_config)
@@ -95,12 +95,12 @@ def run_task(*_):
         baseline=baseline,
         batch_size=30000,
         max_path_length=horizon,
-        n_itr=4001,
+        n_itr=1001,
     )
     algo.train()
 
 
-for seed in [50, 55, 60, 70]:
+for seed in [50, 500, 800, 1200, 1717]:
     run_experiment_lite(
         run_task,
         # Only keep the snapshot parameters for the last iteration
@@ -108,7 +108,7 @@ for seed in [50, 55, 60, 70]:
         snapshot_gap=50,
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used,
-        exp_prefix="_shepherding_big_loop_4k_itr_no_shuffle",
+        exp_prefix="_shepherding_big_loop_rl_out_front_10_human_cars",
         # Number of parallel workers for sampling
         n_parallel=8,
         seed=seed,
