@@ -32,26 +32,26 @@ def run_task(*_):
     # note that the vehicles are added sequentially by the generator,
     # so place the merging vehicles after the vehicles in the ring
     vehicles = Vehicles()
-    vehicles.add_vehicles(veh_id="human",
-                          acceleration_controller=(IDMController, {"noise": 0.2}),
-                          lane_change_controller=(SumoLaneChangeController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=6,
-                          sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
-                          sumo_lc_params=SumoLaneChangeParams())
+    vehicles.add(veh_id="human",
+                 acceleration_controller=(IDMController, {"noise": 0.2}),
+                 lane_change_controller=(SumoLaneChangeController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=6,
+                 sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+                 sumo_lc_params=SumoLaneChangeParams())
 
-    vehicles.add_vehicles(veh_id="merge-rl",
-                          acceleration_controller=(RLController, {"fail_safe": "safe_velocity"}),
-                          lane_change_controller=(SumoLaneChangeController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          speed_mode="no_collide",
-                          num_vehicles=10,
-                          sumo_car_following_params=SumoCarFollowingParams(minGap=0.01, tau=0.5),
-                          sumo_lc_params=SumoLaneChangeParams())
+    vehicles.add(veh_id="merge-rl",
+                 acceleration_controller=(RLController, {"fail_safe": "safe_velocity"}),
+                 lane_change_controller=(SumoLaneChangeController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 speed_mode="no_collide",
+                 num_vehicles=10,
+                 sumo_car_following_params=SumoCarFollowingParams(minGap=0.01, tau=0.5),
+                 sumo_lc_params=SumoLaneChangeParams())
 
-    additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
-                             "max-acc": 1, "num_steps": 1000}
-    env_params = EnvParams(additional_params=additional_env_params)
+    additional_env_params = {"target_velocity": 20, "num_steps": 1000}
+    env_params = EnvParams(max_accel=1, max_decel=1.5,
+                           additional_params=additional_env_params)
 
     additional_net_params = {"ring_radius": 50, "lanes": 1, "lane_length": 75,
                              "speed_limit": 30, "resolution": 40}

@@ -8,7 +8,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.two_intersection import TwoIntersectionEnvironment
+from flow.envs.two_intersection import TwoIntersectionEnv
 from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
 from flow.scenarios.intersections.intersection_scenario import *
 from flow.controllers.car_following_models import *
@@ -21,9 +21,9 @@ sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
                          sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
-                      acceleration_controller=(IDMController, {}),
-                      num_vehicles=20)
+vehicles.add(veh_id="idm",
+             acceleration_controller=(IDMController, {}),
+             num_vehicles=20)
 
 intensity = .2
 v_enter = 10
@@ -53,7 +53,7 @@ scenario = TwoWayIntersectionScenario(
     initial_config=initial_config
 )
 
-env = TwoIntersectionEnvironment(env_params, sumo_params, scenario)
+env = TwoIntersectionEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

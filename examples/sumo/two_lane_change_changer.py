@@ -10,7 +10,7 @@ from flow.controllers.lane_change_controllers import *
 from flow.controllers.car_following_models import *
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.loop.gen import CircleGenerator
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.loop.loop_scenario import LoopScenario
 
 logging.basicConfig(level=logging.INFO)
@@ -18,11 +18,11 @@ logging.basicConfig(level=logging.INFO)
 sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
-                      acceleration_controller=(IDMController, {}),
-                      routing_controller=(ContinuousRouter, {}),
-                      num_vehicles=20,
-                      lane_change_mode="strategic")
+vehicles.add(veh_id="idm",
+             acceleration_controller=(IDMController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             num_vehicles=20,
+             lane_change_mode="strategic")
 
 env_params = EnvParams(additional_params={"target_velocity": 20})
 
@@ -38,7 +38,7 @@ scenario = LoopScenario(name="two-lane-one-contr",
                         net_params=net_params,
                         initial_config=initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
+env = AccelEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 
