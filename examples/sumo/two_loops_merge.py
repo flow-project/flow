@@ -24,14 +24,14 @@ sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
 # note that the vehicles are added sequentially by the generator,
 # so place the merging vehicles after the vehicles in the ring
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
-                      acceleration_controller=(IDMController, {}),
-                      routing_controller=(ContinuousRouter, {}),
-                      num_vehicles=12)
-vehicles.add_vehicles(veh_id="merge-idm",
-                      acceleration_controller=(IDMController, {}),
-                      routing_controller=(ContinuousRouter, {}),
-                      num_vehicles=5)
+vehicles.add(veh_id="idm",
+             acceleration_controller=(IDMController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             num_vehicles=12)
+vehicles.add(veh_id="merge-idm",
+             acceleration_controller=(IDMController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             num_vehicles=5)
 
 additional_env_params = {"target_velocity": 8, "max-deacc": -6, "max-acc": 3}
 env_params = EnvParams(additional_params=additional_env_params)

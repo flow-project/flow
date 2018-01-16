@@ -48,19 +48,19 @@ class Vehicles:
         # contain the minGap attribute of each type of vehicle
         self.minGap = dict()
 
-    def add_vehicles(self,
-                     veh_id,
-                     acceleration_controller=(SumoCarFollowingController, {}),
-                     lane_change_controller=(SumoLaneChangeController, {}),
-                     routing_controller=None,
-                     initial_speed=0,
-                     num_vehicles=1,
-                     speed_mode='no_collide',
-                     custom_speed_mode=None,
-                     lane_change_mode="no_lat_collide",
-                     custom_lane_change_mode=256,
-                     sumo_car_following_params=None,
-                     sumo_lc_params=None):
+    def add(self,
+            veh_id,
+            acceleration_controller=(SumoCarFollowingController, {}),
+            lane_change_controller=(SumoLaneChangeController, {}),
+            routing_controller=None,
+            initial_speed=0,
+            num_vehicles=1,
+            speed_mode='no_collide',
+            custom_speed_mode=None,
+            lane_change_mode="no_lat_collide",
+            custom_lane_change_mode=256,
+            sumo_car_following_params=None,
+            sumo_lc_params=None):
         """
         Adds a sequence of vehicles to the list of vehicles in the network.
 
@@ -222,19 +222,35 @@ class Vehicles:
         self.num_types += 1
         self.types.append((veh_id, type_params))
 
-    def set_sumo_observations(self, sumo_observations, veh_ids, env):
+    def update(self, vehicle_obs, sim_obs, env):
+        """
+        Updates the vehicle class with data pertaining to the vehicles at the
+        current time step.
+        - Modifies the state of all vehicle to match their state at the current
+          time step.
+        - Introduces newly departed vehicles and remove vehicles that exited
+          the network.
 
+        Parameters
+        ----------
+        vehicle_obs: dict
+            vehicle observations provided from sumo via subscriptions
+        sim_obs: dict
+            simulation observations provided from sumo via subscriptions
+        env: Environment type
+            state of the environment at the current time step
+        """
         # remove exiting vehicles from the vehicles class
-        for veh_id in veh_ids[tc.VAR_ARRIVED_VEHICLES_IDS]:
-            if veh_id not in veh_ids[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
+        for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
+            if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
                 self.remove(veh_id)
             else:
                 # this is meant to resolve the KeyError bug when there are
                 # collisions
-                sumo_observations[veh_id] = self.__sumo_observations[veh_id]
+                vehicle_obs[veh_id] = self.__sumo_observations[veh_id]
 
         # add entering vehicles into the vehicles class
-        for veh_id in veh_ids[tc.VAR_DEPARTED_VEHICLES_IDS]:
+        for veh_id in sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]:
             veh_type = env.traci_connection.vehicle.getTypeID(veh_id)
             self.add_departed(veh_id, veh_type, env)
 
@@ -249,14 +265,14 @@ class Vehicles:
             for veh_id in self.__ids:
                 # update the "last_lc" variable
                 prev_lane = self.get_lane(veh_id)
-                if sumo_observations[veh_id][tc.VAR_LANE_INDEX] != \
+                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
                         prev_lane and veh_id in self.__rl_ids:
                     self.set_state(veh_id, "last_lc", env.time_counter)
 
                 # update the "absolute_position" variable
                 prev_pos = env.get_x_by_id(veh_id)
-                this_edge = sumo_observations[veh_id][tc.VAR_ROAD_ID]
-                this_pos = sumo_observations[veh_id][tc.VAR_LANEPOSITION]
+                this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
+                this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
                 try:
                     change = env.scenario.get_x(this_edge, this_pos) - prev_pos
                     if change < 0:
@@ -269,7 +285,7 @@ class Vehicles:
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            headway = sumo_observations[veh_id][tc.VAR_LEADER]
+            headway = vehicle_obs[veh_id][tc.VAR_LEADER]
             vtype = self.get_state(veh_id, "type")
             minGap = self.minGap[vtype]
             if headway is None:
@@ -282,7 +298,7 @@ class Vehicles:
                 self.__vehicles[headway[0]]["follower"] = veh_id
 
         # update the sumo observations variable
-        self.__sumo_observations = deepcopy(sumo_observations)
+        self.__sumo_observations = deepcopy(vehicle_obs)
 
     def add_departed(self, veh_id, veh_type, env):
         """

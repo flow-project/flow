@@ -9,7 +9,7 @@ from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.scenarios.loop_merges.gen import LoopMergesGenerator
 from flow.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
-from flow.envs.loop_merges import SimpleLoopMergesEnvironment
+from flow.envs.loop_merges import LoopMergesEnv
 
 
 def loop_merge_exp_setup(vehicles=None):
@@ -18,16 +18,16 @@ def loop_merge_exp_setup(vehicles=None):
 
     if vehicles is None:
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="idm",
-                              acceleration_controller=(IDMController, {}),
-                              lane_change_controller=(StaticLaneChanger, {}),
-                              speed_mode="no_collide",
-                              num_vehicles=5)
-        vehicles.add_vehicles(veh_id="merge-idm",
-                              acceleration_controller=(IDMController, {}),
-                              lane_change_controller=(StaticLaneChanger, {}),
-                              speed_mode="no_collide",
-                              num_vehicles=5)
+        vehicles.add(veh_id="idm",
+                     acceleration_controller=(IDMController, {}),
+                     lane_change_controller=(StaticLaneChanger, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=5)
+        vehicles.add(veh_id="merge-idm",
+                     acceleration_controller=(IDMController, {}),
+                     lane_change_controller=(StaticLaneChanger, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=5)
 
     additional_env_params = {"target_velocity": 8}
     env_params = EnvParams(additional_params=additional_env_params)
@@ -47,7 +47,7 @@ def loop_merge_exp_setup(vehicles=None):
                                   net_params,
                                   initial_config=initial_config)
 
-    env = SimpleLoopMergesEnvironment(env_params, sumo_params, scenario)
+    env = LoopMergesEnv(env_params, sumo_params, scenario)
 
     return env, scenario
 
