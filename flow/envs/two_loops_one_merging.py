@@ -1,4 +1,4 @@
-from flow.envs.base_env import SumoEnvironment
+from flow.envs.base_env import Env
 from flow.core import rewards
 
 from gym.spaces.box import Box
@@ -7,7 +7,7 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 
-class TwoLoopsMergeEnv(SumoEnvironment):
+class TwoLoopsMergeEnv(Env):
     """
     Fully functional environment. Differs from the SimpleAccelerationEnvironment
     in loop_accel in that vehicles in this environment may follow one of two
@@ -24,8 +24,8 @@ class TwoLoopsMergeEnv(SumoEnvironment):
         Actions are a set of accelerations from max-deacc to max-acc for each
         rl vehicle.
         """
-        return Box(low=-np.abs(self.env_params.max_deacc),
-                   high=self.env_params.max_acc,
+        return Box(low=-np.abs(self.env_params.max_decel),
+                   high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property

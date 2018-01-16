@@ -1,6 +1,6 @@
 from flow.core import rewards
 
-from flow.envs.base_env import SumoEnvironment
+from flow.envs.base_env import Env
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -8,7 +8,7 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 
-class SimpleLoopMergesEnvironment(SumoEnvironment):
+class LoopMergesEnv(Env):
     """
     Fully functional environment. Takes in an *acceleration* as an action.
     Reward function is negative norm of the difference between the velocities of
@@ -21,8 +21,8 @@ class SimpleLoopMergesEnvironment(SumoEnvironment):
         """
         See parent class
         """
-        return Box(low=-np.abs(self.env_params.max_deacc),
-                   high=self.env_params.max_acc,
+        return Box(low=-np.abs(self.env_params.max_decel),
+                   high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles,))
 
     @property

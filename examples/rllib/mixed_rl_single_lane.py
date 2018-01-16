@@ -78,7 +78,7 @@ ray.init()
 config = ppo.DEFAULT_CONFIG.copy()
 config["num_sgd_itr"] = 20
 
-flow_env_name = "SimpleAccelerationEnvironment"
+flow_env_name = "AccelEnv"
 
 env_version_num = 0
 env_name = flow_env_name+'-v'+str(env_version_num)
@@ -105,10 +105,10 @@ def create_env():
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
-    vehicles.add_vehicles("rl", (RLController, {}), (StaticLaneChanger, {}),
-                          (ContinuousRouter, {}), 0, auton_cars)
-    vehicles.add_vehicles("cfm", (CFMController, {}), (StaticLaneChanger, {}),
-                          (ContinuousRouter, {}), 0, human_cars)
+    vehicles.add("rl", (RLController, {}), (StaticLaneChanger, {}),
+                 (ContinuousRouter, {}), 0, auton_cars)
+    vehicles.add("cfm", (CFMController, {}), (StaticLaneChanger, {}),
+                 (ContinuousRouter, {}), 0, human_cars)
 
     additional_env_params = {"target_velocity": 8, "num_steps": 1000}
     env_params = EnvParams(additional_params=additional_env_params)

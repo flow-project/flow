@@ -36,8 +36,7 @@ COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (255, 255, 0, 0),
           (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
 
 
-
-class SumoEnvironment(gym.Env, Serializable):
+class Env(gym.Env, Serializable):
     def __init__(self, env_params, sumo_params, scenario):
         """
         Base environment class. Provides the interface for controlling a SUMO
@@ -264,7 +263,7 @@ class SumoEnvironment(gym.Env, Serializable):
                     tc.VAR_ARRIVED_VEHICLES_IDS: []}
 
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(vehicle_obs, id_lists, self)
+        self.vehicles.update(vehicle_obs, id_lists, self)
 
         for veh_id in self.vehicles.get_ids():
 
@@ -382,7 +381,7 @@ class SumoEnvironment(gym.Env, Serializable):
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(vehicle_obs, id_lists, self)
+        self.vehicles.update(vehicle_obs, id_lists, self)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -525,7 +524,7 @@ class SumoEnvironment(gym.Env, Serializable):
 
         # reintroduce all vehicles to the vehicles class, and store initial
         # state information in this class
-        self.vehicles.set_sumo_observations(vehicle_obs, id_lists, self)
+        self.vehicles.update(vehicle_obs, id_lists, self)
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():

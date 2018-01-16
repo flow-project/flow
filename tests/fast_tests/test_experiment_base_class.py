@@ -9,10 +9,6 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 from flow.controllers.rlcontroller import RLController
 
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
-
 from tests.setup_scripts import ring_road_exp_setup
 
 
