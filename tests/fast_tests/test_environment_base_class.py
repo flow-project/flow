@@ -21,10 +21,10 @@ class TestStartingPositionShuffle(unittest.TestCase):
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=5)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=5)
 
         initial_config = InitialConfig(x0=5)
 
@@ -74,10 +74,10 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=5)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=5)
 
         initial_config = InitialConfig(x0=5)
 
@@ -131,23 +131,6 @@ class TestEmissionPath(unittest.TestCase):
         self.assertIsNone(self.env.emission_path)
 
 
-# class TestResetAfterVehicleCollision(unittest.TestCase):
-#     """
-#     Tests that colliding vehicles are properly introduced back into the network
-#     during reset.
-#     """
-#     def setUp(self):
-#         # TODO: figure out when it occurs exactly (its not always), and what
-#         # TODO: the exact fix is
-#         pass
-#
-#     def tearDown(self):
-#         pass
-#
-#     def runTest(self):
-#         pass
-
-
 class TestApplyingActionsWithSumo(unittest.TestCase):
     """
     Tests the apply_acceleration, apply_lane_change, and choose_routes functions
@@ -165,10 +148,10 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add_vehicles(veh_id="test",
-                              acceleration_controller=(IDMController, {}),
-                              routing_controller=(ContinuousRouter, {}),
-                              num_vehicles=5)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(IDMController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(net_params=net_params,
@@ -213,7 +196,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(vehicle_obs, id_lists, self.env)
+        self.env.vehicles.update(vehicle_obs, id_lists, self.env)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
@@ -282,7 +265,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(vehicle_obs, id_lists, self.env)
+        self.env.vehicles.update(vehicle_obs, id_lists, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
@@ -330,7 +313,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.set_sumo_observations(vehicle_obs, id_lists, self.env)
+        self.env.vehicles.update(vehicle_obs, id_lists, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
