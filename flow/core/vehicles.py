@@ -399,19 +399,19 @@ class Vehicles:
             self.__rl_ids.remove(veh_id)
             self.num_rl_vehicles -= 1
 
-    def set_speed(self, veh_id, speed):
+    def test_set_speed(self, veh_id, speed):
         self.__sumo_observations[veh_id][tc.VAR_SPEED] = speed
 
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
 
-    def set_position(self, veh_id, position):
+    def test_set_position(self, veh_id, position):
         self.__sumo_observations[veh_id][tc.VAR_LANEPOSITION] = position
 
-    def set_edge(self, veh_id, edge):
+    def test_set_edge(self, veh_id, edge):
         self.__sumo_observations[veh_id][tc.VAR_ROAD_ID] = edge
 
-    def set_lane(self, veh_id, lane):
+    def test_set_lane(self, veh_id, lane):
         self.__sumo_observations[veh_id][tc.VAR_LANE_INDEX] = lane
 
     def set_leader(self, veh_id, leader):
