@@ -56,7 +56,11 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
         speed = Box(low=0.0, high=2, shape=(self.vehicles.num_vehicles,))
         lane = Box(low=0.0, high=self.scenario.lanes - 1, shape=(self.vehicles.num_vehicles,))
         absolute_pos = Box(low=0.0, high=1, shape=(self.vehicles.num_vehicles,))
-        return Tuple((speed, absolute_pos, lane))
+
+        forward_headways = Box(low=0.0, high=1, shape=(3,))
+        reverse_headways = Box(low=-1.0, high=0, shape=(3,))
+
+        return Tuple((speed, absolute_pos, lane, forward_headways, reverse_headways))
 
     def get_state(self):
         """
@@ -71,9 +75,17 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
                       self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
         lane = [self.vehicles.get_lane(veh_id) for veh_id in self.sorted_ids]
-        return np.array([[scaled_vel[i], scaled_pos[i], lane[i]]
-                         for i in range(len(self.sorted_ids))])
+        state_vector = [scaled_vel, scaled_pos, lane]
 
+        forward_headways, reverse_headways = self.get_leader_blocker_headways("aggressive-human_0")
+
+        normalized_forward_headways = [x / self.scenario.length for x in forward_headways]
+        state_vector.append(normalized_forward_headways)
+
+        normalized_negative_reverse_headways = [(-1 * x) / self.scenario.length for x in reverse_headways]
+        state_vector.append(normalized_negative_reverse_headways)
+
+        return np.array(state_vector)
 
     def apply_rl_actions(self, actions):
         """

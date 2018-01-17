@@ -69,10 +69,11 @@ def run_task(*_):
     env_params = EnvParams(additional_params={"target_velocity": 15, "num_steps": 1000},
                            lane_change_duration=0.1, max_speed=30)
 
-    additional_net_params = {"length": 3000, "lanes": 3, "speed_limit": 15, "resolution": 200}
+    additional_net_params = {"length": 400, "lanes": 3, "speed_limit": 15, "resolution": 40}
     net_params = NetParams(additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, bunching=2700, shuffle=True)
+    additional_init_config_params= {"rl_out_front": True, "rl_position": ("left", 80)}
+    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, bunching=30, shuffle=True, additional_params=additional_init_config_params)
 
     # scenario = LoopScenario("3-lane-aggressive-driver", CircleGenerator, vehicles, net_params, initial_config)
     scenario = LoopScenario("3-lane-aggressive-driver", ShepherdingGenerator, vehicles, net_params, initial_config)
@@ -100,7 +101,7 @@ def run_task(*_):
     algo.train()
 
 
-for seed in [800, 1200, 1717, 1919, 2018]:
+for seed in [900, 1200, 1717, 2018]:
     run_experiment_lite(
         run_task,
         # Only keep the snapshot parameters for the last iteration
@@ -108,7 +109,7 @@ for seed in [800, 1200, 1717, 1919, 2018]:
         snapshot_gap=50,
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used,
-        exp_prefix="_shepherding_rl_out_front_ordered_observations",
+        exp_prefix="_shepherding_full_ring_rl_lined_up_aggro_headways",
         # Number of parallel workers for sampling
         n_parallel=8,
         seed=seed,
