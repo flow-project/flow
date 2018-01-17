@@ -72,7 +72,7 @@ def run_task(*_):
     additional_net_params = {"length": 400, "lanes": 3, "speed_limit": 15, "resolution": 40}
     net_params = NetParams(additional_params=additional_net_params)
 
-    additional_init_config_params= {"rl_out_front": True, "rl_position": ("left", 80)}
+    additional_init_config_params= {"rl_out_front": False}
     initial_config = InitialConfig(spacing="custom", lanes_distribution=3, bunching=30, shuffle=True, additional_params=additional_init_config_params)
 
     # scenario = LoopScenario("3-lane-aggressive-driver", CircleGenerator, vehicles, net_params, initial_config)
@@ -109,7 +109,7 @@ for seed in [900, 1200, 1717, 2018]:
         snapshot_gap=50,
         # Specifies the seed for the experiment. If this is not provided, a random seed
         # will be used,
-        exp_prefix="_shepherding_full_ring_rl_lined_up_aggro_headways",
+        exp_prefix="_shepherding_full_aggro_headways",
         # Number of parallel workers for sampling
         n_parallel=8,
         seed=seed,
