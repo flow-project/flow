@@ -20,7 +20,7 @@ vehicle_params : list of dict
 
 import gym
 import json
-import os 
+import os
 
 import ray
 import ray.rllib.ppo as ppo
@@ -103,7 +103,7 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
     net_params_dict = flow_params['net']
     net_params = NetParams(**net_params_dict)
 
-    # vehicle_params is used directly and not read from flow_params
+    veh_params = flow_params['veh']
 
     init_params = flow_params['initial']
 
@@ -174,10 +174,10 @@ if __name__ == "__main__":
     register_rllib_env(env_name, create_env)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-    
+
     # Logging out flow_params to ray's experiment result folder
     json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:  
+    with open(json_out_file, 'w') as outfile:
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
     for i in range(2):
