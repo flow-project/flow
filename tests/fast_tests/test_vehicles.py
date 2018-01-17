@@ -21,9 +21,7 @@ class TestVehiclesClass(unittest.TestCase):
                      speed_mode='no_collide',
                      lane_change_mode="no_lat_collide")
 
-        self.assertEqual(vehicles.get_speed_mode_name("typeA_0"), "no_collide")
         self.assertEqual(vehicles.get_speed_mode("typeA_0"), 1)
-        self.assertEqual(vehicles.get_lane_change_mode_name("typeA_0"), "no_lat_collide")
         self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 256)
 
         vehicles.add("typeB",
@@ -31,20 +29,14 @@ class TestVehiclesClass(unittest.TestCase):
                      speed_mode='aggressive',
                      lane_change_mode="strategic")
 
-        self.assertEqual(vehicles.get_speed_mode_name("typeB_0"), "aggressive")
         self.assertEqual(vehicles.get_speed_mode("typeB_0"), 0)
-        self.assertEqual(vehicles.get_lane_change_mode_name("typeB_0"), "strategic")
         self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 853)
 
         vehicles.add("typeC",
                      acceleration_controller=(IDMController, {}),
-                     speed_mode='custom',
-                     custom_speed_mode=31,
-                     lane_change_mode="custom",
-                     custom_lane_change_mode=277)
-        self.assertEqual(vehicles.get_speed_mode_name("typeC_0"), "custom")
+                     speed_mode=31,
+                     lane_change_mode=277)
         self.assertEqual(vehicles.get_speed_mode("typeC_0"), 31)
-        self.assertEqual(vehicles.get_lane_change_mode_name("typeC_0"), "custom")
         self.assertEqual(vehicles.get_lane_change_mode("typeC_0"), 277)
 
     def test_controlled_id_params(self):
