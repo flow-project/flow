@@ -40,19 +40,19 @@ def run_task(v):
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo", seed=0)
 
     vehicles = Vehicles()
-    vehicles.add_vehicles(veh_id="rl",
-                          acceleration_controller=(RLController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=1)
-    vehicles.add_vehicles(veh_id="idm",
-                          acceleration_controller=(IDMController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=21)
+    vehicles.add(veh_id="rl",
+                 acceleration_controller=(RLController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=1)
+    vehicles.add(veh_id="idm",
+                 acceleration_controller=(IDMController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=21)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                             "max-acc": 1, "num_steps": 3600,
+    additional_env_params = {"target_velocity": 8, "num_steps": 3600,
                              "scenario_type": LoopScenario}
-    env_params = EnvParams(additional_params=additional_env_params)
+    env_params = EnvParams(max_decel=-1, max_accel=1,
+                           additional_params=additional_env_params)
 
     additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                              "resolution": 40}

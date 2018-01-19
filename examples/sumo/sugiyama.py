@@ -10,7 +10,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
 
@@ -19,10 +19,10 @@ logging.basicConfig(level=logging.INFO)
 sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="idm",
-                      acceleration_controller=(IDMController, {}),
-                      routing_controller=(ContinuousRouter, {}),
-                      num_vehicles=22)
+vehicles.add(veh_id="idm",
+             acceleration_controller=(IDMController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             num_vehicles=22)
 
 additional_env_params = {"target_velocity": 8}
 env_params = EnvParams(additional_params=additional_env_params)
@@ -39,7 +39,7 @@ scenario = LoopScenario(name="sugiyama",
                         net_params=net_params,
                         initial_config=initial_config)
 
-env = SimpleAccelerationEnvironment(env_params, sumo_params, scenario)
+env = AccelEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 

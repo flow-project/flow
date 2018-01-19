@@ -1,4 +1,4 @@
-from flow.envs.base_env import SumoEnvironment
+from flow.envs.base_env import Env
 from flow.core import rewards
 from flow.core import multi_agent_rewards
 from flow.controllers.car_following_models import IDMController
@@ -11,12 +11,10 @@ import numpy as np
 from numpy.random import normal
 from scipy.optimize import fsolve
 
-from traci import constants as tc
-
 import pdb
 
 
-class WaveAttenuationEnv(SumoEnvironment):
+class WaveAttenuationEnv(Env):
     """
     Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
     difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
@@ -29,8 +27,8 @@ class WaveAttenuationEnv(SumoEnvironment):
         Actions are a set of accelerations from 0 to 15m/s
         :return:
         """
-        return Box(low=-np.abs(self.env_params.additional_params["max-deacc"]),
-                   high=self.env_params.additional_params["max-acc"],
+        return Box(low=-np.abs(self.env_params.max_decel),
+                   high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
@@ -210,7 +208,7 @@ class WaveAttenuationEnv(SumoEnvironment):
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.vehicles.set_sumo_observations(vehicle_obs, id_lists, self)
+        self.vehicles.update(vehicle_obs, id_lists, self)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
