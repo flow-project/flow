@@ -395,7 +395,7 @@ class InFlows:
         if end is not None:
             new_inflow["end"] = end
         if vehsPerHour is not None:
-            new_inflow["vehPerHour"] = vehsPerHour
+            new_inflow["vehsPerHour"] = vehsPerHour
         if period is not None:
             new_inflow["period"] = period
         if probability is not None:
