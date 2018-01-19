@@ -51,15 +51,15 @@ class SumoParams:
 
 class EnvParams:
     def __init__(self,
-                 max_speed=55.0,
-                 lane_change_duration=None,
+                 max_speed=55.0,  # TODO: delete me
+                 lane_change_duration=None,  # TODO: move to rl vehicles only
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
                  shared_reward=False,
                  shared_policy=False,
                  additional_params=None,
-                 max_deacc=-6,
-                 max_acc=3):
+                 max_decel=-6,
+                 max_accel=3):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -86,9 +86,9 @@ class EnvParams:
         additional_params: dict, optional
             Specify additional environment params for a specific environment
             configuration
-        max_deacc: float, optional
+        max_decel: float, optional
             maximum deceleration of autonomous vehicles, defaults to -6 m/s2
-        max_acc: float, optional
+        max_accel: float, optional
             maximum acceleration of autonomous vehicles, defaults to 3 m/s2
         """
         self.max_speed = max_speed
@@ -99,8 +99,8 @@ class EnvParams:
         self.shared_policy = shared_policy
         self.additional_params = \
             additional_params if additional_params is not None else {}
-        self.max_deacc = max_deacc
-        self.max_acc = max_acc
+        self.max_decel = max_decel
+        self.max_accel = max_accel
 
     def get_additional_param(self, key):
         return self.additional_params[key]

@@ -1,4 +1,4 @@
-from flow.envs.base_env import SumoEnvironment
+from flow.envs.base_env import Env
 from flow.core import rewards
 from flow.core import multi_agent_rewards
 
@@ -7,7 +7,8 @@ from gym.spaces.tuple_space import Tuple
 
 import numpy as np
 
-class SimpleAccelerationEnvironment(SumoEnvironment):
+
+class AccelEnv(Env):
     """
     Fully functional environment for single lane closed loop settings. Takes in
     an *acceleration* as an action. Reward function is negative norm of the
@@ -24,8 +25,8 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
         Actions are a set of accelerations from max-deacc to max-acc for each
         rl vehicle.
         """
-        return Box(low=-np.abs(self.env_params.max_deacc),
-                   high=self.env_params.max_acc,
+        return Box(low=-np.abs(self.env_params.max_decel),
+                   high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
@@ -79,7 +80,7 @@ class SimpleAccelerationEnvironment(SumoEnvironment):
                          for i in range(len(self.sorted_ids))])
 
 
-class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
+class AccelMAEnv(AccelEnv):
     """
     An extension of SimpleAccelerationEnvironment which treats each autonomous
     vehicles as a separate rl agent, thereby allowing autonomous vehicles to be
@@ -149,7 +150,7 @@ class SimpleMultiAgentAccelerationEnvironment(SimpleAccelerationEnvironment):
         return obs_arr
 
 
-class SimplePartiallyObservableEnvironment(SimpleAccelerationEnvironment):
+class AccelPOEnv(AccelEnv):
     """
     This environment is an extension of the SimpleAccelerationEnvironment, with
     the exception that only local information is provided to the agent about the
