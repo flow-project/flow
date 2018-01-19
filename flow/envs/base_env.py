@@ -223,7 +223,7 @@ class Env(gym.Env, Serializable):
         """
         # check to make sure all vehicles have been spawned
         num_spawned_veh = len(self.traci_connection.simulation.getDepartedIDList())
-        if num_spawned_veh != self.vehicles.num_vehicles:
+        if num_spawned_veh < self.vehicles.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
             exit()
 
