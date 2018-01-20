@@ -883,3 +883,5 @@ class Scenario(Serializable):
     def __str__(self):
         # TODO(cathywu) return the parameters too.
         return "Scenario " + self.name + " with " + str(self.vehicles.num_vehicles) + " vehicles."
+
+

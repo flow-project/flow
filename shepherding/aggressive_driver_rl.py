@@ -22,6 +22,7 @@ num_rl_cars = 1
 num_human_cars = 30
 
 
+
 def run_task(v):
     sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui",
                              starting_position_shuffle=True,
