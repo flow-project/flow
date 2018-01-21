@@ -17,6 +17,12 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 
+# Inner ring distances closest to the merge are range 300-365 (normalized)
+fn_choose_subpolicy = """
+def choose_policy(inputs):
+    return tf.cast(inputs[:, 0] > 1e6, tf.int32)
+"""
+
 
 class TestRay(unittest.TestCase):
     # def setUp(self):
@@ -29,8 +35,8 @@ class TestRay(unittest.TestCase):
 
         # Test 1: test_two_level_ray
         config = ppo.DEFAULT_CONFIG.copy()
-        horizon = 500
-        num_workers = 3
+        horizon = 100
+        num_workers = 2
         ray.init(num_cpus=num_workers, redirect_output=True)
         config["num_workers"] = num_workers
         config["timesteps_per_batch"] = horizon * num_workers
@@ -69,7 +75,7 @@ class TestRay(unittest.TestCase):
 
         alg = ppo.PPOAgent(env=env_name, registry=registry.get_registry(),
                            config=config)
-        for i in range(2):
+        for i in range(1):
             alg.train()
             checkpoint_path = alg.save()
             self.assertTrue("%s.index" % os.path.exists(checkpoint_path))
@@ -82,8 +88,8 @@ class TestRay(unittest.TestCase):
         # reload(registry)
         import cloudpickle
         config = ppo.DEFAULT_CONFIG.copy()
-        horizon = 500
-        num_workers = 3
+        horizon = 100
+        num_workers = 2
         # ray.init(num_cpus=num_workers, redirect_output=True)
         config["num_workers"] = num_workers
         config["timesteps_per_batch"] = horizon * num_workers
@@ -92,11 +98,11 @@ class TestRay(unittest.TestCase):
         config["horizon"] = horizon
 
         config["model"].update(
-            {"fcnet_hiddens": [[5, 3]] * 2})
-        config["model"]["user_data"] = {}
-        config["model"]["user_data"].update({"num_subpolicies": 2,
-                                             "fn_choose_subpolicy": list(
-                                                 cloudpickle.dumps(lambda x: 0))})
+            {"fcnet_hiddens": [5, 3]},)
+        options = {"num_subpolicies": 2,
+                    "fn_choose_subpolicy": fn_choose_subpolicy,
+                    "hierarchical_fcnet_hiddens": [[3, 3]] * 2}
+        config["model"].update({"custom_options": options})
 
         flow_env_name = "WaveAttenuationPOEnv"
         create_env, env_name = make_create_env(flow_env_name, flow_params, 1)

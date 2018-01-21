@@ -48,7 +48,7 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
-HORIZON = 3600
+HORIZON = 100
 
 additional_env_params = {"target_velocity": 8, "max-deacc": -1,
                          "max-acc": 1, "num_steps": HORIZON,
@@ -83,7 +83,7 @@ flow_params = dict(
               )
 
 
-def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", sumo="sumo"):
+def make_create_env(flow_env_name, flow_params=flow_params, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
@@ -100,7 +100,7 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
 
     init_params = flow_params['initial']
 
-    def create_env():
+    def create_env(env_config):
         import flow.envs as flow_envs
 
         # note that the vehicles are added sequentially by the generator,
@@ -119,11 +119,6 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
 
         register_env(*pass_params)
         env = gym.envs.make(env_name)
-
-        env.observation_space.shape = (
-            int(np.sum([c.shape for c in env.observation_space.spaces])),)
-
-        ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
 
         return env
     return create_env, env_name
