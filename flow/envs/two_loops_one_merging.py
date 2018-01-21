@@ -192,7 +192,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
         return Box(np.array(lb), np.array(ub))
 
-    def apply_rl_actions(self, actions):
+    def apply_rl_actions(self, rl_actions):
         """
         See parent class
 
@@ -202,22 +202,29 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         if a lane change isn't applied, and sufficient time has passed, issue an
         acceleration like normal.
         """
-        acceleration = actions[::2]
-        direction = np.round(actions[1::2]).clip(min=-1, max=1)
+        if (self.scenario.net_params.additional_params.get("outer_lanes", 1) > 1 and
+                    self.scenario.net_params.additional_params.get("inner_lanes", 1) > 1):
+            acceleration = rl_actions[::2]
+            direction = np.round(rl_actions[1::2]).clip(min=-1, max=1)
 
-        # re-arrange actions according to mapping in observation space
-        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
-                         if veh_id in self.vehicles.get_rl_ids()]
+            # re-arrange actions according to mapping in observation space
+            sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                             if veh_id in self.vehicles.get_rl_ids()]
 
-        # represents vehicles that are allowed to change lanes
-        non_lane_changing_veh = \
-            [self.time_counter <= self.lane_change_duration + self.vehicles.get_state(veh_id, 'last_lc')
-             for veh_id in sorted_rl_ids]
-        # vehicle that are not allowed to change have their directions set to 0
-        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+            # represents vehicles that are allowed to change lanes
+            non_lane_changing_veh = \
+                [self.time_counter <= self.lane_change_duration + self.vehicles.get_state(veh_id, 'last_lc')
+                 for veh_id in sorted_rl_ids]
+            # vehicle that are not allowed to change have their directions set to 0
+            direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
 
-        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
-        self.apply_lane_change(sorted_rl_ids, direction=direction)
+            self.apply_acceleration(sorted_rl_ids, acc=acceleration)
+            self.apply_lane_change(sorted_rl_ids, direction=direction)
+        else:
+            sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                             if veh_id in self.vehicles.get_rl_ids()]
+            self.apply_acceleration(sorted_rl_ids, rl_actions)
+
 
     def get_state(self, **kwargs):
         """
