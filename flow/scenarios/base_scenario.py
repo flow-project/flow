@@ -238,7 +238,7 @@ class Scenario(Serializable):
                 self.get_uniform_in_lane(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "custom":
             startpositions, startlanes = \
-                self.custom(self.initial_config, **kwargs)
+                self.gen_custom_start_pos(self.initial_config, **kwargs)
         elif self.initial_config.spacing == "gen_no_overlap_lane_starts":
             startpositions, startlanes = \
                 self.gen_no_overlap_lane_starts(self.initial_config, **kwargs)

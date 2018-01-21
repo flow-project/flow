@@ -21,8 +21,6 @@ from rllab.envs.gym_env import GymEnv
 num_rl_cars = 1
 num_human_cars = 30
 
-
-
 def run_task(v):
     sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui",
                              starting_position_shuffle=True,
@@ -65,6 +63,7 @@ def run_task(v):
                           sumo_car_following_params=human_cfm_params,
                           sumo_lc_params=human_lc_params,
                           lane_change_controller=(SumoLaneChangeController, {}))
+
 
     scenario = LoopScenario("aggressive-rl-vehicle", CircleGenerator,
                             vehicles, net_params, initial_config)

@@ -38,7 +38,7 @@ from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
 def run_task(*_):
 
-    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo")
+    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
 
@@ -73,7 +73,7 @@ def run_task(*_):
     net_params = NetParams(additional_params=additional_net_params)
 
     additional_init_config_params= {"rl_out_front": False}
-    initial_config = InitialConfig(spacing="custom", lanes_distribution=3, bunching=30, shuffle=True, additional_params=additional_init_config_params)
+    initial_config = InitialConfig(spacing="uniform_in_lane", lanes_distribution=3, bunching=30, shuffle=True, additional_params=additional_init_config_params)
 
     # scenario = LoopScenario("3-lane-aggressive-driver", CircleGenerator, vehicles, net_params, initial_config)
     scenario = LoopScenario("3-lane-aggressive-driver", ShepherdingGenerator, vehicles, net_params, initial_config)
@@ -111,8 +111,8 @@ for seed in [900, 1200, 1717, 2018]:
         # will be used,
         exp_prefix="_shepherding_full_aggro_headways",
         # Number of parallel workers for sampling
-        n_parallel=8,
+        # n_parallel=8,
         seed=seed,
         # python_command="/Users/kanaad/anaconda3/envs/flow/bin/python",
-        mode="ec2",
+        # mode="ec2",
     )
