@@ -22,7 +22,7 @@ class TestCFMController(unittest.TestCase):
              "accel_max": 20, "decel_max": -5, "tau": 0, "dt": 0.1, "noise": 0}
 
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test_0",
             acceleration_controller=(CFMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
@@ -67,7 +67,7 @@ class TestBCMController(unittest.TestCase):
              "accel_max": 15, "decel_max": -5, "tau": 0, "dt": 0.1, "noise": 0}
 
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(BCMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
@@ -112,7 +112,7 @@ class TestOVMController(unittest.TestCase):
              "accel_max": 15, "decel_max": -5, "tau": 0, "dt": 0.1, "noise": 0}
 
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
@@ -158,7 +158,7 @@ class TestLinearOVM(unittest.TestCase):
              "h_st": 5, "tau": 0, "dt": 0.1, "noise": 0}
 
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, contr_params),
             routing_controller=(ContinuousRouter, {}),
@@ -202,7 +202,7 @@ class TestIDMController(unittest.TestCase):
                         "s1": 0, "decel_max": -5, "dt": 0.1, "noise": 0}
 
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
@@ -277,7 +277,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
 
     def test_no_crash_OVM(self):
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController,
                                      {"fail_safe": "instantaneous"}),
@@ -294,7 +294,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
 
     def test_no_crash_LinearOVM(self):
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM,
                                      {"fail_safe": "instantaneous"}),
@@ -317,7 +317,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
     """
     def test_no_crash_OVM(self):
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController,
                                      {"fail_safe": "safe_velocity"}),
@@ -334,7 +334,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
 
     def test_no_crash_LinearOVM(self):
         vehicles = Vehicles()
-        vehicles.add_vehicles(
+        vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM,
                                      {"fail_safe": "safe_velocity"}),
