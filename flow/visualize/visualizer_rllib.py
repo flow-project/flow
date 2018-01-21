@@ -31,6 +31,7 @@ from ray.tune.registry import get_registry, register_env as register_rllib_env
 
 from flow.core.util import unstring_flow_params, get_rllib_params, get_flow_params
 
+
 EXAMPLE_USAGE = """
 example usage:
     python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
