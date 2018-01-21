@@ -12,7 +12,7 @@ from ray.tune.registry import get_registry, register_env as register_rllib_env
 from examples.rllib.cooperative_merge import make_create_env
 from examples.rllib.cooperative_merge import flow_params
 
-HORIZON = 1000
+HORIZON = 100
 
 # Inner ring distances closest to the merge are range 300-365 (normalized)
 fn_choose_subpolicy = """
@@ -24,8 +24,8 @@ def choose_policy(inputs):
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 6
-    n_rollouts = 100
+    num_cpus = 2
+    n_rollouts = 3
 
     ray.init(num_cpus=num_cpus, redirect_output=True)
 
@@ -41,12 +41,15 @@ if __name__ == "__main__":
 
     # Two-level policy parameters
     config["model"].update(
-        {"fcnet_hiddens": [[32, 32]] * 2})
+        {"fcnet_hiddens": [32, 32]})
     # fn = list(cloudpickle.dumps(lambda x: 0))
     # fn = list(cloudpickle.dumps(choose_subpolicy))
-    custom_options = {"num_subpolicies": 2,
-                                         "fn_choose_subpolicy": fn_choose_subpolicy}
-    config["model"].update({"custom_options": custom_options})
+
+    options = {"num_subpolicies": 2,
+                "fn_choose_subpolicy": fn_choose_subpolicy,
+               "hierarchical_fcnet_hiddens": [[32, 32]] * 2}
+    config["model"].update({"custom_options": options})
+
 
     flow_env_name = "TwoLoopsMergePOEnv"
     exp_tag = "merge_two_level_policy_example"
@@ -54,7 +57,7 @@ if __name__ == "__main__":
     flow_params["flowenv"] = flow_env_name
     flow_params["exp_tag"] = exp_tag
     flow_params["module"] = os.path.basename(__file__)[:-3]
-    config["model"]['custom_options'].update({'flowenv': flow_env_name,
+    config['model']['custom_options'].update({'flowenv': flow_env_name,
                                 'exp_tag': exp_tag,
                                 'module': this_file})
     create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     register_rllib_env(env_name, create_env)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-    for i in range(200):
+    for i in range(2):
         alg.train()
         if i % 20 == 0:
             alg.save()  # save checkpoint

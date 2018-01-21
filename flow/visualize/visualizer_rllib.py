@@ -31,7 +31,6 @@ from ray.tune.registry import get_registry, register_env as register_rllib_env
 
 from flow.core.util import unstring_flow_params, get_rllib_params, get_flow_params
 
-
 EXAMPLE_USAGE = """
 example usage:
     python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
@@ -71,13 +70,13 @@ optional_named.add_argument(
     '--num_rollouts', type=int, default=10,
     help="The number of rollouts to visualize.")
 optional_named.add_argument(
-    '--module', type=str, default = '',
+    '--module', type=str, default='',
     help='Location of the make_create_env function to use')
 optional_named.add_argument(
-    '--flowenv', type=str, default = '',
+    '--flowenv', type=str, default='',
     help='Flowenv being used')
 optional_named.add_argument(
-    '--exp_tag', type=str, default = '',
+    '--exp_tag', type=str, default='',
     help='Experiment tag')
 
 if __name__ == "__main__":
@@ -85,7 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
-                    else args.result_dir[:-1]
+        else args.result_dir[:-1]
 
     rllib_params = get_rllib_params(result_dir)
 
@@ -96,7 +95,7 @@ if __name__ == "__main__":
     if args.module:
         module_name = 'examples.rllib.' + args.module
         env_module = importlib.import_module(module_name)
-        
+
         make_create_env = env_module.make_create_env
         flow_params = env_module.flow_params
 
@@ -110,10 +109,9 @@ if __name__ == "__main__":
 
     ray.init(num_cpus=1)
 
-    config = ppo.DEFAULT_CONFIG.copy()        
+    config = ppo.DEFAULT_CONFIG.copy()
     config['horizon'] = horizon
     config["model"].update({"fcnet_hiddens": hidden_layers})
-    # config["model"] = jsondata["model"]
     config["gamma"] = gamma
 
     # Overwrite config for rendering purposes
