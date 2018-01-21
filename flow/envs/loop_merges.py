@@ -1,6 +1,6 @@
 from flow.core import rewards
 
-from flow.envs.base_env import SumoEnvironment
+from flow.envs.base_env import Env
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -8,7 +8,7 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 
-class SimpleLoopMergesEnvironment(SumoEnvironment):
+class LoopMergesEnv(Env):
     """
     Fully functional environment. Takes in an *acceleration* as an action.
     Reward function is negative norm of the difference between the velocities of
@@ -21,8 +21,8 @@ class SimpleLoopMergesEnvironment(SumoEnvironment):
         """
         See parent class
         """
-        return Box(low=-np.abs(self.env_params.max_deacc),
-                   high=self.env_params.max_acc,
+        return Box(low=-np.abs(self.env_params.max_decel),
+                   high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles,))
 
     @property
@@ -40,7 +40,7 @@ class SimpleLoopMergesEnvironment(SumoEnvironment):
         See parent class
         """
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
-                         if veh_id in self.rl_ids]
+                         if veh_id in self.vehicles.get_rl_ids()]
 
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
@@ -76,7 +76,7 @@ class SimpleLoopMergesEnvironment(SumoEnvironment):
         Vehicles that are meant to stay in the ring are rerouted whenever they
         reach a new edge.
         """
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             # if the vehicle is one the merging vehicles, and there is a
             # merge-out lane, it should not be rerouted
             if "merge" in self.vehicles.get_state(veh_id, "type") and \
@@ -113,7 +113,7 @@ class SimpleLoopMergesEnvironment(SumoEnvironment):
         else:
             pos = [[], []]
 
-        for veh_id in self.ids:
+        for veh_id in self.vehicles.get_ids():
             this_edge = self.vehicles.get_edge(veh_id)
             this_pos = self.vehicles.get_position(veh_id)
 

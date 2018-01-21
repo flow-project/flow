@@ -72,7 +72,7 @@ class BaseLaneChangingController:
         lead_gap = (lead_pos - this_pos) % env.scenario.length - lead_length
         trail_gap = (this_pos - trail_pos) % env.scenario.length - this_length
 
-        time_step = env.time_step
+        time_step = env.sim_step
 
         max_acc = env.env_params.max_acc
         max_trail_vel = trail_vel + max_acc * time_step

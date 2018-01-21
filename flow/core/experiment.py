@@ -1,9 +1,11 @@
 import logging
 import datetime
+import numpy as np
+
 from flow.core.util import emission_to_csv
 
 
-class SumoExperiment():
+class SumoExperiment:
 
     def __init__(self, env, scenario):
         """
@@ -51,15 +53,19 @@ class SumoExperiment():
         if rl_actions is None:
             rl_actions = []
 
+        rets = []
         for i in range(num_runs):
             agg_reward = 0
             logging.info("Iter #" + str(i))
+            ret = 0
             self.env.reset()
             for j in range(num_steps):
-                step_result = self.env.step(rl_actions)
-                agg_reward += step_result[1]
-            total_avg_reward += agg_reward / float(num_steps)
+                state, reward, done, _ = self.env.step(rl_actions)
+                ret += reward
+            rets.append(ret)
+            print("Round {0}, return: {1}".format(i, ret))
 
+        print("Average Return", np.mean(rets))
 
         self.env.terminate()
 
@@ -74,4 +80,4 @@ class SumoExperiment():
             # convert the emission file into a csv
             emission_to_csv(emission_path)
 
-        return total_avg_reward / num_runs
+        return np.mean(rets)

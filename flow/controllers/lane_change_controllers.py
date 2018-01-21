@@ -3,14 +3,20 @@ import random
 import numpy as np
 import logging
 
-class BaseLaneChangeController:
-    """
-    Base Class for Lane Change controllers.
-    """
 
-    def __init__(self, vehId):
+class BaseLaneChangeController:
+
+    def __init__(self, veh_id):
+        """
+        Base Class for Lane Change controllers.
+
+        Attributes
+        ----------
+        veh_id: str
+            unique vehicle identifier
+        """
         self.SumoController = False
-        self.veh_id = vehId
+        self.veh_id = veh_id
 
     def isSumoController(self):
         return self.SumoController
@@ -20,22 +26,18 @@ class BaseLaneChangeController:
 
 
 class SumoLaneChangeController(BaseLaneChangeController):
+    """
+    A class used to enforce sumo lane-change dynamics on a vehicle.
+    """
     def __init__(self, veh_id):
         super().__init__(veh_id)
         self.SumoController = True
 
+
 class StaticLaneChanger(BaseLaneChangeController):
     """
-    A lane-changing model used to perpetually keep a vehicle in the same
-    lane.
-
-    Attributes
-    ----------
-    veh_id: str
-        unique vehicle identifier
+    A lane-changing model used to keep a vehicle in the same lane.
     """
-
-
     def get_action(self, env):
         return env.vehicles.get_lane(self.veh_id)
 

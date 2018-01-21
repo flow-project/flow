@@ -41,20 +41,20 @@ aggressive_lc_params = SumoLaneChangeParams(
     lcAccelLat=6, lcSpeedGainRight=1.0, model="SL2015")
 
 vehicles = Vehicles()
-vehicles.add_vehicles(veh_id="human",
-                      acceleration_controller=(SumoCarFollowingController, {}),
-                      lane_change_controller=(SumoLaneChangeController, {}),
-                      routing_controller=(ContinuousRouter, {}),
-                      initial_speed=0,
-                      num_vehicles=20,
-                      lane_change_mode="custom",
-                      custom_lane_change_mode=0b1001010101,
-                      sumo_car_following_params=human_cfm_params,
-                      sumo_lc_params=human_lc_params)
+vehicles.add(veh_id="human",
+             acceleration_controller=(SumoCarFollowingController, {}),
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             initial_speed=0,
+             num_vehicles=20,
+             lane_change_mode="custom",
+             custom_lane_change_mode=0b1001010101,
+             sumo_car_following_params=human_cfm_params,
+             sumo_lc_params=human_lc_params)
 
 pkl_file_path = os.path.dirname(os.path.realpath(__file__)) + "/itr_1810.pkl"
 
-vehicles.add_vehicles(
+vehicles.add(
     veh_id="trained",
     acceleration_controller=(TrainedPolicyController, {"pkl_file": pkl_file_path}),
     routing_controller=(ContinuousRouter, {}),

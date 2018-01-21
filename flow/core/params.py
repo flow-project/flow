@@ -1,75 +1,65 @@
 import logging
 
-class SumoParams():
+
+class SumoParams:
 
     def __init__(self,
                  port=None,
-                 time_step=0.1,
-                 vehicle_arrangement_shuffle=False,
-                 starting_position_shuffle=False,
+                 sim_step=0.1,
                  emission_path=None,
-                 sumo_binary="sumo"):
+                 lateral_resolution=None,
+                 no_step_log=True,
+                 sumo_binary="sumo",
+                 seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
         prevent crashes. In addition, this parameter may be used to specify
         whether to use sumo's gui during the experiment's runtime
 
-        Specify the rl_speed_mode and human_speed_mode as the SUMO-defined speed
-        mode used to constrain acceleration actions.
-        The available speed modes are as follows:
-         - "no_collide" (default): Human and RL cars are preventing from
-           reaching speeds that may cause crashes (also serves as a failsafe).
-         - "aggressive": Human and RL cars are not limited by sumo with regard
-           to their accelerations, and can crash longitudinally
-
-        Specify the SUMO-defined lane-changing mode used to constrain
-        lane-changing actions. The available lane-changing modes are as follows:
-         - default: Human and RL cars can only safely change into lanes
-         - "strategic": Human cars make lane changes in accordance with SUMO to
-           provide speed boosts
-         - "no_lat_collide": RL cars can lane change into any space, no matter
-           how likely it is to crash
-         - "aggressive": RL cars are not limited by sumo with regard to their
-           lane-change actions, and can crash longitudinally
-
         Attributes
         ----------
         port: int, optional
             Port for Traci to connect to; finds an empty port by default
-        time_step: float optional
+        sim_step: float optional
             seconds per simulation step; 0.1 by default
-        vehicle_arrangement_shuffle: bool, optional
-            determines if initial conditions of vehicles are shuffled at reset;
-            False by default
-        starting_position_shuffle: bool, optional
-            determines if starting position of vehicles should be updated
-            between rollouts; False by default
         emission_path: str, optional
             Path to the folder in which to create the emissions output.
             Emissions output is not generated if this value is not specified
+        lateral_resolution: float, optional
+            width of the divided sublanes within a lane, defaults to None (i.e.
+            no sublanes). If this value is specified, the vehicle in the network
+            cannot use the "LC2013" lane change model.
+        no_step_log: bool, optional
+            specifies whether to add sumo's step logs to the log file, and print
+            them into the terminal during runtime, defaults to True
         sumo_binary: str, optional
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
                 - 'sumo' to run without the gui (default)
+        seed: int, optional
+            seed for sumo instance
         """
         self.port = port
-        self.time_step = time_step
-        self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
-        self.starting_position_shuffle = starting_position_shuffle
+        self.sim_step = sim_step
         self.emission_path = emission_path
+        self.lateral_resolution = lateral_resolution
+        self.no_step_log = no_step_log
         self.sumo_binary = sumo_binary
+        self.seed = seed
 
 
 class EnvParams:
     def __init__(self,
-                 max_speed=55.0,
-                 lane_change_duration=None,
+                 max_speed=55.0,  # TODO: delete me
+                 lane_change_duration=None,  # TODO: move to rl vehicles only
+                 vehicle_arrangement_shuffle=False,
+                 starting_position_shuffle=False,
                  shared_reward=False,
                  shared_policy=False,
                  additional_params=None,
-                 max_deacc=-4.5,
-                 max_acc=2.6):
+                 max_decel=-4.5,
+                 max_accel=2.6):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -77,15 +67,18 @@ class EnvParams:
 
         Attributes
         ----------
-        longitudinal_fail_safe: str, optional
-            Failsafe strategy to prevent bumper to bumper collisions; may be
-            one of "None", "safe velocity", or "instantaneous"
         max_speed: float, optional
             max speed of vehicles in the simulation; defaults to 55 m/s
         lane_change_duration: float, optional
             lane changing duration is always present in the environment, but
             only used by sub-classes that apply lane changing; defaults to
             5 seconds
+        vehicle_arrangement_shuffle: bool, optional
+            determines if initial conditions of vehicles are shuffled at reset;
+            False by default
+        starting_position_shuffle: bool, optional
+            determines if starting position of vehicles should be updated
+            between rollouts; False by default
         shared_reward: bool, optional
             use a shared reward; defaults to False
         shared_policy: bool, optional
@@ -93,14 +86,21 @@ class EnvParams:
         additional_params: dict, optional
             Specify additional environment params for a specific environment
             configuration
+        max_decel: float, optional
+            maximum deceleration of autonomous vehicles, defaults to -6 m/s2
+        max_accel: float, optional
+            maximum acceleration of autonomous vehicles, defaults to 3 m/s2
         """
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
+        self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
+        self.starting_position_shuffle = starting_position_shuffle
         self.shared_reward = shared_reward
         self.shared_policy = shared_policy
-        self.additional_params = additional_params if additional_params != None else {}
-        self.max_deacc = max_deacc
-        self.max_acc = max_acc
+        self.additional_params = \
+            additional_params if additional_params is not None else {}
+        self.max_decel = max_decel
+        self.max_accel = max_accel
 
     def get_additional_param(self, key):
         return self.additional_params[key]
@@ -129,8 +129,8 @@ class NetParams:
                  net_path="debug/net/",
                  cfg_path="debug/cfg/",
                  no_internal_links=True,
-                 lanes=1,
-                 speed_limit=55,
+                 in_flows=None,
+                 osm_path=None,
                  additional_params=None):
         """
         Network configuration parameters
@@ -144,23 +144,24 @@ class NetParams:
         no_internal_links: bool, optional
             determines whether the space between edges is finite. Important
             when using networks with intersections; default is False
-        lanes: int or dict, optional
-            number of lanes for each edge in the network. May be specified as a
-            single integer (in which case all lanes are assumed to have the same
-            number of lanes), or a dict, ex: {"edge_1": 2, "edge_2": 1, ...}
-        speed_limit: float or dict, optional
-            speed limit for each edge in the network. May be specified as a
-            single value (in which case all edges are assumed to have the same
-            speed limit), or a dict, ex: {"edge_1": 30, "edge_2": 35, ...}
+        in_flows: InFlows type, optional
+            specifies the inflows of specific edges and the types of vehicles
+            entering the network from these edges
+        osm_path: str, optional
+            path to the .osm file that should be used to generate the network
+            configuration files. This parameter is only needed / used if the
+            OpenStreetMapGenerator generator class is used.
         additional_params: dict, optional
             network specific parameters; see each subclass for a description of
             what is needed
         """
+        if additional_params is None:
+            additional_params = {}
         self.net_path = net_path
         self.cfg_path = cfg_path
         self.no_internal_links = no_internal_links
-        self.lanes = lanes
-        self.speed_limit = speed_limit
+        self.in_flows = in_flows
+        self.osm_path = osm_path
         self.additional_params = additional_params
 
 
@@ -169,13 +170,14 @@ class InitialConfig:
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
-                 scale=2.5,
-                 downscale=5,
+                 min_gap=0,
+                 perturbation=0.0,
                  x0=0,
                  bunching=0,
                  lanes_distribution=1,
                  starting_lane=0,
                  distribution_length=None,
+                 edges_distribution="all",
                  positions=None,
                  lanes=None,
                  additional_params=None):
@@ -191,18 +193,25 @@ class InitialConfig:
             should be shuffled upon initialization.
         spacing: str, optional
             specifies the positioning of vehicles in the network relative to
-            one another. May be one of:
-
+            one another. May be one of: "uniform", "random", or "custom".
+            Default is "uniform".
+        min_gap: float, optional
+            minimum gap between two vehicles upon initialization, in meters.
+            Default is 0 m.
+        x0: float, optional
             position of the first vehicle to be placed in the network
+        perturbation: float, optional
+            standard deviation used to perturb vehicles from their uniform
+            position, in meters. Default is 0 m.
         bunching: float, optional
             reduces the portion of the network that should be filled with
             vehicles by this amount.
         lanes_distribution: int, optional
             number of lanes vehicles should be dispersed into (cannot be greater
             than the number of lanes in the network)
-        distribution_length: float, optional
-            length that vehicles should be disperse in; default is network
-            length
+        edges_distribution: list <str>, optional
+            list of edges vehicles may be placed on initialization, default is
+            all lanes (stated as "all")
         positions: list, optional
             used if the user would like to specify user-generated initial
             positions.
@@ -214,15 +223,16 @@ class InitialConfig:
         """
         self.shuffle = shuffle
         self.spacing = spacing
-        self.scale = scale
-        self.downscale = downscale
+        self.min_gap = min_gap
+        self.perturbation = perturbation
         self.x0 = x0
         self.bunching = bunching
         self.lanes_distribution = lanes_distribution
-        self.distribution_length = distribution_length
+        self.edges_distribution = edges_distribution
         self.positions = positions
         self.lanes = lanes
         self.starting_lane = starting_lane
+        self.distribution_length = distribution_length
         if additional_params is None:
             self.additional_params = dict()
         else:
@@ -258,7 +268,6 @@ class SumoCarFollowingParams:
         speedDev: float
         impatience: float
         carFollowModel: str
-        laneChangeModel: str
 
         Note
         ----
@@ -280,6 +289,7 @@ class SumoCarFollowingParams:
             "carFollowModel": carFollowModel
         }
 
+
 class SumoLaneChangeParams:
     def __init__(self,
                  model="LC2013",
@@ -293,8 +303,6 @@ class SumoLaneChangeParams:
                  lcPushy=0.0,
                  lcPushyGap=0.6,
                  lcAssertive=1.0,
-                 # lcImpatience=0.0,
-                 # lcTimeToImpatience=float("inf"),
                  lcAccelLat=1.0):
 
         if model == "LC2013":
@@ -303,8 +311,6 @@ class SumoLaneChangeParams:
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
                             "lcKeepRight": str(lcKeepRight),
-                            # "lcLookaheadLeft": str(lcLookaheadLeft),
-                            # "lcSpeedGainRight": str(lcSpeedGainRight)
                             }
         elif model == "SL2015":
             self.controller_params = {"laneChangeModel": model,
@@ -312,15 +318,9 @@ class SumoLaneChangeParams:
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
                             "lcKeepRight": str(lcKeepRight),
-                            # "lcLookaheadLeft": str(lcLookaheadLeft),
-                            # "lcSpeedGainRight": str(lcSpeedGainRight),
                             "lcSublane": str(lcSublane),
                             "lcPushy": str(lcPushy),
-                            # "lcPushyGap": str(lcPushyGap),
                             "lcAssertive": str(lcAssertive),
-                            # "lcImpatience": str(lcImpatience),
-                            # "lcTimeToImpatience": str(lcTimeToImpatience),
-                            # "lcAccelLat": str(lcAccelLat)
                             }
         else:
             logging.error("Invalid lc model! Defaulting to LC2013")
@@ -329,12 +329,77 @@ class SumoLaneChangeParams:
                             "lcCooperative": str(lcCooperative),
                             "lcSpeedGain": str(lcSpeedGain),
                             "lcKeepRight": str(lcKeepRight),
-                            # "lcLookaheadLeft": str(lcLookaheadLeft),
-                            # "lcSpeedGainRight": str(lcSpeedGainRight),
                             "lcSublane": str(lcSublane),
                             "lcPushy": str(lcPushy),
                             "lcPushyGap": str(lcPushyGap),
                             "lcAssertive": str(lcAssertive),
-                            # "lcImpatience": str(lcImpatience),
-                            # "lcTimeToImpatience": str(lcTimeToImpatience),
                             "lcAccelLat": str(lcAccelLat)}
+
+
+class InFlows:
+    def __init__(self):
+        """
+        Used to add inflows to a network. Inflows can be specified for any edge
+        that has a specified route or routes.
+        """
+        self.num_flows = 0
+        self.__flows = []
+
+    def add(self, veh_type, edge, start=None, end=None, vehsPerHour=None,
+            period=None, probability=None, number=None, **kwargs):
+        """
+        Specifies a new inflow for a given type of vehicles and edge.
+
+        Parameters
+        ----------
+        veh_type: str
+            type of vehicles entering the edge, must match one of the types set
+            in the Vehicles class.
+        edge: str
+            starting edge for vehicles in this inflow.
+        start: float, optional
+            see Note
+        end: float, optional
+            see Note
+        vehsPerHour: float, optional
+            see Note
+        period: float, optional
+            see Note
+        probability: float, optional
+            see Note
+        number: int, optional
+            see Note
+        kwargs: dict, optional
+            see Note
+
+        Note
+        ----
+        For information on the parameters start, end, vehsPerHour, period,
+        probability, number, as well as other vehicle type and routing
+        parameters that may be added via **kwargs, refer to:
+        http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+        """
+        new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
+                      "route": "route"+edge}
+
+        new_inflow.update(kwargs)
+
+        if start is not None:
+            new_inflow["start"] = start
+        if end is not None:
+            new_inflow["end"] = end
+        if vehsPerHour is not None:
+            new_inflow["vehsPerHour"] = vehsPerHour
+        if period is not None:
+            new_inflow["period"] = period
+        if probability is not None:
+            new_inflow["probability"] = probability
+        if number is not None:
+            new_inflow["number"] = number
+
+        self.__flows.append(new_inflow)
+
+        self.num_flows += 1
+
+    def get(self):
+        return self.__flows

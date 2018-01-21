@@ -1,10 +1,7 @@
 """
 Base class for generating transportation networks.
 """
-from flow.core.util import makexml
-from flow.core.util import printxml
-from flow.core.util import ensure_dir
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.core.util import makexml, printxml, ensure_dir
 
 import sys
 import subprocess
@@ -12,7 +9,11 @@ import logging
 import random
 from lxml import etree
 
-from rllab.core.serializable import Serializable
+try:
+    # Import serialiable if rllab is installed
+    from rllab.core.serializable import Serializable
+except ImportError as e:
+    Serializable = object
 
 E = etree.Element
 
@@ -22,8 +23,9 @@ class Generator(Serializable):
     NET_PATH = "./"
 
     def __init__(self, net_params, base):
-        Serializable.quick_init(self, locals())
-
+        # Invoke serialiable if using rllab
+        if Serializable is not object:
+            Serializable.quick_init(self, locals())
         self.net_params = net_params
         self.net_path = net_params.net_path
         self.cfg_path = net_params.cfg_path
@@ -44,6 +46,17 @@ class Generator(Serializable):
         Generates Net files for the transportation network. Different networks
         require different net_params; see the separate sub-classes for more
         information.
+
+        Parameters
+        ----------
+        net_params: NetParams type
+            network-specific parameters
+
+        Returns
+        -------
+        edges: dict <dict>
+            Key = name of the edge
+            Elements = length, lanes, speed
         """
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -129,9 +142,52 @@ class Generator(Serializable):
              % no_internal_links],
             stdout=sys.stdout, stderr=sys.stderr, shell=True)
 
+        # location of the .net.xml file
         self.netfn = netfn
 
-        return self.net_path + netfn
+        # Create "edge type" dicts compatible with SUMO, which applies to all
+        # edges on the network of a particular category type_category, and is
+        # based on types specified in specify_types function in child generator
+        # classes. For an example, see flow/scenarios/highway/gen.py.
+        # Permitted attributes: http://sumo.dlr.de/wiki/Networks/Building_
+        # Networks_from_own_XML-descriptions#Edge_Descriptions
+        # Supported attributes: id, length, numLanes, speed
+        edge_type_categories = dict()
+        if types is not None:
+            for type_category in types:
+                type_id = type_category["id"]
+                edge_type_categories[type_id] = dict()
+                for key in type_category:
+                    edge_type_categories[type_id][key] = type_category[key]
+
+        # Create dict containing "edge type" specific to each edge. Sets
+        # attributes used by speed_limit(), edge_length(), num_lanes(),
+        # and get_edge_list() getter functions of the Scenario class.
+        # Supported attributes:
+        # - length: edge length
+        # - lanes: number of lanes
+        # - speed: speed limit
+        edges_dict = dict()
+        for edge_i in edges:
+            edge_id = edge_i["id"]
+            edges_dict[edge_id] = dict()
+
+            # add num_lanes, length, and max_speed to edges dict
+            edges_dict[edge_id]["length"] = float(edge_i["length"])
+
+            if "numLanes" in edge_i:
+                edges_dict[edge_id]["lanes"] = int(edge_i["numLanes"])
+            else:
+                edges_dict[edge_id]["lanes"] = \
+                    int(edge_type_categories[edge_i["type"]]["numLanes"])
+
+            if "speed" in edge_i:
+                edges_dict[edge_id]["speed"] = float(edge_i["speed"])
+            else:
+                edges_dict[edge_id]["speed"] = \
+                    float(edge_type_categories[edge_i["type"]]["speed"])
+
+        return edges_dict
 
     def generate_cfg(self, net_params):
         """
@@ -162,15 +218,6 @@ class Generator(Serializable):
         for (edge, route) in self.rts.items():
             add.append(E("route", id="route%s" % edge, edges=" ".join(route)))
 
-        # specify (optional) rerouting actions
-        rerouting = self.specify_rerouters(net_params)
-
-        if rerouting is not None:
-            for rerouting_params in rerouting:
-                add.append(self._rerouter(rerouting_params["name"],
-                                          rerouting_params["from"],
-                                          rerouting_params["route"]))
-
         printxml(add, self.cfg_path + addfn)
 
         gui = E("viewsettings")
@@ -200,9 +247,9 @@ class Generator(Serializable):
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
             # add the types of vehicles to the xml file
-            for type, type_params in vehicles.types:
+            for vtype, type_params in vehicles.types:
                 type_params_str = {key:str(type_params[key]) for key in type_params}
-                routes.append(E("vType", id=type, **type_params_str))
+                routes.append(E("vType", id=vtype, **type_params_str))
 
             self.vehicle_ids = vehicles.get_ids()
 
@@ -221,6 +268,15 @@ class Generator(Serializable):
                     veh_type, "route" + edge, depart="0", id=id,
                     color="1,0.0,0.0", departSpeed=str(type_depart_speed),
                     departPos=str(pos), departLane=str(lane)))
+
+            # add the in-flows from various edges to the xml file
+            if self.net_params.in_flows is not None:
+                total_inflows = self.net_params.in_flows.get()
+                for inflow in total_inflows:
+                    for key in inflow:
+                        if not isinstance(inflow[key], str):
+                            inflow[key] = repr(inflow[key])
+                    routes.append(self._flow(**inflow))
 
             printxml(routes, self.cfg_path + self.roufn)
 
@@ -337,35 +393,8 @@ class Generator(Serializable):
         """
         raise NotImplementedError
 
-    def specify_rerouters(self, net_params):
-        """
-        Specifies rerouting actions vehicles should perform once reaching a
-        specific edge.
-
-        Parameters
-        ----------
-        net_params: NetParams type
-            see flow/core/params.py
-
-        Returns
-        -------
-        rerouters: list of dict
-            A list of rerouting attributes (a separate dict for each rerouter),
-            with each dict containing:
-             - name {string} -- name of the rerouter
-             - from {string} -- the edge in which rerouting takes place
-             - route {string} -- name of the route the vehicle is rerouted into
-        """
-        return None
-
-    def _vtype(self, name, maxSpeed=30, accel=1.5, decel=4.5, length=5,
-               **kwargs):
-        return E("vType", accel=repr(accel), decel=repr(decel), id=name,
-                 length=repr(length), maxSpeed=repr(maxSpeed), **kwargs)
-
-    def _flow(self, name, number, vtype, route, **kwargs):
-        return E("flow", id=name, number=repr(number), route=route, type=vtype,
-                 **kwargs)
+    def _flow(self, name, vtype, route, **kwargs):
+        return E("flow", id=name, route=route, type=vtype, **kwargs)
 
     def _vehicle(self, type, route, departPos, number=0, id=None, **kwargs):
         if not id and not number:
@@ -398,10 +427,3 @@ class Generator(Serializable):
             else:
                 inp.append(E("gui-settings-file", value=gui))
         return inp
-
-    def _rerouter(self, name, frm, to):
-        t = E("rerouter", id=name, edges=frm)
-        i = E("interval", begin="0", end="10000000")
-        i.append(E("routeProbReroute", id=to))
-        t.append(i)
-        return t

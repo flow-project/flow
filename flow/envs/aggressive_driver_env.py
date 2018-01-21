@@ -2,14 +2,14 @@
 Environment for training an aggressive driver in a multilane ring road
 '''
 
-from flow.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
+from flow.envs.lane_changing import LaneChangeAccelEnv
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 
-class AggressiveDriverEnvironment(SimpleLaneChangingAccelerationEnvironment):
+class AggressiveDriverEnvironment(LaneChangeAccelEnv):
     """
     Environment used to train an aggressive driver behavior.
 

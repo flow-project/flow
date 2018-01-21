@@ -1,10 +1,10 @@
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 
 import numpy as np
 import random
 
 
-class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
+class PerturbationAccelerationLoop(AccelEnv):
 
     def __init__(self, env_params, sumo_params, scenario):
         super().__init__(env_params, sumo_params, scenario)
@@ -22,18 +22,19 @@ class PerturbationAccelerationLoop(SimpleAccelerationEnvironment):
         if "perturbed_id" in env_params:
             self.perturbed_id = env_params.get_additional_param("perturbed_id")
         else:
-            self.perturbed_id = self.ids[random.randint(0, len(self.ids)-1)]
+            ids = self.vehicles.get_ids()
+            self.perturbed_id = ids[random.randint(0, len(ids)-1)]
         self.traci_connection.vehicle.setColor(self.perturbed_id, (0, 255, 255, 0))
 
     def additional_command(self):
         if self.num_perturbations < len(self.perturbations):
-            if self.perturbations[self.num_perturbations][0] < self.timer < \
+            if self.perturbations[self.num_perturbations][0] < self.time_counter < \
                     (self.perturbations[self.num_perturbations][0]
                      + self.perturbations[self.num_perturbations][1]):
                 self.apply_acceleration(
                     self.perturbed_id,
                     self.env_params.max_deacc)
-            if self.timer > (
+            if self.time_counter > (
                 self.perturbations[self.num_perturbations][0] +
                     self.perturbations[self.num_perturbations][1]):
                 self.num_perturbations += 1

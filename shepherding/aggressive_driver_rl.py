@@ -22,13 +22,13 @@ num_rl_cars = 1
 num_human_cars = 30
 
 def run_task(v):
-    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui",
-                             starting_position_shuffle=True,
-                             vehicle_arrangement_shuffle=True)
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
     additional_env_params = {"target_velocity": 15, "num_steps": 1000}
     env_params = EnvParams(additional_params=additional_env_params,
-                           lane_change_duration=0.1)
+                           lane_change_duration=0.1,
+                           starting_position_shuffle=True,
+                           vehicle_arrangement_shuffle=True)
 
     additional_net_params = {"length": 500, "lanes": 4, "speed_limit": 15,
                              "resolution": 40}
@@ -49,20 +49,20 @@ def run_task(v):
         SumoCarFollowingParams(speedFactor=1.75, decel=7.5, accel=4.5, tau=0.2)
 
     vehicles = Vehicles()
-    vehicles.add_vehicles(veh_id="rl",
-                          acceleration_controller=(RLCarFollowingController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=num_rl_cars,
-                          sumo_lc_params=human_lc_params,
-                          sumo_car_following_params=aggressive_cfm_params,
-                          lane_change_controller=(SumoLaneChangeController, {}))
-    vehicles.add_vehicles(veh_id="human",
-                          acceleration_controller=(IDMController, {}),
-                          routing_controller=(ContinuousRouter, {}),
-                          num_vehicles=num_human_cars,
-                          sumo_car_following_params=human_cfm_params,
-                          sumo_lc_params=human_lc_params,
-                          lane_change_controller=(SumoLaneChangeController, {}))
+    vehicles.add(veh_id="rl",
+                 acceleration_controller=(RLCarFollowingController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=num_rl_cars,
+                 sumo_lc_params=human_lc_params,
+                 sumo_car_following_params=aggressive_cfm_params,
+                 lane_change_controller=(SumoLaneChangeController, {}))
+    vehicles.add(veh_id="human",
+                 acceleration_controller=(IDMController, {}),
+                 routing_controller=(ContinuousRouter, {}),
+                 num_vehicles=num_human_cars,
+                 sumo_car_following_params=human_cfm_params,
+                 sumo_lc_params=human_lc_params,
+                 lane_change_controller=(SumoLaneChangeController, {}))
 
 
     scenario = LoopScenario("aggressive-rl-vehicle", CircleGenerator,

@@ -121,19 +121,19 @@ class BaseController:
             return action
 
         this_vel = env.vehicles.get_speed(self.veh_id)
-        time_step = env.time_step
-        next_vel = this_vel + action * time_step
+        sim_step = env.sim_step
+        next_vel = this_vel + action * sim_step
         h = env.vehicles.get_headway(self.veh_id)
 
         if next_vel > 0:
             # the second and third terms cover (conservatively) the extra
             # distance the vehicle will cover before it fully decelerates
-            if h < time_step * next_vel + this_vel * 1e-3 + \
-                    0.5 * this_vel * time_step:
+            if h < sim_step * next_vel + this_vel * 1e-3 + \
+                    0.5 * this_vel * sim_step:
                 # if the vehicle will crash into the vehicle ahead of it in the
                 # next time step (assuming the vehicle ahead of it is not
                 # moving), then stop immediately
-                return -this_vel / time_step
+                return -this_vel / sim_step
             else:
                 # if the vehicle is not in danger of crashing, continue with the
                 # requested action
@@ -166,10 +166,10 @@ class BaseController:
             safe_velocity = self.safe_velocity(env)
 
             this_vel = env.vehicles.get_speed(self.veh_id)
-            time_step = env.time_step
+            sim_step = env.sim_step
 
-            if this_vel + action * time_step > safe_velocity:
-                return (safe_velocity - this_vel)/time_step
+            if this_vel + action * sim_step > safe_velocity:
+                return (safe_velocity - this_vel)/sim_step
             else:
                 return action
 
@@ -198,7 +198,7 @@ class BaseController:
         h = env.vehicles.get_headway(self.veh_id)
         dv = lead_vel - this_vel
 
-        v_safe = 2 * h / env.time_step + dv - this_vel * (2 * self.delay)
+        v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
 
         return v_safe
 

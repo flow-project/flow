@@ -1,9 +1,9 @@
 
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 
 import numpy as np
 
-class TrainedPolicyEnv(SimpleAccelerationEnvironment):
+class TrainedPolicyEnv(AccelEnv):
 
     gain_dif_vel = 0.5
 

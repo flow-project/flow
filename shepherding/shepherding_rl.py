@@ -21,33 +21,33 @@ from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
 def run_task(*_):
 
-    sumo_params = SumoParams(time_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
 
     human_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", tau=3.0, speedDev=0.1, minGap=1.0)
     human_lc_params = SumoLaneChangeParams(lcKeepRight=0, lcAssertive=0.5,
                                            lcSpeedGain=1.5, lcSpeedGainRight=1.0)
-    vehicles.add_vehicles("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
-                          (ContinuousRouter, {}),
-                          0, 10,
-                          lane_change_mode="execute_all",
-                          sumo_car_following_params=human_cfm_params,
-                          sumo_lc_params=human_lc_params,
-                          )
+    vehicles.add("human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
+                 (ContinuousRouter, {}),
+                 0, 10,
+                 lane_change_mode="execute_all",
+                 sumo_car_following_params=human_cfm_params,
+                 sumo_lc_params=human_lc_params,
+                 )
 
     aggressive_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", speedFactor=2, tau=0.2, minGap=1.0, accel=8)
-    vehicles.add_vehicles("aggressive-human", (SumoCarFollowingController, {}),
-                          (SafeAggressiveLaneChanger, {"target_velocity": 22.25, "threshold": 0.8}),
-                          (ContinuousRouter, {}), 0, 1,
-                          lane_change_mode="custom", custom_lane_change_mode=0b0100000000,
-                          sumo_car_following_params=aggressive_cfm_params)
+    vehicles.add("aggressive-human", (SumoCarFollowingController, {}),
+                 (SafeAggressiveLaneChanger, {"target_velocity": 22.25, "threshold": 0.8}),
+                 (ContinuousRouter, {}), 0, 1,
+                 lane_change_mode=0b0100000000,
+                 sumo_car_following_params=aggressive_cfm_params)
 
 
     rl_cfm_params = SumoCarFollowingParams(carFollowModel="IDM", tau=1.0, speedDev=2, minGap=1.0)
-    vehicles.add_vehicles("rl", (RLCarFollowingController, {}), None, (ContinuousRouter, {}), 0, 3,
-                          lane_change_mode="custom", custom_lane_change_mode=512,
-                          sumo_car_following_params=rl_cfm_params, additional_params={"emergencyDecel":"9"})
+    vehicles.add("rl", (RLCarFollowingController, {}), None, (ContinuousRouter, {}), 0, 3,
+                 lane_change_mode=512,
+                 sumo_car_following_params=rl_cfm_params, additional_params={"emergencyDecel":"9"})
 
     env_params = EnvParams(additional_params={"target_velocity": 15, "num_steps": 1000},
                            lane_change_duration=0.1, max_speed=30)

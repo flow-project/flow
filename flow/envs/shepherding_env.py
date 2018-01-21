@@ -1,12 +1,12 @@
 
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+from flow.envs.loop_accel import AccelEnv
 
 import numpy as np
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
 
-class ShepherdingEnv(SimpleAccelerationEnvironment):
+class ShepherdingEnv(AccelEnv):
 
     def compute_reward(self, state, rl_actions, **kwargs):
         # num_non_rl = (self.vehicles.num_vehicles-self.vehicles.num_rl_vehicles)
@@ -37,8 +37,8 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
          - a (continuous) lane-change action from -1 to 1, used to determine the
            lateral direction the vehicle will take.
         """
-        max_deacc = self.env_params.max_deacc
-        max_acc = self.env_params.max_acc
+        max_deacc = self.env_params.max_decel
+        max_acc = self.env_params.max_accel
 
         lb = [-abs(max_deacc), -1] * self.vehicles.num_rl_vehicles
         ub = [max_acc, 1] * self.vehicles.num_rl_vehicles
@@ -155,7 +155,7 @@ class ShepherdingEnv(SimpleAccelerationEnvironment):
             data, such as positions. If no extra component is needed, a value
             of None should be returned
         """
-        non_aggressive_humans = list(self.vehicles.get_sumo_ids())
+        non_aggressive_humans = list(self.vehicles.get_human_ids())
         non_aggressive_humans.remove("aggressive-human_0")
         sorted_indx = np.argsort(self.vehicles.get_absolute_position(non_aggressive_humans))
         sorted_ids = np.concatenate([np.array(["rl_0", "rl_1", "rl_2", "aggressive-human_0"]), np.array(non_aggressive_humans)[sorted_indx]])
