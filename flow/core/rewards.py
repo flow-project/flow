@@ -35,43 +35,6 @@ def desired_velocity(env, fail=False):
 
     return max(max_cost - cost, 0)
 
-def merge_desired_velocity(env, fail=False):
-    """
-    A reward function used to encourage high system-level velocity. However, it only counts vehicles
-    that are inside the ring
-
-    This function measures the deviation of a system of vehicles from a user-specified desired velocity,
-    peaking when all vehicles in the ring are set to this desired velocity. Moreover, in order to ensure that
-    the reward function naturally punishing the early termination of rollouts due to collisions or other failures,
-    the function is formulated as a mapping $r: \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}_{\geq 0}$.
-    This is done by subtracting the deviation of the system from the desired velocity from the peak allowable
-    deviation from the desired velocity. Additionally, since the velocity of vehicles are unbounded above, the
-    reward is bounded below by zero, to ensure nonnegativity.
-
-    :param env {SumoEnvironment type} - the environment variable, which contains information on the current
-           state of the system.
-    :param fail {bool} - specifies if any crash or other failure occurred in the system
-    """
-    inner_vel = []
-    for veh_id in env.vehicles.get_ids():
-        if env.vehicles.get_edge(veh_id) == 'left' or env.vehicles.get_edge(veh_id) == 'center':
-            inner_vel.append(env.vehicles.get_speed(veh_id))
-    num_vehicles = len(inner_vel)
-    inner_vel = np.array(inner_vel)
-
-
-    if any(inner_vel < -100) or fail:
-        return 0.
-
-    max_cost = np.array([env.env_params.additional_params["target_velocity"]] * num_vehicles)
-    max_cost = np.linalg.norm(max_cost)
-
-    cost = inner_vel - env.env_params.additional_params["target_velocity"]
-    cost = np.linalg.norm(cost)
-
-
-    return max((max_cost - cost), 0)
-
 
 def min_delay(state=None, actions=None, **kwargs):
     """
@@ -91,8 +54,8 @@ def min_delay(state=None, actions=None, **kwargs):
     v_top = kwargs["target_velocity"]
     time_step = kwargs["time_step"]
 
-    max_cost = time_step*sum(vel.shape)
-    cost = time_step*sum((v_top - vel)/v_top)
+    max_cost = time_step * sum(vel.shape)
+    cost = time_step * sum((v_top - vel) / v_top)
 
     return max(max_cost - cost, 0)
 
@@ -140,7 +103,7 @@ def punish_small_rl_headways(vehicles, rl_ids, headway_threshold, penalty_gain=1
     # in order to keep headway penalty (and thus reward function) positive
     max_headway_penalty = len(rl_ids) * penalty_gain
 
-    #return max_headway_penalty - headway_penalty
+    # return max_headway_penalty - headway_penalty
     return -np.abs(headway_penalty)
 
 
