@@ -463,8 +463,8 @@ class Scenario(Serializable):
         x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
+        # if "x0" in kwargs:
+        #     x0 = kwargs["x0"]
 
         bunching = initial_config.bunching
         # check if requested bunching value is not valid (negative)

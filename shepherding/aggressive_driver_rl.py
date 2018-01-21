@@ -107,5 +107,7 @@ for seed in [5, 10, 15, 20]:
         # seed will be used
         seed=seed,
         # mode="",  # ec2  # local_docker
-        exp_prefix="aggressive-rl-vehicle"
+        exp_prefix="aggressive-rl-vehicle",
+        python_command="/Users/kanaad/anaconda3/envs/flow/bin/python",
+
     )
