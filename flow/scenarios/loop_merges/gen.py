@@ -48,7 +48,7 @@ class LoopMergesGenerator(Generator):
             routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
             for veh_type in scenario.vehicles.types:
-                routes.append(E("vType", id=veh_type, minGap="0"))
+                routes.append(E("vType", id=veh_type[0], minGap="0"))
 
             vehicle_ids = scenario.vehicles.get_ids()
 

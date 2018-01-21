@@ -39,7 +39,7 @@ class Vehicles:
     def add_vehicles(self,
                      veh_id,
                      acceleration_controller,
-                     lane_change_controller,
+                     lane_change_controller=None,
                      routing_controller=None,
                      initial_speed=0,
                      num_vehicles=1,
@@ -140,7 +140,7 @@ class Vehicles:
             # specify the lane-changing controller class
             if lane_change_controller is not None:
                 self.__vehicles[vehID]["lane_changer"] = \
-                    lane_change_controller[0](veh_id=vehID,
+                    lane_change_controller[0](vehID,
                                               **lane_change_controller[1])
             else:
                 self.__vehicles[vehID]["lane_changer"] = None

@@ -16,7 +16,7 @@ class TestVehiclesClass(unittest.TestCase):
                     lane_change_mode = "no_lat_collide")
 
         self.assertEqual(vehicles.get_speed_mode_name("typeA_0"), "no_collide")
-        self.assertEqual(vehicles.get_speed_mode("typeA_0"), 1)
+        self.assertEqual(vehicles.get_speed_mode("typeA_0"), 31)
         self.assertEqual(vehicles.get_lane_change_mode_name("typeA_0"), "no_lat_collide")
         self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 256)
 
@@ -33,11 +33,11 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add_vehicles("typeC",
                     (IDMController, {}),
                     speed_mode = 'custom',
-                    custom_speed_mode = 31,
+                    custom_speed_mode = 16,
                     lane_change_mode = "custom",
                     custom_lane_change_mode=277)
         self.assertEqual(vehicles.get_speed_mode_name("typeC_0"), "custom")
-        self.assertEqual(vehicles.get_speed_mode("typeC_0"), 31)
+        self.assertEqual(vehicles.get_speed_mode("typeC_0"), 16)
         self.assertEqual(vehicles.get_lane_change_mode_name("typeC_0"), "custom")
         self.assertEqual(vehicles.get_lane_change_mode("typeC_0"), 277)
 

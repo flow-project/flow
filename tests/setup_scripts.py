@@ -80,7 +80,7 @@ def ring_road_exp_setup(sumo_params=None,
                             generator_class=CircleGenerator,
                             vehicles=vehicles,
                             net_params=net_params,
-                            sinitial_config=initial_config)
+                            initial_config=initial_config)
 
     # create the environment
     env = SimpleAccelerationEnvironment(env_params=env_params,
