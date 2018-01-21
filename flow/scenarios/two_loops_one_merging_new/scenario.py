@@ -217,4 +217,3 @@ class TwoLoopsOneMergingScenario(Scenario):
             pass
 
         return startpositions, startlanes
-

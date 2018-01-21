@@ -24,6 +24,7 @@ from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.car_following_models import CFMController
 from flow.controllers.routing_controllers import ContinuousRouter
 
+
 ray.init()
 # ray.init(redirect_output=True)
 config = ppo.DEFAULT_CONFIG.copy()
@@ -68,7 +69,6 @@ def create_env(env_config):
     env = gym.envs.make(env_name)
 
     return env
-
 
 register_rllib_env(env_name, create_env)
 
