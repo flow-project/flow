@@ -1,6 +1,6 @@
 """
 Used to train a mixed environment with an rl aggressive driver and IDM
-controlled cars. 1 Lane.
+controlled cars.
 """
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario

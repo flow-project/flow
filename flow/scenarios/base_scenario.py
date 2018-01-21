@@ -1,13 +1,10 @@
 import logging
 import numpy as np
 import math
-from collections import OrderedDict
 
 from rllab.core.serializable import Serializable
 
-from flow.core.generator import Generator
 from flow.core.params import InitialConfig
-from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
 
 
 class Scenario(Serializable):

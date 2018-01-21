@@ -1,8 +1,10 @@
-from flow.envs.loop_accel import SimpleAccelerationEnvironment
+'''
+Environment for training an aggressive driver in a multilane ring road
+'''
+
 from flow.envs.lane_changing import SimpleLaneChangingAccelerationEnvironment
 
 from gym.spaces.box import Box
-from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 import numpy as np
 

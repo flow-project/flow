@@ -1,8 +1,8 @@
-import random
-import math
-from flow.controllers.rlcarfollowingcontroller import RLCarFollowingController
+'''
+Controller for executing a policy trained by loading its pkl file.
+'''
+
 from flow.controllers.base_controller import BaseController
-import collections
 import numpy as np
 import joblib
 

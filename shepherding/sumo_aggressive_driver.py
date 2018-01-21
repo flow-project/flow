@@ -1,23 +1,5 @@
-''' Used to test out a mixed environment with an IDM controller and
-another type of car, in this case our drunk driver class. One lane. 
-
-Variables:
-    sumo_params {dict} -- [Pass time step, safe mode is on or off]
-    sumo_binary {str} -- [Use either sumo-gui or sumo for visual or non-visual]
-    type_params {dict} -- [Types of cars in the system. 
-    Format {"name": (number, (Model, {params}), (Lane Change Model, {params}), initial_speed)}]
-    env_params {dict} -- [Params for reward function]
-    net_params {dict} -- [Params for network.
-                            length: road length
-                            lanes
-                            speed limit
-                            resolution: number of edges comprising ring
-                            net_path: where to store net]
-    cfg_params {dict} -- [description]
-    initial_config {dict} -- [shuffle: randomly reorder cars to start experiment
-                                spacing: if gaussian, add noise in start positions
-                                bunching: how close to place cars at experiment start]
-    scenario {[type]} -- [Which road network to use]
+'''
+Test bed for seeing the effects of a SUMO based aggressive driver in a multilane ring road experiment.
 '''
 
 from flow.envs.shepherding_env import ShepherdingEnv
