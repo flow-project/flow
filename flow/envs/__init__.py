@@ -6,3 +6,4 @@ from flow.envs.two_loops_one_merging import *
 from flow.envs.loop_with_perturbation import *
 from flow.envs.shepherding_env import *
 from flow.envs.aggressive_driver_env import *
+from flow.envs.trained_policy_env import *
