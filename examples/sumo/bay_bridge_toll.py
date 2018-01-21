@@ -27,8 +27,38 @@ additional_env_params = {"target_velocity": 8}
 env_params = EnvParams(additional_params=additional_env_params)
 
 inflow = InFlows()
-inflow.add(veh_type="human", edge="1", vehsPerHour=15000,
-           departLane="free", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="0", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="1", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="2", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="3", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="4", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="5", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="6", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="7", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="8", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="9", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="10", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="11", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="12", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="13", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="14", departSpeed=20)
+inflow.add(veh_type="human", edge="1", vehsPerHour=15000/16,
+           departLane="15", departSpeed=20)
 
 net_params = NetParams(in_flows=inflow,
                        no_internal_links=False)
