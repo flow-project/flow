@@ -10,7 +10,7 @@ import ray
 import ray.rllib.ppo as ppo
 import ray.tune.registry as registry
 
-from examples.rllib.stabilizing_the_ring import make_create_env
+from examples.rllib.stabilizing_the_ring import make_create_env, HORIZON
 
 from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.controllers.rlcontroller import RLController
@@ -86,9 +86,8 @@ class TestRay(unittest.TestCase):
         # integration tests together for the time being.
         # reload(ppo)
         # reload(registry)
-        import cloudpickle
         config = ppo.DEFAULT_CONFIG.copy()
-        horizon = 100
+        horizon = HORIZON
         num_workers = 2
         # ray.init(num_cpus=num_workers, redirect_output=True)
         config["num_workers"] = num_workers
