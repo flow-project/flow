@@ -21,7 +21,7 @@ Variables:
 '''
 
 import logging
-from shepherding_env import ShepherdingEnv
+from flow.envs. import
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
@@ -60,11 +60,6 @@ vehicles.add_vehicles(veh_id="human",
                       custom_lane_change_mode=0b1001010101,
                       sumo_car_following_params=human_cfm_params,
                       sumo_lc_params=human_lc_params)
-# vehicles.add_vehicles("aggressive-human", (SumoCarFollowingController, {}), (SumoLaneChangeController, {}),
-#                       (ContinuousRouter, {}), 0, 1,
-#                       lane_change_mode="custom", custom_lane_change_mode=0b0100010101,
-#                       sumo_car_following_params=aggressive_cfm_params,
-#                       sumo_lc_params=aggressive_lc_params)
 
 pkl_file_path = os.path.dirname(os.path.realpath(__file__)) + "/itr_1810.pkl"
 
