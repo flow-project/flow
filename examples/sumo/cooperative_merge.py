@@ -63,7 +63,8 @@ def cooperative_merge_example(sumo_binary=None):
 
     additional_net_params = {"ring_radius": 50, "lanes": 1,
                              "lane_length": 75, "speed_limit": 30,
-                             "resolution": 40}
+                             "resolution": 40, "inner_lanes": 3,
+                             "outer_lanes": 2}
     net_params = NetParams(
         no_internal_links=False,
         additional_params=additional_net_params
@@ -95,7 +96,7 @@ def cooperative_merge_example(sumo_binary=None):
 if __name__ == "__main__":
 
     # import the experiment variable from the example
-    exp = cooperative_merge_example(sumo_binary="sumo")
+    exp = cooperative_merge_example()
 
     # run the experiment for a few time steps to ensure it doesn't fail
-    exp.run(1, 5)
+    exp.run(1, 1500)
