@@ -8,17 +8,16 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 
-from flow.controllers.car_following_models import *
-from flow.controllers.lane_change_controllers import *
-from flow.controllers.routing_controllers import *
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.routing_controllers import ContinuousRouter
 
 from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
 from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
-from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario import TwoLoopsOneMergingScenario
+from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario \
+    import TwoLoopsOneMergingScenario
 
 
 def two_loops_merge_example(sumo_binary=None):
-
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
@@ -43,7 +42,7 @@ def two_loops_merge_example(sumo_binary=None):
     env_params = EnvParams(max_decel=6, max_accel=3,
                            additional_params=additional_env_params)
 
-    additional_net_params = {"ring_radius": 230/(2*np.pi), "lanes": 1,
+    additional_net_params = {"ring_radius": 230 / (2 * np.pi), "lanes": 1,
                              "speed_limit": 30, "resolution": 40}
     net_params = NetParams(
         no_internal_links=False,
@@ -73,7 +72,6 @@ def two_loops_merge_example(sumo_binary=None):
 
 
 if __name__ == "__main__":
-
     # import the experiment variable
     exp = two_loops_merge_example()
 

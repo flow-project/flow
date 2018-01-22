@@ -11,14 +11,14 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.experiment import SumoExperiment
 from flow.envs.two_intersection import TwoIntersectionEnv
 from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
-from flow.scenarios.intersections.intersection_scenario import *
-from flow.controllers.car_following_models import *
+from flow.scenarios.intersections.intersection_scenario \
+    import TwoWayIntersectionScenario
+from flow.controllers.car_following_models import IDMController
 
 import logging
 
 
 def two_way_intersection_example(sumo_binary=None):
-
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
@@ -40,8 +40,12 @@ def two_way_intersection_example(sumo_binary=None):
                                               "max_speed": v_enter})
 
     additional_net_params = \
-        {"horizontal_length_in": 400, "horizontal_length_out": 10, "horizontal_lanes": 1,
-         "vertical_length_in": 400, "vertical_length_out": 10, "vertical_lanes": 1,
+        {"horizontal_length_in": 400,
+         "horizontal_length_out": 10,
+         "horizontal_lanes": 1,
+         "vertical_length_in": 400,
+         "vertical_length_out": 10,
+         "vertical_lanes": 1,
          "speed_limit": {"horizontal": 30, "vertical": 30}}
     net_params = NetParams(no_internal_links=False,
                            additional_params=additional_net_params)
@@ -68,7 +72,6 @@ def two_way_intersection_example(sumo_binary=None):
 
 
 if __name__ == "__main__":
-
     # import the experiment variable
     exp = two_way_intersection_example()
 
