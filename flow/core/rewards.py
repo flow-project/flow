@@ -54,8 +54,8 @@ def min_delay(state=None, actions=None, **kwargs):
     v_top = kwargs["target_velocity"]
     time_step = kwargs["time_step"]
 
-    max_cost = time_step*sum(vel.shape)
-    cost = time_step*sum((v_top - vel)/v_top)
+    max_cost = time_step * sum(vel.shape)
+    cost = time_step * sum((v_top - vel) / v_top)
 
     return max(max_cost - cost, 0)
 
@@ -96,14 +96,15 @@ def punish_small_rl_headways(vehicles, rl_ids, headway_threshold, penalty_gain=1
     """
     headway_penalty = 0
     for veh_id in rl_ids:
-        if vehicles[veh_id]["headway"] < headway_threshold:
-            headway_penalty += (((headway_threshold - vehicles[veh_id]["headway"]) / headway_threshold)
+        if vehicles.get_headway(veh_id) < headway_threshold:
+            headway_penalty += (((headway_threshold - vehicles.get_headway(veh_id)) / headway_threshold)
                                 ** penalty_exponent) * penalty_gain
 
     # in order to keep headway penalty (and thus reward function) positive
     max_headway_penalty = len(rl_ids) * penalty_gain
 
-    return max_headway_penalty - headway_penalty
+    # return max_headway_penalty - headway_penalty
+    return -np.abs(headway_penalty)
 
 
 def punish_rl_lane_changes(vehicles, rl_ids, penalty=1):

@@ -1,6 +1,8 @@
 from flow.scenarios.base_scenario import Scenario
 
 from numpy import pi, arcsin
+import numpy as np
+import random
 
 
 class TwoLoopsOneMergingScenario(Scenario):
@@ -82,6 +84,8 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         print(x0)
 
+        random_scale = self.initial_config.additional_params.get("gaussian_scale", 0)
+
         bunching = initial_config.bunching
         # changes to bunching in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
@@ -109,10 +113,15 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         try:
             increment_loop = \
-                (length_loop - bunching) * initial_config.lanes_distribution / \
+                (length_loop - bunching) * self.net_params.additional_params["inner_lanes"] / \
                 (num_vehicles - num_merge_vehicles)
 
-            x = [x0] * initial_config.lanes_distribution
+            #x = [x0] * initial_config.lanes_distribution
+            if self.initial_config.additional_params.get("ring_from_right", False):
+                x = [dict(self.edgestarts)["right"]] * \
+                self.net_params.additional_params["inner_lanes"]
+            else:
+                x = [x0] * self.net_params.additional_params["inner_lanes"]
             car_count = 0
             lane_count = 0
             while car_count < num_vehicles - num_merge_vehicles:
@@ -140,14 +149,14 @@ class TwoLoopsOneMergingScenario(Scenario):
                 startpositions.append(pos)
                 startlanes.append(lane_count)
 
-                x[lane_count] = (x[lane_count] + increment_loop) % length_loop
+                x[lane_count] = (x[lane_count] + increment_loop + random_scale*np.random.randn()) % length_loop
 
                 # increment the car_count and lane_num
                 car_count += 1
                 lane_count += 1
                 # if the lane num exceeds the number of lanes the vehicles
                 # should be distributed on in the network, reset
-                if lane_count >= initial_config.lanes_distribution:
+                if lane_count >= self.net_params.additional_params["inner_lanes"]:
                     lane_count = 0
         except ZeroDivisionError:
             pass
@@ -158,8 +167,12 @@ class TwoLoopsOneMergingScenario(Scenario):
                 (length_merge - merge_bunching) * \
                 initial_config.lanes_distribution / num_merge_vehicles
 
-            x = [dict(self.edgestarts)["bottom"]] * \
-                initial_config.lanes_distribution
+            if self.initial_config.additional_params.get("merge_from_top", False):
+                x = [dict(self.edgestarts)["top"] - x0] * \
+                    self.net_params.additional_params["outer_lanes"]
+            else:
+                x = [dict(self.edgestarts)["bottom"] - x0] * \
+                    self.net_params.additional_params["outer_lanes"]
             car_count = 0
             lane_count = 0
             while car_count < num_merge_vehicles:
@@ -186,15 +199,20 @@ class TwoLoopsOneMergingScenario(Scenario):
                 startpositions.append(pos)
                 startlanes.append(lane_count)
 
-                x[lane_count] = x[lane_count] + increment_merge
+                if self.initial_config.additional_params.get("merge_from_top", False):
+                    x[lane_count] = x[lane_count] - increment_merge + random_scale*np.random.randn()
+                else:
+                    x[lane_count] = x[lane_count] + increment_merge + + random_scale*np.random.randn()
 
                 # increment the car_count and lane_num
                 car_count += 1
                 lane_count += 1
                 # if the lane num exceeds the number of lanes the vehicles
                 # should be distributed on in the network, reset
-                if lane_count >= initial_config.lanes_distribution:
+                # if lane_count >= self.initial_config.lane_distribution
+                if lane_count >= self.net_params.additional_params["outer_lanes"]:
                     lane_count = 0
+
         except ZeroDivisionError:
             pass
 
