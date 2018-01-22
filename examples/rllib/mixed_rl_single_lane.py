@@ -33,19 +33,10 @@ config["num_sgd_itr"] = 20
 flow_env_name = "AccelEnv"
 
 env_version_num = 0
-env_name = flow_env_name+'-v'+str(env_version_num)
+env_name = flow_env_name + '-v' + str(env_version_num)
 
 
-class TuplePreprocessor(Preprocessor):
-
-    def _init(self):
-        self.shape = self._obs_space.shape
-
-    def transform(self, observation):
-        return np.concatenate(observation)
-
-
-def create_env():
+def create_env(env_config):
     import flow.envs as flow_envs
     logging.basicConfig(level=logging.INFO)
 
@@ -77,21 +68,10 @@ def create_env():
     register_env(*pass_params)
     env = gym.envs.make(env_name)
 
-    env.observation_space.shape = (
-    int(np.sum([c.shape for c in env.observation_space.spaces])),)
-
-    ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
-
     return env
 
 register_rllib_env(env_name, create_env)
-# ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
 
 alg = ppo.PPOAgent(env=env_name, registry=get_registry())
 for i in range(20):
     alg.train()
-
-# alg = ppo.PPOAgent(config=config, env="CartPole-v1")
-
-
-
