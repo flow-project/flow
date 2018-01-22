@@ -1,14 +1,16 @@
 """
-Used as example of sugiyama experiment. 22 IDM cars on a ring create shockwaves.
+Used as example of sugiyama experiment.
+22 IDM cars on a ring create shockwaves.
 """
 import logging
 
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, \
+    InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 
 from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.loop.gen import CircleGenerator
@@ -16,7 +18,6 @@ from flow.scenarios.loop.loop_scenario import LoopScenario
 
 
 def sugiyama_example(sumo_binary=None):
-
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
@@ -55,7 +56,6 @@ def sugiyama_example(sumo_binary=None):
 
 
 if __name__ == "__main__":
-
     # import the experiment variable
     exp = sugiyama_example()
 

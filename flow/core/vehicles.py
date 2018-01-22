@@ -10,11 +10,11 @@ import traci.constants as tc
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 
-class Vehicles:
+SPEED_MODES = {"aggressive": 0, "no_collide": 1}
+LC_MODES = {"aggressive": 0, "no_lat_collide": 256, "strategic": 853}
 
-    speed_modes = {"aggressive": 0, "no_collide": 1}
-    lane_changing_modes = {"aggressive": 0, "no_lat_collide": 256,
-                           "strategic": 853, "execute_all": 597}
+
+class Vehicles:
 
     def __init__(self):
         """
@@ -56,9 +56,7 @@ class Vehicles:
             initial_speed=0,
             num_vehicles=1,
             speed_mode='no_collide',
-            custom_speed_mode=None,
             lane_change_mode="no_lat_collide",
-            custom_lane_change_mode=256,
             sumo_car_following_params=None,
             sumo_lc_params=None):
         """
@@ -84,29 +82,30 @@ class Vehicles:
             initial speed of the vehicles being added (in m/s)
         num_vehicles: int, optional
             number of vehicles of this type to be added to the network
-        speed_mode: str, optional
+        speed_mode: str or int, optional
             may be one of the following:
              - "no_collide" (default): Human and RL cars are preventing from
                reaching speeds that may cause crashes (also serves as a failsafe).
-             - "aggressive": Human and RL cars are not limited by sumo with regard
-               to their accelerations, and can crash longitudinally
-             - "custom": uses the number provided with custom_speed_mode,
-        custom_speed_mode: int, optional:
-            custom speed mode for the given vehicles. specified at:
-            http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
-        lane_change_mode: str, optional
-            - "strategic": Human cars make lane changes in accordance with SUMO to
-                provide speed boosts
-            - "no_lat_collide": Human cars will not make lane changes, RL cars can
-                lane change into any space, no matter how likely it is to crash (default)
+             - "aggressive": Human and RL cars are not limited by sumo with
+               regard to their accelerations, and can crash longitudinally
+             - int values may be used to define custom speed mode for the given
+               vehicles, specified at:
+               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
+        lane_change_mode: str or int, optional
+            may be one of the following:
+            - "strategic": Human cars make lane changes in accordance with SUMO
+              to provide speed boosts
+            - "no_lat_collide": Human cars will not make lane changes, RL cars
+              can lane change into any space, no matter how likely it is to
+              crash (default)
             - "aggressive": RL cars are not limited by sumo with regard to their
-                lane-change actions, and can crash longitudinally
-        custom_lane_change_mode: int, optional:
-            custom speed mode for the given vehicles. specified at:
-            http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
-        sumo_car_following_params:
-            Params object specifying attributes for Sumo CFM.
-        sumo_lc_params:
+              lane-change actions, and can crash longitudinally
+            - int values may be used to define custom lane change modes for the
+              given vehicles, specified at:
+              http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
+        sumo_car_following_params: flow.core.params.SumoCarFollowingParams type
+            Params object specifying attributes for Sumo car following model.
+        sumo_lc_params: flow.core.params.SumoLaneChangeParams type
             Params object specifying attributes for Sumo lane changing model.
         """
         if sumo_car_following_params is None:
@@ -119,17 +118,29 @@ class Vehicles:
         type_params.update(sumo_car_following_params.controller_params)
         type_params.update(sumo_lc_params.controller_params)
 
-        # If the vehicle is not a sumo vehicle, set its max acceleration /
-        # deceleration to a very large value to allow fuller control
-        if acceleration_controller[0] != SumoCarFollowingController:
-            type_params["accel"] = 1000
-            type_params["decel"] = 1000
-
         # If a vehicle is not sumo or RL, let the minGap be as small as possible
         # so that it does not tamper with the dynamics of the controller
         if acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
+
+        # adjust the speed mode value
+        if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
+            speed_mode = SPEED_MODES[speed_mode]
+        elif not (isinstance(speed_mode, int)
+                  or isinstance(speed_mode, float)):
+            logging.error("Setting speed mode of {0} to "
+                          "default.".format(veh_id))
+            speed_mode = SPEED_MODES["no_collide"]
+
+        # adjust the lane change mode value
+        if isinstance(lane_change_mode, str) and lane_change_mode in LC_MODES:
+            lane_change_mode = LC_MODES[lane_change_mode]
+        elif not (isinstance(lane_change_mode, int)
+                  or isinstance(lane_change_mode, float)):
+            logging.error("Setting lane change mode of {0} to "
+                          "default.".format(veh_id))
+            lane_change_mode = LC_MODES["no_lat_collide"]
 
         # this dict will be used when trying to introduce new vehicles into
         # the network via a flow
@@ -139,9 +150,7 @@ class Vehicles:
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
              "speed_mode": speed_mode,
-             "custom_speed_mode": custom_speed_mode,
              "lane_change_mode": lane_change_mode,
-             "custom_lane_change_mode": custom_lane_change_mode,
              "sumo_car_following_params": sumo_car_following_params,
              "sumo_lc_params": sumo_lc_params}
 
@@ -193,25 +202,9 @@ class Vehicles:
                 if lane_change_controller[0] != SumoLaneChangeController:
                     self.__controlled_lc_ids.append(vehID)
 
-            # set the speed mode for the vehicle
-            self.__vehicles[vehID]["speed_mode_name"] = speed_mode
-            if speed_mode in Vehicles.speed_modes:
-                self.__vehicles[vehID]["speed_mode_value"] = Vehicles.speed_modes[speed_mode]
-            elif speed_mode == "custom":
-                self.__vehicles[vehID]["speed_mode_value"] = custom_speed_mode
-            else:
-                logging.error("Invalid speed mode!")
-                self.__vehicles[vehID]["speed_mode_value"] = Vehicles.speed_modes["no_collide"]
-
-            # set the lane changing mode for the vehicle
-            self.__vehicles[vehID]["lane_change_mode_name"] = lane_change_mode
-            if lane_change_mode in Vehicles.lane_changing_modes:
-                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.lane_changing_modes[lane_change_mode]
-            elif lane_change_mode == "custom":
-                self.__vehicles[vehID]["lane_change_mode_value"] = custom_lane_change_mode
-            else:
-                logging.error("Invalid lane change mode!")
-                self.__vehicles[vehID]["lane_change_mode_value"] = Vehicles.speed_modes["no_lat_collide"]
+            # specify the speed and lane change mode for the vehicle
+            self.__vehicles[vehID]["speed_mode"] = speed_mode
+            self.__vehicles[vehID]["lane_change_mode"] = lane_change_mode
 
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)
@@ -346,7 +339,7 @@ class Vehicles:
         # subscribe the new vehicle
         env.traci_connection.vehicle.subscribe(
             veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-                     tc.VAR_ROAD_ID, tc.VAR_SPEED])
+                     tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
         # set the absolute position of the vehicle
@@ -359,46 +352,15 @@ class Vehicles:
         self.__vehicles[veh_id]["initial_speed"] = \
             self.type_parameters[veh_type]["initial_speed"]
 
-        # set the absolute position of the vehicle
-        self.set_route(
-            veh_id, "route" + env.traci_connection.vehicle.getRoadID(veh_id))
-
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type]["speed_mode"]
-        custom_speed_mode = self.type_parameters[veh_type]["custom_speed_mode"]
-        self.__vehicles[veh_id]["speed_mode_name"] = speed_mode
-        if speed_mode in Vehicles.speed_modes:
-            self.__vehicles[veh_id]["speed_mode_value"] = Vehicles.speed_modes[
-                speed_mode]
-        elif speed_mode == "custom":
-            self.__vehicles[veh_id]["speed_mode_value"] = custom_speed_mode
-        else:
-            logging.error("Invalid speed mode!")
-            self.__vehicles[veh_id]["speed_mode_value"] = Vehicles.speed_modes[
-                "no_collide"]
+        self.__vehicles[veh_id]["speed_mode"] = speed_mode
+        env.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
         # set the lane changing mode for the vehicle
         lc_mode = self.type_parameters[veh_type]["lane_change_mode"]
-        custom_lc_mode = self.type_parameters[veh_type]["custom_lane_change_mode"]
-        self.__vehicles[veh_id]["lane_change_mode_name"] = lc_mode
-        if lc_mode in Vehicles.lane_changing_modes:
-            self.__vehicles[veh_id]["lane_change_mode_value"] = \
-                Vehicles.lane_changing_modes[lc_mode]
-        elif lc_mode == "custom":
-            self.__vehicles[veh_id]["lane_change_mode_value"] = \
-                custom_lc_mode
-        else:
-            logging.error("Invalid lane change mode!")
-            self.__vehicles[veh_id]["lane_change_mode_value"] = \
-                Vehicles.speed_modes["no_lat_collide"]
-
-        # set speed mode in sumo
-        env.traci_connection.vehicle.setSpeedMode(
-            veh_id, self.get_speed_mode(veh_id))
-
-        # set lane change mode in sumo
-        env.traci_connection.vehicle.setLaneChangeMode(
-            veh_id, self.get_lane_change_mode(veh_id))
+        self.__vehicles[veh_id]["lane_change_mode"] = lc_mode
+        env.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
         # set the max speed in sumo
         env.traci_connection.vehicle.setMaxSpeed(veh_id, env.max_speed)
@@ -431,11 +393,20 @@ class Vehicles:
             self.__rl_ids.remove(veh_id)
             self.num_rl_vehicles -= 1
 
+    def test_set_speed(self, veh_id, speed):
+        self.__sumo_observations[veh_id][tc.VAR_SPEED] = speed
+
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
 
-    def set_route(self, veh_id, route):
-        self.__vehicles[veh_id]["route"] = route
+    def test_set_position(self, veh_id, position):
+        self.__sumo_observations[veh_id][tc.VAR_LANEPOSITION] = position
+
+    def test_set_edge(self, veh_id, edge):
+        self.__sumo_observations[veh_id][tc.VAR_ROAD_ID] = edge
+
+    def test_set_lane(self, veh_id, lane):
+        self.__sumo_observations[veh_id][tc.VAR_LANE_INDEX] = lane
 
     def set_leader(self, veh_id, leader):
         self.__vehicles[veh_id]["leader"] = leader
@@ -465,16 +436,10 @@ class Vehicles:
         return self.__vehicles[veh_id]["initial_speed"]
 
     def get_lane_change_mode(self, veh_id):
-        return self.__vehicles[veh_id]["lane_change_mode_value"]
-
-    def get_lane_change_mode_name(self, veh_id):
-        return self.__vehicles[veh_id]["lane_change_mode_name"]
+        return self.__vehicles[veh_id]["lane_change_mode"]
 
     def get_speed_mode(self, veh_id):
-        return self.__vehicles[veh_id]["speed_mode_value"]
-
-    def get_speed_mode_name(self, veh_id):
-        return self.__vehicles[veh_id]["speed_mode_name"]
+        return self.__vehicles[veh_id]["speed_mode"]
 
     def get_speed(self, veh_id="all"):
         """
@@ -644,12 +609,19 @@ class Vehicles:
         - list of vehicle ids
         - "all", in which case a list of all the specified state is provided
         """
+        # if a list of vehicle ids are requested, call the function for each
+        # requested vehicle id
         if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["route"] for vehID in veh_id]
+            return [self.get_route(vehID) for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["route"] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["route"]
+            return [self.get_route(vehID) for vehID in self.__ids]
+
+        # perform the value retrieval for a specific vehicle
+        try:
+            return self.__sumo_observations[veh_id][tc.VAR_EDGES]
+        except KeyError:
+            # if the vehicle does not exist, return an error value (empty list)
+            return []
 
     def get_leader(self, veh_id="all"):
         """
@@ -723,10 +695,3 @@ class Vehicles:
             return [self.__vehicles[vehID][state_name] for vehID in self.__ids]
         else:
             return self.__vehicles[veh_id][state_name]
-
-    def get_full_state(self, veh_id):
-        """
-        Return a dict of all state variables of a specific vehicle:
-        """
-        # FIXME: add sumo observations as well
-        return self.__vehicles[veh_id]
