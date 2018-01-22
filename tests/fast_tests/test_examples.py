@@ -18,6 +18,7 @@ class TestSumoExamples(unittest.TestCase):
     does not test for any refactoring changes done to the functions within the
     experiment class.
     """
+
     def test_cooperative_merge(self):
         """
         Verifies that examples/sumo/cooperative_merge.py is working

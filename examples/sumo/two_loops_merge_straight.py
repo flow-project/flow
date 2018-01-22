@@ -2,16 +2,15 @@
 Example of ring road with larger merging ring.
 """
 import logging
-import numpy as np
 
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams,\
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
 
-from flow.controllers.car_following_models import *
-from flow.controllers.lane_change_controllers import *
-from flow.controllers.routing_controllers import *
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.routing_controllers import ContinuousRouter
 
 from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
 from flow.scenarios.two_loops_one_merging_new.gen import \
@@ -21,7 +20,6 @@ from flow.scenarios.two_loops_one_merging_new.scenario import \
 
 
 def two_loops_merge_straight_example(sumo_binary=None):
-
     logging.basicConfig(level=logging.INFO)
 
     sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
@@ -53,8 +51,13 @@ def two_loops_merge_straight_example(sumo_binary=None):
     additional_env_params = {"target_velocity": 20}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"ring_radius": 75, "lanes": 1, "lane_length": 75,
-                             "speed_limit": 30, "resolution": 40}
+    additional_net_params = {"ring_radius": 75,
+                             "inner_lanes": 1,
+                             "outer_lanes": 1,
+                             "lanes": 1,
+                             "lane_length": 75,
+                             "speed_limit": 30,
+                             "resolution": 40}
     net_params = NetParams(
         no_internal_links=False,
         additional_params=additional_net_params
@@ -82,8 +85,8 @@ def two_loops_merge_straight_example(sumo_binary=None):
 
     return exp
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # import the experiment variable
     exp = two_loops_merge_straight_example()
 
