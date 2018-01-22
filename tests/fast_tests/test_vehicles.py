@@ -41,20 +41,17 @@ class TestVehiclesClass(unittest.TestCase):
 
     def test_controlled_id_params(self):
         """
-        Ensures that, if a vehicle is not a sumo vehicle, its max acceleration /
-        deceleration are set to very large values to allow fuller control, and
-        that minGap is set to zero so that all headway values are correct.
+        Ensures that, if a vehicle is not a sumo vehicle, then minGap is set to
+        zero so that all headway values are correct.
         """
         # check that, if the vehicle is not a SumoCarFollowingController
-        # vehicle, then its minGap is equal to 0, and its accel/decel is 100
+        # vehicle, then its minGap is equal to 0
         vehicles = Vehicles()
         vehicles.add("typeA",
                      acceleration_controller=(IDMController, {}),
                      speed_mode='no_collide',
                      lane_change_mode="no_lat_collide")
         self.assertEqual(vehicles.types[0][1]["minGap"], 0)
-        self.assertEqual(vehicles.types[0][1]["accel"], 1000)
-        self.assertEqual(vehicles.types[0][1]["decel"], 1000)
 
         # check that, if the vehicle is a SumoCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
@@ -64,11 +61,7 @@ class TestVehiclesClass(unittest.TestCase):
                      speed_mode='no_collide',
                      lane_change_mode="no_lat_collide")
         default_minGap = SumoCarFollowingParams().controller_params["minGap"]
-        default_accel = SumoCarFollowingParams().controller_params["accel"]
-        default_decel = SumoCarFollowingParams().controller_params["decel"]
         self.assertEqual(vehicles.types[0][1]["minGap"], default_minGap)
-        self.assertEqual(vehicles.types[0][1]["accel"], default_accel)
-        self.assertEqual(vehicles.types[0][1]["decel"], default_decel)
 
     def test_add_vehicles_human(self):
         """
