@@ -339,7 +339,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         """
         self.env.reset()
 
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.traci_connection.vehicle.getIDList()
 
         # collect the original routes of all vehicles
         routes_0 = [self.env.traci_connection.vehicle.getRoute(veh_id)
@@ -366,7 +366,15 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
                     for veh_id in ids]
 
         # check that the new route was changed
-        self.assertSequenceEqual(routes_2[0], routes_1[1])
+        #
+        # Note that the route occasionally begins with the vehicles current edge
+        # (this is because the test is asking for a route that does not begin
+        #  with the vehicle's current route, which is not how the choose_route
+        #  method is meant to be used)
+        try:
+            self.assertSequenceEqual(routes_2[0], routes_1[1])
+        except AssertionError:
+            self.assertSequenceEqual(routes_2[0][1:], routes_1[1])
 
 
 if __name__ == '__main__':
