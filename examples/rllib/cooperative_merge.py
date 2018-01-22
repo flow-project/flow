@@ -48,45 +48,70 @@ from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 
 
-HORIZON = 1000
-
+HORIZON = 100
+RING_RADIUS = 100
+NUM_MERGE_HUMANS = 9
+NUM_MERGE_RL = 1
 additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
                          "max-acc": 1, "num_steps": HORIZON}
-additional_net_params = {"ring_radius": 50, "lanes": 1,
+additional_net_params = {"ring_radius": RING_RADIUS, "lanes": 1,
+                         "inner_lanes": 3, "outer_lanes": 2,
                          "lane_length": 75, "speed_limit": 30,
                          "resolution": 40}
 vehicle_params = [dict(veh_id="human",
-                       acceleration_controller=(IDMController, {"noise": 0.2}),
+                       acceleration_controller=(SumoCarFollowingController, {}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       num_vehicles=6,
+                       lane_change_mode="strategic",
+                       num_vehicles=10,
                        sumo_car_following_params=SumoCarFollowingParams(
-                           minGap=0.0, tau=0.5),
+                           minGap=1.0, tau=0.5),
+                       sumo_lc_params=SumoLaneChangeParams()),
+                  dict(veh_id="on-rl",
+                       acceleration_controller=(RLController, {"fail_safe": "safe_velocity"}),
+                       lane_change_controller=(SumoLaneChangeController, {}),
+                       routing_controller=(ContinuousRouter, {}),
+                       speed_mode="no_collide",
+                       lane_change_mode="strategic",
+                       num_vehicles=1,
+                       sumo_car_following_params=SumoCarFollowingParams(
+                           minGap=0.01, tau=0.5),
                        sumo_lc_params=SumoLaneChangeParams()),
                   dict(veh_id="merge-human",
-                       acceleration_controller=(IDMController, {"noise": 0.2}),
+                       acceleration_controller=(SumoCarFollowingController, {}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       num_vehicles=9,
+                       lane_change_mode="strategic",
+                       num_vehicles=NUM_MERGE_HUMANS,
                        sumo_car_following_params=SumoCarFollowingParams(
-                           minGap=0.0, tau=0.5),
+                           minGap=1.0, tau=0.5),
                        sumo_lc_params=SumoLaneChangeParams()),
                   dict(veh_id="merge-rl",
                        acceleration_controller=(RLController, {"fail_safe": "safe_velocity"}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
                        speed_mode="no_collide",
-                       num_vehicles=1,
+                       lane_change_mode="strategic",
+                       num_vehicles=NUM_MERGE_RL,
                        sumo_car_following_params=SumoCarFollowingParams(
                            minGap=0.01, tau=0.5),
                        sumo_lc_params=SumoLaneChangeParams())
                  ]
 
+merge_ids = []
+for i in range(NUM_MERGE_HUMANS):
+    merge_ids.append('merge-human_'+str(i))
+for i in range(NUM_MERGE_RL):
+    merge_ids.append('merge-rl_'+str(i))
+merge_list = [merge_ids]
+
+
+
 flow_params = dict(
                 sumo=dict(
                     sim_step=0.1
                   ),
-                env=dict(
+                env=dict(vehicle_arrangement_shuffle=True,
                     additional_params=additional_env_params
                   ),
                 net=dict(
@@ -97,7 +122,15 @@ flow_params = dict(
                 initial=dict(
                     x0=50,
                     spacing="custom",
-                    additional_params={"merge_bunching": 0}
+                    lanes_distribution=1,
+                    # shuffle=False,
+                    # TODO add a consistent set of values for the bunching params
+                    # TODO add some non-uniformity
+                    additional_params={"merge_bunching": 300,
+                                       "merge_shuffle": True,
+                                       "gaussian_scale": 2,
+                                       "merge_from_top": True,
+                                       "shuffle_ids": merge_list}
                   )
               )
 
@@ -119,7 +152,7 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
 
     init_params = flow_params['initial']
 
-    def create_env():
+    def create_env(env_config):
         import flow.envs as flow_envs
 
         # note that the vehicles are added sequentially by the generator,
@@ -144,21 +177,16 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
         register_env(*pass_params)
         env = gym.envs.make(env_name)
 
-        env.observation_space.shape = (
-            int(np.sum([c.shape for c in env.observation_space.spaces])),)
-
-        ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
-
         return env
     return create_env, env_name
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 3
-    n_rollouts = 30
+    num_cpus = 2
+    n_rollouts = 3
 
-    ray.init(num_cpus=num_cpus, redirect_output=True)
+    ray.init(num_cpus=num_cpus, redirect_output=False)
     # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
 
     config["num_workers"] = num_cpus

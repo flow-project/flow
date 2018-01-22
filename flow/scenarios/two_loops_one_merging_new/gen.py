@@ -19,11 +19,12 @@ class TwoLoopOneMergingGenerator(Generator):
         See parent class
         """
         radius = net_params.additional_params["ring_radius"]
-        lanes = net_params.additional_params["lanes"]
+        self.inner_lanes = net_params.additional_params["inner_lanes"]
+        self.outer_lanes = net_params.additional_params["outer_lanes"]
 
         super().__init__(net_params, base)
 
-        self.name = "%s-%dr%dl" % (base, radius, lanes)
+        self.name = "%s-%dr%dl" % (base, radius, self.inner_lanes + self.outer_lanes)
 
     def specify_nodes(self, net_params):
         """
@@ -58,25 +59,28 @@ class TwoLoopOneMergingGenerator(Generator):
              "type": "edgeType", "length": repr(ring_edgelen), "priority": "46",
              "shape": " ".join(
                  ["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                  for t in linspace(- pi / 2, pi / 2, resolution)])},
+                  for t in linspace(- pi / 2, pi / 2, resolution)]),
+             "numLanes": str(self.inner_lanes)},
 
             {"id": "top", "from": "top_right", "to": "top_left",
-             "type": "edgeType", "length": repr(x), "priority": "46"},
+             "type": "edgeType", "length": repr(x), "priority": "46", "numLanes": str(self.outer_lanes)},
 
             {"id": "bottom", "from": "bottom_left", "to": "bottom_right",
-             "type": "edgeType", "length": repr(x)},
+             "type": "edgeType", "length": repr(x), "numLanes": str(self.outer_lanes)},
 
             {"id": "left", "from": "top_left", "to": "bottom_left",
              "type": "edgeType", "length": repr(ring_edgelen),
              "shape": " ".join(
                  ["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                  for t in linspace(pi / 2, 3 * pi / 2, resolution)])},
+                  for t in linspace(pi / 2, 3 * pi / 2, resolution)]),
+             "numLanes": str(self.inner_lanes)},
 
             {"id": "right", "from": "bottom_right", "to": "top_right",
              "type": "edgeType", "length": repr(ring_edgelen),
              "shape": " ".join(
                  ["%.2f,%.2f" % (x + r * cos(t), r * sin(t))
-                  for t in linspace(- pi / 2, pi / 2, resolution)])}
+                  for t in linspace(- pi / 2, pi / 2, resolution)]),
+             "numLanes": str(self.outer_lanes)}
         ]
 
         return edges
@@ -85,9 +89,11 @@ class TwoLoopOneMergingGenerator(Generator):
         """
         See parent class
         """
-        lanes = net_params.additional_params["lanes"]
+        #lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
-        types = [{"id": "edgeType", "numLanes": repr(lanes),
+        # types = [{"id": "edgeType", "numLanes": repr(lanes),
+        #           "speed": repr(speed_limit)}]
+        types = [{"id": "edgeType",
                   "speed": repr(speed_limit)}]
 
         return types
