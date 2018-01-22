@@ -131,6 +131,7 @@ class NetParams:
                  no_internal_links=True,
                  in_flows=None,
                  osm_path=None,
+                 netfile=None,
                  additional_params=None):
         """
         Network configuration parameters
@@ -162,6 +163,7 @@ class NetParams:
         self.no_internal_links = no_internal_links
         self.in_flows = in_flows
         self.osm_path = osm_path
+        self.netfile = netfile
         self.additional_params = additional_params
 
 
