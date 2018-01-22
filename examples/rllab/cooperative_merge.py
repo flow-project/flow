@@ -38,7 +38,7 @@ def run_task(*_):
     # so place the merging vehicles after the vehicles in the ring
     vehicles = Vehicles()
     # Inner ring vehicles
-    vehicles.add_vehicles(veh_id="human",
+    vehicles.add(veh_id="human",
                           acceleration_controller=(
                                 IDMController, {"noise": 0.2}),
                           lane_change_controller=(
@@ -50,7 +50,7 @@ def run_task(*_):
                           sumo_lc_params=SumoLaneChangeParams())
 
     # A single learning agent in the inner ring
-    vehicles.add_vehicles(veh_id="rl",
+    vehicles.add(veh_id="rl",
                           acceleration_controller=(
                               RLController, {"fail_safe": "safe_velocity"}),
                           lane_change_controller=(
@@ -63,7 +63,7 @@ def run_task(*_):
                           sumo_lc_params=SumoLaneChangeParams())
 
     # Outer ring vehicles
-    vehicles.add_vehicles(veh_id="merge-human",
+    vehicles.add(veh_id="merge-human",
                           acceleration_controller=(
                               IDMController, {"noise": 0.2}),
                           lane_change_controller=(
