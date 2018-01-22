@@ -3,15 +3,15 @@ Example of a figure 8 network with human-driven vehicles.
 """
 import logging
 from flow.core.params import SumoParams, EnvParams, NetParams
-from flow.controllers.routing_controllers import *
+from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
 from flow.core.experiment import SumoExperiment
 from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.figure8.gen import Figure8Generator
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
-from flow.controllers.car_following_models import *
-from flow.controllers.lane_change_controllers import *
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.lane_change_controllers import StaticLaneChanger
 
 
 def figure_eight_example(sumo_binary=None):

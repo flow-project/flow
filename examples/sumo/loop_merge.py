@@ -1,16 +1,16 @@
 """
 Example of a ring road with merge-in and merge-out lanes. Vehicles with the
 prefix "merge" in their vehicles ids begin in the merge lane, and travel from
-this lane, through the ring road, and out the merge out lane. Non-merge vehicles
-continuously travel in the ring road.
+this lane, through the ring road, and out the merge out lane. Non-merge
+vehicles continuously travel in the ring road.
 """
 
 import logging
-from flow.core.experiment import SumoExperiment
-from flow.controllers.car_following_models import *
-from flow.controllers.lane_change_controllers import *
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.lane_change_controllers import StaticLaneChanger
 
-from flow.core.params import *
+from flow.core.params import SumoParams, EnvParams, \
+    NetParams, InitialConfig
 from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 
@@ -43,10 +43,14 @@ def loop_merge_example(sumo_binary=None):
     additional_env_params = {"target_velocity": 8}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"merge_in_length": 500, "merge_in_angle": pi/9,
-                             "merge_out_length": 500, "merge_out_angle": pi * 17/9,
-                             "ring_radius": 400 / (2 * pi), "resolution": 40,
-                             "lanes": 1, "speed_limit": 30}
+    additional_net_params = {"merge_in_length": 500,
+                             "merge_in_angle": pi/9,
+                             "merge_out_length": 500,
+                             "merge_out_angle": pi * 17/9,
+                             "ring_radius": 400 / (2 * pi),
+                             "resolution": 40,
+                             "lanes": 1,
+                             "speed_limit": 30}
     net_params = NetParams(no_internal_links=False,
                            additional_params=additional_net_params)
 
