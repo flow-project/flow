@@ -1,6 +1,7 @@
 import unittest
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, \
+    NetParams, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
@@ -151,6 +152,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         vehicles.add(veh_id="test",
                      acceleration_controller=(IDMController, {}),
                      routing_controller=(ContinuousRouter, {}),
+                     sumo_car_following_params=SumoCarFollowingParams(
+                         accel=1000, decel=1000),
                      num_vehicles=5)
 
         # create the environment and scenario classes for a ring road

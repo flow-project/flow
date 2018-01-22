@@ -30,7 +30,7 @@ before_install:
   - pushd $HOME/build/cathywu
   -     git clone https://github.com/cathywu/ray.git
   -     pushd ray
-  -         git checkout hierarchy
+  -         git checkout testing
   -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
   -         rm -rf $RAY_SITE_DIR/rllib
   -         ls $RAY_SITE_DIR
