@@ -67,7 +67,6 @@ def run_task(*_):
 
     policy = GaussianGRUPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)

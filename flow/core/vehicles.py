@@ -49,7 +49,7 @@ class Vehicles:
 
     def add(self,
             veh_id,
-            acceleration_controller,
+            acceleration_controller=None,
             lane_change_controller=None,
             routing_controller=None,
             initial_speed=0,
@@ -111,9 +111,6 @@ class Vehicles:
         if sumo_car_following_params is None:
             sumo_car_following_params = SumoCarFollowingParams()
 
-        if not acceleration_controller:
-            raise ValueError("No acceleration controller is specified.")
-
         if additional_params:
             type_params = additional_params
         else:
@@ -130,13 +127,13 @@ class Vehicles:
 
         # If the vehicle is not a sumo vehicle, set its max acceleration /
         # deceleration to a very large value to allow fuller control
-        if acceleration_controller[0] != SumoCarFollowingController:
+        if not acceleration_controller or acceleration_controller[0] != SumoCarFollowingController:
             type_params["accel"] = 1000
             type_params["decel"] = 1000
 
         # If a vehicle is not sumo or RL, let the minGap be as small as possible
         # so that it does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SumoCarFollowingController \
+        if not acceleration_controller or acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLCarFollowingController:
             type_params["minGap"] = 0.0
 
@@ -185,13 +182,13 @@ class Vehicles:
             self.__vehicles[vehID]["type"] = veh_id
 
             # specify the acceleration controller class
-            self.__vehicles[vehID]["acc_controller"] = \
-                acceleration_controller[0](veh_id=vehID,
+            if acceleration_controller:
+                self.__vehicles[vehID]["acc_controller"] = \
+                    acceleration_controller[0](veh_id=vehID,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
-            # TODO: is this right??
-            if lane_change_controller is not None:
+            if lane_change_controller:
                 self.__vehicles[vehID]["lane_changer"] = \
                     lane_change_controller[0](vehID,
                                               **lane_change_controller[1])
@@ -211,15 +208,14 @@ class Vehicles:
 
             # determine the type of vehicle, and append it to its respective
             # id list
-            # TODO: is this right??
-            if acceleration_controller[0] == RLCarFollowingController:
+            if acceleration_controller and acceleration_controller[0] == RLCarFollowingController:
                 self.__rl_ids.append(vehID)
             else:
                 self.__human_ids.append(vehID)
 
                 # check if the vehicle's lane-changing / acceleration actions
                 # are controlled by sumo or not.
-                if acceleration_controller[0] != SumoCarFollowingController:
+                if acceleration_controller and acceleration_controller[0] != SumoCarFollowingController:
                     self.__controlled_ids.append(vehID)
                 if not lane_change_controller or lane_change_controller[0] != SumoLaneChangeController:
                     self.__controlled_lc_ids.append(vehID)

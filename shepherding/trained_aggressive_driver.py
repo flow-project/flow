@@ -27,7 +27,7 @@ from flow.controllers import rlcarfollowingcontroller
 rlcarfollowingcontroller.RLController = rlcarfollowingcontroller.RLCarFollowingController
 sys.modules['flow.controllers.rlcontroller'] = rlcarfollowingcontroller
 
-sumo_params = SumoParams(time_step= 0.1, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step= 0.1, sumo_binary="sumo-gui")
 
 human_cfm_params = SumoCarFollowingParams(sigma=1.0, tau=3.0)
 human_lc_params = SumoLaneChangeParams(
@@ -47,8 +47,7 @@ vehicles.add(veh_id="human",
              routing_controller=(ContinuousRouter, {}),
              initial_speed=0,
              num_vehicles=20,
-             lane_change_mode="custom",
-             custom_lane_change_mode=0b1001010101,
+             lane_change_mode=0b1001010101,
              sumo_car_following_params=human_cfm_params,
              sumo_lc_params=human_lc_params)
 
