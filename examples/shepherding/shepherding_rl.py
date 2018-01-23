@@ -21,7 +21,7 @@ from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
 def run_task(*_):
 
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     vehicles = Vehicles()
 
@@ -90,5 +90,5 @@ for seed in [900, 1200, 1717, 2018]:
         exp_prefix="_shepherding_full_aggro_headways",
         # n_parallel=8,
         seed=seed,
-        # mode="ec2",
+        mode="local_docker",
     )
