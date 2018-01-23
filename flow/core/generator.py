@@ -3,7 +3,7 @@ Base class for generating transportation networks.
 """
 from flow.core.util import makexml, printxml, ensure_dir
 
-import sys
+import os
 import subprocess
 import logging
 import random
@@ -136,11 +136,13 @@ class Generator(Serializable):
         x.append(t)
         printxml(x, self.net_path + cfgfn)
 
+        fh = open(self.cfg_path + "NULL", "w")
         retcode = subprocess.call(
             ["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
              self.cfg_path + netfn + ' --no-internal-links="%s"'
              % no_internal_links],
-            stdout=sys.stdout, stderr=sys.stderr, shell=True)
+            stdout=fh, stderr=fh, shell=True)
+        fh.close()
 
         # location of the .net.xml file
         self.netfn = netfn
