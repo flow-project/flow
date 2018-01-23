@@ -125,12 +125,15 @@ class Vehicles:
                 sumo_lc_params = SumoLaneChangeParams()
             type_params.update(sumo_lc_params.controller_params)
 
+<<<<<<< HEAD
         # If the vehicle is not a sumo vehicle, set its max acceleration /
         # deceleration to a very large value to allow fuller control
         if not acceleration_controller or acceleration_controller[0] != SumoCarFollowingController:
             type_params["accel"] = 1000
             type_params["decel"] = 1000
 
+=======
+>>>>>>> 1118613a4d16cdacecd78ee3d3cd2f0f3fa431e8
         # If a vehicle is not sumo or RL, let the minGap be as small as possible
         # so that it does not tamper with the dynamics of the controller
         if not acceleration_controller or acceleration_controller[0] != SumoCarFollowingController \

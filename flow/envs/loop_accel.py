@@ -125,7 +125,7 @@ class AccelMAEnv(AccelEnv):
         """
         See parent class
         """
-        num_vehicles = self.scenario.num_vehicles
+        num_vehicles = self.vehicles.num_vehicles
         observation_space = []
         speed = Box(low=0, high=np.inf, shape=(num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,))
@@ -150,11 +150,19 @@ class AccelMAEnv(AccelEnv):
         each vehicle.
         """
         obs_arr = []
-        for i in range(self.scenario.num_rl_vehicles):
-            speed = [self.vehicles.get_speed(veh_id)
-                     for veh_id in self.sorted_ids]
-            abs_pos = [self.vehicles.get_absolute_position(veh_id)
-                       for veh_id in self.sorted_ids]
+        for rl_id in self.rl_ids:
+            # Re-sort based on the rl agent being in front
+            # Probably should try and do this less often
+            sorted_indx = np.argsort([(self.vehicles.get_absolute_position(veh_id) -
+                                       self.vehicles.get_absolute_position(rl_id)) % self.scenario.length
+                                      for veh_id in self.ids])
+            sorted_ids = np.array(self.ids)[sorted_indx]
+
+            speed = [self.vehicles.get_speed(veh_id) for veh_id in sorted_ids]
+            abs_pos = [(self.vehicles.get_absolute_position(veh_id) -
+                        self.vehicles.get_absolute_position(rl_id)) % self.scenario.length
+                       for veh_id in sorted_ids]
+
             tup = (speed, abs_pos)
             obs_arr.append(tup)
 
