@@ -48,12 +48,11 @@ RUN apt-get update && apt-get -y install -qq \
 #    rm sumo-src-$SUMO_VERSION.tar.gz
 
 # Download SUMO nightly build
-RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo
+RUN svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@25706
 RUN mv $SUMO_SRC $SUMO_HOME
-RUN cd $SUMO_HOME && svn update
 
 # Apply patch file
-RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/flow.patch/sumo-departure-time.patch && patch -p1 < sumo-departure-time.patch
+RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/departure_time_issue.patch && patch -p1 < departure_time_issue.patch
 
 # Install SUMO
 RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make -j8 && make install
@@ -98,6 +97,7 @@ RUN apt-get install -y vim ack-grep
 RUN pip install gym
 # RUN apt-get -y install ffmpeg
 # RUN apt-get -y install libav-tools
+RUN apt-get update
 RUN apt-get install -y python-numpy python-dev cmake zlib1g-dev libjpeg-dev xvfb libav-tools xorg-dev python-opengl libboost-all-dev libsdl2-dev swig
 
 # Dependencies of OpenCV
@@ -109,14 +109,16 @@ ADD environment.yml /root/code/environment.yml
 RUN conda env create -f /root/code/environment.yml
 
 ENV PYTHONPATH /root/code/rllab:$PYTHONPATH
-ENV PATH /opt/conda/envs/rllab3/bin:$PATH
-RUN echo "source activate rllab3" >> /root/.bashrc
+ENV PYTHONPATH /root/code/rllab/flow:$PYTHONPATH
+ENV PYTHONPATH /root/code/rllab/learning-traffic:$PYTHONPATH
+ENV PATH /opt/conda/envs/flow/bin:$PATH
+RUN echo "source activate flow" >> /root/.bashrc
 ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
 #RUN /opt/conda/envs/rllab3/bin/pip install --ignore-installed --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc0-cp35-cp35m-linux_x86_64.whl
 
-RUN /opt/conda/envs/rllab3/bin/pip install --ignore-installed --upgrade tensorflow
+RUN /opt/conda/envs/flow/bin/pip install --ignore-installed --upgrade tensorflow
 
 RUN apt-get install -y libopenblas-dev
 RUN printf "[blas]\nldflags = -lopenblas\n" > ~/.theanorc

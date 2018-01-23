@@ -82,8 +82,6 @@ class TwoLoopsOneMergingScenario(Scenario):
         if "x0" in kwargs:
             x0 = kwargs["x0"]
 
-        print(x0)
-
         random_scale = self.initial_config.additional_params.get("gaussian_scale", 0)
 
         bunching = initial_config.bunching
