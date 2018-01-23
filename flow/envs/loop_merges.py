@@ -94,7 +94,6 @@ class LoopMergesEnv(Env):
 
             # perform rerouting and update vehicle's perception of its route
             if route is not None:
-                self.vehicles.set_route(veh_id, route)
                 self.traci_connection.vehicle.setRoute(vehID=veh_id, edgeList=route)
 
     def sort_by_position(self, **kwargs):

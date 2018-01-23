@@ -19,7 +19,6 @@ before_install:
   - python -V
 
   # Requirements for ray
-  - conda install opencv
   - pip install tensorflow
 
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
