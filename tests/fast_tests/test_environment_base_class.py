@@ -333,44 +333,5 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
 
-    def test_choose_route(self):
-        """
-        Tests that:
-        - when no route changing action is requested, it is skipped
-        - if a route change action is requested, the route of the vehicle in the
-          new step is the same of the route requested
-        """
-        self.env.reset()
-
-        ids = self.env.vehicles.get_ids()
-
-        # collect the original routes of all vehicles
-        routes_0 = [self.env.traci_connection.vehicle.getRoute(veh_id)
-                    for veh_id in ids]
-
-        # assign a new route of None to all vehicles
-        self.env.choose_routes(ids, [None]*len(ids))
-        self.env.traci_connection.simulationStep()
-
-        # check that when vehicles return a route of run, no error is outputted,
-        # and the routes of the vehicles remain the same
-        routes_1 = [self.env.traci_connection.vehicle.getRoute(veh_id)
-                    for veh_id in ids]
-
-        self.assertSequenceEqual(routes_0, routes_1)
-
-        # replace one of the routes with something new
-        self.env.choose_routes(ids, [routes_1[1]] + [None]*(len(ids)-1))
-        self.env.traci_connection.simulationStep()
-
-        # check that when vehicles return a route of run, no error is outputted,
-        # and the routes of the vehicles remain the same
-        routes_2 = [self.env.traci_connection.vehicle.getRoute(veh_id)
-                    for veh_id in ids]
-
-        # check that the new route was changed
-        self.assertSequenceEqual(routes_2[0], routes_1[1])
-
-
 if __name__ == '__main__':
     unittest.main()
