@@ -1,6 +1,3 @@
-"""
-Base class for generating transportation networks.
-"""
 from flow.core.util import makexml, printxml, ensure_dir
 
 import sys
@@ -10,7 +7,7 @@ import random
 from lxml import etree
 
 try:
-    # Import serialiable if rllab is installed
+    # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
 except ImportError as e:
     Serializable = object
@@ -19,11 +16,12 @@ E = etree.Element
 
 
 class Generator(Serializable):
-    CFG_PATH = "./"
-    NET_PATH = "./"
 
     def __init__(self, net_params, base):
-        # Invoke serialiable if using rllab
+        """
+        Base class for generating transportation networks.
+        """
+        # Invoke serializable if using rllab
         if Serializable is not object:
             Serializable.quick_init(self, locals())
         self.net_params = net_params
@@ -41,7 +39,7 @@ class Generator(Serializable):
         if not hasattr(self, "name"):
             self.name = "%s" % self.base
 
-    def generate_net(self, net_params):
+    def generate_net(self, net_params, traffic_lights):
         """
         Generates Net files for the transportation network. Different networks
         require different net_params; see the separate sub-classes for more
@@ -49,12 +47,14 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : flow.core.params.NetParams type
             network-specific parameters
+        traffic_lights : flow.core.traffic_lights.TrafficLights type
+            traffic light information
 
         Returns
         -------
-        edges: dict <dict>
+        edges : dict <dict>
             Key = name of the edge
             Elements = length, lanes, speed
         """
@@ -67,6 +67,11 @@ class Generator(Serializable):
 
         # specify the attributes of the nodes
         nodes = self.specify_nodes(net_params)
+
+        # add traffic lights to the nodes
+        for n_id in traffic_lights.get_ids():
+            indx = next(i for i in range(len(nodes)) if nodes[i]["id"] == n_id)
+            nodes[indx]["type"] = "traffic_light"
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
@@ -136,7 +141,7 @@ class Generator(Serializable):
         x.append(t)
         printxml(x, self.net_path + cfgfn)
 
-        retcode = subprocess.call(
+        subprocess.call(
             ["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
              self.cfg_path + netfn + ' --no-internal-links="%s"'
              % no_internal_links],

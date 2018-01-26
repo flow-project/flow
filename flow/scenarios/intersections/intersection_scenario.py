@@ -3,12 +3,15 @@ import random
 import numpy as np
 
 from flow.scenarios.base_scenario import Scenario
+from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
 
 
 class TwoWayIntersectionScenario(Scenario):
 
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=None):
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
         """
         Initializes a two-way intersection scenario. Required net_params: horizontal_length_before,
         horizontal_length_after, horizontal_lanes, vertical_length_before, vertical_length_after, vertical_lanes,
@@ -60,7 +63,8 @@ class TwoWayIntersectionScenario(Scenario):
         else:
             raise ValueError('speed limit must contain a number or a dict with keys: "vertical" and "horizontal"')
 
-        super().__init__(name, generator_class, vehicles, net_params, initial_config)
+        super().__init__(name, generator_class, vehicles, net_params,
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         edgestarts = \
