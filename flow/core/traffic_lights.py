@@ -10,7 +10,7 @@ class TrafficLights:
         supports modifying the states of certain lights via TraCI.
         """
         self.__tls = dict()  # contains current time step traffic light data
-        self.__ids = list()  # names of edges with traffic lights
+        self.__ids = list()  # names of nodes with traffic lights
         self.__tls_properties = dict()  # traffic light xml properties
         self.num_traffic_lights = 0  # number of traffic light nodes
 
@@ -23,7 +23,7 @@ class TrafficLights:
         """
         Adds a traffic light component to the network. When generating networks
         using xml files, this will explicitly place the traffic light in the
-        requested edge.
+        requested node.
 
         Parameters
         ----------
@@ -47,7 +47,7 @@ class TrafficLights:
         For information on defining traffic light properties, see:
         http://sumo.dlr.de/wiki/Simulation/Traffic_Lights#Defining_New_TLS-Programs
         """
-        # add the edge id to the list of controlled edges
+        # add the node id to the list of controlled nodes
         self.__ids.append(node_id)
 
         # prepare the data needed to generate xml files
@@ -76,7 +76,7 @@ class TrafficLights:
 
     def get_ids(self):
         """
-        Returns the names of all edges with traffic lights.
+        Returns the names of all nodes with traffic lights.
         """
         return self.__ids
 
@@ -87,44 +87,44 @@ class TrafficLights:
         """
         return self.__tls_properties
 
-    def set_state(self, node_id, state, env, lane_index="all"):
+    def set_state(self, node_id, state, env, link_index="all"):
         """
-        Sets the state of the traffic lights on a specific edge.
+        Sets the state of the traffic lights on a specific node.
 
         Parameters
         ----------
         node_id : str
-            name of the edge with the controlled traffic lights
+            name of the node with the controlled traffic lights
         state : str
-            requested state for the traffic light
+            requested state(s) for the traffic light
         env : flow.envs.base_env.Env type
             the environment at the current time step
-        lane_index : int, optional
-            index of the lane whose traffic light state is meant to be changed.
-            If no value is provided, the lights on all lanes are updated.
+        link_index : int, optional
+            index of the link whose traffic light state is meant to be changed.
+            If no value is provided, the lights on all links are updated.
         """
-        if lane_index == "all":
+        if link_index == "all":
             # if lights on all lanes are changed
             env.traci_connection.trafficlight.setRedYellowGreenState(
                 tlsID=node_id, state=state)
         else:
             # if lights on a single lane is changed
             env.traci_connection.trafficlight.setLinkState(
-                tlsID=node_id, tlsLinkIndex=lane_index, state=state)
+                tlsID=node_id, tlsLinkIndex=link_index, state=state)
 
-    def get_state(self, edge_id):
+    def get_state(self, node_id):
         """
-        Returns the state of the traffic light(s) at the specified edge
+        Returns the state of the traffic light(s) at the specified node
 
         Parameters
         ----------
-        edge_id: str
-            name of the edge
+        node_id: str
+            name of the node
 
         Returns
         -------
-        state : list <str>
+        state : str
             Index = lane index
-            Element = state of the traffic light at that edge/lane
+            Element = state of the traffic light at that node/lane
         """
-        return self.__tls[edge_id][tc.TL_RED_YELLOW_GREEN_STATE]
+        return self.__tls[node_id][tc.TL_RED_YELLOW_GREEN_STATE]
