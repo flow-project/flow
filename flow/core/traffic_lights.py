@@ -9,17 +9,13 @@ class TrafficLights:
         and describe the state of these traffic lights. In addition, this class
         supports modifying the states of certain lights via TraCI.
         """
-        # contains current time step traffic light data
-        self.__tls = dict()
-
-        # names of edges with traffic lights
-        self.__ids = list()
-
-        # traffic light properties (needed to generate proper xml files)
-        self.__tls_properties = dict()
+        self.__tls = dict()  # contains current time step traffic light data
+        self.__ids = list()  # names of edges with traffic lights
+        self.__tls_properties = dict()  # traffic light xml properties
+        self.num_traffic_lights = 0  # number of traffic light nodes
 
     def add(self,
-            edge_id,
+            node_id,
             tls_type="static",
             programID=None,
             offset=None,
@@ -31,8 +27,8 @@ class TrafficLights:
 
         Parameters
         ----------
-        edge_id : str
-            name of the edge to start with traffic lights
+        node_id : str
+            name of the node with traffic lights
         tls_type : str, optional
             type of the traffic light (see Note)
         programID : str, optional
@@ -52,19 +48,19 @@ class TrafficLights:
         http://sumo.dlr.de/wiki/Simulation/Traffic_Lights#Defining_New_TLS-Programs
         """
         # add the edge id to the list of controlled edges
-        self.__ids.append(edge_id)
+        self.__ids.append(node_id)
 
         # prepare the data needed to generate xml files
-        self.__tls_properties[edge_id] = {"id": edge_id, "type": tls_type}
+        self.__tls_properties[node_id] = {"id": node_id, "type": tls_type}
 
         if programID is not None:
-            self.__tls_properties[edge_id]["programID"] = programID
+            self.__tls_properties[node_id]["programID"] = programID
 
         if offset is not None:
-            self.__tls_properties[edge_id]["offset"] = offset
+            self.__tls_properties[node_id]["offset"] = offset
 
         if phases is not None:
-            self.__tls_properties[edge_id]["phase"] = phases
+            self.__tls_properties[node_id]["phase"] = phases
 
     def update(self, tls_subscriptions):
         """
@@ -76,7 +72,7 @@ class TrafficLights:
         tls_subscriptions : dict
             sumo traffic light subscription data
         """
-        self.__tls = tls_subscriptions.copy()  # TODO: fix this on the base_env side
+        self.__tls = tls_subscriptions.copy()
 
     def get_ids(self):
         """
@@ -91,13 +87,13 @@ class TrafficLights:
         """
         return self.__tls_properties
 
-    def set_state(self, edge_id, state, env, lane_index="all"):
+    def set_state(self, node_id, state, env, lane_index="all"):
         """
         Sets the state of the traffic lights on a specific edge.
 
         Parameters
         ----------
-        edge_id : str
+        node_id : str
             name of the edge with the controlled traffic lights
         state : str
             requested state for the traffic light
@@ -106,23 +102,15 @@ class TrafficLights:
         lane_index : int, optional
             index of the lane whose traffic light state is meant to be changed.
             If no value is provided, the lights on all lanes are updated.
-
-        Raises
-        ------
-        ValueError : If the edge does not contain traffic lights.
         """
-        if edge_id not in self.__ids:
-            raise ValueError("Edge {} does not contain traffic lights".
-                             format(edge_id))
-
         if lane_index == "all":
             # if lights on all lanes are changed
             env.traci_connection.trafficlight.setRedYellowGreenState(
-                tlsID=edge_id, state=state)
+                tlsID=node_id, state=state)
         else:
             # if lights on a single lane is changed
             env.traci_connection.trafficlight.setLinkState(
-                tlsID=edge_id, tlsLinkIndex=lane_index, state=state)
+                tlsID=node_id, tlsLinkIndex=lane_index, state=state)
 
     def get_state(self, edge_id):
         """
@@ -139,4 +127,4 @@ class TrafficLights:
             Index = lane index
             Element = state of the traffic light at that edge/lane
         """
-        return self.__tls[edge_id][tc.VAR_EDGES]  # FIXME
+        return self.__tls[edge_id][tc.TL_RED_YELLOW_GREEN_STATE]
