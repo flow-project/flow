@@ -257,12 +257,12 @@ class Env(gym.Env, Serializable):
 
         # subscribe the traffic light
         for node_id in self.traffic_lights.get_ids():
-            self.traci_connection.trafficlight.subscribe(
+            self.traci_connection.trafficlights.subscribe(
                 node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
         id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
                     tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
                     tc.VAR_ARRIVED_VEHICLES_IDS: []}
@@ -382,7 +382,7 @@ class Env(gym.Env, Serializable):
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -524,7 +524,7 @@ class Env(gym.Env, Serializable):
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
