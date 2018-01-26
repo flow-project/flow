@@ -8,7 +8,6 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
