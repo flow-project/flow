@@ -14,7 +14,7 @@ import gym
 import sumolib
 
 try:
-    # Import serialiable if rllab is installed
+    # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
 except ImportError as e:
     Serializable = object
@@ -65,7 +65,7 @@ class Env(gym.Env, Serializable):
         scenario: Scenario type
             see flow/scenarios/base_scenario.py
         """
-        # Invoke serialiable if using rllab
+        # Invoke serializable if using rllab
         if Serializable is not object:
             Serializable.quick_init(self, locals())
 
@@ -74,6 +74,7 @@ class Env(gym.Env, Serializable):
         self.sumo_params = sumo_params
         self.sumo_binary = self.sumo_params.sumo_binary
         self.vehicles = scenario.vehicles
+        self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
         # initial_state:
@@ -254,13 +255,21 @@ class Env(gym.Env, Serializable):
             [tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
              tc.VAR_TELEPORT_STARTING_VEHICLES_IDS])
 
-        # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        # subscribe the traffic light
+        for node_id in self.traffic_lights.get_ids():
+            self.traci_connection.trafficlight.subscribe(
+                node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
-        # get vehicle ids for the entering, exiting, and colliding vehicles
+        # collect subscription information from sumo
+        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
         id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
                     tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
                     tc.VAR_ARRIVED_VEHICLES_IDS: []}
+
+        # store new observations in the vehicles and traffic lights class
+        self.vehicles.update(vehicle_obs, id_lists, self)
+        self.traffic_lights.update(tls_obs)
 
         # store the network observations in the vehicles class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -370,14 +379,14 @@ class Env(gym.Env, Serializable):
 
         self.traci_connection.simulationStep()
 
-        # collect information on the vehicle in the network from sumo
+        # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
-        # store the network observations in the vehicles class
+        # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
+        self.traffic_lights.update(tls_obs)
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -512,15 +521,14 @@ class Env(gym.Env, Serializable):
 
         self.traci_connection.simulationStep()
 
-        # collect information on the vehicle in the network from sumo
+        # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
-        # reintroduce all vehicles to the vehicles class, and store initial
-        # state information in this class
+        # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
+        self.traffic_lights.update(tls_obs)
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():

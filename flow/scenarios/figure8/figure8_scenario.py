@@ -1,13 +1,15 @@
 import numpy as np
 
 from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
 
 class Figure8Scenario(Scenario):
 
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=InitialConfig()):
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
         """
         Initializes a figure 8 scenario.
         Required net_params: radius_ring, lanes, speed_limit, resolution.
@@ -46,7 +48,7 @@ class Figure8Scenario(Scenario):
         self.resolution = net_params.additional_params["resolution"]
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config=initial_config)
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """
