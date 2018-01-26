@@ -74,6 +74,7 @@ class Env(gym.Env, Serializable):
         self.sumo_params = sumo_params
         self.sumo_binary = self.sumo_params.sumo_binary
         self.vehicles = scenario.vehicles
+        self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
         # initial_state:
@@ -254,16 +255,13 @@ class Env(gym.Env, Serializable):
             [tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
              tc.VAR_TELEPORT_STARTING_VEHICLES_IDS])
 
-        # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        # subscribe traffic light data, if any traffic lights are present in
+        # the network
+        self.traci_connection.trafficlight.subscribe([
+            tc.TL_RED_YELLOW_GREEN_STATE])
 
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
-                    tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
-                    tc.VAR_ARRIVED_VEHICLES_IDS: []}
-
-        # store the network observations in the vehicles class
-        self.vehicles.update(vehicle_obs, id_lists, self)
+        # update all internal classes with current state data
+        self._update()
 
         for veh_id in self.vehicles.get_ids():
 
@@ -370,14 +368,8 @@ class Env(gym.Env, Serializable):
 
         self.traci_connection.simulationStep()
 
-        # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_lists = self.traci_connection.simulation.getSubscriptionResults()
-
-        # store the network observations in the vehicles class
-        self.vehicles.update(vehicle_obs, id_lists, self)
+        # update all internal classes with current state data
+        self._update()
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -512,15 +504,8 @@ class Env(gym.Env, Serializable):
 
         self.traci_connection.simulationStep()
 
-        # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_lists = self.traci_connection.simulation.getSubscriptionResults()
-
-        # reintroduce all vehicles to the vehicles class, and store initial
-        # state information in this class
-        self.vehicles.update(vehicle_obs, id_lists, self)
+        # update all internal classes with current state data
+        self._update()
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
@@ -541,6 +526,26 @@ class Env(gym.Env, Serializable):
 
         observation = list(self.state)
         return observation
+
+    def _update(self):
+        """
+        Updates all internal classes (e.g. vehicles class, traffic lights class,
+        etc.) with current time step data.
+        """
+        # collect information on the vehicle in the network from sumo
+        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+
+        # get vehicle ids for the entering, exiting, and colliding vehicles
+        id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
+                    tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
+                    tc.VAR_ARRIVED_VEHICLES_IDS: []}
+
+        # collect traffic light information from sumo
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
+
+        # store new observations in the vehicles and traffic lights class
+        self.vehicles.update(vehicle_obs, id_lists, self)
+        self.traffic_lights.update(tls_obs)
 
     def additional_command(self):
         """
