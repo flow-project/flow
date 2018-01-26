@@ -131,27 +131,33 @@ class NetParams:
                  no_internal_links=True,
                  in_flows=None,
                  osm_path=None,
+                 netfile=None,
                  additional_params=None):
         """
         Network configuration parameters
-
+        
         Parameters
         ----------
-        net_path: str, optional
+        net_path : str, optional
             path to the network files created to create a network with sumo
-        cfg_path: str, optional
+        cfg_path : str, optional
             path to the config files created to create a network with sumo
-        no_internal_links: bool, optional
+        no_internal_links : bool, optional
             determines whether the space between edges is finite. Important
             when using networks with intersections; default is False
-        in_flows: InFlows type, optional
+        in_flows : InFlows type, optional
             specifies the inflows of specific edges and the types of vehicles
             entering the network from these edges
-        osm_path: str, optional
+        osm_path : str, optional
             path to the .osm file that should be used to generate the network
             configuration files. This parameter is only needed / used if the
             OpenStreetMapGenerator generator class is used.
-        additional_params: dict, optional
+        netfile : str, optional
+            path to the .net.xml file that should be passed to SUMO. This is 
+            only needed / used if the NetFileGenerator class is used, such as
+            in the case of Bay Bridge experiments (which use a custom net.xml
+            file)
+        additional_params : dict, optional
             network specific parameters; see each subclass for a description of
             what is needed
         """
@@ -162,6 +168,7 @@ class NetParams:
         self.no_internal_links = no_internal_links
         self.in_flows = in_flows
         self.osm_path = osm_path
+        self.netfile = netfile
         self.additional_params = additional_params
 
 
