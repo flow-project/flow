@@ -10,6 +10,7 @@ class SumoParams:
                  lateral_resolution=None,
                  no_step_log=True,
                  sumo_binary="sumo",
+                 overtake_right=False,
                  seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
@@ -47,6 +48,7 @@ class SumoParams:
         self.no_step_log = no_step_log
         self.sumo_binary = sumo_binary
         self.seed = seed
+        self.overtake_right = overtake_right
 
 
 class EnvParams:
