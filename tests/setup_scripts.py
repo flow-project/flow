@@ -1,16 +1,12 @@
-import unittest
 import logging
 from numpy import pi, sin, cos, linspace
 
-from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.core.generator import Generator
-from flow.scenarios.base_scenario import Scenario
+from flow.core.traffic_lights import TrafficLights
 
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
 
 from flow.envs.loop_accel import AccelEnv
 
@@ -24,7 +20,8 @@ def ring_road_exp_setup(sumo_params=None,
                         vehicles=None,
                         env_params=None,
                         net_params=None,
-                        initial_config=None):
+                        initial_config=None,
+                        traffic_lights=None):
     """
     Creates an environment and scenario pair for ring road test experiments.
 
@@ -45,6 +42,8 @@ def ring_road_exp_setup(sumo_params=None,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly distributed
         vehicles across the length of the network
+    traffic_lights: TrafficLights type
+        traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
 
@@ -77,12 +76,17 @@ def ring_road_exp_setup(sumo_params=None,
         # set default initial_config configuration
         initial_config = InitialConfig()
 
+    if traffic_lights is None:
+        # set default to no traffic lights
+        traffic_lights = TrafficLights()
+
     # create the scenario
     scenario = LoopScenario(name="RingRoadTest",
                             generator_class=CircleGenerator,
                             vehicles=vehicles,
                             net_params=net_params,
-                            initial_config=initial_config)
+                            initial_config=initial_config,
+                            traffic_lights=traffic_lights)
 
     # create the environment
     env = AccelEnv(env_params=env_params,
@@ -96,7 +100,8 @@ def figure_eight_exp_setup(sumo_params=None,
                            vehicles=None,
                            env_params=None,
                            net_params=None,
-                           initial_config=None):
+                           initial_config=None,
+                           traffic_lights=None):
     """
     Creates an environment and scenario pair for figure eight test experiments.
 
@@ -117,6 +122,8 @@ def figure_eight_exp_setup(sumo_params=None,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly distributed
         vehicles across the length of the network
+    traffic_lights: TrafficLights type
+        traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
 
@@ -141,8 +148,8 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if net_params is None:
         # set default net_params configuration
-        additional_net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30,
-                                 "resolution": 40}
+        additional_net_params = {"radius_ring": 30, "lanes": 1,
+                                 "speed_limit": 30, "resolution": 40}
         net_params = NetParams(no_internal_links=False,
                                additional_params=additional_net_params)
 
@@ -150,12 +157,17 @@ def figure_eight_exp_setup(sumo_params=None,
         # set default initial_config configuration
         initial_config = InitialConfig()
 
+    if traffic_lights is None:
+        # set default to no traffic lights
+        traffic_lights = TrafficLights()
+
     # create the scenario
     scenario = Figure8Scenario(name="RingRoadTest",
                                generator_class=Figure8Generator,
                                vehicles=vehicles,
                                net_params=net_params,
-                               initial_config=initial_config)
+                               initial_config=initial_config,
+                               traffic_lights=traffic_lights)
 
     # create the environment
     env = AccelEnv(env_params=env_params,
@@ -169,7 +181,8 @@ def variable_lanes_exp_setup(sumo_params=None,
                              vehicles=None,
                              env_params=None,
                              net_params=None,
-                             initial_config=None):
+                             initial_config=None,
+                             traffic_lights=None):
     """
     Creates an environment and scenario pair for a ring road network with
     different number of lanes in each edge. Used for test purposes.
@@ -191,6 +204,8 @@ def variable_lanes_exp_setup(sumo_params=None,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly distributed
         vehicles across the length of the network
+    traffic_lights: TrafficLights type
+        traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
 
@@ -223,12 +238,17 @@ def variable_lanes_exp_setup(sumo_params=None,
         # set default initial_config configuration
         initial_config = InitialConfig()
 
+    if traffic_lights is None:
+        # set default to no traffic lights
+        traffic_lights = TrafficLights()
+
     # create the scenario
     scenario = LoopScenario(name="VariableLaneRingRoadTest",
                             generator_class=VariableLanesGenerator,
                             vehicles=vehicles,
                             net_params=net_params,
-                            initial_config=initial_config)
+                            initial_config=initial_config,
+                            traffic_lights=traffic_lights)
 
     # create the environment
     env = AccelEnv(env_params=env_params,

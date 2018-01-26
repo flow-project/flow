@@ -1,4 +1,6 @@
 from flow.scenarios.base_scenario import Scenario
+from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
 
 from numpy import pi, arcsin
 
@@ -6,7 +8,8 @@ from numpy import pi, arcsin
 class TwoLoopsOneMergingScenario(Scenario):
 
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=None):
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
         """
         Initializes a two loop scenario where one loop merging in and out of
         the other. Required net_params: ring_radius, lanes, speed_limit,
@@ -23,7 +26,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         self.lanes = net_params.additional_params["lanes"]
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config)
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """

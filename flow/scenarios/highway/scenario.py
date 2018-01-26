@@ -1,10 +1,12 @@
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
 
 
 class HighwayScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=InitialConfig()):
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
         """
         Initializes a loop scenario. Required net_params: length, lanes,
         speed_limit, resolution.
@@ -23,7 +25,7 @@ class HighwayScenario(Scenario):
         self.speed_limit = net_params.additional_params["speed_limit"]
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config=initial_config)
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """
