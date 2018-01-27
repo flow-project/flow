@@ -38,6 +38,8 @@ class SumoParams:
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
                 - 'sumo' to run without the gui (default)
+        overtake_right: bool, optional
+            whether vehicles are allowed to overtake on the right as well as the left
         seed: int, optional
             seed for sumo instance
         """
