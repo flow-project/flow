@@ -29,12 +29,12 @@ class NetFileScenario(Scenario):
         self.length = 0
 
         edgestarts = []
-        for edge_id in self.edges:
+        for edge_id in self._edges:
             # the current edge starts (in 1D position) where the last edge ended
             edgestarts.append((edge_id, self.length))
             # increment the total length of the network with the length of the
             # current edge
-            self.length += self.edges[edge_id]["length"]
+            self.length += self._edges[edge_id]["length"]
 
         return edgestarts
 
