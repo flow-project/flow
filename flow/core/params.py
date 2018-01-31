@@ -10,6 +10,7 @@ class SumoParams:
                  lateral_resolution=None,
                  no_step_log=True,
                  sumo_binary="sumo",
+                 overtake_right=False,
                  seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
@@ -37,6 +38,8 @@ class SumoParams:
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
                 - 'sumo' to run without the gui (default)
+        overtake_right: bool, optional
+            whether vehicles are allowed to overtake on the right as well as the left
         seed: int, optional
             seed for sumo instance
         """
@@ -47,6 +50,7 @@ class SumoParams:
         self.no_step_log = no_step_log
         self.sumo_binary = sumo_binary
         self.seed = seed
+        self.overtake_right = overtake_right
 
 
 class EnvParams:
