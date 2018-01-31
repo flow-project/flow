@@ -23,6 +23,7 @@ from flow.scenarios.two_loops_one_merging_new.gen import TwoLoopOneMergingGenera
 from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 
+HORIZON = 100
 
 def run_task(*_):
     logging.basicConfig(level=logging.INFO)
@@ -49,8 +50,8 @@ def run_task(*_):
                  sumo_car_following_params=SumoCarFollowingParams(minGap=0.01, tau=0.5),
                  sumo_lc_params=SumoLaneChangeParams())
 
-    additional_env_params = {"target_velocity": 20, "num_steps": 1000}
-    env_params = EnvParams(max_accel=1, max_decel=1.5,
+    additional_env_params = {"target_velocity": 20}
+    env_params = EnvParams(horizon = HORIZON, max_accel=1, max_decel=1.5,
                            additional_params=additional_env_params)
 
     additional_net_params = {"ring_radius": 50, "lanes": 1, "lane_length": 75,
