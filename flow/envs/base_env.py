@@ -246,6 +246,12 @@ class Env(gym.Env, Serializable):
                 COLORS[(color_choice + key_index) % len(COLORS)]
             key_index += 1
 
+        # add missing traffic lights in the list of traffic light ids
+        tls_ids = self.traci_connection.trafficlights.getIDList()
+
+        for tl_id in list(set(tls_ids) - set(self.traffic_lights.get_ids())):
+            self.traffic_lights.add(tl_id)
+
         # subscribe the requested states for traci-related speedups
         for veh_id in self.vehicles.get_ids():
             self.traci_connection.vehicle.subscribe(
