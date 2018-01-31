@@ -411,11 +411,13 @@ class Generator(Serializable):
         net_data : dict <dict>
             Key = name of the edge/junction
             Element = lanes, speed, length
-        connection_data : dict < dict < list<tup> > >
-            Key = name of the arriving edge
-                Key = lane index
-                Element = list of edge/lane pairs that a vehicle can traverse
-                from the arriving edge/lane pairs
+        connection_data : dict < dict < dict < list<tup> > > >
+            Key = "prev" or "next", indicating coming from or to this
+            edge/lane pair
+                Key = name of the edge
+                    Key = lane index
+                    Element = list of edge/lane pairs preceding or following
+                    the edge/lane pairs
         """
         # import the .net.xml file containing all edge/type data
         parser = etree.XMLParser(recover=True)
