@@ -36,7 +36,7 @@ class TestRay(unittest.TestCase):
 
         # Test 1: test_two_level_ray
         config = ppo.DEFAULT_CONFIG.copy()
-        num_workers = 2
+        num_workers = 1
         ray.init(num_cpus=num_workers, redirect_output=False)
         config["num_workers"] = num_workers
         config["timesteps_per_batch"] = min(HORIZON * num_workers, 128)
@@ -89,7 +89,7 @@ class TestRay(unittest.TestCase):
         # reload(ppo)
         # reload(registry)
         config = ppo.DEFAULT_CONFIG.copy()
-        num_workers = 2
+        num_workers = 1
         # ray.init(num_cpus=num_workers, redirect_output=True)
         config["num_workers"] = num_workers
         config["timesteps_per_batch"] = min(HORIZON * num_workers, 128)
