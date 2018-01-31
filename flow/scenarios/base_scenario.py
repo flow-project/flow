@@ -56,8 +56,13 @@ class Scenario(Serializable):
         self.generator = self.generator_class(self.net_params, self.name)
 
         # create the network configuration file from the generator
-        self.edges = self.generator.generate_net(self.net_params,
-                                                 self.traffic_lights)
+        self._edges, self._connections = self.generator.generate_net(
+            self.net_params, self.traffic_lights)
+
+        # list of edges and internal links (junctions)
+        self._edge_list = [edge_id for edge_id in self._edges.keys()
+                           if edge_id[0] != ":"]
+        self._junction_list = list(set(self._edges.keys())-set(self._edge_list))
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -527,33 +532,47 @@ class Scenario(Serializable):
 
     def edge_length(self, edge_id):
         """
-        Returns the length of a given edge.
+        Returns the length of a given edge/junction.
         """
-        if ":" in edge_id:  # junctions have no length in this sense
-            return 0
-        return self.edges[edge_id]["length"]
+        return self._edges[edge_id]["length"]
 
     def speed_limit(self, edge_id):
         """
-        Returns the speed limit of a given edge.
+        Returns the speed limit of a given edge/junction.
         """
-        if ":" in edge_id:  # give vehicles in junctions a default speed limit
-            return 30
-        return self.edges[edge_id]["speed"]
+        return self._edges[edge_id]["speed"]
 
     def num_lanes(self, edge_id):
         """
-        Returns the number of lanes of a given edge.
+        Returns the number of lanes of a given edge/junction.
         """
-        if ":" in edge_id:  # treat all junctions as single lane
-            return 1
-        return self.edges[edge_id]["lanes"]
+        return self._edges[edge_id]["lanes"]
 
     def get_edge_list(self):
         """
-        Returns the name of all edges in the network.
+        Returns the names of all edges in the network.
         """
-        return list(self.edges.keys())
+        return self._edge_list
+
+    def get_junction_list(self):
+        """
+        Returns the names of all junctions in the network.
+        """
+        return self._junction_list
+
+    def next_edge(self, edge, lane):
+        """
+        Returns the next edge/lane pair from the given edge/lane. These edges
+        may also be internal links (junctions).
+        """
+        return self._connections["next"][edge][lane]
+
+    def prev_edge(self, edge, lane):
+        """
+        Returns the edge/lane pair right before this edge/lane. These edges may
+        also be internal links (junctions).
+        """
+        return self._connections["prev"][edge][lane]
 
     def __str__(self):
         return "Scenario " + self.name + " with " + \

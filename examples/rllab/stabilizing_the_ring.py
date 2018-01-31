@@ -33,6 +33,8 @@ from rllab.envs.gym_env import GymEnv
 import numpy as np
 import sys
 
+HORIZON = 10
+
 
 def run_task(v):
     logging.basicConfig(level=logging.INFO)
@@ -49,9 +51,9 @@ def run_task(v):
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=21)
 
-    additional_env_params = {"target_velocity": 8, "num_steps": 3600,
+    additional_env_params = {"target_velocity": 8,
                              "scenario_type": LoopScenario}
-    env_params = EnvParams(max_decel=-1, max_accel=1,
+    env_params = EnvParams(max_decel=-1, max_accel=1, horizon=HORIZON,
                            additional_params=additional_env_params)
 
     additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
