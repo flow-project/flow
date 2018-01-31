@@ -20,6 +20,7 @@ from flow.controllers.rlcontroller import RLController
 
 logging.basicConfig(level=logging.INFO)
 
+HORIZON = 100
 
 def run_task(*_):
     auton_cars = 20
@@ -32,7 +33,7 @@ def run_task(*_):
 
     intensity = .2
     v_enter = 10
-    env_params = EnvParams(additional_params={"target_velocity": v_enter,
+    env_params = EnvParams(horizon = HORIZON, additional_params={"target_velocity": v_enter,
                                               "control-length": 150, "max_speed": v_enter})
 
     additional_net_params = {"horizontal_length_in": 400, "horizontal_length_out": 800, "horizontal_lanes": 1,

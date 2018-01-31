@@ -4,6 +4,9 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
+# parameters required in net_params' additional_params attribute
+REQUIRED_NET_PARAMS = ["radius_ring", "lanes", "speed_limit"]
+
 
 class Figure8Scenario(Scenario):
 
@@ -18,6 +21,11 @@ class Figure8Scenario(Scenario):
 
         See Scenario.py for description of params.
         """
+        for param in REQUIRED_NET_PARAMS:
+            if param not in net_params.additional_params:
+                raise ValueError("Figure eight network parameter {} not "
+                                 "supplied".format(param))
+
         self.ring_edgelen = net_params.additional_params[
                                 "radius_ring"] * np.pi / 2.
         self.intersection_len = 2 * net_params.additional_params["radius_ring"]
@@ -29,22 +37,9 @@ class Figure8Scenario(Scenario):
             6 * self.ring_edgelen + 2 * self.intersection_len + \
             2 * self.junction_len + 10 * self.inner_space_len
 
-        if "radius_ring" not in net_params.additional_params:
-            raise ValueError("radius of ring not supplied")
         self.radius_ring = net_params.additional_params["radius_ring"]
-
         self.length = net_params.additional_params["length"]
-
-        if "lanes" not in net_params.additional_params:
-            raise ValueError("number of lanes not supplied")
         self.lanes = net_params.additional_params["lanes"]
-
-        if "speed_limit" not in net_params.additional_params:
-            raise ValueError("speed limit not supplied")
-        self.speed_limit = net_params.additional_params["speed_limit"]
-
-        if "resolution" not in net_params.additional_params:
-            raise ValueError("resolution of circular sections not supplied")
         self.resolution = net_params.additional_params["resolution"]
 
         super().__init__(name, generator_class, vehicles, net_params,

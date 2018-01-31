@@ -212,9 +212,7 @@ def get_flow_params(path):
 
 def register_env(env_name, sumo_params, type_params, env_params, net_params,
                 initial_config, scenario, env_version_num=0):
-    num_steps = 500
-    if "num_steps" in env_params.additional_params:
-        num_steps = env_params.additional_params["num_steps"]
+    num_steps = env_params.horizon
     register(
         id=env_name+'-v'+str(env_version_num),
         entry_point='flow.envs:'+env_name,

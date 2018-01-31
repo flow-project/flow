@@ -59,7 +59,8 @@ class EnvParams:
                  shared_policy=False,
                  additional_params=None,
                  max_decel=-6,
-                 max_accel=3):
+                 max_accel=3,
+                 horizon=500):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -90,6 +91,8 @@ class EnvParams:
             maximum deceleration of autonomous vehicles, defaults to -6 m/s2
         max_accel: float, optional
             maximum acceleration of autonomous vehicles, defaults to 3 m/s2
+        horizon: int, optional
+            number of steps per rollouts
         """
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
@@ -101,6 +104,7 @@ class EnvParams:
             additional_params if additional_params is not None else {}
         self.max_decel = max_decel
         self.max_accel = max_accel
+        self.horizon = horizon
 
     def get_additional_param(self, key):
         return self.additional_params[key]
