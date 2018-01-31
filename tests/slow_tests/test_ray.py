@@ -37,13 +37,15 @@ class TestRay(unittest.TestCase):
         # Test 1: test_two_level_ray
         config = ppo.DEFAULT_CONFIG.copy()
         num_workers = 2
-        ray.init(num_cpus=num_workers, redirect_output=True)
+        ray.init(num_cpus=num_workers, redirect_output=False)
         config["num_workers"] = num_workers
-        config["timesteps_per_batch"] = HORIZON * num_workers
-        config["num_sgd_iter"] = 2
+        config["timesteps_per_batch"] = min(HORIZON * num_workers, 128)
+        config["num_sgd_iter"] = 1
         config["model"].update({"fcnet_hiddens": [3, 3]})
         config["gamma"] = 0.999
+        config["min_steps_per_task"] = HORIZON
         config["horizon"] = HORIZON
+        config["sgd_batchsize"] = 4
 
         additional_env_params = {"target_velocity": 8, "max-deacc": -1,
                          "max-acc": 1, 
@@ -90,10 +92,13 @@ class TestRay(unittest.TestCase):
         num_workers = 2
         # ray.init(num_cpus=num_workers, redirect_output=True)
         config["num_workers"] = num_workers
-        config["timesteps_per_batch"] = HORIZON * num_workers
-        config["num_sgd_iter"] = 2
+        config["timesteps_per_batch"] = min(HORIZON * num_workers, 128)
+        config["num_sgd_iter"] = 1
+        config["model"].update({"fcnet_hiddens": [3, 3]})
         config["gamma"] = 0.999
+        config["min_steps_per_task"] = HORIZON
         config["horizon"] = HORIZON
+        config["sgd_batchsize"] = 4
 
         config["model"].update(
             {"fcnet_hiddens": [5, 3]},)
