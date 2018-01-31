@@ -10,7 +10,7 @@ import ray
 import ray.rllib.ppo as ppo
 import ray.tune.registry as registry
 
-from examples.rllib.stabilizing_the_ring import make_create_env, HORIZON
+from examples.rllib.stabilizing_the_ring import make_create_env
 
 from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.controllers.rlcontroller import RLController
@@ -23,6 +23,7 @@ def choose_policy(inputs):
     return tf.cast(inputs[:, 0] > 1e6, tf.int32)
 """
 
+HORIZON = 10 
 
 class TestRay(unittest.TestCase):
     # def setUp(self):
@@ -35,18 +36,17 @@ class TestRay(unittest.TestCase):
 
         # Test 1: test_two_level_ray
         config = ppo.DEFAULT_CONFIG.copy()
-        horizon = 100
         num_workers = 2
         ray.init(num_cpus=num_workers, redirect_output=True)
         config["num_workers"] = num_workers
-        config["timesteps_per_batch"] = horizon * num_workers
+        config["timesteps_per_batch"] = HORIZON * num_workers
         config["num_sgd_iter"] = 2
         config["model"].update({"fcnet_hiddens": [3, 3]})
         config["gamma"] = 0.999
-        config["horizon"] = horizon
+        config["horizon"] = HORIZON
 
         additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                         "max-acc": 1, "num_steps": horizon,
+                         "max-acc": 1, 
                          "scenario_type": LoopScenario}
         additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                                  "resolution": 40}
@@ -59,8 +59,8 @@ class TestRay(unittest.TestCase):
                          ]
 
         flow_params = dict(
-                        sumo=dict(sim_step=0.1),
-                        env=dict(additional_params=additional_env_params),
+                        sumo=dict(sim_step=0.1, no_step_log=False),
+                        env=dict(horizon=HORIZON, additional_params=additional_env_params),
                         net=dict(no_internal_links=False,
                             additional_params=additional_net_params),
                         veh=vehicle_params,
@@ -87,14 +87,13 @@ class TestRay(unittest.TestCase):
         # reload(ppo)
         # reload(registry)
         config = ppo.DEFAULT_CONFIG.copy()
-        horizon = HORIZON
         num_workers = 2
         # ray.init(num_cpus=num_workers, redirect_output=True)
         config["num_workers"] = num_workers
-        config["timesteps_per_batch"] = horizon * num_workers
+        config["timesteps_per_batch"] = HORIZON * num_workers
         config["num_sgd_iter"] = 2
         config["gamma"] = 0.999
-        config["horizon"] = horizon
+        config["horizon"] = HORIZON
 
         config["model"].update(
             {"fcnet_hiddens": [5, 3]},)

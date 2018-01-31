@@ -75,8 +75,8 @@ def run_task(*_):
                           sumo_lc_params=SumoLaneChangeParams())
 
     additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
-                             "max-acc": 1, "num_steps": HORIZON}
-    env_params = EnvParams(additional_params=additional_env_params)
+                             "max-acc": 1}
+    env_params = EnvParams(horizon=HORIZON, additional_params=additional_env_params)
 
     additional_net_params = {"ring_radius": 50, "lanes": 1,
                              "lane_length": 75, "speed_limit": 30,

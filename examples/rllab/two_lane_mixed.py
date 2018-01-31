@@ -23,6 +23,7 @@ from flow.controllers.car_following_models import *
 
 logging.basicConfig(level=logging.INFO)
 
+HORIZON = 100
 
 def run_task(*_):
     tot_cars = 8
@@ -41,8 +42,8 @@ def run_task(*_):
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=human_cars)
 
-    additional_env_params = {"target_velocity": 8, "num_steps": 500}
-    env_params = EnvParams(additional_params=additional_env_params)
+    additional_env_params = {"target_velocity": 8}
+    env_params = EnvParams(horizon=HORIZON, additional_params=additional_env_params)
 
     additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
                              "resolution": 40}
