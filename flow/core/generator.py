@@ -59,6 +59,11 @@ class Generator(Serializable):
         edges : dict <dict>
             Key = name of the edge
             Elements = length, lanes, speed
+        connection_data : dict < dict < list<tup> > >
+            Key = name of the arriving edge
+                Key = lane index
+                Element = list of edge/lane pairs that a vehicle can traverse
+                from the arriving edge/lane pairs
         """
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -406,7 +411,7 @@ class Generator(Serializable):
         net_data : dict <dict>
             Key = name of the edge/junction
             Element = lanes, speed, length
-        connection_data : dict <dict<list<tup>>>
+        connection_data : dict < dict < list<tup> > >
             Key = name of the arriving edge
                 Key = lane index
                 Element = list of edge/lane pairs that a vehicle can traverse
@@ -427,19 +432,20 @@ class Generator(Serializable):
             types_data[type_id] = dict()
 
             if "speed" in typ.attrib:
-                types_data[type_id]["speed"] = typ.attrib["speed"]
+                types_data[type_id]["speed"] = float(typ.attrib["speed"])
             else:
                 types_data[type_id]["speed"] = None
 
             if "numLanes" in typ.attrib:
-                types_data[type_id]["numLanes"] = typ.attrib["numLanes"]
+                types_data[type_id]["numLanes"] = int(typ.attrib["numLanes"])
             else:
                 types_data[type_id]["numLanes"] = None
 
-        # collect all information on the edges and junctions
         net_data = dict()
-        connection_data = dict()
+        next_conn_data = dict()  # forward looking connections
+        prev_conn_data = dict()  # backward looking connections
 
+        # collect all information on the edges and junctions
         for edge in root.findall('edge'):
             edge_id = edge.attrib["id"]
 
@@ -469,7 +475,7 @@ class Generator(Serializable):
                     net_data[edge_id]["length"] = float(lane.attrib["length"])
                     if net_data[edge_id]["speed"] is None \
                             and "speed" in lane.attrib:
-                        net_data[edge_id]["speed"] = lane.attrib["speed"]
+                        net_data[edge_id]["speed"] = float(lane.attrib["speed"])
 
             # if no speed value is present anywhere, set it to some default
             if net_data[edge_id]["speed"] is None:
@@ -477,27 +483,35 @@ class Generator(Serializable):
 
         # collect connection data
         for connection in root.findall('connection'):
-            # add the connection's id to connection_data if not already there
-            conn_id = connection.attrib["from"]
-            if conn_id not in connection_data:
-                connection_data[conn_id] = dict()
+            from_edge = connection.attrib["from"]
+            from_lane = int(connection.attrib["fromLane"])
 
-            from_lane = connection.attrib["fromLane"]
-
-            if conn_id[0] != ":" and not self.net_params.no_internal_links:
+            if from_edge[0] != ":" and not self.net_params.no_internal_links:
                 # if the edge is not an internal links and the network is
                 # allowed to have internal links, then get the next edge/lane
                 # pair from the "via" element
                 via = connection.attrib["via"].rsplit("_", 1)
                 to_edge = via[0]
-                to_lane = via[1]
+                to_lane = int(via[1])
             else:
                 to_edge = connection.attrib["to"]
-                to_lane = connection.attrib["toLane"]
+                to_lane = int(connection.attrib["toLane"])
 
-            if from_lane not in connection_data[conn_id]:
-                connection_data[conn_id][from_lane] = list()
+            if from_edge not in next_conn_data:
+                next_conn_data[from_edge] = dict()
 
-            connection_data[conn_id][from_lane].append((to_edge, to_lane))
+            if from_lane not in next_conn_data[from_edge]:
+                next_conn_data[from_edge][from_lane] = list()
+
+            if to_edge not in prev_conn_data:
+                prev_conn_data[to_edge] = dict()
+
+            if to_lane not in prev_conn_data[to_edge]:
+                prev_conn_data[to_edge][to_lane] = list()
+
+            next_conn_data[from_edge][from_lane].append((to_edge, to_lane))
+            prev_conn_data[to_edge][to_lane].append((from_edge, from_lane))
+
+        connection_data = {"next": next_conn_data, "prev": prev_conn_data}
 
         return net_data, connection_data
