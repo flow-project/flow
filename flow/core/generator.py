@@ -1,16 +1,15 @@
-"""
-Base class for generating transportation networks.
-"""
 from flow.core.util import makexml, printxml, ensure_dir
 
 import os
 import subprocess
 import logging
 import random
+import os
 from lxml import etree
+import xml.etree.ElementTree as ET
 
 try:
-    # Import serialiable if rllab is installed
+    # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
 except ImportError as e:
     Serializable = object
@@ -19,11 +18,12 @@ E = etree.Element
 
 
 class Generator(Serializable):
-    CFG_PATH = "./"
-    NET_PATH = "./"
 
     def __init__(self, net_params, base):
-        # Invoke serialiable if using rllab
+        """
+        Base class for generating transportation networks.
+        """
+        # Invoke serializable if using rllab
         if Serializable is not object:
             Serializable.quick_init(self, locals())
         self.net_params = net_params
@@ -41,7 +41,7 @@ class Generator(Serializable):
         if not hasattr(self, "name"):
             self.name = "%s" % self.base
 
-    def generate_net(self, net_params):
+    def generate_net(self, net_params, traffic_lights):
         """
         Generates Net files for the transportation network. Different networks
         require different net_params; see the separate sub-classes for more
@@ -49,14 +49,21 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : flow.core.params.NetParams type
             network-specific parameters
+        traffic_lights : flow.core.traffic_lights.TrafficLights type
+            traffic light information
 
         Returns
         -------
-        edges: dict <dict>
+        edges : dict <dict>
             Key = name of the edge
             Elements = length, lanes, speed
+        connection_data : dict < dict < list<tup> > >
+            Key = name of the arriving edge
+                Key = lane index
+                Element = list of edge/lane pairs that a vehicle can traverse
+                from the arriving edge/lane pairs
         """
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -67,6 +74,11 @@ class Generator(Serializable):
 
         # specify the attributes of the nodes
         nodes = self.specify_nodes(net_params)
+
+        # add traffic lights to the nodes
+        for n_id in traffic_lights.get_ids():
+            indx = next(i for i in range(len(nodes)) if nodes[i]["id"] == n_id)
+            nodes[indx]["type"] = "traffic_light"
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
@@ -147,49 +159,10 @@ class Generator(Serializable):
         # location of the .net.xml file
         self.netfn = netfn
 
-        # Create "edge type" dicts compatible with SUMO, which applies to all
-        # edges on the network of a particular category type_category, and is
-        # based on types specified in specify_types function in child generator
-        # classes. For an example, see flow/scenarios/highway/gen.py.
-        # Permitted attributes: http://sumo.dlr.de/wiki/Networks/Building_
-        # Networks_from_own_XML-descriptions#Edge_Descriptions
-        # Supported attributes: id, length, numLanes, speed
-        edge_type_categories = dict()
-        if types is not None:
-            for type_category in types:
-                type_id = type_category["id"]
-                edge_type_categories[type_id] = dict()
-                for key in type_category:
-                    edge_type_categories[type_id][key] = type_category[key]
+        # collect data from the generated network configuration file
+        edges_dict, conn_dict = self._import_edges_from_net()
 
-        # Create dict containing "edge type" specific to each edge. Sets
-        # attributes used by speed_limit(), edge_length(), num_lanes(),
-        # and get_edge_list() getter functions of the Scenario class.
-        # Supported attributes:
-        # - length: edge length
-        # - lanes: number of lanes
-        # - speed: speed limit
-        edges_dict = dict()
-        for edge_i in edges:
-            edge_id = edge_i["id"]
-            edges_dict[edge_id] = dict()
-
-            # add num_lanes, length, and max_speed to edges dict
-            edges_dict[edge_id]["length"] = float(edge_i["length"])
-
-            if "numLanes" in edge_i:
-                edges_dict[edge_id]["lanes"] = int(edge_i["numLanes"])
-            else:
-                edges_dict[edge_id]["lanes"] = \
-                    int(edge_type_categories[edge_i["type"]]["numLanes"])
-
-            if "speed" in edge_i:
-                edges_dict[edge_id]["speed"] = float(edge_i["speed"])
-            else:
-                edges_dict[edge_id]["speed"] = \
-                    float(edge_type_categories[edge_i["type"]]["speed"])
-
-        return edges_dict
+        return edges_dict, conn_dict
 
     def generate_cfg(self, net_params):
         """
@@ -429,3 +402,120 @@ class Generator(Serializable):
             else:
                 inp.append(E("gui-settings-file", value=gui))
         return inp
+
+    def _import_edges_from_net(self):
+        """
+        Imports a network configuration file, and returns the information on the
+        edges and junctions located in the file.
+
+        Return
+        ------
+        net_data : dict <dict>
+            Key = name of the edge/junction
+            Element = lanes, speed, length
+        connection_data : dict < dict < dict < list<tup> > > >
+            Key = "prev" or "next", indicating coming from or to this
+            edge/lane pair
+                Key = name of the edge
+                    Key = lane index
+                    Element = list of edge/lane pairs preceding or following
+                    the edge/lane pairs
+        """
+        # import the .net.xml file containing all edge/type data
+        parser = etree.XMLParser(recover=True)
+        tree = ET.parse(os.path.join(self.net_params.cfg_path, self.netfn),
+                        parser=parser)
+        root = tree.getroot()
+
+        # Collect information on the available types (if any are available).
+        # This may be used when specifying some edge data.
+        types_data = dict()
+
+        for typ in root.findall('type'):
+            type_id = typ.attrib["id"]
+            types_data[type_id] = dict()
+
+            if "speed" in typ.attrib:
+                types_data[type_id]["speed"] = float(typ.attrib["speed"])
+            else:
+                types_data[type_id]["speed"] = None
+
+            if "numLanes" in typ.attrib:
+                types_data[type_id]["numLanes"] = int(typ.attrib["numLanes"])
+            else:
+                types_data[type_id]["numLanes"] = None
+
+        net_data = dict()
+        next_conn_data = dict()  # forward looking connections
+        prev_conn_data = dict()  # backward looking connections
+
+        # collect all information on the edges and junctions
+        for edge in root.findall('edge'):
+            edge_id = edge.attrib["id"]
+
+            # create a new key for this edge
+            net_data[edge_id] = dict()
+
+            # check for speed
+            if "speed" in edge:
+                net_data[edge_id]["speed"] = float(edge.attrib["speed"])
+            else:
+                net_data[edge_id]["speed"] = None
+
+            # if the edge has a type parameters, check that type for a speed and
+            # parameter if one was not already found
+            if "type" in edge.attrib and edge.attrib["type"] in types_data:
+                if net_data[edge_id]["speed"] is None:
+                    net_data[edge_id]["speed"] = \
+                        float(types_data[edge.attrib["type"]]["speed"])
+
+            # collect the length from the lane sub-element in the edge, the
+            # number of lanes from the number of lane elements, and if needed,
+            # also collect the speed value (assuming it is there)
+            net_data[edge_id]["lanes"] = 0
+            for i, lane in enumerate(edge):
+                net_data[edge_id]["lanes"] += 1
+                if i == 0:
+                    net_data[edge_id]["length"] = float(lane.attrib["length"])
+                    if net_data[edge_id]["speed"] is None \
+                            and "speed" in lane.attrib:
+                        net_data[edge_id]["speed"] = float(lane.attrib["speed"])
+
+            # if no speed value is present anywhere, set it to some default
+            if net_data[edge_id]["speed"] is None:
+                net_data[edge_id]["speed"] = 30
+
+        # collect connection data
+        for connection in root.findall('connection'):
+            from_edge = connection.attrib["from"]
+            from_lane = int(connection.attrib["fromLane"])
+
+            if from_edge[0] != ":" and not self.net_params.no_internal_links:
+                # if the edge is not an internal links and the network is
+                # allowed to have internal links, then get the next edge/lane
+                # pair from the "via" element
+                via = connection.attrib["via"].rsplit("_", 1)
+                to_edge = via[0]
+                to_lane = int(via[1])
+            else:
+                to_edge = connection.attrib["to"]
+                to_lane = int(connection.attrib["toLane"])
+
+            if from_edge not in next_conn_data:
+                next_conn_data[from_edge] = dict()
+
+            if from_lane not in next_conn_data[from_edge]:
+                next_conn_data[from_edge][from_lane] = list()
+
+            if to_edge not in prev_conn_data:
+                prev_conn_data[to_edge] = dict()
+
+            if to_lane not in prev_conn_data[to_edge]:
+                prev_conn_data[to_edge][to_lane] = list()
+
+            next_conn_data[from_edge][from_lane].append((to_edge, to_lane))
+            prev_conn_data[to_edge][to_lane].append((from_edge, from_lane))
+
+        connection_data = {"next": next_conn_data, "prev": prev_conn_data}
+
+        return net_data, connection_data

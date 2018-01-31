@@ -51,7 +51,7 @@ from flow.core.vehicles import Vehicles
 HORIZON = 100
 
 additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                         "max-acc": 1, "num_steps": HORIZON,
+                         "max-acc": 1, 
                          "scenario_type": LoopScenario} # Any way to avoid specifying this here? - nish
 additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                          "resolution": 40}
@@ -70,6 +70,7 @@ flow_params = dict(
                     sim_step=0.1
                   ),
                 env=dict(
+                    horizon=HORIZON,
                     additional_params=additional_env_params
                   ),
                 net=dict(
