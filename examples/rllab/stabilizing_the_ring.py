@@ -33,7 +33,7 @@ from rllab.envs.gym_env import GymEnv
 import numpy as np
 import sys
 
-HORIZON = 100
+HORIZON = 10
 
 
 def run_task(v):
