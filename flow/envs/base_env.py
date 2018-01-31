@@ -184,6 +184,10 @@ class Env(gym.Env, Serializable):
                     sumo_call.append("--emission-output")
                     sumo_call.append(self.emission_out)
 
+                if self.sumo_params.overtake_right:
+                    sumo_call.append("--lanechange.overtake-right")
+                    sumo_call.append("true")
+
                 logging.info("Traci on port: ", self.port)
 
                 self.sumo_proc = subprocess.Popen(sumo_call, stdout=sys.stdout,
