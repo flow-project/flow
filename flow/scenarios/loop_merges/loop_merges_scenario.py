@@ -2,12 +2,15 @@ import numpy as np
 from numpy import pi
 
 from flow.scenarios.base_scenario import Scenario
+from flow.core.traffic_lights import TrafficLights
+from flow.core.params import InitialConfig
 
 
 class LoopMergesScenario(Scenario):
 
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=None):
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
         """
         Initializes a two-way intersection scenario.
 
@@ -51,7 +54,7 @@ class LoopMergesScenario(Scenario):
             raise ValueError("resolution of circle not supplied")
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config)
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """
@@ -132,16 +135,18 @@ class LoopMergesScenario(Scenario):
 
         # generate starting positions for non-merging vehicles
         if self.vehicles.num_vehicles - self.num_merge_vehicles > 0:
-            # in order to avoid placing cars in the internal edges, their length is
-            # removed from the distribution length
-            distribution_len = self.length - self.ring_0_n_len - self.ring_1_n_len
+            # in order to avoid placing cars in the internal edges, their
+            # length is removed from the distribution length
+            distribution_len = \
+                self.length - self.ring_0_n_len - self.ring_1_n_len
             increment = (distribution_len - bunching) * lanes_distribution / \
                         (self.vehicles.num_vehicles - self.num_merge_vehicles)
 
             x = [x0] * lanes_distribution
             car_count = 0
             lane_count = 0
-            while car_count < self.vehicles.num_vehicles - self.num_merge_vehicles:
+            while car_count < self.vehicles.num_vehicles \
+                    - self.num_merge_vehicles:
                 # collect the position and lane number of each new vehicle
                 pos = self.get_edge(x[lane_count])
 
@@ -160,8 +165,8 @@ class LoopMergesScenario(Scenario):
                 # increment the car_count and lane_count
                 car_count += 1
                 lane_count += 1
-                # if the lane num exceeds the number of lanes the vehicles should
-                # be distributed on in the network, reset
+                # if the lane num exceeds the number of lanes the vehicles
+                # should be distributed on in the network, reset
                 if lane_count >= lanes_distribution:
                     lane_count = 0
 

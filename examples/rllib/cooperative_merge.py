@@ -110,6 +110,7 @@ flow_params = dict(
         sim_step=0.1
     ),
     env=dict(vehicle_arrangement_shuffle=True,
+             horizon=HORIZON,
              additional_params=additional_env_params
              ),
     net=dict(
