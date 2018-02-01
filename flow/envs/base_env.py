@@ -152,34 +152,18 @@ class Env(gym.Env, Serializable):
         generator class. Also initializes a traci connection to interface with
         sumo from Python.
         """
-        # collect the port number(s) the TraCI connection(s) will be run on
+        # port number the sumo instance will be run on
         if self.sumo_params.port is not None:
             port = self.sumo_params.port
         else:
             port = sumolib.miscutils.getFreeSocketPort()
-
-        # path to the output (emission) file provided by sumo
-        if self.sumo_params.emission_path is not None:
-            ensure_dir(self.sumo_params.emission_path)
-            emission_out = \
-                self.sumo_params.emission_path + "{0}-emission.xml".format(
-                    self.scenario.name)
-        else:
-            emission_out = None
-
-        # specify a simulation seed
-        if self.sumo_params.seed is not None:
-            seed = self.sumo_params.seed
-        else:
-            seed = np.random.randint(int(1e8))
 
         # command used to start sumo
         sumo_call = [self.sumo_params.sumo_binary,
                      "-c", self.scenario.cfg,
                      "--remote-port", str(port),
                      "--step-length", str(self.sim_step),
-                     "--step-method.ballistic", "true",
-                     "--seed", str(seed)]
+                     "--step-method.ballistic", "true"]
 
         # add step logs (if requested)
         if self.sumo_params.no_step_log:
@@ -191,13 +175,24 @@ class Env(gym.Env, Serializable):
             sumo_call.append(str(self.sumo_params.lateral_resolution))
 
         # add the emission path to the sumo command (if requested)
-        if emission_out is not None:
+        if self.sumo_params.emission_path is not None:
+            ensure_dir(self.sumo_params.emission_path)
+            emission_out = \
+                self.sumo_params.emission_path + "{0}-emission.xml".format(
+                    self.scenario.name)
             sumo_call.append("--emission-output")
             sumo_call.append(emission_out)
+        else:
+            emission_out = None
 
         if self.sumo_params.overtake_right:
             sumo_call.append("--lanechange.overtake-right")
             sumo_call.append("true")
+
+        # specify a simulation seed (if requested)
+        if self.sumo_params.seed is not None:
+            sumo_call.append("--seed")
+            sumo_call.append(str(self.sumo_params.seed))
 
         logging.info(" Starting SUMO on port " + str(port))
         logging.debug(" Cfg file: " + str(self.scenario.cfg))
