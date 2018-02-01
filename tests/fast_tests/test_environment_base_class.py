@@ -129,7 +129,7 @@ class TestEmissionPath(unittest.TestCase):
         self.env = None
 
     def runTest(self):
-        self.assertIsNone(self.env.emission_path)
+        self.assertIsNone(self.env.sumo_params.emission_path)
 
 
 class TestApplyingActionsWithSumo(unittest.TestCase):
