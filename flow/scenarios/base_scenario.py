@@ -174,9 +174,6 @@ class Scenario(Serializable):
             if x >= start_pos:
                 return edge, x - start_pos
 
-        # return default values if no match was found above
-        return "", 0
-
     def get_x(self, edge, position):
         """
         Given an edge name and relative position, return the absolute position
