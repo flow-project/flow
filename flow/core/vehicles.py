@@ -828,6 +828,8 @@ class Vehicles:
         edge_list = env.scenario.get_edge_list()
         junction_list = env.scenario.get_junction_list()
         tot_list = edge_list + junction_list
+        num_edges = len(env.scenario.get_edge_list()) \
+            + len(env.scenario.get_junction_list())
 
         # maximum number of lanes in the network
         max_lanes = max([env.scenario.num_lanes(edge_id)
@@ -858,7 +860,8 @@ class Vehicles:
             # collect the lane leaders, followers, headways, and footways for
             # each vehicle
             headways, footways, leaders, followers = \
-                self._multi_lane_headways_util(veh_id, edge_dict, env)
+                self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
+                                               env)
 
             # add the above values to the vehicles class
             self.set_lane_headways(veh_id, headways)
@@ -870,10 +873,14 @@ class Vehicles:
 
         for edge_id in self._ids_by_edge:
             edges = list(itertools.chain.from_iterable(edge_dict[edge_id]))
-            edges, _ = zip(*edges)
-            self._ids_by_edge[edge_id] = list(edges)
+            # check for edges with no vehicles
+            if len(edges) > 0:
+                edges, _ = zip(*edges)
+                self._ids_by_edge[edge_id] = list(edges)
+            else:
+                self._ids_by_edge[edge_id] = list()
 
-    def _multi_lane_headways_util(self, veh_id, edge_dict, env):
+    def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges, env):
         """
         Utility function for _multi_lane_headways(); computes the required
         components for the specified vehicle.
@@ -944,16 +951,16 @@ class Vehicles:
             # if lane leader not found, check next edges
             if leader[lane] == "":
                 headway[lane], leader[lane] = self._next_edge_leaders(
-                    veh_id, edge_dict, lane, env)
+                    veh_id, edge_dict, lane, num_edges, env)
 
             # if lane follower not found, check previous edges
             if follower[lane] == "":
                 footway[lane], follower[lane] = self._prev_edge_followers(
-                    veh_id, edge_dict, lane, env)
+                    veh_id, edge_dict, lane, num_edges, env)
 
         return headway, footway, leader, follower
 
-    def _next_edge_leaders(self, veh_id, edge_dict, lane, env):
+    def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges, env):
         """
         Looks to the edges/junctions in front of the vehicle's current edge for
         potential leaders. This is currently done by only looking one
@@ -969,11 +976,15 @@ class Vehicles:
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        headway = 1000
+        headway = 1000  # env.scenario.length
         leader = ""
         add_length = 0  # length increment in headway
 
-        while leader == "":
+        for _ in range(num_edges):
+            # break if there are no edge/lane pairs behind the current one
+            if len(env.scenario.next_edge(edge, lane)) == 0:
+                break
+
             add_length += env.scenario.edge_length(edge)
             edge, lane = env.scenario.next_edge(edge, lane)[0]
 
@@ -982,9 +993,13 @@ class Vehicles:
                 headway = edge_dict[edge][lane][0][1] - pos + add_length \
                     - self.get_length(leader)
 
+            # stop if a lane follower is found
+            if leader != "":
+                break
+
         return headway, leader
 
-    def _prev_edge_followers(self, veh_id, edge_dict, lane, env):
+    def _prev_edge_followers(self, veh_id, edge_dict, lane, num_edges, env):
         """
         Looks to the edges/junctions behind the vehicle's current edge for
         potential followers. This is currently done by only looking one
@@ -1000,11 +1015,15 @@ class Vehicles:
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        footway = 1000
+        footway = 1000  # env.scenario.length
         follower = ""
         add_length = 0  # length increment in headway
 
-        while follower == "":
+        for _ in range(num_edges):
+            # break if there are no edge/lane pairs behind the current one
+            if len(env.scenario.prev_edge(edge, lane)) == 0:
+                break
+
             edge, lane = env.scenario.prev_edge(edge, lane)[0]
             add_length += env.scenario.edge_length(edge)
 
@@ -1013,5 +1032,9 @@ class Vehicles:
                     footway = pos - edge_dict[edge][lane][-1][1] + add_length \
                         - self.get_length(veh_id)
                     follower = edge_dict[edge][lane][-1][0]
+
+            # stop if a lane follower is found
+            if follower != "":
+                break
 
         return footway, follower
