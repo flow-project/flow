@@ -448,7 +448,7 @@ class Vehicles:
     def get_rl_ids(self):
         return self.__rl_ids
 
-    def get_ids_by_edge(self, edge):  # TODO: add test for this
+    def get_ids_by_edge(self, edge):
         if edge in self._ids_by_edge:
             return self._ids_by_edge[edge]
         else:
@@ -770,17 +770,17 @@ class Vehicles:
         else:
             return self.__vehicles[veh_id]["lane_leaders"]
 
-    def set_lane_footways(self, veh_id, lane_footways):
-        self.__vehicles[veh_id]["lane_footways"] = lane_footways
+    def set_lane_tailways(self, veh_id, lane_tailways):
+        self.__vehicles[veh_id]["lane_tailways"] = lane_tailways
 
-    def get_lane_footways(self, veh_id="all"):
+    def get_lane_tailways(self, veh_id="all"):
         if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["lane_footways"] for vehID in veh_id]
+            return [self.__vehicles[vehID]["lane_tailways"] for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane_footways"]
+            return [self.__vehicles[vehID]["lane_tailways"]
                     for vehID in self.__ids]
         else:
-            return self.__vehicles[veh_id]["lane_footways"]
+            return self.__vehicles[veh_id]["lane_tailways"]
 
     def set_lane_followers(self, veh_id, lane_followers):
         self.__vehicles[veh_id]["lane_followers"] = lane_followers
@@ -820,9 +820,9 @@ class Vehicles:
         else:
             return self.__vehicles[veh_id][state_name]
 
-    def _multi_lane_headways(self, env):  # TODO: testsss
+    def _multi_lane_headways(self, env):
         """
-        Computes the lane leaders/followers/headways/footways for all vehicles
+        Computes the lane leaders/followers/headways/tailways for all vehicles
         in the network.
         """
         edge_list = env.scenario.get_edge_list()
@@ -857,15 +857,15 @@ class Vehicles:
                 edge_dict[edge][lane].sort(key=lambda x: x[1])
 
         for veh_id in self.get_ids():
-            # collect the lane leaders, followers, headways, and footways for
+            # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
-            headways, footways, leaders, followers = \
+            headways, tailways, leaders, followers = \
                 self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
                                                env)
 
             # add the above values to the vehicles class
             self.set_lane_headways(veh_id, headways)
-            self.set_lane_footways(veh_id, footways)
+            self.set_lane_tailways(veh_id, tailways)
             self.set_lane_leaders(veh_id, leaders)
             self.set_lane_followers(veh_id, followers)
 
@@ -899,9 +899,9 @@ class Vehicles:
         headway : list<float>
             Index = lane index
             Element = headway at this lane
-        footway : list<float>
+        tailway : list<float>
             Index = lane index
-            Element = footway at this lane
+            Element = tailway at this lane
         leader : list<str>
             Index = lane index
             Element = leader at this lane
@@ -915,7 +915,7 @@ class Vehicles:
 
         # set default values for all output values
         headway = [1000] * num_lanes
-        footway = [1000] * num_lanes
+        tailway = [1000] * num_lanes
         leader = [""] * num_lanes
         follower = [""] * num_lanes
 
@@ -945,7 +945,7 @@ class Vehicles:
                 # edges behind you
                 if index > 0:
                     follower[lane] = ids[index-1]
-                    footway[lane] = this_pos - positions[index-1] \
+                    tailway[lane] = this_pos - positions[index-1] \
                         - self.get_length(veh_id)
 
             # if lane leader not found, check next edges
@@ -955,10 +955,10 @@ class Vehicles:
 
             # if lane follower not found, check previous edges
             if follower[lane] == "":
-                footway[lane], follower[lane] = self._prev_edge_followers(
+                tailway[lane], follower[lane] = self._prev_edge_followers(
                     veh_id, edge_dict, lane, num_edges, env)
 
-        return headway, footway, leader, follower
+        return headway, tailway, leader, follower
 
     def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges, env):
         """
@@ -1007,15 +1007,15 @@ class Vehicles:
 
         Returns
         -------
-        footway : float
-            lane footway for the specified lane
+        tailway : float
+            lane tailway for the specified lane
         follower : str
             lane follower for the specified lane
         """
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        footway = 1000  # env.scenario.length
+        tailway = 1000  # env.scenario.length
         follower = ""
         add_length = 0  # length increment in headway
 
@@ -1029,7 +1029,7 @@ class Vehicles:
 
             if len(edge_dict[edge][lane]) > 0:
                 if len(edge_dict[edge][lane]) > 0:
-                    footway = pos - edge_dict[edge][lane][-1][1] + add_length \
+                    tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
                         - self.get_length(veh_id)
                     follower = edge_dict[edge][lane][-1][0]
 
@@ -1037,4 +1037,4 @@ class Vehicles:
             if follower != "":
                 break
 
-        return footway, follower
+        return tailway, follower

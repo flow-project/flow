@@ -6,7 +6,8 @@ from flow.core.vehicles import Vehicles
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
-from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
+from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup, \
+    highway_exp_setup
 from tests.setup_scripts import variable_lanes_exp_setup
 
 
@@ -708,6 +709,26 @@ class TestNextPrevEdge(unittest.TestCase):
         expected_prev_edge = [("right", 0)]
 
         self.assertCountEqual(prev_edge, expected_prev_edge)
+
+    def test_no_edge_ahead(self):
+        """
+        Tests that, when there are no edges in front, next_edge() returns an
+        empty list
+        """
+        env, scenario = highway_exp_setup()
+        next_edge = scenario.next_edge(env.scenario.get_edge_list()[0], 0)
+        self.assertTrue(len(next_edge) == 0)
+
+    def test_no_edge_behind(self):
+        """
+        Tests that, when there are no edges behind, prev_edge() returns an
+        empty list
+        """
+        env, scenario = highway_exp_setup()
+        prev_edge = scenario.prev_edge(env.scenario.get_edge_list()[0], 0)
+        print(prev_edge, len(prev_edge))
+        self.assertTrue(len(prev_edge) == 0)
+
 
 if __name__ == '__main__':
     unittest.main()
