@@ -16,13 +16,13 @@ import sumolib
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
-except ImportError as e:
+except ImportError:
     Serializable = object
 
 try:
     # Load user config if exists, else load default config
     import flow.core.config as config
-except Exception as e:
+except Exception:
     import flow.config_default as config
 
 from flow.controllers.car_following_models import *
@@ -174,12 +174,12 @@ class Env(gym.Env, Serializable):
                 if self.sumo_params.no_step_log:
                     sumo_call.append("--no-step-log")
 
-                # add the lateral resolution of the sublanes (if one is requested)
+                # optionally, add the lateral resolution of the sublanes
                 if self.sumo_params.lateral_resolution is not None:
                     sumo_call.append("--lateral-resolution")
                     sumo_call.append(str(self.sumo_params.lateral_resolution))
 
-                # add the emission path to the sumo command (if one is requested)
+                # optionally, add the emission path to the sumo command
                 if self.emission_out:
                     sumo_call.append("--emission-output")
                     sumo_call.append(self.emission_out)
@@ -188,15 +188,13 @@ class Env(gym.Env, Serializable):
                     sumo_call.append("--lanechange.overtake-right")
                     sumo_call.append("true")
 
-                logging.info("Traci on port: ", self.port)
+                self.sumo_proc = subprocess.Popen(sumo_call,
+                                                  stdout=sys.stdout,
+                                                  stderr=sys.stderr,
+                                                  preexec_fn=os.setsid)
 
-                self.sumo_proc = subprocess.Popen(sumo_call, stdout=sys.stdout,
-                                 stderr=sys.stderr, preexec_fn=os.setsid)
-
-                logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
-
-                # wait a small period of time for the subprocess to activate before
-                # trying to connect with traci
+                # wait a small period of time for the subprocess to activate
+                # before trying to connect with traci
                 time.sleep(config.SUMO_SLEEP)
 
                 self.traci_connection = traci.connect(self.port, numRetries=100)
@@ -270,20 +268,7 @@ class Env(gym.Env, Serializable):
             self.traci_connection.trafficlights.subscribe(
                 node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
-        # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
-        id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
-                    tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
-                    tc.VAR_ARRIVED_VEHICLES_IDS: []}
-
         for veh_id in self.vehicles.get_ids():
-            # TODO(ak): move to vehicles class (length and max speed)
-            # some constant vehicle parameters to the vehicles class
-            self.vehicles.set_length(
-                veh_id, self.traci_connection.vehicle.getLength(veh_id))
-            self.vehicles.set_state(veh_id, "max_speed", self.max_speed)
-
             # import initial state data to initial_observations dict
             self.initial_observations[veh_id] = dict()
             self.initial_observations[veh_id]["type"] = \
@@ -297,15 +282,6 @@ class Env(gym.Env, Serializable):
             self.initial_observations[veh_id]["speed"] = \
                 self.traci_connection.vehicle.getSpeed(veh_id)
 
-            # TODO(ak): move to vehicles class (speed mode and lane change mode)
-            # set speed mode
-            self.traci_connection.vehicle.setSpeedMode(
-                veh_id, self.vehicles.get_speed_mode(veh_id))
-
-            # set lane change mode
-            self.traci_connection.vehicle.setLaneChangeMode(
-                veh_id, self.vehicles.get_lane_change_mode(veh_id))
-
             # save the initial state. This is used in the _reset function
             route_id = self.traci_connection.vehicle.getRouteID(veh_id)
             pos = self.traci_connection.vehicle.getPosition(veh_id)
@@ -315,10 +291,6 @@ class Env(gym.Env, Serializable):
                  self.initial_observations[veh_id]["lane"],
                  self.initial_observations[veh_id]["position"],
                  self.initial_observations[veh_id]["speed"], pos)
-
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
 
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.vehicles.get_ids())
@@ -445,7 +417,6 @@ class Env(gym.Env, Serializable):
             else:
                 return next_observation, reward, False, {}
 
-    # @property
     def _reset(self):
         """
         Resets the state of the environment, and re-initializes the vehicles in
@@ -489,7 +460,7 @@ class Env(gym.Env, Serializable):
 
             initial_state = dict()
             for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]  # TODO: fix for muliple routes
+                route_id = "route" + initial_positions[i][0]
 
                 # replace initial routes, lanes, and positions to reflect
                 # new values
@@ -588,6 +559,7 @@ class Env(gym.Env, Serializable):
         acc: numpy array or list of float
             requested accelerations from the vehicles
         """
+        # TODO(ak): fixme - like in sharding branch
         # issue traci command for requested acceleration
         this_vel = np.array(self.vehicles.get_speed(veh_ids))
         if self.multi_agent and (veh_id in self.vehicles.get_rl_ids()):
@@ -742,12 +714,12 @@ class Env(gym.Env, Serializable):
     def action_space(self):
         """
         Identifies the dimensions and bounds of the action space (needed for
-        rllab environments).
+        gym environments).
         MUST BE implemented in new environments.
 
         Yields
         -------
-        rllab Box or Tuple type
+        gym Box or Tuple type
             a bounded box depicting the shape and bounds of the action space
         """
         raise NotImplementedError
@@ -756,12 +728,12 @@ class Env(gym.Env, Serializable):
     def observation_space(self):
         """
         Identifies the dimensions and bounds of the observation space (needed
-        for rllab environments).
+        for gym environments).
         MUST BE implemented in new environments.
 
         Yields
         -------
-        rllab Box or Tuple type
+        gym Box or Tuple type
             a bounded box depicting the shape and bounds of the observation
             space
         """
@@ -803,9 +775,8 @@ class Env(gym.Env, Serializable):
     def teardown_sumo(self):
         try:
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
-        except Exception as e:
+        except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
-            error = e
 
     def _seed(self, seed=None):
         return []
