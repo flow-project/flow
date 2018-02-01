@@ -1,7 +1,6 @@
 import logging
 import datetime
 import numpy as np
-import time
 
 from flow.core.util import emission_to_csv
 
@@ -51,7 +50,6 @@ class SumoExperiment:
         if rl_actions is None:
             rl_actions = []
 
-        t1 = time.time()
         rets = []
         for i in range(num_runs):
             logging.info("Iter #" + str(i))
@@ -64,7 +62,6 @@ class SumoExperiment:
             print("Round {0}, return: {1}".format(i, ret))
 
         print("Average Return", np.mean(rets))
-        print("time:", time.time() - t1)
         self.env.terminate()
 
         if convert_to_csv:
