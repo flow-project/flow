@@ -10,6 +10,7 @@ class SumoParams:
                  lateral_resolution=None,
                  no_step_log=True,
                  sumo_binary="sumo",
+                 overtake_right=False,
                  seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
@@ -37,6 +38,8 @@ class SumoParams:
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
                 - 'sumo' to run without the gui (default)
+        overtake_right: bool, optional
+            whether vehicles are allowed to overtake on the right as well as the left
         seed: int, optional
             seed for sumo instance
         """
@@ -47,6 +50,7 @@ class SumoParams:
         self.no_step_log = no_step_log
         self.sumo_binary = sumo_binary
         self.seed = seed
+        self.overtake_right = overtake_right
 
 
 class EnvParams:
@@ -59,7 +63,8 @@ class EnvParams:
                  shared_policy=False,
                  additional_params=None,
                  max_decel=-6,
-                 max_accel=3):
+                 max_accel=3,
+                 horizon=500):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -90,6 +95,8 @@ class EnvParams:
             maximum deceleration of autonomous vehicles, defaults to -6 m/s2
         max_accel: float, optional
             maximum acceleration of autonomous vehicles, defaults to 3 m/s2
+        horizon: int, optional
+            number of steps per rollouts
         """
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
@@ -101,6 +108,7 @@ class EnvParams:
             additional_params if additional_params is not None else {}
         self.max_decel = max_decel
         self.max_accel = max_accel
+        self.horizon = horizon
 
     def get_additional_param(self, key):
         return self.additional_params[key]

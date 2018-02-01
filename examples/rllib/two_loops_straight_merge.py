@@ -75,6 +75,7 @@ flow_params = dict(
                     sim_step=0.1
                   ),
                 env=dict(
+                    horizon=HORIZON,
                     additional_params=additional_env_params
                   ),
                 net=dict(
