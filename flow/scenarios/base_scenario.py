@@ -170,15 +170,12 @@ class Scenario(Serializable):
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
-        starte = ""
-        startx = 0
+        for (edge, start_pos) in self.total_edgestarts[::-1]:
+            if x >= start_pos:
+                return edge, x - start_pos
 
-        for (e, s) in self.total_edgestarts:
-            if x >= s:
-                starte = e
-                startx = x - s
-
-        return starte, startx
+        # return default values if no match was found above
+        return "", 0
 
     def get_x(self, edge, position):
         """
