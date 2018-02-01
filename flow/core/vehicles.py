@@ -349,7 +349,7 @@ class Vehicles:
 
         # subscribe the new vehicle
         env.traci_connection.vehicle.subscribe(
-            veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_VIA,
+            veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
                      tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -578,29 +578,6 @@ class Vehicles:
         except KeyError:
             # if the vehicle does not exist, return an error value (-1001)
             return -1001
-
-    def get_via(self, veh_id="all"):
-        """
-        Returns the via edge of the specified vehicle at the current time step.
-
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        # if a list of vehicle ids are requested, call the function for each
-        # requested vehicle id
-        if not isinstance(veh_id, str):
-            return [self.get_via(vehID) for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.get_via(vehID) for vehID in self.__ids]
-
-        # perform the value retrieval for a specific vehicle
-        try:
-            return self.__sumo_observations[veh_id][tc.VAR_VIA]
-        except KeyError:
-            # if no via is available, return an error value ("")
-            return ""
 
     def set_length(self, veh_id, length):
         self.__vehicles[veh_id]["length"] = length
