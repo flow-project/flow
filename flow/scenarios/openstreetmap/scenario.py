@@ -34,7 +34,7 @@ class OpenStreetMapScenario(Scenario):
         self.length = 0
 
         edgestarts = []
-        for edge_id in self._edges:
+        for edge_id in self._edge_list:
             # the current edge starts (in 1D position) where the last edge ended
             edgestarts.append((edge_id, self.length))
             # increment the total length of the network with the length of the
