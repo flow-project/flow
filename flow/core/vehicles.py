@@ -3,6 +3,9 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 import collections
 import logging
+from collections import defaultdict
+from bisect import bisect_left
+import itertools
 
 from copy import deepcopy
 import traci.constants as tc
@@ -26,7 +29,7 @@ class Vehicles:
         self.__human_ids = []  # stores the ids of human-driven vehicles
         self.__controlled_ids = []  # stores the ids of flow-controlled vehicles
         self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
-        self.__rl_ids = []  # stores the ids of rllab-controlled vehicles
+        self.__rl_ids = []  # stores the ids of rl-controlled vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
@@ -47,6 +50,9 @@ class Vehicles:
 
         # contain the minGap attribute of each type of vehicle
         self.minGap = dict()
+
+        # list of vehicle ids located in each edge in the network
+        self._ids_by_edge = dict()
 
     def add(self,
             veh_id,
@@ -85,7 +91,8 @@ class Vehicles:
         speed_mode: str or int, optional
             may be one of the following:
              - "no_collide" (default): Human and RL cars are preventing from
-               reaching speeds that may cause crashes (also serves as a failsafe).
+               reaching speeds that may cause crashes (also serves as a
+               failsafe).
              - "aggressive": Human and RL cars are not limited by sumo with
                regard to their accelerations, and can crash longitudinally
              - int values may be used to define custom speed mode for the given
@@ -158,53 +165,53 @@ class Vehicles:
         self.minGap[veh_id] = type_params["minGap"]
 
         for i in range(num_vehicles):
-            vehID = veh_id + '_%d' % i
+            v_id = veh_id + '_%d' % i
 
             # add the vehicle to the list of vehicle ids
-            self.__ids.append(vehID)
+            self.__ids.append(v_id)
 
-            self.__vehicles[vehID] = dict()
+            self.__vehicles[v_id] = dict()
 
             # specify the type
-            self.__vehicles[vehID]["type"] = veh_id
+            self.__vehicles[v_id]["type"] = veh_id
 
             # specify the acceleration controller class
-            self.__vehicles[vehID]["acc_controller"] = \
-                acceleration_controller[0](veh_id=vehID,
+            self.__vehicles[v_id]["acc_controller"] = \
+                acceleration_controller[0](veh_id=v_id,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
-            self.__vehicles[vehID]["lane_changer"] = \
-                lane_change_controller[0](veh_id=vehID,
+            self.__vehicles[v_id]["lane_changer"] = \
+                lane_change_controller[0](veh_id=v_id,
                                           **lane_change_controller[1])
 
             # specify the routing controller class
             if routing_controller is not None:
-                self.__vehicles[vehID]["router"] = \
-                    routing_controller[0](veh_id=vehID,
+                self.__vehicles[v_id]["router"] = \
+                    routing_controller[0](veh_id=v_id,
                                           router_params=routing_controller[1])
             else:
-                self.__vehicles[vehID]["router"] = None
+                self.__vehicles[v_id]["router"] = None
 
             # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[vehID]["initial_speed"] = initial_speed
+            self.__vehicles[v_id]["initial_speed"] = initial_speed
 
             # check if the vehicle is human-driven or autonomous
             if acceleration_controller[0] == RLController:
-                self.__rl_ids.append(vehID)
+                self.__rl_ids.append(v_id)
             else:
-                self.__human_ids.append(vehID)
+                self.__human_ids.append(v_id)
 
                 # check if the vehicle's lane-changing / acceleration actions
                 # are controlled by sumo or not.
                 if acceleration_controller[0] != SumoCarFollowingController:
-                    self.__controlled_ids.append(vehID)
+                    self.__controlled_ids.append(v_id)
                 if lane_change_controller[0] != SumoLaneChangeController:
-                    self.__controlled_lc_ids.append(vehID)
+                    self.__controlled_lc_ids.append(v_id)
 
             # specify the speed and lane change mode for the vehicle
-            self.__vehicles[vehID]["speed_mode"] = speed_mode
-            self.__vehicles[vehID]["lane_change_mode"] = lane_change_mode
+            self.__vehicles[v_id]["speed_mode"] = speed_mode
+            self.__vehicles[v_id]["lane_change_mode"] = lane_change_mode
 
         # update the variables for the number of vehicles in the network
         self.num_vehicles = len(self.__ids)
@@ -280,18 +287,21 @@ class Vehicles:
         for veh_id in self.__ids:
             headway = vehicle_obs[veh_id][tc.VAR_LEADER]
             vtype = self.get_state(veh_id, "type")
-            minGap = self.minGap[vtype]
+            min_gap = self.minGap[vtype]
             if headway is None:
                 self.__vehicles[veh_id]["leader"] = None
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e-3
             else:
-                self.__vehicles[veh_id]["headway"] = headway[1] + minGap
+                self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
                 self.__vehicles[headway[0]]["follower"] = veh_id
 
         # update the sumo observations variable
         self.__sumo_observations = deepcopy(vehicle_obs)
+
+        # update the lane leaders data for each vehicle
+        self._multi_lane_headways(env)
 
     def add_departed(self, veh_id, veh_type, env):
         """
@@ -308,7 +318,8 @@ class Vehicles:
         self.__vehicles[veh_id]["type"] = veh_type
 
         # specify the acceleration controller class
-        accel_controller = self.type_parameters[veh_type]["acceleration_controller"]
+        accel_controller = \
+            self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
             accel_controller[0](veh_id=veh_id, **accel_controller[1])
 
@@ -341,6 +352,11 @@ class Vehicles:
             veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
                      tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
+        # some constant vehicle parameters to the vehicles class
+        self.set_length(
+            veh_id, env.traci_connection.vehicle.getLength(veh_id))
+        self.set_state(veh_id, "max_speed", env.max_speed)
 
         # set the absolute position of the vehicle
         self.set_absolute_position(veh_id, 0)
@@ -432,6 +448,14 @@ class Vehicles:
     def get_rl_ids(self):
         return self.__rl_ids
 
+    def get_ids_by_edge(self, edge):
+        if edge in self._ids_by_edge:
+            return self._ids_by_edge[edge]
+        else:
+            # else case should cover when before the dict() is filled (i.e.
+            # before the first instance of _multi_lane_headways())
+            return None
+
     def get_initial_speed(self, veh_id):
         return self.__vehicles[veh_id]["initial_speed"]
 
@@ -475,9 +499,11 @@ class Vehicles:
         - "all", in which case a list of all the specified state is provided
         """
         if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["absolute_position"] for vehID in veh_id]
+            return [self.__vehicles[vehID]["absolute_position"]
+                    for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["absolute_position"] for vehID in self.__ids]
+            return [self.__vehicles[vehID]["absolute_position"]
+                    for vehID in self.__ids]
         else:
             return self.__vehicles[veh_id]["absolute_position"]
 
@@ -531,7 +557,8 @@ class Vehicles:
 
     def get_lane(self, veh_id="all"):
         """
-        Returns the lane index of the specified vehicle at the current time step.
+        Returns the lane index of the specified vehicle at the current time
+        step.
 
         Accepts as input:
         - id of a specific vehicle
@@ -552,6 +579,27 @@ class Vehicles:
             # if the vehicle does not exist, return an error value (-1001)
             return -1001
 
+    def set_length(self, veh_id, length):
+        self.__vehicles[veh_id]["length"] = length
+
+    def get_length(self, veh_id="all"):
+        """
+        Returns the length of the specified vehicle.
+
+        Accepts as input:
+        - id of a specific vehicle
+        - list of vehicle ids
+        - "all", in which case a list of all the specified state is provided
+        """
+        if not isinstance(veh_id, str):
+            return [self.__vehicles[vehID]["length"]
+                    for vehID in veh_id]
+        elif veh_id == "all":
+            return [self.__vehicles[vehID]["length"]
+                    for vehID in self.__ids]
+        else:
+            return self.__vehicles[veh_id]["length"]
+
     def get_acc_controller(self, veh_id="all"):
         """
         Returns the acceleration controller of the specified vehicle.
@@ -562,9 +610,11 @@ class Vehicles:
         - "all", in which case a list of all the specified state is provided
         """
         if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["acc_controller"] for vehID in veh_id]
+            return [self.__vehicles[vehID]["acc_controller"]
+                    for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["acc_controller"] for vehID in self.__ids]
+            return [self.__vehicles[vehID]["acc_controller"]
+                    for vehID in self.__ids]
         else:
             return self.__vehicles[veh_id]["acc_controller"]
 
@@ -578,9 +628,11 @@ class Vehicles:
         - "all", in which case a list of all the specified state is provided
         """
         if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["lane_changer"] for vehID in veh_id]
+            return [self.__vehicles[vehID]["lane_changer"]
+                    for vehID in veh_id]
         elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane_changer"] for vehID in self.__ids]
+            return [self.__vehicles[vehID]["lane_changer"]
+                    for vehID in self.__ids]
         else:
             return self.__vehicles[veh_id]["lane_changer"]
 
@@ -671,6 +723,55 @@ class Vehicles:
         else:
             return self.__vehicles[veh_id]["headway"]
 
+    def set_lane_headways(self, veh_id, lane_headways):
+        self.__vehicles[veh_id]["lane_headways"] = lane_headways
+
+    def get_lane_headways(self, veh_id="all"):
+        if not isinstance(veh_id, str):
+            return [self.__vehicles[vehID]["lane_headways"] for vehID in veh_id]
+        elif veh_id == "all":
+            return [self.__vehicles[vehID]["lane_headways"]
+                    for vehID in self.__ids]
+        else:
+            return self.__vehicles[veh_id]["lane_headways"]
+
+    def set_lane_leaders(self, veh_id, lane_leaders):
+        self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
+
+    def get_lane_leaders(self, veh_id="all"):
+        if not isinstance(veh_id, str):
+            return [self.__vehicles[vehID]["lane_leaders"] for vehID in veh_id]
+        elif veh_id == "all":
+            return [self.__vehicles[vehID]["lane_leaders"]
+                    for vehID in self.__ids]
+        else:
+            return self.__vehicles[veh_id]["lane_leaders"]
+
+    def set_lane_tailways(self, veh_id, lane_tailways):
+        self.__vehicles[veh_id]["lane_tailways"] = lane_tailways
+
+    def get_lane_tailways(self, veh_id="all"):
+        if not isinstance(veh_id, str):
+            return [self.__vehicles[vehID]["lane_tailways"] for vehID in veh_id]
+        elif veh_id == "all":
+            return [self.__vehicles[vehID]["lane_tailways"]
+                    for vehID in self.__ids]
+        else:
+            return self.__vehicles[veh_id]["lane_tailways"]
+
+    def set_lane_followers(self, veh_id, lane_followers):
+        self.__vehicles[veh_id]["lane_followers"] = lane_followers
+
+    def get_lane_followers(self, veh_id="all"):
+        if not isinstance(veh_id, str):
+            return [self.__vehicles[vehID]["lane_followers"]
+                    for vehID in veh_id]
+        elif veh_id == "all":
+            return [self.__vehicles[vehID]["lane_followers"]
+                    for vehID in self.__ids]
+        else:
+            return self.__vehicles[veh_id]["lane_followers"]
+
     # TODO: everything past here must be thought through
     def set_state(self, veh_id, state_name, state):
         """
@@ -695,3 +796,222 @@ class Vehicles:
             return [self.__vehicles[vehID][state_name] for vehID in self.__ids]
         else:
             return self.__vehicles[veh_id][state_name]
+
+    def _multi_lane_headways(self, env):
+        """
+        Computes the lane leaders/followers/headways/tailways for all vehicles
+        in the network.
+        """
+        edge_list = env.scenario.get_edge_list()
+        junction_list = env.scenario.get_junction_list()
+        tot_list = edge_list + junction_list
+        num_edges = len(env.scenario.get_edge_list()) \
+            + len(env.scenario.get_junction_list())
+
+        # maximum number of lanes in the network
+        max_lanes = max([env.scenario.num_lanes(edge_id)
+                         for edge_id in tot_list])
+
+        # Key = edge id
+        # Element = list, with the ith element containing tuples with the name
+        #           and position of all vehicles in lane i
+        edge_dict = defaultdict(list)
+
+        # update the dict with all the edges in edge_list so we can look
+        # forward for edges
+        edge_dict.update((k, [[] for _ in range(max_lanes)]) for k in tot_list)
+
+        # add the vehicles to the edge_dict element
+        for veh_id in self.get_ids():
+            edge = self.get_edge(veh_id)
+            lane = self.get_lane(veh_id)
+            pos = self.get_position(veh_id)
+            edge_dict[edge][lane].append((veh_id, pos))
+
+        # sort all lanes in each edge by position
+        for edge in edge_dict:
+            for lane in range(max_lanes):
+                edge_dict[edge][lane].sort(key=lambda x: x[1])
+
+        for veh_id in self.get_ids():
+            # collect the lane leaders, followers, headways, and tailways for
+            # each vehicle
+            headways, tailways, leaders, followers = \
+                self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
+                                               env)
+
+            # add the above values to the vehicles class
+            self.set_lane_headways(veh_id, headways)
+            self.set_lane_tailways(veh_id, tailways)
+            self.set_lane_leaders(veh_id, leaders)
+            self.set_lane_followers(veh_id, followers)
+
+        self._ids_by_edge = dict().fromkeys(edge_list)
+
+        for edge_id in self._ids_by_edge:
+            edges = list(itertools.chain.from_iterable(edge_dict[edge_id]))
+            # check for edges with no vehicles
+            if len(edges) > 0:
+                edges, _ = zip(*edges)
+                self._ids_by_edge[edge_id] = list(edges)
+            else:
+                self._ids_by_edge[edge_id] = list()
+
+    def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges, env):
+        """
+        Utility function for _multi_lane_headways(); computes the required
+        components for the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str
+            name of the vehicle
+        edge_dict : dict < list<tuple> >
+            Key = Edge name
+                Index = lane index
+                Element = sorted list of (vehicle id, position)
+
+        Returns
+        -------
+        headway : list<float>
+            Index = lane index
+            Element = headway at this lane
+        tailway : list<float>
+            Index = lane index
+            Element = tailway at this lane
+        leader : list<str>
+            Index = lane index
+            Element = leader at this lane
+        follower : list<str>
+            Index = lane index
+            Element = follower at this lane
+        """
+        this_pos = self.get_position(veh_id)
+        this_edge = self.get_edge(veh_id)
+        num_lanes = env.scenario.num_lanes(this_edge)
+
+        # set default values for all output values
+        headway = [1000] * num_lanes
+        tailway = [1000] * num_lanes
+        leader = [""] * num_lanes
+        follower = [""] * num_lanes
+
+        for lane in range(num_lanes):
+            # check the vehicle's current  edge for lane leaders and followers
+            if len(edge_dict[this_edge][lane]) > 0:
+                ids, positions = zip(*edge_dict[this_edge][lane])
+                ids = list(ids)
+                positions = list(positions)
+                index = bisect_left(positions, this_pos)
+
+                # if you are at the end or the front of the edge, the lane
+                # leader is in the edges in front of you
+                if index < len(positions)-1:
+                    # check if the index does not correspond to the current
+                    # vehicle
+                    if ids[index] == veh_id:
+                        leader[lane] = ids[index+1]
+                        headway[lane] = positions[index+1] - this_pos \
+                            - self.get_length(leader[lane])
+                    else:
+                        leader[lane] = ids[index]
+                        headway[lane] = positions[index] - this_pos \
+                            - self.get_length(leader[lane])
+
+                # you are in the back of the queue, the lane follower is in the
+                # edges behind you
+                if index > 0:
+                    follower[lane] = ids[index-1]
+                    tailway[lane] = this_pos - positions[index-1] \
+                        - self.get_length(veh_id)
+
+            # if lane leader not found, check next edges
+            if leader[lane] == "":
+                headway[lane], leader[lane] = self._next_edge_leaders(
+                    veh_id, edge_dict, lane, num_edges, env)
+
+            # if lane follower not found, check previous edges
+            if follower[lane] == "":
+                tailway[lane], follower[lane] = self._prev_edge_followers(
+                    veh_id, edge_dict, lane, num_edges, env)
+
+        return headway, tailway, leader, follower
+
+    def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges, env):
+        """
+        Looks to the edges/junctions in front of the vehicle's current edge for
+        potential leaders. This is currently done by only looking one
+        edge/junction backwards.
+
+        Returns
+        -------
+        headway : float
+            lane headway for the specified lane
+        leader : str
+            lane leader for the specified lane
+        """
+        pos = self.get_position(veh_id)
+        edge = self.get_edge(veh_id)
+
+        headway = 1000  # env.scenario.length
+        leader = ""
+        add_length = 0  # length increment in headway
+
+        for _ in range(num_edges):
+            # break if there are no edge/lane pairs behind the current one
+            if len(env.scenario.next_edge(edge, lane)) == 0:
+                break
+
+            add_length += env.scenario.edge_length(edge)
+            edge, lane = env.scenario.next_edge(edge, lane)[0]
+
+            if len(edge_dict[edge][lane]) > 0:
+                leader = edge_dict[edge][lane][0][0]
+                headway = edge_dict[edge][lane][0][1] - pos + add_length \
+                    - self.get_length(leader)
+
+            # stop if a lane follower is found
+            if leader != "":
+                break
+
+        return headway, leader
+
+    def _prev_edge_followers(self, veh_id, edge_dict, lane, num_edges, env):
+        """
+        Looks to the edges/junctions behind the vehicle's current edge for
+        potential followers. This is currently done by only looking one
+        edge/junction backwards.
+
+        Returns
+        -------
+        tailway : float
+            lane tailway for the specified lane
+        follower : str
+            lane follower for the specified lane
+        """
+        pos = self.get_position(veh_id)
+        edge = self.get_edge(veh_id)
+
+        tailway = 1000  # env.scenario.length
+        follower = ""
+        add_length = 0  # length increment in headway
+
+        for _ in range(num_edges):
+            # break if there are no edge/lane pairs behind the current one
+            if len(env.scenario.prev_edge(edge, lane)) == 0:
+                break
+
+            edge, lane = env.scenario.prev_edge(edge, lane)[0]
+            add_length += env.scenario.edge_length(edge)
+
+            if len(edge_dict[edge][lane]) > 0:
+                if len(edge_dict[edge][lane]) > 0:
+                    tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
+                        - self.get_length(veh_id)
+                    follower = edge_dict[edge][lane][-1][0]
+
+            # stop if a lane follower is found
+            if follower != "":
+                break
+
+        return tailway, follower

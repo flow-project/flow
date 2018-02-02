@@ -1,9 +1,13 @@
 import unittest
+import numpy as np
+
 from flow.core.vehicles import Vehicles
-from flow.core.params import SumoCarFollowingParams
+from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
+
+from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
 
 
 class TestVehiclesClass(unittest.TestCase):
@@ -144,6 +148,84 @@ class TestVehiclesClass(unittest.TestCase):
 
         # ensures that then num_rl_vehicles matches the actual number of rl veh
         self.assertEqual(vehicles.num_rl_vehicles, len(vehicles.get_rl_ids()))
+
+
+class TestMultiLaneData(unittest.TestCase):
+    """
+    Tests the functions get_lane_leaders(), get_lane_followers(),
+    get_lane_headways(), and get_lane_footways() in the Vehicles class.
+    """
+    def test_no_junctions(self):
+        """
+        Tests the above mentioned methods in the absence of junctions.
+        """
+        # setup a network with no junctions and several vehicles
+        # also, setup with a deterministic starting position to ensure that the
+        # headways/lane leaders are what is expected
+        additional_net_params = {"length": 230, "lanes": 3, "speed_limit": 30,
+                                 "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        vehicles = Vehicles()
+        vehicles.add(veh_id="test", num_vehicles=21)
+
+        initial_config = InitialConfig(lanes_distribution=float("inf"))
+
+        env, scenario = ring_road_exp_setup(net_params=net_params,
+                                            vehicles=vehicles,
+                                            initial_config=initial_config)
+        env.reset()
+
+        # check the lane leaders method is outputting the right values
+        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        expected_lane_leaders = ["test_3", "test_1", "test_2"]
+        self.assertCountEqual(actual_lane_leaders, expected_lane_leaders)
+
+        # check the lane headways is outputting the right values
+        actual_lane_head = env.vehicles.get_lane_headways("test_0")
+        expected_lane_head = [27.85714285714286, -5, -5]
+        self.assertCountEqual(actual_lane_head, expected_lane_head)
+
+        # check the lane followers method is outputting the right values
+        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        expected_lane_followers = ["test_18", "test_19", "test_20"]
+        self.assertCountEqual(actual_lane_followers, expected_lane_followers)
+
+        # check the lane tailways is outputting the right values
+        actual_lane_tail = env.vehicles.get_lane_tailways("test_0")
+        expected_lane_tail = [27.85714285714286] * 3
+        np.testing.assert_array_almost_equal(actual_lane_tail,
+                                             expected_lane_tail)
+
+    def test_junctions(self):
+        """
+        Tests the above mentioned methods in the presence of junctions.
+        """
+        # TODO(ak): add test
+        pass
+
+
+class TestIdsByEdge(unittest.TestCase):
+    """
+    Tests the ids_by_edge() method
+    """
+    def setUp(self):
+        # create the environment and scenario classes for a figure eight
+        vehicles = Vehicles()
+        vehicles.add(veh_id="test", num_vehicles=20)
+
+        self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+    def tearDown(self):
+        # free data used by the class
+        self.env.terminate()
+        self.env = None
+
+    def runTest(self):
+        self.env.reset()
+        ids = self.env.vehicles.get_ids_by_edge("bottom")
+        expected_ids = ["test_0", "test_1", "test_2", "test_3", "test_4"]
+        self.assertCountEqual(ids, expected_ids)
 
 
 if __name__ == '__main__':

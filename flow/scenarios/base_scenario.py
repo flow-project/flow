@@ -5,7 +5,7 @@ import numpy as np
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
-except ImportError as e:
+except ImportError:
     Serializable = object
 
 from flow.core.params import InitialConfig
@@ -557,16 +557,24 @@ class Scenario(Serializable):
     def next_edge(self, edge, lane):
         """
         Returns the next edge/lane pair from the given edge/lane. These edges
-        may also be internal links (junctions).
+        may also be internal links (junctions). Returns an empty list if there
+        are no edge/lane pairs in front.
         """
-        return self._connections["next"][edge][lane]
+        try:
+            return self._connections["next"][edge][lane]
+        except KeyError:
+            return []
 
     def prev_edge(self, edge, lane):
         """
         Returns the edge/lane pair right before this edge/lane. These edges may
-        also be internal links (junctions).
+        also be internal links (junctions). Returns an empty list if there
+        are no edge/lane pairs behind.
         """
-        return self._connections["prev"][edge][lane]
+        try:
+            return self._connections["prev"][edge][lane]
+        except KeyError:
+            return []
 
     def __str__(self):
         return "Scenario " + self.name + " with " + \
