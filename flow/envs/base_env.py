@@ -277,19 +277,11 @@ class Env(gym.Env, Serializable):
                     tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
                     tc.VAR_ARRIVED_VEHICLES_IDS: []}
 
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
-
-        # store the network observations in the vehicles class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-
         for veh_id in self.vehicles.get_ids():
-
+            # TODO(ak): move to vehicles class (length and max speed)
             # some constant vehicle parameters to the vehicles class
-            self.vehicles.set_state(
-                veh_id, "length",
-                self.traci_connection.vehicle.getLength(veh_id))
+            self.vehicles.set_length(
+                veh_id, self.traci_connection.vehicle.getLength(veh_id))
             self.vehicles.set_state(veh_id, "max_speed", self.max_speed)
 
             # import initial state data to initial_observations dict
@@ -305,6 +297,7 @@ class Env(gym.Env, Serializable):
             self.initial_observations[veh_id]["speed"] = \
                 self.traci_connection.vehicle.getSpeed(veh_id)
 
+            # TODO(ak): move to vehicles class (speed mode and lane change mode)
             # set speed mode
             self.traci_connection.vehicle.setSpeedMode(
                 veh_id, self.vehicles.get_speed_mode(veh_id))
@@ -322,6 +315,10 @@ class Env(gym.Env, Serializable):
                  self.initial_observations[veh_id]["lane"],
                  self.initial_observations[veh_id]["position"],
                  self.initial_observations[veh_id]["speed"], pos)
+
+        # store new observations in the vehicles and traffic lights class
+        self.vehicles.update(vehicle_obs, id_lists, self)
+        self.traffic_lights.update(tls_obs)
 
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.vehicles.get_ids())
@@ -615,7 +612,7 @@ class Env(gym.Env, Serializable):
             vehicles IDs associated with the requested accelerations
         direction: list of int (-1, 0, or 1), optional
             -1: lane change to the right
-             0: no lange change
+             0: no lane change
              1: lane change to the left
         target_lane: list of int, optional
             lane indices the vehicles should lane-change to in the next step
