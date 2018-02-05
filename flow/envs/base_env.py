@@ -254,7 +254,7 @@ class Env(gym.Env, Serializable):
         # subscribe the requested states for traci-related speedups
         for veh_id in self.vehicles.get_ids():
             self.traci_connection.vehicle.subscribe(
-                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_VIA,
+                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
                          tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
