@@ -7,36 +7,74 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
 
+ADDITIONAL_NET_PARAMS = {
+    # length of the horizontal edge before the intersection
+    "horizontal_length_in": 1,
+    # length of the horizontal edge after the intersection
+    "horizontal_length_out": 1,
+    # number of lanes in the horizontal edges
+    "horizontal_lanes": 1,
+    # length of the vertical edge before the intersection
+    "vertical_length_in": 1,
+    # length of the vertical edge after the intersection
+    "vertical_length_out": 1,
+    # number of lanes in the vertical edges
+    "vertical_lanes": 1,
+    # max speed limit of the vehicles on the road network
+    "speed_limit": {"horizontal": 30, "vertical": 30}
+}
+
+
 class TwoWayIntersectionScenario(Scenario):
 
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """
-        Initializes a two-way intersection scenario. Required net_params: horizontal_length_before,
-        horizontal_length_after, horizontal_lanes, vertical_length_before, vertical_length_after, vertical_lanes,
-        speed_limit. Required initial_config: positions.
+        """Initializes a two-way intersection scenario.
+
+        Requires from net_params:
+        - horizontal_length_in: length of the horizontal edge before the
+          intersection
+        - horizontal_length_out: length of the horizontal edge after the
+          intersection
+        - horizontal_lanes: number of lanes in the horizontal edges
+        - vertical_length_in: length of the vertical edge before the
+          intersection
+        - vertical_length_out: length of the vertical edge after the
+          intersection
+        - vertical_lanes: number of lanes in the vertical edges
+        - speed_limit: max speed limit of the vehicles on the road network.
+          May be a single value (for both lanes) or a dict separating the two,
+          of the form: speed_limit = {"horizontal":{float}, "vertical":{float}}
+
+        Required initial_config: positions.
 
         See Scenario.py for description of params.
+
+        Note:
+        -----
+            Set no_internal_links in net_params to False to receive queueing
+            at intersections.
         """
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network param "{}" not supplied'.format(p))
+
         self.left_len = net_params.additional_params["horizontal_length_in"]
         self.right_len = net_params.additional_params["horizontal_length_out"]
         self.bottom_len = net_params.additional_params["vertical_length_in"]
         self.top_len = net_params.additional_params["vertical_length_out"]
 
-        self.horizontal_junction_len = 2.9 + 3.3 * net_params.additional_params["vertical_lanes"]
-        self.vertical_junction_len = 2.9 + 3.3 * net_params.additional_params["horizontal_lanes"]
+        self.horizontal_junction_len = \
+            2.9 + 3.3 * net_params.additional_params["vertical_lanes"]
+        self.vertical_junction_len = \
+            2.9 + 3.3 * net_params.additional_params["horizontal_lanes"]
         self.inner_space_len = 0.28
 
         # instantiate "length" in net params
-        net_params.additional_params["length"] = self.left_len + self.right_len + self.horizontal_junction_len + \
-            self.bottom_len + self.top_len + self.vertical_junction_len
-
-        if "horizontal_lanes" not in net_params.additional_params:
-            raise ValueError("number of horizontal lanes not supplied")
-
-        if "vertical_lanes" not in net_params.additional_params:
-            raise ValueError("number of vertical lanes not supplied")
+        net_params.additional_params["length"] = self.left_len + self.right_len\
+            + self.horizontal_junction_len + self.bottom_len + self.top_len\
+            + self.vertical_junction_len
 
         self.lanes = {"top": net_params.additional_params["vertical_lanes"],
                       "bottom": net_params.additional_params["vertical_lanes"],
@@ -46,23 +84,6 @@ class TwoWayIntersectionScenario(Scenario):
         # enter_lane specifies which lane a car enters given a certain direction
         self.enter_lane = {"horizontal": "left", "vertical": "bottom"}
 
-        if "speed_limit" not in net_params.additional_params:
-            raise ValueError("speed limit not supplied")
-
-        # if the speed limit is a single number, then all lanes have the same speed limit
-        if isinstance(net_params.additional_params["speed_limit"], int) or \
-                isinstance(net_params.additional_params["speed_limit"], float):
-            self.speed_limit = {"horizontal": net_params.additional_params["speed_limit"],
-                                "vertical": net_params.additional_params["speed_limit"]}
-        # if the speed limit is a dict with separate values for vertical and horizontal,
-        # then they are set as such
-        elif "vertical" in net_params.additional_params["speed_limit"] and \
-                        "horizontal" in net_params.additional_params["speed_limit"]:
-            self.speed_limit = {"horizontal": net_params.additional_params["speed_limit"]["horizontal"],
-                                "vertical": net_params.additional_params["speed_limit"]["vertical"]}
-        else:
-            raise ValueError('speed limit must contain a number or a dict with keys: "vertical" and "horizontal"')
-
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
 
@@ -70,15 +91,17 @@ class TwoWayIntersectionScenario(Scenario):
         edgestarts = \
             [("bottom", 0),
              ("top", self.bottom_len + self.vertical_junction_len),
-             ("left", (self.bottom_len + self.vertical_junction_len + self.top_len)),
-             ("right", (self.bottom_len + self.vertical_junction_len + self.top_len) +
-              self.left_len + self.horizontal_junction_len)]
+             ("left", self.bottom_len + self.vertical_junction_len
+              + self.top_len),
+             ("right", self.bottom_len + self.vertical_junction_len
+              + self.top_len + self.left_len + self.horizontal_junction_len)]
         return edgestarts
 
     def specify_intersection_edge_starts(self):
         intersection_edgestarts = \
             [(":center_%s" % (1+self.lanes["left"]), self.bottom_len),
-             (":center_1", (self.bottom_len + self.vertical_junction_len + self.top_len) + self.left_len)]
+             (":center_1", (self.bottom_len + self.vertical_junction_len +
+                            self.top_len) + self.left_len)]
         return intersection_edgestarts
 
     def gen_custom_start_pos(self, initial_config, **kwargs):

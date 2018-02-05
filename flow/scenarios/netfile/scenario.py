@@ -8,8 +8,7 @@ class NetFileScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """
-        Initializes a scenario from a .net.xml file.
+        """Initializes a scenario from a .net.xml file.
 
         See Scenario.py for description of params.
         """
