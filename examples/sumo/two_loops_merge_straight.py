@@ -54,7 +54,6 @@ def two_loops_merge_straight_example(sumo_binary=None):
     additional_net_params = {"ring_radius": 75,
                              "inner_lanes": 1,
                              "outer_lanes": 1,
-                             "lanes": 1,
                              "lane_length": 75,
                              "speed_limit": 30,
                              "resolution": 40}
