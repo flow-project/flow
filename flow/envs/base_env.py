@@ -16,13 +16,13 @@ import sumolib
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
-except ImportError as e:
+except ImportError:
     Serializable = object
 
 try:
     # Load user config if exists, else load default config
     import flow.core.config as config
-except Exception as e:
+except ImportError:
     import flow.config_default as config
 
 from flow.controllers.car_following_models import *
@@ -56,12 +56,12 @@ class Env(gym.Env, Serializable):
          - get_state
          - compute_reward
 
-         Attributes
-         ----------
-         env_params: EnvParams type:
-            see flow/core/params.py
-         sumo_params: SumoParams type
-            see flow/core/params.py
+        Attributes
+        ----------
+        env_params: EnvParams type:
+           see flow/core/params.py
+        sumo_params: SumoParams type
+           see flow/core/params.py
         scenario: Scenario type
             see flow/scenarios/base_scenario.py
         """
@@ -72,7 +72,6 @@ class Env(gym.Env, Serializable):
         self.env_params = env_params
         self.scenario = scenario
         self.sumo_params = sumo_params
-        self.sumo_binary = self.sumo_params.sumo_binary
         self.vehicles = scenario.vehicles
         self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
@@ -84,29 +83,12 @@ class Env(gym.Env, Serializable):
         self.state = None
         self.obs_var_labels = []
 
-        # SUMO Params
-        if sumo_params.port is not None:
-            self.port = sumo_params.port
-        else:
-            self.port = sumolib.miscutils.getFreeSocketPort()
-        if sumo_params.seed is not None:
-            self.seed = sumo_params.seed
-        else:
-            self.seed = np.random.randint(1e8)
+        # simulation step size
         self.sim_step = sumo_params.sim_step
+
         self.vehicle_arrangement_shuffle = \
             env_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = env_params.starting_position_shuffle
-        self.emission_path = sumo_params.emission_path
-
-        # path to the output (emission) file provided by sumo
-        if self.emission_path:
-            ensure_dir(self.emission_path)
-            self.emission_out = \
-                self.emission_path + "{0}-emission.xml".format(
-                    self.scenario.name)
-        else:
-            self.emission_out = None
 
         self.max_speed = env_params.max_speed
         self.lane_change_duration = \
@@ -124,6 +106,22 @@ class Env(gym.Env, Serializable):
         else:
             self.multi_agent = False
 
+        # TraCI connection used to communicate with sumo
+        self.traci_connection = None
+
+        # dictionary of initial observations used while resetting vehicles after
+        # each rollout
+        self.initial_observations = dict.fromkeys(self.vehicles.get_ids())
+
+        # store the initial vehicle ids
+        self.initial_ids = deepcopy(self.vehicles.get_ids())
+
+        # colors used to distinguish between types of vehicles in the network
+        self.colors = {}
+
+        # contains the subprocess.Popen instance used to start traci
+        self.sumo_proc = None
+
         self.start_sumo()
         self.setup_initial_state()
 
@@ -133,15 +131,17 @@ class Env(gym.Env, Serializable):
         rollout.
         """
         self.traci_connection.close(False)
-        if sumo_binary:
-            self.sumo_binary = sumo_binary
 
-        self.port = sumolib.miscutils.getFreeSocketPort()
-        if self.emission_path:
-            data_folder = self.emission_path
-            ensure_dir(data_folder)
-            self.emission_out = \
-                data_folder + "{0}-emission.xml".format(self.scenario.name)
+        if sumo_binary is not None:
+            self.sumo_params.sumo_binary = sumo_binary
+
+        self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
+
+        # TODO(ak): replace input with emission_path, but make sure this doesn't
+        # break visualizer_rllab.py
+        if sumo_params.emission_path is not None:
+            ensure_dir(sumo_params.emission_path)
+            self.sumo_params.emission_path = sumo_params.emission_path
 
         self.start_sumo()
         self.setup_initial_state()
@@ -152,54 +152,67 @@ class Env(gym.Env, Serializable):
         generator class. Also initializes a traci connection to interface with
         sumo from Python.
         """
+        # port number the sumo instance will be run on
+        if self.sumo_params.port is not None:
+            port = self.sumo_params.port
+        else:
+            port = sumolib.miscutils.getFreeSocketPort()
+
+        # command used to start sumo
+        sumo_call = [self.sumo_params.sumo_binary,
+                     "-c", self.scenario.cfg,
+                     "--remote-port", str(port),
+                     "--step-length", str(self.sim_step),
+                     "--step-method.ballistic", "true"]
+
+        # add step logs (if requested)
+        if self.sumo_params.no_step_log:
+            sumo_call.append("--no-step-log")
+
+        # add the lateral resolution of the sublanes (if requested)
+        if self.sumo_params.lateral_resolution is not None:
+            sumo_call.append("--lateral-resolution")
+            sumo_call.append(str(self.sumo_params.lateral_resolution))
+
+        # add the emission path to the sumo command (if requested)
+        if self.sumo_params.emission_path is not None:
+            ensure_dir(self.sumo_params.emission_path)
+            emission_out = \
+                self.sumo_params.emission_path + "{0}-emission.xml".format(
+                    self.scenario.name)
+            sumo_call.append("--emission-output")
+            sumo_call.append(emission_out)
+        else:
+            emission_out = None
+
+        if self.sumo_params.overtake_right:
+            sumo_call.append("--lanechange.overtake-right")
+            sumo_call.append("true")
+
+        # specify a simulation seed (if requested)
+        if self.sumo_params.seed is not None:
+            sumo_call.append("--seed")
+            sumo_call.append(str(self.sumo_params.seed))
+
+        logging.info(" Starting SUMO on port " + str(port))
+        logging.debug(" Cfg file: " + str(self.scenario.cfg))
+        logging.debug(" Emission file: " + str(emission_out))
+        logging.debug(" Step length: " + str(self.sim_step))
+
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
-                logging.info(" Starting SUMO on port " + str(self.port))
-                logging.debug(" Cfg file " + str(self.scenario.cfg))
-                logging.debug(" Emission file: " + str(self.emission_out))
-                logging.debug(" Step length: " + str(self.sim_step))
-
                 # Opening the I/O thread to SUMO
-                cfg_file = self.scenario.cfg
+                self.sumo_proc = subprocess.Popen(sumo_call,
+                                                  stdout=sys.stdout,
+                                                  stderr=sys.stderr,
+                                                  preexec_fn=os.setsid)
 
-                sumo_call = [self.sumo_binary,
-                             "-c", cfg_file,
-                             "--remote-port", str(self.port),
-                             "--step-length", str(self.sim_step),
-                             "--step-method.ballistic", "true",
-                             "--seed", str(self.seed)]
-
-                # add step logs (if requested)
-                if self.sumo_params.no_step_log:
-                    sumo_call.append("--no-step-log")
-
-                # add the lateral resolution of the sublanes (if one is requested)
-                if self.sumo_params.lateral_resolution is not None:
-                    sumo_call.append("--lateral-resolution")
-                    sumo_call.append(str(self.sumo_params.lateral_resolution))
-
-                # add the emission path to the sumo command (if one is requested)
-                if self.emission_out:
-                    sumo_call.append("--emission-output")
-                    sumo_call.append(self.emission_out)
-
-                if self.sumo_params.overtake_right:
-                    sumo_call.append("--lanechange.overtake-right")
-                    sumo_call.append("true")
-
-                logging.info("Traci on port: ", self.port)
-
-                self.sumo_proc = subprocess.Popen(sumo_call, stdout=sys.stdout,
-                                 stderr=sys.stderr, preexec_fn=os.setsid)
-
-                logging.debug(" Initializing TraCI on port " + str(self.port) + "!")
-
-                # wait a small period of time for the subprocess to activate before
-                # trying to connect with traci
+                # wait a small period of time for the subprocess to activate
+                # before trying to connect with traci
                 time.sleep(config.SUMO_SLEEP)
 
-                self.traci_connection = traci.connect(self.port, numRetries=100)
+                self.traci_connection = traci.connect(port, numRetries=100)
 
                 self.traci_connection.simulationStep()
                 return
@@ -227,24 +240,10 @@ class Env(gym.Env, Serializable):
             vehicle in a sumo network with traci)
         """
         # check to make sure all vehicles have been spawned
-        num_spawned_veh = len(self.traci_connection.simulation.getDepartedIDList())
+        num_spawned_veh = self.traci_connection.simulation.getDepartedNumber()
         if num_spawned_veh < self.vehicles.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
             exit()
-
-        # dictionary of initial observations used while resetting vehicles after
-        # each rollout
-        self.initial_observations = dict.fromkeys(self.vehicles.get_ids())
-
-        # create the list of colors used to different between different types of
-        # vehicles visually on sumo's gui
-        self.colors = {}
-        key_index = 1
-        color_choice = np.random.choice(len(COLORS))
-        for i in range(self.vehicles.num_types):
-            self.colors[self.vehicles.types[i][0]] = \
-                COLORS[(color_choice + key_index) % len(COLORS)]
-            key_index += 1
 
         # add missing traffic lights in the list of traffic light ids
         tls_ids = self.traci_connection.trafficlights.getIDList()
@@ -270,18 +269,11 @@ class Env(gym.Env, Serializable):
             self.traci_connection.trafficlights.subscribe(
                 node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
-        # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
-        id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
-                    tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
-                    tc.VAR_ARRIVED_VEHICLES_IDS: []}
-
         for veh_id in self.vehicles.get_ids():
-            # TODO(ak): move to vehicles class (length and max speed)
             # some constant vehicle parameters to the vehicles class
-            self.vehicles.set_length(
-                veh_id, self.traci_connection.vehicle.getLength(veh_id))
+            self.vehicles.set_state(
+                veh_id, "length",
+                self.traci_connection.vehicle.getLength(veh_id))
             self.vehicles.set_state(veh_id, "max_speed", self.max_speed)
 
             # import initial state data to initial_observations dict
@@ -297,15 +289,6 @@ class Env(gym.Env, Serializable):
             self.initial_observations[veh_id]["speed"] = \
                 self.traci_connection.vehicle.getSpeed(veh_id)
 
-            # TODO(ak): move to vehicles class (speed mode and lane change mode)
-            # set speed mode
-            self.traci_connection.vehicle.setSpeedMode(
-                veh_id, self.vehicles.get_speed_mode(veh_id))
-
-            # set lane change mode
-            self.traci_connection.vehicle.setLaneChangeMode(
-                veh_id, self.vehicles.get_lane_change_mode(veh_id))
-
             # save the initial state. This is used in the _reset function
             route_id = self.traci_connection.vehicle.getRouteID(veh_id)
             pos = self.traci_connection.vehicle.getPosition(veh_id)
@@ -316,12 +299,19 @@ class Env(gym.Env, Serializable):
                  self.initial_observations[veh_id]["position"],
                  self.initial_observations[veh_id]["speed"], pos)
 
+        # collect subscription information from sumo
+        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
+        id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
+                    tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
+                    tc.VAR_ARRIVED_VEHICLES_IDS: []}
+
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
         self.traffic_lights.update(tls_obs)
 
-        # store the initial vehicle ids
-        self.initial_ids = deepcopy(self.vehicles.get_ids())
+        # store the network observations in the vehicles class
+        self.vehicles.update(vehicle_obs, id_lists, self)
 
     def _step(self, rl_actions):
         """
@@ -445,14 +435,13 @@ class Env(gym.Env, Serializable):
             else:
                 return next_observation, reward, False, {}
 
-    # @property
     def _reset(self):
         """
         Resets the state of the environment, and re-initializes the vehicles in
         their starting positions. In "vehicle_arrangement_shuffle" is set to
-        True in env_params, the vehicles swap initial positions with one another.
-        Also, if a "starting_position_shuffle" is set to True, the initial
-        position of vehicles is offset by some value.
+        True in env_params, the vehicles swap initial positions with one
+        another. Also, if a "starting_position_shuffle" is set to True, the
+        initial position of vehicles is offset by some value.
 
         Returns
         -------
@@ -463,9 +452,10 @@ class Env(gym.Env, Serializable):
         # reset the time counter
         self.time_counter = 0
 
+        # TODO(ak): handling number of vehicles during reset
+
         # create the list of colors used to visually distinguish between
         # different types of vehicles
-        self.colors = {}
         key_index = 1
         color_choice = np.random.choice(len(COLORS))
         for i in range(self.vehicles.num_types):
@@ -489,7 +479,7 @@ class Env(gym.Env, Serializable):
 
             initial_state = dict()
             for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]  # TODO: fix for muliple routes
+                route_id = "route" + initial_positions[i][0]
 
                 # replace initial routes, lanes, and positions to reflect
                 # new values
@@ -541,7 +531,8 @@ class Env(gym.Env, Serializable):
         for veh_id in self.vehicles.get_ids():
             # re-initialize the vehicles class with the states of the vehicles
             # at the start of a rollout
-            self.vehicles.set_absolute_position(veh_id, self.get_x_by_id(veh_id))
+            self.vehicles.set_absolute_position(veh_id,
+                                                self.get_x_by_id(veh_id))
 
             # re-initialize memory on last lc
             self.prev_last_lc[veh_id] = -1 * self.lane_change_duration
@@ -578,7 +569,7 @@ class Env(gym.Env, Serializable):
         """
         Applies the acceleration requested by a vehicle in sumo. Note that, if
         the sumo-specified speed mode of the vehicle is not "aggressive", the
-        acceleration may be clipped by some saftey velocity or maximum possible
+        acceleration may be clipped by some safety velocity or maximum possible
         acceleration.
 
         Parameters
@@ -588,18 +579,10 @@ class Env(gym.Env, Serializable):
         acc: numpy array or list of float
             requested accelerations from the vehicles
         """
-        # issue traci command for requested acceleration
-        this_vel = np.array(self.vehicles.get_speed(veh_ids))
-        if self.multi_agent and (veh_id in self.vehicles.get_rl_ids()):
-            acc_arr = np.asarray([element2 for elem in acc for element in elem
-                                  for element2 in element])
-        else:
-            acc_arr = np.array(acc)
-
-        next_vel = np.array(this_vel + acc_arr * self.sim_step).clip(min=0)
-
         for i, vid in enumerate(veh_ids):
-            self.traci_connection.vehicle.slowDown(vid, next_vel[i], 1)
+            this_vel = self.vehicles.get_speed(vid)
+            next_vel = max([this_vel + acc[i]*self.sim_step, 0])
+            self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
     def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """
@@ -742,12 +725,12 @@ class Env(gym.Env, Serializable):
     def action_space(self):
         """
         Identifies the dimensions and bounds of the action space (needed for
-        rllab environments).
+        gym environments).
         MUST BE implemented in new environments.
 
         Yields
         -------
-        rllab Box or Tuple type
+        gym Box or Tuple type
             a bounded box depicting the shape and bounds of the action space
         """
         raise NotImplementedError
@@ -756,12 +739,12 @@ class Env(gym.Env, Serializable):
     def observation_space(self):
         """
         Identifies the dimensions and bounds of the observation space (needed
-        for rllab environments).
+        for gym environments).
         MUST BE implemented in new environments.
 
         Yields
         -------
-        rllab Box or Tuple type
+        gym Box or Tuple type
             a bounded box depicting the shape and bounds of the observation
             space
         """
@@ -785,7 +768,7 @@ class Env(gym.Env, Serializable):
 
         Returns
         -------
-        reward: float
+        reward: float or list <float>
         """
         return 0
 
@@ -803,9 +786,8 @@ class Env(gym.Env, Serializable):
     def teardown_sumo(self):
         try:
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
-        except Exception as e:
+        except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
-            error = e
 
     def _seed(self, seed=None):
         return []
