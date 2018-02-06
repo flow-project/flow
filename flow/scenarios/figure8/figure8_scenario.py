@@ -4,27 +4,40 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
-# parameters required in net_params' additional_params attribute
-REQUIRED_NET_PARAMS = ["radius_ring", "lanes", "speed_limit"]
+
+ADDITIONAL_NET_PARAMS = {
+    # radius of the circular components
+    "radius_ring": 30,
+    # number of lanes
+    "lanes": 1,
+    # speed limit for all edges
+    "speed_limit": 30,
+    # resolution of the curved portions
+    "resolution": 40
+}
 
 
 class Figure8Scenario(Scenario):
-
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """
-        Initializes a figure 8 scenario.
-        Required net_params: radius_ring, lanes, speed_limit, resolution.
+        """Initializes a figure 8 scenario.
+
+        Requires from net_params:
+        - ring_radius: radius of the circular portions of the network. Also
+          corresponds to half the length of the perpendicular straight lanes.
+        - resolution: number of nodes resolution in the circular portions
+        - lanes: number of lanes in the network
+        - speed: max speed of vehicles in the network
+
         In order for right-of-way dynamics to take place at the intersection,
         set "no_internal_links" in net_params to False.
 
         See Scenario.py for description of params.
         """
-        for param in REQUIRED_NET_PARAMS:
-            if param not in net_params.additional_params:
-                raise ValueError("Figure eight network parameter {} not "
-                                 "supplied".format(param))
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.ring_edgelen = net_params.additional_params[
                                 "radius_ring"] * np.pi / 2.

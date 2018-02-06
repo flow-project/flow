@@ -1,9 +1,6 @@
 """
 Example of ring road with larger merging ring.
 """
-import logging
-import numpy as np
-
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams,\
     SumoCarFollowingParams, SumoLaneChangeParams
@@ -17,7 +14,7 @@ from flow.envs.two_loops_one_merging import TwoLoopsMergeNoRLPOEnv
 from flow.scenarios.two_loops_one_merging_new.gen import \
     TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging_new.scenario import \
-    TwoLoopsOneMergingScenario
+    TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS
 
 HORIZON = 1500
 
@@ -57,14 +54,10 @@ def cooperative_merge_example(sumo_binary=None):
                      minGap=0.0, tau=0.5),
                  sumo_lc_params=SumoLaneChangeParams())
 
-    additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
-                             "max-acc": 1, "num_steps": HORIZON}
+    additional_env_params = {"target_velocity": 20, "num_steps": HORIZON}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"ring_radius": 50, "lanes": 1,
-                             "lane_length": 75, "speed_limit": 30,
-                             "resolution": 40, "inner_lanes": 3,
-                             "outer_lanes": 2}
+    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(
         no_internal_links=False,
         additional_params=additional_net_params

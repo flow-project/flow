@@ -5,18 +5,38 @@ from flow.core.traffic_lights import TrafficLights
 from numpy import pi, arcsin
 
 
-class TwoLoopsOneMergingScenario(Scenario):
+ADDITIONAL_NET_PARAMS = {
+    # radius of the smaller ring road (the larger has 1.5x this radius)
+    "ring_radius": 230 / (2*pi),
+    # number of lanes in the network
+    "lanes": 1,
+    # max speed limit in the network
+    "speed_limit": 30,
+    # number of nodes resolution
+    "resolution": 0
+}
 
+
+class TwoLoopsOneMergingScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """
-        Initializes a two loop scenario where one loop merging in and out of
-        the other. Required net_params: ring_radius, lanes, speed_limit,
-        resolution.
+        """Initializes a two loop scenario where one loop merging in and out of
+        the other.
+
+        Requires from net_params:
+        - ring_radius: radius of the smaller ring road (the larger has 1.5x this
+          radius)
+        - lanes: number of lanes in the network
+        - speed_limit: max speed limit in the network
+        - resolution: number of nodes resolution
 
         See Scenario.py for description of params.
         """
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
+
         radius = net_params.additional_params["ring_radius"]
         radius_merge = 1.5 * radius
         angle_merge = arcsin(0.75)
@@ -118,7 +138,8 @@ class TwoLoopsOneMergingScenario(Scenario):
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+                indx_edge = [i for i in range(len(edges))
+                             if edges[i] == pos[0]][0]
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
@@ -161,7 +182,8 @@ class TwoLoopsOneMergingScenario(Scenario):
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+                indx_edge = [i for i in range(len(edges))
+                             if edges[i] == pos[0]][0]
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
