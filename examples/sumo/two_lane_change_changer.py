@@ -10,7 +10,8 @@ from flow.controllers.car_following_models import IDMController
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.envs.loop_accel import AccelEnv
-from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.loop.loop_scenario import LoopScenario, \
+    ADDITIONAL_NET_PARAMS
 
 
 def two_lane_example(sumo_binary=None):
@@ -30,8 +31,8 @@ def two_lane_example(sumo_binary=None):
 
     env_params = EnvParams(additional_params={"target_velocity": 20})
 
-    additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
-                             "resolution": 40}
+    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+    additional_net_params["lanes"] = 2
     net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig()

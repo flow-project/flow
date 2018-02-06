@@ -2,7 +2,6 @@
 Example of ring road with larger merging ring.
 """
 import logging
-import numpy as np
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -14,7 +13,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
 from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario \
-    import TwoLoopsOneMergingScenario
+    import TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS
 
 
 def two_loops_merge_example(sumo_binary=None):
@@ -42,8 +41,7 @@ def two_loops_merge_example(sumo_binary=None):
     env_params = EnvParams(max_decel=6, max_accel=3,
                            additional_params=additional_env_params)
 
-    additional_net_params = {"ring_radius": 230 / (2 * np.pi), "lanes": 1,
-                             "speed_limit": 30, "resolution": 40}
+    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(
         no_internal_links=False,
         additional_params=additional_net_params

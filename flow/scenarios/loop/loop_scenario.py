@@ -3,29 +3,38 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
 
+ADDITIONAL_NET_PARAMS = {
+    # length of the ring road
+    "length": 230,
+    # number of lanes
+    "lanes": 1,
+    # speed limit for all edges
+    "speed_limit": 30,
+    # resolution of the curves on the ring
+    "resolution": 40
+}
+
+
 class LoopScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """
-        Initializes a loop scenario. Required net_params: length, lanes,
-        speed_limit, resolution.
+        """Initializes a loop scenario.
+
+        Requires from net_params:
+        - length: length of the circle
+        - lanes: number of lanes in the circle
+        - speed_limit: max speed limit of the circle
+        - resolution: number of nodes resolution
 
         See Scenario.py for description of params.
         """
-        if "length" not in net_params.additional_params:
-            raise ValueError("length of circle not supplied")
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
+
         self.length = net_params.additional_params["length"]
-
-        if "lanes" not in net_params.additional_params:
-            raise ValueError("lanes of circle not supplied")
         self.lanes = net_params.additional_params["lanes"]
-
-        if "speed_limit" not in net_params.additional_params:
-            raise ValueError("speed limit of circle not supplied")
-
-        if "resolution" not in net_params.additional_params:
-            raise ValueError("resolution of circle not supplied")
 
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
