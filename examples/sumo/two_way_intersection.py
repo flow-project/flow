@@ -12,7 +12,7 @@ from flow.core.experiment import SumoExperiment
 from flow.envs.two_intersection import TwoIntersectionEnv
 from flow.scenarios.intersections.gen import TwoWayIntersectionGenerator
 from flow.scenarios.intersections.intersection_scenario \
-    import TwoWayIntersectionScenario
+    import TwoWayIntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.car_following_models import IDMController
 
 import logging
@@ -39,14 +39,7 @@ def two_way_intersection_example(sumo_binary=None):
                                               "control-length": 150,
                                               "max_speed": v_enter})
 
-    additional_net_params = \
-        {"horizontal_length_in": 400,
-         "horizontal_length_out": 10,
-         "horizontal_lanes": 1,
-         "vertical_length_in": 400,
-         "vertical_length_out": 10,
-         "vertical_lanes": 1,
-         "speed_limit": {"horizontal": 30, "vertical": 30}}
+    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(no_internal_links=False,
                            additional_params=additional_net_params)
 

@@ -8,8 +8,7 @@ class OpenStreetMapScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """
-        Initializes a scenario from a .osm file.
+        """Initializes a scenario from a .osm file.
 
         Required net_params: osm_path
         See Scenario.py for description of params.

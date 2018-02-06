@@ -6,14 +6,8 @@ from numpy import pi, sin, cos, linspace, arcsin
 class TwoLoopOneMergingGenerator(Generator):
     """
     Generator for a two-loop network in which both loops merge into a common
-    lane. Requires from net_params:
-     - ring_radius: radius of the smaller ring road (the larger has 1.5x this
-       radius)
-     - lanes: number of lanes in the network
-     - speed_limit: max speed limit in the network
-     - resolution: number of nodes resolution
+    lane.
     """
-
     def __init__(self, net_params, base):
         """
         See parent class
@@ -71,7 +65,7 @@ class TwoLoopOneMergingGenerator(Generator):
              "to": "top",
              "length": repr(merge_edgelen),
              "shape": " ".join(["%.2f,%.2f" % (
-             1.5 * r * (cos(t) + cos(angle_large)), 1.5 * r * sin(t))
+                 1.5 * r * (cos(t) + cos(angle_large)), 1.5 * r * sin(t))
                                 for t in
                                 linspace(0, pi - angle_large, resolution)])},
 
