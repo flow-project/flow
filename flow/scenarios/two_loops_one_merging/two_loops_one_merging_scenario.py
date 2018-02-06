@@ -7,7 +7,7 @@ from numpy import pi, arcsin
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the smaller ring road (the larger has 1.5x this radius)
-    "ring_radius": 230,
+    "ring_radius": 230 / (2*pi),
     # number of lanes in the network
     "lanes": 1,
     # max speed limit in the network
@@ -35,7 +35,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network param "{}" not supplied'.format(p))
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         radius = net_params.additional_params["ring_radius"]
         radius_merge = 1.5 * radius

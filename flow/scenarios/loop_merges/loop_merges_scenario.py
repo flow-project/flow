@@ -8,23 +8,23 @@ from flow.core.params import InitialConfig
 
 ADDITIONAL_NET_PARAMS = {
     # length of the merging in edge
-    "merge_in_length": 230,
+    "merge_in_length": 500,
     # length of the merging out edge. May be set to None to remove the
     # merge-out lane
-    "merge_out_length": 230,
+    "merge_out_length": 500,
     # angle between the horizontal line and the merge-in lane (in radians)
-    "merge_in_angle": 0,
+    "merge_in_angle": pi / 9,
     # angle between the horizontal line and the merge-out lane (in radians).
     # Must be greater than the merge_in_angle
-    "merge_out_angle": 0,
+    "merge_out_angle": pi * 17 / 9,
     # radius of the circular portion of the network
-    "ring_radius": 0,
+    "ring_radius": 400 / (2 * pi),
     # number of lanes in the network
     "lanes": 1,
     # max speed of vehicles in the network
     "speed_limit": 30,
     # resolution of the curves on the network
-    "resolution": 0
+    "resolution": 40,
 }
 
 
@@ -51,7 +51,7 @@ class LoopMergesScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network param "{}" not supplied'.format(p))
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.merge_in_len = net_params.additional_params["merge_in_length"]
         self.merge_out_len = net_params.additional_params["merge_out_length"]

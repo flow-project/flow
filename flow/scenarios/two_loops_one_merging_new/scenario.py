@@ -9,17 +9,17 @@ import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the loops
-    "ring_radius": 0,
+    "ring_radius": 50,
     # length of the straight edges connected the outer loop to the inner loop
-    "lane_length": 0,
+    "lane_length": 75,
     # number of lanes in the inner loop
-    "inner_lanes": 0,
+    "inner_lanes": 3,
     # number of lanes in the outer loop
-    "outer_lanes": 0,
+    "outer_lanes": 2,
     # max speed limit in the network
-    "speed_limit": 0,
+    "speed_limit": 30,
     # resolution of the curved portions
-    "resolution": 0,
+    "resolution": 40,
 }
 
 
@@ -43,7 +43,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network param "{}" not supplied'.format(p))
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         radius = net_params.additional_params["ring_radius"]
         x = net_params.additional_params["lane_length"]

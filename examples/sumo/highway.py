@@ -10,7 +10,8 @@ from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.highway.gen import HighwayGenerator
-from flow.scenarios.highway.scenario import HighwayScenario
+from flow.scenarios.highway.scenario import HighwayScenario, \
+    ADDITIONAL_NET_PARAMS
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 
@@ -46,8 +47,7 @@ def highway_example(sumo_binary=None):
     inflow.add(veh_type="human2", edge="highway", probability=0.25,
                departLane="free", departSpeed=20)
 
-    additional_net_params = {"length": 1000, "lanes": 4,
-                             "speed_limit": 30}
+    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(in_flows=inflow,
                            additional_params=additional_net_params)
 

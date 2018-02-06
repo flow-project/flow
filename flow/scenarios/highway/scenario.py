@@ -5,9 +5,9 @@ from flow.core.traffic_lights import TrafficLights
 
 ADDITIONAL_NET_PARAMS = {
     # length of the highway
-    "length": 230,
+    "length": 1000,
     # number of lanes
-    "lanes": 1,
+    "lanes": 4,
     # speed limit for all edges
     "speed_limit": 30,
 }
@@ -28,7 +28,7 @@ class HighwayScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network param "{}" not supplied'.format(p))
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.length = net_params.additional_params["length"]
         self.lanes = net_params.additional_params["lanes"]
