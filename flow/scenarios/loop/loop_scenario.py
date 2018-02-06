@@ -11,7 +11,7 @@ ADDITIONAL_NET_PARAMS = {
     # speed limit for all edges
     "speed_limit": 30,
     # resolution of the curves on the ring
-    "resolution": 0
+    "resolution": 40
 }
 
 
@@ -31,7 +31,7 @@ class LoopScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network param "{}" not supplied'.format(p))
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.length = net_params.additional_params["length"]
         self.lanes = net_params.additional_params["lanes"]

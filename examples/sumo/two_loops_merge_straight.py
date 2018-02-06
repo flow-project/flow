@@ -16,7 +16,7 @@ from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
 from flow.scenarios.two_loops_one_merging_new.gen import \
     TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging_new.scenario import \
-    TwoLoopsOneMergingScenario
+    TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS
 
 
 def two_loops_merge_straight_example(sumo_binary=None):
@@ -51,12 +51,11 @@ def two_loops_merge_straight_example(sumo_binary=None):
     additional_env_params = {"target_velocity": 20}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"ring_radius": 75,
-                             "inner_lanes": 1,
-                             "outer_lanes": 1,
-                             "lane_length": 75,
-                             "speed_limit": 30,
-                             "resolution": 40}
+    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+    additional_net_params["ring_radius"] = 75
+    additional_net_params["inner_lanes"] = 1
+    additional_net_params["outer_lanes"] = 1
+    additional_net_params["lane_length"] = 75
     net_params = NetParams(
         no_internal_links=False,
         additional_params=additional_net_params

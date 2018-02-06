@@ -9,15 +9,15 @@ from flow.core.traffic_lights import TrafficLights
 
 ADDITIONAL_NET_PARAMS = {
     # length of the horizontal edge before the intersection
-    "horizontal_length_in": 1,
+    "horizontal_length_in": 400,
     # length of the horizontal edge after the intersection
-    "horizontal_length_out": 1,
+    "horizontal_length_out": 10,
     # number of lanes in the horizontal edges
     "horizontal_lanes": 1,
     # length of the vertical edge before the intersection
-    "vertical_length_in": 1,
+    "vertical_length_in": 400,
     # length of the vertical edge after the intersection
-    "vertical_length_out": 1,
+    "vertical_length_out": 10,
     # number of lanes in the vertical edges
     "vertical_lanes": 1,
     # max speed limit of the vehicles on the road network
@@ -58,7 +58,7 @@ class TwoWayIntersectionScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network param "{}" not supplied'.format(p))
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.left_len = net_params.additional_params["horizontal_length_in"]
         self.right_len = net_params.additional_params["horizontal_length_out"]

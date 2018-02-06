@@ -7,13 +7,13 @@ from flow.scenarios.base_scenario import Scenario
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components
-    "radius_ring": 0,
+    "radius_ring": 30,
     # number of lanes
     "lanes": 1,
     # speed limit for all edges
-    "speed_limit": 0,
+    "speed_limit": 30,
     # resolution of the curved portions
-    "resolution": 30
+    "resolution": 40
 }
 
 
@@ -37,7 +37,7 @@ class Figure8Scenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network param "{}" not supplied'.format(p))
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.ring_edgelen = net_params.additional_params[
                                 "radius_ring"] * np.pi / 2.
