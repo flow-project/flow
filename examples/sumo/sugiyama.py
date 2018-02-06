@@ -14,7 +14,8 @@ from flow.controllers.car_following_models import IDMController
 
 from flow.envs.loop_accel import AccelEnv
 from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.loop.loop_scenario import LoopScenario, \
+    ADDITIONAL_NET_PARAMS
 
 
 def sugiyama_example(sumo_binary=None):
@@ -34,8 +35,7 @@ def sugiyama_example(sumo_binary=None):
     additional_env_params = {"target_velocity": 8}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30,
-                             "resolution": 40}
+    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig(bunching=20)

@@ -9,13 +9,7 @@ E = etree.Element
 class Figure8Generator(Generator):
     def __init__(self, net_params, base):
         """
-        Generator for figure 8 lanes. Requires from net_params:
-         - ring_radius: radius of the circular portions of the network. Also
-           corresponds to half the length of the perpendicular straight lanes.
-         - resolution: number of nodes resolution in the circular portions
-         - lanes: number of lanes in the network
-         - speed: max speed of vehicles in the network
-         - no_internal_links: set to False to receive queueing at intersections.
+        Generator for figure 8 lanes.
         """
         super().__init__(net_params, base)
 
