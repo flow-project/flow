@@ -706,24 +706,26 @@ class Env(gym.Env, Serializable):
                                    self.vehicles.get_position(veh_id))
 
     def sort_by_position(self):
-        """
-        Sorts the vehicle ids of vehicles in the network by position.
-        The base environment does this by sorting vehicles by their absolute
-        position, as specified by the "get_x_by_id" function.
+        """Sorts the vehicle ids of vehicles in the network by position. The
+        base environment does this by sorting vehicles by their absolute
+        position.
 
         Returns
         -------
-        sorted_ids: list
+        sorted_ids: list <str>
             a list of all vehicle IDs sorted by position
         sorted_extra_data: list or tuple
             an extra component (list, tuple, etc...) containing extra sorted
             data, such as positions. If no extra component is needed, a value
             of None should be returned
         """
-        ids = self.vehicles.get_ids()  # unsorted vehicle ids
-        sorted_indx = np.argsort(self.vehicles.get_absolute_position(ids))
-        sorted_ids = np.array(ids)[sorted_indx]
-        return sorted_ids, None
+        if self.env_params.sort_vehicles:
+            ids = self.vehicles.get_ids()  # unsorted vehicle ids
+            sorted_indx = np.argsort(self.vehicles.get_absolute_position(ids))
+            sorted_ids = np.array(ids)[sorted_indx]
+            return sorted_ids, None
+        else:
+            return self.vehicles.get_ids(), None
 
     def get_state(self):
         """

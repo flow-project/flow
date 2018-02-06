@@ -64,7 +64,8 @@ class EnvParams:
                  additional_params=None,
                  max_decel=-6,
                  max_accel=3,
-                 horizon=500):
+                 horizon=500,
+                 sort_vehicles=False):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -97,6 +98,11 @@ class EnvParams:
             maximum acceleration of autonomous vehicles, defaults to 3 m/s2
         horizon: int, optional
             number of steps per rollouts
+        sort_vehicles: bool, optional
+            specifies whether vehicles are to be sorted by position during a
+            simulation step. If set to True, the environment parameter
+            self.sorted_ids will return a list of all vehicles ideas sorted by
+            their absolute position.
         """
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
@@ -109,6 +115,7 @@ class EnvParams:
         self.max_decel = max_decel
         self.max_accel = max_accel
         self.horizon = horizon
+        self.sort_vehicles = sort_vehicles
 
     def get_additional_param(self, key):
         return self.additional_params[key]
