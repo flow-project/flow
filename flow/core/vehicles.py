@@ -408,9 +408,6 @@ class Vehicles:
             self.__rl_ids.remove(veh_id)
             self.num_rl_vehicles -= 1
 
-    def set_absolute_position(self, veh_id, absolute_position):
-        self.__vehicles[veh_id]["absolute_position"] = absolute_position
-
     def test_set_speed(self, veh_id, speed):
         self.__sumo_observations[veh_id][tc.VAR_SPEED] = speed
 

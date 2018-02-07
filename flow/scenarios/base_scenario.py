@@ -71,6 +71,7 @@ class Scenario(Serializable):
         # these optional parameters need only be used if "no-internal-links"
         # is set to "false" while calling sumo's netconvert function
         self.internal_edgestarts = self.specify_internal_edge_starts()
+        self.internal_edgestarts_dict = dict(self.internal_edgestarts)
         self.intersection_edgestarts = self.specify_intersection_edge_starts()
 
         # in case the user did not write the intersection edge-starts in
@@ -191,12 +192,10 @@ class Scenario(Serializable):
         absolute_position: float
             position with respect to some global reference
         """
-        if edge in dict(self.edgestarts).keys():
-            return self.total_edgestarts_dict[edge] + position
+        if edge[0] == ":":
+            return self.internal_edgestarts_dict[edge] + position
         else:
-            for edge_tuple in self.internal_edgestarts:
-                if edge_tuple[0] in edge:
-                    return edge_tuple[1] + position
+            return self.total_edgestarts_dict[edge] + position
 
     def generate_starting_positions(self, **kwargs):
         """
