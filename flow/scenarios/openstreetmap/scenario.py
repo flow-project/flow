@@ -50,7 +50,4 @@ class OpenStreetMapScenario(Scenario):
         overridden; however, in general we do not worry about internal edges and
         junctions in large networks.
         """
-        internal_edge_start = []
-        for edge_id in self.get_junction_list():
-            internal_edge_start.append((edge_id, -1))
-        return internal_edge_start
+        return [(":", -1)]
