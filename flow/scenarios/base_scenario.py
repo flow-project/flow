@@ -196,14 +196,10 @@ class Scenario(Serializable):
             try:
                 return self.internal_edgestarts_dict[edge] + position
             except KeyError:
-                try:
-                    # in case several internal links are being generalized for
-                    # by a single element (for backwards compatibility)
-                    edge_name = edge.rsplit("_", 1)[0]
-                    return self.total_edgestarts_dict[edge_name]
-                except KeyError:
-                    # no valid internal edge starts specified
-                    return 0
+                # in case several internal links are being generalized for
+                # by a single element (for backwards compatibility)
+                edge_name = edge.rsplit("_", 1)[0]
+                return self.total_edgestarts_dict.get(edge_name, 0)
         else:
             return self.total_edgestarts_dict[edge] + position
 
