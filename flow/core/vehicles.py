@@ -3,7 +3,6 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 import collections
 import logging
-from collections import defaultdict
 from bisect import bisect_left
 import itertools
 
@@ -450,11 +449,14 @@ class Vehicles:
 
     def get_ids_by_edge(self, edge):
         if edge in self._ids_by_edge:
-            return self._ids_by_edge[edge]
+            if self._ids_by_edge[edge] is None:
+                return []
+            else:
+                return self._ids_by_edge[edge]
         else:
             # else case should cover when before the dict() is filled (i.e.
             # before the first instance of _multi_lane_headways())
-            return None
+            return []
 
     def get_initial_speed(self, veh_id):
         return self.__vehicles[veh_id]["initial_speed"]
@@ -492,7 +494,6 @@ class Vehicles:
         """
         Return the absolute position of the specified vehicle at the current
         time step.
-
         Accepts as input:
         - id of a specific vehicle
         - list of vehicle ids
@@ -731,7 +732,7 @@ class Vehicles:
             return [self.__vehicles[vehID]["lane_headways"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["lane_headways"]
-                    for vehID in self.__ids]
+                    for vehID in self.__rl_ids]
         else:
             return self.__vehicles[veh_id]["lane_headways"]
 
@@ -743,7 +744,7 @@ class Vehicles:
             return [self.__vehicles[vehID]["lane_leaders"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["lane_leaders"]
-                    for vehID in self.__ids]
+                    for vehID in self.__rl_ids]
         else:
             return self.__vehicles[veh_id]["lane_leaders"]
 
@@ -755,7 +756,7 @@ class Vehicles:
             return [self.__vehicles[vehID]["lane_tailways"] for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["lane_tailways"]
-                    for vehID in self.__ids]
+                    for vehID in self.__rl_ids]
         else:
             return self.__vehicles[veh_id]["lane_tailways"]
 
@@ -768,7 +769,7 @@ class Vehicles:
                     for vehID in veh_id]
         elif veh_id == "all":
             return [self.__vehicles[vehID]["lane_followers"]
-                    for vehID in self.__ids]
+                    for vehID in self.__rl_ids]
         else:
             return self.__vehicles[veh_id]["lane_followers"]
 
@@ -815,25 +816,26 @@ class Vehicles:
         # Key = edge id
         # Element = list, with the ith element containing tuples with the name
         #           and position of all vehicles in lane i
-        edge_dict = defaultdict(list)
-
-        # update the dict with all the edges in edge_list so we can look
-        # forward for edges
-        edge_dict.update((k, [[] for _ in range(max_lanes)]) for k in tot_list)
+        edge_dict = dict.fromkeys(tot_list)
 
         # add the vehicles to the edge_dict element
         for veh_id in self.get_ids():
             edge = self.get_edge(veh_id)
             lane = self.get_lane(veh_id)
             pos = self.get_position(veh_id)
+            if edge_dict[edge] is None:
+                edge_dict[edge] = [[] for _ in range(max_lanes)]
             edge_dict[edge][lane].append((veh_id, pos))
 
         # sort all lanes in each edge by position
-        for edge in edge_dict:
-            for lane in range(max_lanes):
-                edge_dict[edge][lane].sort(key=lambda x: x[1])
+        for edge in tot_list:
+            if edge_dict[edge] is None:
+                del edge_dict[edge]
+            else:
+                for lane in range(max_lanes):
+                    edge_dict[edge][lane].sort(key=lambda x: x[1])
 
-        for veh_id in self.get_ids():
+        for veh_id in self.get_rl_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
             headways, tailways, leaders, followers = \
@@ -848,14 +850,14 @@ class Vehicles:
 
         self._ids_by_edge = dict().fromkeys(edge_list)
 
-        for edge_id in self._ids_by_edge:
+        for edge_id in edge_dict:
             edges = list(itertools.chain.from_iterable(edge_dict[edge_id]))
             # check for edges with no vehicles
             if len(edges) > 0:
                 edges, _ = zip(*edges)
                 self._ids_by_edge[edge_id] = list(edges)
             else:
-                self._ids_by_edge[edge_id] = list()
+                self._ids_by_edge[edge_id] = []
 
     def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges, env):
         """
@@ -965,10 +967,14 @@ class Vehicles:
             add_length += env.scenario.edge_length(edge)
             edge, lane = env.scenario.next_edge(edge, lane)[0]
 
-            if len(edge_dict[edge][lane]) > 0:
-                leader = edge_dict[edge][lane][0][0]
-                headway = edge_dict[edge][lane][0][1] - pos + add_length \
-                    - self.get_length(leader)
+            try:
+                if len(edge_dict[edge][lane]) > 0:
+                    leader = edge_dict[edge][lane][0][0]
+                    headway = edge_dict[edge][lane][0][1] - pos + add_length \
+                        - self.get_length(leader)
+            except KeyError:
+                # current edge has no vehicles, so move on
+                continue
 
             # stop if a lane follower is found
             if leader != "":
@@ -1004,11 +1010,14 @@ class Vehicles:
             edge, lane = env.scenario.prev_edge(edge, lane)[0]
             add_length += env.scenario.edge_length(edge)
 
-            if len(edge_dict[edge][lane]) > 0:
+            try:
                 if len(edge_dict[edge][lane]) > 0:
                     tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
                         - self.get_length(veh_id)
                     follower = edge_dict[edge][lane][-1][0]
+            except KeyError:
+                # current edge has no vehicles, so move on
+                continue
 
             # stop if a lane follower is found
             if follower != "":
