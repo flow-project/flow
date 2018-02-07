@@ -100,12 +100,6 @@ class Env(gym.Env, Serializable):
         # can traverse; to be used when routes need to be chosen dynamically
         self.available_routes = self.scenario.generator.rts
 
-        # Check if we are in a multi-agent scenario
-        if isinstance(self.action_space, list):
-            self.multi_agent = True
-        else:
-            self.multi_agent = False
-
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
 
@@ -390,14 +384,12 @@ class Env(gym.Env, Serializable):
 
         # collect information of the state of the network based on the
         # environment class used
-        if self.vehicles.num_rl_vehicles > 0:
-            self.state = self.get_state()
+        if isinstance(self.action_space, list):
             # rllab requires non-multi agent to have state shape as
             # num-states x num_vehicles
-            if not self.multi_agent:
-                self.state = self.state.T
+            self.state = self.get_state()
         else:
-            self.state = []
+            self.state = self.get_state().T
 
         # collect observation new state associated with action
         next_observation = list(self.state)
@@ -411,8 +403,9 @@ class Env(gym.Env, Serializable):
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
-        # Are we in a multi-agent scenario? If so, the action space is a list.
-        if self.multi_agent:
+        # Are we in an rllab multi-agent scenario? If so, the action space is
+        # a list.
+        if isinstance(self.action_space, list):
             done_n = self.vehicles.num_rl_vehicles * [0]
             info_n = {'n': []}
 
@@ -540,7 +533,7 @@ class Env(gym.Env, Serializable):
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        if self.multi_agent:
+        if isinstance(self.action_space, list):
             self.state = self.get_state()
         else:
             self.state = self.get_state().T

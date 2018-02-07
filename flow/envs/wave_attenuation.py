@@ -215,14 +215,12 @@ class WaveAttenuationEnv(Env):
 
         # collect information of the state of the network based on the
         # environment class used
-        if self.vehicles.num_rl_vehicles > 0:
-            self.state = self.get_state()
+        if isinstance(self.action_space, list):
             # rllab requires non-multi agent to have state shape as
             # num-states x num_vehicles
-            if not self.multi_agent:
-                self.state = self.state.T
+            self.state = self.get_state()
         else:
-            self.state = []
+            self.state = self.get_state().T
 
         # collect observation new state associated with action
         next_observation = list(self.state)
