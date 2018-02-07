@@ -81,6 +81,7 @@ class Scenario(Serializable):
         self.internal_edgestarts = \
             [item for item in self.internal_edgestarts
              if item[1] not in seen and not seen.add(item[1])]
+        self.internal_edgestarts_dict = dict(self.internal_edgestarts)
 
         # total_edgestarts and total_edgestarts_dict contain all of the above
         # edges, with the former being ordered by position
@@ -191,12 +192,16 @@ class Scenario(Serializable):
         absolute_position: float
             position with respect to some global reference
         """
-        if edge in dict(self.edgestarts).keys():
-            return self.total_edgestarts_dict[edge] + position
+        if edge[0] == ":":
+            try:
+                return self.internal_edgestarts_dict[edge] + position
+            except KeyError:
+                # in case several internal links are being generalized for
+                # by a single element (for backwards compatibility)
+                edge_name = edge.rsplit("_", 1)[0]
+                return self.total_edgestarts_dict.get(edge_name, 0)
         else:
-            for edge_tuple in self.internal_edgestarts:
-                if edge_tuple[0] in edge:
-                    return edge_tuple[1] + position
+            return self.total_edgestarts_dict[edge] + position
 
     def generate_starting_positions(self, **kwargs):
         """

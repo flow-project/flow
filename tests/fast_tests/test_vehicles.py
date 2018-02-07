@@ -167,7 +167,9 @@ class TestMultiLaneData(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         vehicles = Vehicles()
-        vehicles.add(veh_id="test", num_vehicles=21)
+        vehicles.add(veh_id="test",
+                     acceleration_controller=(RLController, {}),
+                     num_vehicles=21)
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
 
