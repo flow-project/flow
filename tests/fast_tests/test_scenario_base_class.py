@@ -726,7 +726,6 @@ class TestNextPrevEdge(unittest.TestCase):
         """
         env, scenario = highway_exp_setup()
         prev_edge = scenario.prev_edge(env.scenario.get_edge_list()[0], 0)
-        print(prev_edge, len(prev_edge))
         self.assertTrue(len(prev_edge) == 0)
 
 
