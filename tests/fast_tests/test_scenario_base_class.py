@@ -493,7 +493,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
 
         # check that all possible lanes are covered
         lanes = self.env.vehicles.get_lane()
-        if any([i not in lanes for i in range(4)]):
+        if any(i not in lanes for i in range(4)):
             raise AssertionError
 
 

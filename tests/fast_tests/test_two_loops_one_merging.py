@@ -1,6 +1,4 @@
 import unittest
-import numpy as np
-from numpy import pi
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -102,12 +100,12 @@ class TestLoopMerges(unittest.TestCase):
         expected_merge_starting_edges = ["right_bottom", "right_top"]
 
         self.assertTrue(
-            np.all([merge_starting_edges[i] in expected_merge_starting_edges
-                    for i in range(len(merge_starting_edges))]))
+            all(merge_starting_edges[i] in expected_merge_starting_edges
+                for i in range(len(merge_starting_edges))))
 
         self.assertTrue(
-            np.all([other_starting_edges[i] not in expected_merge_starting_edges
-                    for i in range(len(other_starting_edges))]))
+            all(other_starting_edges[i] not in expected_merge_starting_edges
+                for i in range(len(other_starting_edges))))
 
 
 if __name__ == '__main__':

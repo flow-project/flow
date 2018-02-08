@@ -267,7 +267,7 @@ class Scenario(Serializable):
         # two edges at the same time
         flag = False
         lanes = [self.num_lanes(edge) for edge in self.get_edge_list()]
-        if any([lanes[0] != lanes[i] for i in range(1, len(lanes))]):
+        if any(lanes[0] != lanes[i] for i in range(1, len(lanes))):
             flag = True
 
         x = x0
