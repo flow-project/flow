@@ -197,12 +197,14 @@ class LoopMergesGenerator(Generator):
         See parent class
         """
         if self.merge_out_len is not None:
-            rts = {"ring_0":   ["ring_0", "ring_1"],
-                   "ring_1":   ["ring_1", "ring_0"],
-                   "merge_in": ["merge_in", "ring_0", "merge_out"]}
+            rts = {"ring_0": ["ring_0", "ring_1"],
+                   "ring_1": ["ring_1", "ring_0"],
+                   "merge_in": ["merge_in", "ring_0", "merge_out"],
+                   "merge_out": ["merge_out"]}
         else:
-            rts = {"ring_0":   ["ring_0", "ring_1"],
-                   "ring_1":   ["ring_1", "ring_0"],
-                   "merge_in": ["merge_in", "ring_0", "ring_1"]}
+            rts = {"ring_0": ["ring_0", "ring_1"],
+                   "ring_1": ["ring_1", "ring_0"],
+                   "merge_in": ["merge_in", "ring_0", "ring_1"],
+                   "merge_out": ["merge_out"]}
 
         return rts
