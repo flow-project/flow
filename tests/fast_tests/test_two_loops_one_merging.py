@@ -100,12 +100,12 @@ class TestLoopMerges(unittest.TestCase):
         expected_merge_starting_edges = ["right_bottom", "right_top"]
 
         self.assertTrue(
-            all(merge_starting_edges[i] in expected_merge_starting_edges
-                for i in range(len(merge_starting_edges))))
+            all(starting_edge in expected_merge_starting_edges
+                for starting_edge in merge_starting_edges))
 
         self.assertTrue(
-            all(other_starting_edges[i] not in expected_merge_starting_edges
-                for i in range(len(other_starting_edges))))
+            all(starting_edge not in expected_merge_starting_edges
+                for starting_edge in other_starting_edges))
 
 
 if __name__ == '__main__':
