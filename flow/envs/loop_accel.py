@@ -75,9 +75,9 @@ class AccelEnv(Env):
         scaled_vel = [self.vehicles.get_speed(veh_id) /
                       self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
+        state = [[vel, pos] for vel, pos in zip(scaled_vel, scaled_pos)]
 
-        return np.array([[scaled_vel[i], scaled_pos[i]]
-                         for i in range(len(self.sorted_ids))])
+        return np.array(state)
 
 
 class AccelMAEnv(AccelEnv):

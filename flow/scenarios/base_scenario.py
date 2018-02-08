@@ -171,7 +171,7 @@ class Scenario(Serializable):
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
-        for (edge, start_pos) in self.total_edgestarts[::-1]:
+        for (edge, start_pos) in reversed(self.total_edgestarts):
             if x >= start_pos:
                 return edge, x - start_pos
 
@@ -284,8 +284,8 @@ class Scenario(Serializable):
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = next(i for i in range(len(edges))
-                                 if edges[i] == pos[0])
+                indx_edge = next(i for i, edge in enumerate(edges)
+                                 if edge == pos[0])
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
