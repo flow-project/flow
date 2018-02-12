@@ -6,7 +6,6 @@ import logging
 from bisect import bisect_left
 import itertools
 
-from copy import deepcopy
 import traci.constants as tc
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
@@ -256,19 +255,19 @@ class Vehicles:
         if env.time_counter == 0:
             # if the time_counter is 0, this we need to reset all necessary
             # values
-            for veh_id in self.__ids:
+            for veh_id in self.__rl_ids:
                 # set the initial last_lc
                 self.set_state(veh_id, "last_lc", -1 * env.lane_change_duration)
         else:
-
-            for veh_id in self.__ids:
-                # update the "last_lc" variable
+            # update the "last_lc" variable
+            for veh_id in self.__rl_ids:
                 prev_lane = self.get_lane(veh_id)
                 if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
                         prev_lane and veh_id in self.__rl_ids:
                     self.set_state(veh_id, "last_lc", env.time_counter)
 
-                # update the "absolute_position" variable
+            # update the "absolute_position" variable
+            for veh_id in self.__ids:
                 prev_pos = env.get_x_by_id(veh_id)
                 this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
                 this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
@@ -297,7 +296,7 @@ class Vehicles:
                 self.__vehicles[headway[0]]["follower"] = veh_id
 
         # update the sumo observations variable
-        self.__sumo_observations = deepcopy(vehicle_obs)
+        self.__sumo_observations = vehicle_obs.copy()
 
         # update the lane leaders data for each vehicle
         self._multi_lane_headways(env)
