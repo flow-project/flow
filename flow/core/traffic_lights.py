@@ -105,11 +105,11 @@ class TrafficLights:
         """
         if link_index == "all":
             # if lights on all lanes are changed
-            env.traci_connection.trafficlight.setRedYellowGreenState(
+            env.traci_connection.trafficlights.setRedYellowGreenState(
                 tlsID=node_id, state=state)
         else:
             # if lights on a single lane is changed
-            env.traci_connection.trafficlight.setLinkState(
+            env.traci_connection.trafficlights.setLinkState(
                 tlsID=node_id, tlsLinkIndex=link_index, state=state)
 
     def get_state(self, node_id):

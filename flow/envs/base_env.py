@@ -690,9 +690,8 @@ class Env(gym.Env, Serializable):
             of None should be returned
         """
         if self.env_params.sort_vehicles:
-            ids = self.vehicles.get_ids()  # unsorted vehicle ids
-            sorted_indx = np.argsort(self.vehicles.get_absolute_position(ids))
-            sorted_ids = np.array(ids)[sorted_indx]
+            sorted_ids = sorted(self.vehicles.get_ids(),
+                                key=self.vehicles.get_absolute_position)
             return sorted_ids, None
         else:
             return self.vehicles.get_ids(), None

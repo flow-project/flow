@@ -28,24 +28,23 @@ class OpenStreetMapGenerator(Generator):
         netfn = "%s.net.xml" % self.name
 
         # generate the network file with sumo
-        net_cmd = ["netconvert",
-                   "--osm-files ", osm_path,
-                   " --output-file ", self.cfg_path + netfn]
+        net_cmd = "netconvert --osm-files {0} --output-file {1}".\
+            format(osm_path, self.cfg_path + netfn)
 
         # this handles removing all roads in the network that cannot be ridden
         # by vehicles
-        net_cmd.append(
-            " --remove-edges.by-vclass rail_slow,rail_fast,bicycle,pedestrian")
+        net_cmd += \
+            " --remove-edges.by-vclass rail_slow,rail_fast,bicycle,pedestrian"
 
         # this removes edges that are not connected to a network (i.e. isolated)
-        net_cmd.append("--remove-edges.isolated")
+        net_cmd += " --remove-edges.isolated"
 
         # this removes internal links from the network (useful when the network
         # becomes very large)
         if net_params.no_internal_links:
-            net_cmd.append("--no_internal_links")
+            net_cmd += " --no_internal_links"
 
-        retcode = subprocess.call(
+        subprocess.call(
             net_cmd, stdout=sys.stdout, stderr=sys.stderr, shell=True)
 
         # name of the .net.xml file (located in cfg_path)
