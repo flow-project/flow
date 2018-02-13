@@ -164,8 +164,8 @@ class TwoLoopsOneMergingScenario(Scenario):
                     # find the location of the internal edge in
                     # total_edgestarts, which has the edges ordered by position
                     edges = [tup[0] for tup in self.total_edgestarts]
-                    indx_edge = \
-                        [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+                    indx_edge = next(i for i, edge in enumerate(edges)
+                                     if edge == pos[0])
 
                     # take the next edge in the list, and place the car at the
                     # beginning of this edge
@@ -218,8 +218,8 @@ class TwoLoopsOneMergingScenario(Scenario):
                     # find the location of the internal edge in
                     # total_edgestarts, which has the edges ordered by position
                     edges = [tup[0] for tup in self.total_edgestarts]
-                    indx_edge = [i for i in range(len(edges))
-                                 if edges[i] == pos[0]][0]
+                    indx_edge = next(i for i, edge in enumerate(edges)
+                                     if edge == pos[0])
 
                     # take the next edge in the list, and place the car at the
                     # beginning of this edge
