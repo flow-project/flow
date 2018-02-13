@@ -90,7 +90,7 @@ def bay_bridge_example(sumo_binary=None,
         inflow.add(veh_type="human", edge="11189946", vehsPerHour=576,
                    departLane="2", departSpeed=20)
 
-        # # north
+        # north
         inflow.add(veh_type="human", edge="28413687#0", vehsPerHour=2880,
                    departLane="0", departSpeed=20)
         inflow.add(veh_type="human", edge="28413687#0", vehsPerHour=2328,
