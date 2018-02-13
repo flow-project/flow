@@ -8,6 +8,7 @@ vehicles continuously travel in the ring road.
 import logging
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
+from flow.controllers.routing_controllers import ContinuousRouter
 
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig
@@ -33,9 +34,11 @@ def loop_merge_example(sumo_binary=None):
     vehicles = Vehicles()
     vehicles.add(veh_id="idm",
                  acceleration_controller=(IDMController, {}),
+                 routing_controller=(ContinuousRouter, {}),
                  num_vehicles=14)
     vehicles.add(veh_id="merge-idm",
                  acceleration_controller=(IDMController, {}),
+                 routing_controller=(ContinuousRouter, {}),
                  lane_change_controller=(StaticLaneChanger, {}),
                  num_vehicles=14)
 

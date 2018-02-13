@@ -39,8 +39,8 @@ class AccelEnv(Env):
         """
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        return Tuple((speed, absolute_pos))
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        return Tuple((speed, pos))
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -75,9 +75,9 @@ class AccelEnv(Env):
         scaled_vel = [self.vehicles.get_speed(veh_id) /
                       self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
+        state = [[vel, pos] for vel, pos in zip(scaled_vel, scaled_pos)]
 
-        return np.array([[scaled_vel[i], scaled_pos[i]]
-                         for i in range(len(self.sorted_ids))])
+        return np.array(state)
 
 
 class AccelMAEnv(AccelEnv):
@@ -96,9 +96,10 @@ class AccelMAEnv(AccelEnv):
         rl vehicle.
         """
         action_space = []
-        for veh_id in self.vehicles.get_rl_ids():
+        for _ in self.vehicles.get_rl_ids():
             action_space.append(Box(low=self.env_params.max_deacc,
-                high=self.env_params.max_acc, shape=(1, )))
+                                    high=self.env_params.max_acc,
+                                    shape=(1, )))
         return action_space
 
     @property
@@ -111,7 +112,7 @@ class AccelMAEnv(AccelEnv):
         speed = Box(low=0, high=np.inf, shape=(num_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,))
         obs_tuple = Tuple((speed, absolute_pos))
-        for veh_id in self.vehicles.get_rl_ids():
+        for _ in self.vehicles.get_rl_ids():
             observation_space.append(obs_tuple)
         return observation_space
 
@@ -122,7 +123,8 @@ class AccelMAEnv(AccelEnv):
         return multi_agent_rewards.desired_velocity(
             state, rl_actions,
             fail=kwargs["fail"],
-            target_velocity=self.env_params.get_additional_param("target_velocity"))
+            target_velocity=self.env_params.additional_params["target_velocity"]
+        )
 
     def get_state(self, **kwargs):
         """
@@ -134,15 +136,16 @@ class AccelMAEnv(AccelEnv):
         for rl_id in self.rl_ids:
             # Re-sort based on the rl agent being in front
             # Probably should try and do this less often
-            sorted_indx = np.argsort([(self.vehicles.get_absolute_position(veh_id) -
-                                       self.vehicles.get_absolute_position(rl_id)) % self.scenario.length
-                                      for veh_id in self.ids])
+            sorted_indx = np.argsort(
+                [(self.vehicles.get_absolute_position(veh_id) -
+                  self.vehicles.get_absolute_position(rl_id))
+                 % self.scenario.length for veh_id in self.ids])
             sorted_ids = np.array(self.ids)[sorted_indx]
 
             speed = [self.vehicles.get_speed(veh_id) for veh_id in sorted_ids]
             abs_pos = [(self.vehicles.get_absolute_position(veh_id) -
-                        self.vehicles.get_absolute_position(rl_id)) % self.scenario.length
-                       for veh_id in sorted_ids]
+                        self.vehicles.get_absolute_position(rl_id))
+                       % self.scenario.length for veh_id in sorted_ids]
 
             tup = (speed, abs_pos)
             obs_arr.append(tup)

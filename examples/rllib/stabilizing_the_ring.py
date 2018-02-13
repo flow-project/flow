@@ -107,8 +107,8 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0, exp_tag="
         # note that the vehicles are added sequentially by the generator,
         # so place the merging vehicles after the vehicles in the ring
         vehicles = Vehicles()
-        for i in range(len(vehicle_params)):
-            vehicles.add(**vehicle_params[i])
+        for v_param in vehicle_params:
+            vehicles.add(**v_param)
 
         initial_config = InitialConfig(**init_params)
 

@@ -1,6 +1,5 @@
 from flow.core.util import makexml, printxml, ensure_dir
 
-import os
 import subprocess
 import logging
 import random
@@ -77,7 +76,7 @@ class Generator(Serializable):
 
         # add traffic lights to the nodes
         for n_id in traffic_lights.get_ids():
-            indx = next(i for i in range(len(nodes)) if nodes[i]["id"] == n_id)
+            indx = next(i for i, node in enumerate(nodes) if node["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
         # xml file for nodes; contains nodes for the boundary points with
@@ -149,7 +148,7 @@ class Generator(Serializable):
         printxml(x, self.net_path + cfgfn)
 
         fh = open(self.cfg_path + "NULL", "w")
-        retcode = subprocess.call(
+        subprocess.call(
             ["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
              self.cfg_path + netfn + ' --no-internal-links="%s"'
              % no_internal_links],
@@ -223,7 +222,8 @@ class Generator(Serializable):
 
             # add the types of vehicles to the xml file
             for vtype, type_params in vehicles.types:
-                type_params_str = {key:str(type_params[key]) for key in type_params}
+                type_params_str = {key: str(type_params[key])
+                                   for key in type_params}
                 routes.append(E("vType", id=vtype, **type_params_str))
 
             self.vehicle_ids = vehicles.get_ids()
@@ -234,13 +234,13 @@ class Generator(Serializable):
             # add the initial positions of vehicles to the xml file
             positions = initial_config.positions
             lanes = initial_config.lanes
-            for i, id in enumerate(self.vehicle_ids):
-                veh_type = vehicles.get_state(id, "type")
+            for i, veh_id in enumerate(self.vehicle_ids):
+                veh_type = vehicles.get_state(veh_id, "type")
                 edge, pos = positions[i]
                 lane = lanes[i]
-                type_depart_speed = vehicles.get_initial_speed(id)
+                type_depart_speed = vehicles.get_initial_speed(veh_id)
                 routes.append(self._vehicle(
-                    veh_type, "route" + edge, depart="0", id=id,
+                    veh_type, "route" + edge, depart="0", id=veh_id,
                     color="1,0.0,0.0", departSpeed=str(type_depart_speed),
                     departPos=str(pos), departLane=str(lane)))
 
