@@ -29,7 +29,7 @@ import ray.rllib.ppo as ppo
 from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 
-from flow.core.util import unstring_flow_params, get_rllib_params, get_flow_params
+from flow.core.util import unstring_flow_params, get_rllib_config, get_flow_params
 
 
 EXAMPLE_USAGE = """
@@ -58,15 +58,21 @@ parser.add_argument(
 parser.add_argument(
     "checkpoint_num", type=str, help="Checkpoint number.")
 
-required_named = parser.add_argument_group("required named arguments")
-required_named.add_argument(
-    "--run", type=str, required=True,
+# required_named = parser.add_argument_group("required named arguments")
+# required_named.add_argument(
+#     "--run", type=str, required=True,
+#     help="The algorithm or model to train. This may refer to the name "
+#          "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
+#          "user-defined trainable function or class registered in the "
+#          "tune registry.")
+
+optional_named = parser.add_argument_group("optional named arguments")
+optional_named.add_argument(
+    "--run", type=str, default='PPO',
     help="The algorithm or model to train. This may refer to the name "
          "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
          "user-defined trainable function or class registered in the "
          "tune registry.")
-
-optional_named = parser.add_argument_group("optional named arguments")
 optional_named.add_argument(
     '--num_rollouts', type=int, default=10,
     help="The number of rollouts to visualize.")
@@ -87,11 +93,7 @@ if __name__ == "__main__":
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
-    rllib_params = get_rllib_params(result_dir)
-
-    gamma = rllib_params['gamma']
-    horizon = rllib_params['horizon']
-    hidden_layers = rllib_params['hidden_layers']
+    config = get_rllib_config(result_dir)
 
     if args.module:
         module_name = 'examples.rllib.' + args.module
@@ -109,11 +111,6 @@ if __name__ == "__main__":
         exp_tag = flow_params['exp_tag']
 
     ray.init(num_cpus=1)
-
-    config = ppo.DEFAULT_CONFIG.copy()
-    config['horizon'] = horizon
-    config["model"].update({"fcnet_hiddens": hidden_layers})
-    config["gamma"] = gamma
 
     # Overwrite config for rendering purposes
     config["num_workers"] = 1
@@ -133,11 +130,11 @@ if __name__ == "__main__":
                                                          flow_params,
                                                          version=1,
                                                          sumo="sumo-gui")
-    env = create_render_env()
+    env = create_render_env(None)
     env_num_steps = env.env.env_params.additional_params['num_steps']
-    if env_num_steps != horizon:
+    if env_num_steps != config['horizon']:
         print("WARNING: mismatch of experiment horizon and rendering horizon "
-              "{} != {}".format(horizon, env_num_steps))
+              "{} != {}".format(config['horizon'], env_num_steps))
     rets = []
     for i in range(args.num_rollouts):
         state = env.reset()
