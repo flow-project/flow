@@ -2,7 +2,6 @@ import logging
 
 
 class SumoParams:
-
     def __init__(self,
                  port=None,
                  sim_step=0.1,
@@ -150,7 +149,7 @@ class NetParams:
                  additional_params=None):
         """
         Network configuration parameters
-        
+
         Parameters
         ----------
         net_path : str, optional
@@ -168,7 +167,7 @@ class NetParams:
             configuration files. This parameter is only needed / used if the
             OpenStreetMapGenerator generator class is used.
         netfile : str, optional
-            path to the .net.xml file that should be passed to SUMO. This is 
+            path to the .net.xml file that should be passed to SUMO. This is
             only needed / used if the NetFileGenerator class is used, such as
             in the case of Bay Bridge experiments (which use a custom net.xml
             file)
@@ -188,7 +187,6 @@ class NetParams:
 
 
 class InitialConfig:
-
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
@@ -265,7 +263,7 @@ class SumoCarFollowingParams:
                  accel=2.6,
                  decel=4.5,
                  sigma=0.5,
-                 tau=1.0,
+                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
                  minGap=1.0,
                  maxSpeed=30,
                  speedFactor=1.0,
@@ -408,7 +406,7 @@ class InFlows:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
         """
         new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
-                      "route": "route"+edge}
+                      "route": "route" + edge}
 
         new_inflow.update(kwargs)
 
