@@ -177,6 +177,11 @@ def get_rllib_params(path):
     
     return rllib_params
 
+def get_rllib_config(path):
+    jsonfile = path + '/params.json' #  params.json is the config file
+    jsondata = json.loads(open(jsonfile).read())
+    return jsondata
+
 
 def get_flow_params(path):
     """
