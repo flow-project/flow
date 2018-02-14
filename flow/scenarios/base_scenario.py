@@ -192,6 +192,11 @@ class Scenario(Serializable):
         absolute_position: float
             position with respect to some global reference
         """
+        # if there was a collision which caused the vehicle to disappear,
+        # return an x value of -1001
+        if len(edge) == 0:
+            return -1001
+
         if edge[0] == ":":
             try:
                 return self.internal_edgestarts_dict[edge] + position
