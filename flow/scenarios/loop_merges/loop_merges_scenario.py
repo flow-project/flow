@@ -135,7 +135,7 @@ class LoopMergesScenario(Scenario):
 
         return internal_edgestarts
 
-    def gen_custom_start_pos(self, initial_config, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """
         See base class
         """

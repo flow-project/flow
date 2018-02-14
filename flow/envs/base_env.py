@@ -468,7 +468,8 @@ class Env(gym.Env, Serializable):
                 random.shuffle(veh_ids)
 
             initial_positions, initial_lanes = \
-                self.scenario.generate_starting_positions(x0=x0)
+                self.scenario.generate_starting_positions(
+                    num_vehicles=len(self.initial_ids), x0=x0)
 
             initial_state = dict()
             for i, veh_id in enumerate(veh_ids):

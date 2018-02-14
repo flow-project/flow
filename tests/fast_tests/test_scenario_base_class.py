@@ -331,6 +331,29 @@ class TestEvenStartPos(unittest.TestCase):
             if self.env.vehicles.get_edge(veh_id) not in edges:
                 raise AssertionError
 
+    def test_num_vehicles(self):
+        """
+        Tests that the number of starting positions generated is:
+        - the number of vehicles in the vehicles class is no "num_vehicles"
+          parameter is specified
+        - equal to "num_vehicles" if this value is specified
+        """
+        # create the environment
+        self.setUp_gen_start_pos()
+
+        # check when "num_vehicles" is not specified
+        startpos, startlanes = self.env.scenario.generate_starting_positions()
+        self.assertEqual(len(startpos),
+                         self.env.scenario.vehicles.num_vehicles)
+        self.assertEqual(len(startlanes),
+                         self.env.scenario.vehicles.num_vehicles)
+
+        # check when "num_vehicles" is specified
+        startpos, startlanes = self.env.scenario.generate_starting_positions(
+            num_vehicles=10)
+        self.assertEqual(len(startpos), 10)
+        self.assertEqual(len(startlanes), 10)
+
 
 class TestEvenStartPosInternalLinks(unittest.TestCase):
     """
