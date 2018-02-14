@@ -104,7 +104,7 @@ class TwoWayIntersectionScenario(Scenario):
                             self.top_len) + self.left_len)]
         return intersection_edgestarts
 
-    def gen_custom_start_pos(self, initial_config, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """
         Generate random positions starting from the ends of the track.
         Vehicles are spaced so that no car can arrive at the 

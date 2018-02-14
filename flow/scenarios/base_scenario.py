@@ -208,13 +208,16 @@ class Scenario(Serializable):
         else:
             return self.total_edgestarts_dict[edge] + position
 
-    def generate_starting_positions(self, **kwargs):
+    def generate_starting_positions(self, num_vehicles=None, **kwargs):
         """
         Generates starting positions for vehicles in the network. Calls all
         other starting position generating classes.
 
         Parameters
         ----------
+        num_vehicles: int, optional
+            number of vehicles to be placed on the network. If no value is
+            specified, the value is collected from the vehicles class
         kwargs: dict
             additional arguments that may be updated beyond initial
             configurations, such as modifying the starting position
@@ -226,22 +229,24 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
+        num_vehicles = num_vehicles or self.vehicles.num_vehicles
+
         if self.initial_config.spacing == "uniform":
-            startpositions, startlanes = \
-                self.gen_even_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = self.gen_even_start_pos(
+                self.initial_config, num_vehicles, **kwargs)
         elif self.initial_config.spacing == "random":
-            startpositions, startlanes = \
-                self.gen_random_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = self.gen_random_start_pos(
+                self.initial_config, num_vehicles, **kwargs)
         elif self.initial_config.spacing == "custom":
-            startpositions, startlanes = \
-                self.gen_custom_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = self.gen_custom_start_pos(
+                self.initial_config, num_vehicles, **kwargs)
         else:
             raise ValueError('"spacing" argument in initial_config does not '
                              'contain a valid option')
 
         return startpositions, startlanes
 
-    def gen_even_start_pos(self, initial_config, **kwargs):
+    def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
         """
         Generates start positions that are uniformly spaced across the network.
         If the perturbation term in initial_config is set to some positive
@@ -252,6 +257,8 @@ class Scenario(Serializable):
         ----------
         initial_config: InitialConfig type
             see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -263,10 +270,11 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
-        x0, min_gap, bunching, lanes_distr, available_length, available_edges, \
-            initial_config = self._get_start_pos_util(initial_config, **kwargs)
+        x0, min_gap, bunching, lanes_distr, available_length, \
+            available_edges, initial_config = self._get_start_pos_util(
+                initial_config, num_vehicles, **kwargs)
 
-        increment = available_length / self.vehicles.num_vehicles
+        increment = available_length / num_vehicles
 
         # if not all lanes are equal, then we must ensure that vehicles are in
         # two edges at the same time
@@ -280,7 +288,7 @@ class Scenario(Serializable):
         startpositions, startlanes = [], []
 
         # generate uniform starting positions
-        while car_count < self.vehicles.num_vehicles:
+        while car_count < num_vehicles:
             # collect the position and lane number of each new vehicle
             pos = self.get_edge(x)
 
@@ -315,7 +323,7 @@ class Scenario(Serializable):
                 pos = (pos0, VEHICLE_LENGTH)
                 x += VEHICLE_LENGTH
                 increment -= (VEHICLE_LENGTH * self.num_lanes(pos0)) / \
-                             (self.vehicles.num_vehicles - car_count)
+                             (num_vehicles - car_count)
 
             # place vehicles side-by-side in all available lanes on this edge
             for lane in range(min([self.num_lanes(pos[0]), lanes_distr])):
@@ -323,7 +331,7 @@ class Scenario(Serializable):
                 startpositions.append(pos)
                 startlanes.append(lane)
 
-                if car_count == self.vehicles.num_vehicles:
+                if car_count == num_vehicles:
                     break
 
             x = (x + increment + VEHICLE_LENGTH + min_gap) % self.length
@@ -331,7 +339,7 @@ class Scenario(Serializable):
         # add a perturbation to each vehicle, while not letting the vehicle
         # leave its current edge
         if initial_config.perturbation > 0:
-            for i in range(self.vehicles.num_vehicles):
+            for i in range(num_vehicles):
                 perturb = np.random.normal(0, initial_config.perturbation)
                 edge, pos = startpositions[i]
                 pos = max(0, min(self.edge_length(edge), pos + perturb))
@@ -339,7 +347,7 @@ class Scenario(Serializable):
 
         return startpositions, startlanes
 
-    def gen_random_start_pos(self, initial_config, **kwargs):
+    def gen_random_start_pos(self, initial_config, num_vehicles, **kwargs):
         """
         Generates random starting positions for vehicles in the allocated lanes
         and edges.
@@ -348,6 +356,8 @@ class Scenario(Serializable):
         ----------
         initial_config: InitialConfig type
             see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -359,8 +369,9 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
-        x0, min_gap, bunching, lanes_distr, available_length, available_edges, \
-            initial_config = self._get_start_pos_util(initial_config, **kwargs)
+        x0, min_gap, bunching, lanes_distr, available_length, \
+            available_edges, initial_config = self._get_start_pos_util(
+                initial_config, num_vehicles, **kwargs)
 
         # extra space a vehicle needs to cover from the start of an edge to be
         # fully in the edge and not risk having a gap with a vehicle behind it
@@ -373,21 +384,21 @@ class Scenario(Serializable):
         # choose random positions for each vehicle
         init_absolute_pos = \
             [random.random() * available_length
-             for _ in range(self.vehicles.num_vehicles)]
+             for _ in range(num_vehicles)]
 
         # sort the positions of vehicles, for simplicity in using
         init_absolute_pos.sort()
 
         # these positions do not include the length of the vehicle, which need
         # to be added
-        for i in range(self.vehicles.num_vehicles):
+        for i in range(num_vehicles):
             init_absolute_pos[i] += (VEHICLE_LENGTH + min_gap) * i
 
         decrement = 0
         edge_indx = 0
         startpositions = []
         startlanes = []
-        for i in range(self.vehicles.num_vehicles):
+        for i in range(num_vehicles):
             edge_i = available_edges[edge_indx]
             pos_i = (init_absolute_pos[i] - decrement) % (
                 self.edge_length(edge_i) - efs)
@@ -415,7 +426,7 @@ class Scenario(Serializable):
 
         return startpositions, startlanes
 
-    def gen_custom_start_pos(self, initial_config, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """
         Generates a user defined set of starting positions. Optional
 
@@ -423,6 +434,8 @@ class Scenario(Serializable):
         ----------
         initial_config: InitialConfig type
             see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -436,7 +449,7 @@ class Scenario(Serializable):
         """
         raise NotImplementedError
 
-    def _get_start_pos_util(self, initial_config, **kwargs):
+    def _get_start_pos_util(self, initial_config, num_vehicles, **kwargs):
         """
         Performs some pre-processing to the initial_config and **kwargs terms,
         and returns the necessary values for all starting position generating
@@ -446,6 +459,8 @@ class Scenario(Serializable):
         ----------
         initial_config: InitialConfig type
             see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -516,7 +531,6 @@ class Scenario(Serializable):
                      for edge_id in initial_config.edges_distribution])
 
         min_gap = max(0, initial_config.min_gap)
-        num_vehicles = self.vehicles.num_vehicles
 
         if initial_config.edges_distribution == "all":
             available_edges = self.get_edge_list()
