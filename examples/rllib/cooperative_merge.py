@@ -26,9 +26,12 @@ import os
 
 import ray
 import ray.rllib.ppo as ppo
-from ray.tune.registry import get_registry, register_env as register_rllib_env
 
-from flow.core.util import register_env, NameEncoder
+from ray.tune.logger import UnifiedLogger
+from ray.tune.registry import get_registry, register_env as register_rllib_env
+from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
+
+from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
@@ -213,7 +216,12 @@ if __name__ == "__main__":
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
+    logger_creator = rllib_logger_creator(results_dir, 
+                                          flow_env_name, 
+                                          UnifiedLogger)
+
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), 
+                       config=config, logger_creator=logger_creator)
 
     # Logging out flow_params to ray's experiment result folder
     json_out_file = alg.logdir + '/flow_params.json'
