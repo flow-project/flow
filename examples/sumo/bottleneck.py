@@ -33,7 +33,7 @@ def bay_bridge_bottleneck_example(sumo_binary=None,
     ----
     Unlike the bay_bridge_example, inflows are always activated here.
     """
-    sumo_params = SumoParams(sim_step=0.1,
+    sumo_params = SumoParams(sim_step=0.6,
                              overtake_right=True)
 
     if sumo_binary is not None:
@@ -48,7 +48,7 @@ def bay_bridge_bottleneck_example(sumo_binary=None,
     vehicles.add(veh_id="human",
                  acceleration_controller=(SumoCarFollowingController, {}),
                  routing_controller=(BayBridgeRouter, {}),
-                 speed_mode=0b10111,
+                 speed_mode=0b11111,
                  lane_change_mode=0b11111111111,
                  sumo_car_following_params=sumo_car_following_params,
                  sumo_lc_params=sumo_lc_params,
@@ -120,7 +120,7 @@ def bay_bridge_bottleneck_example(sumo_binary=None,
 if __name__ == "__main__":
     # import the experiment variable
     exp = bay_bridge_bottleneck_example(sumo_binary="sumo-gui",
-                                        use_traffic_lights=False)
+                                        use_traffic_lights=True)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

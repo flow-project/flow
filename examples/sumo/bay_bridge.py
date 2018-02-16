@@ -38,7 +38,7 @@ def bay_bridge_example(sumo_binary=None,
         A non-rl experiment demonstrating the performance of human-driven
         vehicles simulated by sumo on the Bay Bridge.
     """
-    sumo_params = SumoParams(sim_step=0.1,
+    sumo_params = SumoParams(sim_step=0.6,
                              overtake_right=True)
 
     if sumo_binary is not None:
@@ -58,7 +58,7 @@ def bay_bridge_example(sumo_binary=None,
                  acceleration_controller=(SumoCarFollowingController, {}),
                  routing_controller=(BayBridgeRouter, {}),
                  speed_mode=0b11111,
-                 lane_change_mode=0b1000010100,
+                 lane_change_mode=0b011001010101,
                  sumo_car_following_params=sumo_car_following_params,
                  sumo_lc_params=sumo_lc_params,
                  num_vehicles=1400)
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     # import the experiment variable
     exp = bay_bridge_example(sumo_binary="sumo-gui",
                              use_inflows=False,
-                             use_traffic_lights=False)
+                             use_traffic_lights=True)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)
