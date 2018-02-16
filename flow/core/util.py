@@ -13,8 +13,10 @@ import importlib
 import inspect
 import json
 import os
+import tempfile
 
 from lxml import etree
+from datetime import datetime
 
 import xml.etree.ElementTree as ET
 
@@ -67,6 +69,16 @@ class NameEncoder(json.JSONEncoder):
             else:
                 return obj.__dict__
         return json.JSONEncoder.default(self, obj)
+
+
+def rllib_logger_creator(result_dir, env_name, loggerfn):
+    logdir_prefix = env_name + '_' + datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    logdir = tempfile.mkdtemp(
+        prefix=logdir_prefix, dir=result_dir)
+
+    return lambda config: loggerfn(config, logdir, None)
 
 
 def unstring_flow_params(flow_params):
