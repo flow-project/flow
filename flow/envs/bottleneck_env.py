@@ -1,5 +1,5 @@
 from flow.envs.base_env import Env
-from flow.envs.loop_accel import AccelEnv
+from flow.envs.lane_changing import LaneChangeAccelEnv
 from flow.core import rewards
 from flow.core import multi_agent_rewards
 
@@ -14,21 +14,22 @@ EDGE_BEFORE_TOLL = "1"
 TB_TL_ID = "2"
 EDGE_AFTER_TOLL = "2"
 NUM_TOLL_LANES = 16
-TOLL_BOOTH_AREA = 10 # how far into the edge lane changing is disabled
-RED_LIGHT_DIST = 50 # controls how close we have to be for the red light to start going off
+TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
+RED_LIGHT_DIST = 50  # controls how close we have to be for the red light to start going off
 
 EDGE_BEFORE_RAMP_METER = "2"
 EDGE_AFTER_RAMP_METER = "3"
 NUM_RAMP_METERS = 14
 RAMP_METER_AREA = 80
 
-MAX_LANES = 16
+MAX_LANES = 16  # largest number of lanes in the network
 
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
 FAST_TRACK_ON = range(6, 11)
 
-class BottleneckEnv(AccelEnv):
+
+class BottleneckEnv(LaneChangeAccelEnv):
     def __init__(self, env_params, sumo_params, scenario):
         self.num_rl = scenario.vehicles.num_rl_vehicles
         super().__init__(env_params, sumo_params, scenario)
@@ -50,7 +51,6 @@ class BottleneckEnv(AccelEnv):
 
         print(self.disable_tb)
 
-
     def additional_command(self):
         super().additional_command()
         # build a list of vehicles and their edges and positions
@@ -68,7 +68,6 @@ class BottleneckEnv(AccelEnv):
             self.apply_toll_bridge_control()
         if not self.disable_ramp_metering:
             self.ramp_meter_lane_change_control()
-
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
@@ -97,7 +96,6 @@ class BottleneckEnv(AccelEnv):
                         self.cars_waiting_before_ramp_meter[veh_id] = {"lane_change_mode": lane_change_mode, "color": color}
                         self.traci_connection.vehicle.setLaneChangeMode(veh_id, 512)
                         self.traci_connection.vehicle.setColor(veh_id, (0, 255, 255, 0))
-
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
@@ -150,3 +148,63 @@ class BottleneckEnv(AccelEnv):
         if newTLState != self.tl_state:
             self.tl_state = newTLState
             self.traci_connection.trafficlights.setRedYellowGreenState(tlsID=TB_TL_ID, state=newTLState)
+
+
+class BridgeTollEnv(BottleneckEnv):
+    @property
+    def observation_space(self):
+        num_edges = len(self.scenario.get_edge_list())
+        num_rl_veh = self.vehicles.num_rl_vehicles
+        num_obs = 2*num_edges + 4*MAX_LANES + 3*num_rl_veh
+        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
+
+    def get_state(self):
+        # rl vehicles are sorted by their position
+        rl_ids = sorted(self.vehicles.get_rl_ids(), key=self.get_x_by_id)
+
+        # rl vehicle data (absolute position, speed, and lane index)
+        rl_obs = []
+        for veh_id in rl_ids:
+            rl_obs += [self.get_x_by_id(veh_id),
+                       self.vehicles.get_speed(veh_id),
+                       self.vehicles.get_lane(veh_id)]
+
+        # relative vehicles data (lane headways, tailways, vel_ahead, and
+        # vel_behind)
+        relative_obs = []
+        for veh_id in rl_ids:
+            headway = [1000 for _ in range(MAX_LANES)]
+            tailway = [1000 for _ in range(MAX_LANES)]
+            vel_in_front = [0 for _ in range(MAX_LANES)]
+            vel_behind = [0 for _ in range(MAX_LANES)]
+
+            lane_leaders = self.vehicles.get_lane_leaders(veh_id)
+            lane_followers = self.vehicles.get_lane_followers(veh_id)
+            lane_headways = self.vehicles.get_lane_headways(veh_id)
+            lane_tailways = self.vehicles.get_lane_tailways(veh_id)
+            headway[0:len(lane_headways)] = lane_headways
+            tailway[0:len(lane_tailways)] = lane_tailways
+            for i, lane_leader in enumerate(lane_leaders):
+                if lane_leader != '':
+                    vel_in_front[i] = self.vehicles.get_speed(lane_leader)
+            for i, lane_follower in enumerate(lane_followers):
+                if lane_followers != '':
+                    vel_behind[i] = self.vehicles.get_speed(lane_follower)
+
+        # per edge data (average speed, density
+        edge_obs = []
+        for edge in self.scenario.get_edge_list():
+            veh_ids = self.vehicles.get_ids_by_edge(edge)
+            avg_speed = sum(self.vehicles.get_speed(veh_ids)) / len(veh_ids)
+            density = len(veh_ids) / self.scenario.edge_length(edge)
+            edge_obs += [avg_speed, density]
+
+        return rl_obs + relative_obs + edge_obs
+
+    def sort_by_position(self):
+        if self.env_params.sort_vehicles:
+            sorted_ids = sorted(self.vehicles.get_ids(),
+                                key=self.get_x_by_id)
+            return sorted_ids, None
+        else:
+            return self.vehicles.get_ids(), None
