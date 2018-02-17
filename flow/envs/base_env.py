@@ -497,6 +497,7 @@ class Env(gym.Env, Serializable):
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.vehicles.remove(veh_id)
+                self.traci_connection.vehicle.unsubscribe(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
 
@@ -509,6 +510,7 @@ class Env(gym.Env, Serializable):
                 veh_id, route_id, typeID=str(type_id),
                 departLane=str(lane_index),
                 departPos=str(lane_pos), departSpeed=str(speed))
+
 
         self.traci_connection.simulationStep()
 
