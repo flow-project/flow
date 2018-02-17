@@ -117,7 +117,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=15000,
+        batch_size=40000,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=300,
@@ -127,7 +127,7 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "BottleNeckLarge"  # experiment prefix
-for seed in [1, 2, 3, 4, 5]:  # , 1, 5, 10, 73]:
+for seed in [1,2,3,4,5]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
