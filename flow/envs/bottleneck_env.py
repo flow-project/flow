@@ -32,7 +32,7 @@ FAST_TRACK_ON = range(6, 11)
 
 class BottleneckEnv(LaneChangeAccelEnv):
     def __init__(self, env_params, sumo_params, scenario):
-        self.num_rl = scenario.vehicles.num_rl_vehicles
+        self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()

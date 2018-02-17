@@ -6,7 +6,6 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
-from flow.envs.bottleneck_env import BottleneckEnv
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
@@ -29,24 +28,26 @@ logging.basicConfig(level=logging.INFO)
 sumo_params = SumoParams(sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             speed_mode=0b11111,
-             lane_change_mode=1612,
-             num_vehicles=100)
 vehicles.add(veh_id="rl",
-             acceleration_controller=(
-                 RLController, {"fail_safe": "safe_velocity"}),
-             lane_change_controller=(
-                 SumoLaneChangeController, {}),
+             acceleration_controller=(RLController, {}),
+             lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
-             num_vehicles=1,
+             lane_change_mode=1621,
+             num_vehicles=10,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(veh_id="human",
+             speed_mode=0b11111,
+             lane_change_mode=512,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=2.5, tau=1.0),
+             num_vehicles=100)
 
-additional_env_params = {"target_velocity": 8}
-env_params = EnvParams(additional_params=additional_env_params)
+additional_env_params = {"target_velocity": 8, "num_steps": 1000}
+env_params = EnvParams(additional_params=additional_env_params,
+                       lane_change_duration=1)
 
 # flow rate
 flow_rate = 15000
@@ -57,7 +58,6 @@ inflow = InFlows()
 for i in range(NUM_LANES):
     lane_num = str(i)
     veh_per_hour = flow_rate * flow_dist[i]
-    print(veh_per_hour)
     inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
                departLane=lane_num, departSpeed=10)
 
@@ -68,9 +68,9 @@ traffic_lights.add(node_id="3")
 net_params = NetParams(in_flows=inflow,
                        no_internal_links=False)
 
-initial_config = InitialConfig(spacing="random", min_gap=5,
+initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
-                               edges_distribution=["1", "2", "3", "4"])
+                               edges_distribution=["2", "3", "4", "5"])
 
 scenario = BBTollScenario(name="bay_bridge_toll",
                           generator_class=BBTollGenerator,
@@ -78,20 +78,15 @@ scenario = BBTollScenario(name="bay_bridge_toll",
                           net_params=net_params,
                           initial_config=initial_config,
                           traffic_lights=traffic_lights)
-def run_task(*_):
 
+
+def run_task(*_):
     env_name = "BridgeTollEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params,
                        net_params, initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
-    env = normalize(env)
-
-    logging.info("Experiment Set Up complete")
-
-    print("experiment initialized")
-
     env = normalize(env)
 
     policy = GaussianMLPPolicy(
