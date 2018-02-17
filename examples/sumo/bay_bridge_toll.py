@@ -7,7 +7,6 @@ from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.loop_accel import AccelEnv
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
