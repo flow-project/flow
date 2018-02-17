@@ -12,7 +12,7 @@ from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
 
-NUM_LANES = 8  # number of lanes in the widest highway
+NUM_LANES = 4  # number of lanes in the widest highway
 
 logging.basicConfig(level=logging.INFO)
 
@@ -22,13 +22,13 @@ vehicles = Vehicles()
 vehicles.add(veh_id="human",
              speed_mode=0b11111,
              lane_change_mode=1612,
-             num_vehicles=70)
+             num_vehicles=30)
 
 additional_env_params = {"target_velocity": 8}
 env_params = EnvParams(additional_params=additional_env_params)
 
 # flow rate
-flow_rate = 7500
+flow_rate = 7500/2
 # percentage of flow coming out of each lane
 flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 

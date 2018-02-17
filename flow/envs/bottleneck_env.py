@@ -14,16 +14,16 @@ EDGE_LIST = ["1", "2", "3", "4", "5"]
 EDGE_BEFORE_TOLL = "1"
 TB_TL_ID = "2"
 EDGE_AFTER_TOLL = "2"
-NUM_TOLL_LANES = 8
+NUM_TOLL_LANES = 4
 TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
 RED_LIGHT_DIST = 50  # controls how close we have to be for the red light to start going off
 
 EDGE_BEFORE_RAMP_METER = "2"
 EDGE_AFTER_RAMP_METER = "3"
-NUM_RAMP_METERS = 8
+NUM_RAMP_METERS = 4
 RAMP_METER_AREA = 80
 
-MAX_LANES = 8  # largest number of lanes in the network
+MAX_LANES = 4  # largest number of lanes in the network
 
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15

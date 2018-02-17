@@ -21,7 +21,7 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-NUM_LANES = 8  # number of lanes in the widest highway
+NUM_LANES = 4  # number of lanes in the widest highway
 
 logging.basicConfig(level=logging.INFO)
 
@@ -35,7 +35,7 @@ vehicles.add(veh_id="rl",
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
-             num_vehicles=8,
+             num_vehicles=4,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
@@ -44,14 +44,14 @@ vehicles.add(veh_id="human",
              lane_change_mode=512,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
-             num_vehicles=24)
+             num_vehicles=15)
 vehicles.add(veh_id="rl2",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
-             num_vehicles=8,
+             num_vehicles=4,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
@@ -60,14 +60,14 @@ vehicles.add(veh_id="human2",
              lane_change_mode=512,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
-             num_vehicles=30)
+             num_vehicles=15)
 
-additional_env_params = {"target_velocity": 40, "num_steps": 250}
+additional_env_params = {"target_velocity": 40, "num_steps": 500}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
 # flow rate
-flow_rate = 7500
+flow_rate = 7500/2
 # percentage of flow coming out of each lane
 flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 
@@ -126,7 +126,7 @@ def run_task(*_):
     )
     algo.train()
 
-exp_tag = "BottleNeckLarge"  # experiment prefix
+exp_tag = "BottleNeckVerySmall"  # experiment prefix
 for seed in [1,2,3,4,5]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
