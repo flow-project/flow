@@ -21,11 +21,11 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-NUM_LANES = 16  # number of lanes in the widest highway
+NUM_LANES = 8  # number of lanes in the widest highway
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sumo_binary="sumo-gui")
+sumo_params = SumoParams(sumo_binary="sumo")
 
 vehicles = Vehicles()
 vehicles.add(veh_id="rl",
@@ -34,7 +34,7 @@ vehicles.add(veh_id="rl",
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
-             num_vehicles=10,
+             num_vehicles=8,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
@@ -43,14 +43,30 @@ vehicles.add(veh_id="human",
              lane_change_mode=512,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
-             num_vehicles=100)
+             num_vehicles=24)
+vehicles.add(veh_id="rl2",
+             acceleration_controller=(RLController, {}),
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             speed_mode=0b1111,
+             lane_change_mode=1621,
+             num_vehicles=8,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=2.5, tau=1.0),
+             sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(veh_id="human2",
+             speed_mode=0b11111,
+             lane_change_mode=512,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=2.5, tau=1.0),
+             num_vehicles=30)
 
-additional_env_params = {"target_velocity": 8, "num_steps": 1000}
+additional_env_params = {"target_velocity": 8, "num_steps": 1500}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
 # flow rate
-flow_rate = 15000
+flow_rate = 7500
 # percentage of flow coming out of each lane
 flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 
@@ -100,7 +116,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size= 64 * 3 * horizon,
+        batch_size=15000,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=1000,

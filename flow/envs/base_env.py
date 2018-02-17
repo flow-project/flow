@@ -403,7 +403,6 @@ class Env(gym.Env, Serializable):
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
-        print("time:", time.time() - t1)
         # Are we in an rllab multi-agent scenario? If so, the action space is
         # a list.
         if isinstance(self.action_space, list):
