@@ -403,6 +403,7 @@ class Env(gym.Env, Serializable):
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
+        print("time:", time.time() - t1)
         # Are we in an rllab multi-agent scenario? If so, the action space is
         # a list.
         if isinstance(self.action_space, list):
@@ -496,6 +497,7 @@ class Env(gym.Env, Serializable):
                 self.traci_connection.simulation.getStartingTeleportIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
+                self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
                 self.vehicles.remove(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
