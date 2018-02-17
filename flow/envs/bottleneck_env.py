@@ -32,7 +32,7 @@ FAST_TRACK_ON = range(6, 11)
 
 class BottleneckEnv(LaneChangeAccelEnv):
     def __init__(self, env_params, sumo_params, scenario):
-        self.num_rl = scenario.vehicles.num_rl_vehicles
+        self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
@@ -191,7 +191,7 @@ class BridgeTollEnv(BottleneckEnv):
             for i, lane_follower in enumerate(lane_followers):
                 if lane_followers != '':
                     vel_behind[i] = self.vehicles.get_speed(lane_follower)
-            relative_obs = headway + tailway + vel_in_front + vel_behind
+            relative_obs += headway + tailway + vel_in_front + vel_behind
 
         # per edge data (average speed, density
         edge_obs = []
@@ -228,8 +228,8 @@ class BridgeTollEnv(BottleneckEnv):
         if a lane change isn't applied, and sufficient time has passed, issue an
         acceleration like normal.
         """
-        acceleration = actions[::2]
-        direction = np.round(actions[1::2])
+        acceleration = actions[::2][0:self.vehicles.num_rl_vehicles]
+        direction = np.round(actions[1::2])[0:self.vehicles.num_rl_vehicles]
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids

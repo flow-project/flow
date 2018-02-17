@@ -496,10 +496,12 @@ class Env(gym.Env, Serializable):
                 self.traci_connection.simulation.getStartingTeleportIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
+                self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
                 self.vehicles.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
             except Exception:
-                print("Error during start: {}".format(traceback.format_exc()))
+                #print("Error during start: {}".format(traceback.format_exc()))
+                pass
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
