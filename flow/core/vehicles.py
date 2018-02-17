@@ -287,14 +287,20 @@ class Vehicles:
             headway = vehicle_obs[veh_id][tc.VAR_LEADER]
             vtype = self.get_state(veh_id, "type")
             min_gap = self.minGap[vtype]
-            if headway is None:
+            try:
+                if headway is None:
+                    self.__vehicles[veh_id]["leader"] = None
+                    self.__vehicles[veh_id]["follower"] = None
+                    self.__vehicles[veh_id]["headway"] = 1e+3
+                else:
+                    self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
+                    self.__vehicles[veh_id]["leader"] = headway[0]
+                    self.__vehicles[headway[0]]["follower"] = veh_id
+            except KeyError:
+                # caused by collision
                 self.__vehicles[veh_id]["leader"] = None
                 self.__vehicles[veh_id]["follower"] = None
-                self.__vehicles[veh_id]["headway"] = 1e+3
-            else:
-                self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
-                self.__vehicles[veh_id]["leader"] = headway[0]
-                self.__vehicles[headway[0]]["follower"] = veh_id
+                self.__vehicles[veh_id]["headway"] = 1e-3
 
         # update the sumo observations variable
         self.__sumo_observations = vehicle_obs.copy()
@@ -823,6 +829,8 @@ class Vehicles:
             edge = self.get_edge(veh_id)
             lane = self.get_lane(veh_id)
             pos = self.get_position(veh_id)
+            if edge == "":
+                continue
             if edge_dict[edge] is None:
                 edge_dict[edge] = [[] for _ in range(max_lanes)]
             edge_dict[edge][lane].append((veh_id, pos))
