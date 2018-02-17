@@ -6,6 +6,7 @@ from flow.core import multi_agent_rewards
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 from collections import defaultdict
+from copy import deepcopy
 
 import numpy as np
 
@@ -154,8 +155,8 @@ class BridgeTollEnv(BottleneckEnv):
     @property
     def observation_space(self):
         num_edges = len(self.scenario.get_edge_list())
-        num_rl_veh = self.vehicles.num_rl_vehicles
-        num_obs = 2*num_edges + 4*MAX_LANES + 3*num_rl_veh
+        num_rl_veh = self.num_rl
+        num_obs = 2*num_edges + 4*MAX_LANES*num_rl_veh + 3*num_rl_veh
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
 
     def get_state(self):
@@ -190,16 +191,24 @@ class BridgeTollEnv(BottleneckEnv):
             for i, lane_follower in enumerate(lane_followers):
                 if lane_followers != '':
                     vel_behind[i] = self.vehicles.get_speed(lane_follower)
+            relative_obs = headway + tailway + vel_in_front + vel_behind
 
         # per edge data (average speed, density
         edge_obs = []
         for edge in self.scenario.get_edge_list():
             veh_ids = self.vehicles.get_ids_by_edge(edge)
-            avg_speed = sum(self.vehicles.get_speed(veh_ids)) / len(veh_ids)
-            density = len(veh_ids) / self.scenario.edge_length(edge)
-            edge_obs += [avg_speed, density]
+            if len(veh_ids) > 0:
+                avg_speed = sum(self.vehicles.get_speed(veh_ids)) / len(veh_ids)
+                density = len(veh_ids) / self.scenario.edge_length(edge)
+                edge_obs += [avg_speed, density]
+            else:
+                edge_obs += [0, 0]
 
-        return rl_obs + relative_obs + edge_obs
+        extra_zeros = []
+        if len(rl_ids) != self.num_rl:
+            diff = (self.num_rl - len(rl_ids))
+            extra_zeros = [0]*(4*MAX_LANES*diff + 3*diff)
+        return np.asarray(rl_obs + relative_obs + edge_obs + extra_zeros)
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
@@ -208,3 +217,32 @@ class BridgeTollEnv(BottleneckEnv):
             return sorted_ids, None
         else:
             return self.vehicles.get_ids(), None
+
+    def apply_rl_actions(self, actions):
+        """
+        See parent class
+
+        Takes a tuple and applies a lane change or acceleration. if a lane
+        change is applied, don't issue any commands for the duration of the lane
+        change and return negative rewards for actions during that lane change.
+        if a lane change isn't applied, and sufficient time has passed, issue an
+        acceleration like normal.
+        """
+        acceleration = actions[::2]
+        direction = np.round(actions[1::2])
+
+        # re-arrange actions according to mapping in observation space
+        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                         if veh_id in self.vehicles.get_rl_ids()]
+
+        # represents vehicles that are allowed to change lanes
+        non_lane_changing_veh = \
+            [self.time_counter <= self.lane_change_duration
+             + self.vehicles.get_state(veh_id, 'last_lc')
+             for veh_id in sorted_rl_ids]
+        # vehicle that are not allowed to change have their directions set to 0
+        direction[non_lane_changing_veh] = \
+            np.array([0] * sum(non_lane_changing_veh))
+
+        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
+        self.apply_lane_change(sorted_rl_ids, direction=direction)
