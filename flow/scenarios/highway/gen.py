@@ -1,16 +1,10 @@
 from flow.core.generator import Generator
 
-from numpy import pi, sin, cos, linspace
-
 
 class HighwayGenerator(Generator):
     """
-    Generator for multi-lane highways. Requires from net_params:
-     - length: length of the circle
-     - lanes: number of lanes in the circle
-     - speed_limit: max speed limit of the circle
+    Generator for multi-lane highways.
     """
-
     def __init__(self, net_params, base):
         """
         See parent class

@@ -3,20 +3,15 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
 
-class OpenStreetMapScenario(Scenario):
+class NetFileScenario(Scenario):
 
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a scenario from a .osm file.
+        """Initializes a scenario from a .net.xml file.
 
-        Required net_params: osm_path
         See Scenario.py for description of params.
         """
-        if net_params.osm_path is None:
-            raise ValueError("Path to the OpenStreetMap file must be specified "
-                             "in net_params.")
-
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
 

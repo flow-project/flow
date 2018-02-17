@@ -33,11 +33,13 @@ import numpy as np
 
 import ray
 import ray.rllib.ppo as ppo
+
+from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.rllib.models import ModelCatalog
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
-from flow.core.util import register_env, NameEncoder
+from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 from flow.utils.tuple_preprocessor import TuplePreprocessor
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -48,10 +50,10 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 
-HORIZON = 3600
+HORIZON = 100
 
 additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                         "max-acc": 1, "num_steps": HORIZON,
+                         "max-acc": 1, 
                          "scenario_type": LoopScenario} # Any way to avoid specifying this here? - nish
 additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                          "resolution": 40}
@@ -70,6 +72,7 @@ flow_params = dict(
                     sim_step=0.1
                   ),
                 env=dict(
+                    horizon=HORIZON,
                     additional_params=additional_env_params
                   ),
                 net=dict(
@@ -83,7 +86,7 @@ flow_params = dict(
               )
 
 
-def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", sumo="sumo"):
+def make_create_env(flow_env_name, flow_params=flow_params, version=0, exp_tag="example", sumo="sumo"):
     env_name = flow_env_name+'-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
@@ -100,14 +103,14 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
 
     init_params = flow_params['initial']
 
-    def create_env():
+    def create_env(env_config):
         import flow.envs as flow_envs
 
         # note that the vehicles are added sequentially by the generator,
         # so place the merging vehicles after the vehicles in the ring
         vehicles = Vehicles()
-        for i in range(len(vehicle_params)):
-            vehicles.add(**vehicle_params[i])
+        for v_param in vehicle_params:
+            vehicles.add(**v_param)
 
         initial_config = InitialConfig(**init_params)
 
@@ -120,11 +123,6 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
         register_env(*pass_params)
         env = gym.envs.make(env_name)
 
-        env.observation_space.shape = (
-            int(np.sum([c.shape for c in env.observation_space.spaces])),)
-
-        ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
-
         return env
     return create_env, env_name
 
@@ -132,7 +130,7 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
     num_cpus = 3
-    n_rollouts = 30
+    n_rollouts = 3
 
     ray.init(num_cpus=num_cpus, redirect_output=True)
     # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
@@ -161,7 +159,12 @@ if __name__ == "__main__":
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
+    logger_creator = rllib_logger_creator(results_dir, 
+                                          flow_env_name, 
+                                          UnifiedLogger)
+
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), 
+                       config=config, logger_creator=logger_creator)
 
     # Logging out flow_params to ray's experiment result folder
     json_out_file = alg.logdir + '/flow_params.json'

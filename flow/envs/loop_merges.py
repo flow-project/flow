@@ -31,9 +31,9 @@ class LoopMergesEnv(Env):
         See parent class
         """
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         edge = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        return Tuple([speed, absolute_pos, edge])
+        return Tuple([speed, pos, edge])
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -70,32 +70,6 @@ class LoopMergesEnv(Env):
                           sorted_pos[i],
                           edge_id[i]]
                          for i, veh_id in enumerate(self.sorted_ids)])
-
-    def additional_command(self):
-        """
-        Vehicles that are meant to stay in the ring are rerouted whenever they
-        reach a new edge.
-        """
-        for veh_id in self.vehicles.get_ids():
-            # if the vehicle is one the merging vehicles, and there is a
-            # merge-out lane, it should not be rerouted
-            if "merge" in self.vehicles.get_state(veh_id, "type") and \
-                    self.scenario.net_params.additional_params["merge_out_length"]\
-                    is not None:
-                continue
-
-            # check if a vehicle needs to be rerouted
-            route = None
-            if self.vehicles.get_route(veh_id)[-1] == self.vehicles.get_edge(veh_id):
-                if self.vehicles.get_edge(veh_id) == "ring_0":
-                    route = ["ring_0", "ring_1"]
-                elif self.vehicles.get_edge(veh_id) == "ring_1":
-                    route = ["ring_1", "ring_0"]
-
-            # perform rerouting and update vehicle's perception of its route
-            if route is not None:
-                self.vehicles.set_route(veh_id, route)
-                self.traci_connection.vehicle.setRoute(vehID=veh_id, edgeList=route)
 
     def sort_by_position(self, **kwargs):
         """
@@ -134,7 +108,8 @@ class LoopMergesEnv(Env):
             # from the start of the respective merge
             elif this_edge == "merge_in" or ":ring_0_0" in this_edge:
                 if this_edge != "merge_in":
-                    pos[1].append((veh_id, this_pos + self.scenario.merge_in_len))
+                    pos[1].append((veh_id, this_pos
+                                   + self.scenario.merge_in_len))
                 else:
                     pos[1].append((veh_id, this_pos))
 
@@ -142,7 +117,8 @@ class LoopMergesEnv(Env):
                     (":ring_1_0" in this_edge and
                         self.scenario.merge_out_len is not None):
                 if this_edge == "merge_out":
-                    pos[2].append((veh_id, this_pos + self.scenario.ring_1_0_len))
+                    pos[2].append((veh_id, this_pos
+                                   + self.scenario.ring_1_0_len))
                 else:
                     pos[2].append((veh_id, this_pos))
 
@@ -190,8 +166,8 @@ class LoopMergesEnv(Env):
 
                 # vehicles in the merging lanes move at the target velocity
                 # (if one is defined)
-                elif "target_velocity" in self.env_params.additional_params and \
-                        this_edge in ["merge_in", "merge_out"]:
+                elif "target_velocity" in self.env_params.additional_params \
+                        and this_edge in ["merge_in", "merge_out"]:
                     self.traci_connection.vehicle.slowDown(
                         veh_id,
                         self.env_params.get_additional_param("target_velocity"),

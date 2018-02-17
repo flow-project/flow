@@ -13,8 +13,10 @@ import importlib
 import inspect
 import json
 import os
+import tempfile
 
 from lxml import etree
+from datetime import datetime
 
 import xml.etree.ElementTree as ET
 
@@ -67,6 +69,16 @@ class NameEncoder(json.JSONEncoder):
             else:
                 return obj.__dict__
         return json.JSONEncoder.default(self, obj)
+
+
+def rllib_logger_creator(result_dir, env_name, loggerfn):
+    logdir_prefix = env_name + '_' + datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    logdir = tempfile.mkdtemp(
+        prefix=logdir_prefix, dir=result_dir)
+
+    return lambda config: loggerfn(config, logdir, None)
 
 
 def unstring_flow_params(flow_params):
@@ -177,6 +189,11 @@ def get_rllib_params(path):
     
     return rllib_params
 
+def get_rllib_config(path):
+    jsonfile = path + '/params.json' #  params.json is the config file
+    jsondata = json.loads(open(jsonfile).read())
+    return jsondata
+
 
 def get_flow_params(path):
     """
@@ -212,9 +229,7 @@ def get_flow_params(path):
 
 def register_env(env_name, sumo_params, type_params, env_params, net_params,
                 initial_config, scenario, env_version_num=0):
-    num_steps = 500
-    if "num_steps" in env_params.additional_params:
-        num_steps = env_params.additional_params["num_steps"]
+    num_steps = env_params.horizon
     register(
         id=env_name+'-v'+str(env_version_num),
         entry_point='flow.envs:'+env_name,

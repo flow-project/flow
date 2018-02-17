@@ -24,11 +24,13 @@ import os
 
 import ray
 import ray.rllib.ppo as ppo
+
+from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.rllib.models import ModelCatalog
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
-from flow.core.util import register_env, NameEncoder
+from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 from flow.utils.tuple_preprocessor import TuplePreprocessor
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -44,18 +46,18 @@ from flow.scenarios.two_loops_one_merging_new.gen import TwoLoopOneMergingGenera
 from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 
-HORIZON = 1000
+HORIZON = 100
 
 additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
                          "max-acc": 1, "num_steps": HORIZON}
 additional_net_params = {"ring_radius": 50, "lanes": 1,
                          "lane_length": 75, "speed_limit": 30,
-                         "resolution": 40}
+                         "resolution": 40, "inner_lanes":1, "outer_lanes": 1}
 vehicle_params = [dict(veh_id="human",
                        acceleration_controller=(IDMController, {"noise": 0.2}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       num_vehicles=6,
+                       num_vehicles=4,
                        sumo_car_following_params=SumoCarFollowingParams(
                            minGap=0.0, tau=0.5),
                        sumo_lc_params=SumoLaneChangeParams()),
@@ -64,7 +66,7 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
                        speed_mode="no_collide",
-                       num_vehicles=10,
+                       num_vehicles=4,
                        sumo_car_following_params=SumoCarFollowingParams(
                            minGap=0.01, tau=0.5),
                        sumo_lc_params=SumoLaneChangeParams())
@@ -75,6 +77,7 @@ flow_params = dict(
                     sim_step=0.1
                   ),
                 env=dict(
+                    horizon=HORIZON,
                     additional_params=additional_env_params
                   ),
                 net=dict(
@@ -107,14 +110,14 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
 
     init_params = flow_params['initial']
 
-    def create_env():
+    def create_env(env_config):
         import flow.envs as flow_envs
 
         # note that the vehicles are added sequentially by the generator,
         # so place the merging vehicles after the vehicles in the ring
         vehicles = Vehicles()
-        for i in range(len(vehicle_params)):
-            vehicles.add(**vehicle_params[i])
+        for v_param in vehicle_params:
+            vehicles.add(**v_param)
 
         initial_config = InitialConfig(**init_params)
 
@@ -132,11 +135,6 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example", su
         register_env(*pass_params)
         env = gym.envs.make(env_name)
 
-        env.observation_space.shape = (
-            int(np.sum([c.shape for c in env.observation_space.spaces])),)
-
-        ModelCatalog.register_preprocessor(env_name, TuplePreprocessor)
-
         return env
     return create_env, env_name
 
@@ -144,7 +142,7 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
     num_cpus = 3
-    n_rollouts = 30
+    n_rollouts = 3
 
     ray.init(num_cpus=num_cpus, redirect_output=True)
     # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
@@ -173,7 +171,12 @@ if __name__ == "__main__":
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
+    logger_creator = rllib_logger_creator(results_dir, 
+                                          flow_env_name, 
+                                          UnifiedLogger)
+
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), 
+                       config=config, logger_creator=logger_creator)
 
     # Logging out flow_params to ray's experiment result folder
     json_out_file = alg.logdir + '/flow_params.json'

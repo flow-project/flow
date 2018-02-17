@@ -10,7 +10,7 @@ echo "You may be prompted (twice) to authorize downloading from the repository (
 mkdir -p $1
 echo "Temporarily changing directories"
 pushd $1
-svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@25706 > /dev/null
+svn checkout https://svn.code.sf.net/p/sumo/code/trunk/sumo@26784 > /dev/null
 pushd sumo
 
 echo "Patching SUMO for flow compatibility"

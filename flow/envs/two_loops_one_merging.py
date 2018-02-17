@@ -26,7 +26,7 @@ class TwoLoopsMergeEnv(Env):
         """
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles, ))
+                   shape=(self.vehicles.num_rl_vehicles,))
 
     @property
     def observation_space(self):
@@ -148,7 +148,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         self.n_following = 2  # FIXME(cathywu) see below
         self.n_merging_in = 2
         self.n_obs_vehicles = 1 + self.n_preceding + self.n_following + \
-                        self.n_merging_in
+                              self.n_merging_in
         self.obs_var_labels = ["speed", "pos", "queue_length", "velocity_stats"]
         speed = Box(low=0, high=np.inf, shape=(self.n_obs_vehicles,))
         absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,))
@@ -156,6 +156,75 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         queue_length = Box(low=0, high=np.inf, shape=(1,))
         vel_stats = Box(low=-np.inf, high=np.inf, shape=(2,))
         return Tuple((speed, absolute_pos, queue_length, vel_stats))
+
+    @property
+    def action_space(self):
+        if (self.scenario.net_params.additional_params.get("outer_lanes", 1) > 1 and
+                    self.scenario.net_params.additional_params.get("inner_lanes", 1) > 1):
+            """
+            Actions are a set of accelerations from max-deacc to max-acc for each
+            rl vehicle and lane changes.
+            """
+            return self.lane_change_action_space()
+        else:
+            """
+            Actions are a set of accelerations from max-deacc to max-acc for each
+            rl vehicle.
+            """
+            return Box(low=-np.abs(self.env_params.max_decel),
+                       high=self.env_params.max_accel,
+                       shape=(self.vehicles.num_rl_vehicles,))
+
+    def lane_change_action_space(self):
+        """
+        See parent class
+
+        Actions are:
+         - a (continuous) acceleration from max-deacc to max-acc
+         - a (continuous) lane-change action from -1 to 1, used to determine the
+           lateral direction the vehicle will take.
+        """
+        max_decel = self.env_params.max_decel
+        max_accel = self.env_params.max_accel
+
+        lb = [-abs(max_decel), -1] * self.vehicles.num_rl_vehicles
+        ub = [max_accel, 1] * self.vehicles.num_rl_vehicles
+
+        return Box(np.array(lb), np.array(ub))
+
+    def apply_rl_actions(self, rl_actions):
+        """
+        See parent class
+
+        Takes a tuple and applies a lane change or acceleration. if a lane
+        change is applied, don't issue any commands for the duration of the lane
+        change and return negative rewards for actions during that lane change.
+        if a lane change isn't applied, and sufficient time has passed, issue an
+        acceleration like normal.
+        """
+        if (self.scenario.net_params.additional_params.get("outer_lanes", 1) > 1 and
+                    self.scenario.net_params.additional_params.get("inner_lanes", 1) > 1):
+            acceleration = rl_actions[::2]
+            direction = np.round(rl_actions[1::2]).clip(min=-1, max=1)
+
+            # re-arrange actions according to mapping in observation space
+            sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                             if veh_id in self.vehicles.get_rl_ids()]
+
+            # represents vehicles that are allowed to change lanes
+            non_lane_changing_veh = \
+                [self.time_counter <= self.lane_change_duration + self.vehicles.get_state(veh_id, 'last_lc')
+                 for veh_id in sorted_rl_ids]
+            # vehicle that are not allowed to change have their directions set to 0
+            direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+
+            self.apply_acceleration(sorted_rl_ids, acc=acceleration)
+            self.apply_lane_change(sorted_rl_ids, direction=direction)
+        else:
+            sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
+                             if veh_id in self.vehicles.get_rl_ids()]
+            self.apply_acceleration(sorted_rl_ids, rl_actions)
+
 
     def get_state(self, **kwargs):
         """
@@ -172,7 +241,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         # are sorted at the front of the list. Otherwise, vehicles closest to
         # the merge are at the end of the list (effectively reverse sorted).
         if self.get_x_by_id(sorted[0]) < merge_len and self.get_x_by_id(
-            sorted[1]) < merge_len:
+                sorted[1]) < merge_len:
             if not sorted[0].startswith("merge") and \
                     not sorted[1].startswith("merge"):
                 vid1 = sorted[-1]
@@ -186,7 +255,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
             else:
                 vid1 = sorted[1]
                 vid2 = sorted[0]
-            # print("actively merging", vid1, vid2)
+                # print("actively merging", vid1, vid2)
         elif self.get_x_by_id(sorted[0]) < merge_len:
             vid1 = sorted[0]
             vid2 = sorted[-1]
@@ -200,9 +269,9 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
         # find and eliminate all the vehicles on the outer ring
         num_inner = len(sorted)
-        for i in range(len(sorted)-1, -1, -1):
+        for i in range(len(sorted) - 1, -1, -1):
             if not sorted[i].startswith("merge"):
-                num_inner = i+1
+                num_inner = i + 1
                 break
 
         rl_vehID = self.vehicles.get_rl_ids()[0]
@@ -210,11 +279,11 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         rl_srtID = rl_srtID[0]
 
         # FIXME(cathywu) hardcoded for self.num_preceding = 2
-        lead_id1 = sorted[(rl_srtID+1) % num_inner]
-        lead_id2 = sorted[(rl_srtID+2) % num_inner]
+        lead_id1 = sorted[(rl_srtID + 1) % num_inner]
+        lead_id2 = sorted[(rl_srtID + 2) % num_inner]
         # FIXME(cathywu) hardcoded for self.num_following = 2
-        follow_id1 = sorted[(rl_srtID-1) % num_inner]
-        follow_id2 = sorted[(rl_srtID-2) % num_inner]
+        follow_id1 = sorted[(rl_srtID - 1) % num_inner]
+        follow_id2 = sorted[(rl_srtID - 2) % num_inner]
         vehicles = [rl_vehID, lead_id1, lead_id2, follow_id1, follow_id2]
 
         vel[:self.n_obs_vehicles - self.n_merging_in] = np.array(
@@ -243,6 +312,9 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
         # Useful debug statements for analyzing experiment results
         # print("XXX obs", vel, pos, queue_length, vel_stats)
+        # print("XXX nobs", normalized_vel, normalized_pos, queue_length,
+        #       vel_stats)
+
         # print("XXX mean vel", np.mean(vel_all))
         # pos_all = [self.get_x_by_id(id) for id in sorted]
         # print("XXX pos", pos_all)
@@ -280,4 +352,3 @@ class TwoLoopsMergeNoRLPOEnv(TwoLoopsMergePOEnv):
 
     def get_state(self, **kwargs):
         return np.zeros(1)
-
