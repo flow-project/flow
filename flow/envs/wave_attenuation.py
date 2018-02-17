@@ -16,8 +16,9 @@ import pdb
 
 class WaveAttenuationEnv(Env):
     """
-    Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
-    difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
+    Fully functional environment. Takes in an *acceleration* as an action.
+    Reward function is negative norm of the difference between the velocities of
+    each vehicle, and the target velocity. State function is a vector of the
     velocities for each vehicle.
     """
 
@@ -39,8 +40,8 @@ class WaveAttenuationEnv(Env):
         """
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        return Tuple((speed, absolute_pos))
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        return Tuple((speed, pos))
 
     def apply_rl_actions(self, rl_actions):
         """
@@ -93,8 +94,8 @@ class WaveAttenuationEnv(Env):
 
         # for stabilizing the ring: place the rl car at index 0 to maintain
         # continuity between rollouts
-        indx_rl = [ind for ind in range(len(self.sorted_ids))
-                   if self.sorted_ids[ind] in self.vehicles.get_rl_ids()][0]
+        indx_rl = [ind for ind, veh_id in enumerate(self.sorted_ids)
+                   if veh_id in self.vehicles.get_rl_ids()][0]
         indx_sorted_ids = np.mod(np.arange(len(self.sorted_ids)) + indx_rl,
                                  len(self.sorted_ids))
 
@@ -215,14 +216,12 @@ class WaveAttenuationEnv(Env):
 
         # collect information of the state of the network based on the
         # environment class used
-        if self.vehicles.num_rl_vehicles > 0:
-            self.state = self.get_state()
+        if isinstance(self.action_space, list):
             # rllab requires non-multi agent to have state shape as
             # num-states x num_vehicles
-            if not self.multi_agent:
-                self.state = self.state.T
+            self.state = self.get_state()
         else:
-            self.state = []
+            self.state = self.get_state().T
 
         # collect observation new state associated with action
         next_observation = list(self.state)

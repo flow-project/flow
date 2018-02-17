@@ -2,7 +2,6 @@ import logging
 
 
 class SumoParams:
-
     def __init__(self,
                  port=None,
                  sim_step=0.1,
@@ -10,6 +9,7 @@ class SumoParams:
                  lateral_resolution=None,
                  no_step_log=True,
                  sumo_binary="sumo",
+                 overtake_right=False,
                  seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
@@ -37,6 +37,8 @@ class SumoParams:
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
                 - 'sumo' to run without the gui (default)
+        overtake_right: bool, optional
+            whether vehicles are allowed to overtake on the right as well as the left
         seed: int, optional
             seed for sumo instance
         """
@@ -47,6 +49,7 @@ class SumoParams:
         self.no_step_log = no_step_log
         self.sumo_binary = sumo_binary
         self.seed = seed
+        self.overtake_right = overtake_right
 
 
 class EnvParams:
@@ -59,7 +62,9 @@ class EnvParams:
                  shared_policy=False,
                  additional_params=None,
                  max_decel=-6,
-                 max_accel=3):
+                 max_accel=3,
+                 horizon=500,
+                 sort_vehicles=False):
         """
         Provides several environment and experiment-specific parameters. This
         includes specifying the parameters of the action space and relevant
@@ -90,6 +95,13 @@ class EnvParams:
             maximum deceleration of autonomous vehicles, defaults to -6 m/s2
         max_accel: float, optional
             maximum acceleration of autonomous vehicles, defaults to 3 m/s2
+        horizon: int, optional
+            number of steps per rollouts
+        sort_vehicles: bool, optional
+            specifies whether vehicles are to be sorted by position during a
+            simulation step. If set to True, the environment parameter
+            self.sorted_ids will return a list of all vehicles ideas sorted by
+            their absolute position.
         """
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
@@ -101,6 +113,8 @@ class EnvParams:
             additional_params if additional_params is not None else {}
         self.max_decel = max_decel
         self.max_accel = max_accel
+        self.horizon = horizon
+        self.sort_vehicles = sort_vehicles
 
     def get_additional_param(self, key):
         return self.additional_params[key]
@@ -131,27 +145,33 @@ class NetParams:
                  no_internal_links=True,
                  in_flows=None,
                  osm_path=None,
+                 netfile=None,
                  additional_params=None):
         """
         Network configuration parameters
 
         Parameters
         ----------
-        net_path: str, optional
+        net_path : str, optional
             path to the network files created to create a network with sumo
-        cfg_path: str, optional
+        cfg_path : str, optional
             path to the config files created to create a network with sumo
-        no_internal_links: bool, optional
+        no_internal_links : bool, optional
             determines whether the space between edges is finite. Important
             when using networks with intersections; default is False
-        in_flows: InFlows type, optional
+        in_flows : InFlows type, optional
             specifies the inflows of specific edges and the types of vehicles
             entering the network from these edges
-        osm_path: str, optional
+        osm_path : str, optional
             path to the .osm file that should be used to generate the network
             configuration files. This parameter is only needed / used if the
             OpenStreetMapGenerator generator class is used.
-        additional_params: dict, optional
+        netfile : str, optional
+            path to the .net.xml file that should be passed to SUMO. This is
+            only needed / used if the NetFileGenerator class is used, such as
+            in the case of Bay Bridge experiments (which use a custom net.xml
+            file)
+        additional_params : dict, optional
             network specific parameters; see each subclass for a description of
             what is needed
         """
@@ -162,11 +182,11 @@ class NetParams:
         self.no_internal_links = no_internal_links
         self.in_flows = in_flows
         self.osm_path = osm_path
+        self.netfile = netfile
         self.additional_params = additional_params
 
 
 class InitialConfig:
-
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
@@ -243,7 +263,7 @@ class SumoCarFollowingParams:
                  accel=2.6,
                  decel=4.5,
                  sigma=0.5,
-                 tau=1.0,
+                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
                  minGap=1.0,
                  maxSpeed=30,
                  speedFactor=1.0,
@@ -386,7 +406,7 @@ class InFlows:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
         """
         new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
-                      "route": "route"+edge}
+                      "route": "route" + edge}
 
         new_inflow.update(kwargs)
 

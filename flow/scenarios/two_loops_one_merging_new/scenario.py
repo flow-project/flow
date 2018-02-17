@@ -1,19 +1,50 @@
 from flow.scenarios.base_scenario import Scenario
+from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
 
-from numpy import pi, arcsin
+
+from numpy import pi
+import numpy as np
+
+
+ADDITIONAL_NET_PARAMS = {
+    # radius of the loops
+    "ring_radius": 50,
+    # length of the straight edges connected the outer loop to the inner loop
+    "lane_length": 75,
+    # number of lanes in the inner loop
+    "inner_lanes": 3,
+    # number of lanes in the outer loop
+    "outer_lanes": 2,
+    # max speed limit in the network
+    "speed_limit": 30,
+    # resolution of the curved portions
+    "resolution": 40,
+}
 
 
 class TwoLoopsOneMergingScenario(Scenario):
-
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=None):
-        """
-        Initializes a two loop scenario where one loop merging in and out of
-        the other. Required net_params: ring_radius, lanes, speed_limit,
-        resolution.
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
+        """Initializes a two loop scenario where one loop merging in and out of
+        the other.
+
+        Requires from net_params:
+        - ring_radius: radius of the loops
+        - lane_length: length of the straight edges connected the outer loop to
+          the inner loop
+        - inner_lanes: number of lanes in the inner loop
+        - outer_lanes: number of lanes in the outer loop
+        - speed_limit: max speed limit in the network
+        - resolution: resolution of the curved portions
 
         See Scenario.py for description of params.
         """
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
+
         radius = net_params.additional_params["ring_radius"]
         x = net_params.additional_params["lane_length"]
 
@@ -24,10 +55,8 @@ class TwoLoopsOneMergingScenario(Scenario):
             2 * x + 2 * pi * radius + \
             2 * self.intersection_length + 2 * self.junction_length
 
-        self.lanes = net_params.additional_params["lanes"]
-
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config)
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """
@@ -42,8 +71,10 @@ class TwoLoopsOneMergingScenario(Scenario):
             ("left", self.intersection_length),
             ("center", ring_edgelen + 2 * self.intersection_length),
             ("bottom", 2 * ring_edgelen + 2 * self.intersection_length),
-            ("right", 2 * ring_edgelen + lane_length + 2 * self.intersection_length + self.junction_length),
-            ("top", 3 * ring_edgelen + lane_length + 2 * self.intersection_length + 2 * self.junction_length)
+            ("right", 2 * ring_edgelen + lane_length
+             + 2 * self.intersection_length + self.junction_length),
+            ("top", 3 * ring_edgelen + lane_length
+             + 2 * self.intersection_length + 2 * self.junction_length)
         ]
 
         return edgestarts
@@ -57,17 +88,18 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         ring_edgelen = pi * r
 
-        # internal_edgestarts = [(":", -1)]
         internal_edgestarts = [
             (":top_left", 0),
             (":bottom_left", ring_edgelen + self.intersection_length),
-            (":bottom_right", 2 * ring_edgelen + lane_length + 2 * self.intersection_length),
-            (":top_right", 3 * ring_edgelen + lane_length + 2 * self.intersection_length + self.junction_length)
+            (":bottom_right", 2 * ring_edgelen + lane_length
+             + 2 * self.intersection_length),
+            (":top_right", 3 * ring_edgelen + lane_length
+             + 2 * self.intersection_length + self.junction_length)
         ]
 
         return internal_edgestarts
 
-    def gen_custom_start_pos(self, initial_config, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """
         See parent class
 
@@ -80,7 +112,8 @@ class TwoLoopsOneMergingScenario(Scenario):
         if "x0" in kwargs:
             x0 = kwargs["x0"]
 
-        print(x0)
+        random_scale = \
+            self.initial_config.additional_params.get("gaussian_scale", 0)
 
         bunching = initial_config.bunching
         # changes to bunching in kwargs suggests a switch in between rollouts,
@@ -109,10 +142,17 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         try:
             increment_loop = \
-                (length_loop - bunching) * initial_config.lanes_distribution / \
-                (num_vehicles - num_merge_vehicles)
+                (length_loop - bunching) \
+                * self.net_params.additional_params["inner_lanes"] \
+                / (num_vehicles - num_merge_vehicles)
 
-            x = [x0] * initial_config.lanes_distribution
+            # x = [x0] * initial_config.lanes_distribution
+            if self.initial_config.additional_params.get("ring_from_right",
+                                                         False):
+                x = [dict(self.edgestarts)["right"]] * \
+                    self.net_params.additional_params["inner_lanes"]
+            else:
+                x = [x0] * self.net_params.additional_params["inner_lanes"]
             car_count = 0
             lane_count = 0
             while car_count < num_vehicles - num_merge_vehicles:
@@ -124,8 +164,8 @@ class TwoLoopsOneMergingScenario(Scenario):
                     # find the location of the internal edge in
                     # total_edgestarts, which has the edges ordered by position
                     edges = [tup[0] for tup in self.total_edgestarts]
-                    indx_edge = \
-                        [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+                    indx_edge = next(i for i, edge in enumerate(edges)
+                                     if edge == pos[0])
 
                     # take the next edge in the list, and place the car at the
                     # beginning of this edge
@@ -140,14 +180,16 @@ class TwoLoopsOneMergingScenario(Scenario):
                 startpositions.append(pos)
                 startlanes.append(lane_count)
 
-                x[lane_count] = (x[lane_count] + increment_loop) % length_loop
+                x[lane_count] = (x[lane_count] + increment_loop
+                                 + random_scale*np.random.randn()) % length_loop
 
                 # increment the car_count and lane_num
                 car_count += 1
                 lane_count += 1
                 # if the lane num exceeds the number of lanes the vehicles
                 # should be distributed on in the network, reset
-                if lane_count >= initial_config.lanes_distribution:
+                if lane_count >= \
+                        self.net_params.additional_params["inner_lanes"]:
                     lane_count = 0
         except ZeroDivisionError:
             pass
@@ -158,8 +200,13 @@ class TwoLoopsOneMergingScenario(Scenario):
                 (length_merge - merge_bunching) * \
                 initial_config.lanes_distribution / num_merge_vehicles
 
-            x = [dict(self.edgestarts)["bottom"]] * \
-                initial_config.lanes_distribution
+            if self.initial_config.additional_params.get("merge_from_top",
+                                                         False):
+                x = [dict(self.edgestarts)["top"] - x0] * \
+                    self.net_params.additional_params["outer_lanes"]
+            else:
+                x = [dict(self.edgestarts)["bottom"] - x0] * \
+                    self.net_params.additional_params["outer_lanes"]
             car_count = 0
             lane_count = 0
             while car_count < num_merge_vehicles:
@@ -171,7 +218,8 @@ class TwoLoopsOneMergingScenario(Scenario):
                     # find the location of the internal edge in
                     # total_edgestarts, which has the edges ordered by position
                     edges = [tup[0] for tup in self.total_edgestarts]
-                    indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+                    indx_edge = next(i for i, edge in enumerate(edges)
+                                     if edge == pos[0])
 
                     # take the next edge in the list, and place the car at the
                     # beginning of this edge
@@ -186,15 +234,24 @@ class TwoLoopsOneMergingScenario(Scenario):
                 startpositions.append(pos)
                 startlanes.append(lane_count)
 
-                x[lane_count] = x[lane_count] + increment_merge
+                if self.initial_config.additional_params.get(
+                        "merge_from_top", False):
+                    x[lane_count] = x[lane_count] - increment_merge + \
+                        random_scale*np.random.randn()
+                else:
+                    x[lane_count] = x[lane_count] + increment_merge + \
+                        random_scale*np.random.randn()
 
                 # increment the car_count and lane_num
                 car_count += 1
                 lane_count += 1
                 # if the lane num exceeds the number of lanes the vehicles
                 # should be distributed on in the network, reset
-                if lane_count >= initial_config.lanes_distribution:
+                # if lane_count >= self.initial_config.lane_distribution
+                if lane_count >= \
+                        self.net_params.additional_params["outer_lanes"]:
                     lane_count = 0
+
         except ZeroDivisionError:
             pass
 

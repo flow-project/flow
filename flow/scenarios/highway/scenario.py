@@ -1,29 +1,40 @@
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
+
+
+ADDITIONAL_NET_PARAMS = {
+    # length of the highway
+    "length": 1000,
+    # number of lanes
+    "lanes": 4,
+    # speed limit for all edges
+    "speed_limit": 30,
+}
 
 
 class HighwayScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=InitialConfig()):
-        """
-        Initializes a loop scenario. Required net_params: length, lanes,
-        speed_limit, resolution.
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
+        """Initializes a highway scenario.
+
+        Requires from net_params:
+        - length: length of the circle
+        - lanes: number of lanes in the circle
+        - speed_limit: max speed limit of the circle
 
         See Scenario.py for description of params.
         """
-        REQUIRED_NET_PARAMS = ["length", "lanes", "speed_limit"]
-
-        for param in REQUIRED_NET_PARAMS:
-            if param not in net_params.additional_params:
-                raise ValueError(
-                    "highway network parameter {} not supplied".format(param))
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.length = net_params.additional_params["length"]
         self.lanes = net_params.additional_params["lanes"]
-        self.speed_limit = net_params.additional_params["speed_limit"]
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config=initial_config)
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """

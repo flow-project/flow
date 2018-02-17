@@ -1,9 +1,7 @@
 from flow.envs.base_env import Env
 from flow.core import rewards
-from flow.controllers.car_following_models import *
 
 from gym.spaces.box import Box
-from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 import numpy as np
 
@@ -16,7 +14,6 @@ class LaneChangeAccelEnv(Env):
     the target velocity. State function is a vector of the velocities and
     absolute positions for each vehicle.
     """
-
     @property
     def action_space(self):
         """
@@ -43,9 +40,12 @@ class LaneChangeAccelEnv(Env):
         An observation consists of the velocity, absolute position, and lane
         index of each vehicle in the fleet
         """
-        speed = Box(low=-np.inf, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        lane = Box(low=0, high=self.scenario.lanes-1, shape=(self.vehicles.num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=-np.inf, high=np.inf,
+                    shape=(self.vehicles.num_vehicles,))
+        lane = Box(low=0, high=self.scenario.lanes-1,
+                   shape=(self.vehicles.num_vehicles,))
+        absolute_pos = Box(low=0., high=np.inf,
+                           shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, absolute_pos, lane))
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -100,10 +100,12 @@ class LaneChangeAccelEnv(Env):
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
-            [self.time_counter <= self.lane_change_duration + self.vehicles.get_state(veh_id, 'last_lc')
+            [self.time_counter <= self.lane_change_duration
+             + self.vehicles.get_state(veh_id, 'last_lc')
              for veh_id in sorted_rl_ids]
         # vehicle that are not allowed to change have their directions set to 0
-        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+        direction[non_lane_changing_veh] = \
+            np.array([0] * sum(non_lane_changing_veh))
 
         self.apply_acceleration(sorted_rl_ids, acc=acceleration)
         self.apply_lane_change(sorted_rl_ids, direction=direction)
@@ -155,10 +157,12 @@ class LaneChangeOnlyEnv(LaneChangeAccelEnv):
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
-            [self.time_counter <= self.lane_change_duration + self.vehicles[veh_id]['last_lc']
+            [self.time_counter <= self.lane_change_duration
+             + self.vehicles[veh_id]['last_lc']
              for veh_id in sorted_rl_ids]
         # vehicle that are not allowed to change have their directions set to 0
-        direction[non_lane_changing_veh] = np.array([0] * sum(non_lane_changing_veh))
+        direction[non_lane_changing_veh] = \
+            np.array([0] * sum(non_lane_changing_veh))
 
         self.apply_lane_change(sorted_rl_ids, direction=direction)
 

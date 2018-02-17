@@ -8,20 +8,22 @@ import cloudpickle
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
+from examples.rllib.stabilizing_the_ring import make_create_env
 
 
 def to_subpolicy_state(inputs):
     return inputs
 
-
+fn_choose_subpolicy = """
 def choose_policy(inputs):
-    return 0
+    return tf.cast(inputs[:, 0] > 1e6, tf.int32)
+"""
 
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
-    horizon = 500
-    num_cpus=3
+    horizon = 100
+    num_cpus = 2
     ray.init(num_cpus=num_cpus, redirect_output=True)
     config["num_workers"] = num_cpus
     config["timesteps_per_batch"] = horizon * 3
@@ -30,11 +32,13 @@ if __name__ == "__main__":
     config["horizon"] = horizon
 
     config["model"].update(
-        {"fcnet_hiddens": [[5, 3]] * 2})
-    config["model"]["user_data"] = {}
-    config["model"]["user_data"].update({"num_subpolicies": 2,
-                                         "fn_choose_subpolicy": list(
-                                             cloudpickle.dumps(choose_policy))})
+        {"fcnet_hiddens": [5, 5]})
+
+    options = {"num_subpolicies": 2,
+               "fn_choose_subpolicy": fn_choose_subpolicy,
+               "hierarchical_fcnet_hiddens": [[32, 32]] * 2}
+    config["model"].update({"custom_options": options})
+
     # config["model"].update(
     #     {"num_subpolicies": 2, "fcnet_hiddens": [[5, 3]] * 2,
     #      "choose_policy": marshal.dumps(choose_policy.__code__)})
@@ -43,11 +47,10 @@ if __name__ == "__main__":
     #                         "to_subpolicy_state": to_subpolicy_state,
     #                         "choose_policy": choose_policy})
 
-    from examples.rllib.stabilizing_the_ring import make_create_env
     flow_env_name = "WaveAttenuationPOEnv"
-    env_name = flow_env_name+'-v0'
+    env_name = flow_env_name + '-v0'
     # Register as rllib env
-    create_env, env_name = make_create_env()
+    create_env, env_name = make_create_env("WaveAttenuationPOEnv")
     register_rllib_env(env_name, create_env)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
