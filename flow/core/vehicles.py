@@ -269,10 +269,10 @@ class Vehicles:
 
             # update the "absolute_position" variable
             for veh_id in self.__ids:
-                prev_pos = env.get_x_by_id(veh_id)
-                this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
-                this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
                 try:
+                    prev_pos = env.get_x_by_id(veh_id)
+                    this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
+                    this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
                     change = env.scenario.get_x(this_edge, this_pos) - prev_pos
                     if change < 0:
                         change += env.scenario.length
