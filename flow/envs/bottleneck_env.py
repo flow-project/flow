@@ -23,7 +23,7 @@ EDGE_AFTER_RAMP_METER = "3"
 NUM_RAMP_METERS = 14
 RAMP_METER_AREA = 80
 
-MAX_LANES = 16  # largest number of lanes in the network
+MAX_LANES = 8  # largest number of lanes in the network
 
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
@@ -228,8 +228,9 @@ class BridgeTollEnv(BottleneckEnv):
         if a lane change isn't applied, and sufficient time has passed, issue an
         acceleration like normal.
         """
-        acceleration = actions[::2][0:self.vehicles.num_rl_vehicles]
-        direction = np.round(actions[1::2])[0:self.vehicles.num_rl_vehicles]
+        num_rl = self.vehicles.num_rl_vehicles
+        acceleration = actions[::2][:num_rl]
+        direction = np.round(actions[1::2])[:num_rl]
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
