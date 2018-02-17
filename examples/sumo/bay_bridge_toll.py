@@ -8,6 +8,7 @@ from flow.core.traffic_lights import TrafficLights
 
 from flow.core.experiment import SumoExperiment
 from flow.envs.loop_accel import AccelEnv
+from flow.envs.bottleneck_env import BottleneckEnv
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
@@ -58,7 +59,7 @@ scenario = BBTollScenario(name="bay_bridge_toll",
                           initial_config=initial_config,
                           traffic_lights=traffic_lights)
 
-env = AccelEnv(env_params, sumo_params, scenario)
+env = BottleneckEnv(env_params, sumo_params, scenario)
 
 exp = SumoExperiment(env, scenario)
 
