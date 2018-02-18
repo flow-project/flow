@@ -157,7 +157,7 @@ class Env(gym.Env, Serializable):
                      "-c", self.scenario.cfg,
                      "--remote-port", str(port),
                      "--step-length", str(self.sim_step),
-                     "--step-method.ballistic", "true"]
+                     "--step-method.ballistic", "false"]
 
         # add step logs (if requested)
         if self.sumo_params.no_step_log:
