@@ -10,6 +10,7 @@ class SumoParams:
                  no_step_log=True,
                  sumo_binary="sumo",
                  overtake_right=False,
+                 ballistic=False,
                  seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
@@ -28,17 +29,22 @@ class SumoParams:
             Emissions output is not generated if this value is not specified
         lateral_resolution: float, optional
             width of the divided sublanes within a lane, defaults to None (i.e.
-            no sublanes). If this value is specified, the vehicle in the network
-            cannot use the "LC2013" lane change model.
+            no sublanes). If this value is specified, the vehicle in the
+            network cannot use the "LC2013" lane change model.
         no_step_log: bool, optional
-            specifies whether to add sumo's step logs to the log file, and print
-            them into the terminal during runtime, defaults to True
+            specifies whether to add sumo's step logs to the log file, and
+            print them into the terminal during runtime, defaults to True
         sumo_binary: str, optional
             specifies whether to visualize the rollout(s). May be:
                 - 'sumo-gui' to run the experiment with the gui
                 - 'sumo' to run without the gui (default)
         overtake_right: bool, optional
-            whether vehicles are allowed to overtake on the right as well as the left
+            whether vehicles are allowed to overtake on the right as well as
+            the left
+        ballistic: bool, optional
+            specifies whether to use ballistic step updates. This is somewhat
+            more realistic, but increases the possibility of collisions.
+            Defaults to False
         seed: int, optional
             seed for sumo instance
         """
@@ -49,6 +55,7 @@ class SumoParams:
         self.no_step_log = no_step_log
         self.sumo_binary = sumo_binary
         self.seed = seed
+        self.ballistic = ballistic
         self.overtake_right = overtake_right
 
 
