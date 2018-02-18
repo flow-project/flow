@@ -25,7 +25,7 @@ NUM_LANES = 8  # number of lanes in the widest highway
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sumo_binary="sumo")
+sumo_params = SumoParams(sumo_binary="sumo-gui", sim_step=1)
 
 vehicles = Vehicles()
 vehicles.add(veh_id="rl",

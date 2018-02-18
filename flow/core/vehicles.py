@@ -262,10 +262,13 @@ class Vehicles:
         else:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
-                prev_lane = self.get_lane(veh_id)
-                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
-                        prev_lane and veh_id in self.__rl_ids:
-                    self.set_state(veh_id, "last_lc", env.time_counter)
+                try:
+                    prev_lane = self.get_lane(veh_id)
+                    if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
+                            prev_lane and veh_id in self.__rl_ids:
+                        self.set_state(veh_id, "last_lc", env.time_counter)
+                except:
+                    pass
 
             # update the "absolute_position" variable
             for veh_id in self.__ids:
@@ -273,6 +276,9 @@ class Vehicles:
                     prev_pos = env.get_x_by_id(veh_id)
                     this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
                     this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
+                except KeyError:
+                    continue
+                try:
                     change = env.scenario.get_x(this_edge, this_pos) - prev_pos
                     if change < 0:
                         change += env.scenario.length
@@ -283,11 +289,11 @@ class Vehicles:
                     self.set_absolute_position(veh_id, -1001)
 
         # update the "headway", "leader", and "follower" variables
-        for veh_id in self.__ids:
-            headway = vehicle_obs[veh_id][tc.VAR_LEADER]
-            vtype = self.get_state(veh_id, "type")
-            min_gap = self.minGap[vtype]
             try:
+                for veh_id in self.__ids:
+                    headway = vehicle_obs[veh_id][tc.VAR_LEADER]
+                    vtype = self.get_state(veh_id, "type")
+                    min_gap = self.minGap[vtype]
                 if headway is None:
                     self.__vehicles[veh_id]["leader"] = None
                     self.__vehicles[veh_id]["follower"] = None
@@ -896,9 +902,12 @@ class Vehicles:
             Index = lane index
             Element = follower at this lane
         """
-        this_pos = self.get_position(veh_id)
-        this_edge = self.get_edge(veh_id)
-        num_lanes = env.scenario.num_lanes(this_edge)
+        try:
+            this_pos = self.get_position(veh_id)
+            this_edge = self.get_edge(veh_id)
+            num_lanes = env.scenario.num_lanes(this_edge)
+        except:
+            return [], [], [], []
 
         # set default values for all output values
         headway = [1000] * num_lanes

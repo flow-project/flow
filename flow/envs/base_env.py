@@ -396,9 +396,7 @@ class Env(gym.Env, Serializable):
 
         # crash encodes whether sumo experienced a crash
         crash = \
-            np.any(np.array([self.vehicles.get_position(veh_id)
-                             for veh_id in self.vehicles.get_ids()]) < 0) \
-            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+            self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
