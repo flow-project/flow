@@ -25,7 +25,7 @@ NUM_LANES = 4  # number of lanes in the widest highway
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step = 0.2, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step = 0.1, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
@@ -127,7 +127,7 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "BottleNeckVerySmall"  # experiment prefix
-for seed in [1,2,3,4,5]:  # , 1, 5, 10, 73]:
+for seed in [1, 11, 22, 33, 44, 55]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling

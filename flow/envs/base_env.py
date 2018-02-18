@@ -156,8 +156,7 @@ class Env(gym.Env, Serializable):
         sumo_call = [self.sumo_params.sumo_binary,
                      "-c", self.scenario.cfg,
                      "--remote-port", str(port),
-                     "--step-length", str(self.sim_step),
-                     "--step-method.ballistic", "false"]
+                     "--step-length", str(self.sim_step)]
 
         # add step logs (if requested)
         if self.sumo_params.no_step_log:
@@ -396,9 +395,7 @@ class Env(gym.Env, Serializable):
 
         # crash encodes whether sumo experienced a crash
         crash = \
-            np.any(np.array([self.vehicles.get_position(veh_id)
-                             for veh_id in self.vehicles.get_ids()]) < 0) \
-            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+            self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
