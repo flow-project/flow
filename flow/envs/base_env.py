@@ -156,8 +156,7 @@ class Env(gym.Env, Serializable):
         sumo_call = [self.sumo_params.sumo_binary,
                      "-c", self.scenario.cfg,
                      "--remote-port", str(port),
-                     "--step-length", str(self.sim_step),
-                     "--step-method.ballistic", "true"]
+                     "--step-length", str(self.sim_step)]
 
         # add step logs (if requested)
         if self.sumo_params.no_step_log:
