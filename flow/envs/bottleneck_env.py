@@ -59,12 +59,15 @@ class BottleneckEnv(LaneChangeAccelEnv):
         # update the dict with all the edges in edge_list so we can look forward for edges
         self.edge_dict.update((k, [[] for _ in range(MAX_LANES)]) for k in EDGE_LIST)
         for veh_id in self.vehicles.get_ids():
-            edge = self.vehicles.get_edge(veh_id)
-            if edge not in self.edge_dict:
-                self.edge_dict.update({edge: [[] for _ in range(MAX_LANES)]})
-            lane = self.vehicles.get_lane(veh_id)  # integer
-            pos = self.vehicles.get_position(veh_id)
-            self.edge_dict[edge][lane].append((veh_id, pos))
+            try:
+                edge = self.vehicles.get_edge(veh_id)
+                if edge not in self.edge_dict:
+                    self.edge_dict.update({edge: [[] for _ in range(MAX_LANES)]})
+                lane = self.vehicles.get_lane(veh_id)  # integer
+                pos = self.vehicles.get_position(veh_id)
+                self.edge_dict[edge][lane].append((veh_id, pos))
+            except:
+                pass
         if not self.disable_tb:
             self.apply_toll_bridge_control()
         if not self.disable_ramp_metering:
@@ -157,6 +160,15 @@ class BridgeTollEnv(BottleneckEnv):
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
         num_obs = 2*num_edges + 4*MAX_LANES*num_rl_veh + 3*num_rl_veh
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print(num_obs)
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print("--------------")
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
 
     def get_state(self):
@@ -208,7 +220,13 @@ class BridgeTollEnv(BottleneckEnv):
         if len(rl_ids) != self.num_rl:
             diff = (self.num_rl - len(rl_ids))
             extra_zeros = [0]*(4*MAX_LANES*diff + 3*diff)
-        return np.asarray(rl_obs + relative_obs + edge_obs + extra_zeros)
+        num_edges = len(self.scenario.get_edge_list())
+        num_rl_veh = self.num_rl
+        num_obs = 2 * num_edges + 4 * MAX_LANES * num_rl_veh + 3 * num_rl_veh
+        if len(rl_obs + relative_obs + edge_obs) < num_obs:
+            return np.asarray(rl_obs + relative_obs + edge_obs + extra_zeros)
+        else:
+            return np.asarray(rl_obs + relative_obs + edge_obs)
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
