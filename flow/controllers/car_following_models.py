@@ -1,23 +1,17 @@
-"""
-This script contains several car-following control models for flow-controlled
-vehicles.
+"""This script contains several car-following control models for
+flow-controlled vehicles.
 
 Controllers can have their output delayed by some duration. Each controller
-includes functions
+includes the function:
     get_accel(self, env) -> acc
         - using the current state of the world and existing parameters,
         uses the control model to return a vehicle acceleration.
-    reset_delay(self) -> None
-        - clears the queue of acceleration outputs used to generate
-        delayed output. used when the experiment is reset to clear out
-        old actions based on old states.
 """
-
-import random
 import math
-from flow.controllers.base_controller import BaseController
 import collections
 import numpy as np
+
+from flow.controllers.base_controller import BaseController
 
 
 class CFMController(BaseController):
@@ -25,9 +19,8 @@ class CFMController(BaseController):
     def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
                  accel_max=20, decel_max=-5, tau=0.5, dt=0.1, noise=0,
                  fail_safe=None):
-        """
-        Instantiates a CFM controller
-        
+        """Instantiates a CFM controller
+
         Attributes
         ----------
         veh_id: str
@@ -88,19 +81,15 @@ class CFMController(BaseController):
 
         return min(self.accel_queue.pop(), self.accel_max)
 
-    def reset_delay(self, env):
-        self.accel_queue.clear()
-
 
 class BCMController(BaseController):
 
     def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
                  accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0,
                  fail_safe=None):
-        """
-        Instantiates a Bilateral car-following model controller. Looks ahead
+        """Instantiates a Bilateral car-following model controller. Looks ahead
         and behind.
-        
+
         Attributes
         ----------
         veh_id: str
@@ -173,17 +162,13 @@ class BCMController(BaseController):
 
         return min(self.accel_queue.pop(), self.accel_max)
 
-    def reset_delay(self, env):
-        self.accel_queue.clear()
-
 
 class OVMController(BaseController):
 
     def __init__(self, veh_id, alpha=1, beta=1, h_st=2, h_go=15, v_max=30,
                  accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0,
                  fail_safe=None):
-        """
-        Instantiates an Optimal Vehicle Model controller.
+        """Instantiates an Optimal Vehicle Model controller.
 
         Attributes
         ----------
@@ -242,14 +227,14 @@ class OVMController(BaseController):
 
         # V function here - input: h, output : Vh
         if h <= self.h_st:
-            Vh = 0
+            v_h = 0
         elif self.h_st < h < self.h_go:
-            Vh = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) /
-                                                (self.h_go - self.h_st)))
+            v_h = self.v_max / 2 * (1 - math.cos(math.pi * (h - self.h_st) /
+                                                 (self.h_go - self.h_st)))
         else:
-            Vh = self.v_max
+            v_h = self.v_max
 
-        acc = self.alpha*(Vh - this_vel) + self.beta*(h_dot)
+        acc = self.alpha * (v_h - this_vel) + self.beta * h_dot
 
         while len(self.accel_queue) <= self.delay:
             # Some behavior here for initial states - extrapolation, dumb
@@ -259,17 +244,13 @@ class OVMController(BaseController):
         return max(min(self.accel_queue.pop(), self.accel_max),
                    -1 * abs(self.decel_max))
 
-    def reset_delay(self, env):
-        self.accel_queue.clear()
-
 
 class LinearOVM(BaseController):
 
     def __init__(self, veh_id, v_max=30, accel_max=15, decel_max=-5,
                  adaptation=0.65, h_st=5, tau=0.5, dt=0.1, noise=0,
                  fail_safe=None):
-        """
-        Instantiates a Linear OVM controller
+        """Instantiates a Linear OVM controller
 
         Attributes
         ----------
@@ -317,13 +298,13 @@ class LinearOVM(BaseController):
         # V function here - input: h, output : Vh
         alpha = 1.689  # the average value from Nakayama paper
         if h < self.h_st:
-            Vh = 0
+            v_h = 0
         elif self.h_st <= h <= self.h_st + self.v_max/alpha:
-            Vh = alpha * (h - self.h_st)
+            v_h = alpha * (h - self.h_st)
         else:
-            Vh = self.v_max
+            v_h = self.v_max
 
-        acc = (Vh - this_vel) / self.adaptation
+        acc = (v_h - this_vel) / self.adaptation
 
         while len(self.accel_queue) <= self.delay:
             # Some behavior here for initial states - extrapolation, dumb
@@ -333,16 +314,12 @@ class LinearOVM(BaseController):
         return max(min(self.accel_queue.pop(), self.acc_max),
                    -1 * abs(self.decel_max))
 
-    def reset_delay(self, env):
-        self.accel_queue.clear()
-
 
 class IDMController(BaseController):
 
     def __init__(self, veh_id, v0=30, T=1, a=1, b=1.5, delta=4, s0=2, s1=0,
                  decel_max=-5, dt=0.1, noise=0, fail_safe=None):
-        """
-        Instantiates an Intelligent Driver Model (IDM) controller
+        """Instantiates an Intelligent Driver Model (IDM) controller
 
         Attributes
         ----------
@@ -387,14 +364,14 @@ class IDMController(BaseController):
         self.dt = dt
 
     def get_accel(self, env):
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        v = env.vehicles.get_speed(self.veh_id)
         lead_id = env.vehicles.get_leader(self.veh_id)
         h = env.vehicles.get_headway(self.veh_id)
 
-        # negative headways may be registered by sumo at intersections/junctions
-        # setting them to 0 causes vehicles to not move; therefore, we maintain
-        # these negative headways to let sumo control the dynamics as it sees
-        # fit at these points
+        # negative headways may be registered by sumo at intersections/
+        # junctions. Setting them to 0 causes vehicles to not move; therefore,
+        # we maintain these negative headways to let sumo control the dynamics
+        # as it sees fit at these points.
         if abs(h) < 1e-3:
             h = 1e-3
 
@@ -402,20 +379,29 @@ class IDMController(BaseController):
             s_star = 0
         else:
             lead_vel = env.vehicles.get_speed(lead_id)
-            s_star = \
-                self.s0 + max([0, this_vel*self.T + this_vel*(this_vel-lead_vel)
-                               / (2 * np.sqrt(self.a * self.b))])
+            s_star = self.s0 + max(
+                0,
+                v * self.T + v*(v-lead_vel) / (2*np.sqrt(self.a*self.b)))
 
-        return self.a * (1 - (this_vel/self.v0)**self.delta - (s_star/h)**2)
-
-    def reset_delay(self, env):
-        pass
+        return self.a * (1 - (v/self.v0)**self.delta - (s_star/h)**2)
 
 
-class SumoCarFollowingController:
-
+class SumoCarFollowingController(BaseController):
     def __init__(self, veh_id):
+        """Instantiates a car-following controller whose actions are purely
+        defined by sumo.
+
+        Note that methods for implementing noise and failsafes through
+        BaseController, are not available here. However, similar methods are
+        available through sumo when initializing the parameters of the vehicle.
+
+        Attributes
+        ----------
+        veh_id: str
+            name of the vehicle
+        """
+        super().__init__(veh_id, controller_params={})
         self.sumo_controller = True
 
-    def get_action(self, env):
+    def get_accel(self, env):
         return None

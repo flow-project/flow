@@ -1,8 +1,7 @@
-class BaseLaneChangingController:
+class BaseLaneChangeController:
 
     def __init__(self, veh_id, lane_change_params):
-        """
-        Base class for lane-changing controllers.
+        """Base class for lane-changing controllers.
 
         Instantiates a controller and forces the user to pass a
         lane_changing duration to the controller. Provides the method
@@ -23,22 +22,61 @@ class BaseLaneChangingController:
 
         # min_gap defines the minimum gap (in meters) that a car is willing
         # to accept in front and behind it to enter a gap
-        if "min_gap" in lane_change_params:
-            self.min_gap = lane_change_params["min_gap"]
-        else:
-            self.min_gap = 0.1
+        self.min_gap = lane_change_params.get("min_gap", 0.1)
+
+    def get_lane_change_action(self, env):
+        """Specifies the lane change action to be performed.
+
+        If discrete lane changes are being performed, the action is a direction
+         -1: lane change right
+         0: no lane change
+         1: lane change left
+
+        Parameters
+        ----------
+        env: Env type
+            state of the environment at the current time step
+
+        Returns
+        -------
+        lc_action: float or int
+            requested lane change action
+        """
+        raise NotImplementedError
+
+    def get_action(self, env):
+        """Returns the action of the lane change controller
+
+        Modifies the lane change action to ensure safety, if requested.
+
+        Returns
+        -------
+        lc_action: float or int
+            lane change action
+        """
+        lc_action = self.get_lane_change_action(env)
+        # TODO(ak): add failsafe
+
+        return lc_action
 
     def get_safe_lane_change_action(self, env, target_lane):
-        """
-        Determines whether a collision will occur if a vehicle enters the target
-        lane.
+        """Determines whether a collision will occur if a vehicle enters the
+        target lane.
 
-        :param env:
-        :param target_lane:
-        :return: the safe target lane (requested target lane if action is safe,
-                 current lane if the action is not)
+        Parameters
+        ----------
+        env: Env type
+            state of the environment at the current time step
+        target_lane: int
+            requested target lane by the controller
+
+        Returns
+        -------
+        safe_lane: int
+            the safe target lane (requested target lane if action is safe,
+            current lane if the action is not)
         """
-        current_lane = env.vehicles[self.veh_id]['lane']
+        current_lane = env.vehicles.get_lane(self.veh_id)
 
         # if no lane change is being performed, there is no need to check for
         # safety
@@ -56,18 +94,18 @@ class BaseLaneChangingController:
         # if there is only one vehicle in the environment, or there are no
         # vehicles in the target
         # lane, then lane changing to the target lane is safe
-        if (lead_id is None) or (len(env.vehicles) == 1):
+        if (lead_id is None) or (env.vehicles.num_vehicles == 1):
             return target_lane
 
         lead_pos = env.get_x_by_id(lead_id)
-        lead_length = env.vehicles[lead_id]['length']
+        lead_length = env.vehicles.get_length(lead_id)
 
         trail_pos = env.get_x_by_id(trail_id)
-        trail_vel = env.vehicles[trail_id]['speed']
+        trail_vel = env.vehicles.get_speed(trail_id)
 
         this_pos = env.get_x_by_id(self.veh_id)
-        this_vel = env.vehicles[self.veh_id]['speed']
-        this_length = env.vehicles[self.veh_id]['length']
+        this_vel = env.vehicles.get_speed(self.veh_id)
+        this_length = env.vehicles.get_length(self.veh_id)
 
         lead_gap = (lead_pos - this_pos) % env.scenario.length - lead_length
         trail_gap = (this_pos - trail_pos) % env.scenario.length - this_length

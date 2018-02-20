@@ -1,9 +1,10 @@
 
 class BaseRouter:
     def __init__(self, veh_id, router_params):
-        """
-        Base class for routing controllers, which are used to dynamical change
-        the routes of vehicles after initialization.
+        """Base class for routing controllers.
+
+        These controllers are used to dynamical change the routes of vehicles
+        after initialization.
 
         Attributes
         ----------
@@ -16,8 +17,7 @@ class BaseRouter:
         self.router_params = router_params
 
     def choose_route(self, env):
-        """
-        The routing method implemented by the algorithm.
+        """The routing method implemented by the controller.
 
         Parameters
         ----------
