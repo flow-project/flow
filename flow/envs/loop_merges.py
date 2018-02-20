@@ -14,8 +14,22 @@ class LoopMergesEnv(Env):
     Reward function is negative norm of the difference between the velocities of
     each vehicle, and the target velocity. State function is a vector of the
     velocities, positions, and edge IDs for each vehicle.
-    """
 
+    States
+    ------
+
+    Actions
+    -------
+
+    Reward
+    ------
+
+    Termination
+    -----------
+
+    Additional
+    ----------
+    """
     @property
     def action_space(self):
         """

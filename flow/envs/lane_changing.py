@@ -7,23 +7,36 @@ import numpy as np
 
 
 class LaneChangeAccelEnv(Env):
-    """
-    Fully functional environment for multi lane closed loop settings. Takes in
-    an *acceleration* and *lane-change* as an action. Reward function is
-    negative norm of the difference between the velocities of each vehicle, and
-    the target velocity. State function is a vector of the velocities and
-    absolute positions for each vehicle.
+    """Environment used to train autonomous vehicles to improve traffic flows
+    when lane-change and acceleration actions are permitted by the rl agent.
+
+    States
+    ------
+    The state consists of the velocities, absolute position, and lane index of
+    all vehicles in the network. This assumes a constant number of vehicles.
+
+    Actions
+    -------
+    Actions consist of:
+    - a (continuous) acceleration from max-deacc to max-acc
+    - a (continuous) lane-change action from -1 to 1, used to determine the
+      lateral direction the vehicle will take.
+    Lane change actions are performed only if the vehicle has not changed lanes
+    for the lane change duration specified in EnvParams.
+
+    Reward
+    ------
+    The reward function is the two-norm of the distance of the speed of the
+    vehicles in the network from a desired speed, combined with a penalty to
+    discourage excess lane changes by the rl vehicle.
+
+    Termination
+    -----------
+    A rollout is terminated if the time horizon is reached or if two vehicles
+    collide into one another.
     """
     @property
     def action_space(self):
-        """
-        See parent class
-
-        Actions are:
-         - a (continuous) acceleration from max-deacc to max-acc
-         - a (continuous) lane-change action from -1 to 1, used to determine the
-           lateral direction the vehicle will take.
-        """
         max_decel = self.env_params.max_decel
         max_accel = self.env_params.max_accel
 
@@ -34,12 +47,6 @@ class LaneChangeAccelEnv(Env):
 
     @property
     def observation_space(self):
-        """
-        See parent class
-
-        An observation consists of the velocity, absolute position, and lane
-        index of each vehicle in the fleet
-        """
         speed = Box(low=-np.inf, high=np.inf,
                     shape=(self.vehicles.num_vehicles,))
         lane = Box(low=0, high=self.scenario.lanes-1,
@@ -49,14 +56,6 @@ class LaneChangeAccelEnv(Env):
         return Tuple((speed, absolute_pos, lane))
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """
-        See parent class
-
-        The reward function is negative norm of the difference between the
-        velocities of each vehicle, and the target velocity. Also, a small
-        penalty is added for rl lane changes in order to encourage mimizing
-        lane-changing action.
-        """
         # compute the system-level performance of vehicles from a velocity
         # perspective
         reward = rewards.desired_velocity(self, fail=kwargs["fail"])
@@ -70,27 +69,12 @@ class LaneChangeAccelEnv(Env):
         return reward
 
     def get_state(self):
-        """
-        See parent class
-
-        The state is an array the velocities, absolute positions, and lane
-        numbers for each vehicle.
-        """
         return np.array([[self.vehicles.get_speed(veh_id),
                           self.vehicles.get_absolute_position(veh_id),
                           self.vehicles.get_lane(veh_id)]
                          for veh_id in self.sorted_ids])
 
     def apply_rl_actions(self, actions):
-        """
-        See parent class
-
-        Takes a tuple and applies a lane change or acceleration. if a lane
-        change is applied, don't issue any commands for the duration of the lane
-        change and return negative rewards for actions during that lane change.
-        if a lane change isn't applied, and sufficient time has passed, issue an
-        acceleration like normal.
-        """
         acceleration = actions[::2]
         direction = np.round(actions[1::2])
 
@@ -112,14 +96,23 @@ class LaneChangeAccelEnv(Env):
 
 
 class LaneChangeOnlyEnv(LaneChangeAccelEnv):
-    """
-    Am extension of SimpleLaneChangingAccelerationEnvironment. Autonomous
-    vehicles in this environment can only make lane-changing decisions. Their
-    accelerations, on the other hand, are controlled by an human car-following
-    model specified under "rl_acc_controller" in the in additional_params
-    attribute of env_params.
-    """
+    """Environment used to train autonomous vehicles to improve traffic flows
+    when lane-change actions are only permitted by the rl agent.
 
+    States
+    ------
+
+    Actions
+    -------
+
+    Reward
+    ------
+
+    Termination
+    -----------
+    A rollout is terminated if the time horizon is reached or if two vehicles
+    collide into one another.
+    """
     def __init__(self, env_params, sumo_params, scenario):
 
         super().__init__(env_params, sumo_params, scenario)
@@ -134,21 +127,9 @@ class LaneChangeOnlyEnv(LaneChangeAccelEnv):
 
     @property
     def action_space(self):
-        """
-        See parent class
-        
-        Actions are: a continuous direction for each rl vehicle
-        """
         return Box(low=-1, high=1, shape=(self.vehicles.num_rl_vehicles,))
 
     def apply_rl_actions(self, actions):
-        """
-        see parent class
-
-        Actions are applied to rl vehicles as follows:
-        - accelerations are derived using the user-specified accel controller
-        - lane-change commands are collected from rllab
-        """
         direction = actions
 
         # re-arrange actions according to mapping in observation space
