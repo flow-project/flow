@@ -17,7 +17,7 @@ class BaseController:
             ID of the vehicle this controller is used for
         controller_params: dict
             Dictionary that optionally contains 'delay', the delay, and must
-            contain 'max_decel', the maximum deceleration as well as all
+            contain 'max_deaccel', the maximum deceleration as well as all
             other parameters that dictate the driving behavior.
         """
         self.veh_id = veh_id
