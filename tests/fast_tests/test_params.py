@@ -1,5 +1,7 @@
 import unittest
-from flow.core.params import *
+from flow.core.params import SumoLaneChangeParams
+import os
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestSumoLaneChangeParams(unittest.TestCase):
@@ -7,6 +9,7 @@ class TestSumoLaneChangeParams(unittest.TestCase):
     Tests that SumoLaneChangeParams only returns parameters that are valid to
     the given LC model.
     """
+
     def runTest(self):
         # test for LC2013
         lc_params_1 = SumoLaneChangeParams(model="LC2013")
@@ -25,3 +28,7 @@ class TestSumoLaneChangeParams(unittest.TestCase):
              "lcPushy", "lcPushyGap", "lcAssertive", "lcImpatience",
              "lcTimeToImpatience", "lcAccelLat"]
         self.assertCountEqual(attributes_2, expected_attributes_2)
+
+
+if __name__ == '__main__':
+    unittest.main()
