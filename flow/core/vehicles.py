@@ -12,7 +12,7 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 
 SPEED_MODES = {"aggressive": 0, "no_collide": 1, "all_checks": 31}
-LC_MODES = {"aggressive": 0, "no_lat_collide": 256, "strategic": 853}
+LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
 
 class Vehicles:
