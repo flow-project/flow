@@ -332,7 +332,8 @@ class Vehicles:
             accel_controller[0](veh_id=veh_id, **accel_controller[1])
 
         # specify the lane-changing controller class
-        lc_controller = self.type_parameters[veh_type]["lane_change_controller"]
+        lc_controller = \
+            self.type_parameters[veh_type]["lane_change_controller"]
         self.__vehicles[veh_id]["lane_changer"] = \
             lc_controller[0](veh_id=veh_id, **lc_controller[1])
 
@@ -477,41 +478,57 @@ class Vehicles:
             return []
 
     def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
+        """Returns the initial speed upon reset of the specified vehicle. If
+        the vehicle is not found, returns -1001."""
+        if isinstance(veh_id, list):
+            return [self.get_initial_speed(vehID) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("initial_speed", -1001)
 
     def get_lane_change_mode(self, veh_id):
-        return self.__vehicles[veh_id]["lane_change_mode"]
+        """Returns the lane change mode value of the specified vehicle. If the
+        vehicle is not found, returns -1001."""
+        if isinstance(veh_id, list):
+            return [self.get_lane_change_mode(vehID) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("lane_change_mode", -1001)
 
     def get_speed_mode(self, veh_id):
-        return self.__vehicles[veh_id]["speed_mode"]
+        """Returns the speed mode value of the specified vehicle. If the
+        vehicle is not found, returns -1001."""
+        if isinstance(veh_id, list):
+            return [self.get_speed_mode(vehID) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("speed_mode", -1001)
 
     def get_speed(self, veh_id):
-        """Returns the speed(s) of the specified vehicle(s)."""
+        """Returns the speed of the specified vehicle. If the vehicle is not
+        found, returns -1001."""
         if isinstance(veh_id, list):
             return [self.get_speed(vehID) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, -1001)
 
     def get_absolute_position(self, veh_id):
-        """Returns the absolute position of the specified vehicle."""
+        """Returns the absolute position of the specified vehicle. If the
+        vehicle is not found, returns -1001."""
         if isinstance(veh_id, list):
             return [self.get_absolute_position(vehID) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("absolute_position", -1001)
 
     def get_position(self, veh_id="all"):
-        """Returns the position of the vehicle relative to its current edge."""
+        """Returns the position of the vehicle relative to its current edge. If
+        the vehicle is not found, returns -1001."""
         if isinstance(veh_id, list):
             return [self.get_position(vehID) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANEPOSITION, -1001)
 
     def get_edge(self, veh_id):
         """Returns the position of the specified vehicle (relative to the
-        current edge) at the current time step."""
+        current edge). If the vehicles is not found, returns -1001."""
         if isinstance(veh_id, list):
             return [self.get_edge(vehID) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, "")
 
     def get_lane(self, veh_id="all"):
-        """Returns the lane index of the specified vehicle."""
+        """Returns the lane index of the specified vehicle. If the vehicle is
+        not found, returns -1001."""
         if isinstance(veh_id, list):
             return [self.get_lane(vehID) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANE_INDEX, -1001)
@@ -520,56 +537,61 @@ class Vehicles:
         self.__vehicles[veh_id]["length"] = length
 
     def get_length(self, veh_id):
-        """Returns the length of the specified vehicle."""
+        """Returns the length of the specified vehicle. If the vehicle is not
+        found, returns -1001."""
         if isinstance(veh_id, list):
             return [self.get_length(vehID) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("length", 0)
+        return self.__vehicles.get(veh_id, {}).get("length", -1001)
 
     def get_acc_controller(self, veh_id="all"):
-        """Returns the acceleration controller of the specified vehicle."""
+        """Returns the acceleration controller of the specified vehicle. If the
+        vehicle is not found, returns None."""
         if isinstance(veh_id, list):
             return [self.get_acc_controller(vehID) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("acc_controller", None)
 
     def get_lane_changing_controller(self, veh_id):
-        """Returns the lane changing controller of the specified vehicle."""
+        """Returns the lane changing controller of the specified vehicle. If
+        the vehicle is not found, returns None."""
         if isinstance(veh_id, list):
             return [self.get_lane_changing_controller(vehID)
                     for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_changer", None)
 
     def get_routing_controller(self, veh_id):
-        """Returns the routing controller of the specified vehicle(s)."""
+        """Returns the routing controller of the specified vehicle. If the
+        vehicle is not found, returns None."""
         if isinstance(veh_id, list):
             return [self.get_routing_controller(vehID) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("router", None)  # FIXME
+        return self.__vehicles.get(veh_id, {}).get("router", None)
 
     def get_route(self, veh_id):
-        """Returns the route of the specified vehicle."""
+        """Returns the route of the specified vehicle. If the vehicle is not
+        found, returns an empty list."""
         if not isinstance(veh_id, str):
             return [self.get_route(vehID) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_EDGES, [])
 
     def get_leader(self, veh_id):
-        """Returns the leader of the specified vehicle."""
+        """Returns the leader of the specified vehicle. If the vehicle is not
+        found, returns an empty string."""
         if isinstance(veh_id, list):
             return [self.get_leader(vehID) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("leader", "")
 
     def get_follower(self, veh_id):
-        """Returns the follower of the specified vehicle."""
+        """Returns the follower of the specified vehicle. If the vehicle is not
+        found, returns an empty list."""
         if isinstance(veh_id, list):
-            return [self.__vehicles[vehID]["follower"] for vehID in veh_id]
-        return self.__vehicles[veh_id]["follower"]
+            return [self.get_follower(vehID) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("follower", [])
 
     def get_headway(self, veh_id):
-        """Returns the headway of the specified vehicle(s)."""
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["headway"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["headway"] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["headway"]
+        """Returns the headway of the specified vehicle(s). If the vehicle is
+        not found, return -1001."""
+        if isinstance(veh_id, list):
+            return [self.get_headway(vehID) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("headway", -1001)
 
     def set_lane_headways(self, veh_id, lane_headways):
         self.__vehicles[veh_id]["lane_headways"] = lane_headways
@@ -585,7 +607,8 @@ class Vehicles:
         self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
 
     def get_lane_leaders(self, veh_id):
-        """Returns the leaders for the specified vehicle in all lanes."""
+        """Returns the leaders for the specified vehicle in all lanes. If no
+        vehicle is found, returns an empty list."""
         if isinstance(veh_id, list):
             return [self.get_lane_leaders(vehID) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_leaders", [])
@@ -595,7 +618,8 @@ class Vehicles:
 
     def get_lane_tailways(self, veh_id):
         """Returns the tailways between the specified vehicle and the vehicle
-        behind it in all lanes."""
+        behind it in all lanes. If no vehicle is found, returns an empty list.
+        """
         if isinstance(veh_id, list):
             return [self.get_lane_tailways(vehID) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_tailways", [])
@@ -604,7 +628,8 @@ class Vehicles:
         self.__vehicles[veh_id]["lane_followers"] = lane_followers
 
     def get_lane_followers(self, veh_id):
-        """Returns the followers for the specified vehicle in all lanes."""
+        """Returns the followers for the specified vehicle in all lanes. If no
+        vehicle is found, returns an empty list."""
         if isinstance(veh_id, list):
             return [self.get_lane_followers(vehID) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_followers", [])
@@ -619,12 +644,9 @@ class Vehicles:
         """Generic get function. Returns the value of *state_name* of the
         specified vehicles at the current time step.
         """
-        if not isinstance(veh_id, str):
+        if isinstance(veh_id, list):
             return [self.__vehicles[vehID][state_name] for vehID in veh_id]
-        if veh_id == "all":
-            return [self.__vehicles[vehID][state_name] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id][state_name]
+        return self.__vehicles[veh_id][state_name]
 
     def _multi_lane_headways(self, env):
         """Computes the lane leaders/followers/headways/tailways for all
@@ -686,8 +708,10 @@ class Vehicles:
                 self._ids_by_edge[edge_id] = []
 
     def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges, env):
-        """Utility function for _multi_lane_headways(); computes the required
-        components for the specified vehicle.
+        """Utility function for _multi_lane_headways()
+
+        Computes the lane headways, tailways, leaders, and followers for the
+        specified vehicle.
 
         Parameters
         ----------
