@@ -1,10 +1,13 @@
 import unittest
+import os
+os.environ["TEST_FLAG"] = "True"
+import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 
 from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup, \
     highway_exp_setup
@@ -16,6 +19,7 @@ class TestGetX(unittest.TestCase):
     Tests the get_x function for vehicles placed in links and in junctions. This
     is tested on a scenario whose edgestarts are known beforehand (figure 8).
     """
+
     def setUp(self):
         # create the environment and scenario classes for a figure eight
         env, self.scenario = figure_eight_exp_setup()
@@ -42,6 +46,7 @@ class TestGetEdge(unittest.TestCase):
     edges. This is tested on a scenario whose edgestarts are known beforehand
     (figure 8).
     """
+
     def setUp(self):
         # create the environment and scenario classes for a figure eight
         env, self.scenario = figure_eight_exp_setup()
@@ -69,6 +74,7 @@ class TestEvenStartPos(unittest.TestCase):
     these classes. In order to perform this testing, replace the scenario in
     setUp() with the scenario to be tested.
     """
+
     def setUp_gen_start_pos(self, initial_config=InitialConfig()):
         """
         Replace with any scenario you would like to test gen_even_start_pos on.
@@ -362,6 +368,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
     supposed to be placed at an internal link, in which case the vehicle is
     placed right outside the internal link.
     """
+
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -402,7 +409,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
             # check that, if not all vehicles are equally spaced, that the
             # vehicle that is not equally spaced is right after an internal
             # link, and at position 0
-            for i in range(len(nth_headway)-1):
+            for i in range(len(nth_headway) - 1):
                 if nth_headway[i] - np.mean(nth_headway) > 0.001:
                     # if not, check that the last or first vehicle is right
                     # after an internal link, on position 0
@@ -418,6 +425,7 @@ class TestRandomStartPos(unittest.TestCase):
     """
     Tests the function gen_random_start_pos in base_scenario.py.
     """
+
     def setUp_gen_start_pos(self, initial_config=InitialConfig()):
         # ensures that the random starting position method is being used
         initial_config.spacing = "random"
@@ -541,6 +549,7 @@ class TestEdgeLength(unittest.TestCase):
     """
     Tests the edge_length() method in the base scenario class.
     """
+
     def test_edge_length_edges(self):
         """
         Tests the edge_length() method when called on edges
@@ -575,6 +584,7 @@ class TestSpeedLimit(unittest.TestCase):
     """
     Tests the speed_limit() method in the base scenario class.
     """
+
     def test_speed_limit_edges(self):
         """
         Tests the speed_limit() method when called on edges
@@ -607,6 +617,7 @@ class TestNumLanes(unittest.TestCase):
     """
     Tests the num_lanes() method in the base scenario class.
     """
+
     def test_num_lanes_edges(self):
         """
         Tests the num_lanes() method when called on edges
@@ -640,6 +651,7 @@ class TestGetEdgeList(unittest.TestCase):
     Tests that the get_edge_list() in the scenario class properly returns all
     edges, and not junctions.
     """
+
     def setUp(self):
         # create the environment and scenario classes for a figure eight
         env, self.scenario = figure_eight_exp_setup()
@@ -664,6 +676,7 @@ class TestGetJunctionList(unittest.TestCase):
     Tests that the get_junction_list() in the scenario class properly returns
     all junctions, and no edges.
     """
+
     def setUp(self):
         # create the environment and scenario classes for a figure eight
         env, self.scenario = figure_eight_exp_setup()
@@ -692,6 +705,7 @@ class TestNextPrevEdge(unittest.TestCase):
     are provided as next edges if they are before the next edge (e.g. a via to
     the next edge)
     """
+
     def test_next_edge_internal_links(self):
         """
         Tests the next_edge() method in the presence of internal links.

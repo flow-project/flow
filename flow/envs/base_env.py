@@ -207,7 +207,10 @@ class Env(gym.Env, Serializable):
 
                 # wait a small period of time for the subprocess to activate
                 # before trying to connect with traci
-                time.sleep(config.SUMO_SLEEP)
+                if os.environ.get("TEST_FLAG", 0):
+                    time.sleep(0.1)
+                else:
+                    time.sleep(config.SUMO_SLEEP)
 
                 self.traci_connection = traci.connect(port, numRetries=100)
 
@@ -335,7 +338,7 @@ class Env(gym.Env, Serializable):
             contains other diagnostic information from the previous action
         """
         self.time_counter += 1
-
+            
         # perform acceleration actions for controlled human-driven vehicles
         if len(self.vehicles.get_controlled_ids()) > 0:
             accel = []
