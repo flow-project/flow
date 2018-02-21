@@ -1,11 +1,12 @@
 import unittest
 import os
+import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 
 from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup, \
     highway_exp_setup

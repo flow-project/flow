@@ -5,10 +5,11 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 
 from tests.setup_scripts import ring_road_exp_setup
 import os
+import numpy as np
 
 
 class TestStartingPositionShuffle(unittest.TestCase):
@@ -114,8 +115,8 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
 
 class TestEmissionPath(unittest.TestCase):
     """
-    Tests that the default emission path of an environment is set to None. If it
-    is not None, then sumo starts accumulating memory.
+    Tests that the default emission path of an environment is set to None.
+    If it is not None, then sumo starts accumulating memory.
     """
 
     def setUp(self):
@@ -138,10 +139,9 @@ class TestEmissionPath(unittest.TestCase):
 
 class TestApplyingActionsWithSumo(unittest.TestCase):
     """
-    Tests the apply_acceleration, apply_lane_change, and choose_routes functions
-    in base_env.py
+    Tests the apply_acceleration, apply_lane_change, and choose_routes
+    functions in base_env.py
     """
-
     def setUp(self):
         # create a 2-lane ring road network
         additional_net_params = {"length": 230, "lanes": 3, "speed_limit": 30,
@@ -182,7 +182,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         """
         ids = self.env.vehicles.get_ids()
 
-        vel0 = np.array([self.env.vehicles.get_speed(veh_id) for veh_id in ids])
+        vel0 = np.array([self.env.vehicles.get_speed(veh_id)
+                         for veh_id in ids])
 
         # apply a certain set of accelerations to the vehicles in the network
         accel_step0 = np.array([0, 1, 4, 9, 16])

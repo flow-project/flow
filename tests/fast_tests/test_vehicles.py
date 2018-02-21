@@ -1,14 +1,15 @@
 import unittest
-import numpy as np
 import os
+import numpy as np
 
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController, \
+    SumoCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
-from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
+from tests.setup_scripts import ring_road_exp_setup
 
 
 class TestVehiclesClass(unittest.TestCase):
