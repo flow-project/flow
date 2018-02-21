@@ -1,19 +1,23 @@
 import unittest
+import os
+os.environ["TEST_FLAG"] = "True"
 import numpy as np
 
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController, \
+    SumoCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
-from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup
+from tests.setup_scripts import ring_road_exp_setup
 
 
 class TestVehiclesClass(unittest.TestCase):
     """
     Tests various functions in the vehicles class
     """
+
     def runSpeedLaneChangeModes(self):
         """
         Checks to make sure vehicle class correctly specifies lane change and
@@ -155,6 +159,7 @@ class TestMultiLaneData(unittest.TestCase):
     Tests the functions get_lane_leaders(), get_lane_followers(),
     get_lane_headways(), and get_lane_footways() in the Vehicles class.
     """
+
     def test_no_junctions(self):
         """
         Tests the above mentioned methods in the absence of junctions.
@@ -211,6 +216,7 @@ class TestIdsByEdge(unittest.TestCase):
     """
     Tests the ids_by_edge() method
     """
+
     def setUp(self):
         # create the environment and scenario classes for a figure eight
         vehicles = Vehicles()
