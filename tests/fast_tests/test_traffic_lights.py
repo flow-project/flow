@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from flow.core.params import NetParams
 from flow.core.traffic_lights import TrafficLights
@@ -9,6 +10,7 @@ class TestUpdateGetState(unittest.TestCase):
     """
     Tests the update and get_state functions are working properly.
     """
+
     def tearDown(self):
         # terminate the traci instance
         self.env.terminate()
@@ -63,6 +65,7 @@ class TestSetState(unittest.TestCase):
     """
     Tests the set_state function
     """
+
     def setUp(self):
         # add a traffic light to the top node
         traffic_lights = TrafficLights()
@@ -118,4 +121,5 @@ class TestSetState(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
     unittest.main()

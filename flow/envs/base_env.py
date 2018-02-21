@@ -209,7 +209,10 @@ class Env(gym.Env, Serializable):
 
                 # wait a small period of time for the subprocess to activate
                 # before trying to connect with traci
-                time.sleep(config.SUMO_SLEEP)
+                if os.environ.get("TEST_FLAG", 0):
+                    time.sleep(0.1)
+                else:
+                    time.sleep(config.SUMO_SLEEP)
 
                 self.traci_connection = traci.connect(port, numRetries=100)
 

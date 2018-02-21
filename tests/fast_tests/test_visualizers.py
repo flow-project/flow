@@ -3,7 +3,6 @@ import os
 import pickle
 import numpy as np
 
-
 BROKEN_TESTS = os.environ.get('BROKEN_TESTS', False)
 
 
@@ -35,4 +34,5 @@ class TestVisualizerFlow(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
     unittest.main()

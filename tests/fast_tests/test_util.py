@@ -11,6 +11,7 @@ class TestEmissionToCSV(unittest.TestCase):
     Tests the emission_to_csv function on a small file. Ensures that the headers
     are correct, the length is correct, and some of the components are correct.
     """
+
     def runTest(self):
         # current path
         current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
@@ -43,4 +44,5 @@ class TestEmissionToCSV(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
     unittest.main()

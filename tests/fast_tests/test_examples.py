@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from examples.sumo.cooperative_merge import cooperative_merge_example
 from examples.sumo.figure_eight import figure_eight_example
@@ -108,3 +109,8 @@ class TestSumoExamples(unittest.TestCase):
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
+
+
+if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
+    unittest.main()
