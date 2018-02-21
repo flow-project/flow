@@ -102,10 +102,7 @@ class SimpleGridScenario(Scenario):
         self.long_length = self.grid_array["long_length"]
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config=initial_config,
-                         traffic_lights=traffic_lights)
-
-        self.edges = self.generator.specify_edges(net_params)
+                         initial_config, traffic_lights)
 
     # TODO, make this make any sense at all
     def specify_edge_starts(self):
