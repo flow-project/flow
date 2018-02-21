@@ -1,9 +1,12 @@
 import unittest
+import os
+os.environ["TEST_FLAG"] = "True"
+import numpy as np
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario \
@@ -55,6 +58,7 @@ class TestLoopMerges(unittest.TestCase):
     """
     Tests the loop_merges generator, scenario, and environment.
     """
+
     def setUp(self):
         # create the environment and scenario classes for a ring road
         self.env, scenario = two_loops_one_merging_exp_setup()
