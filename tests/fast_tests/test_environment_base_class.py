@@ -5,9 +5,12 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 
 from tests.setup_scripts import ring_road_exp_setup
+import os
+os.environ["TEST_FLAG"] = "True"
+import numpy as np
 
 
 class TestStartingPositionShuffle(unittest.TestCase):
@@ -15,6 +18,7 @@ class TestStartingPositionShuffle(unittest.TestCase):
     Tests that, at resets, the starting position of vehicles changes while
     keeping the ordering and relative spacing between vehicles.
     """
+
     def setUp(self):
         # turn on starting position shuffle
         env_params = EnvParams(starting_position_shuffle=True,
@@ -68,6 +72,7 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
     Tests that, at resets, the ordering of vehicles changes while the starting
     position values stay the same.
     """
+
     def setUp(self):
         # turn on vehicle arrangement shuffle
         env_params = EnvParams(vehicle_arrangement_shuffle=True,
@@ -111,9 +116,10 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
 
 class TestEmissionPath(unittest.TestCase):
     """
-    Tests that the default emission path of an environment is set to None. If it
-    is not None, then sumo starts accumulating memory.
+    Tests that the default emission path of an environment is set to None.
+    If it is not None, then sumo starts accumulating memory.
     """
+
     def setUp(self):
         # set sumo_params to default
         sumo_params = SumoParams()
@@ -134,8 +140,8 @@ class TestEmissionPath(unittest.TestCase):
 
 class TestApplyingActionsWithSumo(unittest.TestCase):
     """
-    Tests the apply_acceleration, apply_lane_change, and choose_routes functions
-    in base_env.py
+    Tests the apply_acceleration, apply_lane_change, and choose_routes
+    functions in base_env.py
     """
     def setUp(self):
         # create a 2-lane ring road network
@@ -177,7 +183,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         """
         ids = self.env.vehicles.get_ids()
 
-        vel0 = np.array([self.env.vehicles.get_speed(veh_id) for veh_id in ids])
+        vel0 = np.array([self.env.vehicles.get_speed(veh_id)
+                         for veh_id in ids])
 
         # apply a certain set of accelerations to the vehicles in the network
         accel_step0 = np.array([0, 1, 4, 9, 16])
@@ -257,7 +264,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         lane1 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
                           for veh_id in ids])
         expected_lane1 = (lane0 + np.sign(direction0)).clip(
-            min=0, max=self.env.scenario.lanes-1)
+            min=0, max=self.env.scenario.lanes - 1)
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
@@ -281,7 +288,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         lane2 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
                           for veh_id in ids])
         expected_lane2 = (lane1 + np.sign(direction1)).clip(
-            min=0, max=self.env.scenario.lanes-1)
+            min=0, max=self.env.scenario.lanes - 1)
 
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
 
@@ -305,7 +312,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         lane1 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
                           for veh_id in ids])
         expected_lane1 = (lane0 + np.sign(target_lane0 - lane0)).clip(
-            min=0, max=self.env.scenario.lanes-1)
+            min=0, max=self.env.scenario.lanes - 1)
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
@@ -329,7 +336,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         lane2 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
                           for veh_id in ids])
         expected_lane2 = (lane1 + np.sign(target_lane1 - lane1)).clip(
-            min=0, max=self.env.scenario.lanes-1)
+            min=0, max=self.env.scenario.lanes - 1)
 
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
 
@@ -340,6 +347,7 @@ class TestSorting(unittest.TestCase):
     get_absolute_position() method when sorting is requested, and does nothing
     if it is not requested
     """
+
     def test_sorting(self):
         # setup a environment with the "sort_vehicles" attribute set to True
         additional_env_params = {"target_velocity": 8, "num_steps": 500}
