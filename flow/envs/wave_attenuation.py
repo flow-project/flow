@@ -15,14 +15,18 @@ class WaveAttenuationEnv(Env):
 
     States
     ------
+    The state consists of the velocities and absolute position of all vehicles
+    in the network. This assumes a constant number of vehicles.
 
     Actions
     -------
+    Actions are a list of acceleration for each rl vehicles, bounded by the
+    maximum accelerations and decelerations specified in EnvParams.
 
-    Reward
-    ------
-    The reward function rewards high speeds and penalizes accelerations by the
-    rl vehicle.
+    Rewards
+    -------
+    The reward function rewards high average speeds from all vehicles in the
+    network, and penalizes accelerations by the rl vehicle.
 
     Termination
     -----------
@@ -217,15 +221,28 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
     States
     ------
+    The state consists of the speed and headway of the ego vehicle, as well as
+    the difference in speed between the ego vehicle and its leader. There is no
+    assumption on the number of vehicles in the network.
 
     Actions
     -------
+    Actions are a list of acceleration for each rl vehicles, bounded by the
+    maximum accelerations and decelerations specified in EnvParams.
 
-    Reward
-    ------
+    Rewards
+    -------
+    The reward function rewards high average speeds from all vehicles in the
+    network, and penalizes accelerations by the rl vehicle.
 
     Termination
     -----------
+    A rollout is terminated if the time horizon is reached or if two vehicles
+    collide into one another.
+
+    Note
+    ----
+    This environment assumes only one autonomous vehicle is in the network.
     """
     @property
     def observation_space(self):
@@ -234,13 +251,9 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
     def get_state(self, **kwargs):
         vehID = self.vehicles.get_rl_ids()[0]
-        lead_id = self.vehicles.get_leader(vehID)
+        lead_id = self.vehicles.get_leader(vehID) or vehID
         max_speed = 15.
         max_scenario_length = 350.
-
-        if lead_id is None:
-            lead_id = vehID
-            self.vehicles.set_headway(vehID, 0)
 
         observation = np.array([
             [self.vehicles.get_speed(vehID) / max_speed],

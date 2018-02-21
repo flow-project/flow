@@ -9,7 +9,7 @@ import numpy as np
 
 class TwoLoopsMergeEnv(Env):
     """Environment for training cooperative merging behavior in a closed loop
-    merge setting.
+    merge scenario.
 
     States
     ------
@@ -22,8 +22,8 @@ class TwoLoopsMergeEnv(Env):
     maximum accelerations and decelerations specified in EnvParams. The actions
     are assigned in order of a sorting mechanism (see Sorting).
 
-    Reward
-    ------
+    Rewards
+    -------
     The reward function is the two-norm of the distance of the speed of the
     vehicles in the network from a desired speed.
 

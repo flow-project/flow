@@ -7,22 +7,24 @@ from flow.envs.intersection_env import IntersectionEnv
 
 
 class TwoIntersectionEnv(IntersectionEnv):
-    """
-    Fully functional environment. Takes in an *acceleration* as an action. Reward function is negative norm of the
-    difference between the velocities of each vehicle, and the target velocity. State function is a vector of the
-    velocities for each vehicle.
+    """Environment for training autonomous vehicles in a two-way intersection
+    scenario.
 
     States
     ------
+    (blank)
 
     Actions
     -------
+    (blank)
 
-    Reward
-    ------
+    Rewards
+    -------
+    (blank)
 
     Termination
     -----------
+    (blank)
     """
     @property
     def action_space(self):
