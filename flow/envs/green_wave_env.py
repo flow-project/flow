@@ -145,7 +145,7 @@ class GreenWaveEnv(Env):
                     self.last_change[i, 2] = 0
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        return rewards.desired_velocity(self, fail=kwargs["fail"])
+        return rewards.penalize_tl_changes(self, rl_actions >= 0.5, gain=1)
 
     # ===============================
     # ============ UTILS ============
