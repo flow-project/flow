@@ -19,3 +19,17 @@ class ContinuousRouter(BaseRouter):
             new_route = None
 
         return new_route
+
+
+class GridRouter(BaseRouter):
+    """
+    A router used to re-route a vehicle within a grid environment.
+    """
+    def choose_route(self, env):
+        if env.vehicles.get_edge(self.veh_id) == \
+                env.vehicles.get_route(self.veh_id)[-1]:
+            new_route = [env.vehicles.get_edge(self.veh_id)]
+        else:
+            new_route = None
+
+        return new_route

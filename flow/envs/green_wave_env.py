@@ -72,7 +72,7 @@ class GreenWaveEnv(Env):
         self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
         for i, veh_id in enumerate(self.vehicles.get_ids()):
             edge = self.vehicles.get_edge(veh_id)
-            for key in self.edge_mapping:  # TODO: ask about keys
+            for key in self.edge_mapping:  # TODO(ak): ask about keys
                 if key in edge:
                     self.edge_mapping[key].append(i)
                     break
