@@ -18,12 +18,12 @@ class LaneChangeAccelEnv(Env):
     Actions
     -------
     Actions consist of:
-    - a (continuous) acceleration from -abs(max_decel) to max_accel, located in
-      env_params
+    - a (continuous) acceleration from -abs(max_decel) to max_accel, specified
+      in env_params
     - a (continuous) lane-change action from -1 to 1, used to determine the
       lateral direction the vehicle will take.
     Lane change actions are performed only if the vehicle has not changed lanes
-    for the lane change duration specified in EnvParams.
+    for the lane change duration specified in env_params.
 
     Rewards
     -------
