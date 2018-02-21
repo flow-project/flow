@@ -15,9 +15,6 @@ class SimpleGridGenerator(Generator):
         # short outer length, and number of rows and columns
         self.grid_array = net_params.additional_params["grid_array"]
 
-        self.traffic_lights = \
-            net_params.additional_params.get("traffic_lights", False)
-
         self.node_mapping = defaultdict(list)
         self.name = "BobLoblawsLawBlog"  # DO NOT CHANGE
 
@@ -95,7 +92,8 @@ class SimpleGridGenerator(Generator):
         list <dict>
             List of inner nodes
         """
-        node_type = "traffic_light" if self.traffic_lights else "priority"
+        tls = self.net_params.additional_params.get("traffic_lights", False)
+        node_type = "traffic_light" if tls else "priority"
         row_num = self.grid_array["row_num"]
         col_num = self.grid_array["col_num"]
         inner_length = self.grid_array["inner_length"]
