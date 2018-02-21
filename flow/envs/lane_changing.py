@@ -18,14 +18,15 @@ class LaneChangeAccelEnv(Env):
     Actions
     -------
     Actions consist of:
-    - a (continuous) acceleration from max-deacc to max-acc
+    - a (continuous) acceleration from -abs(max_decel) to max_accel, located in
+      env_params
     - a (continuous) lane-change action from -1 to 1, used to determine the
       lateral direction the vehicle will take.
     Lane change actions are performed only if the vehicle has not changed lanes
     for the lane change duration specified in EnvParams.
 
-    Reward
-    ------
+    Rewards
+    -------
     The reward function is the two-norm of the distance of the speed of the
     vehicles in the network from a desired speed, combined with a penalty to
     discourage excess lane changes by the rl vehicle.
@@ -101,12 +102,15 @@ class LaneChangeOnlyEnv(LaneChangeAccelEnv):
 
     States
     ------
+    (blank)
 
     Actions
     -------
+    (blank)
 
-    Reward
-    ------
+    Rewards
+    -------
+    (blank)
 
     Termination
     -----------

@@ -22,8 +22,8 @@ class AccelEnv(Env):
     Actions are a list of acceleration for each rl vehicles, bounded by the
     maximum accelerations and decelerations specified in EnvParams.
 
-    Reward
-    ------
+    Rewards
+    -------
     The reward function is the two-norm of the distance of the speed of the
     vehicles in the network from a desired speed.
 
@@ -73,8 +73,8 @@ class AccelMAEnv(AccelEnv):
     Actions
     -------
 
-    Reward
-    ------
+    Rewards
+    -------
 
     Termination
     -----------
@@ -158,8 +158,8 @@ class AccelPOEnv(AccelEnv):
     Actions are a list of acceleration for each rl vehicles, bounded by the
     maximum accelerations and decelerations specified in EnvParams.
 
-    Reward
-    ------
+    Rewards
+    -------
     The reward function is the two-norm of the distance of the speed of the
     vehicles in the network from a desired speed.
 
