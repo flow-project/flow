@@ -17,7 +17,7 @@ class BaseController:
             ID of the vehicle this controller is used for
         controller_params: dict
             Dictionary that optionally contains 'delay', the delay, and must
-            contain 'max_deaccel', the maximum deceleration as well as all
+            contain 'max_decel', the maximum deceleration as well as all
             other parameters that dictate the driving behavior.
         """
         self.veh_id = veh_id
@@ -34,7 +34,7 @@ class BaseController:
         self.fail_safe = controller_params.get("fail_safe", None)
 
         # max deaccel should always be a positive
-        self.max_deaccel = abs(controller_params['max_deaccel'])
+        self.max_decel = abs(controller_params['max_decel'])
 
         # acceleration queue, for time delayed actions
         self.accel_queue = collections.deque()
