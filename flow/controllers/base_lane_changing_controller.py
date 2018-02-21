@@ -1,6 +1,6 @@
 class BaseLaneChangeController:
 
-    def __init__(self, veh_id, lane_change_params):
+    def __init__(self, veh_id, lane_change_params={}):
         """Base class for lane-changing controllers.
 
         Instantiates a controller and forces the user to pass a
@@ -92,8 +92,8 @@ class BaseLaneChangeController:
         trail_id = env.get_trailing_car(self.veh_id, target_lane)
 
         # if there is only one vehicle in the environment, or there are no
-        # vehicles in the target
-        # lane, then lane changing to the target lane is safe
+        # vehicles in the target lane, then lane changing to the target lane
+        # is safe
         if (lead_id is None) or (env.vehicles.num_vehicles == 1):
             return target_lane
 

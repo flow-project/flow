@@ -34,7 +34,7 @@ class BaseController:
         self.fail_safe = controller_params.get("fail_safe", None)
 
         # max deaccel should always be a positive
-        self.max_decel = abs(controller_params['max_decel'])
+        self.max_deaccel = abs(controller_params.get('max_deaccel', 5))
 
         # acceleration queue, for time delayed actions
         self.accel_queue = collections.deque()
