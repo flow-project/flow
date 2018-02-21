@@ -59,8 +59,8 @@ class GreenWaveEnv(Env):
         self.last_change = np.zeros((self.rows * self.cols, 3))
 
         # when this hits min_switch_time we change from yellow to red
-        # the second column indicates the direction that is currently being allowed to flow.
-        # 0 is flowing top to bottom, 1 is left to right
+        # the second column indicates the direction that is currently being
+        # allowed to flow. 0 is flowing top to bottom, 1 is left to right
         # For third column, 0 signifies yellow and 1 green or red
         self.min_switch_time = env_params.additional_params["switch_time"]
         for i in range(self.rows * self.cols):
