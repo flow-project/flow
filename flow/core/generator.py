@@ -76,6 +76,8 @@ class Generator(Serializable):
 
         # add traffic lights to the nodes
         for n_id in traffic_lights.get_ids():
+            print(nodes)
+            print(n_id)
             indx = next(i for i, node in enumerate(nodes) if node["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
