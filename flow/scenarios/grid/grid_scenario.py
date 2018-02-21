@@ -3,19 +3,18 @@ import math
 from flow.scenarios.base_scenario import Scenario
 
 
-# TODO(ak): make sure I go them all, and modify
 ADDITIONAL_NET_PARAMS = {
-    # (blank)
+    # dictionary of grid array data
     "grid_array": {
-        # number of rows of edges
+        # number of horizontal rows of edges
         "row_num": 3,
-        # number of columns of edges
+        # number of vertical columns of edges
         "col_num": 2,
-        # (blank)
+        # length of inner edges in the grid network
         "inner_length": None,
-        # (blank)
+        # length of edges that vehicles start on
         "short_length": None,
-        # (blank)
+        # length of final edge in route
         "long_length": None,
         # number of cars starting at the edges heading to the top
         "cars_top": 20,
@@ -32,7 +31,7 @@ ADDITIONAL_NET_PARAMS = {
     "horizontal_lanes": 1,
     # number of lanes in the vertical edges
     "vertical_lanes": 1,
-    # speed limit for all edges, may be represented an an float value, or a
+    # speed limit for all edges, may be represented as a float value, or a
     # dictionary with separate values for vertical and horizontal lanes
     "speed_limit": {"vertical": 35, "horizontal": 35},
 }
@@ -44,14 +43,29 @@ class SimpleGridScenario(Scenario):
         """Initializes an nxm grid scenario.
 
         The grid scenario consists of m vertical lanes and n horizontal lanes,
-        with a total o nxm intersections where the vertical and horizontal
+        with a total of nxm intersections where the vertical and horizontal
         edges meet.
 
         Requires from net_params:
-        - (blank): (blank)
-        - (blank): (blank)
-        - (blank): (blank)
-        - (blank): (blank)
+        - grid_array: dictionary of grid array data, with the following keys
+          - row_num: number of horizontal rows of edges
+          - col_num: number of vertical columns of edges
+          - inner_length: length of inner edges in the grid network
+          - short_length: length of edges that vehicles start on
+          - long_length: length of final edge in route
+          - cars_top: number of cars starting at the edges heading to the top
+          - cars_bot: number of cars starting at the edges heading to the
+            bottom
+          - cars_left: number of cars starting at the edges heading to the left
+          - cars_right: number of cars starting at the edges heading to the
+            right
+        - traffic_lights: specifies whether to add traffic lights to the
+          intersections of the grid
+        - horizontal_lanes: number of lanes in the horizontal edges
+        - vertical_lanes: number of lanes in the vertical edges
+        - speed_limit: speed limit for all edges. This may be represented as a
+          float value, or a dictionary with separate values for vertical and
+          horizontal lanes.
 
         In order for right-of-way dynamics to take place at the intersections,
         set "no_internal_links" in net_params to False.
