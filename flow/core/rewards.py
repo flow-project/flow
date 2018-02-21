@@ -21,7 +21,8 @@ def desired_velocity(env, fail=False):
            state of the system.
     :param fail {bool} - specifies if any crash or other failure occurred in the system
     """
-    vel = np.array(env.vehicles.get_speed())
+    vel = np.array([env.vehicles.get_speed(veh_id)
+                    for veh_id in env.vehicles.get_ids()])
     num_vehicles = env.vehicles.num_vehicles
 
     if any(vel < -100) or fail:
