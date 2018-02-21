@@ -150,49 +150,6 @@ class SimpleGridScenario(Scenario):
         start_lanes = [0] * len(start_positions)
         return start_positions, start_lanes
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """ HARDCODING DONE NEED FIX """
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        num_left = self.grid_array["cars_left"]
-        num_right = self.grid_array["cars_right"]
-        num_bot = self.grid_array["cars_bot"]
-        num_top = self.grid_array["cars_top"]
-        if "rl_veh" in self.grid_array:
-            rl_veh = self.grid_array["rl_veh"]
-        else: 
-            rl_veh = 0
-
-        start_positions = []
-        d_inc = 8
-        for i in range(self.col_num):
-            x = 6
-            for k in range(num_right):
-                start_positions.append(("right0_{}".format(i), x))
-                x += d_inc
-
-            x = 6
-            for k in range(num_left):
-                start_positions.append(("left{}_{}".format(row_num, i), x))
-                x += d_inc
-
-        for i in range(self.row_num):
-            x = 6
-            for k in range(num_bot - math.ceil(rl_veh/2)):
-                start_positions.append(("bot{}_0".format(i), x))
-                x += d_inc
-            start_positions.append(("rlbot{}_0".format(i), x))
-
-            x = 6
-            for k in range(num_top - (rl_veh//2)):
-                start_positions.append(("top{}_{}".format(i, col_num), x))
-                x += d_inc
-            # Append any RL vehicles at the front
-            start_positions.append(("rltop{}_{}".format(i, col_num), x))
-
-        start_lanes = [0] * len(start_positions)
-        return start_positions, start_lanes
-
     def get_edge_names(self):
         """Given a list of edge objects, returns a list of the edges' id
         attribute."""
