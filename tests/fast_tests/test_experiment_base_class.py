@@ -1,16 +1,9 @@
 import unittest
-import logging
 import os
 
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
-
-from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
-from flow.controllers.rlcontroller import RLController
-
 from tests.setup_scripts import ring_road_exp_setup
+import numpy as np
 
 
 class TestNumSteps(unittest.TestCase):

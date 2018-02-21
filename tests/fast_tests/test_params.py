@@ -1,5 +1,5 @@
 import unittest
-from flow.core.params import *
+from flow.core.params import SumoLaneChangeParams
 import os
 
 

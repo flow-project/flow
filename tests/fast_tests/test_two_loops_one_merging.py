@@ -1,10 +1,11 @@
 import unittest
 import os
+import numpy as np
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario \
