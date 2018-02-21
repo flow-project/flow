@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import os
 
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig
@@ -14,6 +15,7 @@ class TestVehiclesClass(unittest.TestCase):
     """
     Tests various functions in the vehicles class
     """
+
     def runSpeedLaneChangeModes(self):
         """
         Checks to make sure vehicle class correctly specifies lane change and
@@ -155,6 +157,7 @@ class TestMultiLaneData(unittest.TestCase):
     Tests the functions get_lane_leaders(), get_lane_followers(),
     get_lane_headways(), and get_lane_footways() in the Vehicles class.
     """
+
     def test_no_junctions(self):
         """
         Tests the above mentioned methods in the absence of junctions.
@@ -211,6 +214,7 @@ class TestIdsByEdge(unittest.TestCase):
     """
     Tests the ids_by_edge() method
     """
+
     def setUp(self):
         # create the environment and scenario classes for a figure eight
         vehicles = Vehicles()
@@ -231,4 +235,5 @@ class TestIdsByEdge(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
     unittest.main()

@@ -8,6 +8,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import *
 
 from tests.setup_scripts import ring_road_exp_setup
+import os
 
 
 class TestCFMController(unittest.TestCase):
@@ -399,4 +400,5 @@ class TestStaticLaneChanger(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
     unittest.main()

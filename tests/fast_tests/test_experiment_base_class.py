@@ -1,5 +1,6 @@
 import unittest
 import logging
+import os
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -16,6 +17,7 @@ class TestNumSteps(unittest.TestCase):
     """
     Tests that experiment class runs for the number of steps requested.
     """
+
     def setUp(self):
         # create the environment and scenario classes for a ring road
         env, scenario = ring_road_exp_setup()
@@ -38,6 +40,7 @@ class TestNumRuns(unittest.TestCase):
     Tests that the experiment class properly resets as many times as requested,
     after the correct number of iterations.
     """
+
     def runTest(self):
         # run the experiment for 1 run and collect the last position of all
         # vehicles
@@ -58,5 +61,7 @@ class TestNumRuns(unittest.TestCase):
         # check that the final position is the same in both instances
         np.testing.assert_array_almost_equal(pos1, pos2)
 
+
 if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
     unittest.main()

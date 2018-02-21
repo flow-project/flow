@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -55,6 +56,7 @@ class TestLoopMerges(unittest.TestCase):
     """
     Tests the loop_merges generator, scenario, and environment.
     """
+
     def setUp(self):
         # create the environment and scenario classes for a ring road
         self.env, scenario = two_loops_one_merging_exp_setup()
@@ -109,4 +111,5 @@ class TestLoopMerges(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    os.environ["TEST_FLAG"] = "True"
     unittest.main()
