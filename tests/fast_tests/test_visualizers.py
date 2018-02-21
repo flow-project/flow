@@ -1,5 +1,6 @@
 import unittest
 import os
+os.environ["TEST_FLAG"] = "True"
 import pickle
 import numpy as np
 
@@ -34,5 +35,4 @@ class TestVisualizerFlow(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()
