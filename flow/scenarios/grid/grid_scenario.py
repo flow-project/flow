@@ -7,9 +7,9 @@ from flow.scenarios.base_scenario import Scenario
 ADDITIONAL_NET_PARAMS = {
     # (blank)
     "grid_array": {
-        # (blank)
-        "row_num": 2,
-        # (blank)
+        # number of rows of edges
+        "row_num": 3,
+        # number of columns of edges
         "col_num": 2,
         # (blank)
         "inner_length": None,
@@ -17,13 +17,24 @@ ADDITIONAL_NET_PARAMS = {
         "short_length": None,
         # (blank)
         "long_length": None,
+        # number of cars starting at the edges heading to the top
+        "cars_top": 20,
+        # number of cars starting at the edges heading to the bottom
+        "cars_bot": 20,
+        # number of cars starting at the edges heading to the left
+        "cars_left": 20,
+        # number of cars starting at the edges heading to the right
+        "cars_right": 20,
     },
     # specifies whether to add traffic lights to the intersections of the grid
     "traffic_lights": True,
     # number of lanes in the horizontal edges
     "horizontal_lanes": 1,
     # number of lanes in the vertical edges
-    "vertical_lanes": 1
+    "vertical_lanes": 1,
+    # speed limit for all edges, may be represented an an float value, or a
+    # dictionary with separate values for vertical and horizontal lanes
+    "speed": {"vertical": 35, "horizontal": 35},
 }
 
 
@@ -31,6 +42,10 @@ class SimpleGridScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=None):
         """Initializes an nxm grid scenario.
+
+        The grid scenario consists of m vertical lanes and n horizontal lanes,
+        with a total o nxm intersections where the vertical and horizontal
+        edges meet.
 
         Requires from net_params:
         - (blank): (blank)
@@ -43,6 +58,15 @@ class SimpleGridScenario(Scenario):
 
         See Scenario.py for description of params.
         """
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
+
+        for p in ADDITIONAL_NET_PARAMS["grid_array"].keys():
+            if p not in net_params.additional_params["grid_array"]:
+                raise KeyError('Grid array parameter "{}" not supplied'.
+                               format(p))
+
         # this is a (mx1)x(nx1)x2 array
         # the third dimension is vertical length, horizontal length
         self.grid_array = net_params.additional_params["grid_array"]
@@ -60,20 +84,6 @@ class SimpleGridScenario(Scenario):
         self.short_length = self.grid_array["short_length"]
         self.long_length = self.grid_array["long_length"]
 
-        net_params.additional_params["length"] = 10000  # TODO(ak): what is this for?
-
-        # TODO(ak): we have this now. modify?
-        # number of lanes in each edge
-        self.lanes = {}
-        for i in range(self.col_num-1):
-            self.lanes.update(
-                {"left{}_{}".format(self.row_num-1, i): vertical_lanes,
-                 "right0_{}".format(i): horizontal_lanes})
-        for i in range(self.row_num-1):
-                self.lanes.update(
-                    {"top{}_{}".format(i, self.col_num-1): vertical_lanes,
-                     "bot" + str(i)+'_'+'0': horizontal_lanes})
-
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config=initial_config)
 
@@ -83,26 +93,20 @@ class SimpleGridScenario(Scenario):
     def specify_edge_starts(self):
         """Edges go in the following order: vert_right, vert_left, horz_right,
         horz_left"""
-        vjl = self.vertical_junction_len
-        hjl = self.horizontal_junction_len
         edgestarts = []
-        curr_length = 0
         for i in range(self.col_num + 1):
             for j in range(self.row_num + 1):
                 index = str(j) + '_' + str(i)
-
-                edgestarts += \
-                    [("left"+str(index), 0+i*50 + j*5000),
-                     ("right"+str(index), 10+i*50 + j*5000),
-                     ("top"+str(index), 15+i*50 + j*5000),
-                     ("bot"+str(index), 20+i*50 + j*5000)
-                    ]
+                edgestarts += [("left" + index, 0+i*50 + j*5000),
+                               ("right" + index, 10+i*50 + j*5000),
+                               ("top" + index, 15+i*50 + j*5000),
+                               ("bot" + index, 20+i*50 + j*5000)]
 
         return edgestarts
 
     # TODO actually define the intersection edge starts
-    def specify_intersection_edge_starts(self):  # used for get distance to intersections
-        num = self.col_num - 1
+    # used for get distance to intersections
+    def specify_intersection_edge_starts(self):
         intersection_edgestarts = \
             [(":center", 0)]
         return intersection_edgestarts

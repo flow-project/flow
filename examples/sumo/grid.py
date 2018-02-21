@@ -1,7 +1,6 @@
 """
 (description)
 """
-from flow.controllers.car_following_models import IDMController
 from flow.scenarios.grid.gen import SimpleGridGenerator
 from flow.scenarios.grid.grid_scenario import SimpleGridScenario
 from flow.core.experiment import SumoExperiment
@@ -16,12 +15,13 @@ def grid_example(sumo_binary=None):
     long_length = 500
     short_length = 300
     n = 2
-    m = 2
+    m = 3
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
     num_cars_bot = 20
-    # tot_cars = num_cars_edge * 2 * n + num_cars_edge * 2 * m
+    tot_cars = (num_cars_left + num_cars_right) * m \
+        + (num_cars_top + num_cars_bot) * n
 
     grid_array = {"short_length": short_length, "inner_length": inner_length,
                   "long_length": long_length, "row_num": n, "col_num": m,
@@ -36,21 +36,19 @@ def grid_example(sumo_binary=None):
 
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
-                 acceleration_controller=(IDMController, {}),
                  routing_controller=(GridRouter, {}),
-                 num_vehicles=1)
+                 num_vehicles=tot_cars)
 
     additional_env_params = {"target_velocity": 8}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
-                             "resolution": 40, "grid_array": grid_array,
+    additional_net_params = {"grid_array": grid_array, "speed_limit": 35,
                              "horizontal_lanes": 1, "vertical_lanes": 1,
                              "traffic_lights": True}
     net_params = NetParams(no_internal_links=False,
                            additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="custom")
+    initial_config = InitialConfig()
 
     scenario = SimpleGridScenario(name="grid-intersection",
                                   generator_class=SimpleGridGenerator,
@@ -68,4 +66,4 @@ if __name__ == "__main__":
     exp = grid_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 15000)
+    exp.run(1, 1500)
