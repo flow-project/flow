@@ -1,5 +1,3 @@
-from flow.core.util import makexml, printxml
-import random
 from flow.core.generator import Generator
 from collections import defaultdict
 
@@ -7,8 +5,6 @@ from lxml import etree
 
 E = etree.Element
 
-
-# TODO make the indexing in this code not garbage
 
 class SimpleGridGenerator(Generator):
     """Generator for nxm grid networks."""
@@ -36,7 +32,7 @@ class SimpleGridGenerator(Generator):
         edges += self._build_inner_edges()
         edges += self._build_outer_edges()
         # Sort node_mapping in counterclockwise order
-        self.order_nodes()
+        self._order_nodes()
         return edges
 
     def specify_routes(self, net_params):
@@ -62,6 +58,24 @@ class SimpleGridGenerator(Generator):
             rts.update({"right" + '0' + '_' + str(i): route_arr_right})
 
         return rts
+
+    def specify_types(self, net_params):
+        add_params = net_params.additional_params
+        horizontal_lanes = add_params["horizontal_lanes"]
+        vertical_lanes = add_params["vertical_lanes"]
+        if isinstance(add_params["speed_limit"], int) or \
+                isinstance(add_params["speed_limit"], float):
+            speed_limit = {"horizontal": add_params["speed_limit"],
+                           "vertical": add_params["speed_limit"]}
+        else:
+            speed_limit = add_params["speed_limit"]
+
+        types = [{"id": "horizontal", "numLanes": repr(horizontal_lanes),
+                  "speed": repr(speed_limit["horizontal"])},
+                 {"id": "vertical", "numLanes": repr(vertical_lanes),
+                  "speed": repr(speed_limit["vertical"])}]
+
+        return types
 
     # ===============================
     # ============ UTILS ============
@@ -232,8 +246,8 @@ class SimpleGridGenerator(Generator):
         # Build the vertical edges
         for i in range(row_num - 1):
             for j in range(col_num):
-                node_index_bot = i * (col_num) + j  # TODO(ak): what's with the parentheses here?
-                node_index_top = (i + 1) * (col_num) + j
+                node_index_bot = i * col_num + j
+                node_index_top = (i + 1) * col_num + j
                 index = str(i + 1) + '_' + str(j)
                 self.node_mapping["center{}".format(node_index_top)].append(
                     "right" + index)
@@ -373,93 +387,7 @@ class SimpleGridGenerator(Generator):
 
         return edges
 
-    # TODO(ak): is this from an old class?
-    def specify_types(self, net_params):
-        horizontal_lanes = net_params.additional_params["horizontal_lanes"]
-        vertical_lanes = net_params.additional_params["vertical_lanes"]
-        if isinstance(net_params.additional_params["speed_limit"], int) or isinstance(
-                net_params.additional_params["speed_limit"], float):
-            speed_limit = {"horizontal": net_params.additional_params["speed_limit"],
-                           "vertical": net_params.additional_params["speed_limit"]}
-        else:
-            speed_limit = net_params.additional_params["speed_limit"]
-
-        types = [{"id": "horizontal", "numLanes": repr(horizontal_lanes), "speed": repr(speed_limit["horizontal"])},
-                 {"id": "vertical", "numLanes": repr(vertical_lanes), "speed": repr(speed_limit["vertical"])}]
-
-        return types
-
-    # TODO(ak): is this needed for only green wave (i.e. no AVs)?
-    def make_routes(self, scenario, initial_config):
-        """
-        Extendng from generator.py, doing a lil hardcoding
-        to get the rl vehicles leading
-        """
-        vehicles = scenario.vehicles
-        if vehicles.num_vehicles > 0:
-            routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
-
-            # add the types of vehicles to the xml file
-            for vtype, type_params in vehicles.types:
-                type_params_str = {key: str(type_params[key]) for key in type_params}
-                routes.append(E("vType", id=vtype, **type_params_str))
-
-            self.vehicle_ids = vehicles.get_ids()
-
-            if initial_config.shuffle:
-                random.shuffle(self.vehicle_ids)
-
-            # add the initial positions of vehicles to the xml file
-            positions = list(initial_config.positions)
-            rl_positions = []
-            for i in range(len(positions) - 1, -1, -1):
-                pos = positions[i]
-                if 'rl' in pos[0]:
-                    rl_positions.append(pos)
-                    del positions[i]
-
-            lanes = initial_config.lanes
-            vehicle_ids = list(self.vehicle_ids)
-            rl_ids = []
-            for i in range(len(self.vehicle_ids) - 1, -1, -1):
-                veh_id = self.vehicle_ids[i]
-                if 'rl' in veh_id:
-                    rl_ids.append(veh_id)
-                    del vehicle_ids[i]
-
-            for i, id in enumerate(vehicle_ids):
-                veh_type = vehicles.get_state(id, "type")
-                edge, pos = positions[i]
-                lane = lanes[i]
-                type_depart_speed = vehicles.get_initial_speed(id)
-                routes.append(self._vehicle(
-                    veh_type, "route" + edge, depart="0", id=id,
-                    color="1,0.0,0.0", departSpeed=str(type_depart_speed),
-                    departPos=str(pos), departLane=str(lane)))
-
-            for i, id in enumerate(rl_ids):
-                veh_type = vehicles.get_state(id, "type")
-                edge, pos = rl_positions[i]
-                edge = edge[2:]
-                lane = lanes[i]
-                type_depart_speed = vehicles.get_initial_speed(id)
-                routes.append(self._vehicle(
-                    veh_type, "route" + edge, depart="0", id=id,
-                    color="1,0.0,0.0", departSpeed=str(type_depart_speed),
-                    departPos=str(pos), departLane=str(lane)))
-
-            # add the in-flows from various edges to the xml file
-            if self.net_params.in_flows is not None:
-                total_inflows = self.net_params.in_flows.get()
-                for inflow in total_inflows:
-                    for key in inflow:
-                        if not isinstance(inflow[key], str):
-                            inflow[key] = repr(inflow[key])
-                    routes.append(self._flow(**inflow))
-
-            printxml(routes, self.cfg_path + self.roufn)
-
-    def order_nodes(self):
+    def _order_nodes(self):
         for node in self.node_mapping:
             adj_edges = ["" for _ in range(4)]
             for e in self.node_mapping[node]:
@@ -472,4 +400,3 @@ class SimpleGridGenerator(Generator):
                 elif 'left' in e:
                     adj_edges[3] = e
             self.node_mapping[node] = adj_edges
-
