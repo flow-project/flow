@@ -32,7 +32,7 @@ class GridRouter(BaseRouter):
             new_route = [env.vehicles.get_edge(self.veh_id)]
         else:
             new_route = None
-            
+
 
 class BayBridgeRouter(ContinuousRouter):
     """
