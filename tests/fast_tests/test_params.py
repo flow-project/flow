@@ -1,6 +1,7 @@
 import unittest
 from flow.core.params import SumoLaneChangeParams
 import os
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestSumoLaneChangeParams(unittest.TestCase):
@@ -30,5 +31,4 @@ class TestSumoLaneChangeParams(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

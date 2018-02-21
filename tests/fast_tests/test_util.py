@@ -1,6 +1,7 @@
 import unittest
 import csv
 import os
+os.environ["TEST_FLAG"] = "True"
 
 from flow.core.util import emission_to_csv
 
@@ -43,5 +44,4 @@ class TestEmissionToCSV(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

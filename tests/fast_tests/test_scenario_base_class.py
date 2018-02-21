@@ -1,5 +1,6 @@
 import unittest
 import os
+os.environ["TEST_FLAG"] = "True"
 import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
@@ -766,5 +767,4 @@ class TestNextPrevEdge(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

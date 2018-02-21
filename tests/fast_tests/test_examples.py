@@ -1,6 +1,6 @@
 import unittest
 import os
-
+os.environ["TEST_FLAG"] = "True"
 from examples.sumo.cooperative_merge import cooperative_merge_example
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.highway import highway_example
@@ -112,5 +112,4 @@ class TestSumoExamples(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

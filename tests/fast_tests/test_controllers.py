@@ -7,9 +7,9 @@ from flow.core.vehicles import Vehicles
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
     OVMController, BCMController, LinearOVM, CFMController
-
 from tests.setup_scripts import ring_road_exp_setup
 import os
+os.environ["TEST_FLAG"] = "True"
 import numpy as np
 
 
@@ -403,5 +403,4 @@ class TestStaticLaneChanger(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

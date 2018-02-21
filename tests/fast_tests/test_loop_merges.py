@@ -1,6 +1,7 @@
 import unittest
 from numpy import pi
 import os
+os.environ["TEST_FLAG"] = "True"
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -111,5 +112,4 @@ class TestLoopMerges(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

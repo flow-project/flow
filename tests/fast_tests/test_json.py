@@ -4,6 +4,7 @@ Unit tests for JSON file output and reading (used for visualization)
 
 import json
 import os
+os.environ["TEST_FLAG"] = "True"
 import unittest
 
 import ray
@@ -82,5 +83,4 @@ class TestJSON(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

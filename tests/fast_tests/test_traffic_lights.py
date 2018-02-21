@@ -1,5 +1,6 @@
 import unittest
 import os
+os.environ["TEST_FLAG"] = "True"
 
 from flow.core.params import NetParams
 from flow.core.traffic_lights import TrafficLights
@@ -121,5 +122,4 @@ class TestSetState(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()

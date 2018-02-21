@@ -1,5 +1,6 @@
 import unittest
 import os
+os.environ["TEST_FLAG"] = "True"
 
 from flow.core.experiment import SumoExperiment
 from tests.setup_scripts import ring_road_exp_setup
@@ -56,5 +57,4 @@ class TestNumRuns(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    os.environ["TEST_FLAG"] = "True"
     unittest.main()
