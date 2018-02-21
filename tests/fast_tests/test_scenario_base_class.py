@@ -515,7 +515,8 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
         self.assertEqual(expected_num_vehicles, actual_num_vehicles)
 
         # check that all possible lanes are covered
-        lanes = self.env.vehicles.get_lane()
+        lanes = [self.env.vehicles.get_lane(veh_id)
+                 for veh_id in self.env.vehicles.get_ids()]
         if any(i not in lanes for i in range(4)):
             raise AssertionError
 
