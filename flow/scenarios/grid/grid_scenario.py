@@ -128,7 +128,7 @@ class SimpleGridScenario(Scenario):
         num_cars = self.vehicles.num_vehicles
         per_edge = int(num_cars/(2 * (row_num+col_num)))
         start_positions = []
-        d_inc = 6
+        d_inc = 10
         for i in range(self.col_num):
             x = 6
             for k in range(per_edge):

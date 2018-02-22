@@ -277,24 +277,10 @@ class GreenWaveEnv(Env):
             # reintroduce it at the start of the network
             type_id = self.vehicles.get_state(veh_id, "type")
             lane_index = self.vehicles.get_lane(veh_id)
-            # TODO(ak): check commenting
-            # lane_pos = 0
-            # speed = self.vehicles.get_speed(veh_id)  # TODO pick a better value for this. Also, it can cause a crash if non-zero
-            # if errors are occuring, set above speed to 0 and fix properly later
-            # TODO(ev) this line is throwing an error
-            # FIXME(ev) set speed to zero
             self.traci_connection.vehicle.addFull(
                 veh_id, route_id, typeID=str(type_id),
                 departLane=str(lane_index),
-                departPos="0", departSpeed="free")  # TODO(ak): check
-            # TODO(ak): check commenting
-            # self.vehicles.test_set_edge(veh_id, route_id[5:])
-            # self.vehicles.test_set_speed(veh_id, speed)
-            # # change color of added vehicle as well
-            # self.traci_connection.vehicle.setMaxSpeed(veh_id, self.max_speed)
-            # self.traci_connection.vehicle.setColor(
-            #     veh_id,
-            #     self.colors[self.vehicles.get_state(veh_id, 'type')])
+                departPos="0", departSpeed="max")
 
     def record_obs_var(self):
         """Records the edges and velocities in the observation variables."""
