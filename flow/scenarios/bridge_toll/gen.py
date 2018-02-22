@@ -1,5 +1,5 @@
 from flow.core.generator import Generator
-
+import numpy as np
 
 class BBTollGenerator(Generator):
     """
@@ -23,16 +23,19 @@ class BBTollGenerator(Generator):
         """
         See parent class
         """
+        scaling = net_params.additional_params.get("scaling", 1)
+        assert(isinstance(scaling, int)), "Scaling must be an int"
+
         edges = [{"id": "1", "from": "1", "to": "2", "length": "100",  #
-                  "spreadType": "center", "numLanes": "4", "speed": "50"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
                  {"id": "2", "from": "2", "to": "3", "length": "275",  # DONE
-                  "spreadType": "center", "numLanes": "4", "speed": "50"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
                  {"id": "3", "from": "3", "to": "4", "length": "30",  # DONE
-                  "spreadType": "center", "numLanes": "4", "speed": "50"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
                  {"id": "4", "from": "4", "to": "5", "length": "140",   # DONE
-                  "spreadType": "center", "numLanes": "2", "speed": "50"},
+                  "spreadType": "center", "numLanes": str(2*scaling), "speed": "50"},
                  {"id": "5", "from": "5", "to": "6", "length": "225",
-                  "spreadType": "center", "numLanes": "1", "speed": "50"}]
+                  "spreadType": "center", "numLanes": str(scaling), "speed": "50"}]
 
         return edges
 
@@ -40,6 +43,17 @@ class BBTollGenerator(Generator):
         """
         See parent class
         """
+        scaling = net_params.additional_params.get("scaling", 1)
+        conn = []
+        {"from": "3", "to": "4", "fromLane": "0", "toLane": "0"},
+        {"from": "3", "to": "4", "fromLane": "1", "toLane": "0"},
+        {"from": "3", "to": "4", "fromLane": "2", "toLane": "1"},
+        {"from": "3", "to": "4", "fromLane": "3", "toLane": "1"},
+        for i in range(4*scaling):
+            conn += [{"from": "3", "to": "4", "fromLane": str(i), "toLane": str(int(np.floor(i/2)))}]
+        for i in range(2*scaling):
+            conn += [{"from": "4", "to": "5", "fromLane": str(i), "toLane": str(int(np.floor(i/2)))}]
+
         # conn = [{"from": "3", "to": "4", "fromLane": "0", "toLane": "0"},
         #         {"from": "3", "to": "4", "fromLane": "1", "toLane": "0"},
         #         {"from": "3", "to": "4", "fromLane": "2", "toLane": "1"},
@@ -65,12 +79,12 @@ class BBTollGenerator(Generator):
         #         {"from": "4", "to": "5", "fromLane": "6", "toLane": "3"},
         #         {"from": "4", "to": "5", "fromLane": "7", "toLane": "4"}]
         # return conn
-        conn = [{"from": "3", "to": "4", "fromLane": "0", "toLane": "0"},
-                {"from": "3", "to": "4", "fromLane": "1", "toLane": "0"},
-                {"from": "3", "to": "4", "fromLane": "2", "toLane": "1"},
-                {"from": "3", "to": "4", "fromLane": "3", "toLane": "1"},
-                {"from": "4", "to": "5", "fromLane": "0", "toLane": "0"},
-                {"from": "4", "to": "5", "fromLane": "1", "toLane": "0"},]
+        # conn = [{"from": "3", "to": "4", "fromLane": "0", "toLane": "0"},
+        #         {"from": "3", "to": "4", "fromLane": "1", "toLane": "0"},
+        #         {"from": "3", "to": "4", "fromLane": "2", "toLane": "1"},
+        #         {"from": "3", "to": "4", "fromLane": "3", "toLane": "1"},
+        #         {"from": "4", "to": "5", "fromLane": "0", "toLane": "0"},
+        #         {"from": "4", "to": "5", "fromLane": "1", "toLane": "0"},]
         return conn
 
     def specify_routes(self, net_params):

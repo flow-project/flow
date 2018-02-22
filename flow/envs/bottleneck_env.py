@@ -10,22 +10,22 @@ from copy import deepcopy
 
 import numpy as np
 
+MAX_LANES = 4  # largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]
 EDGE_BEFORE_TOLL = "1"
 TB_TL_ID = "2"
 EDGE_AFTER_TOLL = "2"
-NUM_TOLL_LANES = 4
+NUM_TOLL_LANES = MAX_LANES
 
 TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
 RED_LIGHT_DIST = 50  # controls how close we have to be for the red light to start going off
 
 EDGE_BEFORE_RAMP_METER = "2"
 EDGE_AFTER_RAMP_METER = "3"
-NUM_RAMP_METERS = 4
+NUM_RAMP_METERS = MAX_LANES
 
 RAMP_METER_AREA = 80
 
-MAX_LANES = 4  # largest number of lanes in the network
 
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
@@ -36,14 +36,18 @@ class BottleneckEnv(LaneChangeAccelEnv):
     def __init__(self, env_params, sumo_params, scenario):
         self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
+        # tells how scaled the number of lanes are
+        self.scaling = scenario.net_params.additional_params.get("scaling", 1)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
         self.cars_waiting_before_ramp_meter = dict()
         self.toll_wait_time = np.abs(
-            np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step, 4 / self.sim_step, NUM_TOLL_LANES))
+            np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step, 4 / self.sim_step, NUM_TOLL_LANES*self.scaling))
         self.tl_state = ""
         self.disable_tb = False
         self.disable_ramp_metering = False
+
+
 
         print(env_params.additional_params)
         if "disable_tb" in env_params.additional_params:
@@ -59,12 +63,12 @@ class BottleneckEnv(LaneChangeAccelEnv):
         # build a list of vehicles and their edges and positions
         self.edge_dict = defaultdict(list)
         # update the dict with all the edges in edge_list so we can look forward for edges
-        self.edge_dict.update((k, [[] for _ in range(MAX_LANES)]) for k in EDGE_LIST)
+        self.edge_dict.update((k, [[] for _ in range(MAX_LANES*self.scaling)]) for k in EDGE_LIST)
         for veh_id in self.vehicles.get_ids():
             try:
                 edge = self.vehicles.get_edge(veh_id)
                 if edge not in self.edge_dict:
-                    self.edge_dict.update({edge: [[] for _ in range(MAX_LANES)]})
+                    self.edge_dict.update({edge: [[] for _ in range(MAX_LANES*self.scaling)]})
                 lane = self.vehicles.get_lane(veh_id)  # integer
                 pos = self.vehicles.get_position(veh_id)
                 self.edge_dict[edge][lane].append((veh_id, pos))
@@ -89,7 +93,7 @@ class BottleneckEnv(LaneChangeAccelEnv):
         for veh_id in cars_that_have_left:
             self.cars_waiting_before_ramp_meter.__delitem__(veh_id)
 
-        for lane in range(NUM_RAMP_METERS):
+        for lane in range(NUM_RAMP_METERS * self.scaling):
             cars_in_lane = self.edge_dict[EDGE_BEFORE_RAMP_METER][lane]
 
             for car in cars_in_lane:
@@ -126,9 +130,9 @@ class BottleneckEnv(LaneChangeAccelEnv):
         for veh_id in cars_that_have_left:
             self.cars_waiting_for_toll.__delitem__(veh_id)
 
-        traffic_light_states = ["G"] * NUM_TOLL_LANES
+        traffic_light_states = ["G"] * NUM_TOLL_LANES * self.scaling
 
-        for lane in range(NUM_TOLL_LANES):
+        for lane in range(NUM_TOLL_LANES * self.scaling):
             cars_in_lane = self.edge_dict[EDGE_BEFORE_TOLL][lane]
 
             for car in cars_in_lane:
@@ -161,7 +165,7 @@ class BridgeTollEnv(BottleneckEnv):
     def observation_space(self):
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
-        num_obs = 2*num_edges + 4*MAX_LANES*num_rl_veh + 3*num_rl_veh
+        num_obs = 2*num_edges + 4*MAX_LANES*self.scaling*num_rl_veh + 3*num_rl_veh
         print("--------------")
         print("--------------")
         print("--------------")
@@ -188,10 +192,10 @@ class BridgeTollEnv(BottleneckEnv):
         # vel_behind)
         relative_obs = []
         for veh_id in rl_ids:
-            headway = [1000 for _ in range(MAX_LANES)]
-            tailway = [1000 for _ in range(MAX_LANES)]
-            vel_in_front = [0 for _ in range(MAX_LANES)]
-            vel_behind = [0 for _ in range(MAX_LANES)]
+            headway = [1000 for _ in range(MAX_LANES*self.scaling)]
+            tailway = [1000 for _ in range(MAX_LANES*self.scaling)]
+            vel_in_front = [0 for _ in range(MAX_LANES*self.scaling)]
+            vel_behind = [0 for _ in range(MAX_LANES*self.scaling)]
 
             lane_leaders = self.vehicles.get_lane_leaders(veh_id)
             lane_followers = self.vehicles.get_lane_followers(veh_id)
@@ -221,10 +225,10 @@ class BridgeTollEnv(BottleneckEnv):
         extra_zeros = []
         if len(rl_ids) != self.num_rl:
             diff = (self.num_rl - len(rl_ids))
-            extra_zeros = [0]*(4*MAX_LANES*diff + 3*diff)
+            extra_zeros = [0]*(4*MAX_LANES*self.scaling*diff + 3*diff)
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
-        num_obs = 2 * num_edges + 4 * MAX_LANES * num_rl_veh + 3 * num_rl_veh
+        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling * num_rl_veh + 3 * num_rl_veh
         if len(rl_obs + relative_obs + edge_obs) < num_obs:
             return np.asarray(rl_obs + relative_obs + edge_obs + extra_zeros)
         else:
