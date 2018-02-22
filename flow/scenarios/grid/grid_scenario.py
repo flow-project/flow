@@ -1,9 +1,6 @@
-import math
-
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
-
 
 ADDITIONAL_NET_PARAMS = {
     # dictionary of grid array data
@@ -41,8 +38,7 @@ ADDITIONAL_NET_PARAMS = {
 
 class SimpleGridScenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 initial_config=InitialConfig()):
         """Initializes an nxm grid scenario.
 
         The grid scenario consists of m vertical lanes and n horizontal lanes,
@@ -102,7 +98,7 @@ class SimpleGridScenario(Scenario):
         self.long_length = self.grid_array["long_length"]
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config, traffic_lights)
+                         initial_config, TrafficLights())
 
     # TODO, make this make any sense at all
     def specify_edge_starts(self):

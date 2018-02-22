@@ -338,19 +338,20 @@ def grid_mxn_exp_setup(row_num=1,
         # set default initial_config configuration
         initial_config = InitialConfig(spacing="uniform",
                                        additional_params={"enter_speed": 30})
-        # create the scenario
-        scenario = SimpleGridScenario(name="Grid1x1Test",
-                                      generator_class=SimpleGridGenerator,
-                                      vehicles=vehicles,
-                                      net_params=net_params,
-                                      initial_config=initial_config)
 
-        # create the environment
-        env = GreenWaveEnv(env_params=env_params,
-                           sumo_params=sumo_params,
-                           scenario=scenario)
+    # create the scenario
+    scenario = SimpleGridScenario(name="Grid1x1Test",
+                                  generator_class=SimpleGridGenerator,
+                                  vehicles=vehicles,
+                                  net_params=net_params,
+                                  initial_config=initial_config)
 
-        return env, scenario
+    # create the environment
+    env = GreenWaveEnv(env_params=env_params,
+                       sumo_params=sumo_params,
+                       scenario=scenario)
+
+    return env, scenario
 
 
 def variable_lanes_exp_setup(sumo_params=None,
