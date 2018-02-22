@@ -21,11 +21,12 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-NUM_LANES = 4  # number of lanes in the widest highway
+SCALING = 4
+NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step = 0.1, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step = 0.1, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 
@@ -82,8 +83,9 @@ traffic_lights = TrafficLights()
 traffic_lights.add(node_id="2")
 traffic_lights.add(node_id="3")
 
+additional_net_params = {"scaling": SCALING}
 net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False)
+                       no_internal_links=False, additional_params=additional_net_params)
 
 initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
@@ -127,17 +129,17 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "BottleNeckVerySmall"  # experiment prefix
-for seed in [1, 11, 22, 33, 44, 55]:  # , 1, 5, 10, 73]:
+for seed in [1]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
