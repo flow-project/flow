@@ -36,7 +36,7 @@ vehicles.add(veh_id="rl",
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
-             num_vehicles=4,
+             num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
@@ -45,14 +45,14 @@ vehicles.add(veh_id="human",
              lane_change_mode=512,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
-             num_vehicles=15)
+             num_vehicles=15*SCALING)
 vehicles.add(veh_id="rl2",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
-             num_vehicles=4,
+             num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
@@ -61,14 +61,14 @@ vehicles.add(veh_id="human2",
              lane_change_mode=512,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
-             num_vehicles=15)
+             num_vehicles=15*SCALING)
 
 additional_env_params = {"target_velocity": 40, "num_steps": 500}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
 # flow rate
-flow_rate = 7500/2
+flow_rate = 3750 * SCALING
 # percentage of flow coming out of each lane
 flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 
