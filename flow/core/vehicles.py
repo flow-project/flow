@@ -251,7 +251,17 @@ class Vehicles:
         # add entering vehicles into the vehicles class
         for veh_id in sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]:
             veh_type = env.traci_connection.vehicle.getTypeID(veh_id)
-            self.add_departed(veh_id, veh_type, env)
+            if veh_id in self.get_ids():
+                # this occurs when a vehicle is actively being removed and
+                # placed again in the network to ensure a constant number of
+                # total vehicles (e.g. GreenWaveEnv). In this case, the vehicle
+                # is already in the class; its state data just needs to be
+                # updated, and it's color needs to be made to match the color
+                # of other vehicles of its type.
+                env.traci_connection.vehicle.setColor(veh_id,
+                                                      env.colors[veh_type])
+            else:
+                self.add_departed(veh_id, veh_type, env)
 
         if env.time_counter == 0:
             # if the time_counter is 0, this we need to reset all necessary
