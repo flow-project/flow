@@ -1,13 +1,16 @@
 import unittest
 
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import *
-
+from flow.controllers.car_following_models import IDMController, \
+    OVMController, BCMController, LinearOVM, CFMController
 from tests.setup_scripts import ring_road_exp_setup
+import os
+os.environ["TEST_FLAG"] = "True"
+import numpy as np
 
 
 class TestCFMController(unittest.TestCase):
@@ -198,8 +201,9 @@ class TestIDMController(unittest.TestCase):
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
-        contr_params = {"v0": 30, "T": 1, "a": 1, "b": 1.5, "delta": 4, "s0": 2,
-                        "s1": 0, "decel_max": -5, "dt": 0.1, "noise": 0}
+        contr_params = {"v0": 30, "T": 1, "a": 1, "b": 1.5, "delta": 4,
+                        "s0": 2, "s1": 0, "decel_max": -5, "dt": 0.1,
+                        "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(

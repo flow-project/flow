@@ -11,7 +11,7 @@ from copy import deepcopy
 import numpy as np
 
 MAX_LANES = 4  # largest number of lanes in the network
-EDGE_LIST = ["1", "2", "3", "4", "5"]
+EDGE_LIST = ["1", "2", "3", "4", "5"] # Edge 1 is before the toll booth
 EDGE_BEFORE_TOLL = "1"
 TB_TL_ID = "2"
 EDGE_AFTER_TOLL = "2"
@@ -29,11 +29,20 @@ RAMP_METER_AREA = 80
 
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
-FAST_TRACK_ON = range(6, 11)
+FAST_TRACK_ON = range(6, 11) # lanes that the fast track is on
 
 
-class BottleneckEnv(LaneChangeAccelEnv):
+class BridgeTollEnv(LaneChangeAccelEnv):
     def __init__(self, env_params, sumo_params, scenario):
+        """Environment used as a simplified representation of the toll
+            booth portion of the bay bridge. Contains ramp meters,
+            and a toll both.
+
+           Additional
+           ----------
+           Vehicles are rerouted to the start of their original routes once they reach
+           the end of the network in order to ensure a constant number of vehicles.
+           """
         self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
         # tells how scaled the number of lanes are
@@ -160,7 +169,7 @@ class BottleneckEnv(LaneChangeAccelEnv):
             self.traci_connection.trafficlights.setRedYellowGreenState(tlsID=TB_TL_ID, state=newTLState)
 
 
-class BridgeTollEnv(BottleneckEnv):
+class BottleNeckEnv(BridgeTollEnv):
     @property
     def observation_space(self):
         num_edges = len(self.scenario.get_edge_list())
@@ -233,6 +242,9 @@ class BridgeTollEnv(BottleneckEnv):
             return np.asarray(rl_obs + relative_obs + edge_obs + extra_zeros)
         else:
             return np.asarray(rl_obs + relative_obs + edge_obs)
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        return rewards.rl_forward_progress(self, gain=0.2)
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
