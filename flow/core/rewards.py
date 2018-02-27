@@ -21,7 +21,7 @@ def desired_velocity(env, fail=False):
            state of the system.
     :param fail {bool} - specifies if any crash or other failure occurred in the system
     """
-    vel = np.array(env.vehicles.get_speed())
+    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
     num_vehicles = env.vehicles.num_vehicles
 
     if any(vel < -100) or fail:
@@ -34,6 +34,22 @@ def desired_velocity(env, fail=False):
     cost = np.linalg.norm(cost)
 
     return max(max_cost - cost, 0)
+
+
+def rl_forward_progress(env, fail=False, gain = 0.1):
+    """
+        A reward function used to slightly rewards the RL vehicles travelling forward
+        to help with sparse problems
+
+        :param env {SumoEnvironment type} - the environment variable, which contains information on the current
+               state of the system.
+        :param fail {bool} - specifies if any crash or other failure occurred in the system
+        :param gain {float} - specifies how much to reward the RL vehicles
+        """
+    system_velocity = desired_velocity(env, fail)
+    rl_velocity = env.vehicles.get_speed(env.vehicles.get_rl_ids())
+    rl_norm_vel = np.linalg.norm(rl_velocity, 1)
+    return system_velocity + rl_norm_vel*gain
 
 
 def min_delay(state=None, actions=None, **kwargs):
@@ -59,6 +75,30 @@ def min_delay(state=None, actions=None, **kwargs):
 
     return max(max_cost - cost, 0)
 
+def min_delay(env, fail=False):
+    """
+    A reward function used to encourage minimization of total delay in the
+    system. Distance travelled is used as a scaled value of delay.
+
+    This function measures the deviation of a system of vehicles
+    from all the vehicles smoothly travelling at a fixed speed to their destinations.
+    """
+
+    vel = np.array(env.vehicles.get_speed())
+
+    vel = vel[vel >= -1e-6]
+    v_top = env.max_speed
+    time_step = env.sim_step
+
+    max_cost = time_step * sum(vel.shape)
+    cost = time_step * sum((v_top - vel) / v_top)
+    return max(max_cost - cost, 0)
+
+
+def penalize_tl_changes(env, actions, gain=1, fail=False):
+    delay = min_delay(env, fail)
+    action_penalty = gain * np.sum(actions)
+    return delay - action_penalty
 
 def penalize_headway_variance(vehicles, vids, normalization=1, penalty_gain=1,
                               penalty_exponent=1):
@@ -81,7 +121,6 @@ def penalize_headway_variance(vehicles, vids, normalization=1, penalty_gain=1,
         [vehicles.get_headway(veh_id) / normalization for veh_id in vids]),
         penalty_exponent)
     return -np.var(headways)
-
 
 def punish_small_rl_headways(vehicles, rl_ids, headway_threshold, penalty_gain=1, penalty_exponent=1):
     """

@@ -42,6 +42,8 @@ vehicles.add(veh_id="rl",
              sumo_lc_params=SumoLaneChangeParams())
 vehicles.add(veh_id="human",
              speed_mode=0b11111,
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
              lane_change_mode=512,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
@@ -59,11 +61,13 @@ vehicles.add(veh_id="rl2",
 vehicles.add(veh_id="human2",
              speed_mode=0b11111,
              lane_change_mode=512,
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              num_vehicles=15*SCALING)
 
-additional_env_params = {"target_velocity": 40, "num_steps": 500}
+additional_env_params = {"target_velocity": 40, "num_steps": 150}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
@@ -100,7 +104,7 @@ scenario = BBTollScenario(name="bay_bridge_toll",
 
 
 def run_task(*_):
-    env_name = "BridgeTollEnv"
+    env_name = "BottleNeckEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params,
                        net_params, initial_config, scenario)
 
@@ -122,24 +126,24 @@ def run_task(*_):
         batch_size=40000,
         max_path_length=horizon,
         # whole_paths=True,
-        n_itr=300,
+        n_itr=400,
         discount=0.995,
         # step_size=0.01,
     )
     algo.train()
 
 exp_tag = "BottleNeckVerySmall"  # experiment prefix
-for seed in [1]:  # , 1, 5, 10, 73]:
+for seed in [1, 2, 3, 4, 5, 6]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,

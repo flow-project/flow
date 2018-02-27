@@ -182,6 +182,10 @@ class Env(gym.Env, Serializable):
             sumo_call.append("--lanechange.overtake-right")
             sumo_call.append("true")
 
+        if self.sumo_params.ballistic:
+            sumo_call.append("--step-method.ballistic")
+            sumo_call.append("true")
+
         # specify a simulation seed (if requested)
         if self.sumo_params.seed is not None:
             sumo_call.append("--seed")
@@ -203,7 +207,10 @@ class Env(gym.Env, Serializable):
 
                 # wait a small period of time for the subprocess to activate
                 # before trying to connect with traci
-                time.sleep(config.SUMO_SLEEP)
+                if os.environ.get("TEST_FLAG", 0):
+                    time.sleep(0.1)
+                else:
+                    time.sleep(config.SUMO_SLEEP)
 
                 self.traci_connection = traci.connect(port, numRetries=100)
 
@@ -331,7 +338,7 @@ class Env(gym.Env, Serializable):
             contains other diagnostic information from the previous action
         """
         self.time_counter += 1
-
+            
         # perform acceleration actions for controlled human-driven vehicles
         if len(self.vehicles.get_controlled_ids()) > 0:
             accel = []
