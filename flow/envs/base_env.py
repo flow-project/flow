@@ -76,6 +76,8 @@ class Env(gym.Env, Serializable):
         self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
+        # step_counter: number of total steps taken
+        self.step_counter = 0
         # initial_state:
         #   Key = Vehicle ID,
         #   Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
@@ -338,6 +340,10 @@ class Env(gym.Env, Serializable):
             contains other diagnostic information from the previous action
         """
         self.time_counter += 1
+        self.step_counter += 1
+        if self.step_counter > 2e6:
+            self.step_counter = 0
+            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
             
         # perform acceleration actions for controlled human-driven vehicles
         if len(self.vehicles.get_controlled_ids()) > 0:
@@ -450,6 +456,9 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
+        if self.step_counter > 2e6:
+            self.step_counter = 0
+            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
         # TODO(ak): handling number of vehicles during reset
 
