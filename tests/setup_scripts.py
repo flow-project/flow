@@ -16,7 +16,7 @@ from flow.scenarios.figure8.gen import Figure8Generator
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
 from flow.scenarios.grid.gen import SimpleGridGenerator
 from flow.scenarios.grid.grid_scenario import SimpleGridScenario
-from flow.envs.green_wave_env import GreenWaveEnv
+from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.scenarios.highway.gen import HighwayGenerator
 from flow.scenarios.highway.scenario import HighwayScenario
 
@@ -347,7 +347,7 @@ def grid_mxn_exp_setup(row_num=1,
                                   initial_config=initial_config)
 
     # create the environment
-    env = GreenWaveEnv(env_params=env_params,
+    env = GreenWaveTestEnv(env_params=env_params,
                        sumo_params=sumo_params,
                        scenario=scenario)
 

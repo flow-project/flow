@@ -293,3 +293,15 @@ class GreenWaveEnv(Env):
             if x > 2000:  # hardcode
                 x = 0
             self.obs_var_labels['positions'][self.time_counter - 1, i] = x
+
+
+class GreenWaveTestEnv(GreenWaveEnv):
+    """
+    Class that overrides RL methods of green wave so we can test
+    construction without needing to specify RL methods
+    """
+    def apply_rl_actions(self, rl_actions):
+        pass
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        return 0
