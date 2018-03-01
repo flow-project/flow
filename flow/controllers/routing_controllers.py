@@ -1,4 +1,3 @@
-
 from flow.controllers.base_routing_controller import BaseRouter
 
 
@@ -7,6 +6,7 @@ class ContinuousRouter(BaseRouter):
     network. This class is useful if vehicles are expected to continuously
     follow the same route, and repeat said route once it reaches its end.
     """
+
     def choose_route(self, env):
         if env.vehicles.get_edge(self.veh_id) == \
                 env.vehicles.get_route(self.veh_id)[-1]:
@@ -15,11 +15,25 @@ class ContinuousRouter(BaseRouter):
             return None
 
 
+class GridRouter(BaseRouter):
+    """
+    A router used to re-route a vehicle within a grid environment.
+    """
+
+    def choose_route(self, env):
+        if env.vehicles.get_edge(self.veh_id) == \
+                env.vehicles.get_route(self.veh_id)[-1]:
+            new_route = [env.vehicles.get_edge(self.veh_id)]
+        else:
+            new_route = None
+
+
 class BayBridgeRouter(ContinuousRouter):
     """
     Extension to the Continuous Router. Assists in choosing routes in select
     cases.
     """
+
     def choose_route(self, env):
         """
         See parent class

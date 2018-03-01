@@ -144,8 +144,10 @@ class TestVehiclesClass(unittest.TestCase):
 
         # ensure that the vehicles are not storing extra information in the
         # vehicles.__vehicles dict
-        self.assertRaises(KeyError, vehicles.get_state, 'test_0', "type")
-        self.assertRaises(KeyError, vehicles.get_state, "rl_test_0", "type")
+        error_state = vehicles.get_state('test_0', "type", error=None)
+        self.assertIsNone(error_state)
+        error_state_rl = vehicles.get_state('rl_test_0', "type", error=None)
+        self.assertIsNone(error_state_rl)
 
         # ensure that the num_vehicles matches the actual number of vehicles
         self.assertEqual(vehicles.num_vehicles, len(vehicles.get_ids()))
