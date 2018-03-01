@@ -58,6 +58,8 @@ class SumoExperiment:
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions)
                 ret += reward
+                if done:
+                    break
             rets.append(ret)
             print("Round {0}, return: {1}".format(i, ret))
 

@@ -282,28 +282,30 @@ class Vehicles:
             # update the "absolute_position" variable
             for veh_id in self.__ids:
                 prev_pos = env.get_x_by_id(veh_id)
-                this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
-                this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
-                try:
-                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
-                    if change < 0:
-                        change += env.scenario.length
-                    new_abs_pos = self.get_absolute_position(
-                        veh_id) + change
-                    self.set_absolute_position(veh_id, new_abs_pos)
-                except (ValueError, TypeError):
+                this_edge = vehicle_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, "")
+                this_pos = vehicle_obs.get(veh_id, {}).get(
+                    tc.VAR_LANEPOSITION, -1001)
+
+                # in case the vehicle isn't in the network
+                if this_edge == "":
                     self.set_absolute_position(veh_id, -1001)
+                else:
+                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
+                    new_abs_pos = (self.get_absolute_position(veh_id) +
+                                   change) % env.scenario.length
+                    self.set_absolute_position(veh_id, new_abs_pos)
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            headway = vehicle_obs[veh_id][tc.VAR_LEADER]
-            vtype = self.get_state(veh_id, "type")
-            min_gap = self.minGap[vtype]
+            headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
+            # check for a collided vehicle or a vehicle with no leader
             if headway is None:
                 self.__vehicles[veh_id]["leader"] = None
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
+                vtype = self.get_state(veh_id, "type")
+                min_gap = self.minGap[vtype]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
                 self.__vehicles[headway[0]]["follower"] = veh_id
