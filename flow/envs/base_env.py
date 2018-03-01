@@ -507,11 +507,10 @@ class Env(gym.Env, Serializable):
             self.initial_state = deepcopy(initial_state)
 
         # clear all vehicles from the network and the vehicles class
-        for veh_id in self.traci_connection.vehicle.getIDList() + \
-                self.traci_connection.simulation.getStartingTeleportIDList():
+        for veh_id in list(self.vehicles.get_ids()):
+            self.vehicles.remove(veh_id)
             try:
                 self.traci_connection.vehicle.remove(veh_id)
-                self.vehicles.remove(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
 
@@ -520,10 +519,19 @@ class Env(gym.Env, Serializable):
             type_id, route_id, lane_index, lane_pos, speed, pos = \
                 self.initial_state[veh_id]
 
-            self.traci_connection.vehicle.addFull(
-                veh_id, route_id, typeID=str(type_id),
-                departLane=str(lane_index),
-                departPos=str(lane_pos), departSpeed=str(speed))
+            try:
+                self.traci_connection.vehicle.addFull(
+                    veh_id, route_id, typeID=str(type_id),
+                    departLane=str(lane_index),
+                    departPos=str(lane_pos), departSpeed=str(speed))
+            except:
+                # if a vehicle was not removed in the first attempt, remove it
+                # now and then reintroduce it
+                self.traci_connection.vehicle.remove(veh_id)
+                self.traci_connection.vehicle.addFull(
+                    veh_id, route_id, typeID=str(type_id),
+                    departLane=str(lane_index),
+                    departPos=str(lane_pos), departSpeed=str(speed))
 
         self.traci_connection.simulationStep()
 
