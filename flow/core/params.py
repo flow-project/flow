@@ -11,7 +11,8 @@ class SumoParams:
                  sumo_binary="sumo",
                  overtake_right=False,
                  ballistic=False,
-                 seed=None):
+                 seed=None,
+                 check_junctions=True):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
