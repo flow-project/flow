@@ -1,23 +1,10 @@
-"""
-This file contains the base controllers used by human-driven vehicle units.
-
-Two types of controllers are provided:
- - BaseController: A controller that instantiates a vehicle with car-following
-   dynamics controlled by acceleration models in flow_dev (located in
-   car_following_models.py)
- - SumoController: A controller that instantiates a vehicle with car-following
-   dynamics from sumo's built-in functions
-"""
-
 import numpy as np
 import collections
 
 
 class BaseController:
-
     def __init__(self, veh_id, controller_params):
-        """
-        Base class for flow-controlled acceleration behavior.
+        """Base class for flow-controlled acceleration behavior.
 
         Instantiates a controller and forces the user to pass a
         maximum acceleration to the controller. Provides the method
@@ -33,61 +20,72 @@ class BaseController:
             contain 'max_deaccel', the maximum deceleration as well as all
             other parameters that dictate the driving behavior.
         """
-        self.d = 0
         self.veh_id = veh_id
         self.controller_params = controller_params
         self.sumo_controller = False
 
         # magnitude of gaussian noise
-        if "noise" not in controller_params:
-            self.acc_noise = 0
-        else:
-            self.acc_noise = controller_params["noise"]
+        self.accel_noise = controller_params.get("noise", 0)
 
         # delay used by the safe_velocity failsafe
-        if not controller_params['delay']:
-            self.delay = 0
-        else:
-            self.delay = controller_params['delay']
+        self.delay = controller_params.get("delay", 0)
 
         # longitudinal failsafe used by the vehicle
-        if not controller_params["fail_safe"]:
-            self.fail_safe = None
-        else:
-            self.fail_safe = controller_params["fail_safe"]
+        self.fail_safe = controller_params.get("fail_safe", None)
 
         # max deaccel should always be a positive
-        self.max_deaccel = np.abs(controller_params['max_deaccel'])
-        self.acc_queue = collections.deque()
+        self.max_deaccel = abs(controller_params.get('max_deaccel', 5))
+
+        # acceleration queue, for time delayed actions
+        self.accel_queue = collections.deque()
 
     def uses_sumo(self):
         return self.sumo_controller
 
-    def reset_delay(self, env):
-        raise NotImplementedError
+    def reset_delay(self):
+        self.accel_queue.clear()
 
     def get_accel(self, env):
-        """
-        Returns the acceleration of the controller
-        """
+        """Returns the acceleration of the controller"""
         raise NotImplementedError
 
     def get_action(self, env):
-        """
-        Returns the acceleration requested by get_accel pull some stochastic
-        noise (if requested by the controller).
+        """Converts the get_accel() acceleration into an action.
+
+        If no acceleration is specified, the action returns a None as well,
+        signifying that sumo should control the accelerations for the current
+        time step.
+
+        This method also augments the controller with the desired level of
+        stochastic noise, and utlizes the "instantaneous" or "safe_velocity"
+        failsafes if requested.
+
+        Parameters
+        ----------
+        env: Env Type
+            state of the environment at the current time step
+
+        Returns
+        -------
+        action: float
+            the modified form of the acceleration
         """
         accel = self.get_accel(env)
 
+        # if no acceleration is specified, let sumo take over for the current
+        # time step
+        if accel is None:
+            return None
+
         # add noise to the accelerations, if requested
-        if self.acc_noise > 0:
-            accel += np.random.normal(0, self.acc_noise)
+        if self.accel_noise > 0:
+            accel += np.random.normal(0, self.accel_noise)
 
         # run the failsafes, if requested
         if self.fail_safe == 'instantaneous':
             accel = self.get_safe_action_instantaneous(env, accel)
         elif self.fail_safe == 'safe_velocity':
-            accel = self.get_safe_action(env, accel)
+            accel = self.get_safe_velocity_action(env, accel)
 
         return accel
 
@@ -116,7 +114,7 @@ class BaseController:
 
         lead_id = env.vehicles.get_leader(self.veh_id)
 
-        # if there is no other vehicle in the current lane, all actions are safe
+        # if there is no other vehicle in the lane, all actions are safe
         if lead_id is None:
             return action
 
@@ -135,16 +133,18 @@ class BaseController:
                 # moving), then stop immediately
                 return -this_vel / sim_step
             else:
-                # if the vehicle is not in danger of crashing, continue with the
-                # requested action
+                # if the vehicle is not in danger of crashing, continue with
+                # the requested action
                 return action
         else:
             return action
 
-    def get_safe_action(self, env, action):
-        """
+    def get_safe_velocity_action(self, env, action):
+        """Performs the "safe_velocity" failsafe action.
+
         Checks if the computed acceleration would put us above safe velocity.
-        If it would, output the acceleration that would put at to safe velocity.
+        If it would, output the acceleration that would put at to safe
+        velocity.
 
         Parameters
         ----------
@@ -174,8 +174,7 @@ class BaseController:
                 return action
 
     def safe_velocity(self, env):
-        """
-        Finds maximum velocity such that if the lead vehicle were to stop
+        """Finds maximum velocity such that if the lead vehicle were to stop
         entirely, we can bring the following vehicle to rest at the point at
         which the headway is zero.
 
@@ -201,4 +200,3 @@ class BaseController:
         v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
 
         return v_safe
-
