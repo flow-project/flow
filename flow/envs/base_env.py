@@ -508,14 +508,26 @@ class Env(gym.Env, Serializable):
 
             self.initial_state = deepcopy(initial_state)
 
+        # # clear all vehicles from the network and the vehicles class
+
+        for veh_id in list(set(self.traci_connection.vehicle.getIDList() + \
+                      self.traci_connection.simulation.getStartingTeleportIDList())):
+            try:
+                self.traci_connection.vehicle.remove(veh_id)
+                self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
+                self.vehicles.remove(veh_id)
+                self.traci_connection.vehicle.unsubscribe(veh_id)
+            except Exception:
+                print("Error during start: {}".format(traceback.format_exc()))
+                pass
+
         # clear all vehicles from the network and the vehicles class
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
             try:
                 self.traci_connection.vehicle.remove(veh_id)
             except Exception:
-                #print("Error during start: {}".format(traceback.format_exc()))
-                pass
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
