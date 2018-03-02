@@ -55,7 +55,7 @@ class TestCollisions(unittest.TestCase):
         # instantiate an experiment class
         self.exp = SumoExperiment(self.env, self.scenario)
 
-        self.exp.run(50, 50)
+        self.exp.run(5, 50)
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
@@ -103,7 +103,7 @@ class TestCollisions(unittest.TestCase):
         # instantiate an experiment class
         self.exp = SumoExperiment(self.env, self.scenario)
 
-        self.exp.run(50, 50)
+        self.exp.run(5, 50)
 
 
 if __name__ == '__main__':
