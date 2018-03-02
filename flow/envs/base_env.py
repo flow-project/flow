@@ -6,6 +6,8 @@ import sys
 from copy import deepcopy
 import time
 import traceback
+import numpy as np
+import random
 
 import traci
 from traci import constants as tc
@@ -25,7 +27,6 @@ try:
 except ImportError:
     import flow.config_default as config
 
-from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
 
 # Number of retries on restarting SUMO before giving up
@@ -225,9 +226,9 @@ class Env(gym.Env, Serializable):
         raise error
 
     def setup_initial_state(self):
-        """
-        Returns information on the initial state of the vehicles in the network,
-        to be used upon reset.
+        """Returns information on the initial state of the vehicles in the
+        network, to be used upon reset.
+
         Also adds initial state information to the self.vehicles class and
         starts a subscription with sumo to collect state information each step.
 
