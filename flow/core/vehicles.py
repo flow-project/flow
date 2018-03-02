@@ -274,13 +274,10 @@ class Vehicles:
         else:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
-                try:
-                    prev_lane = self.get_lane(veh_id)
-                    if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
-                            prev_lane and veh_id in self.__rl_ids:
-                        self.set_state(veh_id, "last_lc", env.time_counter)
-                except:
-                    pass
+                prev_lane = self.get_lane(veh_id)
+                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
+                        prev_lane and veh_id in self.__rl_ids:
+                    self.set_state(veh_id, "last_lc", env.time_counter)
 
             # update the "absolute_position" variable
             for veh_id in self.__ids:
@@ -998,12 +995,9 @@ class Vehicles:
             Index = lane index
             Element = follower at this lane
         """
-        try:
-            this_pos = self.get_position(veh_id)
-            this_edge = self.get_edge(veh_id)
-            num_lanes = env.scenario.num_lanes(this_edge)
-        except:
-            return [], [], [], []
+        this_pos = self.get_position(veh_id)
+        this_edge = self.get_edge(veh_id)
+        num_lanes = env.scenario.num_lanes(this_edge)
 
         # set default values for all output values
         headway = [1000] * num_lanes
