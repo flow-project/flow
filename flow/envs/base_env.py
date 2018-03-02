@@ -76,6 +76,8 @@ class Env(gym.Env, Serializable):
         self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
+        # step_counter: number of total steps taken
+        self.step_counter = 0
         # initial_state:
         #   Key = Vehicle ID,
         #   Entry = (type_id, route_id, lane_index, lane_pos, speed, pos)
@@ -341,6 +343,10 @@ class Env(gym.Env, Serializable):
             contains other diagnostic information from the previous action
         """
         self.time_counter += 1
+        self.step_counter += 1
+        if self.step_counter > 2e6:
+            self.step_counter = 0
+            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
             
         # perform acceleration actions for controlled human-driven vehicles
         if len(self.vehicles.get_controlled_ids()) > 0:
@@ -452,6 +458,9 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
+        if self.step_counter > 2e6:
+            self.step_counter = 0
+            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
         # TODO(ak): handling number of vehicles during reset
 
@@ -500,13 +509,10 @@ class Env(gym.Env, Serializable):
             self.initial_state = deepcopy(initial_state)
 
         # clear all vehicles from the network and the vehicles class
-        for veh_id in self.traci_connection.vehicle.getIDList() + \
-                self.traci_connection.simulation.getStartingTeleportIDList():
+        for veh_id in list(self.vehicles.get_ids()):
+            self.vehicles.remove(veh_id)
             try:
                 self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
-                self.vehicles.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
             except Exception:
                 #print("Error during start: {}".format(traceback.format_exc()))
                 pass
@@ -516,10 +522,19 @@ class Env(gym.Env, Serializable):
             type_id, route_id, lane_index, lane_pos, speed, pos = \
                 self.initial_state[veh_id]
 
-            self.traci_connection.vehicle.addFull(
-                veh_id, route_id, typeID=str(type_id),
-                departLane=str(lane_index),
-                departPos=str(lane_pos), departSpeed=str(speed))
+            try:
+                self.traci_connection.vehicle.addFull(
+                    veh_id, route_id, typeID=str(type_id),
+                    departLane=str(lane_index),
+                    departPos=str(lane_pos), departSpeed=str(speed))
+            except:
+                # if a vehicle was not removed in the first attempt, remove it
+                # now and then reintroduce it
+                self.traci_connection.vehicle.remove(veh_id)
+                self.traci_connection.vehicle.addFull(
+                    veh_id, route_id, typeID=str(type_id),
+                    departLane=str(lane_index),
+                    departPos=str(lane_pos), departSpeed=str(speed))
 
 
         self.traci_connection.simulationStep()
