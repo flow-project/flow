@@ -23,10 +23,12 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
+DISABLE_TB = True
+DISABLE_RAMP_METER = True
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 
@@ -67,14 +69,16 @@ vehicles.add(veh_id="human2",
                  minGap=2.5, tau=1.0),
              num_vehicles=15*SCALING)
 
-additional_env_params = {"target_velocity": 40, "num_steps": 150}
+additional_env_params = {"target_velocity": 40, "num_steps": 15000,
+                         "disable_tb": True, "disable_ramp_metering": True}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
 # flow rate
-flow_rate = 3750 * SCALING
+flow_rate = 1500 * SCALING
 # percentage of flow coming out of each lane
-flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
 for i in range(NUM_LANES):
@@ -84,8 +88,10 @@ for i in range(NUM_LANES):
                departLane=lane_num, departSpeed=10)
 
 traffic_lights = TrafficLights()
-traffic_lights.add(node_id="2")
-traffic_lights.add(node_id="3")
+if not DISABLE_TB:
+    traffic_lights.add(node_id="2")
+if not DISABLE_RAMP_METER:
+    traffic_lights.add(node_id="3")
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(in_flows=inflow,

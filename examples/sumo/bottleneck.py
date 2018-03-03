@@ -10,6 +10,7 @@ from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
@@ -19,8 +20,10 @@ from flow.core.experiment import SumoExperiment
 
 def bottleneck(sumo_binary=None):
 
-    SCALING = 1
+    SCALING = 4
     NUM_LANES = 4*SCALING  # number of lanes in the widest highway
+    DISABLE_TB = True
+    DISABLE_RAMP_METER = True
 
     logging.basicConfig(level=logging.INFO)
 
@@ -31,30 +34,25 @@ def bottleneck(sumo_binary=None):
     vehicles = Vehicles()
 
     vehicles.add(veh_id="human",
-                 speed_mode=0b11111,
+                 speed_mode=31,
                  lane_change_controller=(SumoLaneChangeController, {}),
+                 # acceleration_controller=(IDMController, {}),
                  routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=512,
+                 lane_change_mode=1621,
                  sumo_car_following_params=SumoCarFollowingParams(
-                     minGap=2.5, tau=1.0),
-                 num_vehicles=20*SCALING)
-    vehicles.add(veh_id="human2",
-                 speed_mode=0b11111,
-                 lane_change_mode=512,
-                 lane_change_controller=(SumoLaneChangeController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 sumo_car_following_params=SumoCarFollowingParams(
-                     minGap=2.5, tau=1.0),
-                 num_vehicles=20*SCALING)
+                     minGap=2.5, tau=1.0, speedDev=0.5),
+                 num_vehicles=40*SCALING)
 
-    additional_env_params = {"target_velocity": 40, "num_steps": 150}
+    additional_env_params = {"target_velocity": 40, "disable_tb": True,
+                             "disable_ramp_metering": True}
     env_params = EnvParams(additional_params=additional_env_params,
                            lane_change_duration=1)
 
     # flow rate
-    flow_rate = 3750 * SCALING
+    flow_rate = 1500 * SCALING
     # percentage of flow coming out of each lane
-    flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+    #flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+    flow_dist = np.ones(NUM_LANES)/NUM_LANES
 
     inflow = InFlows()
     for i in range(NUM_LANES):
@@ -64,14 +62,16 @@ def bottleneck(sumo_binary=None):
                    departLane=lane_num, departSpeed=10)
 
     traffic_lights = TrafficLights()
-    traffic_lights.add(node_id="2")
-    traffic_lights.add(node_id="3")
+    if not DISABLE_TB:
+        traffic_lights.add(node_id="2")
+    if not DISABLE_RAMP_METER:
+        traffic_lights.add(node_id="3")
 
     additional_net_params = {"scaling": SCALING}
     net_params = NetParams(in_flows=inflow,
                            no_internal_links=False, additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="uniform", min_gap=5,
+    initial_config = InitialConfig(spacing="random", min_gap=5,
                                    lanes_distribution=float("inf"),
                                    edges_distribution=["2", "3", "4", "5"])
 
@@ -92,4 +92,4 @@ if __name__ == "__main__":
     exp = bottleneck(sumo_binary="sumo-gui")
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(10, 300)
