@@ -34,8 +34,10 @@ if __name__ == "__main__":
     baseline = data['baseline']
     env = data['env']
 
+    # FIXME(ev, ak) only one of these should be needed
     # extract the flow environment
     #unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
+    # if this doesn't work, try the one above it
     unwrapped_env = env.wrapped_env.env.env.unwrapped
 
     # Input

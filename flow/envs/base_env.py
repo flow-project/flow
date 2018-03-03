@@ -517,6 +517,7 @@ class Env(gym.Env, Serializable):
                 pass
 
         # clear all vehicles from the network and the vehicles class
+        # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
             try:
