@@ -36,6 +36,22 @@ def desired_velocity(env, fail=False):
     return max(max_cost - cost, 0)
 
 
+def rl_forward_progress(env, fail=False, gain = 0.1):
+    """
+        A reward function used to slightly rewards the RL vehicles travelling forward
+        to help with sparse problems
+
+        :param env {SumoEnvironment type} - the environment variable, which contains information on the current
+               state of the system.
+        :param fail {bool} - specifies if any crash or other failure occurred in the system
+        :param gain {float} - specifies how much to reward the RL vehicles
+        """
+    system_velocity = desired_velocity(env, fail)
+    rl_velocity = env.vehicles.get_speed(env.vehicles.get_rl_ids())
+    rl_norm_vel = np.linalg.norm(rl_velocity, 1)
+    return system_velocity + rl_norm_vel*gain
+
+
 def min_delay(state=None, actions=None, **kwargs):
     """
     A reward function used to encourage minimization of total delay in the 
@@ -105,7 +121,6 @@ def penalize_headway_variance(vehicles, vids, normalization=1, penalty_gain=1,
         [vehicles.get_headway(veh_id) / normalization for veh_id in vids]),
         penalty_exponent)
     return -np.var(headways)
-
 
 def punish_small_rl_headways(vehicles, rl_ids, headway_threshold, penalty_gain=1, penalty_exponent=1):
     """
