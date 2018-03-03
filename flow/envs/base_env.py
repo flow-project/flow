@@ -121,9 +121,6 @@ class Env(gym.Env, Serializable):
         self.start_sumo()
         self.setup_initial_state()
 
-        self.time = time.time()
-        self.time_list = []
-
     def restart_sumo(self, sumo_params, sumo_binary=None):
         """
         Restarts an already initialized environment. Used when visualizing a
@@ -437,7 +434,6 @@ class Env(gym.Env, Serializable):
 
         else:
             if crash:
-                print('Oh boy, thats a crash')
                 return next_observation, reward, True, {}
             else:
                 return next_observation, reward, False, {}
@@ -510,8 +506,7 @@ class Env(gym.Env, Serializable):
 
         # # clear all vehicles from the network and the vehicles class
 
-        for veh_id in list(set(self.traci_connection.vehicle.getIDList() + \
-                      self.traci_connection.simulation.getStartingTeleportIDList())):
+        for veh_id in self.traci_connection.vehicle.getIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
@@ -579,11 +574,6 @@ class Env(gym.Env, Serializable):
             self.state = self.get_state().T
 
         observation = list(self.state)
-        time_step = time.time() - self.time
-        self.time_list.append(time_step)
-        print('time is ', time_step)
-        print('mean of times is', np.mean(self.time_list))
-        self.time = time.time()
         return observation
 
     def additional_command(self):
