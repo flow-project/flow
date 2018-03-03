@@ -409,9 +409,7 @@ class Env(gym.Env, Serializable):
 
         # crash encodes whether sumo experienced a crash
         crash = \
-            np.any(np.array([self.vehicles.get_position(veh_id)
-                             for veh_id in self.vehicles.get_ids()]) < 0) \
-            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
+            self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
@@ -507,7 +505,20 @@ class Env(gym.Env, Serializable):
 
             self.initial_state = deepcopy(initial_state)
 
+        # # clear all vehicles from the network and the vehicles class
+
+        for veh_id in self.traci_connection.vehicle.getIDList():
+            try:
+                self.traci_connection.vehicle.remove(veh_id)
+                self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
+                self.vehicles.remove(veh_id)
+                self.traci_connection.vehicle.unsubscribe(veh_id)
+            except Exception:
+                print("Error during start: {}".format(traceback.format_exc()))
+                pass
+
         # clear all vehicles from the network and the vehicles class
+        # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
             try:
@@ -533,6 +544,7 @@ class Env(gym.Env, Serializable):
                     veh_id, route_id, typeID=str(type_id),
                     departLane=str(lane_index),
                     departPos=str(lane_pos), departSpeed=str(speed))
+
 
         self.traci_connection.simulationStep()
 

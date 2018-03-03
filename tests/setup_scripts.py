@@ -1,12 +1,15 @@
 import logging
-from numpy import pi, sin, cos, linspace
+from numpy import pi, sin, cos, linspace, ones, random
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.car_following_models import IDMController
+from flow.controllers.rlcontroller import RLController
 
 from flow.envs.loop_accel import AccelEnv
 
@@ -19,6 +22,8 @@ from flow.scenarios.grid.grid_scenario import SimpleGridScenario
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.scenarios.highway.gen import HighwayGenerator
 from flow.scenarios.highway.scenario import HighwayScenario
+from flow.scenarios.bridge_toll.scenario import BBTollScenario
+from flow.scenarios.bridge_toll.gen import BBTollGenerator
 
 
 def ring_road_exp_setup(sumo_params=None,
@@ -426,6 +431,81 @@ def variable_lanes_exp_setup(sumo_params=None,
                             net_params=net_params,
                             initial_config=initial_config,
                             traffic_lights=traffic_lights)
+
+    # create the environment
+    env = AccelEnv(env_params=env_params,
+                   sumo_params=sumo_params,
+                   scenario=scenario)
+
+    return env, scenario
+
+
+def setup_bottlenecks(sumo_params=None,
+                      vehicles=None,
+                      env_params=None,
+                      net_params=None,
+                      initial_config=None,
+                      traffic_lights=None,
+                      inflow=None,
+                      scaling=1):
+    SCALING = 1
+    NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
+
+    logging.basicConfig(level=logging.INFO)
+
+    if sumo_params is None:
+        sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
+
+    if vehicles is None:
+        vehicles = Vehicles()
+        vehicles.add(veh_id="human",
+                     speed_mode=0b11111,
+                     lane_change_controller=(SumoLaneChangeController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     lane_change_mode=512,
+                     sumo_car_following_params=SumoCarFollowingParams(
+                         minGap=2.5, tau=1.0),
+                     num_vehicles=40 * SCALING)
+
+    if env_params is None:
+        additional_env_params = {"target_velocity": 40, "num_steps": 150}
+        env_params = EnvParams(additional_params=additional_env_params,
+                               lane_change_duration=1)
+
+    if inflow is None:
+        # flow rate
+        flow_rate = 3750 * SCALING
+        # percentage of flow coming out of each lane
+        flow_dist = random.dirichlet(ones(NUM_LANES), size=1)[0]
+
+        inflow = InFlows()
+        for i in range(NUM_LANES):
+            lane_num = str(i)
+            veh_per_hour = flow_rate * flow_dist[i]
+            inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
+                       departLane=lane_num, departSpeed=10)
+
+    if traffic_lights is None:
+        traffic_lights = TrafficLights()
+        traffic_lights.add(node_id="2")
+        traffic_lights.add(node_id="3")
+
+    if net_params is None:
+        additional_net_params = {"scaling": scaling}
+        net_params = NetParams(in_flows=inflow,
+                               no_internal_links=False, additional_params=additional_net_params)
+
+    if initial_config is None:
+        initial_config = InitialConfig(spacing="uniform", min_gap=5,
+                                       lanes_distribution=float("inf"),
+                                       edges_distribution=["2", "3", "4", "5"])
+
+    scenario = BBTollScenario(name="bay_bridge_toll",
+                              generator_class=BBTollGenerator,
+                              vehicles=vehicles,
+                              net_params=net_params,
+                              initial_config=initial_config,
+                              traffic_lights=traffic_lights)
 
     # create the environment
     env = AccelEnv(env_params=env_params,
