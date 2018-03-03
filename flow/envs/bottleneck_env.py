@@ -29,7 +29,7 @@ RAMP_METER_AREA = 80
 
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
-FAST_TRACK_ON = range(6, 11) # lanes that the fast track is on
+ # lanes that the fast track is on
 
 
 class BridgeTollEnv(LaneChangeAccelEnv):
@@ -52,11 +52,11 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.cars_waiting_before_ramp_meter = dict()
         self.toll_wait_time = np.abs(
             np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step, 4 / self.sim_step, NUM_TOLL_LANES*self.scaling))
+        self.fast_track_lanes = range(int(np.ceil(1.5 * self.scaling)), int(np.ceil(2.6 * self.scaling)))
         self.tl_state = ""
         self.disable_tb = False
         self.disable_ramp_metering = False
-
-
+        self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         print(env_params.additional_params)
         if "disable_tb" in env_params.additional_params:
@@ -125,7 +125,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
                 color = self.cars_waiting_for_toll[veh_id]["color"]
                 self.traci_connection.vehicle.setColor(veh_id, color)
                 self.traci_connection.vehicle.setLaneChangeMode(veh_id, lane_change_mode)
-                if lane not in FAST_TRACK_ON:
+                if lane not in self.fast_track_lanes:
                     self.toll_wait_time[lane] = max(0,
                                                     np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step,
                                                                      1 / self.sim_step))
@@ -170,11 +170,40 @@ class BridgeTollEnv(LaneChangeAccelEnv):
 
 
 class BottleNeckEnv(BridgeTollEnv):
+    """Environment used to train vehicles to effectively pass through a bottleneck.
+
+       States
+       ------
+       An observation is the edge position, speed, lane, and edge number of the
+       AV, the distance to and velocity of the vehicles
+       in front and behind the AV for all lanes. Additionally, we pass the
+       density and average velocity of all edges. Finally, we pad with zeros
+       in case an AV has exited the system.
+       Note: the vehicles are arranged in an initial order, so we pad
+       the missing vehicle at its normal position in the order
+
+       Actions
+       -------
+       The action space consist of a list in which the first half
+       is accelerations and the second half is a direction for lane changing
+       that we round
+
+       Rewards
+       -------
+       The reward is the two-norm of the difference between the speed of all
+       vehicles in the network and some desired speed. To this we add
+       a positive reward for moving the vehicles forward
+
+       Termination
+       -----------
+       A rollout is terminated once the time horizon is reached.
+
+       """
     @property
     def observation_space(self):
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
-        num_obs = 2*num_edges + 4*MAX_LANES*self.scaling*num_rl_veh + 3*num_rl_veh
+        num_obs = 2*num_edges + 4*MAX_LANES*self.scaling*num_rl_veh + 4*num_rl_veh
         print("--------------")
         print("--------------")
         print("--------------")
@@ -187,61 +216,94 @@ class BottleNeckEnv(BridgeTollEnv):
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
 
     def get_state(self):
-        # rl vehicles are sorted by their position
-        rl_ids = sorted(self.vehicles.get_rl_ids(), key=self.get_x_by_id)
+
+        headway_scale = 1000
+
+        rl_ids = self.vehicles.get_rl_ids()
 
         # rl vehicle data (absolute position, speed, and lane index)
-        rl_obs = []
+        rl_obs = np.empty(0)
+        id_counter = 0
         for veh_id in rl_ids:
-            rl_obs += [self.get_x_by_id(veh_id),
-                       self.vehicles.get_speed(veh_id),
-                       self.vehicles.get_lane(veh_id)]
+            # check if we have skipped a vehicle, if not, pad
+            rl_id_num = self.rl_id_list.index(veh_id)
+            if rl_id_num != id_counter:
+                rl_obs = np.concatenate((rl_obs,
+                                         np.zeros(4*(rl_id_num - id_counter))))
+                id_counter = rl_id_num + 1
+            else:
+                id_counter += 1
+
+            # get the edge and convert it to a number
+            edge_num = self.vehicles.get_edge(veh_id)
+            if edge_num is None:
+                edge_num = -1
+            elif edge_num[0] == ':':
+                edge_num = -1
+            else:
+                edge_num = int(edge_num)/6
+            rl_obs = np.concatenate((rl_obs, [self.get_x_by_id(veh_id)/1000,
+                       self.vehicles.get_speed(veh_id)/self.max_speed,
+                       self.vehicles.get_lane(veh_id)/MAX_LANES,
+                       edge_num]))
+        # if all the missing vehicles are at the end, pad
+        diff = self.num_rl - int(rl_obs.shape[0]/4)
+        if diff > 0:
+            rl_obs = np.concatenate((rl_obs, np.zeros(4*diff)))
 
         # relative vehicles data (lane headways, tailways, vel_ahead, and
         # vel_behind)
-        relative_obs = []
+        relative_obs = np.empty(0)
+        id_counter = 0
         for veh_id in rl_ids:
-            headway = [1000 for _ in range(MAX_LANES*self.scaling)]
-            tailway = [1000 for _ in range(MAX_LANES*self.scaling)]
-            vel_in_front = [0 for _ in range(MAX_LANES*self.scaling)]
-            vel_behind = [0 for _ in range(MAX_LANES*self.scaling)]
+            # check if we have skipped a vehicle, if not, pad
+            rl_id_num = self.rl_id_list.index(veh_id)
+            if rl_id_num != id_counter:
+                relative_obs = np.concatenate((relative_obs,
+                                         np.zeros(4 * MAX_LANES *
+                                                  self.scaling *
+                                                  (rl_id_num - id_counter))))
+                id_counter = rl_id_num + 1
+            else:
+                id_counter += 1
+            headway = np.asarray([1000 for _ in range(MAX_LANES*self.scaling)])/headway_scale
+            tailway = np.asarray([1000 for _ in range(MAX_LANES*self.scaling)])/headway_scale
+            vel_in_front = np.asarray([0 for _ in range(MAX_LANES*self.scaling)])/self.max_speed
+            vel_behind = np.asarray([0 for _ in range(MAX_LANES*self.scaling)])/self.max_speed
 
             lane_leaders = self.vehicles.get_lane_leaders(veh_id)
             lane_followers = self.vehicles.get_lane_followers(veh_id)
             lane_headways = self.vehicles.get_lane_headways(veh_id)
             lane_tailways = self.vehicles.get_lane_tailways(veh_id)
-            headway[0:len(lane_headways)] = lane_headways
-            tailway[0:len(lane_tailways)] = lane_tailways
+            headway[0:len(lane_headways)] = np.asarray(lane_headways)/headway_scale
+            tailway[0:len(lane_tailways)] = np.asarray(lane_tailways)/headway_scale
             for i, lane_leader in enumerate(lane_leaders):
                 if lane_leader != '':
-                    vel_in_front[i] = self.vehicles.get_speed(lane_leader)
+                    vel_in_front[i] = self.vehicles.get_speed(lane_leader)/self.max_speed
             for i, lane_follower in enumerate(lane_followers):
                 if lane_followers != '':
-                    vel_behind[i] = self.vehicles.get_speed(lane_follower)
-            relative_obs += headway + tailway + vel_in_front + vel_behind
+                    vel_behind[i] = self.vehicles.get_speed(lane_follower)/self.max_speed
+
+            relative_obs = np.concatenate((relative_obs, headway,tailway,vel_in_front,vel_behind))
+
+        # if all the missing vehicles are at the end, pad
+        diff = self.num_rl - int(relative_obs.shape[0]/(4*MAX_LANES))
+        if diff > 0:
+            relative_obs = np.concatenate((relative_obs, np.zeros(4*MAX_LANES*diff)))
 
         # per edge data (average speed, density
         edge_obs = []
         for edge in self.scenario.get_edge_list():
             veh_ids = self.vehicles.get_ids_by_edge(edge)
             if len(veh_ids) > 0:
-                avg_speed = sum(self.vehicles.get_speed(veh_ids)) / len(veh_ids)
+                avg_speed = (sum(self.vehicles.get_speed(veh_ids))
+                             / len(veh_ids))/self.max_speed
                 density = len(veh_ids) / self.scenario.edge_length(edge)
                 edge_obs += [avg_speed, density]
             else:
                 edge_obs += [0, 0]
 
-        extra_zeros = []
-        if len(rl_ids) != self.num_rl:
-            diff = (self.num_rl - len(rl_ids))
-            extra_zeros = [0]*(4*MAX_LANES*self.scaling*diff + 3*diff)
-        num_edges = len(self.scenario.get_edge_list())
-        num_rl_veh = self.num_rl
-        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling * num_rl_veh + 3 * num_rl_veh
-        if len(rl_obs + relative_obs + edge_obs) < num_obs:
-            return np.asarray(rl_obs + relative_obs + edge_obs + extra_zeros)
-        else:
-            return np.asarray(rl_obs + relative_obs + edge_obs)
+        return np.concatenate((rl_obs, relative_obs, edge_obs))
 
     def compute_reward(self, state, rl_actions, **kwargs):
         return rewards.rl_forward_progress(self, gain=0.2)
