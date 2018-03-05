@@ -11,8 +11,7 @@ class SumoParams:
                  sumo_binary="sumo",
                  overtake_right=False,
                  ballistic=False,
-                 seed=None,
-                 cycle_time=10000):
+                 seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
@@ -60,7 +59,6 @@ class SumoParams:
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
-        self.cycle_time = cycle_time
 
 
 class EnvParams:
