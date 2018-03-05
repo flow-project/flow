@@ -334,7 +334,11 @@ class BottleNeckEnv(BridgeTollEnv):
         return np.concatenate((rl_obs, relative_obs, edge_obs))
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        return rewards.rl_forward_progress(self, gain=0.4)
+        num_rl = self.vehicles.num_rl_vehicles
+        lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
+        return (rewards.desired_velocity(self) +
+                rewards.rl_forward_progress(self, gain=0.4) +
+                rewards.boolean_action_penalty(lane_change_acts))
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:

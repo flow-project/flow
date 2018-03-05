@@ -39,7 +39,7 @@ vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b1111,
+             speed_mode=0b11111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
@@ -57,7 +57,7 @@ vehicles.add(veh_id="rl2",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b1111,
+             speed_mode=0b11111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
@@ -153,7 +153,7 @@ for seed in [1]:  # , 1, 5, 10, 73]:
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
