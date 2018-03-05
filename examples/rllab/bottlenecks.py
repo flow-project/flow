@@ -21,6 +21,9 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
+import logging
+import numpy as np
+
 SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
@@ -28,7 +31,7 @@ DISABLE_RAMP_METER = True
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
@@ -70,7 +73,8 @@ vehicles.add(veh_id="human2",
              num_vehicles=15*SCALING)
 
 additional_env_params = {"target_velocity": 40, "num_steps": 15000,
-                         "disable_tb": True, "disable_ramp_metering": True}
+                         "disable_tb": True, "disable_ramp_metering": True,
+                         "add_rl_if_exit": True}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 

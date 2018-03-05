@@ -11,7 +11,8 @@ class SumoParams:
                  sumo_binary="sumo",
                  overtake_right=False,
                  ballistic=False,
-                 seed=None):
+                 seed=None,
+                 cycle_time=10000):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
@@ -47,6 +48,8 @@ class SumoParams:
             Defaults to False
         seed: int, optional
             seed for sumo instance
+        cycle_time: int, optional
+            sets traffic lights default cycle time for base tl program
         """
         self.port = port
         self.sim_step = sim_step
@@ -57,6 +60,7 @@ class SumoParams:
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
+        self.cycle_time = cycle_time
 
 
 class EnvParams:

@@ -194,6 +194,10 @@ class Env(gym.Env, Serializable):
             sumo_call.append("--seed")
             sumo_call.append(str(self.sumo_params.seed))
 
+        # # specify the default cycle time of traffic lights
+        # sumo_call.append("--tls.cycle.time")
+        # sumo_call.append(str(self.sumo_params.cycle_time))
+
         logging.info(" Starting SUMO on port " + str(port))
         logging.debug(" Cfg file: " + str(self.scenario.cfg))
         logging.debug(" Emission file: " + str(emission_out))

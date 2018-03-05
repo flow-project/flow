@@ -316,6 +316,9 @@ class Vehicles:
         # update the lane leaders data for each vehicle
         self._multi_lane_headways(env)
 
+        # make sure the rl vehicle list is still sorted
+        self.__rl_ids.sort()
+
     def _add_departed(self, veh_id, veh_type, env):
         """Adds a vehicle that entered the network from an inflow or reset.
 
@@ -406,6 +409,9 @@ class Vehicles:
         # change the color of the vehicle based on its type
         env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
 
+        # make sure that the order of rl_ids is kept sorted
+        self.__rl_ids.sort()
+
     def remove(self, veh_id):
         """Removes a vehicle.
 
@@ -431,6 +437,9 @@ class Vehicles:
         else:
             self.__rl_ids.remove(veh_id)
             self.num_rl_vehicles -= 1
+
+        # make sure that the rl ids remain sorted
+        self.__rl_ids.sort()
 
     def test_set_speed(self, veh_id, speed):
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
