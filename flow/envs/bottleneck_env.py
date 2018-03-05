@@ -254,11 +254,8 @@ class BottleNeckEnv(BridgeTollEnv):
             # check if we have skipped a vehicle, if not, pad
             rl_id_num = self.rl_id_list.index(veh_id)
             if rl_id_num != id_counter:
-                try:
-                    rl_obs = np.concatenate((rl_obs,
-                                             np.zeros(4*(rl_id_num - id_counter))))
-                except:
-                    import ipdb; ipdb.set_trace()
+                rl_obs = np.concatenate((rl_obs,
+                                         np.zeros(4*(rl_id_num - id_counter))))
                 id_counter = rl_id_num + 1
             else:
                 id_counter += 1
@@ -390,7 +387,13 @@ class BottleNeckEnv(BridgeTollEnv):
                 # distribute rl cars evenly over lanes
                 lane_num = self.rl_id_list.index(rl_id) % MAX_LANES*self.scaling
                 # reintroduce it at the start of the network
-                self.traci_connection.vehicle.addFull(
-                    rl_id, 'route1', typeID=str('rl'),
-                    departLane=str(lane_num),
-                    departPos="0", departSpeed="max")
+                # FIXME(ev) the try is for when we've already called to introduce
+                # FIXME but the introduce has been blocked by an inflow
+                # FIXME a better way would be keeping track of when we have made this call
+                try:
+                    self.traci_connection.vehicle.addFull(
+                        rl_id, 'route1', typeID=str('rl'),
+                        departLane=str(lane_num),
+                        departPos="0", departSpeed="max")
+                except:
+                    pass

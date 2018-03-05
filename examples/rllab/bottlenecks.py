@@ -31,7 +31,7 @@ DISABLE_RAMP_METER = True
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 
