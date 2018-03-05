@@ -381,7 +381,8 @@ class Env(gym.Env, Serializable):
 
         self.additional_command()
 
-        self.traci_connection.simulationStep()
+        for i in range(self.sumo_params.num_steps):
+            self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()

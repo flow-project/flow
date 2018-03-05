@@ -72,7 +72,7 @@ vehicles.add(veh_id="human2",
                  minGap=2.5, tau=1.0),
              num_vehicles=15*SCALING)
 
-additional_env_params = {"target_velocity": 40, "num_steps": 150,
+additional_env_params = {"target_velocity": 50, "num_steps": 150,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "add_rl_if_exit": True}
 env_params = EnvParams(additional_params=additional_env_params,
@@ -143,17 +143,17 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "BottleNeckVerySmall"  # experiment prefix
-for seed in [1]:  # , 1, 5, 10, 73]:
+for seed in [1, 2, 3, 4, 5, 6, 7]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local_docker",
+        mode="ec2",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,

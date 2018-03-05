@@ -53,7 +53,7 @@ def rl_forward_progress(env, fail=False, gain = 0.1):
 
 def boolean_action_penalty(discrete_actions, gain=1.0):
     """ Penalize boolean actions that indicate a switch"""
-    return -gain*np.sum(discrete_actions)
+    return gain*np.sum(discrete_actions)
 
 
 def min_delay(state=None, actions=None, **kwargs):
