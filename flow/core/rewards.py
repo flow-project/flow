@@ -46,13 +46,13 @@ def rl_forward_progress(env, fail=False, gain = 0.1):
         :param fail {bool} - specifies if any crash or other failure occurred in the system
         :param gain {float} - specifies how much to reward the RL vehicles
         """
-    system_velocity = desired_velocity(env, fail)
     rl_velocity = env.vehicles.get_speed(env.vehicles.get_rl_ids())
     rl_norm_vel = np.linalg.norm(rl_velocity, 1)
-    return system_velocity + rl_norm_vel*gain
+    return rl_norm_vel*gain
 
 
-def discrete_action_penalty(discrete_actions, gain=1.0):
+def boolean_action_penalty(discrete_actions, gain=1.0):
+    """ Penalize boolean actions that indicate a switch"""
     return -gain*np.sum(discrete_actions)
 
 

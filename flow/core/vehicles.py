@@ -308,7 +308,10 @@ class Vehicles:
                 min_gap = self.minGap[vtype]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
-                self.__vehicles[headway[0]]["follower"] = veh_id
+                try:
+                    self.__vehicles[headway[0]]["follower"] = veh_id
+                except KeyError:
+                    pass
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
