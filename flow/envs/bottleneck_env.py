@@ -264,6 +264,8 @@ class BottleNeckEnv(BridgeTollEnv):
             edge_num = self.vehicles.get_edge(veh_id)
             if edge_num is None:
                 edge_num = -1
+            elif edge_num == '':
+                edge_num = -1
             elif edge_num[0] == ':':
                 edge_num = -1
             else:
@@ -332,7 +334,7 @@ class BottleNeckEnv(BridgeTollEnv):
         return np.concatenate((rl_obs, relative_obs, edge_obs))
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        return rewards.rl_forward_progress(self, gain=0.2)
+        return rewards.rl_forward_progress(self, gain=0.4)
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
@@ -380,9 +382,6 @@ class BottleNeckEnv(BridgeTollEnv):
             # find the vehicles that have exited
             diff_list = list(set(self.rl_id_list).difference(
                 self.vehicles.get_rl_ids()))
-            print(self.rl_id_list)
-            print(self.vehicles.get_rl_ids())
-            print(self.traci_connection.vehicle.getIDList())
             for rl_id in diff_list:
                 # distribute rl cars evenly over lanes
                 lane_num = self.rl_id_list.index(rl_id) % MAX_LANES*self.scaling

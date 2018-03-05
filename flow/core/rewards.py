@@ -52,6 +52,10 @@ def rl_forward_progress(env, fail=False, gain = 0.1):
     return system_velocity + rl_norm_vel*gain
 
 
+def discrete_action_penalty(discrete_actions, gain=1.0):
+    return -gain*np.sum(discrete_actions)
+
+
 def min_delay(state=None, actions=None, **kwargs):
     """
     A reward function used to encourage minimization of total delay in the 
