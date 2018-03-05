@@ -337,8 +337,8 @@ class BottleNeckEnv(BridgeTollEnv):
         num_rl = self.vehicles.num_rl_vehicles
         lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
         return (rewards.desired_velocity(self) +
-                rewards.rl_forward_progress(self, gain=0.4) +
-                rewards.boolean_action_penalty(lane_change_acts))
+                rewards.rl_forward_progress(self, gain=0.4) -
+                rewards.boolean_action_penalty(lane_change_acts, gain=1.0))
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
