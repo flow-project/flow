@@ -10,7 +10,7 @@ from copy import deepcopy
 
 import numpy as np
 
-MAX_LANES = 4  # largest number of lanes in the network
+MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"] # Edge 1 is before the toll booth
 EDGE_BEFORE_TOLL = "1"
 TB_TL_ID = "2"
@@ -18,7 +18,7 @@ EDGE_AFTER_TOLL = "2"
 NUM_TOLL_LANES = MAX_LANES
 
 TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
-RED_LIGHT_DIST = 50  # controls how close we have to be for the red light to start going off
+RED_LIGHT_DIST = 50  # how close for the ramp meter to start going off
 
 EDGE_BEFORE_RAMP_METER = "2"
 EDGE_AFTER_RAMP_METER = "3"
@@ -26,10 +26,20 @@ NUM_RAMP_METERS = MAX_LANES
 
 RAMP_METER_AREA = 80
 
-
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
- # lanes that the fast track is on
+
+ENV_PARAMS = [
+    "disable_tb",  # whether the toll booth should be active
+    "disable_ramp_metering",  # whether the ramp meter is active
+    "target_velocity",  # velocity to use in reward functions
+    "num_steps",  # horizon
+    "add_rl_if_exit", # if an RL vehicle exits, place it back at the front
+]
+
+NET_PARAMS = [
+    "scaling",  # the factor multiplying number of lanes.
+]
 
 
 class BridgeTollEnv(LaneChangeAccelEnv):
@@ -43,6 +53,18 @@ class BridgeTollEnv(LaneChangeAccelEnv):
            Vehicles are rerouted to the start of their original routes once they reach
            the end of the network in order to ensure a constant number of vehicles.
            """
+        for k in env_params.additional_params.keys():
+            if k not in ENV_PARAMS:
+                raise Exception(
+                    "Unknown env params key `{}`, all keys: {}".format(
+                        k, ENV_PARAMS))
+
+        for k in scenario.net_params.additional_params.keys():
+            if k not in NET_PARAMS:
+                raise Exception(
+                    "Unknown net params key `{}`, all keys: {}".format(
+                        k, NET_PARAMS))
+
         self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
         # tells how scaled the number of lanes are
@@ -51,21 +73,25 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.cars_waiting_for_toll = dict()
         self.cars_waiting_before_ramp_meter = dict()
         self.toll_wait_time = np.abs(
-            np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step, 4 / self.sim_step, NUM_TOLL_LANES*self.scaling))
-        self.fast_track_lanes = range(int(np.ceil(1.5 * self.scaling)), int(np.ceil(2.6 * self.scaling)))
+            np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step,
+                             4 / self.sim_step, NUM_TOLL_LANES*self.scaling))
+        # these values place the fast track in the middle lanes
+        self.fast_track_lanes = range(int(np.ceil(1.5 * self.scaling)),
+                                      int(np.ceil(2.6 * self.scaling)))
         self.tl_state = ""
         self.disable_tb = False
         self.disable_ramp_metering = False
+        self.add_rl_if_exit = False
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
-        print(env_params.additional_params)
         if "disable_tb" in env_params.additional_params:
             self.disable_tb = env_params.get_additional_param("disable_tb")
 
         if "disable_ramp_metering" in env_params.additional_params:
             self.disable_ramp_metering = env_params.get_additional_param("disable_ramp_metering")
 
-        print(self.disable_tb)
+        if "add_rl_if_exit" in env_params.additional_params:
+            self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
 
     def additional_command(self):
         super().additional_command()
@@ -228,8 +254,11 @@ class BottleNeckEnv(BridgeTollEnv):
             # check if we have skipped a vehicle, if not, pad
             rl_id_num = self.rl_id_list.index(veh_id)
             if rl_id_num != id_counter:
-                rl_obs = np.concatenate((rl_obs,
-                                         np.zeros(4*(rl_id_num - id_counter))))
+                try:
+                    rl_obs = np.concatenate((rl_obs,
+                                             np.zeros(4*(rl_id_num - id_counter))))
+                except:
+                    import ipdb; ipdb.set_trace()
                 id_counter = rl_id_num + 1
             else:
                 id_counter += 1
@@ -345,3 +374,23 @@ class BottleNeckEnv(BridgeTollEnv):
 
         self.apply_acceleration(sorted_rl_ids, acc=acceleration)
         self.apply_lane_change(sorted_rl_ids, direction=direction)
+
+    def additional_command(self):
+        super().additional_command()
+        # if the number of rl vehicles has decreased introduce it back in
+        num_rl = self.vehicles.num_rl_vehicles
+        if num_rl != len(self.rl_id_list) and self.add_rl_if_exit:
+            # find the vehicles that have exited
+            diff_list = list(set(self.rl_id_list).difference(
+                self.vehicles.get_rl_ids()))
+            print(self.rl_id_list)
+            print(self.vehicles.get_rl_ids())
+            print(self.traci_connection.vehicle.getIDList())
+            for rl_id in diff_list:
+                # distribute rl cars evenly over lanes
+                lane_num = self.rl_id_list.index(rl_id) % MAX_LANES*self.scaling
+                # reintroduce it at the start of the network
+                self.traci_connection.vehicle.addFull(
+                    rl_id, 'route1', typeID=str('rl'),
+                    departLane=str(lane_num),
+                    departPos="0", departSpeed="max")
