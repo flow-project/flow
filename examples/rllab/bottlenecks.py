@@ -31,7 +31,7 @@ DISABLE_RAMP_METER = True
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
@@ -72,7 +72,7 @@ vehicles.add(veh_id="human2",
                  minGap=2.5, tau=1.0),
              num_vehicles=15*SCALING)
 
-additional_env_params = {"target_velocity": 40, "num_steps": 15000,
+additional_env_params = {"target_velocity": 40, "num_steps": 150,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "add_rl_if_exit": True}
 env_params = EnvParams(additional_params=additional_env_params,

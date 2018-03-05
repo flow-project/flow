@@ -953,15 +953,17 @@ class Vehicles:
         for veh_id in self.get_rl_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
-            headways, tailways, leaders, followers = \
-                self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
-                                               env)
+            edge = self.get_edge(veh_id)
+            if edge:
+                headways, tailways, leaders, followers = \
+                    self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
+                                                   env)
 
-            # add the above values to the vehicles class
-            self.set_lane_headways(veh_id, headways)
-            self.set_lane_tailways(veh_id, tailways)
-            self.set_lane_leaders(veh_id, leaders)
-            self.set_lane_followers(veh_id, followers)
+                # add the above values to the vehicles class
+                self.set_lane_headways(veh_id, headways)
+                self.set_lane_tailways(veh_id, tailways)
+                self.set_lane_leaders(veh_id, leaders)
+                self.set_lane_followers(veh_id, followers)
 
         self._ids_by_edge = dict().fromkeys(edge_list)
 
