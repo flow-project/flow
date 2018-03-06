@@ -400,3 +400,200 @@ class BottleNeckEnv(BridgeTollEnv):
                         departPos="0", departSpeed="max")
                 except:
                     pass
+
+class m_BottleNeckEnv(BottleNeckEnv):
+    """Multiagent environment used to train vehicles
+    to effectively pass through a bottleneck.
+
+       States
+       ------
+       An observation is the edge position, speed, lane, and edge number of the
+       AV, the distance to and velocity of the vehicles
+       in front and behind the AV for all lanes. Additionally, we pass the
+       density and average velocity of all edges. Finally, we add the
+       position and velocity of all other AVs in order of the list
+       Additionally, we pad with zeros
+       in case an AV has exited the system.
+       Note: the vehicles are arranged in an initial order, so we pad
+       the missing vehicle at its normal position in the order
+
+       Actions
+       -------
+       The action space consist of a list of lists in which
+       the first half of each list
+       is accelerations and the second half is a direction for lane changing
+       that we round
+
+       Rewards
+       -------
+       The reward is the two-norm of the difference between the speed of all
+       vehicles in the network and some desired speed. To this we add
+       a positive reward for moving the vehicles forward and a
+       penalty for lane changing
+
+       Termination
+       -----------
+       A rollout is terminated once the time horizon is reached.
+
+       """
+
+    @property
+    def observation_space(self):
+        num_edges = len(self.scenario.get_edge_list())
+        num_rl_veh = self.num_rl
+        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling * num_rl_veh + 4 * num_rl_veh
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print(num_obs)
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        return Tuple(tuple(Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
+                     for _ in range(self.num_rl)))
+
+    @property
+    def action_space(self):
+        return [self.lane_change_action_space() for _ in range(self.num_rl)]
+
+    def lane_change_action_space(self):
+        """
+        See parent class
+        Actions are:
+         - a (continuous) acceleration from max-deacc to max-acc
+         - a (continuous) lane-change action from -1 to 1, used to determine the
+           lateral direction the vehicle will take.
+        """
+        max_decel = self.env_params.max_decel
+        max_accel = self.env_params.max_accel
+
+        lb = [-abs(max_decel), -1]
+        ub = [max_accel, 1]
+
+        return Box(np.array(lb), np.array(ub))
+
+    def get_state(self):
+
+        headway_scale = 1000
+
+        rl_ids = self.rl_id_list()
+        rl_obs = np.empty(0)
+        obs_list = []
+        for veh_id in rl_ids:
+            # rearrange both rl_id_list and rl_ids to have the right order
+            # maximal number of ids
+            all_rl_ids = deepcopy(rl_ids)
+            all_index = all_rl_ids.index(veh_id)
+            # list with possibly missing ids
+            local_ids = deepcopy(self.vehicles.get_rl_ids())
+            local_index = local_ids.index(veh_id)
+            del all_rl_ids[all_index]
+            del local_ids[local_index]
+            all_rl_ids = [veh_id] + all_rl_ids
+            local_ids = [veh_id] + local_ids
+
+            # Get the infor for all the vehicles
+            id_counter = 0
+            for av_id in local_ids:
+                # check if we have skipped a vehicle, if not, pad
+                rl_id_num = all_rl_ids.index(av_id)
+                if rl_id_num != id_counter:
+                    rl_obs = np.concatenate((rl_obs,
+                                             np.zeros(4 * (rl_id_num - id_counter))))
+                    id_counter = rl_id_num + 1
+                else:
+                    id_counter += 1
+                    rl_obs = np.concatenate((rl_obs, self.get_vehicle_info(av_id)))
+            # if all the missing vehicles are at the end, pad
+            diff = self.num_rl - int(rl_obs.shape[0] / 4)
+            if diff > 0:
+                rl_obs = np.concatenate((rl_obs, np.zeros(4 * diff)))
+
+            # relative vehicles data (lane headways, tailways, vel_ahead, and
+            # vel_behind)
+            headway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
+            tailway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
+            vel_in_front = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
+            vel_behind = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
+
+            lane_leaders = self.vehicles.get_lane_leaders(veh_id)
+            lane_followers = self.vehicles.get_lane_followers(veh_id)
+            lane_headways = self.vehicles.get_lane_headways(veh_id)
+            lane_tailways = self.vehicles.get_lane_tailways(veh_id)
+            headway[0:len(lane_headways)] = np.asarray(lane_headways) / headway_scale
+            tailway[0:len(lane_tailways)] = np.asarray(lane_tailways) / headway_scale
+            for i, lane_leader in enumerate(lane_leaders):
+                if lane_leader != '':
+                    vel_in_front[i] = self.vehicles.get_speed(lane_leader) / self.max_speed
+            for i, lane_follower in enumerate(lane_followers):
+                if lane_followers != '':
+                    vel_behind[i] = self.vehicles.get_speed(lane_follower) / self.max_speed
+
+            relative_obs = np.concatenate((headway, tailway, vel_in_front, vel_behind))
+
+            # per edge data (average speed, density
+            edge_obs = []
+            for edge in self.scenario.get_edge_list():
+                veh_ids = self.vehicles.get_ids_by_edge(edge)
+                if len(veh_ids) > 0:
+                    avg_speed = (sum(self.vehicles.get_speed(veh_ids))
+                                 / len(veh_ids)) / self.max_speed
+                    density = len(veh_ids) / self.scenario.edge_length(edge)
+                    edge_obs += [avg_speed, density]
+                else:
+                    edge_obs += [0, 0]
+
+            obs_list += list(np.concatenate((rl_obs, relative_obs, edge_obs)))
+
+        return obs_list
+
+    def apply_rl_actions(self, rl_actions):
+        """
+        See parent class
+
+        Apply a lane change for a multiagent system
+        """
+        accelerations = []
+        directions = []
+        for veh_id in self.vehicles.get_rl_ids():
+            index = self.rl_id_list.index(veh_id)
+            accelerations.append(rl_actions[index][0][0])
+            direction = np.round(rl_actions[index][0][1]).clip(min=-1, max=1)
+
+            # if we have lane changed recently or are on a junction
+            try:
+                if self.time_counter <= self.lane_change_duration + \
+                        self.vehicles.get_state(veh_id, 'last_lc') or \
+                        self.vehicles.get_edge(veh_id)[0] == ':':
+                    direction = 0
+            except:
+                direction = 0
+            directions.append(direction)
+
+        self.apply_acceleration(self.vehicles.get_rl_ids(), acc=accelerations)
+        self.apply_lane_change(self.vehicles.get_rl_ids(), direction=directions)
+
+    # ===============================
+    # ============ UTILS ============
+    # ===============================
+    def get_vehicle_info(self, veh_id):
+        """
+        Gets standard information for the state space
+        :return: list containing edge num, edge position, speed, and lane
+        """
+        edge_num = self.vehicles.get_edge(veh_id)
+        if edge_num is None:
+            edge_num = -1
+        elif edge_num == '':
+            edge_num = -1
+        elif edge_num[0] == ':':
+            edge_num = -1
+        else:
+            edge_num = int(edge_num) / 6
+        veh_obs = [self.get_x_by_id(veh_id) / 1000, \
+                  self.vehicles.get_speed(veh_id) / self.max_speed, \
+                  self.vehicles.get_lane(veh_id) / MAX_LANES, \
+                  edge_num]
+        return veh_obs
