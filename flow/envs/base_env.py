@@ -119,6 +119,10 @@ class Env(gym.Env, Serializable):
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
 
+        # used for timing
+        self.time_list = []
+        self.curr_time = time.time()
+
         self.start_sumo()
         self.setup_initial_state()
 
@@ -340,9 +344,10 @@ class Env(gym.Env, Serializable):
         info: dictionary
             contains other diagnostic information from the previous action
         """
+        t = time.time()
         self.time_counter += 1
         self.step_counter += 1
-        if self.step_counter > 2e6:
+        if self.step_counter > 1e6:
             self.step_counter = 0
             self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
             
@@ -417,6 +422,7 @@ class Env(gym.Env, Serializable):
 
         # Are we in an rllab multi-agent scenario? If so, the action space is
         # a list.
+        print('time of a step is'. time.time() - t)
         if isinstance(self.action_space, list):
             done_n = self.vehicles.num_rl_vehicles * [0]
             info_n = {'n': []}
@@ -456,7 +462,7 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
-        if self.step_counter > 2e6:
+        if self.step_counter > 1e6:
             self.step_counter = 0
             self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
@@ -577,6 +583,11 @@ class Env(gym.Env, Serializable):
             self.state = self.get_state().T
 
         observation = list(self.state)
+        self.time_list.append(time.time() - self.curr_time)
+        self.curr_time = time.time()
+        t = time.time()
+        print('time of iteration is', np.mean(self.time_list))
+        print('time to evaluate mean', time.time() - t)
         return observation
 
     def additional_command(self):
