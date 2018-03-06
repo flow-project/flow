@@ -33,8 +33,8 @@ from flow.core.util import ensure_dir
 RETRIES_ON_ERROR = 10
 
 # Colors are [red, green, yellow, cyan, purple, white]
-COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (255, 255, 0, 0),
-          (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
+COLORS = [(255, 0, 0, 255), (0, 255, 0, 255), (255, 255, 0, 255),
+          (0, 255, 255, 255), (255, 0, 255, 255), (255, 255, 255, 255)]
 
 
 class Env(gym.Env, Serializable):
