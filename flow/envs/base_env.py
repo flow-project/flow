@@ -8,6 +8,7 @@ import time
 import traceback
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 
 import traci
 from traci import constants as tc
@@ -386,13 +387,17 @@ class Env(gym.Env, Serializable):
 
         self.additional_command()
 
+        # t2 = time.time()
         for i in range(self.sumo_params.num_steps):
             self.traci_connection.simulationStep()
+        # print('simulation step time is', time.time() - t2)
 
         # collect subscription information from sumo
+        # t1 = time.time()
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
         tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
+        # print('subscription time is', time.time() - t1)
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -422,29 +427,11 @@ class Env(gym.Env, Serializable):
 
         # Are we in an rllab multi-agent scenario? If so, the action space is
         # a list.
-        print('time of a step is'. time.time() - t)
-        if isinstance(self.action_space, list):
-            done_n = self.vehicles.num_rl_vehicles * [0]
-            info_n = {'n': []}
-
-            if self.shared_reward:
-                info_n['reward_n'] = [reward] * len(self.action_space)
-            else:
-                info_n['reward_n'] = reward
-
-            if crash:
-                done_n = self.vehicles.num_rl_vehicles * [1]
-
-            info_n['done_n'] = done_n
-            info_n['state'] = self.state
-            done = np.all(done_n)
-            return self.state, sum(reward), done, info_n
-
+        # print('time of a step is', time.time() - t)
+        if crash:
+            return next_observation, reward, True, {}
         else:
-            if crash:
-                return next_observation, reward, True, {}
-            else:
-                return next_observation, reward, False, {}
+            return next_observation, reward, False, {}
 
     def _reset(self):
         """
@@ -583,11 +570,6 @@ class Env(gym.Env, Serializable):
             self.state = self.get_state().T
 
         observation = list(self.state)
-        self.time_list.append(time.time() - self.curr_time)
-        self.curr_time = time.time()
-        t = time.time()
-        print('time of iteration is', np.mean(self.time_list))
-        print('time to evaluate mean', time.time() - t)
         return observation
 
     def additional_command(self):

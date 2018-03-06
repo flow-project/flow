@@ -445,7 +445,7 @@ class m_BottleNeckEnv(BottleNeckEnv):
     def observation_space(self):
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
-        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling * num_rl_veh + 4 * num_rl_veh
+        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling + 4 * num_rl_veh
         print("--------------")
         print("--------------")
         print("--------------")
@@ -455,7 +455,8 @@ class m_BottleNeckEnv(BottleNeckEnv):
         print("--------------")
         print("--------------")
         print("--------------")
-        return Tuple(tuple(Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
+        return Tuple(tuple(Box(low=-float("inf"), high=float("inf"),
+                               shape=(num_obs,), dtype=np.float32)
                            for _ in range(self.num_rl)))
 
     @property
@@ -476,66 +477,72 @@ class m_BottleNeckEnv(BottleNeckEnv):
         lb = [-abs(max_decel), -1]
         ub = [max_accel, 1]
 
-        return Box(np.array(lb), np.array(ub))
+        return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
     def get_state(self):
 
         headway_scale = 1000
 
-        rl_ids = self.rl_id_list()
-        rl_obs = np.empty(0)
+        rl_ids = self.rl_id_list
         obs_list = []
         for veh_id in rl_ids:
-            # rearrange both rl_id_list and rl_ids to have the right order
-            # maximal number of ids
-            all_rl_ids = deepcopy(rl_ids)
-            all_index = all_rl_ids.index(veh_id)
-            # list with possibly missing ids
-            local_ids = deepcopy(self.vehicles.get_rl_ids())
-            local_index = local_ids.index(veh_id)
-            del all_rl_ids[all_index]
-            del local_ids[local_index]
-            all_rl_ids = [veh_id] + all_rl_ids
-            local_ids = [veh_id] + local_ids
+            rl_obs = np.empty(0)
+            # if the vehicle is in the system, look for it
+            if veh_id in self.vehicles.get_rl_ids():
+                # rearrange both rl_id_list and rl_ids to have the right order
+                # maximal number of ids
+                all_rl_ids = deepcopy(rl_ids)
+                all_index = all_rl_ids.index(veh_id)
+                # list with possibly missing ids
+                local_ids = deepcopy(self.vehicles.get_rl_ids())
+                local_index = local_ids.index(veh_id)
+                del all_rl_ids[all_index]
+                del local_ids[local_index]
+                all_rl_ids = [veh_id] + all_rl_ids
+                local_ids = [veh_id] + local_ids
 
-            # Get the infor for all the vehicles
-            id_counter = 0
-            for av_id in local_ids:
-                # check if we have skipped a vehicle, if not, pad
-                rl_id_num = all_rl_ids.index(av_id)
-                if rl_id_num != id_counter:
-                    rl_obs = np.concatenate((rl_obs,
-                                             np.zeros(4 * (rl_id_num - id_counter))))
-                    id_counter = rl_id_num + 1
-                else:
-                    id_counter += 1
-                    rl_obs = np.concatenate((rl_obs, self.get_vehicle_info(av_id)))
-            # if all the missing vehicles are at the end, pad
-            diff = self.num_rl - int(rl_obs.shape[0] / 4)
-            if diff > 0:
-                rl_obs = np.concatenate((rl_obs, np.zeros(4 * diff)))
+                # Get the info for for all the vehicles
+                id_counter = 0
+                for av_id in local_ids:
+                    # check if we have skipped a vehicle, if not, pad
+                    rl_id_num = all_rl_ids.index(av_id)
+                    if rl_id_num != id_counter:
+                        rl_obs = np.concatenate((rl_obs,
+                                                 np.zeros(4 * (rl_id_num - id_counter))))
+                        id_counter = rl_id_num + 1
+                    else:
+                        id_counter += 1
+                        rl_obs = np.concatenate((rl_obs, self.get_vehicle_info(av_id)))
+                # if all the missing vehicles are at the end, pad
+                diff = self.num_rl - int(rl_obs.shape[0] / 4)
+                if diff > 0:
+                    rl_obs = np.concatenate((rl_obs, np.zeros(4 * diff)))
 
-            # relative vehicles data (lane headways, tailways, vel_ahead, and
-            # vel_behind)
-            headway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
-            tailway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
-            vel_in_front = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
-            vel_behind = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
+                # relative vehicles data (lane headways, tailways, vel_ahead, and
+                # vel_behind)
+                headway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
+                tailway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
+                vel_in_front = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
+                vel_behind = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
 
-            lane_leaders = self.vehicles.get_lane_leaders(veh_id)
-            lane_followers = self.vehicles.get_lane_followers(veh_id)
-            lane_headways = self.vehicles.get_lane_headways(veh_id)
-            lane_tailways = self.vehicles.get_lane_tailways(veh_id)
-            headway[0:len(lane_headways)] = np.asarray(lane_headways) / headway_scale
-            tailway[0:len(lane_tailways)] = np.asarray(lane_tailways) / headway_scale
-            for i, lane_leader in enumerate(lane_leaders):
-                if lane_leader != '':
-                    vel_in_front[i] = self.vehicles.get_speed(lane_leader) / self.max_speed
-            for i, lane_follower in enumerate(lane_followers):
-                if lane_followers != '':
-                    vel_behind[i] = self.vehicles.get_speed(lane_follower) / self.max_speed
+                lane_leaders = self.vehicles.get_lane_leaders(veh_id)
+                lane_followers = self.vehicles.get_lane_followers(veh_id)
+                lane_headways = self.vehicles.get_lane_headways(veh_id)
+                lane_tailways = self.vehicles.get_lane_tailways(veh_id)
+                headway[0:len(lane_headways)] = np.asarray(lane_headways) / headway_scale
+                tailway[0:len(lane_tailways)] = np.asarray(lane_tailways) / headway_scale
+                for i, lane_leader in enumerate(lane_leaders):
+                    if lane_leader != '':
+                        vel_in_front[i] = self.vehicles.get_speed(lane_leader) / self.max_speed
+                for i, lane_follower in enumerate(lane_followers):
+                    if lane_followers != '':
+                        vel_behind[i] = self.vehicles.get_speed(lane_follower) / self.max_speed
 
-            relative_obs = np.concatenate((headway, tailway, vel_in_front, vel_behind))
+                relative_obs = np.concatenate((headway, tailway, vel_in_front, vel_behind))
+            # otherwise, just pass zeros
+            else:
+                rl_obs = np.zeros(4*self.num_rl)
+                relative_obs = np.zeros(4*MAX_LANES*self.scaling)
 
             # per edge data (average speed, density
             edge_obs = []
@@ -549,7 +556,8 @@ class m_BottleNeckEnv(BottleNeckEnv):
                 else:
                     edge_obs += [0, 0]
 
-            obs_list += list(np.concatenate((rl_obs, relative_obs, edge_obs)))
+            obs_list.append(np.concatenate((rl_obs, relative_obs,
+                                        edge_obs)))
 
         return obs_list
 
@@ -599,5 +607,5 @@ class m_BottleNeckEnv(BottleNeckEnv):
         veh_obs = [self.get_x_by_id(veh_id) / 1000, \
                    self.vehicles.get_speed(veh_id) / self.max_speed, \
                    self.vehicles.get_lane(veh_id) / MAX_LANES, \
-                   edge_num]
+                   edge_num/5]
         return veh_obs

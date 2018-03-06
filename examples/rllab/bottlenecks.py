@@ -133,7 +133,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=5000,
+        batch_size=20000,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
