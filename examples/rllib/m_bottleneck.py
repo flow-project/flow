@@ -115,7 +115,8 @@ flow_params = dict(
 )
 
 
-def make_create_env(flow_env_name, flow_params, version=0):
+def make_create_env(flow_env_name, flow_params, version=0,
+                    exp_tag="example", sumo="sumo"):
     env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
@@ -197,7 +198,8 @@ if __name__ == "__main__":
                }
     config["model"].update({"custom_options": options})
 
-    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0)
+    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
+                                           )
 
     # Register as rllib env
     register_rllib_env(flow_env_name + '-v0', create_env)
