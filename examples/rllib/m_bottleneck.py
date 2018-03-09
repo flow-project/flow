@@ -1,7 +1,5 @@
 """
-Sample script for importing networks from openstreetmap (.osm) files. In this
-example, the Bay Bridge, and parts of San Fransisco and Oakland, are imported
-into Flow.
+Run script for multiagent bottleneck.
 """
 import gym
 import json
@@ -88,7 +86,8 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False, additional_params=additional_net_params)
+                       no_internal_links=False,
+                       additional_params=additional_net_params)
 
 flow_params = dict(
     sumo=dict(
@@ -140,11 +139,11 @@ def make_create_env(flow_env_name, flow_params, version=0,
         initial_config = InitialConfig(**init_params)
 
         scenario = BBTollScenario(name="bay_bridge_toll",
-                       generator_class=BBTollGenerator,
-                       vehicles=vehicles,
-                       net_params=net_params,
-                       initial_config=initial_config,
-                       traffic_lights=traffic_lights)
+                                  generator_class=BBTollGenerator,
+                                  vehicles=vehicles,
+                                  net_params=net_params,
+                                  initial_config=initial_config,
+                                  traffic_lights=traffic_lights)
 
         pass_params = (flow_env_name, sumo_params, vehicles, env_params,
                        net_params, initial_config, scenario, version)
@@ -161,7 +160,7 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
     num_cpus = 2
-    n_rollouts = int(np.floor(20000/HORIZON))
+    n_rollouts = int(np.floor(20000 / HORIZON))
     num_iters = 1000
     flow_env_name = "m_BottleNeckEnv"
     exp_tag = "multiagent_bottleneck"  # experiment prefix
@@ -185,11 +184,13 @@ if __name__ == "__main__":
 
     flow_params['flowenv'] = flow_env_name
     flow_params['exp_tag'] = exp_tag
-    flow_params['module'] = os.path.basename(__file__)[:-3]  # filename without '.py'
+    # filename without '.py'
+    flow_params['module'] = os.path.basename(__file__)[:-3]
 
     config["model"].update({"fcnet_hiddens": [256, 256]})
-    options = {"multiagent_obs_shapes": [4 * RL_VEHICLES + 4 * NUM_LANES*SCALING
-                                         + 2*5] * RL_VEHICLES,
+    options = {"multiagent_obs_shapes": [4 * RL_VEHICLES +
+                                         4 * NUM_LANES * SCALING
+                                         + 2 * 5] * RL_VEHICLES,
                "multiagent_act_shapes": [2] * RL_VEHICLES,
                "is_shared_model": True,
                "multiagent_shared_model": True,
@@ -198,7 +199,9 @@ if __name__ == "__main__":
                }
     config["model"].update({"custom_options": options})
 
-    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
+    create_env, env_name = make_create_env(flow_env_name,
+                                           flow_params,
+                                           version=0,
                                            )
 
     # Register as rllib env
@@ -206,9 +209,12 @@ if __name__ == "__main__":
 
     # alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
     # Logging out flow_params to ray's experiment result folder
-    json_out_file = os.path.dirname(os.path.realpath(__file__)) + '/flow_params.json'
+    json_out_file = os.path.dirname(os.path.realpath(__file__)) + \
+        '/flow_params.json'
+
     with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+        json.dump(flow_params, outfile, cls=NameEncoder,
+                  sort_keys=True, indent=4)
 
     trials = run_experiments({
         "m_bottleneck": {
@@ -226,4 +232,5 @@ if __name__ == "__main__":
     })
     json_out_file = trials[0].logdir + '/flow_params.json'
     with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+        json.dump(flow_params, outfile, cls=NameEncoder,
+                  sort_keys=True, indent=4)

@@ -8,7 +8,6 @@ import time
 import traceback
 import numpy as np
 import random
-import matplotlib.pyplot as plt
 
 import traci
 from traci import constants as tc
@@ -387,17 +386,13 @@ class Env(gym.Env, Serializable):
 
         self.additional_command()
 
-        # t2 = time.time()
         for i in range(self.sumo_params.num_steps):
             self.traci_connection.simulationStep()
-        # print('simulation step time is', time.time() - t2)
 
         # collect subscription information from sumo
-        # t1 = time.time()
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
         tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
-        # print('subscription time is', time.time() - t1)
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -425,9 +420,6 @@ class Env(gym.Env, Serializable):
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
-        # Are we in an rllab multi-agent scenario? If so, the action space is
-        # a list.
-        # print('time of a step is', time.time() - t)
         if crash:
             return next_observation, reward, True, {}
         else:
