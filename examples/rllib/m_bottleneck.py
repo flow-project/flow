@@ -217,7 +217,7 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 5,
+            "checkpoint_freq": 20,
             "max_failures": 999,
             "stop": {"training_iteration": num_iters},
             "local_dir": "/Users/eugenevinitsky/",

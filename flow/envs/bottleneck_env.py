@@ -456,7 +456,7 @@ class m_BottleNeckEnv(BottleNeckEnv):
         print("--------------")
         print("--------------")
         return Tuple(tuple(Box(low=-float("inf"), high=float("inf"),
-                               shape=(num_obs,), dtype=np.float32)
+                               shape=(num_obs,))
                            for _ in range(self.num_rl)))
 
     @property
@@ -477,7 +477,7 @@ class m_BottleNeckEnv(BottleNeckEnv):
         lb = [-abs(max_decel), -1]
         ub = [max_accel, 1]
 
-        return Box(np.array(lb), np.array(ub), dtype=np.float32)
+        return Box(np.array(lb), np.array(ub))
 
     def get_state(self):
 
