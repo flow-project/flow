@@ -1,4 +1,4 @@
-gym=0.9.2
+gym==0.9.2
 numpy
 lxml
 theano==0.8.2
