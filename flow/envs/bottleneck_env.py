@@ -1,7 +1,5 @@
-from flow.envs.base_env import Env
 from flow.envs.lane_changing import LaneChangeAccelEnv
 from flow.core import rewards
-from flow.core import multi_agent_rewards
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -50,8 +48,9 @@ class BridgeTollEnv(LaneChangeAccelEnv):
 
            Additional
            ----------
-           Vehicles are rerouted to the start of their original routes once they reach
-           the end of the network in order to ensure a constant number of vehicles.
+           Vehicles are rerouted to the start of their original routes
+           once they reach the end of the network in order
+           to ensure a constant number of vehicles.
            """
         for k in env_params.additional_params.keys():
             if k not in ENV_PARAMS:
@@ -71,7 +70,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.scaling = scenario.net_params.additional_params.get("scaling", 1)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
-        self.cars_waiting_before_ramp_meter = dict()
+        self.cars_before_ramp = dict()
         self.toll_wait_time = np.abs(
             np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step,
                              4 / self.sim_step, NUM_TOLL_LANES * self.scaling))
@@ -88,17 +87,22 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.disable_tb = env_params.get_additional_param("disable_tb")
 
         if "disable_ramp_metering" in env_params.additional_params:
-            self.disable_ramp_metering = env_params.get_additional_param("disable_ramp_metering")
+            self.disable_ramp_metering = \
+                env_params.get_additional_param("disable_ramp_metering")
 
         if "add_rl_if_exit" in env_params.additional_params:
-            self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
+            self.add_rl_if_exit = \
+                env_params.get_additional_param("add_rl_if_exit")
 
     def additional_command(self):
         super().additional_command()
         # build a list of vehicles and their edges and positions
         self.edge_dict = defaultdict(list)
-        # update the dict with all the edges in edge_list so we can look forward for edges
-        self.edge_dict.update((k, [[] for _ in range(MAX_LANES * self.scaling)]) for k in EDGE_LIST)
+        # update the dict with all the edges in edge_list
+        # so we can look forward for edges
+        self.edge_dict.update(
+            (k, [[] for _ in range(MAX_LANES * self.scaling)])
+            for k in EDGE_LIST)
         for veh_id in self.vehicles.get_ids():
             try:
                 edge = self.vehicles.get_edge(veh_id)
@@ -116,17 +120,19 @@ class BridgeTollEnv(LaneChangeAccelEnv):
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
-        for veh_id in self.cars_waiting_before_ramp_meter:
+        for veh_id in self.cars_before_ramp:
             if self.vehicles.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
-                lane_change_mode = self.cars_waiting_before_ramp_meter[veh_id]["lane_change_mode"]
-                color = self.cars_waiting_before_ramp_meter[veh_id]["color"]
+                lane_change_mode = \
+                    self.cars_before_ramp[veh_id]["lane_change_mode"]
+                color = self.cars_before_ramp[veh_id]["color"]
                 self.traci_connection.vehicle.setColor(veh_id, color)
-                self.traci_connection.vehicle.setLaneChangeMode(veh_id, lane_change_mode)
+                self.traci_connection.vehicle.setLaneChangeMode(
+                    veh_id, lane_change_mode)
 
                 cars_that_have_left.append(veh_id)
 
         for veh_id in cars_that_have_left:
-            self.cars_waiting_before_ramp_meter.__delitem__(veh_id)
+            self.cars_before_ramp.__delitem__(veh_id)
 
         for lane in range(NUM_RAMP_METERS * self.scaling):
             cars_in_lane = self.edge_dict[EDGE_BEFORE_RAMP_METER][lane]
@@ -136,31 +142,39 @@ class BridgeTollEnv(LaneChangeAccelEnv):
                 if pos > RAMP_METER_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
-                        lane_change_mode = self.vehicles.get_lane_change_mode(veh_id)
+                        lane_change_mode = \
+                            self.vehicles.get_lane_change_mode(veh_id)
                         color = self.traci_connection.vehicle.getColor(veh_id)
-                        self.cars_waiting_before_ramp_meter[veh_id] = {"lane_change_mode": lane_change_mode,
-                                                                       "color": color}
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 512)
-                        self.traci_connection.vehicle.setColor(veh_id, (0, 255, 255, 0))
+                        self.cars_before_ramp[veh_id] = {"lane_change_mode":
+                                                             lane_change_mode,
+                                                         "color":
+                                                             color}
+                        self.traci_connection.vehicle.setLaneChangeMode(
+                            veh_id, 512)
+                        self.traci_connection.vehicle.setColor(
+                            veh_id, (0, 255, 255, 0))
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
             if self.vehicles.get_edge(veh_id) == EDGE_AFTER_TOLL:
                 lane = self.vehicles.get_lane(veh_id)
-                lane_change_mode = self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
+                lane_change_mode = \
+                    self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
                 color = self.cars_waiting_for_toll[veh_id]["color"]
                 self.traci_connection.vehicle.setColor(veh_id, color)
-                self.traci_connection.vehicle.setLaneChangeMode(veh_id, lane_change_mode)
+                self.traci_connection.vehicle.setLaneChangeMode(
+                    veh_id, lane_change_mode)
                 if lane not in self.fast_track_lanes:
-                    self.toll_wait_time[lane] = max(0,
-                                                    np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step,
-                                                                     1 / self.sim_step))
+                    self.toll_wait_time[lane] = max(
+                        0, np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL /
+                                            self.sim_step,
+                                            1 / self.sim_step))
                 else:
-                    self.toll_wait_time[lane] = max(0,
-                                                    np.random.normal(
-                                                        MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK / self.sim_step,
-                                                        1 / self.sim_step))
+                    self.toll_wait_time[lane] = max(
+                        0, np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK
+                                            / self.sim_step,
+                                            1 / self.sim_step))
 
                 cars_that_have_left.append(veh_id)
 
@@ -177,11 +191,16 @@ class BridgeTollEnv(LaneChangeAccelEnv):
                 if pos > TOLL_BOOTH_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
-                        lane_change_mode = self.vehicles.get_lane_change_mode(veh_id)
+                        lane_change_mode = \
+                            self.vehicles.get_lane_change_mode(veh_id)
                         color = self.traci_connection.vehicle.getColor(veh_id)
-                        self.cars_waiting_for_toll[veh_id] = {"lane_change_mode": lane_change_mode, "color": color}
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 512)
-                        self.traci_connection.vehicle.setColor(veh_id, (255, 0, 255, 0))
+                        self.cars_waiting_for_toll[veh_id] = \
+                            {"lane_change_mode": lane_change_mode,
+                             "color": color}
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id,
+                                                                        512)
+                        self.traci_connection.vehicle.setColor(
+                            veh_id, (255, 0, 255, 0))
                     else:
                         if pos > 50:
                             if self.toll_wait_time[lane] < 0:
@@ -194,11 +213,13 @@ class BridgeTollEnv(LaneChangeAccelEnv):
 
         if newTLState != self.tl_state:
             self.tl_state = newTLState
-            self.traci_connection.trafficlights.setRedYellowGreenState(tlsID=TB_TL_ID, state=newTLState)
+            self.traci_connection.trafficlights.setRedYellowGreenState(
+                tlsID=TB_TL_ID, state=newTLState)
 
 
 class BottleNeckEnv(BridgeTollEnv):
-    """Environment used to train vehicles to effectively pass through a bottleneck.
+    """Environment used to train vehicles to effectively
+        pass through a bottleneck.
 
        States
        ------
@@ -232,7 +253,8 @@ class BottleNeckEnv(BridgeTollEnv):
     def observation_space(self):
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
-        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling * num_rl_veh + 4 * num_rl_veh
+        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
+                  * num_rl_veh + 4 * num_rl_veh
         print("--------------")
         print("--------------")
         print("--------------")
@@ -258,7 +280,8 @@ class BottleNeckEnv(BridgeTollEnv):
             rl_id_num = self.rl_id_list.index(veh_id)
             if rl_id_num != id_counter:
                 rl_obs = np.concatenate((rl_obs,
-                                         np.zeros(4 * (rl_id_num - id_counter))))
+                                         np.zeros(4 * (rl_id_num -
+                                                       id_counter))))
                 id_counter = rl_id_num + 1
             else:
                 id_counter += 1
@@ -273,10 +296,13 @@ class BottleNeckEnv(BridgeTollEnv):
                 edge_num = -1
             else:
                 edge_num = int(edge_num) / 6
-            rl_obs = np.concatenate((rl_obs, [self.get_x_by_id(veh_id) / 1000,
-                                              self.vehicles.get_speed(veh_id) / self.max_speed,
-                                              self.vehicles.get_lane(veh_id) / MAX_LANES,
-                                              edge_num]))
+            rl_obs = np.concatenate((rl_obs,
+                                     [self.get_x_by_id(veh_id) / 1000,
+                                      (self.vehicles.get_speed(veh_id) /
+                                       self.max_speed),
+                                      (self.vehicles.get_lane(veh_id) /
+                                       MAX_LANES),
+                                      edge_num]))
         # if all the missing vehicles are at the end, pad
         diff = self.num_rl - int(rl_obs.shape[0] / 4)
         if diff > 0:
@@ -290,37 +316,47 @@ class BottleNeckEnv(BridgeTollEnv):
             # check if we have skipped a vehicle, if not, pad
             rl_id_num = self.rl_id_list.index(veh_id)
             if rl_id_num != id_counter:
-                relative_obs = np.concatenate((relative_obs,
-                                               np.zeros(4 * MAX_LANES *
-                                                        self.scaling *
-                                                        (rl_id_num - id_counter))))
+                pad_mat = np.zeros(4 * MAX_LANES * self.scaling *
+                                   (rl_id_num - id_counter))
+                relative_obs = np.concatenate((relative_obs, pad_mat))
                 id_counter = rl_id_num + 1
             else:
                 id_counter += 1
-            headway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
-            tailway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
-            vel_in_front = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
-            vel_behind = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
+            num_lanes = MAX_LANES * self.scaling
+            headway = np.asarray([1000 for _ in
+                                  range(num_lanes)]) / headway_scale
+            tailway = np.asarray([1000 for _ in
+                                  range(num_lanes)]) / headway_scale
+            vel_in_front = np.asarray([0 for _ in
+                                       range(num_lanes)]) / self.max_speed
+            vel_behind = np.asarray([0 for _ in
+                                     range(num_lanes)]) / self.max_speed
 
             lane_leaders = self.vehicles.get_lane_leaders(veh_id)
             lane_followers = self.vehicles.get_lane_followers(veh_id)
             lane_headways = self.vehicles.get_lane_headways(veh_id)
             lane_tailways = self.vehicles.get_lane_tailways(veh_id)
-            headway[0:len(lane_headways)] = np.asarray(lane_headways) / headway_scale
-            tailway[0:len(lane_tailways)] = np.asarray(lane_tailways) / headway_scale
+            headway[0:len(lane_headways)] = (np.asarray(lane_headways) /
+                                             headway_scale)
+            tailway[0:len(lane_tailways)] = (np.asarray(lane_tailways) /
+                                             headway_scale)
             for i, lane_leader in enumerate(lane_leaders):
                 if lane_leader != '':
-                    vel_in_front[i] = self.vehicles.get_speed(lane_leader) / self.max_speed
+                    vel_in_front[i] = (self.vehicles.get_speed(lane_leader) /
+                                       self.max_speed)
             for i, lane_follower in enumerate(lane_followers):
                 if lane_followers != '':
-                    vel_behind[i] = self.vehicles.get_speed(lane_follower) / self.max_speed
+                    vel_behind[i] = (self.vehicles.get_speed(lane_follower)
+                                     / self.max_speed)
 
-            relative_obs = np.concatenate((relative_obs, headway, tailway, vel_in_front, vel_behind))
+            relative_obs = np.concatenate((relative_obs, headway,
+                                           tailway, vel_in_front, vel_behind))
 
         # if all the missing vehicles are at the end, pad
         diff = self.num_rl - int(relative_obs.shape[0] / (4 * MAX_LANES))
         if diff > 0:
-            relative_obs = np.concatenate((relative_obs, np.zeros(4 * MAX_LANES * diff)))
+            relative_obs = np.concatenate((relative_obs,
+                                           np.zeros(4 * MAX_LANES * diff)))
 
         # per edge data (average speed, density
         edge_obs = []
@@ -356,10 +392,10 @@ class BottleNeckEnv(BridgeTollEnv):
         See parent class
 
         Takes a tuple and applies a lane change or acceleration. if a lane
-        change is applied, don't issue any commands for the duration of the lane
-        change and return negative rewards for actions during that lane change.
-        if a lane change isn't applied, and sufficient time has passed, issue an
-        acceleration like normal.
+        change is applied, don't issue any commands
+        for the duration of the lane change and return negative rewards
+        for actions during that lane change. if a lane change isn't applied,
+        and sufficient time has passed, issue an acceleration like normal.
         """
         num_rl = self.vehicles.num_rl_vehicles
         acceleration = actions[::2][:num_rl]
@@ -391,11 +427,14 @@ class BottleNeckEnv(BridgeTollEnv):
                 self.vehicles.get_rl_ids()))
             for rl_id in diff_list:
                 # distribute rl cars evenly over lanes
-                lane_num = self.rl_id_list.index(rl_id) % MAX_LANES * self.scaling
+                lane_num = self.rl_id_list.index(rl_id) % \
+                           MAX_LANES * self.scaling
                 # reintroduce it at the start of the network
-                # FIXME(ev) the try is for when we've already called to introduce
+                # FIXME(ev) the try is for when we've already
+                # FIXME called to introduce
                 # FIXME but the introduce has been blocked by an inflow
-                # FIXME a better way would be keeping track of when we have made this call
+                # FIXME a better way would be keeping track of when
+                # FIXME we have made this call
                 try:
                     self.traci_connection.vehicle.addFull(
                         rl_id, 'route1', typeID=str('rl'),
@@ -468,8 +507,8 @@ class m_BottleNeckEnv(BottleNeckEnv):
         See parent class
         Actions are:
          - a (continuous) acceleration from max-deacc to max-acc
-         - a (continuous) lane-change action from -1 to 1, used to determine the
-           lateral direction the vehicle will take.
+         - a (continuous) lane-change action from -1 to 1,
+           used to determine the lateral direction the vehicle will take.
         """
         max_decel = self.env_params.max_decel
         max_accel = self.env_params.max_accel
@@ -508,41 +547,53 @@ class m_BottleNeckEnv(BottleNeckEnv):
                     rl_id_num = all_rl_ids.index(av_id)
                     if rl_id_num != id_counter:
                         rl_obs = np.concatenate((rl_obs,
-                                                 np.zeros(4 * (rl_id_num - id_counter))))
+                                                 np.zeros(4 * (rl_id_num -
+                                                               id_counter))))
                         id_counter = rl_id_num + 1
                     else:
                         id_counter += 1
-                        rl_obs = np.concatenate((rl_obs, self.get_vehicle_info(av_id)))
+                        rl_obs = np.concatenate((rl_obs,
+                                                 self.get_vehicle_info(av_id)))
                 # if all the missing vehicles are at the end, pad
                 diff = self.num_rl - int(rl_obs.shape[0] / 4)
                 if diff > 0:
                     rl_obs = np.concatenate((rl_obs, np.zeros(4 * diff)))
 
-                # relative vehicles data (lane headways, tailways, vel_ahead, and
-                # vel_behind)
-                headway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
-                tailway = np.asarray([1000 for _ in range(MAX_LANES * self.scaling)]) / headway_scale
-                vel_in_front = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
-                vel_behind = np.asarray([0 for _ in range(MAX_LANES * self.scaling)]) / self.max_speed
+                # relative vehicles data (lane headways,
+                # tailways, vel_ahead, and vel_behind)
+                num_lanes = MAX_LANES * self.scaling
+                headway = np.asarray([1000 for _ in
+                                      range(num_lanes)]) / headway_scale
+                tailway = np.asarray([1000 for _ in
+                                      range(num_lanes)]) / headway_scale
+                vel_in_front = np.asarray([0 for _ in
+                                           range(num_lanes)]) / self.max_speed
+                vel_behind = np.asarray([0 for _ in
+                                         range(num_lanes)]) / self.max_speed
 
                 lane_leaders = self.vehicles.get_lane_leaders(veh_id)
                 lane_followers = self.vehicles.get_lane_followers(veh_id)
                 lane_headways = self.vehicles.get_lane_headways(veh_id)
                 lane_tailways = self.vehicles.get_lane_tailways(veh_id)
-                headway[0:len(lane_headways)] = np.asarray(lane_headways) / headway_scale
-                tailway[0:len(lane_tailways)] = np.asarray(lane_tailways) / headway_scale
+                headway[0:len(lane_headways)] = (np.asarray(lane_headways) /
+                                                 headway_scale)
+                tailway[0:len(lane_tailways)] = (np.asarray(lane_tailways) /
+                                                 headway_scale)
                 for i, lane_leader in enumerate(lane_leaders):
                     if lane_leader != '':
-                        vel_in_front[i] = self.vehicles.get_speed(lane_leader) / self.max_speed
+                        vel_in_front[i] = (self.vehicles.get_speed(lane_leader)
+                                           / self.max_speed)
                 for i, lane_follower in enumerate(lane_followers):
                     if lane_followers != '':
-                        vel_behind[i] = self.vehicles.get_speed(lane_follower) / self.max_speed
+                        vel_behind[i] = (self.vehicles.get_speed(lane_follower)
+                                         / self.max_speed)
 
-                relative_obs = np.concatenate((headway, tailway, vel_in_front, vel_behind))
+                relative_obs = np.concatenate((headway, tailway,
+                                               vel_in_front, vel_behind))
             # otherwise, just pass zeros
             else:
-                rl_obs = np.zeros(4*self.num_rl)
-                relative_obs = np.zeros(4*MAX_LANES*self.scaling)
+                rl_obs = np.zeros(4 * self.num_rl)
+                relative_obs = np.zeros(4 * MAX_LANES * self.scaling)
 
             # per edge data (average speed, density
             edge_obs = []
@@ -557,7 +608,7 @@ class m_BottleNeckEnv(BottleNeckEnv):
                     edge_obs += [0, 0]
 
             obs_list.append(np.concatenate((rl_obs, relative_obs,
-                                        edge_obs)))
+                                            edge_obs)))
 
         return obs_list
 
@@ -584,8 +635,10 @@ class m_BottleNeckEnv(BottleNeckEnv):
                 direction = 0
             directions.append(direction)
 
-        self.apply_acceleration(self.vehicles.get_rl_ids(), acc=accelerations)
-        self.apply_lane_change(self.vehicles.get_rl_ids(), direction=directions)
+        self.apply_acceleration(self.vehicles.get_rl_ids(),
+                                acc=accelerations)
+        self.apply_lane_change(self.vehicles.get_rl_ids(),
+                               direction=directions)
 
     # ===============================
     # ============ UTILS ============
@@ -604,8 +657,8 @@ class m_BottleNeckEnv(BottleNeckEnv):
             edge_num = -1
         else:
             edge_num = int(edge_num) / 6
-        veh_obs = [self.get_x_by_id(veh_id) / 1000, \
-                   self.vehicles.get_speed(veh_id) / self.max_speed, \
-                   self.vehicles.get_lane(veh_id) / MAX_LANES, \
-                   edge_num/5]
+        veh_obs = [self.get_x_by_id(veh_id) / 1000,
+                   self.vehicles.get_speed(veh_id) / self.max_speed,
+                   self.vehicles.get_lane(veh_id) / MAX_LANES,
+                   edge_num / 5]
         return veh_obs
