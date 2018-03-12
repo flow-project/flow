@@ -5,9 +5,10 @@ import numpy as np
 class FollowerStopper(BaseController):
 
     def __init__(self, veh_id, v_des=15, max_accel=1):
-        """Inspired by Dan Work's... work.
+        """Inspired by Dan Work's... work:
 
-        [description]
+		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
+		https://arxiv.org/abs/1705.01693
 
         Parameters
         ----------
@@ -65,9 +66,10 @@ class FollowerStopper(BaseController):
 class PISaturation(BaseController):
 
     def __init__(self, veh_id, max_accel=1):
-        """Inspired by Dan Work's... work.
+        """Inspired by Dan Work's... work:
 
-        [description]
+		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
+		https://arxiv.org/abs/1705.01693
 
         Parameters
         ----------
