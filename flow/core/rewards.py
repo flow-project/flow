@@ -36,6 +36,21 @@ def desired_velocity(env, fail=False):
     return max(max_cost - cost, 0)
 
 
+def max_edge_velocity(env, edge_list, fail=False):
+    "The desired velocity rewarded but restricted to a set of edges"
+    veh_ids = env.vehicles.get_ids_by_edge(edge_list)
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    num_vehicles = len(veh_ids)
+
+    max_cost = np.array([env.env_params.additional_params["target_velocity"]] * num_vehicles)
+    max_cost = np.linalg.norm(max_cost)
+
+    cost = vel - env.env_params.additional_params["target_velocity"]
+    cost = np.linalg.norm(cost)
+
+    return max(max_cost - cost, 0)
+
+
 def rl_forward_progress(env, fail=False, gain = 0.1):
     """
         A reward function used to slightly rewards the RL vehicles travelling forward
