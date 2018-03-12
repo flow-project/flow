@@ -16,6 +16,8 @@ from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
 from flow.envs.bottleneck_env import BottleNeckEnv
 from flow.core.experiment import SumoExperiment
+import logging
+import numpy as np
 
 
 def bottleneck(sumo_binary=None):
@@ -51,8 +53,8 @@ def bottleneck(sumo_binary=None):
     # flow rate
     flow_rate = 1500 * SCALING
     # percentage of flow coming out of each lane
-    #flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
-    flow_dist = np.ones(NUM_LANES)/NUM_LANES
+    flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+    #flow_dist = np.ones(NUM_LANES)/NUM_LANES
 
     inflow = InFlows()
     for i in range(NUM_LANES):

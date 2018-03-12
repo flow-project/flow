@@ -495,7 +495,7 @@ class m_BottleNeckEnv(BottleNeckEnv):
         print("--------------")
         print("--------------")
         return Tuple(tuple(Box(low=-float("inf"), high=float("inf"),
-                               shape=(num_obs,))
+                               shape=(num_obs,), dtype=np.float32)
                            for _ in range(self.num_rl)))
 
     @property
@@ -516,7 +516,7 @@ class m_BottleNeckEnv(BottleNeckEnv):
         lb = [-abs(max_decel), -1]
         ub = [max_accel, 1]
 
-        return Box(np.array(lb), np.array(ub))
+        return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
     def get_state(self):
 
@@ -611,6 +611,13 @@ class m_BottleNeckEnv(BottleNeckEnv):
                                             edge_obs)))
 
         return obs_list
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        num_rl = self.num_rl
+        lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
+        return rewards.max_edge_velocity(self, ["4", "5"]) + \
+               rewards.rl_forward_progress(self, gain=0.1) - \
+               rewards.boolean_action_penalty(lane_change_acts, gain=1.0)
 
     def apply_rl_actions(self, rl_actions):
         """

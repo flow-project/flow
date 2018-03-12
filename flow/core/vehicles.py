@@ -491,10 +491,12 @@ class Vehicles:
         """Returns the names of all rl-controlled vehicles in the network."""
         return self.__rl_ids
 
-    def get_ids_by_edge(self, edge):
+    def get_ids_by_edge(self, edges):
         """Returns the names of all vehicles in the specified edge. If no
         vehicles are currently in the edge, then returns an empty list."""
-        return self._ids_by_edge.get(edge, []) or []
+        if isinstance(edges, (list, np.ndarray)):
+            return sum([self.get_ids_by_edge(edge) for edge in edges], [])
+        return self._ids_by_edge.get(edges, []) or []
 
     def get_initial_speed(self, veh_id, error=-1001):
         """Returns the initial speed upon reset of the specified vehicle.
