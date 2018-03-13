@@ -96,8 +96,6 @@ class Env(gym.Env, Serializable):
         self.max_speed = env_params.max_speed
         self.lane_change_duration = \
             env_params.get_lane_change_duration(self.sim_step)
-        self.shared_reward = env_params.shared_reward
-        self.shared_policy = env_params.shared_policy
 
         # the available_routes variable contains a dictionary of routes vehicles
         # can traverse; to be used when routes need to be chosen dynamically
@@ -414,30 +412,7 @@ class Env(gym.Env, Serializable):
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
-        # Are we in an rllab multi-agent scenario? If so, the action space is
-        # a list.
-        if isinstance(self.action_space, list):
-            done_n = self.vehicles.num_rl_vehicles * [0]
-            info_n = {'n': []}
-
-            if self.shared_reward:
-                info_n['reward_n'] = [reward] * len(self.action_space)
-            else:
-                info_n['reward_n'] = reward
-
-            if crash:
-                done_n = self.vehicles.num_rl_vehicles * [1]
-
-            info_n['done_n'] = done_n
-            info_n['state'] = self.state
-            done = np.all(done_n)
-            return self.state, sum(reward), done, info_n
-
-        else:
-            if crash:
-                return next_observation, reward, True, {}
-            else:
-                return next_observation, reward, False, {}
+        return next_observation, reward, crash, {}
 
     def _reset(self):
         """
