@@ -4,7 +4,7 @@ import numpy as np
 
 class FollowerStopper(BaseController):
 
-    def __init__(self, veh_id, v_des=15, max_accel=1):
+    def __init__(self, veh_id, v_des=15, max_accel=2.6, danger_edges=None):
         """Inspired by Dan Work's... work:
 
 		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
@@ -36,31 +36,51 @@ class FollowerStopper(BaseController):
         self.d_1 = 1.5
         self.d_2 = 1.0
         self.d_3 = 0.5
+        self.danger_edges = danger_edges if danger_edges else {}
+
+    def find_intersection_dist(self, env):
+        """Return distance from the vehicle's current position to the position
+        of the node it is heading toward."""
+        edge_id = env.vehicles.get_edge(self.veh_id)
+        # FIXME this might not be the best way of handling this
+        if edge_id == "":
+            return -10
+        if 'center' in edge_id:
+            return 0
+        edge_len = env.scenario.edge_length(edge_id)
+        relative_pos = env.vehicles.get_position(self.veh_id)
+        dist = edge_len - relative_pos
+        return dist
 
     def get_accel(self, env):
         lead_id = env.vehicles.get_leader(self.veh_id)
         this_vel = env.vehicles.get_speed(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
 
-        dx = env.vehicles.get_headway(self.veh_id)
-        dv_minus = min(lead_vel - this_vel, 0)
-
-        dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus ** 2
-        dx_2 = self.dx_2_0 + 1 / (2 * self.d_2) * dv_minus ** 2
-        dx_3 = self.dx_3_0 + 1 / (2 * self.d_3) * dv_minus ** 2
-
-        # compute the desired velocity
-        if dx <= dx_1:
-            v_cmd = 0
-        elif dx <= dx_2:
-            v_cmd = this_vel * (dx-dx_1) / (dx_2-dx_1)
-        elif dx <= dx_3:
-            v_cmd = this_vel + (self.v_des-this_vel) * (dx-dx_2) / (dx_3-dx_2)
-        else:
+        if lead_id == None:
             v_cmd = self.v_des
+        else:
+            dx = env.vehicles.get_headway(self.veh_id)
+            dv_minus = min(lead_vel - this_vel, 0)
 
-        # compute the acceleration from the desired velocity
-        return min((v_cmd - this_vel) / env.sim_step, self.max_accel)
+            dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus ** 2
+            dx_2 = self.dx_2_0 + 1 / (2 * self.d_2) * dv_minus ** 2
+            dx_3 = self.dx_3_0 + 1 / (2 * self.d_3) * dv_minus ** 2
+
+            # compute the desired velocity
+            if dx <= dx_1:
+                v_cmd = 0
+            elif dx <= dx_2:
+                v_cmd = this_vel * (dx-dx_1) / (dx_2-dx_1)
+            elif dx <= dx_3:
+                v_cmd = this_vel + (self.v_des-this_vel) * (dx-dx_2) / (dx_3-dx_2)
+            else:
+                v_cmd = self.v_des
+        if self.find_intersection_dist(env) <= 10 and env.vehicles.get_edge(self.veh_id) in self.danger_edges:
+            return None
+        else:
+            # compute the acceleration from the desired velocity
+            return min((v_cmd - this_vel) / env.sim_step, self.max_accel)
 
 
 class PISaturation(BaseController):

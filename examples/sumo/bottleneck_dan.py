@@ -9,8 +9,8 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.car_following_models import IDMController
+from flow.controllers.velocity_controllers import FollowerStopper
+from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
@@ -35,13 +35,24 @@ def bottleneck(sumo_binary=None):
     vehicles.add(veh_id="human",
                  speed_mode=31,
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 # acceleration_controller=(IDMController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=1621,
+                 acceleration_controller=(SumoCarFollowingController, {}),
+                 # routing_controller=(ContinuousRouter, {}),
+                 lane_change_mode=0b100000101,
                  sumo_car_following_params=SumoCarFollowingParams(
-                     minGap=2.5, tau=1.0, speedDev=0.5),
+                     minGap=2.5, tau=1.0, speedDev=0.05),
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
-                 num_vehicles=40)
+                 num_vehicles=5)
+
+    vehicles.add(veh_id="followerstopper",
+                 speed_mode=31,
+                 lane_change_controller=(SumoLaneChangeController, {}),
+                 acceleration_controller=(FollowerStopper, {"v_des":5}),
+                 routing_controller=(ContinuousRouter, {}),
+                 lane_change_mode=0b100000101,
+                 sumo_car_following_params=SumoCarFollowingParams(
+                     minGap=2.5, tau=1.0, speedDev=0.0),
+                 sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
+                 num_vehicles=5)
 
     additional_env_params = {"target_velocity": 40, "disable_tb": True,
                              "disable_ramp_metering": True}
@@ -49,18 +60,24 @@ def bottleneck(sumo_binary=None):
                            lane_change_duration=1)
 
     # flow rate
+
+    # MAX OF 3600 vehicles per lane per hour i.e. flow_rate <= 3600 *
     flow_rate = 2100 * SCALING
     # percentage of flow coming out of each lane
-    flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
-    # flow_dist = np.ones(NUM_LANES)/NUM_LANES
+    # flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+    flow_dist = np.ones(NUM_LANES)/NUM_LANES
 
     inflow = InFlows()
     for i in range(NUM_LANES):
         lane_num = str(i)
         veh_per_hour = flow_rate * flow_dist[i]
         print(veh_per_hour)
-        inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
-                   departLane=lane_num, departSpeed=5)
+        veh_per_second = veh_per_hour/3600
+        print(veh_per_second)
+        inflow.add(veh_type="human", edge="1", probability=veh_per_second*0.75,#vehsPerHour=veh_per_hour *0.8,
+                   departLane=lane_num, departSpeed=23)
+        inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second*0.25,#vehsPerHour=veh_per_hour * 0.2,
+                   departLane=lane_num, departSpeed=23)
 
     traffic_lights = TrafficLights()
     if not DISABLE_TB:

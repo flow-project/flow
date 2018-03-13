@@ -27,15 +27,15 @@ class BBTollGenerator(Generator):
         assert(isinstance(scaling, int)), "Scaling must be an int"
 
         edges = [{"id": "1", "from": "1", "to": "2", "length": "100",  #
-                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "5"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "23"},
                  {"id": "2", "from": "2", "to": "3", "length": "275",  # DONE
-                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "5"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "23"},
                  {"id": "3", "from": "3", "to": "4", "length": "30",  # DONE
-                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "23"},
                  {"id": "4", "from": "4", "to": "5", "length": "140",   # DONE
-                  "spreadType": "center", "numLanes": str(2*scaling), "speed": "50"},
+                  "spreadType": "center", "numLanes": str(2*scaling), "speed": "23"},
                  {"id": "5", "from": "5", "to": "6", "length": "225",
-                  "spreadType": "center", "numLanes": str(scaling), "speed": "50"}]
+                  "spreadType": "center", "numLanes": str(scaling), "speed": "23"}]
 
         return edges
 
