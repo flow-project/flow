@@ -31,7 +31,7 @@ def bay_bridge_bottleneck_example(sumo_binary=None,
     ----
     Unlike the bay_bridge_example, inflows are always activated here.
     """
-    sumo_params = SumoParams(sim_step=0.6,
+    sumo_params = SumoParams(sim_step=0.1,
                              overtake_right=True)
 
     if sumo_binary is not None:
