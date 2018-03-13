@@ -42,7 +42,7 @@ class TwoIntersectionEnv(IntersectionEnv):
         absolute_pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, absolute_pos))
 
-    def apply_rl_actions(self, rl_actions):
+    def _apply_rl_actions(self, rl_actions):
         """
         See parent class
         """

@@ -4,9 +4,10 @@ from flow.controllers.base_controller import BaseController
 class RLController(BaseController):
 
     def __init__(self, veh_id, max_deacc=15, tau=0, dt=0.1, fail_safe=None):
-        """
-        Instantiates an RL Controller. Vehicles with this controller are
-        provided with actions by rllab, and perform their actions accordingly.
+        """Instantiates an RL Controller.
+
+        Vehicles with this controller are provided with actions by an rl agent,
+        and perform their actions accordingly.
 
         Attributes
         ----------
