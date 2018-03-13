@@ -73,7 +73,9 @@ class EnvParams:
                  max_decel=-6,
                  max_accel=3,
                  horizon=500,
-                 sort_vehicles=False):
+                 sort_vehicles=False,
+                 warmup_steps=0,
+                 sims_per_step=1):
         """Environment and experiment-specific parameters.
 
         This includes specifying the bounds of the action space and relevant
@@ -106,6 +108,16 @@ class EnvParams:
             simulation step. If set to True, the environment parameter
             self.sorted_ids will return a list of all vehicles ideas sorted by
             their absolute position.
+        warmup_steps: int, optional
+            number of steps performed before the initialization of training
+            during a rollout. These warmup steps are not added as steps into
+            training, and the actions of rl agents during these steps are
+            dictated by sumo. Defaults to zero
+        sims_per_step: int, optional
+            number of sumo simulation steps performed in any given rollout
+            step. RL agents perform the same action for the duration of these
+            simulation steps.
+
         """
         self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
@@ -117,6 +129,8 @@ class EnvParams:
         self.max_accel = max_accel
         self.horizon = horizon
         self.sort_vehicles = sort_vehicles
+        self.warmup_steps = warmup_steps
+        self.sims_per_step = sims_per_step
 
     def get_additional_param(self, key):
         return self.additional_params[key]
