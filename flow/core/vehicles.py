@@ -5,6 +5,7 @@ import collections
 import logging
 from bisect import bisect_left
 import itertools
+import numpy as np
 
 import traci.constants as tc
 
@@ -12,22 +13,22 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 
 SPEED_MODES = {"aggressive": 0, "no_collide": 1, "all_checks": 31}
-LC_MODES = {"aggressive": 0, "no_lat_collide": 256, "strategic": 853}
+LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
 
 class Vehicles:
-
     def __init__(self):
+        """Base vehicle class.
+
+        This is used to describe the state of all vehicles in the network.
+        State information on the vehicles for a given time step can be set or
+        retrieved from this class.
         """
-        Base vehicle class used to describe the state of all vehicles in the
-        network. State information on the vehicles for a given time step can be
-        set or retrieved from this class.
-        """
-        self.__ids = []  # stores the ids of all vehicles
-        self.__human_ids = []  # stores the ids of human-driven vehicles
-        self.__controlled_ids = []  # stores the ids of flow-controlled vehicles
+        self.__ids = []  # ids of all vehicles
+        self.__human_ids = []  # ids of human-driven vehicles
+        self.__controlled_ids = []  # ids of flow-controlled vehicles
         self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
-        self.__rl_ids = []  # stores the ids of rl-controlled vehicles
+        self.__rl_ids = []  # ids of rl-controlled vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
@@ -35,7 +36,7 @@ class Vehicles:
 
         # create a sumo_observations variable that will carry all information
         # on the state of the vehicles for a given time step
-        self.__sumo_observations = None
+        self.__sumo_obs = None
 
         self.num_vehicles = 0  # total number of vehicles in the network
         self.num_rl_vehicles = 0  # number of rl vehicles in the network
@@ -63,8 +64,7 @@ class Vehicles:
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
-        """
-        Adds a sequence of vehicles to the list of vehicles in the network.
+        """Adds a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
         ----------
@@ -104,8 +104,8 @@ class Vehicles:
             - "no_lat_collide": Human cars will not make lane changes, RL cars
               can lane change into any space, no matter how likely it is to
               crash (default)
-            - "aggressive": RL cars are not limited by sumo with regard to their
-              lane-change actions, and can crash longitudinally
+            - "aggressive": RL cars are not limited by sumo with regard to
+              their lane-change actions, and can crash longitudinally
             - int values may be used to define custom lane change modes for the
               given vehicles, specified at:
               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
@@ -124,8 +124,8 @@ class Vehicles:
         type_params.update(sumo_car_following_params.controller_params)
         type_params.update(sumo_lc_params.controller_params)
 
-        # If a vehicle is not sumo or RL, let the minGap be as small as possible
-        # so that it does not tamper with the dynamics of the controller
+        # If a vehicle is not sumo or RL, let the minGap be zero so that it
+        # does not tamper with the dynamics of the controller
         if acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
@@ -222,13 +222,15 @@ class Vehicles:
         self.types.append((veh_id, type_params))
 
     def update(self, vehicle_obs, sim_obs, env):
-        """
-        Updates the vehicle class with data pertaining to the vehicles at the
-        current time step.
-        - Modifies the state of all vehicle to match their state at the current
-          time step.
-        - Introduces newly departed vehicles and remove vehicles that exited
-          the network.
+        """Updates the vehicle class with data pertaining to the vehicles at
+        the current time step.
+
+        The following actions are performed:
+        - The state of all vehicles is modified to match their state at the
+          current time step. This includes states specified by sumo, and states
+          explicitly defined by flow, e.g. "absolute_position".
+        - If vehicles exit the network, they are removed from the vehicles
+          class, and newly departed vehicles are introduced to the class.
 
         Parameters
         ----------
@@ -246,19 +248,29 @@ class Vehicles:
             else:
                 # this is meant to resolve the KeyError bug when there are
                 # collisions
-                vehicle_obs[veh_id] = self.__sumo_observations[veh_id]
+                vehicle_obs[veh_id] = self.__sumo_obs[veh_id]
 
         # add entering vehicles into the vehicles class
         for veh_id in sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]:
             veh_type = env.traci_connection.vehicle.getTypeID(veh_id)
-            self.add_departed(veh_id, veh_type, env)
+            if veh_id in self.get_ids():
+                # this occurs when a vehicle is actively being removed and
+                # placed again in the network to ensure a constant number of
+                # total vehicles (e.g. GreenWaveEnv). In this case, the vehicle
+                # is already in the class; its state data just needs to be
+                # updated, and it's color needs to be made to match the color
+                # of other vehicles of its type.
+                env.traci_connection.vehicle.setColor(veh_id,
+                                                      env.colors[veh_type])
+            else:
+                self._add_departed(veh_id, veh_type, env)
 
         if env.time_counter == 0:
             # if the time_counter is 0, this we need to reset all necessary
             # values
             for veh_id in self.__rl_ids:
                 # set the initial last_lc
-                self.set_state(veh_id, "last_lc", -1 * env.lane_change_duration)
+                self.set_state(veh_id, "last_lc", -env.lane_change_duration)
         else:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
@@ -270,41 +282,57 @@ class Vehicles:
             # update the "absolute_position" variable
             for veh_id in self.__ids:
                 prev_pos = env.get_x_by_id(veh_id)
-                this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
-                this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
-                try:
-                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
-                    if change < 0:
-                        change += env.scenario.length
-                    new_abs_pos = self.get_absolute_position(
-                        veh_id) + change
-                    self.set_absolute_position(veh_id, new_abs_pos)
-                except (ValueError, TypeError):
+                this_edge = vehicle_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, "")
+                this_pos = vehicle_obs.get(veh_id, {}).get(
+                    tc.VAR_LANEPOSITION, -1001)
+
+                # in case the vehicle isn't in the network
+                if this_edge == "":
                     self.set_absolute_position(veh_id, -1001)
+                else:
+                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
+                    new_abs_pos = (self.get_absolute_position(veh_id) +
+                                   change) % env.scenario.length
+                    self.set_absolute_position(veh_id, new_abs_pos)
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            headway = vehicle_obs[veh_id][tc.VAR_LEADER]
-            vtype = self.get_state(veh_id, "type")
-            min_gap = self.minGap[vtype]
+            headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
+            # check for a collided vehicle or a vehicle with no leader
             if headway is None:
                 self.__vehicles[veh_id]["leader"] = None
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
+                vtype = self.get_state(veh_id, "type")
+                min_gap = self.minGap[vtype]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
-                self.__vehicles[headway[0]]["follower"] = veh_id
+                try:
+                    self.__vehicles[headway[0]]["follower"] = veh_id
+                except KeyError:
+                    pass
 
         # update the sumo observations variable
-        self.__sumo_observations = vehicle_obs.copy()
+        self.__sumo_obs = vehicle_obs.copy()
 
         # update the lane leaders data for each vehicle
         self._multi_lane_headways(env)
 
-    def add_departed(self, veh_id, veh_type, env):
-        """
-        Adds a vehicle that entered the network from an inflow or reset.
+        # make sure the rl vehicle list is still sorted
+        self.__rl_ids.sort()
+
+    def _add_departed(self, veh_id, veh_type, env):
+        """Adds a vehicle that entered the network from an inflow or reset.
+
+        Parameters
+        ----------
+        veh_id: str
+            name of the vehicle
+        veh_type: str
+            type of vehicle, as specified to sumo
+        env: Env type
+            state of the environment at the current time step
         """
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
@@ -323,7 +351,8 @@ class Vehicles:
             accel_controller[0](veh_id=veh_id, **accel_controller[1])
 
         # specify the lane-changing controller class
-        lc_controller = self.type_parameters[veh_type]["lane_change_controller"]
+        lc_controller = \
+            self.type_parameters[veh_type]["lane_change_controller"]
         self.__vehicles[veh_id]["lane_changer"] = \
             lc_controller[0](veh_id=veh_id, **lc_controller[1])
 
@@ -383,10 +412,14 @@ class Vehicles:
         # change the color of the vehicle based on its type
         env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
 
+        # make sure that the order of rl_ids is kept sorted
+        self.__rl_ids.sort()
+
     def remove(self, veh_id):
-        """
-        Removes a vehicle from the vehicles class and all valid ID lists, and
-        decrements the total number of vehicles in this class.
+        """Removes a vehicle.
+
+        Removes all traces of the vehicle from the vehicles class and all valid
+        ID lists, and decrements the total number of vehicles in this class.
 
         Parameters
         ----------
@@ -408,20 +441,23 @@ class Vehicles:
             self.__rl_ids.remove(veh_id)
             self.num_rl_vehicles -= 1
 
+        # make sure that the rl ids remain sorted
+        self.__rl_ids.sort()
+
     def test_set_speed(self, veh_id, speed):
-        self.__sumo_observations[veh_id][tc.VAR_SPEED] = speed
+        self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
 
     def set_absolute_position(self, veh_id, absolute_position):
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
 
     def test_set_position(self, veh_id, position):
-        self.__sumo_observations[veh_id][tc.VAR_LANEPOSITION] = position
+        self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = position
 
     def test_set_edge(self, veh_id, edge):
-        self.__sumo_observations[veh_id][tc.VAR_ROAD_ID] = edge
+        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
 
     def test_set_lane(self, veh_id, lane):
-        self.__sumo_observations[veh_id][tc.VAR_LANE_INDEX] = lane
+        self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = lane
 
     def set_leader(self, veh_id, leader):
         self.__vehicles[veh_id]["leader"] = leader
@@ -433,376 +469,459 @@ class Vehicles:
         self.__vehicles[veh_id]["headway"] = headway
 
     def get_ids(self):
+        """Returns the names of all vehicles currently in the network."""
         return self.__ids
 
     def get_human_ids(self):
+        """Returns the names of all non-rl vehicles currently in the
+        network."""
         return self.__human_ids
 
     def get_controlled_ids(self):
+        """Returns the names of all flow acceleration-controlled vehicles
+        currently in the network."""
         return self.__controlled_ids
 
     def get_controlled_lc_ids(self):
+        """Returns the names of all flow lane change-controlled vehicles
+        currently in the network."""
         return self.__controlled_lc_ids
 
     def get_rl_ids(self):
+        """Returns the names of all rl-controlled vehicles in the network."""
         return self.__rl_ids
 
-    def get_ids_by_edge(self, edge):
-        if edge in self._ids_by_edge:
-            if self._ids_by_edge[edge] is None:
-                return []
-            else:
-                return self._ids_by_edge[edge]
-        else:
-            # else case should cover when before the dict() is filled (i.e.
-            # before the first instance of _multi_lane_headways())
-            return []
+    def get_ids_by_edge(self, edges):
+        """Returns the names of all vehicles in the specified edge. If no
+        vehicles are currently in the edge, then returns an empty list."""
+        if isinstance(edges, (list, np.ndarray)):
+            return sum([self.get_ids_by_edge(edge) for edge in edges], [])
+        return self._ids_by_edge.get(edges, []) or []
 
-    def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
+    def get_initial_speed(self, veh_id, error=-1001):
+        """Returns the initial speed upon reset of the specified vehicle.
 
-    def get_lane_change_mode(self, veh_id):
-        return self.__vehicles[veh_id]["lane_change_mode"]
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
 
-    def get_speed_mode(self, veh_id):
-        return self.__vehicles[veh_id]["speed_mode"]
+        Returns
+        -------
+        float
 
-    def get_speed(self, veh_id="all"):
         """
-        Return the speed of the specified vehicle at the current time step.
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_initial_speed(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("initial_speed", error)
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        # if a list of vehicle ids are requested, call the function for each
-        # requested vehicle id
-        if not isinstance(veh_id, str):
-            return [self.get_speed(vehID) for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.get_speed(vehID) for vehID in self.__ids]
+    def get_lane_change_mode(self, veh_id, error=-1001):
+        """Returns the lane change mode value of the specified vehicle.
 
-        # perform the value retrieval for a specific vehicle
-        try:
-            return self.__sumo_observations[veh_id][tc.VAR_SPEED]
-        except KeyError:
-            # if the vehicle does not exist, return an error value (-1001)
-            return -1001
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
 
-    def get_absolute_position(self, veh_id="all"):
+        Returns
+        -------
+        int
+
         """
-        Return the absolute position of the specified vehicle at the current
-        time step.
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["absolute_position"]
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane_change_mode(vehID, error)
                     for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["absolute_position"]
-                    for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["absolute_position"]
+        return self.__vehicles.get(veh_id, {}).get("lane_change_mode", error)
 
-    def get_position(self, veh_id="all"):
+    def get_speed_mode(self, veh_id, error=-1001):
+        """Returns the speed mode value of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        int
+
         """
-        Returns the position of the specified vehicle (relative to the current
-        edge) at the current time step.
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_speed_mode(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("speed_mode", error)
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
+    def get_speed(self, veh_id, error=-1001):
+        """Returns the speed of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+
         """
-        # if a list of vehicle ids are requested, call the function for each
-        # requested vehicle id
-        if not isinstance(veh_id, str):
-            return [self.get_position(vehID) for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.get_position(vehID) for vehID in self.__ids]
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_speed(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 
-        # perform the value retrieval for a specific vehicle
-        try:
-            return self.__sumo_observations[veh_id][tc.VAR_LANEPOSITION]
-        except KeyError:
-            # if the vehicle does not exist, return an error value (-1001)
-            return -1001
+    def get_absolute_position(self, veh_id, error=-1001):
+        """Returns the absolute position of the specified vehicle.
 
-    def get_edge(self, veh_id="all"):
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+
         """
-        Returns the position of the specified vehicle (relative to the current
-        edge) at the current time step.
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_absolute_position(vehID, error)
+                    for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("absolute_position", error)
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
+    def get_position(self, veh_id, error=-1001):
+        """Returns the position of the vehicle relative to its current edge.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+
         """
-        # if a list of vehicle ids are requested, call the function for each
-        # requested vehicle id
-        if not isinstance(veh_id, str):
-            return [self.get_edge(vehID) for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.get_edge(vehID) for vehID in self.__ids]
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_position(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANEPOSITION, error)
 
-        # perform the value retrieval for a specific vehicle
-        try:
-            return self.__sumo_observations[veh_id][tc.VAR_ROAD_ID]
-        except KeyError:
-            # if the vehicle does not exist, return an empty edge value
-            return ""
+    def get_edge(self, veh_id, error=""):
+        """Returns the position of the specified vehicle (relative to the
+        current edge).
 
-    def get_lane(self, veh_id="all"):
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        str
+
         """
-        Returns the lane index of the specified vehicle at the current time
-        step.
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_edge(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, error)
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
+    def get_lane(self, veh_id, error=-1001):
+        """Returns the lane index of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        int
+
         """
-        # if a list of vehicle ids are requested, call the function for each
-        # requested vehicle id
-        if not isinstance(veh_id, str):
-            return [self.get_lane(vehID) for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.get_lane(vehID) for vehID in self.__ids]
-
-        # perform the value retrieval for a specific vehicle
-        try:
-            return self.__sumo_observations[veh_id][tc.VAR_LANE_INDEX]
-        except KeyError:
-            # if the vehicle does not exist, return an error value (-1001)
-            return -1001
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANE_INDEX, error)
 
     def set_length(self, veh_id, length):
         self.__vehicles[veh_id]["length"] = length
 
-    def get_length(self, veh_id="all"):
-        """
-        Returns the length of the specified vehicle.
+    def get_length(self, veh_id, error=-1001):
+        """Returns the length of the specified vehicle.
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+
         """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["length"]
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_length(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("length", error)
+
+    def get_acc_controller(self, veh_id, error=None):
+        """Returns the acceleration controller of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        object
+
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_acc_controller(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("acc_controller", error)
+
+    def get_lane_changing_controller(self, veh_id, error=None):
+        """Returns the lane changing controller of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        object
+
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane_changing_controller(vehID, error)
                     for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["length"]
-                    for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["length"]
+        return self.__vehicles.get(veh_id, {}).get("lane_changer", error)
 
-    def get_acc_controller(self, veh_id="all"):
-        """
-        Returns the acceleration controller of the specified vehicle.
+    def get_routing_controller(self, veh_id, error=None):
+        """Returns the routing controller of the specified vehicle.
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        object
+
         """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["acc_controller"]
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_routing_controller(vehID, error)
                     for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["acc_controller"]
-                    for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["acc_controller"]
+        return self.__vehicles.get(veh_id, {}).get("router", error)
 
-    def get_lane_changing_controller(self, veh_id="all"):
+    def get_route(self, veh_id, error=list()):
+        """Returns the route of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        list<str>
+
         """
-        Returns the lane changing controller of the specified vehicle.
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_route(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_EDGES, error)
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
+    def get_leader(self, veh_id, error=""):
+        """Returns the leader of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        str
+
         """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["lane_changer"]
-                    for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane_changer"]
-                    for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["lane_changer"]
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_leader(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("leader", error)
 
-    def get_routing_controller(self, veh_id="all"):
+    def get_follower(self, veh_id, error=""):
+        """Returns the follower of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        str
+
         """
-        Returns the routing controller of the specified vehicle(s).
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_follower(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("follower", error)
 
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
+    def get_headway(self, veh_id, error=-1001):
+        """Returns the headway of the specified vehicle(s).
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+
         """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["router"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["router"] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["router"]
-
-    def get_route(self, veh_id="all"):
-        """
-        Returns the route of the specified vehicle(s).
-
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        # if a list of vehicle ids are requested, call the function for each
-        # requested vehicle id
-        if not isinstance(veh_id, str):
-            return [self.get_route(vehID) for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.get_route(vehID) for vehID in self.__ids]
-
-        # perform the value retrieval for a specific vehicle
-        try:
-            return self.__sumo_observations[veh_id][tc.VAR_EDGES]
-        except KeyError:
-            # if the vehicle does not exist, return an error value (empty list)
-            return []
-
-    def get_leader(self, veh_id="all"):
-        """
-        Returns the leader of the specified vehicle(s).
-
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["leader"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["leader"] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["leader"]
-
-    def get_follower(self, veh_id="all"):
-        """
-        Returns the follower of the specified vehicle(s).
-
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["follower"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["follower"] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["follower"]
-
-    def get_headway(self, veh_id="all"):
-        """
-        Returns the headway of the specified vehicle(s).
-
-        Accepts as input:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["headway"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["headway"] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id]["headway"]
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_headway(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("headway", error)
 
     def set_lane_headways(self, veh_id, lane_headways):
         self.__vehicles[veh_id]["lane_headways"] = lane_headways
 
-    def get_lane_headways(self, veh_id="all"):
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["lane_headways"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane_headways"]
-                    for vehID in self.__rl_ids]
-        else:
-            return self.__vehicles[veh_id]["lane_headways"]
+    def get_lane_headways(self, veh_id, error=list()):
+        """Returns the headways between the specified vehicle and the vehicle
+        ahead of it in all lanes.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        list<float>
+
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane_headways(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("lane_headways", error)
 
     def set_lane_leaders(self, veh_id, lane_leaders):
         self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
 
-    def get_lane_leaders(self, veh_id="all"):
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["lane_leaders"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane_leaders"]
-                    for vehID in self.__rl_ids]
-        else:
-            return self.__vehicles[veh_id]["lane_leaders"]
+    def get_lane_leaders(self, veh_id, error=list()):
+        """Returns the leaders for the specified vehicle in all lanes.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        list<float>
+
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane_leaders(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("lane_leaders", error)
 
     def set_lane_tailways(self, veh_id, lane_tailways):
         self.__vehicles[veh_id]["lane_tailways"] = lane_tailways
 
-    def get_lane_tailways(self, veh_id="all"):
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["lane_tailways"] for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane_tailways"]
-                    for vehID in self.__rl_ids]
-        else:
-            return self.__vehicles[veh_id]["lane_tailways"]
+    def get_lane_tailways(self, veh_id, error=list()):
+        """Returns the tailways between the specified vehicle and the vehicle
+        behind it in all lanes.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        list<float>
+
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane_tailways(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("lane_tailways", error)
 
     def set_lane_followers(self, veh_id, lane_followers):
         self.__vehicles[veh_id]["lane_followers"] = lane_followers
 
-    def get_lane_followers(self, veh_id="all"):
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID]["lane_followers"]
-                    for vehID in veh_id]
-        elif veh_id == "all":
-            return [self.__vehicles[vehID]["lane_followers"]
-                    for vehID in self.__rl_ids]
-        else:
-            return self.__vehicles[veh_id]["lane_followers"]
+    def get_lane_followers(self, veh_id, error=list()):
+        """Returns the followers for the specified vehicle in all lanes.
 
-    # TODO: everything past here must be thought through
-    def set_state(self, veh_id, state_name, state):
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : list, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        list<str>
+
         """
-        Generic set function. Updates the state *state_name* of the vehicle with
-        id *veh_id* with the value *state*.
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane_followers(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("lane_followers", error)
+
+    # TODO(ak): setting sumo observations?
+    def set_state(self, veh_id, state_name, state):
+        """Generic set function.
+
+        Updates the state *state_name* of the vehicle with id *veh_id* with the
+        value *state*.
         """
         self.__vehicles[veh_id][state_name] = state
 
-    def get_state(self, veh_id, state_name):
+    # TODO(ak): getting sumo observations?
+    def get_state(self, veh_id, state_name, error=None):
+        """Generic get function. Returns the value of *state_name* of the
+        specified vehicles at the current time step.
         """
-        Generic get function. Returns the value of *state_name* of the specified
-        vehicles at the current time step.
-
-        veh_id may be:
-        - id of a specific vehicle
-        - list of vehicle ids
-        - "all", in which case a list of all the specified state is provided
-        """
-        if not isinstance(veh_id, str):
-            return [self.__vehicles[vehID][state_name] for vehID in veh_id]
-        if veh_id == "all":
-            return [self.__vehicles[vehID][state_name] for vehID in self.__ids]
-        else:
-            return self.__vehicles[veh_id][state_name]
+        if isinstance(veh_id, list):
+            return [self.get_state(vehID, state_name, error)
+                    for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get(state_name, error)
 
     def _multi_lane_headways(self, env):
-        """
-        Computes the lane leaders/followers/headways/tailways for all vehicles
-        in the network.
-        """
+        """Computes the lane leaders/followers/headways/tailways for all
+        vehicles in the network."""
         edge_list = env.scenario.get_edge_list()
         junction_list = env.scenario.get_junction_list()
         tot_list = edge_list + junction_list
@@ -823,9 +942,10 @@ class Vehicles:
             edge = self.get_edge(veh_id)
             lane = self.get_lane(veh_id)
             pos = self.get_position(veh_id)
-            if edge_dict[edge] is None:
-                edge_dict[edge] = [[] for _ in range(max_lanes)]
-            edge_dict[edge][lane].append((veh_id, pos))
+            if edge:
+                if edge_dict[edge] is None:
+                    edge_dict[edge] = [[] for _ in range(max_lanes)]
+                edge_dict[edge][lane].append((veh_id, pos))
 
         # sort all lanes in each edge by position
         for edge in tot_list:
@@ -838,15 +958,17 @@ class Vehicles:
         for veh_id in self.get_rl_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
-            headways, tailways, leaders, followers = \
-                self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
-                                               env)
+            edge = self.get_edge(veh_id)
+            if edge:
+                headways, tailways, leaders, followers = \
+                    self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
+                                                   env)
 
-            # add the above values to the vehicles class
-            self.set_lane_headways(veh_id, headways)
-            self.set_lane_tailways(veh_id, tailways)
-            self.set_lane_leaders(veh_id, leaders)
-            self.set_lane_followers(veh_id, followers)
+                # add the above values to the vehicles class
+                self.set_lane_headways(veh_id, headways)
+                self.set_lane_tailways(veh_id, tailways)
+                self.set_lane_leaders(veh_id, leaders)
+                self.set_lane_followers(veh_id, followers)
 
         self._ids_by_edge = dict().fromkeys(edge_list)
 
@@ -860,9 +982,10 @@ class Vehicles:
                 self._ids_by_edge[edge_id] = []
 
     def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges, env):
-        """
-        Utility function for _multi_lane_headways(); computes the required
-        components for the specified vehicle.
+        """Utility function for _multi_lane_headways()
+
+        Computes the lane headways, tailways, leaders, and followers for the
+        specified vehicle.
 
         Parameters
         ----------
@@ -940,9 +1063,8 @@ class Vehicles:
         return headway, tailway, leader, follower
 
     def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges, env):
-        """
-        Looks to the edges/junctions in front of the vehicle's current edge for
-        potential leaders. This is currently done by only looking one
+        """Looks to the edges/junctions in front of the vehicle's current edge
+        for potential leaders. This is currently done by only looking one
         edge/junction backwards.
 
         Returns
@@ -983,8 +1105,7 @@ class Vehicles:
         return headway, leader
 
     def _prev_edge_followers(self, veh_id, edge_dict, lane, num_edges, env):
-        """
-        Looks to the edges/junctions behind the vehicle's current edge for
+        """Looks to the edges/junctions behind the vehicle's current edge for
         potential followers. This is currently done by only looking one
         edge/junction backwards.
 

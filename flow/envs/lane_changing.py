@@ -75,7 +75,7 @@ class LaneChangeAccelEnv(Env):
                           self.vehicles.get_lane(veh_id)]
                          for veh_id in self.sorted_ids])
 
-    def apply_rl_actions(self, actions):
+    def _apply_rl_actions(self, actions):
         acceleration = actions[::2]
         direction = np.round(actions[1::2])
 
@@ -133,7 +133,7 @@ class LaneChangeOnlyEnv(LaneChangeAccelEnv):
     def action_space(self):
         return Box(low=-1, high=1, shape=(self.vehicles.num_rl_vehicles,))
 
-    def apply_rl_actions(self, actions):
+    def _apply_rl_actions(self, actions):
         direction = actions
 
         # re-arrange actions according to mapping in observation space

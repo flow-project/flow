@@ -1,16 +1,21 @@
 import unittest
-import numpy as np
 import csv
 import os
 
 from flow.core.util import emission_to_csv
+from flow.utils.warnings import deprecation_warning
+
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestEmissionToCSV(unittest.TestCase):
+
+    """Tests the emission_to_csv function on a small file.
+
+    Ensures that the headers are correct, the length is correct, and some of
+    the components are correct.
     """
-    Tests the emission_to_csv function on a small file. Ensures that the headers
-    are correct, the length is correct, and some of the components are correct.
-    """
+
     def runTest(self):
         # current path
         current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
@@ -20,7 +25,8 @@ class TestEmissionToCSV(unittest.TestCase):
 
         # import the generated csv file and its headers
         dict1 = []
-        with open(current_path + "/test_files/test-emission.csv", "r") as infile:
+        filename = current_path + "/test_files/test-emission.csv"
+        with open(filename, "r") as infile:
             reader = csv.reader(infile)
             headers = next(reader)
             for row in reader:
@@ -37,9 +43,29 @@ class TestEmissionToCSV(unittest.TestCase):
         self.assertCountEqual(headers, expected_headers)
 
         # check the number of rows of the generated csv file
-        # Note that, rl vehicles are missing their final (reset) values, which I
-        # don't think is a problem
+        # Note that, rl vehicles are missing their final (reset) values, which
+        # I don't think is a problem
         self.assertEqual(len(dict1), 104)
+
+
+class TestWarnings(unittest.TestCase):
+
+    """Tests warning functions located in flow.utils.warnings"""
+
+    def test_deprecation_warning(self):
+        # dummy class
+        class Foo(object):
+            pass
+
+        # dummy attribute name
+        dep_from = "bar_deprecated"
+        dep_to = "bar_new"
+
+        # check the deprecation warning is printing what is expected
+        self.assertWarnsRegex(
+            UserWarning, "The attribute bar_deprecated in Foo is deprecated, "
+                         "use bar_new instead.",
+            deprecation_warning, Foo(), dep_from, dep_to)
 
 
 if __name__ == '__main__':

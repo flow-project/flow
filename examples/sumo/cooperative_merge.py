@@ -1,6 +1,8 @@
 """
 Example of ring road with larger merging ring.
 """
+import logging
+
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams,\
     SumoCarFollowingParams, SumoLaneChangeParams

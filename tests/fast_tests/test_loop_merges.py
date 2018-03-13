@@ -1,10 +1,12 @@
 import unittest
 from numpy import pi
+import os
+os.environ["TEST_FLAG"] = "True"
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.controllers.car_following_models import *
+from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.scenarios.loop_merges.gen import LoopMergesGenerator
 from flow.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
@@ -55,6 +57,7 @@ class TestLoopMerges(unittest.TestCase):
     """
     Tests the loop_merges generator, scenario, and environment.
     """
+
     def setUp(self):
         # create the environment and scenario classes for a ring road
         self.env, scenario = loop_merge_exp_setup()
@@ -79,8 +82,8 @@ class TestLoopMerges(unittest.TestCase):
 
     def test_gen_custom_start_pos(self):
         """
-        Tests that vehicle with the prefix "merge" are in the merge_in lane, and
-        all other vehicles are in the ring road.
+        Tests that vehicle with the prefix "merge" are in the merge_in lane,
+        and all other vehicles are in the ring road.
         """
         # reset the environment to ensure all vehicles are at their starting
         # positions
