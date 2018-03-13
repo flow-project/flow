@@ -359,3 +359,26 @@ class BottleNeckEnv(BridgeTollEnv):
 
         self.apply_acceleration(sorted_rl_ids, acc=acceleration)
         self.apply_lane_change(sorted_rl_ids, direction=direction)
+
+
+    def apply_acceleration(self, veh_ids, acc):
+        """
+        Applies the acceleration requested by a vehicle in sumo. Note that, if
+        the sumo-specified speed mode of the vehicle is not "aggressive", the
+        acceleration may be clipped by some safety velocity or maximum possible
+        acceleration.
+
+        ** IF THE ACTION IS NONE, USES SUMO ACTION **
+
+        Parameters
+        ----------
+        veh_ids: list of strings
+            vehicles IDs associated with the requested accelerations
+        acc: numpy array or list of float
+            requested accelerations from the vehicles
+        """
+        for i, vid in enumerate(veh_ids):
+            this_vel = self.vehicles.get_speed(vid)
+            if acc[i]:
+                next_vel = max([this_vel + acc[i]*self.sim_step, 0])
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
