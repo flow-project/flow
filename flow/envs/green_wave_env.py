@@ -110,7 +110,7 @@ class GreenWaveEnv(Env):
                  self.last_change.flatten().tolist()]
         return np.array(state)
 
-    def apply_rl_actions(self, rl_actions):
+    def _apply_rl_actions(self, rl_actions):
         # convert values less than 0.5 to zero and above to 1. 0's indicate
         # that should not switch the direction
         rl_mask = rl_actions > 0.5
@@ -300,7 +300,7 @@ class GreenWaveTestEnv(GreenWaveEnv):
     Class that overrides RL methods of green wave so we can test
     construction without needing to specify RL methods
     """
-    def apply_rl_actions(self, rl_actions):
+    def _apply_rl_actions(self, rl_actions):
         pass
 
     def compute_reward(self, state, rl_actions, **kwargs):
