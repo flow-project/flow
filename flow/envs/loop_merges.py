@@ -35,7 +35,7 @@ class LoopMergesEnv(Env):
         edge = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple([speed, pos, edge])
 
-    def apply_rl_actions(self, rl_actions):
+    def _apply_rl_actions(self, rl_actions):
         """
         See parent class
         """
