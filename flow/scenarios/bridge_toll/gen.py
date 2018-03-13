@@ -15,7 +15,7 @@ class BBTollGenerator(Generator):
                  {"id": "3", "x": "375", "y": "0"},  # light
                  {"id": "4", "x": "405", "y": "0", "type": "zipper"},  # merge1
                  {"id": "5", "x": "545", "y": "0", "type": "zipper"},  # merge2
-                 {"id": "6", "x": "770", "y": "0"}]  # post-merge2
+                 {"id": "6", "x": "1500", "y": "0"}]  # post-merge2
 
         return nodes
 
@@ -27,9 +27,9 @@ class BBTollGenerator(Generator):
         assert(isinstance(scaling, int)), "Scaling must be an int"
 
         edges = [{"id": "1", "from": "1", "to": "2", "length": "100",  #
-                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "5"},
                  {"id": "2", "from": "2", "to": "3", "length": "275",  # DONE
-                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "5"},
                  {"id": "3", "from": "3", "to": "4", "length": "30",  # DONE
                   "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
                  {"id": "4", "from": "4", "to": "5", "length": "140",   # DONE

@@ -455,6 +455,7 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
+        self.next_period = 0
         if self.step_counter > 2e6:
             self.step_counter = 0
             self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
@@ -512,7 +513,7 @@ class Env(gym.Env, Serializable):
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
                 self.vehicles.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
+                # self.traci_connection.vehicle.unsubscribe(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
                 pass
