@@ -387,7 +387,7 @@ class BottleNeckEnv(BridgeTollEnv):
         else:
             return self.vehicles.get_ids(), None
 
-    def apply_rl_actions(self, actions):
+    def _apply_rl_actions(self, actions):
         """
         See parent class
 

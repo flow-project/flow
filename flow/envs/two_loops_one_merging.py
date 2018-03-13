@@ -47,7 +47,7 @@ class TwoLoopsMergeEnv(Env):
         #             shape=(self.vehicles.num_rl_vehicles + 1,))
         # return Tuple((speed, headway))
 
-    def apply_rl_actions(self, rl_actions):
+    def _apply_rl_actions(self, rl_actions):
         """
         See parent class.
         """
@@ -192,7 +192,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
 
         return Box(np.array(lb), np.array(ub))
 
-    def apply_rl_actions(self, rl_actions):
+    def _apply_rl_actions(self, rl_actions):
         """
         See parent class
 
