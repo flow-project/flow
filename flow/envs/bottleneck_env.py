@@ -382,3 +382,37 @@ class BottleNeckEnv(BridgeTollEnv):
             if acc[i]:
                 next_vel = max([this_vel + acc[i]*self.sim_step, 0])
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+
+
+class DesiredVelocityEnv(BridgeTollEnv):
+    """Environment used to train vehicles to effectively pass through a bottleneck
+       by specifying the velocity that RL vehicles should attempt to travel
+       in certain regions of space
+
+       States
+       ------
+       An observation is the edge position, speed, lane, and edge number of the
+       AV, the distance to and velocity of the vehicles
+       in front and behind the AV for all lanes. Additionally, we pass the
+       density and average velocity of all edges. Finally, we pad with zeros
+       in case an AV has exited the system.
+       Note: the vehicles are arranged in an initial order, so we pad
+       the missing vehicle at its normal position in the order
+
+       Actions
+       -------
+       The action space consist of a list in which each element
+       corresponds to the desired speed that RL vehicles should travel in that
+       region of space
+
+       Rewards
+       -------
+       The reward is the two-norm of the difference between the speed of all
+       vehicles in the network and some desired speed. To this we add
+       a positive reward for moving the vehicles forward
+
+       Termination
+       -----------
+       A rollout is terminated once the time horizon is reached.
+
+       """
