@@ -31,6 +31,9 @@ MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
  # lanes that the fast track is on
 
+START_RECORD_TIME = 0.0
+PERIOD = 10.0
+
 
 class BridgeTollEnv(LaneChangeAccelEnv):
     def __init__(self, env_params, sumo_params, scenario):
@@ -57,6 +60,9 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.disable_tb = False
         self.disable_ramp_metering = False
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
+
+        self.next_period = START_RECORD_TIME / self.sim_step
+        self.cars_arrived = 0
 
         print(env_params.additional_params)
         if "disable_tb" in env_params.additional_params:
@@ -87,6 +93,14 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.apply_toll_bridge_control()
         if not self.disable_ramp_metering:
             self.ramp_meter_lane_change_control()
+
+        if self.time_counter > self.next_period:
+            self.density = self.cars_arrived #/ (PERIOD/self.sim_step)
+            print(self.density)
+            self.next_period += PERIOD/self.sim_step
+            self.cars_arrived = 0
+
+        self.cars_arrived += self.vehicles.num_arrived
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []

@@ -9,13 +9,15 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
+from flow.core.params import SumoLaneChangeParams
 from flow.envs.bottleneck_env import BottleNeckEnv
 from flow.core.experiment import SumoExperiment
 
 import numpy as np
-
 
 def bottleneck(sumo_binary=None):
 
@@ -38,7 +40,7 @@ def bottleneck(sumo_binary=None):
                  lane_change_mode=1621,
                  sumo_car_following_params=SumoCarFollowingParams(
                      minGap=2.5, tau=1.0, speedDev=0.5),
-                 num_vehicles=40*SCALING)
+                 num_vehicles=40)
 
     additional_env_params = {"target_velocity": 40, "disable_tb": True,
                              "disable_ramp_metering": True}
@@ -55,6 +57,7 @@ def bottleneck(sumo_binary=None):
     for i in range(NUM_LANES):
         lane_num = str(i)
         veh_per_hour = flow_rate * flow_dist[i]
+        print(veh_per_hour)
         inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
                    departLane=lane_num, departSpeed=10)
 
@@ -89,4 +92,4 @@ if __name__ == "__main__":
     exp = bottleneck(sumo_binary="sumo-gui")
 
     # run for a set number of rollouts / time steps
-    exp.run(10, 300)
+    exp.run(10, 500)
