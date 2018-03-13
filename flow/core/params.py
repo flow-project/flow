@@ -1,7 +1,9 @@
 import logging
+from flow.utils.warnings import deprecation_warning
 
 
 class SumoParams:
+
     def __init__(self,
                  port=None,
                  sim_step=0.1,
@@ -12,11 +14,12 @@ class SumoParams:
                  overtake_right=False,
                  ballistic=False,
                  seed=None):
-        """
-        Parameters used to pass the time step and sumo-specified safety
-        modes, which constrain the dynamics of vehicles in the network to
-        prevent crashes. In addition, this parameter may be used to specify
-        whether to use sumo's gui during the experiment's runtime
+        """Sumo-specific parameters
+
+        These parameters are used to customize a sumo simulation instance upon
+        initialization. This includes passing the simulation step length,
+        specifying whether to use sumo's gui during a run, and other features
+        described in the Attributes below.
 
         Attributes
         ----------
@@ -60,27 +63,25 @@ class SumoParams:
 
 
 class EnvParams:
+
     def __init__(self,
                  max_speed=55.0,  # TODO: delete me
-                 lane_change_duration=None,  # TODO: move to rl vehicles only
+                 lane_change_duration=None,
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
-                 shared_reward=False,
-                 shared_policy=False,
                  additional_params=None,
                  max_decel=-6,
                  max_accel=3,
                  horizon=500,
                  sort_vehicles=False):
-        """
-        Provides several environment and experiment-specific parameters. This
-        includes specifying the parameters of the action space and relevant
-        coefficients to the reward function.
+        """Environment and experiment-specific parameters.
+
+        This includes specifying the bounds of the action space and relevant
+        coefficients to the reward function, as well as specifying how the
+        positions of vehicles are modified in between rollouts.
 
         Attributes
         ----------
-        max_speed: float, optional
-            max speed of vehicles in the simulation; defaults to 55 m/s
         lane_change_duration: float, optional
             lane changing duration is always present in the environment, but
             only used by sub-classes that apply lane changing; defaults to
@@ -91,10 +92,6 @@ class EnvParams:
         starting_position_shuffle: bool, optional
             determines if starting position of vehicles should be updated
             between rollouts; False by default
-        shared_reward: bool, optional
-            use a shared reward; defaults to False
-        shared_policy: bool, optional
-            use a shared policy; defaults to False
         additional_params: dict, optional
             Specify additional environment params for a specific environment
             configuration
@@ -114,8 +111,6 @@ class EnvParams:
         self.lane_change_duration = lane_change_duration
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
-        self.shared_reward = shared_reward
-        self.shared_policy = shared_policy
         self.additional_params = \
             additional_params if additional_params is not None else {}
         self.max_decel = max_decel
@@ -126,26 +121,27 @@ class EnvParams:
     def get_additional_param(self, key):
         return self.additional_params[key]
 
-    def get_lane_change_duration(self, time_step):
-        """
-        Determines the lane change duration in units of steps
+    def get_lane_change_duration(self, sim_step):
+        """Determines the lane change duration in units of steps
 
         Parameters
         ----------
-        time_step: elapsed time per simulation step
+        sim_step: float
+            elapsed time per simulation step
 
         Returns
         -------
-        lane_change_duration: float
+        float
             minimum number of steps in between lane changes
         """
         if not self.lane_change_duration:
-            return 5 / time_step
+            return 5 / sim_step
         else:
-            return self.lane_change_duration / time_step
+            return self.lane_change_duration / sim_step
 
 
 class NetParams:
+
     def __init__(self,
                  net_path="debug/net/",
                  cfg_path="debug/cfg/",
@@ -154,8 +150,9 @@ class NetParams:
                  osm_path=None,
                  netfile=None,
                  additional_params=None):
-        """
-        Network configuration parameters
+        """Network configuration parameters
+
+        (blank)
 
         Parameters
         ----------
@@ -194,6 +191,7 @@ class NetParams:
 
 
 class InitialConfig:
+
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
@@ -206,7 +204,9 @@ class InitialConfig:
                  positions=None,
                  lanes=None,
                  additional_params=None):
-        """
+        """(blank)
+
+        (blank)
         Parameters that affect the positioning of vehicle in the network at
         the start of a rollout. By default, vehicles are uniformly distributed
         in the network.
@@ -232,8 +232,9 @@ class InitialConfig:
             reduces the portion of the network that should be filled with
             vehicles by this amount.
         lanes_distribution: int, optional
-            number of lanes vehicles should be dispersed into (cannot be greater
-            than the number of lanes in the network)
+            number of lanes vehicles should be dispersed into. If the value is
+            greater than the total number of lanes on an edge, vehicles are
+            spread across all lanes.
         edges_distribution: list <str>, optional
             list of edges vehicles may be placed on initialization, default is
             all lanes (stated as "all")
@@ -256,48 +257,85 @@ class InitialConfig:
         self.edges_distribution = edges_distribution
         self.positions = positions
         self.lanes = lanes
-        if additional_params is None:
-            self.additional_params = dict()
-        else:
-            self.additional_params = additional_params
+        self.additional_params = additional_params or dict()
 
     def get_additional_params(self, key):
         return self.additional_params[key]
 
 
 class SumoCarFollowingParams:
+
     def __init__(self,
-                 accel=2.6,
-                 decel=4.5,
+                 accel=1.0,
+                 decel=1.5,
                  sigma=0.5,
-                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
-                 minGap=1.0,
-                 maxSpeed=30,
-                 speedFactor=1.0,
-                 speedDev=0.0,
-                 impatience=0.0,
-                 carFollowModel="IDM"):
-        """
-        Base class for sumo-controlled acceleration behavior.
+                 tau=0.5,  # past 1 at sim_step=0.1 you no longer see waves
+                 min_gap=1.0,
+                 max_speed=30,
+                 speed_factor=1.0,
+                 speed_dev=0.1,
+                 impatience=0.5,
+                 car_follow_model="IDM",
+                 **kwargs):
+        """Parameters for sumo-controlled acceleration behavior
+
+        (specify how we specify it in Vehicles.add())  #### TODO ####
 
         Attributes
         ----------
         accel: float
+            see Note
         decel: float
+            see Note
         sigma: float
+            see Note
         tau: float
-        minGap: float
-        maxSpeed: float
-        speedFactor: float
-        speedDev: float
+            see Note
+        min_gap: float
+            see minGap Note
+        max_speed: float
+            see maxSpeed Note
+        speed_factor: float
+            see speedFactor Note
+        speed_dev: float
+            see speedDev in Note
         impatience: float
-        carFollowModel: str
+            see Note
+        car_follow_model: str
+            see carFollowModel in Note
+        kwargs: dict
+            used to handle deprecations
 
         Note
         ----
         For a description of all params, see:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+
         """
+        # check for deprecations (minGap)
+        if "minGap" in kwargs:
+            deprecation_warning(self, "minGap", "min_gap")
+            min_gap = kwargs["minGap"]
+
+        # check for deprecations (maxSpeed)
+        if "maxSpeed" in kwargs:
+            deprecation_warning(self, "maxSpeed", "max_speed")
+            max_speed = kwargs["maxSpeed"]
+
+        # check for deprecations (speedFactor)
+        if "speedFactor" in kwargs:
+            deprecation_warning(self, "speedFactor", "speed_factor")
+            speed_factor = kwargs["speedFactor"]
+
+        # check for deprecations (speedDev)
+        if "speedDev" in kwargs:
+            deprecation_warning(self, "speedDev", "speed_dev")
+            speed_dev = kwargs["speedDev"]
+
+        # check for deprecations (carFollowModel)
+        if "carFollowModel" in kwargs:
+            deprecation_warning(self, "carFollowModel", "car_follow_model")
+            car_follow_model = kwargs["carFollowModel"]
 
         # create a controller_params dict with all the specified parameters
         self.controller_params = {
@@ -305,71 +343,179 @@ class SumoCarFollowingParams:
             "decel": decel,
             "sigma": sigma,
             "tau": tau,
-            "minGap": minGap,
-            "maxSpeed": maxSpeed,
-            "speedFactor": speedFactor,
-            "speedDev": speedDev,
+            "minGap": min_gap,
+            "maxSpeed": max_speed,
+            "speedFactor": speed_factor,
+            "speedDev": speed_dev,
             "impatience": impatience,
-            "carFollowModel": carFollowModel,
+            "carFollowModel": car_follow_model,
         }
 
 
 class SumoLaneChangeParams:
+
     def __init__(self,
                  model="LC2013",
-                 lcStrategic=1.0,
-                 lcCooperative=1.0,
-                 lcSpeedGain=1.0,
-                 lcKeepRight=1.0,
-                 lcLookaheadLeft=2.0,
-                 lcSpeedGainRight=1.0,
-                 lcSublane=1.0,
-                 lcPushy=0,
-                 lcPushyGap=0.6,
-                 lcAssertive=1,
-                 lcImpatience=0,
-                 lcTimeToImpatience=float("inf"),
-                 lcAccelLat=1.0):
+                 lc_strategic=1.0,
+                 lc_cooperative=1.0,
+                 lc_speed_gain=1.0,
+                 lc_keep_right=1.0,
+                 lc_look_ahead_left=2.0,
+                 lc_speed_gain_right=1.0,
+                 lc_sublane=1.0,
+                 lc_pushy=0,
+                 lc_pushy_gap=0.6,
+                 lc_assertive=1,
+                 lc_impatience=0,
+                 lc_time_to_impatience=float("inf"),
+                 lc_accel_lat=1.0,
+                 **kwargs):
+        """Parameters for sumo-controlled lane change behavior
+
+        (specify how we specify it in Vehicles.add())  #### TODO ####
+
+        Attributes
+        ----------
+        model: str, optional
+            see laneChangeModel in Note
+        lc_strategic: float, optional
+            see lcStrategic in Note
+        lc_cooperative: float, optional
+            see lcCooperative in Note
+        lc_speed_gain: float, optional
+            see lcSpeedGain in Note
+        lc_keep_right: float, optional
+            see lcKeepRight in Note
+        lc_look_ahead_left: float, optional
+            see lcLookaheadLeft in Note
+        lc_speed_gain_right: float, optional
+            see lcSpeedGainRight in Note
+        lc_sublane: float, optional
+            see lcSublane in Note
+        lc_pushy: float, optional
+            see lcPushy in Note
+        lc_pushy_gap: float, optional
+            see lcPushyGap in Note
+        lc_assertive: float, optional
+            see lcAssertive in Note
+        lc_impatience: float, optional
+            see lcImpatience in Note
+        lc_time_to_impatience: float, optional
+            see lcTimeToImpatience in Note
+        lc_accel_lat: float, optional
+            see lcAccelLate in Note
+        kwargs: dict
+            used to handle deprecations
+
+        Note
+        ----
+        For a description of all params, see:
+        http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+
+        """
+        # check for deprecations (lcStrategic)
+        if "lcStrategic" in kwargs:
+            deprecation_warning(self, "lcStrategic", "lc_strategic")
+            lc_strategic = kwargs["lcStrategic"]
+
+        # check for deprecations (lcCooperative)
+        if "lcCooperative" in kwargs:
+            deprecation_warning(self, "lcCooperative", "lc_cooperative")
+            lc_cooperative = kwargs["lcCooperative"]
+
+        # check for deprecations (lcSpeedGain)
+        if "lcSpeedGain" in kwargs:
+            deprecation_warning(self, "lcSpeedGain", "lc_speed_gain")
+            lc_speed_gain = kwargs["lcSpeedGain"]
+
+        # check for deprecations (lcKeepRight)
+        if "lcKeepRight" in kwargs:
+            deprecation_warning(self, "lcKeepRight", "lc_keep_right")
+            lc_keep_right = kwargs["lcKeepRight"]
+
+        # check for deprecations (lcLookaheadLeft)
+        if "lcLookaheadLeft" in kwargs:
+            deprecation_warning(self, "lcLookaheadLeft", "lc_look_ahead_left")
+            lc_look_ahead_left = kwargs["lcLookaheadLeft"]
+
+        # check for deprecations (lcSpeedGainRight)
+        if "lcSpeedGainRight" in kwargs:
+            deprecation_warning(
+                self, "lcSpeedGainRight", "lc_speed_gain_right")
+            lc_speed_gain_right = kwargs["lcSpeedGainRight"]
+
+        # check for deprecations (lcSublane)
+        if "lcSublane" in kwargs:
+            deprecation_warning(self, "lcSublane", "lc_sublane")
+            lc_sublane = kwargs["lcSublane"]
+
+        # check for deprecations (lcPushy)
+        if "lcPushy" in kwargs:
+            deprecation_warning(self, "lcPushy", "lc_pushy")
+            lc_pushy = kwargs["lcPushy"]
+
+        # check for deprecations (lcPushyGap)
+        if "lcPushyGap" in kwargs:
+            deprecation_warning(self, "lcPushyGap", "lc_pushy_gap")
+            lc_pushy_gap = kwargs["lcPushyGap"]
+
+        # check for deprecations (lcAssertive)
+        if "lcAssertive" in kwargs:
+            deprecation_warning(self, "lcAssertive", "lc_assertive")
+            lc_assertive = kwargs["lcAssertive"]
+
+        # check for deprecations (lcImpatience)
+        if "lcImpatience" in kwargs:
+            deprecation_warning(self, "lcImpatience", "lc_impatience")
+            lc_impatience = kwargs["lcImpatience"]
+
+        # check for deprecations (lcTimeToImpatience)
+        if "lcTimeToImpatience" in kwargs:
+            deprecation_warning(
+                self, "lcTimeToImpatience", "lc_time_to_impatience")
+            lc_time_to_impatience = kwargs["lcTimeToImpatience"]
+
+        # check for deprecations (lcAccelLat)
+        if "lcAccelLat" in kwargs:
+            deprecation_warning(self, "lcAccelLat", "lc_accel_lat")
+            lc_accel_lat = kwargs["lcAccelLat"]
+
+        # check for valid model
+        if model not in ["LC2013", "SL2015"]:
+            logging.error("Invalid lane change model! Defaulting to LC2013")
+            model = "LC2013"
 
         if model == "LC2013":
             self.controller_params = {
                 "laneChangeModel": model,
-                "lcStrategic": str(lcStrategic),
-                "lcCooperative": str(lcCooperative),
-                "lcSpeedGain": str(lcSpeedGain),
-                "lcKeepRight": str(lcKeepRight),
+                "lcStrategic": str(lc_strategic),
+                "lcCooperative": str(lc_cooperative),
+                "lcSpeedGain": str(lc_speed_gain),
+                "lcKeepRight": str(lc_keep_right),
                 # "lcLookaheadLeft": str(lcLookaheadLeft),
                 # "lcSpeedGainRight": str(lcSpeedGainRight)
             }
         elif model == "SL2015":
             self.controller_params = {
                 "laneChangeModel": model,
-                "lcStrategic": str(lcStrategic),
-                "lcCooperative": str(lcCooperative),
-                "lcSpeedGain": str(lcSpeedGain),
-                "lcKeepRight": str(lcKeepRight),
-                "lcLookaheadLeft": str(lcLookaheadLeft),
-                "lcSpeedGainRight": str(lcSpeedGainRight),
-                "lcSublane": str(lcSublane),
-                "lcPushy": str(lcPushy),
-                "lcPushyGap": str(lcPushyGap),
-                "lcAssertive": str(lcAssertive),
-                "lcImpatience": str(lcImpatience),
-                "lcTimeToImpatience": str(lcTimeToImpatience),
-                "lcAccelLat": str(lcAccelLat)}
-        else:
-            logging.error("Invalid lc model! Defaulting to LC2013")
-            self.controller_params = {
-                "laneChangeModel": model,
-                "lcStrategic": str(lcStrategic),
-                "lcCooperative": str(lcCooperative),
-                "lcSpeedGain": str(lcSpeedGain),
-                "lcKeepRight": str(lcKeepRight),
-                "lcLookaheadLeft": str(lcLookaheadLeft),
-                "lcSpeedGainRight": str(lcSpeedGainRight)}
+                "lcStrategic": str(lc_strategic),
+                "lcCooperative": str(lc_cooperative),
+                "lcSpeedGain": str(lc_speed_gain),
+                "lcKeepRight": str(lc_keep_right),
+                "lcLookaheadLeft": str(lc_look_ahead_left),
+                "lcSpeedGainRight": str(lc_speed_gain_right),
+                "lcSublane": str(lc_sublane),
+                "lcPushy": str(lc_pushy),
+                "lcPushyGap": str(lc_pushy_gap),
+                "lcAssertive": str(lc_assertive),
+                "lcImpatience": str(lc_impatience),
+                "lcTimeToImpatience": str(lc_time_to_impatience),
+                "lcAccelLat": str(lc_accel_lat)
+            }
 
 
 class InFlows:
+
     def __init__(self):
         """
         Used to add inflows to a network. Inflows can be specified for any edge
@@ -378,10 +524,17 @@ class InFlows:
         self.num_flows = 0
         self.__flows = []
 
-    def add(self, veh_type, edge, start=None, end=None, vehsPerHour=None,
-            period=None, probability=None, number=None, **kwargs):
-        """
-        Specifies a new inflow for a given type of vehicles and edge.
+    def add(self,
+            veh_type,
+            edge,
+            start=None,
+            end=2e6,
+            vehs_per_hour=None,
+            period=None,
+            probability=None,
+            number=None,
+            **kwargs):
+        """Specifies a new inflow for a given type of vehicles and edge.
 
         Parameters
         ----------
@@ -394,8 +547,8 @@ class InFlows:
             see Note
         end: float, optional
             see Note
-        vehsPerHour: float, optional
-            see Note
+        vehs_per_hour: float, optional
+            see vehsPerHour in Note
         period: float, optional
             see Note
         probability: float, optional
@@ -407,22 +560,28 @@ class InFlows:
 
         Note
         ----
-        For information on the parameters start, end, vehsPerHour, period,
+        For information on the parameters start, end, vehs_per_hour, period,
         probability, number, as well as other vehicle type and routing
         parameters that may be added via **kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
+
         """
+        # check for deprecations (vehsPerHour)
+        if "vehsPerHour" in kwargs:
+            deprecation_warning(self, "vehsPerHour", "vehs_per_hour")
+            vehs_per_hour = kwargs["vehsPerHour"]
+            # delete since all parameters in kwargs are used again later
+            del kwargs["vehsPerHour"]
+
         new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
-                      "route": "route" + edge}
+                      "route": "route" + edge, "end": end}
 
         new_inflow.update(kwargs)
 
         if start is not None:
             new_inflow["start"] = start
-        if end is not None:
-            new_inflow["end"] = end
-        if vehsPerHour is not None:
-            new_inflow["vehsPerHour"] = vehsPerHour
+        if vehs_per_hour is not None:
+            new_inflow["vehsPerHour"] = vehs_per_hour
         if period is not None:
             new_inflow["period"] = period
         if probability is not None:
