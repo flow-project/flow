@@ -391,5 +391,58 @@ class TestSorting(unittest.TestCase):
         self.assertListEqual(sorted_ids, ids)
 
 
+class TestWarmUpSteps(unittest.TestCase):
+
+    """Ensures that the appropriate number of warmup steps are run when using
+    flow.core.params.EnvParams.warmup_steps"""
+
+    def test_it_works(self):
+        warmup_step = 5  # some value
+
+        # start an environment with a number of simulations per step greater
+        # than one
+        additional_params = {"target_velocity": 30}
+        env_params = EnvParams(warmup_steps=warmup_step,
+                               additional_params=additional_params)
+        env, scenario = ring_road_exp_setup(env_params=env_params)
+
+        # time before running a reset
+        t1 = env.time_counter
+        # perform a reset
+        env.reset()
+        # time after a reset
+        t2 = env.time_counter
+
+        # ensure that the difference in time is equal to sims_per_step
+        self.assertEqual(t2 - t1, warmup_step)
+
+
+class TestSimsPerStep(unittest.TestCase):
+
+    """Ensures that the appropriate number of simultaions are run at any given
+    steps when using flow.core.params.EnvParams.sims_per_step"""
+
+    def test_it_works(self):
+        sims_per_step = 5  # some value
+
+        # start an environment with a number of simulations per step greater
+        # than one
+        additional_params = {"target_velocity": 30}
+        env_params = EnvParams(sims_per_step=sims_per_step,
+                               additional_params=additional_params)
+        env, scenario = ring_road_exp_setup(env_params=env_params)
+
+        env.reset()
+        # time before running a step
+        t1 = env.time_counter
+        # perform a step
+        env.step(action=[])
+        # time after a step
+        t2 = env.time_counter
+
+        # ensure that the difference in time is equal to sims_per_step
+        self.assertEqual(t2 - t1, sims_per_step)
+
+
 if __name__ == '__main__':
     unittest.main()
