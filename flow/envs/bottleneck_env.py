@@ -2,6 +2,7 @@ from flow.envs.base_env import Env
 from flow.envs.lane_changing import LaneChangeAccelEnv
 from flow.core import rewards
 from flow.core import multi_agent_rewards
+from flow.controllers.velocity_controllers import FollowerStopper
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -429,14 +430,12 @@ class DesiredVelocityEnv(BridgeTollEnv):
         self.action_index = [0]
         for i, segment in enumerate(self.num_segments[:-1]):
             self.action_index += [self.action_index[i] + segment]
-        import ipdb; ipdb.set_trace()
 
     @property
     def observation_space(self):
         num_obs = 0
         for segment in self.segments:
-            import ipdb; ipdb.set_trace()
-            num_obs += segment[1]*self.scenario.num_lane(segment[0])
+            num_obs += segment[1]*self.scenario.num_lanes(segment[0])
         print("--------------")
         print("--------------")
         print("--------------")
@@ -446,11 +445,13 @@ class DesiredVelocityEnv(BridgeTollEnv):
         print("--------------")
         print("--------------")
         print("--------------")
-        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
+        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
+                   dtype=np.float32)
 
     @property
     def action_space(self):
-        return Box(low=0, high=self.max_speed, shape=(self.total_segments,))
+        return Box(low=0, high=self.max_speed, shape=(self.total_segments,),
+                   dtype=np.float32)
 
     def get_state(self):
         num_vehicles_list = []
@@ -464,14 +465,23 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
                 num_vehicles[segment, lane_list[i]] += 1
 
-            num_vehicles_list += num_vehicles.flatten()
-        return np.concatenate(num_vehicles_list)
+            num_vehicles_list += num_vehicles.flatten().tolist()
+        return np.asarray(num_vehicles_list)
 
-    def _apply_rl_actions(self, actions):
-        for rl_id in self.vehicles.get_rl_ids():
+    def apply_rl_actions(self, actions):
+        veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
+                   if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
+        for rl_id in veh_ids:
             edge = self.vehicles.get_edge(rl_id)
-            pos = self.vehicles.get_position(rl_id)
-            # find what segment we fall into
-            bucket = np.searchsorted(self.slices[edge], pos) - 1
-            action = actions[bucket + self.action_index[edge]]
-            # set the desired velocity of the controller to the action
+            if edge:
+                if edge[0] != ':':
+                    pos = self.vehicles.get_position(rl_id)
+                    # find what segment we fall into
+                    bucket = np.searchsorted(self.slices[edge], pos) - 1
+                    try:
+                        action = actions[bucket + self.action_index[int(edge) - 1]]
+                        # set the desired velocity of the controller to the action
+                        controller = self.vehicles.get_acc_controller(rl_id)
+                        controller.v_des = action
+                    except:
+                        import ipdb; ipdb.set_trace()
