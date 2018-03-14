@@ -37,27 +37,25 @@ vehicles.add(veh_id="human",
              speed_mode=0b11111,
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             lane_change_mode=512,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=2.5, tau=1.0),
+             lane_change_mode=0b100000101,
              num_vehicles=5*SCALING)
 vehicles.add(veh_id="followerstopper",
              acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
-             lane_change_mode=1621,
+             lane_change_mode=0b100000101,
              num_vehicles=5*SCALING,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
 
+horizon = 100
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
-additional_env_params = {"target_velocity": 40, "num_steps": 15000,
+additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 env_params = EnvParams(additional_params=additional_env_params,
-                       lane_change_duration=1)
+                       lane_change_duration=1, warmup_steps=100,
+                       sims_per_step=4, horizon=100)
 
 # flow rate
 flow_rate = 1500 * SCALING
