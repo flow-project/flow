@@ -29,7 +29,7 @@ NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 
