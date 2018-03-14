@@ -418,6 +418,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
         self.segments = self.env_params.additional_params.get("segments", default)
         self.num_segments = [segment[1] for segment in self.segments]
+        self.controlled_edges = [segment[0] for segment in self.segments]
         self.total_segments = np.sum([segment[1] for segment in self.segments])
         # for convenience, construct the relevant positions we are looking for
         self.slices = {}
@@ -468,23 +469,21 @@ class DesiredVelocityEnv(BridgeTollEnv):
         return np.asarray(num_vehicles_list)
 
     def _apply_rl_actions(self, actions):
+        # FIXME(ev) make it so that you don't have to control everrrry edge
+        print(actions)
         veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
                    if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
-        print('number of rl vehicles is', len(veh_ids))
         for rl_id in veh_ids:
             edge = self.vehicles.get_edge(rl_id)
             if edge:
-                if edge[0] != ':':
+                if edge[0] != ':' and edge in self.controlled_edges:
                     pos = self.vehicles.get_position(rl_id)
                     # find what segment we fall into
                     bucket = np.searchsorted(self.slices[edge], pos) - 1
-                    try:
-                        action = actions[bucket + self.action_index[int(edge) - 1]]
-                        # set the desired velocity of the controller to the action
-                        controller = self.vehicles.get_acc_controller(rl_id)
-                        controller.v_des = action
-                    except:
-                        import ipdb; ipdb.set_trace()
+                    action = actions[bucket + self.action_index[int(edge) - 1]]
+                    # set the desired velocity of the controller to the action
+                    controller = self.vehicles.get_acc_controller(rl_id)
+                    controller.v_des = action
 
     def apply_acceleration(self, veh_ids, acc):
         """
@@ -507,3 +506,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
             if acc[i]:
                 next_vel = max([this_vel + acc[i]*self.sim_step, 0])
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        return rewards.desired_velocity(self)
