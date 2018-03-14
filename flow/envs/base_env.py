@@ -6,8 +6,6 @@ import sys
 from copy import deepcopy
 import time
 import traceback
-import numpy as np
-import random
 
 import traci
 from traci import constants as tc
@@ -27,14 +25,15 @@ try:
 except ImportError:
     import flow.config_default as config
 
+from flow.controllers.car_following_models import *
 from flow.core.util import ensure_dir
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
 # Colors are [red, green, yellow, cyan, purple, white]
-COLORS = [(255, 0, 0, 255), (0, 255, 0, 255), (255, 255, 0, 255),
-          (0, 255, 255, 255), (255, 0, 255, 255), (255, 255, 255, 255)]
+COLORS = [(255, 0, 0, 0), (0, 255, 0, 0), (255, 255, 0, 0),
+          (0, 255, 255, 0), (255, 0, 255, 0), (255, 255, 255, 0)]
 
 
 class Env(gym.Env, Serializable):
@@ -118,10 +117,6 @@ class Env(gym.Env, Serializable):
 
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
-
-        # used for timing
-        self.time_list = []
-        self.curr_time = time.time()
 
         self.start_sumo()
         self.setup_initial_state()
@@ -230,9 +225,9 @@ class Env(gym.Env, Serializable):
         raise error
 
     def setup_initial_state(self):
-        """Returns information on the initial state of the vehicles in the
-        network, to be used upon reset.
-
+        """
+        Returns information on the initial state of the vehicles in the network,
+        to be used upon reset.
         Also adds initial state information to the self.vehicles class and
         starts a subscription with sumo to collect state information each step.
 
@@ -344,10 +339,9 @@ class Env(gym.Env, Serializable):
         info: dictionary
             contains other diagnostic information from the previous action
         """
-        t = time.time()
         self.time_counter += 1
         self.step_counter += 1
-        if self.step_counter > 1e6:
+        if self.step_counter > 2e6:
             self.step_counter = 0
             self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
             
@@ -386,8 +380,7 @@ class Env(gym.Env, Serializable):
 
         self.additional_command()
 
-        for i in range(self.sumo_params.num_steps):
-            self.traci_connection.simulationStep()
+        self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
@@ -415,15 +408,37 @@ class Env(gym.Env, Serializable):
 
         # crash encodes whether sumo experienced a crash
         crash = \
-            self.traci_connection.simulation.getStartingTeleportNumber() != 0
+            np.any(np.array([self.vehicles.get_position(veh_id)
+                             for veh_id in self.vehicles.get_ids()]) < 0) \
+            or self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
-        if crash:
-            return next_observation, reward, True, {}
+        # Are we in an rllab multi-agent scenario? If so, the action space is
+        # a list.
+        if isinstance(self.action_space, list):
+            done_n = self.vehicles.num_rl_vehicles * [0]
+            info_n = {'n': []}
+
+            if self.shared_reward:
+                info_n['reward_n'] = [reward] * len(self.action_space)
+            else:
+                info_n['reward_n'] = reward
+
+            if crash:
+                done_n = self.vehicles.num_rl_vehicles * [1]
+
+            info_n['done_n'] = done_n
+            info_n['state'] = self.state
+            done = np.all(done_n)
+            return self.state, sum(reward), done, info_n
+
         else:
-            return next_observation, reward, False, {}
+            if crash:
+                return next_observation, reward, True, {}
+            else:
+                return next_observation, reward, False, {}
 
     def _reset(self):
         """
@@ -441,7 +456,7 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
-        if self.step_counter > 1e6:
+        if self.step_counter > 2e6:
             self.step_counter = 0
             self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
@@ -491,24 +506,12 @@ class Env(gym.Env, Serializable):
 
             self.initial_state = deepcopy(initial_state)
 
-        # # clear all vehicles from the network and the vehicles class
-
-        for veh_id in self.traci_connection.vehicle.getIDList():
-            try:
-                self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
-                self.vehicles.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
-            except Exception:
-                print("Error during start: {}".format(traceback.format_exc()))
-                pass
-
         # clear all vehicles from the network and the vehicles class
-        # FIXME (ev, ak) this is weird and shouldn't be necessary
-        for veh_id in list(self.vehicles.get_ids()):
-            self.vehicles.remove(veh_id)
+        for veh_id in self.traci_connection.vehicle.getIDList() + \
+                self.traci_connection.simulation.getStartingTeleportIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
+                self.vehicles.remove(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
 
@@ -517,20 +520,10 @@ class Env(gym.Env, Serializable):
             type_id, route_id, lane_index, lane_pos, speed, pos = \
                 self.initial_state[veh_id]
 
-            try:
-                self.traci_connection.vehicle.addFull(
-                    veh_id, route_id, typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(lane_pos), departSpeed=str(speed))
-            except:
-                # if a vehicle was not removed in the first attempt, remove it
-                # now and then reintroduce it
-                self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.addFull(
-                    veh_id, route_id, typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(lane_pos), departSpeed=str(speed))
-
+            self.traci_connection.vehicle.addFull(
+                veh_id, route_id, typeID=str(type_id),
+                departLane=str(lane_index),
+                departPos=str(lane_pos), departSpeed=str(speed))
 
         self.traci_connection.simulationStep()
 

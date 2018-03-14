@@ -454,6 +454,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                    dtype=np.float32)
 
     def get_state(self):
+        # FIXME(ev) add information about AVs)
         num_vehicles_list = []
         for i, edge in enumerate(EDGE_LIST):
             num_lanes = self.scenario.num_lanes(edge)
@@ -471,6 +472,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def apply_rl_actions(self, actions):
         veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
                    if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
+        print('number of rl vehicles is', len(veh_ids))
         for rl_id in veh_ids:
             edge = self.vehicles.get_edge(rl_id)
             if edge:
@@ -485,3 +487,25 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         controller.v_des = action
                     except:
                         import ipdb; ipdb.set_trace()
+
+    def apply_acceleration(self, veh_ids, acc):
+        """
+        Applies the acceleration requested by a vehicle in sumo. Note that, if
+        the sumo-specified speed mode of the vehicle is not "aggressive", the
+        acceleration may be clipped by some safety velocity or maximum possible
+        acceleration.
+
+        ** IF THE ACTION IS NONE, USES SUMO ACTION **
+
+        Parameters
+        ----------
+        veh_ids: list of strings
+            vehicles IDs associated with the requested accelerations
+        acc: numpy array or list of float
+            requested accelerations from the vehicles
+        """
+        for i, vid in enumerate(veh_ids):
+            this_vel = self.vehicles.get_speed(vid)
+            if acc[i]:
+                next_vel = max([this_vel + acc[i]*self.sim_step, 0])
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
