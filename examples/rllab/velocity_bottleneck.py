@@ -33,16 +33,6 @@ sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 
-vehicles.add(veh_id="rl",
-             acceleration_controller=(FollowerStopper, {}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b1111,
-             lane_change_mode=1621,
-             num_vehicles=4*SCALING,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=2.5, tau=1.0),
-             sumo_lc_params=SumoLaneChangeParams())
 vehicles.add(veh_id="human",
              speed_mode=0b11111,
              lane_change_controller=(SumoLaneChangeController, {}),
@@ -50,25 +40,17 @@ vehicles.add(veh_id="human",
              lane_change_mode=512,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
-             num_vehicles=15*SCALING)
-vehicles.add(veh_id="rl2",
-             acceleration_controller=(FollowerStopper, {}),
+             num_vehicles=5*SCALING)
+vehicles.add(veh_id="followerstopper",
+             acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
-             num_vehicles=4*SCALING,
+             num_vehicles=5*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
                  minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
-vehicles.add(veh_id="human2",
-             speed_mode=0b11111,
-             lane_change_mode=512,
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=2.5, tau=1.0),
-             num_vehicles=15*SCALING)
 
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
 additional_env_params = {"target_velocity": 40, "num_steps": 15000,
@@ -87,8 +69,12 @@ inflow = InFlows()
 for i in range(NUM_LANES):
     lane_num = str(i)
     veh_per_hour = flow_rate * flow_dist[i]
-    inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
-               departLane=lane_num, departSpeed=10)
+    veh_per_second = veh_per_hour / 3600
+    inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.75,  # vehsPerHour=veh_per_hour *0.8,
+               departLane=lane_num, departSpeed=23)
+    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * 0.25,
+               # vehsPerHour=veh_per_hour * 0.2,
+               departLane=lane_num, departSpeed=23)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:

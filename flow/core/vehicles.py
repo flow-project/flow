@@ -43,7 +43,6 @@ class Vehicles:
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
         self.initial_speeds = []  # speed of vehicles at the start of a rollout
-        self.num_arrived = 0 # number of arrived vehicles at the last time_step
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
@@ -53,7 +52,6 @@ class Vehicles:
 
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
-
 
     def add(self,
             veh_id,
@@ -243,9 +241,6 @@ class Vehicles:
         env: Environment type
             state of the environment at the current time step
         """
-
-        self.num_arrived = len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
-
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:

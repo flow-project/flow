@@ -11,8 +11,7 @@ class SumoParams:
                  sumo_binary="sumo",
                  overtake_right=False,
                  ballistic=False,
-                 seed=None,
-                 num_steps=1):
+                 seed=None):
         """
         Parameters used to pass the time step and sumo-specified safety
         modes, which constrain the dynamics of vehicles in the network to
@@ -48,9 +47,6 @@ class SumoParams:
             Defaults to False
         seed: int, optional
             seed for sumo instance
-        num_steps: int, optional
-            Configures how many simulation steps we should take
-            for every rl action
         """
         self.port = port
         self.sim_step = sim_step
@@ -61,7 +57,6 @@ class SumoParams:
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
-        self.num_steps = num_steps
 
 
 class EnvParams:
@@ -276,7 +271,7 @@ class SumoCarFollowingParams:
                  decel=4.5,
                  sigma=0.5,
                  tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
-                 minGap=1.0,
+                 minGap=1.5,
                  maxSpeed=30,
                  speedFactor=1.0,
                  speedDev=0.0,
