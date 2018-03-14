@@ -391,13 +391,8 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
        States
        ------
-       An observation is the edge position, speed, lane, and edge number of the
-       AV, the distance to and velocity of the vehicles
-       in front and behind the AV for all lanes. Additionally, we pass the
-       density and average velocity of all edges. Finally, we pad with zeros
-       in case an AV has exited the system.
-       Note: the vehicles are arranged in an initial order, so we pad
-       the missing vehicle at its normal position in the order
+       An observation is the number of vehicles in each lane in each
+       segment
 
        Actions
        -------
@@ -407,12 +402,76 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
        Rewards
        -------
-       The reward is the two-norm of the difference between the speed of all
-       vehicles in the network and some desired speed. To this we add
-       a positive reward for moving the vehicles forward
+       The reward is the outflow of the bottleneck plus a reward
+       for RL vehicles making forward progress
 
        Termination
        -----------
        A rollout is terminated once the time horizon is reached.
 
        """
+
+    def __init__(self, env_params, sumo_params, scenario):
+
+        default = [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)]
+        super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
+        self.segments = self.env_params.additional_params.get("segments", default)
+        self.num_segments = [segment[1] for segment in self.segments]
+        self.total_segments = np.sum([segment[1] for segment in self.segments])
+        # for convenience, construct the relevant positions we are looking for
+        self.slices = {}
+        for edge, num_segments in self.segments:
+            edge_length = self.scenario.edge_length(edge)
+            self.slices[edge] = np.linspace(0, edge_length, num_segments)
+
+        # construct an indexing to be used for figuring out which
+        # action is useful
+        self.action_index = [0]
+        for i, segment in enumerate(self.num_segments[:-1]):
+            self.action_index += [self.action_index[i] + segment]
+        import ipdb; ipdb.set_trace()
+
+    @property
+    def observation_space(self):
+        num_obs = 0
+        for segment in self.segments:
+            import ipdb; ipdb.set_trace()
+            num_obs += segment[1]*self.scenario.num_lane(segment[0])
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print(num_obs)
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        print("--------------")
+        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
+
+    @property
+    def action_space(self):
+        return Box(low=0, high=self.max_speed, shape=(self.total_segments,))
+
+    def get_state(self):
+        num_vehicles_list = []
+        for i, edge in enumerate(EDGE_LIST):
+            num_lanes = self.scenario.num_lanes(edge)
+            num_vehicles = np.zeros((self.num_segments[i], num_lanes))
+            ids = self.vehicles.get_ids_by_edge(edge)
+            lane_list = self.vehicles.get_lane(ids)
+            pos_list = self.vehicles.get_position(ids)
+            for i, id in enumerate(ids):
+                segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
+                num_vehicles[segment, lane_list[i]] += 1
+
+            num_vehicles_list += num_vehicles.flatten()
+        return np.concatenate(num_vehicles_list)
+
+    def _apply_rl_actions(self, actions):
+        for rl_id in self.vehicles.get_rl_ids():
+            edge = self.vehicles.get_edge(rl_id)
+            pos = self.vehicles.get_position(rl_id)
+            # find what segment we fall into
+            bucket = np.searchsorted(self.slices[edge], pos) - 1
+            action = actions[bucket + self.action_index[edge]]
+            # set the desired velocity of the controller to the action

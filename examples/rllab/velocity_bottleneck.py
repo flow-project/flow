@@ -1,5 +1,6 @@
 """
-Example of a multi-lane network with human-driven vehicles.
+Bottleneck in which the actions are specifying a desired velocity
+in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows
@@ -9,7 +10,7 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
@@ -22,47 +23,57 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 import numpy as np
+
 SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 
-
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
 vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
+             acceleration_controller=(FollowerStopper, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
 vehicles.add(veh_id="human",
              speed_mode=0b11111,
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              lane_change_mode=512,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=2.5, tau=1.0),
              num_vehicles=15*SCALING)
 vehicles.add(veh_id="rl2",
-             acceleration_controller=(RLController, {}),
+             acceleration_controller=(FollowerStopper, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b1111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=2.5, tau=1.0),
              sumo_lc_params=SumoLaneChangeParams())
 vehicles.add(veh_id="human2",
              speed_mode=0b11111,
              lane_change_mode=512,
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=2.5, tau=1.0),
              num_vehicles=15*SCALING)
 
+num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
 additional_env_params = {"target_velocity": 40, "num_steps": 15000,
-                         "disable_tb": True, "disable_ramp_metering": True}
+                         "disable_tb": True, "disable_ramp_metering": True,
+                         "segments": num_segments}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
@@ -102,7 +113,7 @@ scenario = BBTollScenario(name="bay_bridge_toll",
 
 
 def run_task(*_):
-    env_name = "BottleNeckEnv"
+    env_name = "DesiredVelocityEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params,
                        net_params, initial_config, scenario)
 
