@@ -76,7 +76,14 @@ class FollowerStopper(BaseController):
                 v_cmd = this_vel + (self.v_des-this_vel) * (dx-dx_2) / (dx_3-dx_2)
             else:
                 v_cmd = self.v_des
-        if self.find_intersection_dist(env) <= 10 and env.vehicles.get_edge(self.veh_id) in self.danger_edges:
+
+        edge = env.vehicles.get_edge(self.veh_id)
+
+        if edge == "":
+            return None
+        if self.find_intersection_dist(env) <= 10 and  \
+                env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
+                env.vehicles.get_edge(self.veh_id)[0] == ":":
             return None
         else:
             # compute the acceleration from the desired velocity
