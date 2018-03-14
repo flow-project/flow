@@ -38,8 +38,6 @@ def bottleneck(sumo_binary=None):
                  acceleration_controller=(SumoCarFollowingController, {}),
                  # routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
-                 sumo_car_following_params=SumoCarFollowingParams(
-                     minGap=2.5, tau=1.0, speedDev=0.05),
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
 
@@ -49,8 +47,6 @@ def bottleneck(sumo_binary=None):
                  acceleration_controller=(FollowerStopper, {"v_des":5}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
-                 sumo_car_following_params=SumoCarFollowingParams(
-                     minGap=2.5, tau=1.0, speedDev=0.0),
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
 

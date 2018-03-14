@@ -445,13 +445,11 @@ class DesiredVelocityEnv(BridgeTollEnv):
         print("--------------")
         print("--------------")
         print("--------------")
-        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
-                   dtype=np.float32)
+        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
 
     @property
     def action_space(self):
-        return Box(low=0, high=self.max_speed, shape=(self.total_segments,),
-                   dtype=np.float32)
+        return Box(low=0, high=self.max_speed, shape=(self.total_segments,))
 
     def get_state(self):
         # FIXME(ev) add information about AVs)
@@ -469,7 +467,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
             num_vehicles_list += num_vehicles.flatten().tolist()
         return np.asarray(num_vehicles_list)
 
-    def apply_rl_actions(self, actions):
+    def _apply_rl_actions(self, actions):
         veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
                    if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
         print('number of rl vehicles is', len(veh_ids))

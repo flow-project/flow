@@ -43,6 +43,7 @@ class Vehicles:
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
         self.initial_speeds = []  # speed of vehicles at the start of a rollout
+        self.num_arrived = 0 # number of arrived vehicles at the last time_step
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
@@ -241,6 +242,9 @@ class Vehicles:
         env: Environment type
             state of the environment at the current time step
         """
+
+        self.num_arrived = len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
@@ -282,28 +286,30 @@ class Vehicles:
             # update the "absolute_position" variable
             for veh_id in self.__ids:
                 prev_pos = env.get_x_by_id(veh_id)
-                this_edge = vehicle_obs[veh_id][tc.VAR_ROAD_ID]
-                this_pos = vehicle_obs[veh_id][tc.VAR_LANEPOSITION]
-                try:
-                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
-                    if change < 0:
-                        change += env.scenario.length
-                    new_abs_pos = self.get_absolute_position(
-                        veh_id) + change
-                    self.set_absolute_position(veh_id, new_abs_pos)
-                except (ValueError, TypeError):
+                this_edge = vehicle_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, "")
+                this_pos = vehicle_obs.get(veh_id, {}).get(
+                    tc.VAR_LANEPOSITION, -1001)
+
+                # in case the vehicle isn't in the network
+                if this_edge == "":
                     self.set_absolute_position(veh_id, -1001)
+                else:
+                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
+                    new_abs_pos = (self.get_absolute_position(veh_id) +
+                                   change) % env.scenario.length
+                    self.set_absolute_position(veh_id, new_abs_pos)
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            headway = vehicle_obs[veh_id][tc.VAR_LEADER]
-            vtype = self.get_state(veh_id, "type")
-            min_gap = self.minGap[vtype]
+            headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
+            # check for a collided vehicle or a vehicle with no leader
             if headway is None:
                 self.__vehicles[veh_id]["leader"] = None
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
+                vtype = self.get_state(veh_id, "type")
+                min_gap = self.minGap[vtype]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
                 self.__vehicles[headway[0]]["follower"] = veh_id
@@ -926,9 +932,10 @@ class Vehicles:
             edge = self.get_edge(veh_id)
             lane = self.get_lane(veh_id)
             pos = self.get_position(veh_id)
-            if edge_dict[edge] is None:
-                edge_dict[edge] = [[] for _ in range(max_lanes)]
-            edge_dict[edge][lane].append((veh_id, pos))
+            if edge:
+                if edge_dict[edge] is None:
+                    edge_dict[edge] = [[] for _ in range(max_lanes)]
+                edge_dict[edge][lane].append((veh_id, pos))
 
         # sort all lanes in each edge by position
         for edge in tot_list:
