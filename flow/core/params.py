@@ -283,8 +283,8 @@ class SumoCarFollowingParams:
                  accel=1.0,
                  decel=1.5,
                  sigma=0.5,
-                 tau=0.5,  # past 1 at sim_step=0.1 you no longer see waves
-                 min_gap=1.0,
+                 tau=0.6,  # past 1 at sim_step=0.1 you no longer see waves
+                 min_gap=1.5,
                  max_speed=30,
                  speed_factor=1.0,
                  speed_dev=0.1,

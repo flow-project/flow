@@ -4,6 +4,8 @@ import subprocess
 import logging
 import random
 import os
+import traceback
+import time
 from lxml import etree
 import xml.etree.ElementTree as ET
 
@@ -14,6 +16,11 @@ except ImportError as e:
     Serializable = object
 
 E = etree.Element
+
+# Number of retries on accessing the .net.xml file before giving up
+RETRIES_ON_ERROR = 10
+# number of seconds to wait before trying to access the .net.xml file again
+WAIT_ON_ERROR = 1
 
 
 class Generator(Serializable):
@@ -159,9 +166,16 @@ class Generator(Serializable):
         self.netfn = netfn
 
         # collect data from the generated network configuration file
-        edges_dict, conn_dict = self._import_edges_from_net()
-
-        return edges_dict, conn_dict
+        error = None
+        for _ in range(RETRIES_ON_ERROR):
+            try:
+                edges_dict, conn_dict = self._import_edges_from_net()
+                return edges_dict, conn_dict
+            except Exception as error:
+                print("Error during start: {}".format(traceback.format_exc()))
+                print("Retrying in {} seconds...".format(WAIT_ON_ERROR))
+                time.sleep(WAIT_ON_ERROR)
+        raise error
 
     def generate_cfg(self, net_params):
         """
