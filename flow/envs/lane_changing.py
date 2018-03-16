@@ -81,7 +81,7 @@ class LaneChangeAccelEnv(Env):
                           self.vehicles.get_lane(veh_id)]
                          for veh_id in self.sorted_ids])
 
-    def apply_rl_actions(self, actions):
+    def _apply_rl_actions(self, actions):
         """
         See parent class
 
@@ -141,7 +141,7 @@ class LaneChangeOnlyEnv(LaneChangeAccelEnv):
         """
         return Box(low=-1, high=1, shape=(self.vehicles.num_rl_vehicles,))
 
-    def apply_rl_actions(self, actions):
+    def _apply_rl_actions(self, actions):
         """
         see parent class
 

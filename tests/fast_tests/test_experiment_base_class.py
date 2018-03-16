@@ -42,7 +42,7 @@ class TestNumRuns(unittest.TestCase):
         exp = SumoExperiment(env, scenario)
         exp.run(num_runs=1, num_steps=10)
 
-        pos1 = [exp.env.vehicles.get_speed()]
+        vel1 = [exp.env.vehicles.get_speed(exp.env.vehicles.get_ids())]
 
         # run the experiment for 2 runs and collect the last position of all
         # vehicles
@@ -50,10 +50,10 @@ class TestNumRuns(unittest.TestCase):
         exp = SumoExperiment(env, scenario)
         exp.run(num_runs=2, num_steps=10)
 
-        pos2 = [exp.env.vehicles.get_speed()]
+        vel2 = [exp.env.vehicles.get_speed(exp.env.vehicles.get_ids())]
 
         # check that the final position is the same in both instances
-        np.testing.assert_array_almost_equal(pos1, pos2)
+        np.testing.assert_array_almost_equal(vel1, vel2)
 
 
 if __name__ == '__main__':
