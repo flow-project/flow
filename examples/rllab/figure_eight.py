@@ -7,8 +7,8 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.figure8.gen import Figure8Generator
+from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import *
 from flow.controllers.routing_controllers import *
@@ -16,7 +16,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.params import *
 from rllab.envs.gym_env import GymEnv
 
-HORIZON = 10
+HORIZON = 1500
 
 
 def run_task(v):
@@ -45,8 +45,8 @@ def run_task(v):
     initial_config = InitialConfig(spacing="uniform")
 
     print("XXX name", exp_tag)
-    scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
-                            initial_config=initial_config)
+    scenario = Figure8Scenario(exp_tag, Figure8Generator, vehicles, net_params,
+                               initial_config=initial_config)
 
     env_name = "AccelEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
