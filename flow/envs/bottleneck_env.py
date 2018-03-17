@@ -54,9 +54,9 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.toll_wait_time = np.abs(
             np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step, 4 / self.sim_step, NUM_TOLL_LANES*self.scaling))
         self.fast_track_lanes = range(int(np.ceil(1.5 * self.scaling)), int(np.ceil(2.6 * self.scaling)))
-        self.tl_state = ""
+        self.tb_state = ""
         self.disable_tb = env_add_params.get("disable_tb", True)
-        self.disable_ramp_metering = env_add_params.get("disable_ramp", True)
+        self.disable_ramp_metering = env_add_params.get("disable_ramp_metering", True)
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         # values for the ramp meter
@@ -66,12 +66,11 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.q_min = env_add_params.get("q_min", 4000) #FIXME(ev) calibrate
         self.feedback_update_time = env_add_params.get("feedback_update", 30)
         self.feedback_timer = 0.0
-        self.tl_states = np.zeros(4*self.scaling)
+        self.ramp_state = np.zeros(4*self.scaling)
         self.green_time = 4
         self.red_min = 2
         self.cycle_time = 6
         self.feedback_coeff = env_add_params.get("feedback_coeff", 10)
-
 
     def additional_command(self):
         super().additional_command()
@@ -93,7 +92,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.apply_toll_bridge_control()
         if not self.disable_ramp_metering:
             self.ramp_meter_lane_change_control()
-            #self.alinea()
+            self.alinea()
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
@@ -126,8 +125,9 @@ class BridgeTollEnv(LaneChangeAccelEnv):
     def alinea(self):
         """Implementation of ALINEA from Toll Plaza Merging Traffic Control for
             Throughput Maximization"""
+        import ipdb; ipdb.set_trace()
         self.feedback_timer += self.sim_step
-        self.tl_states += self.sim_step
+        self.ramp_state += self.sim_step
         if self.feedback_timer > self.feedback_update_time:
             self.feedback_timer = 0
             # now implement the integral controller update
@@ -138,12 +138,13 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.cycle_time = 7200*(4*self.scaling)/self.q
 
         # now apply the ramp meter
-        self.tl_state %= self.cycle_time
+        import ipdb; ipdb.set_trace()
+        self.ramp_state %= self.cycle_time
         # step through, if the value of tl_state is below self.green_time
         # we should be green, otherwise we should be red
-        tl_mask = self.tl_state <= self.green_time
-        colors = ['G' if val is True else 'r' for val in tl_mask]
-        self.traffic_lights.set_state('3', colors, self)
+        tl_mask = (self.ramp_state <= self.green_time)
+        colors = ['G' if val else 'r' for val in tl_mask]
+        self.traffic_lights.set_state('3', ''.join(colors), self)
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
@@ -193,8 +194,8 @@ class BridgeTollEnv(LaneChangeAccelEnv):
 
         newTLState = "".join(traffic_light_states)
 
-        if newTLState != self.tl_state:
-            self.tl_state = newTLState
+        if newTLState != self.tb_state:
+            self.tb_state = newTLState
             self.traci_connection.trafficlights.setRedYellowGreenState(tlsID=TB_TL_ID, state=newTLState)
 
 
