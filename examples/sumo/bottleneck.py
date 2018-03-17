@@ -26,13 +26,13 @@ def bottleneck(sumo_binary=None):
     SCALING = 4
     NUM_LANES = 4*SCALING  # number of lanes in the widest highway
     DISABLE_TB = True
-    DISABLE_RAMP_METER = True
+    DISABLE_RAMP_METER = False
 
     logging.basicConfig(level=logging.INFO)
 
     if sumo_binary is None:
-        sumo_binary = "sumo-gui"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
+        sumo_binary = "sumo"
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
 
     vehicles = Vehicles()
 
@@ -90,7 +90,7 @@ def bottleneck(sumo_binary=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bottleneck(sumo_binary="sumo-gui")
+    exp = bottleneck(sumo_binary="sumo")
 
     # run for a set number of rollouts / time steps
     exp.run(10, 300)
