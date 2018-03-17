@@ -541,7 +541,7 @@ class InFlows:
     def add(self,
             veh_type,
             edge,
-            start=None,
+            begin=1,
             end=2e6,
             vehs_per_hour=None,
             period=None,
@@ -592,8 +592,8 @@ class InFlows:
 
         new_inflow.update(kwargs)
 
-        if start is not None:
-            new_inflow["start"] = start
+        if begin is not None:
+            new_inflow["begin"] = begin
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
         if period is not None:
