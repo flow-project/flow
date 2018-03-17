@@ -9,12 +9,11 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
-from flow.controllers.velocity_controllers import FollowerStopper
+from flow.controllers.velocity_controllers import HandTunedVelocityController
 from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
-from flow.envs.bottleneck_env import BottleNeckEnv
+from flow.envs.bottleneck_env import DesiredVelocityEnv
 from flow.core.experiment import SumoExperiment
 
 import numpy as np
@@ -44,14 +43,16 @@ def bottleneck(sumo_binary=None):
     vehicles.add(veh_id="followerstopper",
                  speed_mode=31,
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 acceleration_controller=(FollowerStopper, {"v_des":5}),
+                 acceleration_controller=(HandTunedVelocityController, {"v_regions":[15, 10, 10, 10, 5, 5, 20, 20, 20]}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
-
-    additional_env_params = {"target_velocity": 40, "disable_tb": True,
-                             "disable_ramp_metering": True}
+    horizon = 100
+    num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
+    additional_env_params = {"target_velocity": 40, "num_steps": horizon,
+                             "disable_tb": True, "disable_ramp_metering": True,
+                             "segments": num_segments}
     env_params = EnvParams(additional_params=additional_env_params,
                            lane_change_duration=1)
 
@@ -96,7 +97,7 @@ def bottleneck(sumo_binary=None):
                               initial_config=initial_config,
                               traffic_lights=traffic_lights)
 
-    env = BottleNeckEnv(env_params, sumo_params, scenario)
+    env = DesiredVelocityEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 
