@@ -154,13 +154,10 @@ class Generator(Serializable):
         x.append(t)
         printxml(x, self.net_path + cfgfn)
 
-        fh = open(self.cfg_path + "NULL", "w")
         subprocess.call(
             ["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
              self.cfg_path + netfn + ' --no-internal-links="%s"'
-             % no_internal_links],
-            stdout=fh, stderr=fh, shell=True)
-        fh.close()
+             % no_internal_links], shell=True)
 
         # location of the .net.xml file
         self.netfn = netfn
