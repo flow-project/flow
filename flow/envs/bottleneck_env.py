@@ -66,10 +66,10 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.q_min = env_add_params.get("q_min", 4000) #FIXME(ev) calibrate
         self.feedback_update_time = env_add_params.get("feedback_update", 30)
         self.feedback_timer = 0.0
-        self.ramp_state = np.zeros(4*self.scaling)
+        self.cycle_time = 6
+        self.ramp_state = self.cycle_time*np.random.random(size=4*self.scaling)
         self.green_time = 4
         self.red_min = 2
-        self.cycle_time = 6
         self.feedback_coeff = env_add_params.get("feedback_coeff", 10)
 
     def additional_command(self):
@@ -125,20 +125,18 @@ class BridgeTollEnv(LaneChangeAccelEnv):
     def alinea(self):
         """Implementation of ALINEA from Toll Plaza Merging Traffic Control for
             Throughput Maximization"""
-        import ipdb; ipdb.set_trace()
         self.feedback_timer += self.sim_step
         self.ramp_state += self.sim_step
         if self.feedback_timer > self.feedback_update_time:
             self.feedback_timer = 0
             # now implement the integral controller update
             # find all the vehicles in an edge
-            N = self.vehicles.get_ids_by_edge(':4_0')
+            N = len(self.vehicles.get_ids_by_edge(':4_0'))
             self.q = self.q + self.feedback_coeff*(self.n_crit - N)
             # convert q to cycle time
             self.cycle_time = 7200*(4*self.scaling)/self.q
 
         # now apply the ramp meter
-        import ipdb; ipdb.set_trace()
         self.ramp_state %= self.cycle_time
         # step through, if the value of tl_state is below self.green_time
         # we should be green, otherwise we should be red
