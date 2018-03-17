@@ -30,12 +30,10 @@ class BBTollGenerator(Generator):
                   "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
                  {"id": "2", "from": "2", "to": "3", "length": "275",  # DONE
                   "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
-                 {"id": "3", "from": "3", "to": "4", "length": "30",  # DONE
-                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50",
-                  "radius": "20"},
-                 {"id": "4", "from": "4", "to": "5", "length": "140",   # DONE
-                  "spreadType": "center", "numLanes": str(2*scaling), "speed": "50",
-                  "radius": "10"},
+                 {"id": "3", "from": "3", "to": "4", "length": "30", "radius": "10", # DONE
+                  "spreadType": "center", "numLanes": str(4*scaling), "speed": "50"},
+                 {"id": "4", "from": "4", "to": "5", "length": "140", "radius": "10",  # DONE
+                  "spreadType": "center", "numLanes": str(2*scaling), "speed": "50"},
                  {"id": "5", "from": "5", "to": "6", "length": "225",
                   "spreadType": "center", "numLanes": str(scaling), "speed": "50"}]
 
