@@ -14,8 +14,11 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
-from flow.envs.bottleneck_env import BottleNeckEnv
+from flow.envs.bottleneck_env import BridgeTollEnv
 from flow.core.experiment import SumoExperiment
+
+import logging
+import numpy as np
 
 
 def bottleneck(sumo_binary=None):
@@ -39,17 +42,15 @@ def bottleneck(sumo_binary=None):
                  # acceleration_controller=(IDMController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
-                 sumo_car_following_params=SumoCarFollowingParams(
-                     minGap=2.5, tau=1.0, speedDev=0.5),
-                 num_vehicles=40*SCALING)
+                 num_vehicles=1*SCALING)
 
-    additional_env_params = {"target_velocity": 40, "disable_tb": True,
-                             "disable_ramp_metering": True}
+    additional_env_params = {"target_velocity": 40, "disable_tb": DISABLE_TB,
+                             "disable_ramp_metering": DISABLE_RAMP_METER}
     env_params = EnvParams(additional_params=additional_env_params,
                            lane_change_duration=1)
 
     # flow rate
-    flow_rate = 1500 * SCALING
+    flow_rate = 2200 * SCALING
     # percentage of flow coming out of each lane
     #flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
     flow_dist = np.ones(NUM_LANES)/NUM_LANES
@@ -82,7 +83,7 @@ def bottleneck(sumo_binary=None):
                               initial_config=initial_config,
                               traffic_lights=traffic_lights)
 
-    env = BottleNeckEnv(env_params, sumo_params, scenario)
+    env = BridgeTollEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 
