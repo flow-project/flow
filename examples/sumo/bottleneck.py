@@ -14,7 +14,7 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
-from flow.envs.bottleneck_env import BridgeTollEnv
+from flow.envs.bottleneck_env import BridgeTollEnv, BottleNeckEnv
 from flow.core.experiment import SumoExperiment
 
 import logging
@@ -32,7 +32,7 @@ def bottleneck(sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
 

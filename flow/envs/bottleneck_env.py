@@ -66,7 +66,8 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.q_min = env_add_params.get("q_min", 4000) #FIXME(ev) calibrate
         self.feedback_update_time = env_add_params.get("feedback_update", 30)
         self.feedback_timer = 0.0
-        self.ramp_state = np.zeros(4*self.scaling)
+        self.ramp_state = np.random.randint(low=0, high=self.cycle_time,
+                                            size=4*self.scaling)
         self.green_time = 4
         self.red_min = 2
         self.cycle_time = 6
