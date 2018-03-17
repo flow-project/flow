@@ -493,7 +493,6 @@ class Env(gym.Env, Serializable):
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
                 self.vehicles.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
                 pass
