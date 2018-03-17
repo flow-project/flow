@@ -21,6 +21,9 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
+import logging
+import numpy as np
+
 SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
@@ -36,7 +39,7 @@ vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b1111,
+             speed_mode=0b11111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
@@ -54,7 +57,7 @@ vehicles.add(veh_id="rl2",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b1111,
+             speed_mode=0b11111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
