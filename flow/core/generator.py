@@ -4,6 +4,8 @@ import subprocess
 import logging
 import random
 import os
+import traceback
+import time
 from lxml import etree
 import xml.etree.ElementTree as ET
 
@@ -14,6 +16,11 @@ except ImportError as e:
     Serializable = object
 
 E = etree.Element
+
+# Number of retries on accessing the .net.xml file before giving up
+RETRIES_ON_ERROR = 10
+# number of seconds to wait before trying to access the .net.xml file again
+WAIT_ON_ERROR = 1
 
 
 class Generator(Serializable):
@@ -159,9 +166,16 @@ class Generator(Serializable):
         self.netfn = netfn
 
         # collect data from the generated network configuration file
-        edges_dict, conn_dict = self._import_edges_from_net()
-
-        return edges_dict, conn_dict
+        error = None
+        for _ in range(RETRIES_ON_ERROR):
+            try:
+                edges_dict, conn_dict = self._import_edges_from_net()
+                return edges_dict, conn_dict
+            except Exception as error:
+                print("Error during start: {}".format(traceback.format_exc()))
+                print("Retrying in {} seconds...".format(WAIT_ON_ERROR))
+                time.sleep(WAIT_ON_ERROR)
+        raise error
 
     def generate_cfg(self, net_params):
         """
@@ -217,43 +231,42 @@ class Generator(Serializable):
     def make_routes(self, scenario, initial_config):
 
         vehicles = scenario.vehicles
-        if vehicles.num_vehicles > 0:
-            routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
+        routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
-            # add the types of vehicles to the xml file
-            for vtype, type_params in vehicles.types:
-                type_params_str = {key: str(type_params[key])
-                                   for key in type_params}
-                routes.append(E("vType", id=vtype, **type_params_str))
+        # add the types of vehicles to the xml file
+        for vtype, type_params in vehicles.types:
+            type_params_str = {key: str(type_params[key])
+                               for key in type_params}
+            routes.append(E("vType", id=vtype, **type_params_str))
 
-            self.vehicle_ids = vehicles.get_ids()
+        self.vehicle_ids = vehicles.get_ids()
 
-            if initial_config.shuffle:
-                random.shuffle(self.vehicle_ids)
+        if initial_config.shuffle:
+            random.shuffle(self.vehicle_ids)
 
-            # add the initial positions of vehicles to the xml file
-            positions = initial_config.positions
-            lanes = initial_config.lanes
-            for i, veh_id in enumerate(self.vehicle_ids):
-                veh_type = vehicles.get_state(veh_id, "type")
-                edge, pos = positions[i]
-                lane = lanes[i]
-                type_depart_speed = vehicles.get_initial_speed(veh_id)
-                routes.append(self._vehicle(
-                    veh_type, "route" + edge, depart="0", id=veh_id,
-                    color="1,0.0,0.0", departSpeed=str(type_depart_speed),
-                    departPos=str(pos), departLane=str(lane)))
+        # add the initial positions of vehicles to the xml file
+        positions = initial_config.positions
+        lanes = initial_config.lanes
+        for i, veh_id in enumerate(self.vehicle_ids):
+            veh_type = vehicles.get_state(veh_id, "type")
+            edge, pos = positions[i]
+            lane = lanes[i]
+            type_depart_speed = vehicles.get_initial_speed(veh_id)
+            routes.append(self._vehicle(
+                veh_type, "route" + edge, depart="0", id=veh_id,
+                color="1,0.0,0.0", departSpeed=str(type_depart_speed),
+                departPos=str(pos), departLane=str(lane)))
 
-            # add the in-flows from various edges to the xml file
-            if self.net_params.in_flows is not None:
-                total_inflows = self.net_params.in_flows.get()
-                for inflow in total_inflows:
-                    for key in inflow:
-                        if not isinstance(inflow[key], str):
-                            inflow[key] = repr(inflow[key])
-                    routes.append(self._flow(**inflow))
+        # add the in-flows from various edges to the xml file
+        if self.net_params.in_flows is not None:
+            total_inflows = self.net_params.in_flows.get()
+            for inflow in total_inflows:
+                for key in inflow:
+                    if not isinstance(inflow[key], str):
+                        inflow[key] = repr(inflow[key])
+                routes.append(self._flow(**inflow))
 
-            printxml(routes, self.cfg_path + self.roufn)
+        printxml(routes, self.cfg_path + self.roufn)
 
     def specify_nodes(self, net_params):
         """

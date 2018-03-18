@@ -76,3 +76,5 @@ class SumoExperiment:
 
             # convert the emission file into a csv
             emission_to_csv(emission_path)
+
+        return np.mean(rets)

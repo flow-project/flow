@@ -35,6 +35,8 @@ def desired_velocity(env, fail=False):
 
     return max(max_cost - cost, 0)
 
+def reward_density(env):
+    return env.vehicles.num_arrived / env.sim_step
 
 def rl_forward_progress(env, fail=False, gain = 0.1):
     """
