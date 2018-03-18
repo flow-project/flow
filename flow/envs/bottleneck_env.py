@@ -97,7 +97,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
 
         if self.time_counter > self.next_period:
             self.density = self.cars_arrived #/ (PERIOD/self.sim_step)
-            print(self.density)
+            #print(self.density)
             self.next_period += PERIOD/self.sim_step
             self.cars_arrived = 0
 
@@ -508,4 +508,4 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        return rewards.desired_velocity(self)
+        return rewards.reward_density(self)

@@ -296,8 +296,8 @@ class SumoCarFollowingParams:
                  accel=2.6,
                  decel=4.5,
                  sigma=0.5,
-                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
-                 min_gap=2.5,
+                 tau=0.6,  # past 1 at sim_step=0.1 you no longer see waves
+                 min_gap=1.5,
                  max_speed=30,
                  speed_factor=1.0,
                  speed_dev=0.1,
@@ -554,7 +554,7 @@ class InFlows:
     def add(self,
             veh_type,
             edge,
-            start=None,
+            begin=1,
             end=2e6,
             vehs_per_hour=None,
             period=None,
@@ -605,8 +605,8 @@ class InFlows:
 
         new_inflow.update(kwargs)
 
-        if start is not None:
-            new_inflow["start"] = start
+        if begin is not None:
+            new_inflow["begin"] = begin
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
         if period is not None:
