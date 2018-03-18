@@ -21,6 +21,9 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
+import logging
+import numpy as np
+
 SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
@@ -28,7 +31,7 @@ DISABLE_RAMP_METER = True
 
 logging.basicConfig(level=logging.INFO)
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
@@ -36,7 +39,7 @@ vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b1111,
+             speed_mode=0b11111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
@@ -54,7 +57,7 @@ vehicles.add(veh_id="rl2",
              acceleration_controller=(RLController, {}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b1111,
+             speed_mode=0b11111,
              lane_change_mode=1621,
              num_vehicles=4*SCALING,
              sumo_car_following_params=SumoCarFollowingParams(
@@ -69,8 +72,9 @@ vehicles.add(veh_id="human2",
                  minGap=2.5, tau=1.0),
              num_vehicles=15*SCALING)
 
-additional_env_params = {"target_velocity": 40, "num_steps": 15000,
-                         "disable_tb": True, "disable_ramp_metering": True}
+additional_env_params = {"target_velocity": 50, "num_steps": 150,
+                         "disable_tb": True, "disable_ramp_metering": True,
+                         "add_rl_if_exit": True}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
@@ -129,7 +133,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=40000,
+        batch_size=20000,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
@@ -143,7 +147,7 @@ for seed in [1]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=4,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a

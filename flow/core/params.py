@@ -50,6 +50,7 @@ class SumoParams:
             Defaults to False
         seed: int, optional
             seed for sumo instance
+
         """
         self.port = port
         self.sim_step = sim_step
