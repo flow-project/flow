@@ -29,16 +29,16 @@ NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
-# vehicles.add(veh_id="human",
-#              speed_mode=0b11111,
-#              lane_change_controller=(SumoLaneChangeController, {}),
-#              routing_controller=(ContinuousRouter, {}),
-#              lane_change_mode=1621,#0b100000101,
-#              num_vehicles=5*SCALING)
+vehicles.add(veh_id="human",
+             speed_mode=0b11111,
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             lane_change_mode=1621,#0b100000101,
+             num_vehicles=5*SCALING)
 vehicles.add(veh_id="followerstopper",
              acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
@@ -50,15 +50,15 @@ vehicles.add(veh_id="followerstopper",
 
 horizon = 100
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
-additional_env_params = {"target_velocity": 40, "num_steps": horizon,
+additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 env_params = EnvParams(additional_params=additional_env_params,
-                       lane_change_duration=1, warmup_steps=50,
+                       lane_change_duration=1, warmup_steps=80,
                        sims_per_step=4, horizon=50)
 
 # flow rate
-flow_rate = 2400 * SCALING
+flow_rate = 4000 * SCALING
 # percentage of flow coming out of each lane
 # flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
@@ -68,8 +68,8 @@ for i in range(NUM_LANES):
     lane_num = str(i)
     veh_per_hour = flow_rate * flow_dist[i]
     veh_per_second = veh_per_hour / 3600
-    # inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.75,  # vehsPerHour=veh_per_hour *0.8,
-    #            departLane=lane_num, departSpeed=23)
+    inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.75,  # vehsPerHour=veh_per_hour *0.8,
+               departLane=lane_num, departSpeed=23)
     inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * 0.25,
                # vehsPerHour=veh_per_hour * 0.2,
                departLane=lane_num, departSpeed=23)
@@ -125,18 +125,18 @@ def run_task(*_):
     )
     algo.train()
 
-exp_tag = "BottleNeckVerySmall"  # experiment prefix
-for seed in [1]:  # , 1, 5, 10, 73]:
+exp_tag = "DanBottleneckSmall"  # experiment prefix
+for seed in [1,2,3,4]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=8,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
