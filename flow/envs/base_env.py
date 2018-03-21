@@ -112,6 +112,9 @@ class Env(gym.Env, Serializable):
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.vehicles.get_ids())
 
+        # store the initial state of the vehicles class (for restarting sumo)
+        self.initial_vehicles = deepcopy(self.vehicles)
+
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
 
@@ -127,6 +130,7 @@ class Env(gym.Env, Serializable):
         rollout.
         """
         self.traci_connection.close(False)
+        self.sumo_proc.kill()
 
         if sumo_binary is not None:
             self.sumo_params.sumo_binary = sumo_binary
@@ -437,11 +441,13 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
-        if self.step_counter > 1e6:
-            self.step_counter = 0
-            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
-        # TODO(ak): handling number of vehicles during reset
+        # issue a random seed to induce randomness into the next rollout
+        self.sumo_params.seed = random.randint(0, 1e5)
+        # modify the vehicles class to match initial data
+        self.vehicles = deepcopy(self.initial_vehicles)
+        # restart the sumo instance
+        self.restart_sumo(self.sumo_params)
 
         # create the list of colors used to visually distinguish between
         # different types of vehicles
