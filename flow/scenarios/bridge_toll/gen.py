@@ -13,9 +13,11 @@ class BBTollGenerator(Generator):
         nodes = [{"id": "1", "x": "0",   "y": "0"},  # pre-toll
                  {"id": "2", "x": "100", "y": "0"},  # toll
                  {"id": "3", "x": "375", "y": "0"},  # light
-                 {"id": "4", "x": "405", "y": "0", "type": "zipper", "radius": "10"},  # merge1
-                 {"id": "5", "x": "545", "y": "0", "type": "zipper", "radius": "10"},  # merge2
-                 {"id": "6", "x": "700", "y": "0"}]  # post-merge2
+                 {"id": "4", "x": "550", "y": "0", "type": "zipper",
+                 "radius": "20"},  # merge1
+                 {"id": "5", "x": "690", "y": "0", "type": "zipper",
+                  "radius": "20"},  # merge2
+                 {"id": "6", "x": "845", "y": "0"}]  # post-merge2
 
         return nodes
 
@@ -32,7 +34,7 @@ class BBTollGenerator(Generator):
                  {"id": "2", "from": "2", "to": "3", "length": "275",  # DONE
                   "spreadType": "center", "numLanes": str(4*scaling),
                   "speed": "23"},
-                 {"id": "3", "from": "3", "to": "4", "length": "30",  # DONE
+                 {"id": "3", "from": "3", "to": "4", "length": "175",  # DONE
                   "spreadType": "center", "numLanes": str(4*scaling),
                   "speed": "23"},
                  {"id": "4", "from": "4", "to": "5", "length": "140",   # DONE
@@ -40,8 +42,7 @@ class BBTollGenerator(Generator):
                   "speed": "23"},
                  {"id": "5", "from": "5", "to": "6", "length": "155",
                   "spreadType": "center", "numLanes": str(scaling),
-                  "speed": "23",
-                  "endOffset": "10"}]
+                  "speed": "23"}]
 
         return edges
 
