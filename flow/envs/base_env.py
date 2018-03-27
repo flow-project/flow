@@ -442,12 +442,13 @@ class Env(gym.Env, Serializable):
         # reset the time counter
         self.time_counter = 0
 
-        # issue a random seed to induce randomness into the next rollout
-        self.sumo_params.seed = random.randint(0, 1e5)
-        # modify the vehicles class to match initial data
-        self.vehicles = deepcopy(self.initial_vehicles)
-        # restart the sumo instance
-        self.restart_sumo(self.sumo_params)
+        if self.sumo_params.restart_instance:
+            # issue a random seed to induce randomness into the next rollout
+            self.sumo_params.seed = random.randint(0, 1e5)
+            # modify the vehicles class to match initial data
+            self.vehicles = deepcopy(self.initial_vehicles)
+            # restart the sumo instance
+            self.restart_sumo(self.sumo_params)
 
         # create the list of colors used to visually distinguish between
         # different types of vehicles
