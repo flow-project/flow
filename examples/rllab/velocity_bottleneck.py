@@ -126,17 +126,17 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "DanBottleneckSmall"  # experiment prefix
-for seed in [1,2,3,4]:  # , 1, 5, 10, 73]:
+for seed in [1]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=8,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,

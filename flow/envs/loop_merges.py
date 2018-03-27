@@ -9,51 +9,51 @@ import numpy as np
 
 
 class LoopMergesEnv(Env):
-    """
-    Fully functional environment. Takes in an *acceleration* as an action.
-    Reward function is negative norm of the difference between the velocities of
-    each vehicle, and the target velocity. State function is a vector of the
-    velocities, positions, and edge IDs for each vehicle.
-    """
+    """(description)
 
+    States
+    ------
+    (blank)
+
+    Actions
+    -------
+    (blank)
+
+    RewardS
+    -------
+    (blank)
+
+    Termination
+    -----------
+    (blank)
+
+    Sorting
+    -------
+    (blank)
+    """
     @property
     def action_space(self):
-        """
-        See parent class
-        """
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles,))
 
     @property
     def observation_space(self):
-        """
-        See parent class
-        """
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
         pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         edge = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple([speed, pos, edge])
 
     def _apply_rl_actions(self, rl_actions):
-        """
-        See parent class
-        """
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
                          if veh_id in self.vehicles.get_rl_ids()]
 
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """
-        See parent class
-        """
         return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
-        """
-        See parent class
-        """
         sorted_pos = self.sorted_extra_data[0]
         edge_id = self.sorted_extra_data[1]
 
