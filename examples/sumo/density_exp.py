@@ -93,11 +93,15 @@ def bottleneck(flow_rate, sumo_binary=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    densities = list(range(1500,5001,500))
+    densities = list(range(1500,5001,250))
     rets = []
-    for d in densities:
-        exp = bottleneck(d, sumo_binary="sumo")
+
+    for d in [3600, 4000, 5000]:
+        print("Running trials for density: " + str(d))
+        exp = bottleneck(d, sumo_binary="sumo-gui")
 
     # run for a set number of rollouts / time steps
-        rets.append(exp.run(10, 2500))
+        rets.append(exp.run(1, 2500))
+    print(densities)
     print(rets)
+    np.savetxt("rets.csv", np.array([densities, rets]), delimiter=",")
