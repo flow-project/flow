@@ -39,18 +39,19 @@ COLORS = [(255, 0, 0, 255), (0, 255, 0, 255), (255, 255, 0, 255),
 
 class Env(gym.Env, Serializable):
     def __init__(self, env_params, sumo_params, scenario):
-        """
-        Base environment class. Provides the interface for controlling a SUMO
-        simulation. Using this class, you can start sumo, provide a scenario to
-        specify a configuration and controllers, perform simulation steps, and
-        reset the simulation to an initial configuration.
+        """Base environment class.
 
-        SumoEnvironment is Serializable to allow for pickling of the policy.
+        Provides the interface for controlling a SUMO simulation. Using this
+        class, you can start sumo, provide a scenario to specify a
+        configuration and controllers, perform simulation steps, and reset the
+        simulation to an initial configuration.
+
+        Env is Serializable to allow for pickling and replaying of the policy.
 
         This class cannot be used as is: you must extend it to implement an
-        action applicator method, and properties to define the MDP if you choose
-        to use it with RLLab. This can be done by overloading the following
-        functions in a child class:
+        action applicator method, and properties to define the MDP if you
+        choose to use it with an rl library (e.g. RLlib). This can be done by
+        overloading the following functions in a child class:
          - action_space
          - observation_space
          - apply_rl_action
@@ -436,7 +437,7 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
-        if self.step_counter > 2e6:
+        if self.step_counter > 1e6:
             self.step_counter = 0
             self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 

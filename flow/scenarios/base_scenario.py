@@ -11,7 +11,6 @@ except ImportError:
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
-
 VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
@@ -62,7 +61,8 @@ class Scenario(Serializable):
         # list of edges and internal links (junctions)
         self._edge_list = [edge_id for edge_id in self._edges.keys()
                            if edge_id[0] != ":"]
-        self._junction_list = list(set(self._edges.keys())-set(self._edge_list))
+        self._junction_list = list(set(self._edges.keys()) -
+                                   set(self._edge_list))
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -93,8 +93,9 @@ class Scenario(Serializable):
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
-        # length of the network, or the portion of the network in which cars are
-        # meant to be distributed (may be overridden by subclass __init__())
+        # length of the network, or the portion of the network in
+        # which cars are meant to be distributed
+        # (may be overridden by subclass __init__())
         if not hasattr(self, "length"):
             self.length = sum([self.edge_length(edge_id)
                                for edge_id in self.get_edge_list()])
@@ -142,9 +143,10 @@ class Scenario(Serializable):
 
     def specify_internal_edge_starts(self):
         """
-        Defines the edge starts for internal edge nodes (caused by finite-length
-        connections between road sections) with respect to some global reference
-        frame. Does not need to be specified if "no-internal-links" is set to
+        Defines the edge starts for internal edge nodes
+        (caused by finite-length connections between road sections) with
+        respect to some global reference frame. Does not need to be
+        specified if "no-internal-links" is set to
         True in net_params.
 
         Returns
@@ -251,7 +253,8 @@ class Scenario(Serializable):
         Generates start positions that are uniformly spaced across the network.
         If the perturbation term in initial_config is set to some positive
         value, then the start positions are perturbed from a uniformly spaced
-        distribution by a gaussian whose std is equal to this perturbation term.
+        distribution by a gaussian whose std is equal to this
+        perturbation term.
 
         Parameters
         ----------
@@ -270,9 +273,9 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
-        x0, min_gap, bunching, lanes_distr, available_length, \
-            available_edges, initial_config = self._get_start_pos_util(
-                initial_config, num_vehicles, **kwargs)
+        (x0, min_gap, bunching, lanes_distr, available_length,
+         available_edges, initial_config) = \
+            self._get_start_pos_util(initial_config, num_vehicles, **kwargs)
 
         increment = available_length / num_vehicles
 
@@ -302,10 +305,10 @@ class Scenario(Serializable):
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
-                if indx_edge == len(edges)-1:
+                if indx_edge == len(edges) - 1:
                     next_edge_pos = self.total_edgestarts[0]
                 else:
-                    next_edge_pos = self.total_edgestarts[indx_edge+1]
+                    next_edge_pos = self.total_edgestarts[indx_edge + 1]
 
                 x = next_edge_pos[1]
                 pos = (next_edge_pos[0], 0)
@@ -369,9 +372,9 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
-        x0, min_gap, bunching, lanes_distr, available_length, \
-            available_edges, initial_config = self._get_start_pos_util(
-                initial_config, num_vehicles, **kwargs)
+        (x0, min_gap, bunching, lanes_distr, available_length,
+         available_edges, initial_config) = self._get_start_pos_util(
+            initial_config, num_vehicles, **kwargs)
 
         # extra space a vehicle needs to cover from the start of an edge to be
         # fully in the edge and not risk having a gap with a vehicle behind it
@@ -401,7 +404,7 @@ class Scenario(Serializable):
         for i in range(num_vehicles):
             edge_i = available_edges[edge_indx]
             pos_i = (init_absolute_pos[i] - decrement) % (
-                self.edge_length(edge_i) - efs)
+                    self.edge_length(edge_i) - efs)
             lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
                          (self.edge_length(edge_i) - efs))
 
@@ -414,7 +417,7 @@ class Scenario(Serializable):
 
                 edge_i = available_edges[edge_indx]
                 pos_i = (init_absolute_pos[i] - decrement) % (
-                    self.edge_length(edge_i) - efs)
+                        self.edge_length(edge_i) - efs)
 
                 lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
                              (self.edge_length(edge_i) - efs))
@@ -545,26 +548,38 @@ class Scenario(Serializable):
             raise ValueError("There is not enough space to place all vehicles "
                              "in the network.")
 
-        return x0, min_gap, bunching, lanes_distribution, available_length, \
-            available_edges, initial_config
+        return (x0, min_gap, bunching, lanes_distribution, available_length,
+                available_edges, initial_config)
 
     def edge_length(self, edge_id):
         """
         Returns the length of a given edge/junction.
         """
-        return self._edges[edge_id]["length"]
+        try:
+            return self._edges[edge_id]["length"]
+        except KeyError:
+            print('Error in edge length with key', edge_id)
+            return -1001
 
     def speed_limit(self, edge_id):
         """
         Returns the speed limit of a given edge/junction.
         """
-        return self._edges[edge_id]["speed"]
+        try:
+            return self._edges[edge_id]["speed"]
+        except KeyError:
+            print('Error in speed limit with key', edge_id)
+            return -1001
 
     def num_lanes(self, edge_id):
         """
         Returns the number of lanes of a given edge/junction.
         """
-        return self._edges[edge_id]["lanes"]
+        try:
+            return self._edges[edge_id]["lanes"]
+        except KeyError:
+            print('Error in num lanes with key', edge_id)
+            return -1001
 
     def get_edge_list(self):
         """
