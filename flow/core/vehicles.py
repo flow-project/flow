@@ -13,7 +13,7 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 
 SPEED_MODES = {"aggressive": 0, "no_collide": 1, "all_checks": 31}
-LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
+LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
 
 
 class Vehicles:
@@ -61,7 +61,7 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            speed_mode='no_collide',
+            speed_mode='all_checks',
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -129,7 +129,7 @@ class Vehicles:
         # does not tamper with the dynamics of the controller
         if acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 0.0
+            type_params["minGap"] = 2.5
 
         # adjust the speed mode value
         if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
