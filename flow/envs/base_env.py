@@ -416,6 +416,9 @@ class Env(gym.Env, Serializable):
         crash = \
             self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
+        if crash:
+            import ipdb; ipdb.set_trace()
+
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
@@ -594,6 +597,7 @@ class Env(gym.Env, Serializable):
         the sumo-specified speed mode of the vehicle is not "aggressive", the
         acceleration may be clipped by some safety velocity or maximum possible
         acceleration.
+        If the action is none, uses SUMO action.
 
         Parameters
         ----------
@@ -603,9 +607,10 @@ class Env(gym.Env, Serializable):
             requested accelerations from the vehicles
         """
         for i, vid in enumerate(veh_ids):
-            this_vel = self.vehicles.get_speed(vid)
-            next_vel = max([this_vel + acc[i]*self.sim_step, 0])
-            self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+            if acc[i]:
+                this_vel = self.vehicles.get_speed(vid)
+                next_vel = max([this_vel + acc[i]*self.sim_step, 0])
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
     def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """
