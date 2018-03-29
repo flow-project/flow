@@ -17,4 +17,4 @@ class StaticLaneChanger(BaseLaneChangeController):
     """A lane-changing model used to keep a vehicle in the same lane."""
 
     def get_lane_change_action(self, env):
-        return env.vehicles.get_lane(self.veh_id)
+        return 0
