@@ -26,8 +26,19 @@ WAIT_ON_ERROR = 1
 class Generator(Serializable):
 
     def __init__(self, net_params, base):
-        """
-        Base class for generating transportation networks.
+        """Base class for generating transportation networks.
+
+        Uses network specific features to generate the necessary xml files
+        needed to initialize a sumo instance. The methods of this class are
+        called by the base scenario class.
+
+        Attributes
+        ----------
+        net_params: NetParams type
+            see flow/core/params.py
+        base: str
+            base name for the transportation network. If not specified in the
+            child class, this is also the complete name for the network.
         """
         # Invoke serializable if using rllab
         if Serializable is not object:
@@ -48,17 +59,33 @@ class Generator(Serializable):
             self.name = "%s" % self.base
 
     def generate_net(self, net_params, traffic_lights):
-        """
-        Generates Net files for the transportation network. Different networks
-        require different net_params; see the separate sub-classes for more
-        information.
+        """Generates Net files for the transportation network.
+
+        Creates different network configuration files for:
+        - nodes: x,y position of points which are connected together to form
+          links. The nodes may also be fitted with traffic lights, or can be
+          treated as priority or zipper merge regions if they combines several
+          lanes or edges together.
+        - edges: directed edges combining nodes together. These constitute the
+          lanes vehicles will be allowed to drive on.
+        - types (optional): parameters used to describe common features amount
+          several edges of similar types. If edges are not defined with common
+          types, this is not needed.
+        - connections (optional): describes how incoming and outgoing edge/lane
+          pairs on a specific node as connected. If none is specified, SUMO
+          handles these connections by default.
+
+        The above files are then combined to form a .net.xml file describing
+        the shape of the traffic network in a form compatible with SUMO.
 
         Parameters
         ----------
         net_params : flow.core.params.NetParams type
-            network-specific parameters
+            network-specific parameters. Different networks require different
+            net_params; see the separate sub-classes for more information.
         traffic_lights : flow.core.traffic_lights.TrafficLights type
-            traffic light information
+            traffic light information, used to determine which nodes are
+            treated as traffic lights
 
         Returns
         -------
@@ -83,7 +110,7 @@ class Generator(Serializable):
 
         # add traffic lights to the nodes
         for n_id in traffic_lights.get_ids():
-            indx = next(i for i, node in enumerate(nodes) if node["id"] == n_id)
+            indx = next(i for i, n in enumerate(nodes) if n["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
         # xml file for nodes; contains nodes for the boundary points with
@@ -178,16 +205,17 @@ class Generator(Serializable):
         raise error
 
     def generate_cfg(self, net_params):
-        """
-        Generates .sumo.cfg files using net files and netconvert.
-        Requires:
-        num_cars: Number of cars to seed the simulation with
-           max_speed: max speed of cars
-           OR
-        type_list: List of types of cars to seed the simulation with
+        """Generates .sumo.cfg files using net files and netconvert.
 
-        start_time: time to start the simulation
-        end_time: time to end the simulation
+        This includes files such as the routes vehicles can traverse and the
+        view settings of the gui (whether the gui is used or not). The
+        background of the gui is set here to be grey, with RGB values:
+        (100, 100, 100).
+
+        Parameters
+        ----------
+        net_params: NetParams type
+            see flow/core/params.py
         """
         start_time = 0
         end_time = None
@@ -200,7 +228,6 @@ class Generator(Serializable):
         # specify routes vehicles can take
         self.rts = self.specify_routes(net_params)
 
-        # TODO: add functionality for multiple routes (such as Braess)
         add = makexml("additional",
                       "http://sumo.dlr.de/xsd/additional_file.xsd")
         for (edge, route) in self.rts.items():
@@ -210,7 +237,9 @@ class Generator(Serializable):
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
-        printxml(gui, self.cfg_path +guifn)
+        gui.append(E("background", backgroundColor="100,100,100",
+                     showGrid="0", gridXSize="100.00", gridYSize="100.00"))
+        printxml(gui, self.cfg_path + guifn)
 
         cfg = makexml("configuration",
                       "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
@@ -229,7 +258,21 @@ class Generator(Serializable):
         return cfgfn
 
     def make_routes(self, scenario, initial_config):
+        """Generates .rou.xml files using net files and netconvert.
 
+        This file specifies the sumo-specific properties of vehicles with
+        similar types, and well as the starting positions of vehicles. The
+        starting positions, however, may be modified in real-time (e.g. during
+        an environment reset).
+
+        Parameters
+        ----------
+        scenario: Scenario type
+            scenario class calling this method. This contains information on
+            the properties and initial states of vehicles in the network.
+        initial_config: InitialConfig type
+            see flow/core/params.py
+        """
         vehicles = scenario.vehicles
         routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
@@ -254,7 +297,7 @@ class Generator(Serializable):
             type_depart_speed = vehicles.get_initial_speed(veh_id)
             routes.append(self._vehicle(
                 veh_type, "route" + edge, depart="0", id=veh_id,
-                color="1,0.0,0.0", departSpeed=str(type_depart_speed),
+                color="1,1,1", departSpeed=str(type_depart_speed),
                 departPos=str(pos), departLane=str(lane)))
 
         # add the in-flows from various edges to the xml file
@@ -269,8 +312,7 @@ class Generator(Serializable):
         printxml(routes, self.cfg_path + self.roufn)
 
     def specify_nodes(self, net_params):
-        """
-        Specifies the attributes of nodes in the network.
+        """Specifies the attributes of nodes in the network.
 
         Parameters
         ----------
@@ -292,8 +334,7 @@ class Generator(Serializable):
         raise NotImplementedError
 
     def specify_edges(self, net_params):
-        """
-        Specifies the attributes of edges containing pairs on nodes in the
+        """Specifies the attributes of edges containing pairs on nodes in the
         network.
 
         Parameters
@@ -323,8 +364,7 @@ class Generator(Serializable):
         raise NotImplementedError
 
     def specify_types(self, net_params):
-        """
-        Specifies the attributes of various edge types (if any exist).
+        """Specifies the attributes of various edge types (if any exist).
 
         Parameters
         ----------
@@ -343,9 +383,11 @@ class Generator(Serializable):
         return None
 
     def specify_connections(self, net_params):
-        """
-        Specifies the attributes of connections, used to describe how a node's
-        incoming and outgoing edges are connected.
+        """Specifies the attributes of connections.
+
+        These attributes are used to describe how any specific node's incoming
+        and outgoing edges/lane pairs are connected. If no connections are
+        specified, sumo generates default connections.
 
         Parameters
         ----------
@@ -364,8 +406,13 @@ class Generator(Serializable):
         return None
 
     def specify_routes(self, net_params):
-        """
-        Specifies the routes vehicles can take starting from a specific node
+        """Specifies the routes vehicles can take starting from any edge.
+
+        The routes are specified as lists of edges the vehicle must traverse,
+        with the first edge corresponding to the edge the vehicle begins on.
+        Note that the edges must be connected for the route to be valid.
+
+        Currently, only one route is allowed from any given starting edge.
 
         Parameters
         ----------
@@ -417,12 +464,13 @@ class Generator(Serializable):
         return inp
 
     def _import_edges_from_net(self):
-        """
-        Imports a network configuration file, and returns the information on the
-        edges and junctions located in the file.
+        """Utility function for computing edge information.
 
-        Return
-        ------
+        Imports a network configuration file, and returns the information on
+        the edges and junctions located in the file.
+
+        Returns
+        -------
         net_data : dict <dict>
             Key = name of the edge/junction
             Element = lanes, speed, length
@@ -475,8 +523,8 @@ class Generator(Serializable):
             else:
                 net_data[edge_id]["speed"] = None
 
-            # if the edge has a type parameters, check that type for a speed and
-            # parameter if one was not already found
+            # if the edge has a type parameters, check that type for a speed
+            # and parameter if one was not already found
             if "type" in edge.attrib and edge.attrib["type"] in types_data:
                 if net_data[edge_id]["speed"] is None:
                     net_data[edge_id]["speed"] = \
@@ -492,7 +540,8 @@ class Generator(Serializable):
                     net_data[edge_id]["length"] = float(lane.attrib["length"])
                     if net_data[edge_id]["speed"] is None \
                             and "speed" in lane.attrib:
-                        net_data[edge_id]["speed"] = float(lane.attrib["speed"])
+                        net_data[edge_id]["speed"] = float(lane.
+                                                           attrib["speed"])
 
             # if no speed value is present anywhere, set it to some default
             if net_data[edge_id]["speed"] is None:
