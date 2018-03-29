@@ -401,6 +401,9 @@ class Env(gym.Env, Serializable):
             self.vehicles.update(vehicle_obs, id_lists, self)
             self.traffic_lights.update(tls_obs)
 
+            # update the colors of vehicles
+            self.update_vehicle_colors()
+
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
@@ -732,6 +735,37 @@ class Env(gym.Env, Serializable):
             return sorted_ids, None
         else:
             return self.vehicles.get_ids(), None
+
+    def update_vehicle_colors(self):
+        """Modifies the color of vehicles if rendering is active.
+
+        The colors of all vehicles are updated as follows:
+        - red: autonomous (rl) vehicles
+        - white: unobserved human-driven vehicles
+        - cyan: observed human-driven vehicles
+        """
+        # do not change the colors of vehicles if the sumo-gui is not active
+        # (in order to avoid slow downs)
+        if self.sumo_params.sumo_binary != "sumo-gui":
+            return
+
+        for veh_id in self.vehicles.get_rl_ids():
+            # color rl vehicles red
+            self.traci_connection.vehicle.setColor(vehID=veh_id,
+                                                   color=(255, 0, 0, 255))
+
+        for veh_id in self.vehicles.get_human_ids():
+            if veh_id in self.vehicles.get_observed_ids():
+                # color observed human-driven vehicles cyan
+                color = (0, 255, 255, 0)
+            else:
+                # color unobserved human-driven vehicles white
+                color = (255, 255, 255, 255)
+            self.traci_connection.vehicle.setColor(vehID=veh_id, color=color)
+
+        # clear the list of observed vehicles
+        for veh_id in self.vehicles.get_observed_ids():
+            self.vehicles.remove_observed(veh_id)
 
     def get_state(self):
         """
