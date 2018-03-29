@@ -70,6 +70,11 @@ class LaneChangeAccelEnv(Env):
         return reward
 
     def get_state(self):
+        # specify observed vehicles
+        if self.vehicles.num_rl_vehicles > 0:
+            for veh_id in self.vehicles.get_human_ids():
+                self.vehicles.set_observed(veh_id)
+
         return np.array([[self.vehicles.get_speed(veh_id),
                           self.vehicles.get_absolute_position(veh_id),
                           self.vehicles.get_lane(veh_id)]

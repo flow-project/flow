@@ -256,7 +256,7 @@ class TestObservedIDs(unittest.TestCase):
         # ensures that setting vehicles twice doesn't add an element
         vehicles.set_observed("test_0")
         self.assertListEqual(vehicles.get_observed_ids(),
-                              ["test_0", "test_1"])
+                             ["test_0", "test_1"])
 
         # test removing observed values
         vehicles.remove_observed("test_0")
