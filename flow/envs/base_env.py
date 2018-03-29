@@ -757,7 +757,7 @@ class Env(gym.Env, Serializable):
         for veh_id in self.vehicles.get_human_ids():
             if veh_id in self.vehicles.get_observed_ids():
                 # color observed human-driven vehicles cyan
-                color = (0, 255, 255, 0)
+                color = (0, 255, 255, 255)
             else:
                 # color unobserved human-driven vehicles white
                 color = (255, 255, 255, 255)

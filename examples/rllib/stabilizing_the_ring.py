@@ -73,7 +73,8 @@ flow_params = dict(
                   ),
                 env=dict(
                     horizon=HORIZON,
-                    additional_params=additional_env_params
+                    additional_params=additional_env_params,
+                    warmup_steps=750,
                   ),
                 net=dict(
                     no_internal_links=False,
