@@ -280,31 +280,31 @@ class InitialConfig:
 
 class SumoCarFollowingParams:
 
-    # def __init__(self,
-    #              accel=1.0,
-    #              decel=1.5,
-    #              sigma=0.5,
-    #              tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
-    #              min_gap=2.5,
-    #              max_speed=30,
-    #              speed_factor=1.0,
-    #              speed_dev=0.1,
-    #              impatience=0.5,
-    #              car_follow_model="IDM",
-    #              **kwargs):
-
     def __init__(self,
-                 accel=2.6,
-                 decel=4.5,
+                 accel=1.0,
+                 decel=1.5,
                  sigma=0.5,
-                 tau=0.6,  # past 1 at sim_step=0.1 you no longer see waves
-                 min_gap=1.5,
+                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
+                 min_gap=2.5,
                  max_speed=30,
                  speed_factor=1.0,
                  speed_dev=0.1,
-                 impatience=0.0,
+                 impatience=0.5,
                  car_follow_model="IDM",
                  **kwargs):
+
+    # def __init__(self,
+    #              accel=2.6,
+    #              decel=4.5,
+    #              sigma=0.5,
+    #              tau=0.6,  # past 1 at sim_step=0.1 you no longer see waves
+    #              min_gap=1.5,
+    #              max_speed=30,
+    #              speed_factor=1.0,
+    #              speed_dev=0.1,
+    #              impatience=0.0,
+    #              car_follow_model="IDM",
+    #              **kwargs):
         """Parameters for sumo-controlled acceleration behavior
 
         (specify how we specify it in Vehicles.add())  #### TODO ####
