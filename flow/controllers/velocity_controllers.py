@@ -4,7 +4,7 @@ import numpy as np
 
 class FollowerStopper(BaseController):
 
-    def __init__(self, veh_id, v_des=15, max_accel=2.6, danger_edges=None):
+    def __init__(self, veh_id, v_des=15, max_accel=1.0, danger_edges=None):
         """Inspired by Dan Work's... work:
 
 		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
@@ -19,7 +19,7 @@ class FollowerStopper(BaseController):
         max_accel: float, optional
             maximum achievable acceleration by the vehicle (m/s^2)
         """
-        controller_params = {"delay": 1.0, "max_deaccel": 15,
+        controller_params = {"delay": 1.0, "max_deaccel": 1.5,
                              "noise": 0, "fail_safe": None}
         BaseController.__init__(self, veh_id, controller_params)
 
@@ -87,7 +87,11 @@ class FollowerStopper(BaseController):
             return None
         else:
             # compute the acceleration from the desired velocity
-            return min((v_cmd - this_vel) / env.sim_step, self.max_accel)
+            v_diff = (v_cmd - this_vel) / env.sim_step
+            if v_diff > 0:
+                return min(v_diff, self.max_accel)
+            else:
+                return max(v_diff, -self.max_deaccel)
 
 
 class PISaturation(BaseController):
