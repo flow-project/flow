@@ -3,7 +3,7 @@ import collections
 
 
 class BaseController:
-    def __init__(self, veh_id, controller_params):
+    def __init__(self, veh_id, sumo_cf_params, delay=0, custom_fail_safe=None, accel_noise=0):
         """Base class for flow-controlled acceleration behavior.
 
         Instantiates a controller and forces the user to pass a
@@ -15,26 +15,35 @@ class BaseController:
         ----------
         veh_id: string
             ID of the vehicle this controller is used for
-        controller_params: dict
-            Dictionary that optionally contains 'delay', the delay, and must
-            contain 'max_deaccel', the maximum deceleration as well as all
-            other parameters that dictate the driving behavior.
+        sumo_cf_params: SumoCarFollowingParams
+            The underlying sumo model for car following that will be overwritten. A Flow controller will
+            override the behavior this sumo car following model; however, if control is ceded back to
+            sumo, the vehicle will use these params.
+            Ensure that accel / decel parameters that are specified to in this model are as desired.
+        delay: int
+            delay in applying the action (time)
+        custom_fail_safe: string
+            Should be either "instantaneous" or "safe_velocity"
+        accel_noise: double
+            variance of the gaussian from which to sample a noisy acceleration
+
         """
         self.veh_id = veh_id
-        self.controller_params = controller_params
         self.sumo_controller = False
 
         # magnitude of gaussian noise
-        self.accel_noise = controller_params.get("noise", 0)
+        self.accel_noise = accel_noise
 
         # delay used by the safe_velocity failsafe
-        self.delay = controller_params.get("delay", 0)
+        self.delay = delay
 
         # longitudinal failsafe used by the vehicle
-        self.fail_safe = controller_params.get("fail_safe", None)
+        self.fail_safe = custom_fail_safe
+
+        self.max_accel = sumo_cf_params.accel
 
         # max deaccel should always be a positive
-        self.max_deaccel = abs(controller_params.get('max_deaccel', 5))
+        self.max_deaccel = sumo_cf_params.decel
 
         # acceleration queue, for time delayed actions
         self.accel_queue = collections.deque()
@@ -87,7 +96,7 @@ class BaseController:
         elif self.fail_safe == 'safe_velocity':
             accel = self.get_safe_velocity_action(env, accel)
 
-        return accel
+        return max(min(accel, self.max_accel), -1 * self.max_deaccel)
 
     def get_safe_action_instantaneous(self, env, action):
         """

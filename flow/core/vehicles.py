@@ -176,7 +176,7 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](veh_id=v_id,
+                acceleration_controller[0](v_id, sumo_car_following_params,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -195,6 +195,8 @@ class Vehicles:
             # specify the speed of vehicles at the start of a rollout
             self.__vehicles[v_id]["initial_speed"] = initial_speed
 
+
+            #TODO: update to be cleaner (@kanaad)
             # check if the vehicle is human-driven or autonomous
             if acceleration_controller[0] == RLController:
                 self.__rl_ids.append(v_id)

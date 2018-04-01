@@ -15,7 +15,7 @@ from flow.controllers.base_controller import BaseController
 
 
 class CFMController(BaseController):
-
+    # TODO: NEED HELP TO FIX
     def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
                  accel_max=20, decel_max=-5, tau=0.5, dt=0.1, noise=0,
                  fail_safe=None):
@@ -51,7 +51,7 @@ class CFMController(BaseController):
         """
         controller_params = {"delay": tau/dt, "max_deaccel": decel_max,
                              "noise": noise, "fail_safe": fail_safe}
-        BaseController.__init__(self, veh_id, controller_params)
+        BaseController.__init__(self, veh_id, )
         self.veh_id = veh_id
         self.k_d = k_d
         self.k_v = k_v
@@ -84,6 +84,7 @@ class CFMController(BaseController):
 
 class BCMController(BaseController):
 
+    #TODO: NEED HELP TO FIX
     def __init__(self, veh_id, k_d=1, k_v=1, k_c=1, d_des=1, v_des=8,
                  accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0,
                  fail_safe=None):
@@ -165,6 +166,7 @@ class BCMController(BaseController):
 
 class OVMController(BaseController):
 
+    #TODO: NEED HELP TO FIX
     def __init__(self, veh_id, alpha=1, beta=1, h_st=2, h_go=15, v_max=30,
                  accel_max=15, decel_max=-5, tau=0.5, dt=0.1, noise=0,
                  fail_safe=None):
@@ -214,7 +216,7 @@ class OVMController(BaseController):
         self.h_go = h_go
         self.tau = tau
         self.dt = dt
-        
+
     def get_accel(self, env):
         lead_id = env.vehicles.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
@@ -387,7 +389,7 @@ class IDMController(BaseController):
 
 
 class SumoCarFollowingController(BaseController):
-    def __init__(self, veh_id):
+    def __init__(self, veh_id, sumo_cf_params):
         """Instantiates a car-following controller whose actions are purely
         defined by sumo.
 
@@ -400,7 +402,7 @@ class SumoCarFollowingController(BaseController):
         veh_id: str
             name of the vehicle
         """
-        super().__init__(veh_id, controller_params={})
+        super().__init__(veh_id, sumo_cf_params)
         self.sumo_controller = True
 
     def get_accel(self, env):
