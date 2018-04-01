@@ -40,10 +40,10 @@ class BaseController:
         # longitudinal failsafe used by the vehicle
         self.fail_safe = custom_fail_safe
 
-        self.max_accel = sumo_cf_params.accel
+        self.max_accel = sumo_cf_params.controller_params['accel']
 
         # max deaccel should always be a positive
-        self.max_deaccel = sumo_cf_params.decel
+        self.max_deaccel = sumo_cf_params.controller_params['decel']
 
         # acceleration queue, for time delayed actions
         self.accel_queue = collections.deque()
