@@ -15,6 +15,8 @@ import gym
 
 import sumolib
 
+from flow.controllers.velocity_controllers import FollowerStopper
+
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
@@ -611,6 +613,14 @@ class Env(gym.Env, Serializable):
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i]*self.sim_step, 0])
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+                if vid == 'flow_1.3':
+                    print('accel is', acc[i])
+                    print('this speed', this_vel)
+                    print('next speed', next_vel)
+                    print('speed without traci', self.traci_connection.vehicle.getSpeedWithoutTraCI(vid))
+
+            else:
+                self.traci_connection.vehicle.setSpeed(vid, -1)
 
     def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
         """

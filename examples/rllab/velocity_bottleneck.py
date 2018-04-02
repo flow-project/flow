@@ -29,26 +29,27 @@ NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 
-sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 
 vehicles.add(veh_id="human",
-             speed_mode=0b11111,
+             speed_mode="all_checks",
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             lane_change_mode=1621,#0b100000101,
+             lane_change_mode=512,#0b100000101,
              num_vehicles=5*SCALING)
 vehicles.add(veh_id="followerstopper",
              acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b11111,
+             speed_mode="all_checks",
              lane_change_mode=1621,#0b100000101,
              num_vehicles=5*SCALING,
-             sumo_lc_params=SumoLaneChangeParams())
+             sumo_lc_params=SumoLaneChangeParams(),
+             sumo_car_following_params=SumoCarFollowingParams(min_gap=2.5))
 
-horizon = 100
+horizon = 10000
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
                          "disable_tb": True, "disable_ramp_metering": True,

@@ -131,6 +131,9 @@ class BaseController:
                 # if the vehicle will crash into the vehicle ahead of it in the
                 # next time step (assuming the vehicle ahead of it is not
                 # moving), then stop immediately
+                print('veh id is', self.veh_id)
+                print('here we are')
+                import ipdb; ipdb.set_trace()
                 return -this_vel / sim_step
             else:
                 # if the vehicle is not in danger of crashing, continue with
@@ -166,10 +169,21 @@ class BaseController:
             safe_velocity = self.safe_velocity(env)
 
             this_vel = env.vehicles.get_speed(self.veh_id)
+            if self.veh_id == 'flow_1.3':
+                print('the safe velocity is', safe_velocity)
+                print('the actual velocity is', this_vel)
+                print('the leader is', env.vehicles.get_leader(self.veh_id))
             sim_step = env.sim_step
 
             if this_vel + action * sim_step > safe_velocity:
-                return (safe_velocity - this_vel)/sim_step
+                if self.veh_id == 'flow_1.3':
+                    print('the desired action is', action)
+                    print('the output safe action is', (safe_velocity - this_vel)/sim_step)
+                    print('the safe velocity is', safe_velocity)
+                if safe_velocity > 0:
+                    return (safe_velocity - this_vel)/sim_step
+                else:
+                    return -this_vel/sim_step
             else:
                 return action
 
