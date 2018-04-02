@@ -43,11 +43,9 @@ vehicles.add(veh_id="followerstopper",
              acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode="all_checks",
+             speed_mode=9,#"all_checks",
              lane_change_mode=1621,#0b100000101,
-             num_vehicles=5*SCALING,
-             sumo_lc_params=SumoLaneChangeParams(),
-             sumo_car_following_params=SumoCarFollowingParams(min_gap=2.5))
+             num_vehicles=5*SCALING)
 
 horizon = 10000
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]

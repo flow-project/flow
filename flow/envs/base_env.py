@@ -414,6 +414,10 @@ class Env(gym.Env, Serializable):
         # collect observation new state associated with action
         next_observation = list(self.state)
 
+        # DEBUGGING
+        if 'flow_1.3' in self.traci_connection.vehicle.getIDList():
+            print('the true speed is', self.traci_connection.vehicle.getSpeed('flow_1.3'))
+
         # crash encodes whether sumo experienced a crash
         crash = \
             self.traci_connection.simulation.getStartingTeleportNumber() != 0
