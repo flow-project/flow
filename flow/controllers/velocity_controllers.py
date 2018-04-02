@@ -20,7 +20,7 @@ class FollowerStopper(BaseController):
             maximum achievable acceleration by the vehicle (m/s^2)
         """
         controller_params = {"delay": 1.0, "max_deaccel": 1.5,
-                             "noise": 0, "fail_safe": None}
+                             "noise": 0, "fail_safe": "safe_velocity"}
         BaseController.__init__(self, veh_id, controller_params)
 
         # desired speed of the vehicle
@@ -87,11 +87,11 @@ class FollowerStopper(BaseController):
             return None
         else:
             # compute the acceleration from the desired velocity
-            v_diff = (v_cmd - this_vel) / env.sim_step
-            if v_diff > 0:
-                return min(v_diff, self.max_accel)
+            accel = (v_cmd - this_vel) / env.sim_step
+            if accel > 0:
+                return min(accel, self.max_accel)
             else:
-                return max(v_diff, -self.max_deaccel)
+                return max(accel, -self.max_deaccel)
 
 
 class PISaturation(BaseController):

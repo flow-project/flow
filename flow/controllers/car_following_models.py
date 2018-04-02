@@ -318,7 +318,7 @@ class LinearOVM(BaseController):
 class IDMController(BaseController):
 
     def __init__(self, veh_id, v0=30, T=1, a=1, b=1.5, delta=4, s0=2, s1=0,
-                 decel_max=-5, dt=0.1, noise=0, fail_safe=None):
+                 decel_max=-1.5, dt=0.1, noise=0, fail_safe=None):
         """Instantiates an Intelligent Driver Model (IDM) controller
 
         Attributes
