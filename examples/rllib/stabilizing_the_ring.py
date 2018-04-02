@@ -33,14 +33,13 @@ import numpy as np
 
 import ray
 import ray.rllib.ppo as ppo
+from ray.tune import run_experiments
 
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
-from ray.rllib.models import ModelCatalog
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
-from flow.utils.tuple_preprocessor import TuplePreprocessor
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.scenarios.loop.gen import CircleGenerator
@@ -139,7 +138,7 @@ if __name__ == "__main__":
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16]})
-
+    config["use_gae"] = True
     config["lambda"] = 0.97
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
@@ -171,7 +170,17 @@ if __name__ == "__main__":
     with open(json_out_file, 'w') as outfile:
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
-    for i in range(2):
-        alg.train()
-        if i % 20 == 0:
-            alg.save()  # save checkpoint
+    trials = run_experiments({
+        "pendulum_tests": {
+            "run": "PPO",
+            "env": "WaveAttenuationPOEnv-v0",
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "max_failures": 999,
+            "stop": {"training_iteration": 100},
+            "repeat": 3,
+            "trial_resources": {"cpu": 1, "gpu": 0, "extra_cpu": 15}
+        },
+    })
