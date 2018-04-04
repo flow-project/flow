@@ -404,6 +404,15 @@ class Env(gym.Env, Serializable):
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
+            # crash encodes whether the simulator experienced a collision
+            crash = \
+                self.traci_connection.simulation.getStartingTeleportNumber() \
+                != 0
+
+            # stop collecting new simulation steps if there is a collision
+            if crash:
+                break
+
         # collect information of the state of the network based on the
         # environment class used
         if isinstance(self.action_space, list):
@@ -415,10 +424,6 @@ class Env(gym.Env, Serializable):
 
         # collect observation new state associated with action
         next_observation = list(self.state)
-
-        # crash encodes whether sumo experienced a crash
-        crash = \
-            self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
