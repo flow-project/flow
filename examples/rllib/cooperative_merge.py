@@ -27,6 +27,7 @@ import os
 import ray
 import ray.rllib.ppo as ppo
 
+from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
@@ -228,7 +229,16 @@ if __name__ == "__main__":
     with open(json_out_file, 'w') as outfile:
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
-    for i in range(2):
-        alg.train()
-        if i % 20 == 0:
-            alg.save()  # save checkpoint
+    trials = run_experiments({
+            "pendulum_tests": {
+                "run": "PPO",
+                "env": "DoubleMultiAgentPendulumEnv-v0",
+                "config": {
+                   **config
+                },
+                "checkpoint_freq": 20,
+                "max_failures": 999,
+                "stop": {"training_iteration": 1},
+                "trial_resources": {"cpu": 4, "gpu": 0, "extra_cpu": 12}
+            }
+        })
