@@ -11,8 +11,8 @@ import traci.constants as tc
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
-
-SPEED_MODES = {"aggressive": 0, "no_collide": 1, "all_checks": 31}
+SPEED_MODES = {"aggressive": 0, "no_collide": 1, "custom_model": 25,
+               "all_checks": 31}
 LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
 
@@ -94,6 +94,10 @@ class Vehicles:
              - "aggressive": Human and RL cars are not limited by sumo with
                regard to their accelerations, and can crash longitudinally
              - "all_checks": all sumo safety checks are activated
+             - "custom_model": respect safe speed, right of way and
+               brake hard at red lights if needed. DOES NOT respect
+               max accel and decel which enables emergency stopping.
+               Necessary to prevent custom models from crashing
              - int values may be used to define custom speed mode for the given
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
@@ -961,8 +965,8 @@ class Vehicles:
             edge = self.get_edge(veh_id)
             if edge:
                 headways, tailways, leaders, followers = \
-                    self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
-                                                   env)
+                    self._multi_lane_headways_util(veh_id, edge_dict,
+                                                   num_edges, env)
 
                 # add the above values to the vehicles class
                 self.set_lane_headways(veh_id, headways)
