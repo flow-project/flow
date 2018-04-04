@@ -309,6 +309,9 @@ def grid_mxn_exp_setup(row_num=1,
         vehicles.add(veh_id="idm",
                      acceleration_controller=(IDMController, {}),
                      routing_controller=(GridRouter, {}),
+                     sumo_car_following_params=SumoLaneChangeParams(
+                         max_speed=30,
+                     ),
                      num_vehicles=total_vehicles)
 
     if env_params is None:
@@ -317,7 +320,6 @@ def grid_mxn_exp_setup(row_num=1,
                                  "control-length": 150, "switch_time": 3.0}
 
         env_params = EnvParams(additional_params=additional_env_params,
-                               max_speed=30,
                                horizon=100)
 
     if net_params is None:
