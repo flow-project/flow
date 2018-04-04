@@ -83,7 +83,8 @@ class Generator(Serializable):
 
         # add traffic lights to the nodes
         for n_id in traffic_lights.get_ids():
-            indx = next(i for i, node in enumerate(nodes) if node["id"] == n_id)
+            indx = next(i for i, node in enumerate(nodes)
+                        if node["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
         # xml file for nodes; contains nodes for the boundary points with
@@ -210,7 +211,7 @@ class Generator(Serializable):
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
-        printxml(gui, self.cfg_path +guifn)
+        printxml(gui, self.cfg_path + guifn)
 
         cfg = makexml("configuration",
                       "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
@@ -418,8 +419,8 @@ class Generator(Serializable):
 
     def _import_edges_from_net(self):
         """
-        Imports a network configuration file, and returns the information on the
-        edges and junctions located in the file.
+        Imports a network configuration file, and
+        returns the information on the edges and junctions located in the file.
 
         Return
         ------
@@ -475,8 +476,8 @@ class Generator(Serializable):
             else:
                 net_data[edge_id]["speed"] = None
 
-            # if the edge has a type parameters, check that type for a speed and
-            # parameter if one was not already found
+            # if the edge has a type parameters, check that type for a
+            # speed and parameter if one was not already found
             if "type" in edge.attrib and edge.attrib["type"] in types_data:
                 if net_data[edge_id]["speed"] is None:
                     net_data[edge_id]["speed"] = \

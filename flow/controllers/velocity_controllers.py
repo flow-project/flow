@@ -4,7 +4,7 @@ import numpy as np
 
 class FollowerStopper(BaseController):
 
-    def __init__(self, veh_id, v_des=15, max_accel=1):
+    def __init__(self, veh_id, v_des=15, max_accel=1.0):
         """Inspired by Dan Work's... work:
 
 		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
@@ -19,8 +19,8 @@ class FollowerStopper(BaseController):
         max_accel: float, optional
             maximum achievable acceleration by the vehicle (m/s^2)
         """
-        controller_params = {"delay": 1.0, "max_deaccel": 15,
-                             "noise": 0, "fail_safe": None}
+        controller_params = {"delay": 1.0, "max_deaccel": 1.5,
+                             "noise": 0, "fail_safe": "safe_velocity"}
         BaseController.__init__(self, veh_id, controller_params)
 
         # desired speed of the vehicle
