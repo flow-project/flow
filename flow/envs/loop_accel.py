@@ -186,7 +186,8 @@ class AccelPOEnv(AccelEnv):
         """
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles[rl_id]["leader"]
-        max_speed = self.max_speed
+        max_speed = max(self.scenario.speed_limit(edge)
+                        for edge in self.scenario.get_edge_list())
 
         # if a vehicle crashes into the car ahead of it, it no longer processes
         # a lead vehicle

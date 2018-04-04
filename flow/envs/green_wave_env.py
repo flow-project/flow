@@ -93,7 +93,8 @@ class GreenWaveEnv(Env):
 
     def get_state(self):
         # compute the normalizers
-        max_speed = self.max_speed
+        max_speed = max(self.scenario.speed_limit(edge)
+                        for edge in self.scenario.get_edge_list())
         max_dist = max(self.scenario.short_length,
                        self.scenario.long_length,
                        self.scenario.inner_length)
