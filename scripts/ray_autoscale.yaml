@@ -61,15 +61,23 @@ worker_nodes:
 
     # Additional options in the boto docs.
 
+# 3fde1d9992d3d33053dd0f04d0a3c0bb49b6bf85
 # Files or directories to copy to the head and worker nodes. The format is a
 # dictionary from REMOTE_PATH: LOCAL_PATH, e.g.
+#file_mounts: {
+#    "/tmp/": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/rllib_testing",
+#}
+#
+#setup_commands:
+#    #- test -e learning-traffic || git clone https://github.com/cathywu/learning-traffic.git
+#    - cd learning-traffic && git fetch && git checkout `cat /tmp/3fde1d9992d3d33053dd0f04d0a3c0bb49b6bf85`
 file_mounts: {
-    "/tmp/3fde1d9992d3d33053dd0f04d0a3c0bb49b6bf85": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/rllib_testing",
+"/tmp/foo": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/master",
 }
 
 setup_commands:
     #- test -e learning-traffic || git clone https://github.com/cathywu/learning-traffic.git
-    - cd learning-traffic && git fetch && git checkout cat /tmp/3fde1d9992d3d33053dd0f04d0a3c0bb49b6bf85
+    - cd learning-traffic && git fetch && git checkout `cat /tmp/foo`
 
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
