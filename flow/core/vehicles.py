@@ -346,11 +346,14 @@ class Vehicles:
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
+        sumo_cf_params = \
+            self.type_parameters[veh_type]["sumo_car_following_params"]
+
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id=veh_id, **accel_controller[1])
+            accel_controller[0](veh_id, sumo_cf_params, **accel_controller[1])
 
         # specify the lane-changing controller class
         lc_controller = \
