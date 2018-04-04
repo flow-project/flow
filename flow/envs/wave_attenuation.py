@@ -37,7 +37,8 @@ class WaveAttenuationEnv(Env):
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles, ))
+                   shape=(self.vehicles.num_rl_vehicles, ),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
@@ -246,7 +247,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     """
     @property
     def observation_space(self):
-        return Tuple((Box(low=-1, high=1, shape=(4,)),))
+        return Tuple((Box(low=-1, high=1, shape=(4,), dtype=np.float32),))
         # return Box(low=-1, high=1, shape=(4,))
 
     def get_state(self, **kwargs):
