@@ -41,13 +41,16 @@ class TwoLoopsMergeEnv(Env):
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles,))
+                   shape=(self.vehicles.num_rl_vehicles,),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
         self.obs_var_labels = ["speed", "pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+                  dtype=np.float32)
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
@@ -103,11 +106,15 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         self.n_obs_vehicles = 1 + self.n_preceding + self.n_following + \
                               self.n_merging_in
         self.obs_var_labels = ["speed", "pos", "queue_length", "velocity_stats"]
-        speed = Box(low=0, high=np.inf, shape=(self.n_obs_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.n_obs_vehicles,),
+                    dtype=np.float32)
+        absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,),
+                           dtype=np.float32)
         # dist_to_merge = Box(low=-1, high=1, shape=(1,))
-        queue_length = Box(low=0, high=np.inf, shape=(1,))
-        vel_stats = Box(low=-np.inf, high=np.inf, shape=(2,))
+        queue_length = Box(low=0, high=np.inf, shape=(1,),
+                           dtype=np.float32)
+        vel_stats = Box(low=-np.inf, high=np.inf, shape=(2,),
+                        dtype=np.float32)
         return Tuple((speed, absolute_pos, queue_length, vel_stats))
 
     @property
@@ -143,7 +150,7 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
         lb = [-abs(max_decel), -1] * self.vehicles.num_rl_vehicles
         ub = [max_accel, 1] * self.vehicles.num_rl_vehicles
 
-        return Box(np.array(lb), np.array(ub))
+        return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """
