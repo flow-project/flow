@@ -131,7 +131,7 @@ if __name__ == "__main__":
     num_cpus = 3
     n_rollouts = 3
 
-    ray.init(num_cpus=num_cpus, redirect_output=True)
+    ray.init(redirect_output=True)
     # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
 
     config["num_workers"] = num_cpus
