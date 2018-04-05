@@ -190,9 +190,9 @@ if __name__ == "__main__":
 
     # ray.init(redirect_output=False)
     # replace the redis address with that output by create_or_update
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
 
-    parallel_rollouts = 40
+    parallel_rollouts = 48
     config["num_workers"] = parallel_rollouts # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
