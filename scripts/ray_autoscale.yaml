@@ -5,7 +5,7 @@ cluster_name: default
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 5
+min_workers: 2
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
@@ -40,7 +40,7 @@ auth:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
     InstanceType: c5.4xlarge
-    ImageId: ami-2d46564d  #ami-3011244a  # Flow AMI (Ubuntu)
+    ImageId: ami-b93f2fd9 # Flow AMI (Ubuntu)
 
     # Additional options in the boto docs.
 
@@ -50,7 +50,7 @@ head_node:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
     InstanceType: c5.4xlarge
-    ImageId: ami-2d46564d #ami-3011244a  # Flow AMI (Ubuntu)
+    ImageId: ami-b93f2fd9 # Flow AMI (Ubuntu)
 
     # Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -61,23 +61,18 @@ worker_nodes:
 
     # Additional options in the boto docs.
 
-# 3fde1d9992d3d33053dd0f04d0a3c0bb49b6bf85
-# Files or directories to copy to the head and worker nodes. The format is a
-# dictionary from REMOTE_PATH: LOCAL_PATH, e.g.
-#file_mounts: {
-#    "/tmp/": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/rllib_testing",
-#}
-#
-#setup_commands:
-#    #- test -e learning-traffic || git clone https://github.com/cathywu/learning-traffic.git
-#    - cd learning-traffic && git fetch && git checkout `cat /tmp/3fde1d9992d3d33053dd0f04d0a3c0bb49b6bf85`
 file_mounts: {
-"/tmp/foo": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/master",
+# path to your repo and the desired branch name
+"/tmp/foo": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/rllib_testing",
+"/tmp/foo2": "/Users/eugenevinitsky/.ssh/ray-autoscaler_1_us-west-1.pem",
+
 }
 
 setup_commands:
-    #- test -e learning-traffic || git clone https://github.com/cathywu/learning-traffic.git
-    - cd learning-traffic && git fetch && git checkout `cat /tmp/foo`
+    # checkout your desired branch on all worker nodes
+    # - cd learning-traffic && GIT_SSH_COMMAND="ssh -i ~/ray_bootstrap_key.pem" git fetch
+    - cd /tmp && cp foo2 ~/ray_autoscaler_key.pem
+    - cd learning-traffic && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git fetch && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git checkout `cat /tmp/foo`
 
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
