@@ -186,13 +186,14 @@ def make_create_env(flow_env_name, flow_params, version=0,
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 2
-    n_rollouts = 3
+    n_rollouts = 100
 
-    ray.init(num_cpus=num_cpus, redirect_output=False)
-    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    # ray.init(redirect_output=False)
+    # replace the redis address with that output by create_or_update
+    ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
 
-    config["num_workers"] = num_cpus
+    parallel_rollouts = 40
+    config["num_workers"] = parallel_rollouts # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
@@ -232,13 +233,13 @@ if __name__ == "__main__":
     trials = run_experiments({
             "pendulum_tests": {
                 "run": "PPO",
-                "env": "DoubleMultiAgentPendulumEnv-v0",
+                "env": "TwoLoopsMergePOEnv-v0",
                 "config": {
                    **config
                 },
                 "checkpoint_freq": 20,
                 "max_failures": 999,
                 "stop": {"training_iteration": 1},
-                "trial_resources": {"cpu": 4, "gpu": 0, "extra_cpu": 12}
+                "trial_resources": {"cpu": 1, "gpu": 0, "extra_cpu": parallel_rollouts}
             }
         })
