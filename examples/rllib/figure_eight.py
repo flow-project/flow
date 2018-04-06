@@ -111,7 +111,7 @@ if __name__ == "__main__":
     n_rollouts = 30
 
     # ray.init(num_cpus=num_cpus, redirect_output=True)
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
 
     parallel_rollouts = 30
     config["num_workers"] = parallel_rollouts
