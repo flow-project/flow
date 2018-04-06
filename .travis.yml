@@ -25,7 +25,7 @@ before_install:
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/22c7c87e1450a06bd0fdcfa7b6c1b15565b2f336/ray-0.3.0-cp36-cp36m-manylinux1_x86_64.whl
   # - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
-  - pip install gym==0.9.5
+  - pip install gym==0.10.4
 
   # Copy over local rllib changes (testing branch)
   - pushd $HOME/build/cathywu
