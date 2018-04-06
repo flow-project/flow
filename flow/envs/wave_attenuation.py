@@ -136,7 +136,7 @@ class WaveAttenuationEnv(Env):
                           sumo_binary=self.sumo_params.sumo_binary)
 
         # perform the generic reset function
-        observation = super()._reset()
+        observation = super().reset()
 
         # run the experiment for a few steps with the rl vehicle acting as a
         # human vehicle (before beginning the learning portion of the rollout)
