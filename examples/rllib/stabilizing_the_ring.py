@@ -131,7 +131,7 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
     n_rollouts = 100
-    parallel_rollouts = 48
+    parallel_rollouts = 40
     # ray.init(redirect_output=True)
     ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
 
