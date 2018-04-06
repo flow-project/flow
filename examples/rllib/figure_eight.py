@@ -108,7 +108,7 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0,
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    n_rollouts = 100
+    n_rollouts = 30
 
     # ray.init(num_cpus=num_cpus, redirect_output=True)
     ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
@@ -152,7 +152,7 @@ if __name__ == "__main__":
                   indent=4)
 
     trials = run_experiments({
-        "pendulum_tests": {
+        "figure_eight": {
             "run": "PPO",
             "env": "AccelEnv-v0",
             "config": {
