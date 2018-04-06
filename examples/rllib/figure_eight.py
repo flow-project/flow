@@ -63,7 +63,7 @@ flow_params = dict(
 
 
 def make_create_env(flow_env_name, flow_params=flow_params, version=0,
-                    exp_tag="example", sumo="sumo-gui"):
+                    exp_tag="example", sumo="sumo"):
     env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
