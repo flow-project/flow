@@ -61,7 +61,7 @@ class WaveAttenuationEnv(Env):
 
         # reward average velocity
         eta_2 = 4.
-        reward = eta_2 * np.mean(vel) / self.v_eq_max
+        reward = eta_2 * np.mean(vel) / 20
 
         # punish accelerations (should lead to reduced stop-and-go waves)
         eta = 8  # 0.25
@@ -91,7 +91,7 @@ class WaveAttenuationEnv(Env):
         return np.array([[scaled_vel[i], scaled_headway[i]]
                          for i in indx_sorted_ids])
 
-    def _reset(self):
+    def reset(self):
         """The sumo instance is reset with a new ring length, and a number of
         steps are performed with the rl vehicle acting as a human vehicle."""
         # update the scenario

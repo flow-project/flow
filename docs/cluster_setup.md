@@ -9,12 +9,13 @@
 - Make sure that branch is pushed up to github
 - Change tmp/foo2 to be the path to your ray key
 - run ray create_or_update ray_autoscale.yaml
-- Log into your cluster, change redis_address in ray.init(redis_address="ADDRESS") to the address output by create_or_update
+- Log into your cluster, change redis_address in ray.init(redis_address="ADDRESS") to the redis address output by create_or_update
 - Run your code! Make sure to kill the cluster when you're done
 
 ## Notes
 
 - If you want to update your branch across all workers, push it to github and
     rerun ray create_or_update
-- Save the instructions after ray create_or_update, they're useful!
+- *Save the instructions after ray create_or_update, they're useful!*
 - If you see "fatal: not a tree", you need to push your branch to github
+- If it fails because of "stash your changes", go to the node and stash your changes

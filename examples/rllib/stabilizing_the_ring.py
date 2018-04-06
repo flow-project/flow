@@ -133,7 +133,7 @@ if __name__ == "__main__":
     n_rollouts = 100
     parallel_rollouts = 48
     # ray.init(redirect_output=True)
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
 
     config["num_workers"] = parallel_rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
@@ -172,7 +172,7 @@ if __name__ == "__main__":
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
     trials = run_experiments({
-        "pendulum_tests": {
+        "ring_stabilize": {
             "run": "PPO",
             "env": "WaveAttenuationPOEnv-v0",
             "config": {
@@ -180,7 +180,7 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 100},
+            "stop": {"training_iteration": 200},
             "repeat": 3,
             "trial_resources": {"cpu": 1, "gpu": 0,
                                 "extra_cpu": parallel_rollouts - 1}
