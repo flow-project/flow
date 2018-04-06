@@ -36,12 +36,14 @@ class AccelEnv(Env):
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles, ))
+                   shape=(self.vehicles.num_rl_vehicles, ),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
         pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, pos))
 
