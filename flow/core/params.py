@@ -13,7 +13,8 @@ class SumoParams:
                  sumo_binary="sumo",
                  overtake_right=False,
                  ballistic=False,
-                 seed=None):
+                 seed=None,
+                 restart_instance=False):
         """Sumo-specific parameters
 
         These parameters are used to customize a sumo simulation instance upon
@@ -50,6 +51,11 @@ class SumoParams:
             Defaults to False
         seed: int, optional
             seed for sumo instance
+        restart_instance: bool, optional
+            specifies whether to restart a sumo instance upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "sumo_binary" is set to True.
 
         """
         self.port = port
@@ -61,6 +67,7 @@ class SumoParams:
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
+        self.restart_instance = restart_instance
 
 
 class EnvParams:

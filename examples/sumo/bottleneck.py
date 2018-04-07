@@ -1,5 +1,5 @@
 """
-Example of a multi-lane network with human-driven vehicles.
+(description)
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows
@@ -13,18 +13,21 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.envs.bottleneck_env import BottleNeckEnv
 from flow.core.experiment import SumoExperiment
-import logging
+
+<<<<<<< HEAD
 import numpy as np
 
-import numpy as np
+=======
+SCALING = 4
+DISABLE_TB = True
+DISABLE_RAMP_METER = True
+FLOW_RATE = 1500 * SCALING  # inflow rate
+>>>>>>> master
 
 
-def bottleneck(sumo_binary=None):
-
-    SCALING = 4
-    NUM_LANES = 4*SCALING  # number of lanes in the widest highway
-    DISABLE_TB = True
-    DISABLE_RAMP_METER = True
+def bottleneck_example(sumo_binary=None):
+    sumo_params = SumoParams(sim_step=0.5,
+                             sumo_binary="sumo-gui")
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
@@ -35,30 +38,21 @@ def bottleneck(sumo_binary=None):
     vehicles.add(veh_id="human",
                  speed_mode=31,
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 # acceleration_controller=(IDMController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
-                 sumo_car_following_params=SumoCarFollowingParams(
-                     minGap=2.5, tau=1.0, speedDev=0.5),
-                 num_vehicles=40*SCALING)
+                 # sumo_car_following_params=SumoCarFollowingParams(
+                 #     minGap=2.5, tau=1.0, speedDev=0.5),
+                 num_vehicles=1*SCALING)
 
-    additional_env_params = {"target_velocity": 40, "disable_tb": True,
+    additional_env_params = {"target_velocity": 40,
+                             "disable_tb": True,
                              "disable_ramp_metering": True}
     env_params = EnvParams(additional_params=additional_env_params,
                            lane_change_duration=1)
 
-    # flow rate
-    flow_rate = 1500 * SCALING
-    # percentage of flow coming out of each lane
-    flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
-    #flow_dist = np.ones(NUM_LANES)/NUM_LANES
-
     inflow = InFlows()
-    for i in range(NUM_LANES):
-        lane_num = str(i)
-        veh_per_hour = flow_rate * flow_dist[i]
-        inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
-                   departLane=lane_num, departSpeed=10)
+    inflow.add(veh_type="human", edge="1", vehsPerHour=FLOW_RATE,
+               departLane="random", departSpeed=10)
 
     traffic_lights = TrafficLights()
     if not DISABLE_TB:
@@ -68,7 +62,8 @@ def bottleneck(sumo_binary=None):
 
     additional_net_params = {"scaling": SCALING}
     net_params = NetParams(in_flows=inflow,
-                           no_internal_links=False, additional_params=additional_net_params)
+                           no_internal_links=False,
+                           additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="random", min_gap=5,
                                    lanes_distribution=float("inf"),
@@ -88,7 +83,7 @@ def bottleneck(sumo_binary=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bottleneck(sumo_binary="sumo-gui")
+    exp = bottleneck_example()
 
     # run for a set number of rollouts / time steps
     exp.run(10, 300)
