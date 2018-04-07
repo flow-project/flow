@@ -41,7 +41,6 @@ class BaseController:
         self.fail_safe = custom_fail_safe
 
         self.max_accel = sumo_cf_params.controller_params['accel']
-
         # max deaccel should always be a positive
         self.max_deaccel = sumo_cf_params.controller_params['decel']
 

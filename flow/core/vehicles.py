@@ -43,7 +43,6 @@ class Vehicles:
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
         self.initial_speeds = []  # speed of vehicles at the start of a rollout
-        self.num_arrived = 0 # number of arrived vehicles at the last time_step
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
@@ -61,7 +60,7 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            speed_mode='all_checks',
+            speed_mode='no_collide',
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -133,7 +132,7 @@ class Vehicles:
         # does not tamper with the dynamics of the controller
         if acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 2.5
+            type_params["minGap"] = 0.0
 
         # adjust the speed mode value
         if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
@@ -200,8 +199,6 @@ class Vehicles:
             # specify the speed of vehicles at the start of a rollout
             self.__vehicles[v_id]["initial_speed"] = initial_speed
 
-
-            #TODO: update to be cleaner (@kanaad)
             # check if the vehicle is human-driven or autonomous
             if acceleration_controller[0] == RLController:
                 self.__rl_ids.append(v_id)
@@ -248,9 +245,6 @@ class Vehicles:
         env: Environment type
             state of the environment at the current time step
         """
-
-        self.num_arrived = len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
-
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
