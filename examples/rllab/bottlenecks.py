@@ -25,9 +25,9 @@ import logging
 import numpy as np
 
 SCALING = 1
-NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
+FLOW_RATE = 1500 * SCALING  # inflow rate
 
 
 sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
@@ -69,18 +69,9 @@ additional_env_params = {"target_velocity": 50, "num_steps": 150,
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1)
 
-# flow rate
-flow_rate = 1500 * SCALING
-# percentage of flow coming out of each lane
-# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
-flow_dist = np.ones(NUM_LANES) / NUM_LANES
-
 inflow = InFlows()
-for i in range(NUM_LANES):
-    lane_num = str(i)
-    veh_per_hour = flow_rate * flow_dist[i]
-    inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
-               departLane=lane_num, departSpeed=10)
+inflow.add(veh_type="human", edge="1", vehsPerHour=FLOW_RATE,
+           departLane="random", departSpeed=10)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -90,7 +81,8 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False, additional_params=additional_net_params)
+                       no_internal_links=False,
+                       additional_params=additional_net_params)
 
 initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
@@ -107,7 +99,7 @@ scenario = BBTollScenario(name="bay_bridge_toll",
 def run_task(*_):
     env_name = "BottleNeckEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params,
-                       net_params, initial_config, scenario)
+                   net_params, initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
