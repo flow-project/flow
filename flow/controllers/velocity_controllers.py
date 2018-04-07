@@ -4,7 +4,7 @@ import numpy as np
 
 class FollowerStopper(BaseController):
 
-    def __init__(self, veh_id, v_des=15, max_accel=1.0, danger_edges=None):
+    def __init__(self, veh_id, sumo_cf_params, v_des=15, danger_edges=None):
         """Inspired by Dan Work's... work:
 
 		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
@@ -19,15 +19,13 @@ class FollowerStopper(BaseController):
         max_accel: float, optional
             maximum achievable acceleration by the vehicle (m/s^2)
         """
-        controller_params = {"delay": 1.0, "max_deaccel": 1.5,
-                             "noise": 0, "fail_safe": "safe_velocity"}
-        BaseController.__init__(self, veh_id, controller_params)
+        BaseController.__init__(self, veh_id,sumo_cf_params, delay=1.0)
 
         # desired speed of the vehicle
         self.v_des = v_des
 
         # maximum achievable acceleration by the vehicle
-        self.max_accel = max_accel
+        self.max_accel = sumo_cf_params.controller_params['accel']
 
         # other parameters
         self.dx_1_0 = 4.5
@@ -87,16 +85,12 @@ class FollowerStopper(BaseController):
             return None
         else:
             # compute the acceleration from the desired velocity
-            v_diff = (v_cmd - this_vel) / env.sim_step
-            if v_diff > 0:
-                return min(v_diff, self.max_accel)
-            else:
-                return max(v_diff, -self.max_deaccel)
+            return (v_cmd - this_vel) / env.sim_step
 
 
 class PISaturation(BaseController):
 
-    def __init__(self, veh_id, max_accel=1):
+    def __init__(self, veh_id, sumo_cf_params):
         """Inspired by Dan Work's... work:
 
 		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
@@ -109,12 +103,10 @@ class PISaturation(BaseController):
         max_accel: float, optional
             maximum achievable acceleration by the vehicle (m/s^2)
         """
-        controller_params = {"delay": 1.0, "max_deaccel": 15,
-                             "noise": 0, "fail_safe": None}
-        BaseController.__init__(self, veh_id, controller_params)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
         # maximum achievable acceleration by the vehicle
-        self.max_accel = max_accel
+        self.max_accel = sumo_cf_params.controller_params['accel']
 
         # history used to determine AV desired velocity
         self.v_history = []
@@ -167,8 +159,8 @@ class PISaturation(BaseController):
 
 
 class HandTunedVelocityController(FollowerStopper):
-    def __init__(self, veh_id, v_regions, max_accel=2.6, danger_edges=None):
-        super().__init__(veh_id, v_regions[0], max_accel=max_accel, danger_edges=danger_edges)
+    def __init__(self, veh_id, v_regions, sumo_cf_params, danger_edges=None):
+        super().__init__(veh_id, sumo_cf_params, v_regions[0], danger_edges=danger_edges)
         self.v_regions = v_regions
 
     def get_accel(self, env):
