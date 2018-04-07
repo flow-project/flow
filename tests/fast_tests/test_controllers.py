@@ -22,7 +22,7 @@ class TestCFMController(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
 
-        contr_params = {"time_delay":0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8, "noise": 0}
+        contr_params = {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
@@ -67,7 +67,7 @@ class TestBCMController(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
         contr_params = \
-            {"time_delay":0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8, "noise": 0}
+            {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
@@ -112,8 +112,8 @@ class TestOVMController(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
         contr_params = \
-            {"time_delay":0,"alpha": 1, "beta": 1, "h_st": 2, "h_go": 15, "v_max": 30,
-            "noise": 0}
+            {"time_delay": 0, "alpha": 1, "beta": 1, "h_st": 2, "h_go": 15, "v_max": 30,
+                "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
@@ -159,7 +159,7 @@ class TestLinearOVM(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
         contr_params = \
-            {"time_delay":0, "v_max": 30, "adaptation": 0.65,
+            {"time_delay": 0, "v_max": 30, "adaptation": 0.65,
              "h_st": 5, "noise": 0}
 
         vehicles = Vehicles()
