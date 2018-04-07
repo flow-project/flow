@@ -14,15 +14,10 @@ from flow.core.params import SumoCarFollowingParams
 from flow.envs.bottleneck_env import BottleNeckEnv
 from flow.core.experiment import SumoExperiment
 
-<<<<<<< HEAD
-import numpy as np
-
-=======
 SCALING = 4
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 FLOW_RATE = 1500 * SCALING  # inflow rate
->>>>>>> master
 
 
 def bottleneck_example(sumo_binary=None):
