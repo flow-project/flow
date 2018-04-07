@@ -11,8 +11,8 @@ import traci.constants as tc
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
-
-SPEED_MODES = {"aggressive": 0, "no_collide": 1, "all_checks": 31}
+SPEED_MODES = {"aggressive": 0, "no_collide": 1, "custom_model": 25,
+               "all_checks": 31}
 LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
 
@@ -43,6 +43,7 @@ class Vehicles:
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
         self.initial_speeds = []  # speed of vehicles at the start of a rollout
+        self.num_arrived = 0 # number of arrived vehicles at the last time_step
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
@@ -60,7 +61,7 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            speed_mode='no_collide',
+            speed_mode='all_checks',
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -94,6 +95,10 @@ class Vehicles:
              - "aggressive": Human and RL cars are not limited by sumo with
                regard to their accelerations, and can crash longitudinally
              - "all_checks": all sumo safety checks are activated
+             - "custom_model": respect safe speed, right of way and
+               brake hard at red lights if needed. DOES NOT respect
+               max accel and decel which enables emergency stopping.
+               Necessary to prevent custom models from crashing
              - int values may be used to define custom speed mode for the given
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
@@ -128,7 +133,7 @@ class Vehicles:
         # does not tamper with the dynamics of the controller
         if acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 0.0
+            type_params["minGap"] = 2.5
 
         # adjust the speed mode value
         if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
@@ -176,7 +181,7 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](v_id, sumo_car_following_params,
+                acceleration_controller[0](v_id, sumo_cf_params=sumo_car_following_params,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -243,6 +248,9 @@ class Vehicles:
         env: Environment type
             state of the environment at the current time step
         """
+
+        self.num_arrived = len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
@@ -353,7 +361,7 @@ class Vehicles:
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id, sumo_cf_params, **accel_controller[1])
+            accel_controller[0](veh_id, sumo_cf_params=sumo_cf_params, **accel_controller[1])
 
         # specify the lane-changing controller class
         lc_controller = \
@@ -966,8 +974,8 @@ class Vehicles:
             edge = self.get_edge(veh_id)
             if edge:
                 headways, tailways, leaders, followers = \
-                    self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
-                                                   env)
+                    self._multi_lane_headways_util(veh_id, edge_dict,
+                                                   num_edges, env)
 
                 # add the above values to the vehicles class
                 self.set_lane_headways(veh_id, headways)
