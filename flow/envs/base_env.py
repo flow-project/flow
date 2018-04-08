@@ -39,18 +39,19 @@ COLORS = [(255, 0, 0, 255), (0, 255, 0, 255), (255, 255, 0, 255),
 
 class Env(gym.Env, Serializable):
     def __init__(self, env_params, sumo_params, scenario):
-        """
-        Base environment class. Provides the interface for controlling a SUMO
-        simulation. Using this class, you can start sumo, provide a scenario to
-        specify a configuration and controllers, perform simulation steps, and
-        reset the simulation to an initial configuration.
+        """Base environment class.
 
-        SumoEnvironment is Serializable to allow for pickling of the policy.
+        Provides the interface for controlling a SUMO simulation. Using this
+        class, you can start sumo, provide a scenario to specify a
+        configuration and controllers, perform simulation steps, and reset the
+        simulation to an initial configuration.
+
+        Env is Serializable to allow for pickling and replaying of the policy.
 
         This class cannot be used as is: you must extend it to implement an
-        action applicator method, and properties to define the MDP if you choose
-        to use it with RLLab. This can be done by overloading the following
-        functions in a child class:
+        action applicator method, and properties to define the MDP if you
+        choose to use it with an rl library (e.g. RLlib). This can be done by
+        overloading the following functions in a child class:
          - action_space
          - observation_space
          - apply_rl_action
@@ -96,8 +97,6 @@ class Env(gym.Env, Serializable):
         self.max_speed = env_params.max_speed
         self.lane_change_duration = \
             env_params.get_lane_change_duration(self.sim_step)
-        self.shared_reward = env_params.shared_reward
-        self.shared_policy = env_params.shared_policy
 
         # the available_routes variable contains a dictionary of routes vehicles
         # can traverse; to be used when routes need to be chosen dynamically
@@ -112,6 +111,9 @@ class Env(gym.Env, Serializable):
 
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.vehicles.get_ids())
+
+        # store the initial state of the vehicles class (for restarting sumo)
+        self.initial_vehicles = deepcopy(self.vehicles)
 
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
@@ -128,6 +130,7 @@ class Env(gym.Env, Serializable):
         rollout.
         """
         self.traci_connection.close(False)
+        self.sumo_proc.kill()
 
         if sumo_binary is not None:
             self.sumo_params.sumo_binary = sumo_binary
@@ -340,60 +343,75 @@ class Env(gym.Env, Serializable):
         info: dictionary
             contains other diagnostic information from the previous action
         """
-        self.time_counter += 1
-        self.step_counter += 1
-        if self.step_counter > 2e6:
-            self.step_counter = 0
-            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
-            
-        # perform acceleration actions for controlled human-driven vehicles
-        if len(self.vehicles.get_controlled_ids()) > 0:
-            accel = []
-            for veh_id in self.vehicles.get_controlled_ids():
-                accel_contr = self.vehicles.get_acc_controller(veh_id)
-                action = accel_contr.get_action(self)
-                accel.append(action)
-            self.apply_acceleration(self.vehicles.get_controlled_ids(), accel)
+        for _ in range(self.env_params.sims_per_step):
+            self.time_counter += 1
+            self.step_counter += 1
+            if self.step_counter > 2e6:
+                self.step_counter = 0
+                self.restart_sumo(self.sumo_params)
 
-        # perform lane change actions for controlled human-driven vehicles
-        if len(self.vehicles.get_controlled_lc_ids()) > 0:
-            new_lane = []
-            for veh_id in self.vehicles.get_controlled_lc_ids():
-                lc_contr = self.vehicles.get_lane_changing_controller(veh_id)
-                target_lane = lc_contr.get_action(self)
-                new_lane.append(target_lane)
-            self.apply_lane_change(self.vehicles.get_controlled_lc_ids(),
-                                   target_lane=new_lane)
+            # perform acceleration actions for controlled human-driven vehicles
+            if len(self.vehicles.get_controlled_ids()) > 0:
+                accel = []
+                for veh_id in self.vehicles.get_controlled_ids():
+                    accel_contr = self.vehicles.get_acc_controller(veh_id)
+                    action = accel_contr.get_action(self)
+                    accel.append(action)
+                self.apply_acceleration(self.vehicles.get_controlled_ids(),
+                                        accel)
 
-        # perform (optionally) routing actions for all vehicle in the network,
-        # including rl and sumo-controlled vehicles
-        routing_ids = []
-        routing_actions = []
-        for veh_id in self.vehicles.get_ids():
-            if self.vehicles.get_routing_controller(veh_id) is not None:
-                routing_ids.append(veh_id)
-                route_contr = self.vehicles.get_routing_controller(veh_id)
-                routing_actions.append(route_contr.choose_route(self))
+            # perform lane change actions for controlled human-driven vehicles
+            if len(self.vehicles.get_controlled_lc_ids()) > 0:
+                direction = []
+                for veh_id in self.vehicles.get_controlled_lc_ids():
+                    lc_contr = self.vehicles.get_lane_changing_controller(
+                        veh_id)
+                    target_lane = lc_contr.get_action(self)
+                    direction.append(target_lane)
+                self.apply_lane_change(self.vehicles.get_controlled_lc_ids(),
+                                       direction=direction)
 
-        self.choose_routes(veh_ids=routing_ids, route_choices=routing_actions)
+            # perform (optionally) routing actions for all vehicle in the
+            # network, including rl and sumo-controlled vehicles
+            routing_ids = []
+            routing_actions = []
+            for veh_id in self.vehicles.get_ids():
+                if self.vehicles.get_routing_controller(veh_id) is not None:
+                    routing_ids.append(veh_id)
+                    route_contr = self.vehicles.get_routing_controller(veh_id)
+                    routing_actions.append(route_contr.choose_route(self))
 
-        self.apply_rl_actions(rl_actions)
+            self.choose_routes(routing_ids, routing_actions)
 
-        self.additional_command()
+            self.apply_rl_actions(rl_actions)
 
-        self.traci_connection.simulationStep()
+            self.additional_command()
 
-        # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
+            self.traci_connection.simulationStep()
 
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+            # collect subscription information from sumo
+            vehicle_obs = \
+                self.traci_connection.vehicle.getSubscriptionResults()
+            id_lists = \
+                self.traci_connection.simulation.getSubscriptionResults()
+            tls_obs = \
+                self.traci_connection.trafficlights.getSubscriptionResults()
 
-        # collect list of sorted vehicle ids
-        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
+            # store new observations in the vehicles and traffic lights class
+            self.vehicles.update(vehicle_obs, id_lists, self)
+            self.traffic_lights.update(tls_obs)
+
+            # collect list of sorted vehicle ids
+            self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
+
+            # crash encodes whether the simulator experienced a collision
+            crash = \
+                self.traci_connection.simulation.getStartingTeleportNumber() \
+                != 0
+
+            # stop collecting new simulation steps if there is a collision
+            if crash:
+                break
 
         # collect information of the state of the network based on the
         # environment class used
@@ -407,37 +425,10 @@ class Env(gym.Env, Serializable):
         # collect observation new state associated with action
         next_observation = list(self.state)
 
-        # crash encodes whether sumo experienced a crash
-        crash = \
-            self.traci_connection.simulation.getStartingTeleportNumber() != 0
-
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
 
-        # Are we in an rllab multi-agent scenario? If so, the action space is
-        # a list.
-        if isinstance(self.action_space, list):
-            done_n = self.vehicles.num_rl_vehicles * [0]
-            info_n = {'n': []}
-
-            if self.shared_reward:
-                info_n['reward_n'] = [reward] * len(self.action_space)
-            else:
-                info_n['reward_n'] = reward
-
-            if crash:
-                done_n = self.vehicles.num_rl_vehicles * [1]
-
-            info_n['done_n'] = done_n
-            info_n['state'] = self.state
-            done = np.all(done_n)
-            return self.state, sum(reward), done, info_n
-
-        else:
-            if crash:
-                return next_observation, reward, True, {}
-            else:
-                return next_observation, reward, False, {}
+        return next_observation, reward, crash, {}
 
     def _reset(self):
         """
@@ -455,12 +446,14 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
-        self.next_period = 0
-        if self.step_counter > 2e6:
-            self.step_counter = 0
-            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
-        # TODO(ak): handling number of vehicles during reset
+        if self.sumo_params.restart_instance:
+            # issue a random seed to induce randomness into the next rollout
+            self.sumo_params.seed = random.randint(0, 1e5)
+            # modify the vehicles class to match initial data
+            self.vehicles = deepcopy(self.initial_vehicles)
+            # restart the sumo instance
+            self.restart_sumo(self.sumo_params)
 
         # create the list of colors used to visually distinguish between
         # different types of vehicles
@@ -513,7 +506,6 @@ class Env(gym.Env, Serializable):
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
                 self.vehicles.remove(veh_id)
-                # self.traci_connection.vehicle.unsubscribe(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
                 pass
@@ -546,7 +538,6 @@ class Env(gym.Env, Serializable):
                     departLane=str(lane_index),
                     departPos=str(lane_pos), departSpeed=str(speed))
 
-
         self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
@@ -576,7 +567,13 @@ class Env(gym.Env, Serializable):
         else:
             self.state = self.get_state().T
 
+        # observation associated with the reset (no warm-up steps)
         observation = list(self.state)
+
+        # perform (optional) warm-up steps before training
+        for _ in range(self.env_params.warmup_steps):
+            observation, _, _, _ = self._step(rl_actions=[])
+
         return observation
 
     def additional_command(self):
@@ -585,16 +582,23 @@ class Env(gym.Env, Serializable):
         """
         pass
 
-    def apply_rl_actions(self, rl_actions):
-        """
-        Specifies the actions to be performed by rl_vehicles
+    def apply_rl_actions(self, rl_actions=list()):
+        """Specifies the actions to be performed by the rl agent(s).
+
+        If no actions are provided at any given step, the rl agents default to
+        performing actions specified by sumo.
 
         Parameters
         ----------
-        rl_actions: numpy ndarray
+        rl_actions: list or numpy ndarray
             list of actions provided by the RL algorithm
         """
-        pass
+        if len(rl_actions) == 0:
+            return
+        self._apply_rl_actions(rl_actions)
+
+    def _apply_rl_actions(self, rl_actions):
+        raise NotImplementedError
 
     def apply_acceleration(self, veh_ids, acc):
         """
@@ -602,6 +606,7 @@ class Env(gym.Env, Serializable):
         the sumo-specified speed mode of the vehicle is not "aggressive", the
         acceleration may be clipped by some safety velocity or maximum possible
         acceleration.
+        If the action is none, uses SUMO action.
 
         Parameters
         ----------
@@ -611,64 +616,50 @@ class Env(gym.Env, Serializable):
             requested accelerations from the vehicles
         """
         for i, vid in enumerate(veh_ids):
-            this_vel = self.vehicles.get_speed(vid)
-            next_vel = max([this_vel + acc[i]*self.sim_step, 0])
-            self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+            if acc[i]:
+                this_vel = self.vehicles.get_speed(vid)
+                next_vel = max([this_vel + acc[i]*self.sim_step, 0])
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
-    def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
-        """
-        Applies an instantaneous lane-change to a set of vehicles, while
+    def apply_lane_change(self, veh_ids, direction):
+        """Applies an instantaneous lane-change to a set of vehicles, while
         preventing vehicles from moving to lanes that do not exist.
 
         Parameters
         ----------
-        veh_ids: list of strings
+        veh_ids: list of str
             vehicles IDs associated with the requested accelerations
-        direction: list of int (-1, 0, or 1), optional
+        direction: list of {-1, 0, 1}
             -1: lane change to the right
              0: no lane change
              1: lane change to the left
-        target_lane: list of int, optional
-            lane indices the vehicles should lane-change to in the next step
 
         Raises
         ------
         ValueError
-            If either both or none of "direction" and "target_lane" are provided
-            as inputs. Only one should be provided at a time.
-        ValueError
             If any of the direction values are not -1, 0, or 1.
         """
-        if direction is not None and target_lane is not None:
-            raise ValueError("Cannot provide both a direction and target_lane.")
-        elif direction is None and target_lane is None:
-            raise ValueError("A direction or target_lane must be specified.")
-
-        current_lane = np.array(self.vehicles.get_lane(veh_ids))
-
-        # if the direction is given, compute the target lane for vehicles
-        if target_lane is None:
-            # if any of the directions are not -1, 0, or 1, raise a ValueError
-            if np.any(np.sign(direction) != np.array(direction)):
-                raise ValueError("Direction values for lane changes may only "
-                                 "be: -1, 0, or 1.")
-
-            target_lane = current_lane + np.array(direction)
+        # if any of the directions are not -1, 0, or 1, raise a ValueError
+        if any(d not in [-1, 0, 1] for d in direction):
+            raise ValueError(
+                "Direction values for lane changes may only be: -1, 0, or 1.")
 
         for i, veh_id in enumerate(veh_ids):
-
-            this_edge = self.vehicles.get_edge(veh_id)
-
-            # check for multiple lanes
-            if self.scenario.num_lanes(this_edge) == 1:
+            # check for no lane change
+            if direction[i] == 0:
                 continue
 
-            target_lane[i] = min(
-                max(target_lane[i], 0), self.scenario.num_lanes(this_edge) - 1)
+            # compute the target lane, and clip it so vehicle don't try to lane
+            # change out of range
+            this_lane = self.vehicles.get_lane(veh_id)
+            this_edge = self.vehicles.get_edge(veh_id)
+            target_lane = min(max(this_lane + direction[i], 0),
+                              self.scenario.num_lanes(this_edge) - 1)
 
-            if target_lane[i] != current_lane[i]:
+            # perform the requested lane action action in TraCI
+            if target_lane != this_lane:
                 self.traci_connection.vehicle.changeLane(
-                    veh_id, int(target_lane[i]), 100000)
+                    veh_id, int(target_lane), 100000)
 
                 if veh_id in self.vehicles.get_rl_ids():
                     self.prev_last_lc[veh_id] = \

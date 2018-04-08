@@ -11,8 +11,8 @@ import traci.constants as tc
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
-
-SPEED_MODES = {"aggressive": 0, "no_collide": 1, "all_checks": 31}
+SPEED_MODES = {"aggressive": 0, "no_collide": 1, "custom_model": 25,
+               "all_checks": 31}
 LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
 
@@ -61,7 +61,7 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            speed_mode='no_collide',
+            speed_mode='all_checks',
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -95,6 +95,10 @@ class Vehicles:
              - "aggressive": Human and RL cars are not limited by sumo with
                regard to their accelerations, and can crash longitudinally
              - "all_checks": all sumo safety checks are activated
+             - "custom_model": respect safe speed, right of way and
+               brake hard at red lights if needed. DOES NOT respect
+               max accel and decel which enables emergency stopping.
+               Necessary to prevent custom models from crashing
              - int values may be used to define custom speed mode for the given
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
@@ -129,7 +133,7 @@ class Vehicles:
         # does not tamper with the dynamics of the controller
         if acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 0.0
+            type_params["minGap"] = 2.5
 
         # adjust the speed mode value
         if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
@@ -177,7 +181,7 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](veh_id=v_id,
+                acceleration_controller[0](v_id, sumo_cf_params=sumo_car_following_params,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -299,8 +303,6 @@ class Vehicles:
                                    change) % env.scenario.length
                     self.set_absolute_position(veh_id, new_abs_pos)
 
-
-
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
             headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
@@ -314,13 +316,19 @@ class Vehicles:
                 min_gap = self.minGap[vtype]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
-                self.__vehicles[headway[0]]["follower"] = veh_id
+                try:
+                    self.__vehicles[headway[0]]["follower"] = veh_id
+                except KeyError:
+                    pass
 
         # update the sumo observations variable
         self.__sumo_obs = vehicle_obs.copy()
 
         # update the lane leaders data for each vehicle
         self._multi_lane_headways(env)
+
+        # make sure the rl vehicle list is still sorted
+        self.__rl_ids.sort()
 
     def _add_departed(self, veh_id, veh_type, env):
         """Adds a vehicle that entered the network from an inflow or reset.
@@ -344,11 +352,14 @@ class Vehicles:
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
+        sumo_cf_params = \
+            self.type_parameters[veh_type]["sumo_car_following_params"]
+
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id=veh_id, **accel_controller[1])
+            accel_controller[0](veh_id, sumo_cf_params=sumo_cf_params, **accel_controller[1])
 
         # specify the lane-changing controller class
         lc_controller = \
@@ -412,6 +423,9 @@ class Vehicles:
         # change the color of the vehicle based on its type
         env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
 
+        # make sure that the order of rl_ids is kept sorted
+        self.__rl_ids.sort()
+
     def remove(self, veh_id):
         """Removes a vehicle.
 
@@ -437,6 +451,9 @@ class Vehicles:
         else:
             self.__rl_ids.remove(veh_id)
             self.num_rl_vehicles -= 1
+
+        # make sure that the rl ids remain sorted
+        self.__rl_ids.sort()
 
     def test_set_speed(self, veh_id, speed):
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
@@ -485,10 +502,12 @@ class Vehicles:
         """Returns the names of all rl-controlled vehicles in the network."""
         return self.__rl_ids
 
-    def get_ids_by_edge(self, edge):
+    def get_ids_by_edge(self, edges):
         """Returns the names of all vehicles in the specified edge. If no
         vehicles are currently in the edge, then returns an empty list."""
-        return self._ids_by_edge.get(edge, []) or []
+        if isinstance(edges, (list, np.ndarray)):
+            return sum([self.get_ids_by_edge(edge) for edge in edges], [])
+        return self._ids_by_edge.get(edges, []) or []
 
     def get_initial_speed(self, veh_id, error=-1001):
         """Returns the initial speed upon reset of the specified vehicle.
@@ -950,15 +969,17 @@ class Vehicles:
         for veh_id in self.get_rl_ids():
             # collect the lane leaders, followers, headways, and tailways for
             # each vehicle
-            headways, tailways, leaders, followers = \
-                self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
-                                               env)
+            edge = self.get_edge(veh_id)
+            if edge:
+                headways, tailways, leaders, followers = \
+                    self._multi_lane_headways_util(veh_id, edge_dict,
+                                                   num_edges, env)
 
-            # add the above values to the vehicles class
-            self.set_lane_headways(veh_id, headways)
-            self.set_lane_tailways(veh_id, tailways)
-            self.set_lane_leaders(veh_id, leaders)
-            self.set_lane_followers(veh_id, followers)
+                # add the above values to the vehicles class
+                self.set_lane_headways(veh_id, headways)
+                self.set_lane_tailways(veh_id, tailways)
+                self.set_lane_leaders(veh_id, leaders)
+                self.set_lane_followers(veh_id, followers)
 
         self._ids_by_edge = dict().fromkeys(edge_list)
 

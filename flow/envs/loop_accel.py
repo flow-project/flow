@@ -9,67 +9,51 @@ import numpy as np
 
 
 class AccelEnv(Env):
-    """
-    Fully functional environment for single lane closed loop settings. Takes in
-    an *acceleration* as an action. Reward function is negative norm of the
-    difference between the velocities of each vehicle, and the target velocity.
-    State function is a vector of the velocities and absolute positions for each
-    vehicle.
-    """
+    """Environment used to train autonomous vehicles to improve traffic flows
+    when acceleration actions are permitted by the rl agent.
 
+    States
+    ------
+    The state consists of the velocities and absolute position of all vehicles
+    in the network. This assumes a constant number of vehicles.
+
+    Actions
+    -------
+    Actions are a list of acceleration for each rl vehicles, bounded by the
+    maximum accelerations and decelerations specified in EnvParams.
+
+    Rewards
+    -------
+    The reward function is the two-norm of the distance of the speed of the
+    vehicles in the network from a desired speed.
+
+    Termination
+    -----------
+    A rollout is terminated if the time horizon is reached or if two vehicles
+    collide into one another.
+    """
     @property
     def action_space(self):
-        """
-        See parent class
-
-        Actions are a set of accelerations from max-deacc to max-acc for each
-        rl vehicle.
-        """
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
                    shape=(self.vehicles.num_rl_vehicles, ))
 
     @property
     def observation_space(self):
-        """
-        See parent class
-
-        An observation is an array the velocities and absolute positions for
-        each vehicle
-        """
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
         speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
         pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
         return Tuple((speed, pos))
 
-    def apply_rl_actions(self, rl_actions):
-        """
-        See parent class
-
-        Accelerations are applied to rl vehicles in accordance with the commands
-        provided by rllab. These actions may be altered by flow's failsafes or
-        sumo-defined speed modes.
-        """
+    def _apply_rl_actions(self, rl_actions):
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
                          if veh_id in self.vehicles.get_rl_ids()]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """
-        See parent class
-        """
-        # reward desired velocity
-        reward = rewards.desired_velocity(self, fail=kwargs["fail"])
-
-        return reward
+        return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
-        """
-        See parent class
-
-        The state is an array of velocities and absolute positions for each
-        vehicle
-        """
         scaled_pos = [self.vehicles.get_absolute_position(veh_id) /
                       self.scenario.length for veh_id in self.sorted_ids]
         scaled_vel = [self.vehicles.get_speed(veh_id) /
@@ -81,12 +65,20 @@ class AccelEnv(Env):
 
 
 class AccelMAEnv(AccelEnv):
-    """
-    An extension of SimpleAccelerationEnvironment which treats each autonomous
-    vehicles as a separate rl agent, thereby allowing autonomous vehicles to be
-    trained in multi-agent settings.
-    """
+    """Multiagent version of AccelEnv
 
+    States
+    ------
+
+    Actions
+    -------
+
+    Rewards
+    -------
+
+    Termination
+    -----------
+    """
     @property
     def action_space(self):
         """
@@ -154,21 +146,34 @@ class AccelMAEnv(AccelEnv):
 
 
 class AccelPOEnv(AccelEnv):
-    """
-    This environment is an extension of the SimpleAccelerationEnvironment, with
-    the exception that only local information is provided to the agent about the
-    network; i.e. headway, velocity, and velocity difference. The reward
-    function, however, continues to reward global network performance.
+    """POMDP version of AccelEnv
 
-    NOTE: The environment also assumes that there is only one autonomous vehicle
-    is in the network.
-    """
+    States
+    ------
+    The observation consists of only local information is provided to the agent
+    about the network; i.e. headway, velocity, and velocity difference.
 
+    Actions
+    -------
+    Actions are a list of acceleration for each rl vehicles, bounded by the
+    maximum accelerations and decelerations specified in EnvParams.
+
+    Rewards
+    -------
+    The reward function is the two-norm of the distance of the speed of the
+    vehicles in the network from a desired speed.
+
+    Termination
+    -----------
+    A rollout is terminated if the time horizon is reached or if two vehicles
+    collide into one another.
+
+    Note
+    ----
+    This environment assumes only one autonomous vehicle is in the network.
+    """
     @property
     def observation_space(self):
-        """
-        See parent class
-        """
         return Box(low=-np.inf, high=np.inf, shape=(3,))
 
     def get_state(self, **kwargs):

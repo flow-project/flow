@@ -1,9 +1,10 @@
 from flow.controllers.base_controller import BaseController
+from flow.core.params import SumoCarFollowingParams
 
 
 class RLController(BaseController):
 
-    def __init__(self, veh_id, max_deacc=15, tau=0, dt=0.1, fail_safe=None):
+    def __init__(self, veh_id, max_deacc=15, tau=0, dt=0.1, fail_safe=None, sumo_cf_params=None):
         """Instantiates an RL Controller.
 
         Vehicles with this controller are provided with actions by an rl agent,
@@ -23,6 +24,6 @@ class RLController(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        controller_params = {"delay": tau/dt, "max_deaccel": max_deacc,
-                             "fail_safe": fail_safe}
-        BaseController.__init__(self, veh_id, controller_params)
+        if not sumo_cf_params:
+            sumo_cf_params = SumoCarFollowingParams(decel=max_deacc, tau=tau)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=tau/dt, custom_fail_safe=fail_safe)
