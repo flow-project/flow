@@ -114,6 +114,9 @@ class Env(gym.Env, Serializable):
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.vehicles.get_ids())
 
+        # store the initial state of the vehicles class (for restarting sumo)
+        self.initial_vehicles = deepcopy(self.vehicles)
+
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
 
@@ -129,6 +132,7 @@ class Env(gym.Env, Serializable):
         rollout.
         """
         self.traci_connection.close(False)
+        self.sumo_proc.kill()
 
         if sumo_binary is not None:
             self.sumo_params.sumo_binary = sumo_binary
@@ -360,14 +364,14 @@ class Env(gym.Env, Serializable):
 
             # perform lane change actions for controlled human-driven vehicles
             if len(self.vehicles.get_controlled_lc_ids()) > 0:
-                new_lane = []
+                direction = []
                 for veh_id in self.vehicles.get_controlled_lc_ids():
-                    lc_contr = \
-                        self.vehicles.get_lane_changing_controller(veh_id)
+                    lc_contr = self.vehicles.get_lane_changing_controller(
+                        veh_id)
                     target_lane = lc_contr.get_action(self)
-                    new_lane.append(target_lane)
+                    direction.append(target_lane)
                 self.apply_lane_change(self.vehicles.get_controlled_lc_ids(),
-                                       target_lane=new_lane)
+                                       direction=direction)
 
             # perform (optionally) routing actions for all vehicle in the
             # network, including rl and sumo-controlled vehicles
@@ -402,6 +406,15 @@ class Env(gym.Env, Serializable):
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
+            # crash encodes whether the simulator experienced a collision
+            crash = \
+                self.traci_connection.simulation.getStartingTeleportNumber() \
+                != 0
+
+            # stop collecting new simulation steps if there is a collision
+            if crash:
+                break
+
         # collect information of the state of the network based on the
         # environment class used
         if isinstance(self.action_space, list):
@@ -413,17 +426,6 @@ class Env(gym.Env, Serializable):
 
         # collect observation new state associated with action
         next_observation = list(self.state)
-
-        # DEBUGGING
-        if 'flow_1.3' in self.traci_connection.vehicle.getIDList():
-            print('the true speed is', self.traci_connection.vehicle.getSpeed('flow_1.3'))
-
-        # crash encodes whether sumo experienced a crash
-        crash = \
-            self.traci_connection.simulation.getStartingTeleportNumber() != 0
-
-        if crash:
-            import ipdb; ipdb.set_trace()
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
@@ -446,11 +448,14 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
-        if self.step_counter > 1e6:
-            self.step_counter = 0
-            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
-        # TODO(ak): handling number of vehicles during reset
+        if self.sumo_params.restart_instance:
+            # issue a random seed to induce randomness into the next rollout
+            self.sumo_params.seed = random.randint(0, 1e5)
+            # modify the vehicles class to match initial data
+            self.vehicles = deepcopy(self.initial_vehicles)
+            # restart the sumo instance
+            self.restart_sumo(self.sumo_params)
 
         # create the list of colors used to visually distinguish between
         # different types of vehicles
@@ -626,60 +631,45 @@ class Env(gym.Env, Serializable):
             else:
                 self.traci_connection.vehicle.setSpeed(vid, -1)
 
-    def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
-        """
-        Applies an instantaneous lane-change to a set of vehicles, while
+    def apply_lane_change(self, veh_ids, direction):
+        """Applies an instantaneous lane-change to a set of vehicles, while
         preventing vehicles from moving to lanes that do not exist.
 
         Parameters
         ----------
-        veh_ids: list of strings
+        veh_ids: list of str
             vehicles IDs associated with the requested accelerations
-        direction: list of int (-1, 0, or 1), optional
+        direction: list of {-1, 0, 1}
             -1: lane change to the right
              0: no lane change
              1: lane change to the left
-        target_lane: list of int, optional
-            lane indices the vehicles should lane-change to in the next step
 
         Raises
         ------
         ValueError
-            If either both or none of "direction" and "target_lane" are provided
-            as inputs. Only one should be provided at a time.
-        ValueError
             If any of the direction values are not -1, 0, or 1.
         """
-        if direction is not None and target_lane is not None:
-            raise ValueError("Cannot provide both a direction and target_lane.")
-        elif direction is None and target_lane is None:
-            raise ValueError("A direction or target_lane must be specified.")
-
-        current_lane = np.array(self.vehicles.get_lane(veh_ids))
-
-        # if the direction is given, compute the target lane for vehicles
-        if target_lane is None:
-            # if any of the directions are not -1, 0, or 1, raise a ValueError
-            if np.any(np.sign(direction) != np.array(direction)):
-                raise ValueError("Direction values for lane changes may only "
-                                 "be: -1, 0, or 1.")
-
-            target_lane = current_lane + np.array(direction)
+        # if any of the directions are not -1, 0, or 1, raise a ValueError
+        if any(d not in [-1, 0, 1] for d in direction):
+            raise ValueError(
+                "Direction values for lane changes may only be: -1, 0, or 1.")
 
         for i, veh_id in enumerate(veh_ids):
-
-            this_edge = self.vehicles.get_edge(veh_id)
-
-            # check for multiple lanes
-            if self.scenario.num_lanes(this_edge) == 1:
+            # check for no lane change
+            if direction[i] == 0:
                 continue
 
-            target_lane[i] = min(
-                max(target_lane[i], 0), self.scenario.num_lanes(this_edge) - 1)
+            # compute the target lane, and clip it so vehicle don't try to lane
+            # change out of range
+            this_lane = self.vehicles.get_lane(veh_id)
+            this_edge = self.vehicles.get_edge(veh_id)
+            target_lane = min(max(this_lane + direction[i], 0),
+                              self.scenario.num_lanes(this_edge) - 1)
 
-            if target_lane[i] != current_lane[i]:
+            # perform the requested lane action action in TraCI
+            if target_lane != this_lane:
                 self.traci_connection.vehicle.changeLane(
-                    veh_id, int(target_lane[i]), 100000)
+                    veh_id, int(target_lane), 100000)
 
                 if veh_id in self.vehicles.get_rl_ids():
                     self.prev_last_lc[veh_id] = \

@@ -43,7 +43,7 @@ def bottleneck(sumo_binary=None):
     vehicles.add(veh_id="followerstopper",
                  speed_mode=31,
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 acceleration_controller=(HandTunedVelocityController, {"v_regions":[15, 10, 10, 10, 5, 5, 20, 20, 20]}),
+                 # acceleration_controller=(HandTunedVelocityController, {"v_regions":[15, 10, 10, 10, 5, 5, 20, 20, 20]}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
@@ -59,7 +59,7 @@ def bottleneck(sumo_binary=None):
     # flow rate
 
     # MAX OF 3600 vehicles per lane per hour i.e. flow_rate <= 3600 *
-    flow_rate = 2100 * SCALING
+    flow_rate = 3000 * SCALING
     # percentage of flow coming out of each lane
     # flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
     flow_dist = np.ones(NUM_LANES)/NUM_LANES

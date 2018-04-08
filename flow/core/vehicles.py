@@ -11,9 +11,9 @@ import traci.constants as tc
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
-
-SPEED_MODES = {"aggressive": 0, "no_collide": 1, "all_checks": 31}
-LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
+SPEED_MODES = {"aggressive": 0, "no_collide": 1, "custom_model": 25,
+               "all_checks": 31}
+LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
 
 class Vehicles:
@@ -95,6 +95,10 @@ class Vehicles:
              - "aggressive": Human and RL cars are not limited by sumo with
                regard to their accelerations, and can crash longitudinally
              - "all_checks": all sumo safety checks are activated
+             - "custom_model": respect safe speed, right of way and
+               brake hard at red lights if needed. DOES NOT respect
+               max accel and decel which enables emergency stopping.
+               Necessary to prevent custom models from crashing
              - int values may be used to define custom speed mode for the given
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
@@ -177,7 +181,7 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](veh_id=v_id,
+                acceleration_controller[0](v_id, sumo_cf_params=sumo_car_following_params,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -348,11 +352,14 @@ class Vehicles:
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
+        sumo_cf_params = \
+            self.type_parameters[veh_type]["sumo_car_following_params"]
+
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id=veh_id, **accel_controller[1])
+            accel_controller[0](veh_id, sumo_cf_params=sumo_cf_params, **accel_controller[1])
 
         # specify the lane-changing controller class
         lc_controller = \
@@ -965,8 +972,8 @@ class Vehicles:
             edge = self.get_edge(veh_id)
             if edge:
                 headways, tailways, leaders, followers = \
-                    self._multi_lane_headways_util(veh_id, edge_dict, num_edges,
-                                                   env)
+                    self._multi_lane_headways_util(veh_id, edge_dict,
+                                                   num_edges, env)
 
                 # add the above values to the vehicles class
                 self.set_lane_headways(veh_id, headways)
