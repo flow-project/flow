@@ -1,5 +1,6 @@
 """
-Example of a multi-lane network with human-driven vehicles.
+Bottleneck in which the actions are specifying a desired velocity
+in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows
@@ -9,7 +10,7 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
-from flow.controllers.rlcontroller import RLController
+from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
@@ -21,57 +22,57 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-import logging
 import numpy as np
 
 SCALING = 1
+NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-FLOW_RATE = 1500 * SCALING  # inflow rate
 
-
-sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode=0b11111,
-             lane_change_mode=1621,
-             num_vehicles=4*SCALING,
-             sumo_lc_params=SumoLaneChangeParams())
 vehicles.add(veh_id="human",
              speed_mode=0b11111,
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             lane_change_mode=512,
-             num_vehicles=15*SCALING)
-vehicles.add(veh_id="rl2",
-             acceleration_controller=(RLController, {}),
+             lane_change_mode=1621,#0b100000101,
+             num_vehicles=5*SCALING)
+vehicles.add(veh_id="followerstopper",
+             acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=0b11111,
-             lane_change_mode=1621,
-             num_vehicles=4*SCALING,
+             lane_change_mode=1621,#0b100000101,
+             num_vehicles=5*SCALING,
              sumo_lc_params=SumoLaneChangeParams())
-vehicles.add(veh_id="human2",
-             speed_mode=0b11111,
-             lane_change_mode=512,
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=15*SCALING)
 
-additional_env_params = {"target_velocity": 50, "num_steps": 150,
+horizon = 100
+num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
+additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
                          "disable_tb": True, "disable_ramp_metering": True,
-                         "add_rl_if_exit": True}
+                         "segments": num_segments}
 env_params = EnvParams(additional_params=additional_env_params,
-                       lane_change_duration=1)
+                       lane_change_duration=1, warmup_steps=80,
+                       sims_per_step=4, horizon=50)
+
+# flow rate
+flow_rate = 4000 * SCALING
+# percentage of flow coming out of each lane
+# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
-inflow.add(veh_type="human", edge="1", vehsPerHour=FLOW_RATE,
-           departLane="random", departSpeed=10)
+for i in range(NUM_LANES):
+    lane_num = str(i)
+    veh_per_hour = flow_rate * flow_dist[i]
+    veh_per_second = veh_per_hour / 3600
+    inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.75,  # vehsPerHour=veh_per_hour *0.8,
+               departLane=lane_num, departSpeed=23)
+    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * 0.25,
+               # vehsPerHour=veh_per_hour * 0.2,
+               departLane=lane_num, departSpeed=23)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -81,8 +82,7 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False,
-                       additional_params=additional_net_params)
+                       no_internal_links=False, additional_params=additional_net_params)
 
 initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
@@ -97,9 +97,9 @@ scenario = BBTollScenario(name="bay_bridge_toll",
 
 
 def run_task(*_):
-    env_name = "BottleNeckEnv"
+    env_name = "DesiredVelocityEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params,
-                   net_params, initial_config, scenario)
+                       net_params, initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
@@ -116,7 +116,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=20000,
+        batch_size=40000,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
@@ -125,12 +125,12 @@ def run_task(*_):
     )
     algo.train()
 
-exp_tag = "BottleNeckVerySmall"  # experiment prefix
+exp_tag = "DanBottleneckSmall"  # experiment prefix
 for seed in [1]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a

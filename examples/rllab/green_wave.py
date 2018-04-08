@@ -14,7 +14,6 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
 from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import *
-from flow.controllers.lane_change_controllers import *
 from flow.controllers.car_following_models \
     import SumoCarFollowingController
 
