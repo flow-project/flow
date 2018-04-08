@@ -185,7 +185,7 @@ def main():
     n_rollouts = 100
     parallel_rollouts = 48
     # ray.init(num_cpus=num_cpus, redirect_output=False)
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    ray.init(redis_address="localhost:6379", redirect_output=True)
 
     config["num_workers"] = parallel_rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
@@ -225,7 +225,7 @@ def main():
 
     # NOTE KATHY: THESE ARE ITERATIONS
     trials = run_experiments({
-        "pendulum_tests": {
+        "green_wave": {
             "run": "PPO",
             "env": "GreenWaveEnv-v0",
             "config": {

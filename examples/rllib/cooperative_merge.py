@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     # ray.init(redirect_output=False)
     # replace the redis address with that output by create_or_update
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
+    ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 48
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts

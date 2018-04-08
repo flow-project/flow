@@ -572,7 +572,7 @@ class Env(gym.Env, Serializable):
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
-            observation, _, _, _ = self._step(rl_actions=[])
+            observation, _, _, _ = self.step(rl_actions=[])
 
         return observation
 

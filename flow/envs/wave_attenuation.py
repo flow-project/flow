@@ -33,18 +33,21 @@ class WaveAttenuationEnv(Env):
     A rollout is terminated if the time horizon is reached or if two vehicles
     collide into one another.
     """
+
     @property
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles, ),
+                   shape=(self.vehicles.num_rl_vehicles,),
                    dtype=np.float32)
 
     @property
     def observation_space(self):
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+                  dtype=np.float32)
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
@@ -245,6 +248,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     ----
     This environment assumes only one autonomous vehicle is in the network.
     """
+
     @property
     def observation_space(self):
         return Tuple((Box(low=-1, high=1, shape=(4,), dtype=np.float32),))
