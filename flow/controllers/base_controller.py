@@ -3,7 +3,7 @@ import collections
 
 
 class BaseController:
-    def __init__(self, veh_id, sumo_cf_params, delay=0, custom_fail_safe=None, accel_noise=0):
+    def __init__(self, veh_id, sumo_cf_params, delay=0, fail_safe=None, noise=0):
         """Base class for flow-controlled acceleration behavior.
 
         Instantiates a controller and forces the user to pass a
@@ -22,9 +22,9 @@ class BaseController:
             Ensure that accel / decel parameters that are specified to in this model are as desired.
         delay: int
             delay in applying the action (time)
-        custom_fail_safe: string
+        fail_safe: string
             Should be either "instantaneous" or "safe_velocity"
-        accel_noise: double
+        noise: double
             variance of the gaussian from which to sample a noisy acceleration
 
         """
@@ -32,17 +32,16 @@ class BaseController:
         self.sumo_controller = False
 
         # magnitude of gaussian noise
-        self.accel_noise = accel_noise
+        self.accel_noise = noise
 
         # delay used by the safe_velocity failsafe
         self.delay = delay
 
         # longitudinal failsafe used by the vehicle
-        self.fail_safe = custom_fail_safe
+        self.fail_safe = fail_safe
 
         self.max_accel = sumo_cf_params.controller_params['accel']
         # max deaccel should always be a positive
-
         self.max_deaccel = sumo_cf_params.controller_params['decel']
 
         # acceleration queue, for time delayed actions
@@ -89,6 +88,9 @@ class BaseController:
         # add noise to the accelerations, if requested
         if self.accel_noise > 0:
             accel += np.random.normal(0, self.accel_noise)
+
+        # constrain the accel to be between the min and max set by SumoCarFollowingParams
+        accel = max(min(accel, self.max_accel), -1 * self.max_deaccel)
 
         # run the failsafes, if requested
         if self.fail_safe == 'instantaneous':

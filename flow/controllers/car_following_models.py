@@ -46,7 +46,7 @@ class CFMController(BaseController):
             override the behavior this sumo car following model; however, if control is ceded back to
             sumo, the vehicle will use these params.
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, custom_fail_safe=fail_safe, accel_noise=noise)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, fail_safe=fail_safe, noise=noise)
 
         self.veh_id = veh_id
         self.k_d = k_d
@@ -106,7 +106,7 @@ class BCMController(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, custom_fail_safe=fail_safe, accel_noise=noise)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, fail_safe=fail_safe, noise=noise)
 
         self.veh_id = veh_id
         self.k_d = k_d
@@ -172,19 +172,15 @@ class OVMController(BaseController):
             headway for full speed (default: 35)
         v_max: float, optional
             max velocity (default: 30)
-        accel_max: float, optional
-            max acceleration (default: 15)
-        decel_max: float, optional
-            max deceleration (default: -5)
         time_delay: float, optional
-            time delay (default: 0.5)git s
+            time delay (default: 0.5)
         noise: float, optional
             std dev of normal perturbation to the acceleration (default: 0)
         fail_safe: str, optional
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, custom_fail_safe=fail_safe, accel_noise=noise)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, fail_safe=fail_safe, noise=noise)
         self.accel_queue = collections.deque()
         self.veh_id = veh_id
         self.v_max = v_max
@@ -251,7 +247,7 @@ class LinearOVM(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, custom_fail_safe=fail_safe, accel_noise=noise)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, fail_safe=fail_safe, noise=noise)
         self.accel_queue = collections.deque()
         self.veh_id = veh_id
         # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
@@ -313,8 +309,7 @@ class IDMController(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        tau = sumo_cf_params.controller_params['tau']  # the time delay is taken to be the safe time headway
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, custom_fail_safe=fail_safe, accel_noise=noise)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=time_delay, fail_safe=fail_safe, noise=noise)
         self.v0 = v0
         self.T = T
         self.a = sumo_cf_params.controller_params['accel']
