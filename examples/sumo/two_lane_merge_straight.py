@@ -24,7 +24,7 @@ def twolanemergestraight(sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui", overtake_right=False)
+    sumo_params = SumoParams(sim_step = 0.1, sumo_binary="sumo-gui", overtake_right=False)
 
     vehicles = Vehicles()
 
