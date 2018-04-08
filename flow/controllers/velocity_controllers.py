@@ -54,6 +54,9 @@ class FollowerStopper(BaseController):
         this_vel = env.vehicles.get_speed(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
 
+        if self.v_des is None:
+            return None
+
         if lead_id is None:
             v_cmd = self.v_des
         else:
