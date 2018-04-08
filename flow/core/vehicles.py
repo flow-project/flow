@@ -54,6 +54,15 @@ class Vehicles:
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
 
+        # number of vehicles that entered the network for every time-step
+        self._num_departed = []
+
+        # number of vehicles to exit the network for every time-step
+        self._num_arrived = []
+
+        # simulation step size
+        self.sim_step = 0
+
     def add(self,
             veh_id,
             acceleration_controller=(SumoCarFollowingController, {}),
@@ -274,11 +283,12 @@ class Vehicles:
                 self._add_departed(veh_id, veh_type, env)
 
         if env.time_counter == 0:
-            # if the time_counter is 0, this we need to reset all necessary
-            # values
+            # reset all necessary values
             for veh_id in self.__rl_ids:
-                # set the initial last_lc
                 self.set_state(veh_id, "last_lc", -env.lane_change_duration)
+            self._num_departed.clear()
+            self._num_arrived.clear()
+            self.sim_step = env.sim_step
         else:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
@@ -302,6 +312,12 @@ class Vehicles:
                     new_abs_pos = (self.get_absolute_position(veh_id) +
                                    change) % env.scenario.length
                     self.set_absolute_position(veh_id, new_abs_pos)
+
+            # updated the list of departed and arrived vehicles
+            self._num_departed.append(
+                len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
+            self._num_arrived.append(
+                len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -508,6 +524,22 @@ class Vehicles:
         if isinstance(edges, (list, np.ndarray)):
             return sum([self.get_ids_by_edge(edge) for edge in edges], [])
         return self._ids_by_edge.get(edges, []) or []
+
+    def get_inflow_rate(self, time_span):
+        """Returns the inflow rate (in veh/hr) of vehicles from the network for
+        the last **time_span** seconds."""
+        if len(self._num_departed) == 0:
+            return 0
+        num_inflow = self._num_departed[-int(time_span/self.sim_step):]
+        return 3600 * sum(num_inflow) / (len(num_inflow) * self.sim_step)
+
+    def get_outflow_rate(self, time_span):
+        """Returns the outflow rate (in veh/hr) of vehicles from the network
+        for the last **time_span** seconds."""
+        if len(self._num_arrived) == 0:
+            return 0
+        num_outflow = self._num_arrived[-int(time_span/self.sim_step):]
+        return 3600 * sum(num_outflow) / (len(num_outflow) * self.sim_step)
 
     def get_initial_speed(self, veh_id, error=-1001):
         """Returns the initial speed upon reset of the specified vehicle.

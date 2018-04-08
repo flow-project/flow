@@ -3,12 +3,11 @@ import numpy as np
 
 
 class FollowerStopper(BaseController):
-
     def __init__(self, veh_id, sumo_cf_params, v_des=15, danger_edges=None):
         """Inspired by Dan Work's... work:
 
-		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
-		https://arxiv.org/abs/1705.01693
+        Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
+        https://arxiv.org/abs/1705.01693
 
         Parameters
         ----------
@@ -20,7 +19,7 @@ class FollowerStopper(BaseController):
             maximum achievable acceleration by the vehicle (m/s^2)
         """
 
-        BaseController.__init__(self, veh_id,sumo_cf_params, delay=1.0)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
         # desired speed of the vehicle
         self.v_des = v_des
@@ -56,7 +55,7 @@ class FollowerStopper(BaseController):
         this_vel = env.vehicles.get_speed(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
 
-        if lead_id == None:
+        if lead_id is None:
             v_cmd = self.v_des
         else:
             dx = env.vehicles.get_headway(self.veh_id)
@@ -70,9 +69,9 @@ class FollowerStopper(BaseController):
             if dx <= dx_1:
                 v_cmd = 0
             elif dx <= dx_2:
-                v_cmd = this_vel * (dx-dx_1) / (dx_2-dx_1)
+                v_cmd = this_vel * (dx - dx_1) / (dx_2 - dx_1)
             elif dx <= dx_3:
-                v_cmd = this_vel + (self.v_des-this_vel) * (dx-dx_2) / (dx_3-dx_2)
+                v_cmd = this_vel + (self.v_des - this_vel) * (dx - dx_2) / (dx_3 - dx_2)
             else:
                 v_cmd = self.v_des
 
@@ -80,23 +79,22 @@ class FollowerStopper(BaseController):
 
         if edge == "":
             return None
-        if self.find_intersection_dist(env) <= 10 and  \
+
+        if self.find_intersection_dist(env) <= 10 and \
                 env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
                 env.vehicles.get_edge(self.veh_id)[0] == ":":
             return None
         else:
             # compute the acceleration from the desired velocity
-
             return (v_cmd - this_vel) / env.sim_step
 
 
 class PISaturation(BaseController):
-
     def __init__(self, veh_id, sumo_cf_params):
         """Inspired by Dan Work's... work:
 
-		Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
-		https://arxiv.org/abs/1705.01693
+        Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
+        https://arxiv.org/abs/1705.01693
 
         Parameters
         ----------
@@ -144,15 +142,15 @@ class PISaturation(BaseController):
         # update desired velocity values
         v_des = np.mean(self.v_history)
         v_target = v_des + self.v_catch \
-            * min(max((dx - self.g_l) / (self.g_u - self.g_l), 0), 1)
+                   * min(max((dx - self.g_l) / (self.g_u - self.g_l), 0), 1)
 
         # update the alpha and beta values
         alpha = min(max((dx - dx_s) / self.gamma, 0), 1)
         beta = 1 - 0.5 * alpha
 
         # compute desired velocity
-        self.v_cmd = beta * (alpha * v_target + (1-alpha) * lead_vel) \
-            + (1-beta) * self.v_cmd
+        self.v_cmd = beta * (alpha * v_target + (1 - alpha) * lead_vel) \
+                     + (1 - beta) * self.v_cmd
 
         # compute the acceleration
         accel = (self.v_cmd - this_vel) / env.sim_step
