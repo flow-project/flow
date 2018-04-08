@@ -79,16 +79,21 @@ class GreenWaveEnv(Env):
 
     @property
     def action_space(self):
-        return Box(low=0, high=1, shape=(self.num_traffic_lights,))
+        return Box(low=0, high=1, shape=(self.num_traffic_lights,),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
-        speed = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
         dist_to_intersec = Box(low=0., high=np.inf,
-                               shape=(self.vehicles.num_vehicles,))
-        edge_num = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,))
+                               shape=(self.vehicles.num_vehicles,),
+                               dtype=np.float32)
+        edge_num = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,),
+                       dtype=np.float32)
         traffic_lights = Box(low=0., high=np.inf,
-                             shape=(3 * self.rows * self.cols))
+                             shape=(3 * self.rows * self.cols),
+                             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
     def get_state(self):
