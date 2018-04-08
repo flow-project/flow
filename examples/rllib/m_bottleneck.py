@@ -166,7 +166,7 @@ if __name__ == "__main__":
     exp_tag = "multiagent_bottleneck"  # experiment prefix
 
     ray.init(num_cpus=num_cpus, redirect_output=False)
-    # ray.init(redis_address="172.31.27.111:6379", redirect_output=True)
+    # ray.init(redis_address="localhost:6379", redirect_output=True)
 
     config["num_workers"] = num_cpus
     config["timesteps_per_batch"] = horizon * n_rollouts
@@ -227,7 +227,8 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": num_iters},
             "local_dir": "/Users/eugenevinitsky/",
-            "resources": {"cpu": num_cpus, "gpu": 0}
+            "trial_resources": {"cpu": 1, "gpu": 0,
+                                "extra_cpu": n_rollouts - 1}
         },
     })
     json_out_file = trials[0].logdir + '/flow_params.json'

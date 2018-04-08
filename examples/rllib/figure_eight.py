@@ -10,6 +10,7 @@ import gym
 import ray
 import ray.rllib.ppo as ppo
 
+from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.rllib.models import ModelCatalog
@@ -62,8 +63,8 @@ flow_params = dict(
 
 
 def make_create_env(flow_env_name, flow_params=flow_params, version=0,
-                    exp_tag="example", sumo="sumo-gui"):
-    env_name = flow_env_name+'-v%s' % version
+                    exp_tag="example", sumo="sumo"):
+    env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
     sumo_params_dict['sumo_binary'] = sumo
@@ -100,18 +101,20 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0,
         env = gym.envs.make(env_name)
 
         return env
+
     return create_env, env_name
+
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 3
-    n_rollouts = 3
+    n_rollouts = 30
 
-    ray.init(num_cpus=num_cpus, redirect_output=True)
-    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    # ray.init(num_cpus=num_cpus, redirect_output=True)
+    ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    config["num_workers"] = num_cpus
+    parallel_rollouts = 30
+    config["num_workers"] = parallel_rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16]})
@@ -123,7 +126,7 @@ if __name__ == "__main__":
     config["horizon"] = horizon
 
     flow_env_name = "AccelEnv"
-    exp_tag = "stabilizing_the_ring_example"  # experiment prefix
+    exp_tag = "figure8_example"  # experiment prefix
 
     flow_params['flowenv'] = flow_env_name
     flow_params['exp_tag'] = exp_tag
@@ -148,7 +151,21 @@ if __name__ == "__main__":
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
                   indent=4)
 
-    for i in range(500):
-        alg.train()
-        if i % 20 == 0:
-            alg.save()  # save checkpoint
+    trials = run_experiments({
+        "figure_eight": {
+            "run": "PPO",
+            "env": "AccelEnv-v0",
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "max_failures": 999,
+            "stop": {"training_iteration": 200},
+            "trial_resources": {"cpu": 1, "gpu": 0,
+                                "extra_cpu": parallel_rollouts - 1}
+        }
+    })
+    json_out_file = trials[0].logdir + '/flow_params.json'
+    with open(json_out_file, 'w') as outfile:
+        json.dump(flow_params, outfile, cls=NameEncoder,
+                  sort_keys=True, indent=4)

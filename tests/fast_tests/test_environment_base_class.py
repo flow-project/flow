@@ -385,7 +385,7 @@ class TestSimsPerStep(unittest.TestCase):
         # time before running a step
         t1 = env.time_counter
         # perform a step
-        env.step(action=[])
+        env.step(rl_actions=[])
         # time after a step
         t2 = env.time_counter
 
