@@ -5,7 +5,7 @@ cluster_name: eugene #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 2 #<NUM WORKERS IN CLUSTER>
+min_workers: 0 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
@@ -39,7 +39,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c5.4xlarge
+    InstanceType: m4.16xlarge
     ImageId: ami-b93f2fd9 # Flow AMI (Ubuntu)
 
     # Additional options in the boto docs.
@@ -49,7 +49,7 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c5.4xlarge
+    InstanceType: m4.16xlarge
     ImageId: ami-b93f2fd9 # Flow AMI (Ubuntu)
 
     # Run workers on spot by default. Comment this out to use on-demand.
