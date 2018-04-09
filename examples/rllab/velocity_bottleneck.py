@@ -47,7 +47,7 @@ vehicles.add(veh_id="followerstopper",
              lane_change_mode=1621,#0b100000101,
              num_vehicles=5*SCALING)
 
-horizon = 10000
+horizon = 100
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
                          "disable_tb": True, "disable_ramp_metering": True,
