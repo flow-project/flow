@@ -84,7 +84,7 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
 
 flow_params = dict(
     sumo=dict(
-        sim_step=0.5, sumo_binary="sumo-gui"
+        sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False
     ),
     env=dict(lane_change_duration=1, warmup_steps=80,
              sims_per_step=4, horizon=50,
@@ -148,13 +148,13 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0,
 if __name__ == '__main__':
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    n_rollouts = 50
 
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 50
-    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
+    parallel_rollouts = 30
+    n_rollouts = parallel_rollouts*6
+    ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
