@@ -148,7 +148,7 @@ if __name__ == '__main__':
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 2
+    parallel_rollouts = 40
     n_rollouts = parallel_rollouts*4
     ray.init(num_cpus=parallel_rollouts, redirect_output=False)
 
