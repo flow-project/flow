@@ -515,7 +515,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     @property
     def action_space(self):
-        return Box(low=0, high=self.max_speed, shape=(int(self.total_segments),
+        return Box(low=5.0, high=self.max_speed, shape=(int(self.total_segments),
                                                       ), dtype=np.float32)
 
     def get_state(self):
@@ -553,7 +553,10 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     controller.v_des = action
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        return self.vehicles.get_outflow_rate(20*self.sim_step)/3600
+
+        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
+            0.05*rewards.desired_velocity(self)/self.max_speed
+        return reward
 
 
 class MultiBottleNeckEnv(BottleNeckEnv):

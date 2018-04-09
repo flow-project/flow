@@ -30,7 +30,7 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-HORIZON = 100
+HORIZON = 200
 AV_FRAC = 0.99
 
 vehicle_params = [dict(veh_id="human",
@@ -38,7 +38,7 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
                        lane_change_mode=512,
-                       num_vehicles=5 * SCALING),
+                       num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
                        acceleration_controller=(FollowerStopper,
                                                 {"danger_edges": ["3", "4"]}),
@@ -46,27 +46,24 @@ vehicle_params = [dict(veh_id="human",
                        routing_controller=(ContinuousRouter, {}),
                        speed_mode=9,
                        lane_change_mode=1621,
-                       num_vehicles=5 * SCALING)]
+                       num_vehicles=1 * SCALING)]
 
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
-additional_env_params = {"target_velocity": 40,
+additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 4000 * SCALING
+flow_rate = 3600 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
-for i in range(NUM_LANES):
-    lane_num = str(i)
-    veh_per_hour = flow_rate * flow_dist[i]
-    veh_per_second = veh_per_hour / 3600
-    inflow.add(veh_type="human", edge="1",
-               probability=veh_per_second * (1 - AV_FRAC),
-               departLane=lane_num, departSpeed=23)
-    inflow.add(veh_type="followerstopper", edge="1",
-               probability=veh_per_second * AV_FRAC,
-               departLane=lane_num, departSpeed=23)
+veh_per_second = flow_rate / 3600
+inflow.add(veh_type="human", edge="1",
+           probability=veh_per_second * (1 - AV_FRAC),
+           departLane="random", departSpeed=23)
+inflow.add(veh_type="followerstopper", edge="1",
+           probability=veh_per_second * AV_FRAC,
+           departLane="random", departSpeed=23)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -84,8 +81,8 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
 
 flow_params = dict(
     sumo=dict(
-        sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False,
-        restart_instance=True
+        sim_step=0.5, sumo_binary="sumo", print_warnings=False,
+        restart_instance=False
     ),
     env=dict(lane_change_duration=1, warmup_steps=0,
              sims_per_step=1, horizon=HORIZON,
@@ -103,12 +100,10 @@ flow_params = dict(
     ))
 
 
-def make_create_env(flow_env_name, flow_params=flow_params, version=0,
-                    sumo="sumo"):
+def make_create_env(flow_env_name, flow_params=flow_params, version=0):
     env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
-    sumo_params_dict['sumo_binary'] = sumo
     sumo_params = SumoParams(**sumo_params_dict)
 
     env_params_dict = flow_params['env']
@@ -153,9 +148,9 @@ if __name__ == '__main__':
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 40
+    parallel_rollouts = 2
     n_rollouts = parallel_rollouts*4
-    ray.init(num_cpus=parallel_rollouts, redirect_output=True)
+    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
