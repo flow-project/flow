@@ -510,11 +510,13 @@ class DesiredVelocityEnv(BridgeTollEnv):
         num_obs = 0
         for segment in self.segments:
             num_obs += segment[1] * self.scenario.num_lanes(segment[0])
-        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
+        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
+                   dtype=np.float32)
 
     @property
     def action_space(self):
-        return Box(low=0, high=self.max_speed, shape=(self.total_segments,))
+        return Box(low=0, high=self.max_speed, shape=(int(self.total_segments),
+                                                      ), dtype=np.float32)
 
     def get_state(self):
         # FIXME(ev) add information about AVs)

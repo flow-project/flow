@@ -9,16 +9,12 @@ import gym
 
 import ray
 import ray.rllib.ppo as ppo
-
 from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
-from ray.rllib.models import ModelCatalog
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
-from flow.utils.tuple_preprocessor import TuplePreprocessor
-
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.scenarios.figure8.gen import Figure8Generator
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
@@ -110,10 +106,10 @@ if __name__ == "__main__":
     horizon = HORIZON
     n_rollouts = 30
 
-    # ray.init(num_cpus=num_cpus, redirect_output=True)
-    ray.init(redis_address="localhost:6379", redirect_output=False)
+    ray.init(num_cpus=1, redirect_output=True)
+    #ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 30
+    parallel_rollouts = 1
     config["num_workers"] = parallel_rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate

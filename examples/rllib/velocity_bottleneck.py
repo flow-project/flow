@@ -12,54 +12,48 @@ from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.params import SumoCarFollowingParams
-from flow.core.params import SumoLaneChangeParams
+from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 
-from rllab.envs.gym_env import GymEnv
-from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import run_experiment_lite
-from rllab.algos.trpo import TRPO
-from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+import ray
+import ray.rllib.ppo as ppo
+from ray.tune import run_experiments
+from ray.tune.logger import UnifiedLogger
+from ray.tune.registry import get_registry, register_env as register_rllib_env
+from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
 import numpy as np
+import json
+import os
+import gym
 
 SCALING = 1
-NUM_LANES = 4*SCALING  # number of lanes in the widest highway
+NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
+HORIZON = 100
+AV_FRAC = 0.25
 
-sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo-gui")
+vehicle_params = [dict(veh_id="human",
+                       speed_mode="all_checks",
+                       lane_change_controller=(SumoLaneChangeController, {}),
+                       routing_controller=(ContinuousRouter, {}),
+                       lane_change_mode=512,
+                       num_vehicles=5 * SCALING),
+                  dict(veh_id="followerstopper",
+                       acceleration_controller=(FollowerStopper,
+                                                {"danger_edges": ["3", "4"]}),
+                       lane_change_controller=(SumoLaneChangeController, {}),
+                       routing_controller=(ContinuousRouter, {}),
+                       speed_mode="custom_model",
+                       lane_change_mode=1621,
+                       num_vehicles=5 * SCALING)]
 
-vehicles = Vehicles()
-
-vehicles.add(veh_id="human",
-             speed_mode="all_checks",
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             lane_change_mode=512,#0b100000101,
-             num_vehicles=5*SCALING)
-vehicles.add(veh_id="followerstopper",
-             acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode=9,#"all_checks",
-             lane_change_mode=1621,#0b100000101,
-             num_vehicles=5*SCALING)
-
-horizon = 10000
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
-additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
+additional_env_params = {"target_velocity": 40,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
-env_params = EnvParams(additional_params=additional_env_params,
-                       lane_change_duration=1, warmup_steps=80,
-                       sims_per_step=4, horizon=50)
-
 # flow rate
 flow_rate = 4000 * SCALING
-# percentage of flow coming out of each lane
-# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
@@ -67,10 +61,11 @@ for i in range(NUM_LANES):
     lane_num = str(i)
     veh_per_hour = flow_rate * flow_dist[i]
     veh_per_second = veh_per_hour / 3600
-    inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.75,  # vehsPerHour=veh_per_hour *0.8,
+    inflow.add(veh_type="human", edge="1",
+               probability=veh_per_second * (1 - AV_FRAC),
                departLane=lane_num, departSpeed=23)
-    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * 0.25,
-               # vehsPerHour=veh_per_hour * 0.2,
+    inflow.add(veh_type="followerstopper", edge="1",
+               probability=veh_per_second * AV_FRAC,
                departLane=lane_num, departSpeed=23)
 
 traffic_lights = TrafficLights()
@@ -87,56 +82,130 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
                                edges_distribution=["2", "3", "4", "5"])
 
-scenario = BBTollScenario(name="bay_bridge_toll",
-                          generator_class=BBTollGenerator,
-                          vehicles=vehicles,
-                          net_params=net_params,
-                          initial_config=initial_config,
-                          traffic_lights=traffic_lights)
+flow_params = dict(
+    sumo=dict(
+        sim_step=0.5, sumo_binary="sumo-gui"
+    ),
+    env=dict(lane_change_duration=1, warmup_steps=80,
+             sims_per_step=4, horizon=50,
+             additional_params=additional_env_params
+             ),
+    net=dict(
+        in_flows=inflow,
+        no_internal_links=False, additional_params=additional_net_params
+    ),
+    veh=vehicle_params,
+    initial=dict(
+        spacing="uniform", min_gap=5,
+        lanes_distribution=float("inf"),
+        edges_distribution=["2", "3", "4", "5"]
+    ))
 
 
-def run_task(*_):
-    env_name = "DesiredVelocityEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params,
-                       net_params, initial_config, scenario)
+def make_create_env(flow_env_name, flow_params=flow_params, version=0,
+                    sumo="sumo"):
+    env_name = flow_env_name + '-v%s' % version
 
-    env = GymEnv(env_name, record_video=False, register_params=pass_params)
-    horizon = env.horizon
-    env = normalize(env)
+    sumo_params_dict = flow_params['sumo']
+    sumo_params_dict['sumo_binary'] = sumo
+    sumo_params = SumoParams(**sumo_params_dict)
 
-    policy = GaussianMLPPolicy(
-        env_spec=env.spec,
-        hidden_sizes=(100, 50, 25)
-    )
+    env_params_dict = flow_params['env']
+    env_params = EnvParams(**env_params_dict)
 
-    baseline = LinearFeatureBaseline(env_spec=env.spec)
+    net_params_dict = flow_params['net']
+    net_params = NetParams(**net_params_dict)
 
-    algo = TRPO(
-        env=env,
-        policy=policy,
-        baseline=baseline,
-        batch_size=40000,
-        max_path_length=horizon,
-        # whole_paths=True,
-        n_itr=400,
-        discount=0.995,
-        # step_size=0.01,
-    )
-    algo.train()
+    init_params = flow_params['initial']
 
-exp_tag = "DanBottleneckSmall"  # experiment prefix
-for seed in [1]:  # , 1, 5, 10, 73]:
-    run_experiment_lite(
-        run_task,
-        # Number of parallel workers for sampling
-        n_parallel=1,
-        # Only keep the snapshot parameters for the last iteration
-        snapshot_mode="all",
-        # Specifies the seed for the experiment. If this is not provided, a
-        # random seed will be used
-        seed=seed,
-        mode="local",
-        exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
-        # plot=True,
-    )
+    def create_env(env_config):
+        # note that the vehicles are added sequentially by the generator,
+        # so place the merging vehicles after the vehicles in the ring
+        vehicles = Vehicles()
+        for v_param in vehicle_params:
+            vehicles.add(**v_param)
+
+        initial_config = InitialConfig(**init_params)
+
+        scenario = BBTollScenario(name="bay_bridge_toll",
+                                  generator_class=BBTollGenerator,
+                                  vehicles=vehicles,
+                                  net_params=net_params,
+                                  initial_config=initial_config,
+                                  traffic_lights=traffic_lights)
+
+        pass_params = (flow_env_name, sumo_params, vehicles, env_params,
+                       net_params, initial_config, scenario, version)
+
+        register_env(*pass_params)
+        env = gym.envs.make(env_name)
+
+        return env
+
+    return create_env, env_name
+
+
+if __name__ == '__main__':
+    config = ppo.DEFAULT_CONFIG.copy()
+    horizon = HORIZON
+    n_rollouts = 50
+
+    # ray.init(num_cpus=2, redirect_output=False)
+    # replace the redis address with that output by create_or_update
+    ray.init(redis_address="localhost:6379", redirect_output=False)
+
+    parallel_rollouts = 50
+    config["num_workers"] = parallel_rollouts  # number of parallel rollouts
+    config["timesteps_per_batch"] = horizon * n_rollouts
+    config["gamma"] = 0.999  # discount rate
+    config["model"].update({"fcnet_hiddens": [16, 16]})
+
+    config["lambda"] = 0.99
+    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
+    config["kl_target"] = 0.02
+    config["num_sgd_iter"] = 10
+    config["horizon"] = horizon
+
+    flow_env_name = "DesiredVelocityEnv"
+    exp_tag = "DesiredVelocity"  # experiment prefix
+
+    flow_params['flowenv'] = flow_env_name
+    flow_params['exp_tag'] = exp_tag
+    # filename without '.py'
+    flow_params['module'] = os.path.basename(__file__)[:-3]
+
+    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0)
+
+    # Register as rllib env
+    register_rllib_env(env_name, create_env)
+
+    logger_creator = rllib_logger_creator(results_dir,
+                                          flow_env_name,
+                                          UnifiedLogger)
+
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
+                       config=config, logger_creator=logger_creator)
+
+    # Logging out flow_params to ray's experiment result folder
+    json_out_file = alg.logdir + '/flow_params.json'
+    with open(json_out_file, 'w') as outfile:
+        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+
+    trials = run_experiments({
+        "DesiredVelocity": {
+            "run": "PPO",
+            "env": "DesiredVelocityEnv-v0",
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "max_failures": 999,
+            "stop": {"training_iteration": 300},
+            "trial_resources": {"cpu": 1, "gpu": 0,
+                                "extra_cpu": parallel_rollouts-1}
+        }
+    })
+    json_out_file = trials[0].logdir + '/flow_params.json'
+    with open(json_out_file, 'w') as outfile:
+        json.dump(flow_params, outfile, cls=NameEncoder,
+                  sort_keys=True, indent=4)
