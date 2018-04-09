@@ -531,6 +531,8 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
                 num_vehicles[segment, lane_list[i]] += 1
 
+            # normalize
+            num_vehicles /= 100
             num_vehicles_list += num_vehicles.flatten().tolist()
         return np.asarray(num_vehicles_list)
 
