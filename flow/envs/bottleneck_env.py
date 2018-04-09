@@ -553,7 +553,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     controller.v_des = action
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        return self.vehicles.get_outflow_rate(20*self.sim_step)
+        return self.vehicles.get_outflow_rate(20*self.sim_step)/3600
 
 
 class MultiBottleNeckEnv(BottleNeckEnv):

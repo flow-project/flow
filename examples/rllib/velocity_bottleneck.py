@@ -31,7 +31,7 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 HORIZON = 100
-AV_FRAC = 0.25
+AV_FRAC = 0.99
 
 vehicle_params = [dict(veh_id="human",
                        speed_mode="all_checks",
@@ -87,8 +87,8 @@ flow_params = dict(
         sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False,
         restart_instance=True
     ),
-    env=dict(lane_change_duration=1, warmup_steps=80,
-             sims_per_step=4, horizon=HORIZON,
+    env=dict(lane_change_duration=1, warmup_steps=0,
+             sims_per_step=1, horizon=HORIZON,
              additional_params=additional_env_params
              ),
     net=dict(
@@ -159,8 +159,8 @@ if __name__ == '__main__':
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
-    config["gamma"] = 0.99  # discount rate
-    config["model"].update({"fcnet_hiddens": [16, 16]})
+    config["gamma"] = 0.999  # discount rate
+    config["model"].update({"fcnet_hiddens": [32, 32]})
 
     config["lambda"] = 0.99
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
