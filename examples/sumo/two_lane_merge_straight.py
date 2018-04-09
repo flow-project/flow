@@ -74,7 +74,7 @@ def twolanemergestraight(sumo_binary=None):
     inflow.add(veh_type="rl", edge="1", probability=high_flow_rate/3600 * 0.10,  # vehsPerHour=veh_per_hour *0.8,
                departLane=0, departSpeed=23)
 
-    net_params = NetParams(in_flows=inflow, no_internal_links=False)
+    net_params = NetParams(in_flows=inflow, no_internal_links=False, additional_params={"merge_type": "priority"})
 
     initial_config = InitialConfig(spacing="random", min_gap=5,
                                    lanes_distribution=float("inf"),

@@ -547,6 +547,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     controller = self.vehicles.get_acc_controller(rl_id)
                     controller.v_des = action
 
+    def compute_reward(self, state, rl_actions, **kwargs):
+        return self.vehicles.get_outflow_rate(100)
+
 
 class MultiBottleNeckEnv(BottleNeckEnv):
     """Multiagent environment used to train vehicles

@@ -10,18 +10,22 @@ class TwoLaneStraightMergeGenerator(Generator):
         """
         See parent class
         """
+        merge_type = "zipper"
+        if 'merge_type' in net_params.additional_params:
+            merge_type = net_params.additional_params['merge_type']
+
         nodes = [{"id": "1", "x": "0",   "y": "0"},  # pre-toll
-                 {"id": "2", "x": "300", "y": "0", "type": "priority"},  # merge
-                 {"id": "3", "x": "600", "y": "0"}]  # post-merge2
+                 {"id": "2", "x": "250", "y": "0", "type": merge_type},  # merge
+                 {"id": "3", "x": "400", "y": "0"}]  # post-merge2
         return nodes
 
     def specify_edges(self, net_params):
         """
         See parent class
         """
-        edges = [{"id": "1", "from": "1", "to": "2", "length": "300",  #
+        edges = [{"id": "1", "from": "1", "to": "2", "length": "200",  #
                   "spreadType": "center", "numLanes": "2", "speed": "23"},
-                 {"id": "2", "from": "2", "to": "3", "length": "300",  # DONE
+                 {"id": "2", "from": "2", "to": "3", "length": "200",  # DONE
                   "spreadType": "center", "numLanes": "1", "speed": "23"}]
         return edges
 
