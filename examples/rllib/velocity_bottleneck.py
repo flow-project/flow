@@ -150,11 +150,12 @@ if __name__ == '__main__':
     horizon = HORIZON
     n_rollouts = 50
 
-    # ray.init(num_cpus=2, redirect_output=False)
     # replace the redis address with that output by create_or_update
-    ray.init(redis_address="localhost:6379", redirect_output=False)
+    # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 50
+    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
+
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
