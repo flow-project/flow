@@ -622,12 +622,6 @@ class Env(gym.Env, Serializable):
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i]*self.sim_step, 0])
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
-                if vid == 'flow_1.3':
-                    print('accel is', acc[i])
-                    print('this speed', this_vel)
-                    print('next speed', next_vel)
-                    print('speed without traci', self.traci_connection.vehicle.getSpeedWithoutTraCI(vid))
-
             else:
                 self.traci_connection.vehicle.setSpeed(vid, -1)
 
