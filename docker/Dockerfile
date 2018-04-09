@@ -89,8 +89,8 @@ RUN echo "source activate flow" >> /root/.bashrc
 ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
-
-RUN pip install --upgrade tensorflow
+RUN pip install --upgrade pip
+RUN pip install tensorflow --upgrade --ignore-installed
 
 RUN apt-get install -y libopenblas-dev
 RUN printf "[blas]\nldflags = -lopenblas\n" > ~/.theanorc
