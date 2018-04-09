@@ -532,7 +532,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 num_vehicles[segment, lane_list[i]] += 1
 
             # normalize
-            num_vehicles /= 100
+            num_vehicles /= 20
             num_vehicles_list += num_vehicles.flatten().tolist()
         return np.asarray(num_vehicles_list)
 
