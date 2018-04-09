@@ -94,15 +94,11 @@ class BaseController:
 
         # run the failsafes, if requested
         if self.fail_safe == 'instantaneous':
-            safe_accel = self.get_safe_action_instantaneous(env, accel)
+            accel = self.get_safe_action_instantaneous(env, accel)
         elif self.fail_safe == 'safe_velocity':
-            safe_accel = self.get_safe_velocity_action(env, accel)
+            accel = self.get_safe_velocity_action(env, accel)
 
-        # if safety isn't the most important thing, use accel bounds
-        if np.isclose(safe_accel, accel):
-            return max(min(accel, self.max_accel), -1 * self.max_deaccel)
-        else:
-            return safe_accel
+        return accel
 
     def get_safe_action_instantaneous(self, env, action):
         """
