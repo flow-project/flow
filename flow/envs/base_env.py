@@ -197,6 +197,10 @@ class Env(gym.Env, Serializable):
             sumo_call.append("--seed")
             sumo_call.append(str(self.sumo_params.seed))
 
+        if not self.sumo_params.print_warnings:
+            sumo_call.append("--no-warnings")
+            sumo_call.append("true")
+
         logging.info(" Starting SUMO on port " + str(port))
         logging.debug(" Cfg file: " + str(self.scenario.cfg))
         logging.debug(" Emission file: " + str(emission_out))
