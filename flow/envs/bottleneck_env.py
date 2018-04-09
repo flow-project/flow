@@ -487,23 +487,34 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def __init__(self, env_params, sumo_params, scenario):
 
-        default = [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)]
+        default = [("1", 1, True), ("2", 1, True), ("3", 1, True), ("4", 1, True), ("5", 1, True)]
         super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
         self.segments = self.env_params.additional_params.get("segments", default)
         self.num_segments = [segment[1] for segment in self.segments]
-        self.controlled_edges = [segment[0] for segment in self.segments]
-        self.total_segments = np.sum([segment[1] for segment in self.segments])
+        self.num_controlled_segments = [segment[1] for segment in self.segments if segment[2]]
+        self.controlled_edges = [segment[0] for segment in self.segments if segment[2]]
+        print(self.controlled_edges)
+        self.total_segments = np.sum([segment[1] for segment in self.segments if segment[2]])
+        print(self.total_segments)
         # for convenience, construct the relevant positions we are looking for
         self.slices = {}
-        for edge, num_segments in self.segments:
+        for edge, num_segments, controlled_status in self.segments:
             edge_length = self.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments)
 
         # construct an indexing to be used for figuring out which
         # action is useful
         self.action_index = [0]
-        for i, segment in enumerate(self.num_segments[:-1]):
-            self.action_index += [self.action_index[i] + segment]
+        i = 0  # counter variable
+        # TODO(nskh): naming convention for segments is confusing af 
+        for segment in self.segments[:-1]:  # all but the last edge
+            if segment[2]:  # if a controlled edge
+                # segment[1] is number of segments for that edge
+                next_action_ind = self.action_index[i] + segment[1]
+            else:  # if not a controlled segment
+                next_action_ind = self.action_index[i]
+            self.action_index += [next_action_ind]
+            i += 1
 
     @property
     def observation_space(self):
@@ -515,8 +526,8 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     @property
     def action_space(self):
-        return Box(low=0, high=self.max_speed, shape=(int(self.total_segments),
-                                                      ), dtype=np.float32)
+        return Box(low=0, high=self.max_speed, 
+                   shape=(int(self.total_segments),), dtype=np.float32)
 
     def get_state(self):
         # FIXME(ev) add information about AVs)
@@ -540,8 +551,10 @@ class DesiredVelocityEnv(BridgeTollEnv):
                    if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
         for rl_id in veh_ids:
             edge = self.vehicles.get_edge(rl_id)
+            lane = self.vehicles.get_lane(rl_id)
             if edge:
-                if edge[0] != ':' and edge in self.controlled_edges:
+                # If in outer lanes and on a controlled edge
+                if edge[0] != ':' and edge in self.controlled_edges and lane in [0, 3]:
                     pos = self.vehicles.get_position(rl_id)
                     # find what segment we fall into
                     bucket = np.searchsorted(self.slices[edge], pos) - 1
