@@ -87,7 +87,7 @@ flow_params = dict(
         sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False
     ),
     env=dict(lane_change_duration=1, warmup_steps=80,
-             sims_per_step=4, horizon=50,
+             sims_per_step=4, horizon=HORIZON,
              additional_params=additional_env_params
              ),
     net=dict(
