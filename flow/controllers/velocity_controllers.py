@@ -18,7 +18,8 @@ class FollowerStopper(BaseController):
         max_accel: float, optional
             maximum achievable acceleration by the vehicle (m/s^2)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0,
+                                fail_safe='safe_velocity')
 
         # desired speed of the vehicle
         self.v_des = v_des
