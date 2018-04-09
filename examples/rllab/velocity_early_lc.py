@@ -29,7 +29,7 @@ NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 
-sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
@@ -51,13 +51,13 @@ horizon = 100
 segments = [("1", 1, False), ("2", 1, False), ("3", 2, True), ("4", 1, False), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
                          "disable_tb": True, "disable_ramp_metering": True,
-                         "segments": segments}
+                         "segments": segments, 'lanes':[1, 2]}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1, warmup_steps=80,
                        sims_per_step=4, horizon=50)
 
 # flow rate
-flow_rate = 4000 * SCALING
+flow_rate = 3500 * SCALING
 # percentage of flow coming out of each lane
 # flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
@@ -119,7 +119,7 @@ def run_task(*_):
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
-        discount=0.995,
+        discount=0.999,
         # step_size=0.01,
     )
     algo.train()
@@ -135,7 +135,7 @@ for seed in [1]:  # , 1, 5, 10, 73]:
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,

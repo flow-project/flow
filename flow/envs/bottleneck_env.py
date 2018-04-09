@@ -35,6 +35,7 @@ ENV_PARAMS = [
     "num_steps",  # horizon
     "add_rl_if_exit",  # if an RL vehicle exits, place it back at the front
     "segments", # number of regions for velocity bottleneck controller
+    "lanes", # controlled lanes for EarlyLC experiments
 ]
 
 NET_PARAMS = [
@@ -493,9 +494,8 @@ class DesiredVelocityEnv(BridgeTollEnv):
         self.num_segments = [segment[1] for segment in self.segments]
         self.num_controlled_segments = [segment[1] for segment in self.segments if segment[2]]
         self.controlled_edges = [segment[0] for segment in self.segments if segment[2]]
-        print(self.controlled_edges)
         self.total_segments = np.sum([segment[1] for segment in self.segments if segment[2]])
-        print(self.total_segments)
+        self.controlled_lanes = self.env_params.additional_params.get("lanes", [0, 3])
         # for convenience, construct the relevant positions we are looking for
         self.slices = {}
         for edge, num_segments, controlled_status in self.segments:
@@ -554,7 +554,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
             lane = self.vehicles.get_lane(rl_id)
             if edge:
                 # If in outer lanes and on a controlled edge
-                if edge[0] != ':' and edge in self.controlled_edges and lane in [0, 3]:
+                if edge[0] != ':' and edge in self.controlled_edges and lane in self.controlled_lanes:
                     pos = self.vehicles.get_position(rl_id)
                     # find what segment we fall into
                     bucket = np.searchsorted(self.slices[edge], pos) - 1
