@@ -44,7 +44,7 @@ vehicle_params = [dict(veh_id="human",
                                                 {"danger_edges": ["3", "4"]}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       speed_mode=25,
+                       speed_mode=9,
                        lane_change_mode=1621,
                        num_vehicles=5 * SCALING)]
 
