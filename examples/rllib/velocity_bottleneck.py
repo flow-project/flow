@@ -152,13 +152,13 @@ if __name__ == '__main__':
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 30
-    n_rollouts = parallel_rollouts*6
+    parallel_rollouts = 40
+    n_rollouts = parallel_rollouts*2
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
-    config["gamma"] = 0.999  # discount rate
+    config["gamma"] = 0.99  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16]})
 
     config["lambda"] = 0.99
