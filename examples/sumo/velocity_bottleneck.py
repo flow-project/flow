@@ -43,12 +43,13 @@ def bottleneck(sumo_binary=None):
     vehicles.add(veh_id="followerstopper",
                  speed_mode="custom_model",
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 2, 2, 2, None, None, None, None, None]}),
+                 acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 5, 1, 60, 60, 60, 60, 60, 60]}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
-    horizon = 100
+
+    horizon = 1000
     num_segments = [("1", 1), ("2", 3), ("3", 1), ("4", 1), ("5", 1)]
     additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                              "disable_tb": True, "disable_ramp_metering": True,
@@ -59,7 +60,7 @@ def bottleneck(sumo_binary=None):
     # flow rate
 
     # MAX OF 3600 vehicles per lane per hour i.e. flow_rate <= 3600 *
-    flow_rate = 4000 * SCALING
+    flow_rate = 2300 * SCALING
     # percentage of flow coming out of each lane
     # flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
     flow_dist = np.ones(NUM_LANES)/NUM_LANES
@@ -107,4 +108,4 @@ if __name__ == "__main__":
     exp = bottleneck(sumo_binary="sumo-gui")
 
     # run for a set number of rollouts / time steps
-    exp.run(10, 500)
+    exp.run(5, 1000)
