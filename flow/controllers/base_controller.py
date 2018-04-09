@@ -98,6 +98,7 @@ class BaseController:
         elif self.fail_safe == 'safe_velocity':
             safe_accel = self.get_safe_velocity_action(env, accel)
 
+        # if safety isn't the most important thing, use accel bounds
         if np.isclose(safe_accel, accel):
             return max(min(accel, self.max_accel), -1 * self.max_deaccel)
         else:
