@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 50
-    ray.init(num_cpus=parallel_rollouts, redirect_output=True)
+    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
