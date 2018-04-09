@@ -2,6 +2,7 @@ from flow.controllers.base_controller import BaseController
 from flow.core.params import SumoCarFollowingParams
 
 class RLController(BaseController):
+
     def __init__(self, veh_id, sumo_cf_params, time_delay=0, fail_safe=None):
         """Instantiates an RL Controller.
 

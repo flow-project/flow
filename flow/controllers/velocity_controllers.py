@@ -18,7 +18,6 @@ class FollowerStopper(BaseController):
         max_accel: float, optional
             maximum achievable acceleration by the vehicle (m/s^2)
         """
-
         BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
         # desired speed of the vehicle
@@ -81,8 +80,8 @@ class FollowerStopper(BaseController):
             return None
 
         if self.find_intersection_dist(env) <= 10 and \
-                env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
-                env.vehicles.get_edge(self.veh_id)[0] == ":":
+                        env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
+                        env.vehicles.get_edge(self.veh_id)[0] == ":":
             return None
         else:
             # compute the acceleration from the desired velocity
