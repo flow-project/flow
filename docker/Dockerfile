@@ -90,7 +90,7 @@ ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
 
-RUN pip install --ignore-installed --upgrade tensorflow
+RUN pip install --upgrade tensorflow
 
 RUN apt-get install -y libopenblas-dev
 RUN printf "[blas]\nldflags = -lopenblas\n" > ~/.theanorc
