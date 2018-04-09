@@ -44,7 +44,7 @@ vehicle_params = [dict(veh_id="human",
                                                 {"danger_edges": ["3", "4"]}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       speed_mode="custom_model",
+                       speed_mode=25,
                        lane_change_mode=1621,
                        num_vehicles=5 * SCALING)]
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 50
-    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
+    ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
