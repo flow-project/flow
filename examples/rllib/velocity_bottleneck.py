@@ -89,9 +89,9 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
 flow_params = dict(
     sumo=dict(
         sim_step=0.5, sumo_binary="sumo", print_warnings=False,
-        restart_instance=True
+        restart_instance=False
     ),
-    env=dict(lane_change_duration=1, warmup_steps=0,
+    env=dict(lane_change_duration=1, warmup_steps=40,
              sims_per_step=1, horizon=HORIZON,
              additional_params=additional_env_params
              ),
