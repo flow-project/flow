@@ -86,7 +86,6 @@ RUN conda env create -f /root/code/environment.yml
 ENV PYTHONPATH /root/code/rllab:$PYTHONPATH
 ENV PATH /opt/conda/envs/flow/bin:$PATH
 RUN echo "source activate flow" >> /root/.bashrc
-RUN echo "python --version"
 ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
