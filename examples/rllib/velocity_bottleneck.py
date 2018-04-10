@@ -56,14 +56,20 @@ additional_env_params = {"target_velocity": 55.0,
 flow_rate = 3600 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
+# percentage of flow coming out of each lane
+# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
+flow_dist = np.ones(NUM_LANES) / NUM_LANES
+
 inflow = InFlows()
-veh_per_second = flow_rate / 3600
-inflow.add(veh_type="human", edge="1",
-           probability=veh_per_second * (1 - AV_FRAC),
-           departLane="random", departSpeed=23)
-inflow.add(veh_type="followerstopper", edge="1",
-           probability=veh_per_second * AV_FRAC,
-           departLane="random", departSpeed=23)
+for i in range(NUM_LANES):
+    lane_num = str(i)
+    veh_per_hour = flow_rate * flow_dist[i]
+    veh_per_second = veh_per_hour / 3600
+    inflow.add(veh_type="human", edge="1", probability=veh_per_second * (1-AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
+               departLane="random", departSpeed=23)
+    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * AV_FRAC,
+               # vehsPerHour=veh_per_hour * 0.2,
+               departLane="random", departSpeed=23)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
