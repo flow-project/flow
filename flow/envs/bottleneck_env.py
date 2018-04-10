@@ -492,7 +492,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         self.segments = self.env_params.additional_params.get("segments", default)
         self.num_segments = [segment[1] for segment in self.segments]
         self.controlled_edges = [segment[0] for segment in self.segments]
-        self.total_segments = np.sum([segment[1] for segment in self.segments])
+        self.total_segments = int(np.sum([segment[1] for segment in self.segments]))
         # for convenience, construct the relevant positions we are looking for
         self.slices = {}
         for edge, num_segments in self.segments:
@@ -510,6 +510,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         num_obs = 0
         for segment in self.segments:
             num_obs += segment[1] * self.scenario.num_lanes(segment[0])
+        num_obs += self.total_segments
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
                    dtype=np.float32)
 
@@ -521,6 +522,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def get_state(self):
         # FIXME(ev) add information about AVs)
         num_vehicles_list = []
+        segment_speeds = np.zeros((self.total_segments, 2))
         for i, edge in enumerate(EDGE_LIST):
             num_lanes = self.scenario.num_lanes(edge)
             num_vehicles = np.zeros((self.num_segments[i], num_lanes))
@@ -530,11 +532,15 @@ class DesiredVelocityEnv(BridgeTollEnv):
             for i, id in enumerate(ids):
                 segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
                 num_vehicles[segment, lane_list[i]] += 1
+                segment_speeds[segment][0] = self.vehicles.get_speed(id)
+                segment_speeds[segment][1] += 1
 
             # normalize
             num_vehicles /= 20
             num_vehicles_list += num_vehicles.flatten().tolist()
-        return np.asarray(num_vehicles_list)
+        mean_speed = np.nan_to_num([segment_speeds[i][0]/segment_speeds[i][1]
+                      for i in range(self.total_segments)])
+        return np.concatenate((num_vehicles_list, mean_speed))
 
     def _apply_rl_actions(self, actions):
         rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
@@ -556,7 +562,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def compute_reward(self, state, rl_actions, **kwargs):
 
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
-            0.05*rewards.desired_velocity(self)/self.max_speed
+            0.01*rewards.desired_velocity(self)/self.max_speed
         return reward
 
 

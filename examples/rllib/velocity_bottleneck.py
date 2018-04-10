@@ -88,7 +88,7 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
 
 flow_params = dict(
     sumo=dict(
-        sim_step=0.5, sumo_binary="sumo", print_warnings=False,
+        sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False,
         restart_instance=False
     ),
     env=dict(lane_change_duration=1, warmup_steps=40,
