@@ -213,13 +213,12 @@ def punish_queues_in_lane(env, lane, penalty_gain=1, penalty_exponent=1):
     """
 
     # IDs of all vehicles in passed-in lane
-    # FIXME(nskh) make this not hardcoded
+    # FIXME(nskh): make this not hardcoded
     lane_ids = [veh_id for veh_id in env.vehicles.get_human_ids() \
         if env.vehicles.get_lane(veh_id) == lane\
            and env.vehicles.get_edge(veh_id) == '3']
 
-
-    # might extend to edge 2
+    # TODO(nskh): extend to edge 2?
 
     return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
 

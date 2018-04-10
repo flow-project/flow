@@ -34,8 +34,9 @@ ENV_PARAMS = [
     "target_velocity",  # velocity to use in reward functions
     "num_steps",  # horizon
     "add_rl_if_exit",  # if an RL vehicle exits, place it back at the front
-    "segments", # number of regions for velocity bottleneck controller
-    "lanes", # controlled lanes for EarlyLC experiments
+    "segments",  # number of regions for velocity bottleneck controller
+    "lanes",  # controlled lanes for EarlyLC experiments
+    "symmetric",  # whether lanes in a segment have the same action or not
 ]
 
 NET_PARAMS = [
@@ -491,19 +492,26 @@ class DesiredVelocityEnv(BridgeTollEnv):
         default = [("1", 1, True), ("2", 1, True), ("3", 1, True), ("4", 1, True), ("5", 1, True)]
         super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
         self.segments = self.env_params.additional_params.get("segments", default)
+
         self.num_segments = [segment[1] for segment in self.segments]
         self.num_controlled_segments = [segment[1] for segment in self.segments if segment[2]]
         self.controlled_edges = [segment[0] for segment in self.segments if segment[2]]
         self.total_segments = np.sum([segment[1] for segment in self.segments if segment[2]])
+        
         self.controlled_lanes = self.env_params.additional_params.get("lanes", [0, 3])
-        # for convenience, construct the relevant positions we are looking for
-        self.slices = {}
+        # self.symmetric = True if all lanes in a segment have same action, else False
+        self.symmetric = self.env_params.additional_params.get("symmetric", True)
+
+        # for convenience, construct the relevant positions defining segments within edges
+        # self.slices is a dictionary mapping 
+            # edge (str) -> segment start location (list of int)
+        self.slices = {}  
         for edge, num_segments, controlled_status in self.segments:
             edge_length = self.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments)
 
         # construct an indexing to be used for figuring out which
-        # action is useful
+        # action is useful for the segment in question
         self.action_index = [0]
         i = 0  # counter variable
         # TODO(nskh): naming convention for segments is confusing af 
@@ -516,6 +524,12 @@ class DesiredVelocityEnv(BridgeTollEnv):
             self.action_index += [next_action_ind]
             i += 1
 
+        # contruct an indexing to be used for figuring out which
+        # set of actions apply to a lane
+        self.lane_index = {lane:ind*self.total_segments  \
+                              for ind,lane  \
+                              in enumerate(self.controlled_lanes)}
+
     @property
     def observation_space(self):
         num_obs = 0
@@ -526,8 +540,13 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     @property
     def action_space(self):
+        if self.symmetric:
+            action_size = int(self.total_segments)
+        else:
+            action_size = int(self.total_segments * len(self.controlled_lanes))
         return Box(low=0, high=self.max_speed, 
-                   shape=(int(self.total_segments),), dtype=np.float32)
+                   shape=(action_size,), 
+                   dtype=np.float32)
 
     def get_state(self):
         # FIXME(ev) add information about AVs)
@@ -553,12 +572,21 @@ class DesiredVelocityEnv(BridgeTollEnv):
             edge = self.vehicles.get_edge(rl_id)
             lane = self.vehicles.get_lane(rl_id)
             if edge:
-                # If in outer lanes and on a controlled edge
+                # If in outer lanes, on a controlled edge, in a controlled lane
                 if edge[0] != ':' and edge in self.controlled_edges and lane in self.controlled_lanes:
                     pos = self.vehicles.get_position(rl_id)
-                    # find what segment we fall into
-                    bucket = np.searchsorted(self.slices[edge], pos) - 1
-                    action = actions[bucket + self.action_index[int(edge) - 1]]
+
+                    if not self.symmetric:
+                        action_start = self.lane_index[lane]
+                        lane_actions = actions[action_start:action_start+self.total_segments]
+
+                        bucket = np.searchsorted(self.slices[edge], pos) - 1
+                        action = lane_actions[bucket + self.action_index[int(edge) - 1]]
+                    else:
+                        # find what segment we fall into
+                        bucket = np.searchsorted(self.slices[edge], pos) - 1
+                        action = actions[bucket + self.action_index[int(edge) - 1]]
+
                     # set the desired velocity of the controller to the action
                     controller = self.vehicles.get_acc_controller(rl_id)
                     controller.v_des = action
