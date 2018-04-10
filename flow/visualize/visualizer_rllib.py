@@ -83,6 +83,9 @@ optional_named.add_argument(
     '--flowenv', type=str, default='',
     help='Flowenv being used')
 optional_named.add_argument(
+    '--use_sumogui', type=bool, default=True,
+    help='Visualize in the guy')
+optional_named.add_argument(
     '--exp_tag', type=str, default='',
     help='Experiment tag')
 
@@ -115,9 +118,15 @@ if __name__ == "__main__":
     # Overwrite config for rendering purposes
     config["num_workers"] = 1
 
+    # Overwrite the visualizer
+    if args.use_sumogui:
+        flow_params['sumo_binary'] = 'sumo_gui'
+    else:
+        flow_params['sumo_binary'] = 'sumo'
+
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, sumo="sumo-gui")
+                                           version=0)
     register_rllib_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
