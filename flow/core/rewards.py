@@ -165,20 +165,94 @@ def punish_small_rl_headways(vehicles, rl_ids, headway_threshold,
     return -np.abs(headway_penalty)
 
 
-def punish_rl_lane_changes(vehicles, rl_ids, penalty=1):
+def punish_rl_lane_changes(env, penalty=1):
     """
     A reward function that minimizes lane changes by producing a penalty
     every time an rl vehicle performs one.
-
-    :param vehicles {dict} - contains the state of all vehicles in the
-    network (generally self.vehicles)
-    :param penalty {float} - penalty imposed on the reward function
-    every time a
-    :return:
+    
+    Parameters
+    ----------
+    env : Environment
+        Contains the state of the environment at a time-step
+    penalty : int, optional
+        Cost of a lane-change by the RL vehicle
+    
+    Returns
+    -------
+    int
+        total reward (in this case a negative cost) corresponding to the 
+        RL car lane changes in that time-step.
     """
     total_lane_change_penalty = 0
-    for veh_id in rl_ids:
-        if vehicles[veh_id]["last_lc"] == self.timer:  # FIXME
+    for veh_id in env.vehicles.get_rl_ids():
+        if env.vehicles.get_state(veh_id, "last_lc") == env.time_counter:  # FIXME
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
+
+def punish_queues_in_lane(env, lane, penalty_gain=1, penalty_exponent=1):
+    """
+    Reward function punishing queues in certain lanes of edge '3'
+        
+    Parameters
+    ----------
+    env : Environment
+        Contains the state of the environment at a time-step
+    lane : int
+        The lane in which to penalize queues
+    penalty_gain : int, optional
+        Multiplier on number of cars in the lane
+    penalty_exponent : int, optional
+        Exponent on number of cars in the lane
+    
+    Returns
+    -------
+    int
+        total reward (in this case a negative cost) corresponding
+        to the queues in the lane in question
+    """
+
+    # IDs of all vehicles in passed-in lane
+    # FIXME(nskh) make this not hardcoded
+    lane_ids = [veh_id for veh_id in env.vehicles.get_human_ids() \
+        if env.vehicles.get_lane(veh_id) == lane\
+           and env.vehicles.get_edge(veh_id) == '3']
+
+
+    # might extend to edge 2
+
+    return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
+
+def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
+    """
+    Reward function that rewards RL vehicles opening large headways.
+    
+    Parameters
+    ----------
+    env : Environment
+        SUMO environment
+    reward_gain : int, optional
+        Multiplicative gain on reward
+    reward_exponent : int, optional
+        Exponent gain on reward
+    
+    Returns
+    -------
+    int
+        Reward value
+    """
+    total_reward = 0
+    for rl_id in env.vehicles.get_rl_ids():
+        follower_id = env.vehicles.get_follower(rl_id)
+        if not follower_id:
+            continue
+        follower_headway = env.vehicles.get_headway(follower_id)
+        if follower_headway < 0:
+            print('negative follower headway of:', follower_headway)
+            print('rl id:', rl_id)
+            print('follower id:',follower_id)
+        total_reward += follower_headway ** reward_exponent
+    # print(total_reward)
+    if total_reward < 0:
+        print('negative total reward of:', total_reward)
+    return total_reward * reward_gain
