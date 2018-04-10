@@ -538,7 +538,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def _apply_rl_actions(self, actions):
         rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
-        print(rl_actions)
         # FIXME(ev) make it so that you don't have to control everrrry edge
         veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
                    if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
