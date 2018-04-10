@@ -123,6 +123,7 @@ if __name__ == "__main__":
     agent_cls = get_agent_class(args.run)
     agent = agent_cls(env=env_name, registry=get_registry(), config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
+    import ipdb; ipdb.set_trace()
     agent.restore(checkpoint)
 
     # Create and register a new gym environment for rendering rollout
