@@ -84,6 +84,10 @@ ADD environment.yml /root/code/environment.yml
 RUN conda env create -f /root/code/environment.yml
 
 ENV PYTHONPATH /root/code/rllab:$PYTHONPATH
+ENV PYTHONPATH /root/code/rllab/flow:$PYTHONPATH
+ENV PYTHONPATH /root/code/flow:$PYTHONPATH
+ENV PYTHONPATH /root/code/rllab/learning-traffic:$PYTHONPATH
+ENV PYTHONPATH /root/code/rllab/learning-traffic/flow:$PYTHONPATH
 ENV PATH /opt/conda/envs/flow/bin:$PATH
 RUN echo "source activate flow" >> /root/.bashrc
 ENV BASH_ENV /root/.bashrc
