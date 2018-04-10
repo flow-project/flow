@@ -117,14 +117,13 @@ if __name__ == "__main__":
 
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, sumo="sumo")
+                                           version=0, sumo="sumo-gui")
     register_rllib_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
     agent = agent_cls(env=env_name, registry=get_registry(), config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
-    import ipdb; ipdb.set_trace()
-    agent.restore(checkpoint)
+    agent._restore(checkpoint)
 
     # Create and register a new gym environment for rendering rollout
     create_render_env, env_render_name = make_create_env(flow_env_name,
@@ -138,8 +137,8 @@ if __name__ == "__main__":
         done = False
         ret = 0
         while not done:
-            if isinstance(state, list):
-                state = np.concatenate(state)
+            # if isinstance(state, list):
+            #     state = np.concatenate(state)
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward

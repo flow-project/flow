@@ -112,12 +112,12 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0,
     env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
+    sumo_params_dict['sumo_binary'] = sumo
     sumo_params = SumoParams(**sumo_params_dict)
 
     env_params_dict = flow_params['env']
     env_params = EnvParams(**env_params_dict)
 
-    import ipdb; ipdb.set_trace()
     net_params_dict = flow_params['net']
     net_params = NetParams(**net_params_dict)
 
