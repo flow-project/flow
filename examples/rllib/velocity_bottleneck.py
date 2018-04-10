@@ -158,13 +158,13 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 40
-    n_rollouts = parallel_rollouts*4
+    n_rollouts = parallel_rollouts*1
     ray.init(num_cpus=parallel_rollouts, redirect_output=False)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32]})
+    config["model"].update({"fcnet_hiddens": [256, 256]})
 
     config["lambda"] = 0.99
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
