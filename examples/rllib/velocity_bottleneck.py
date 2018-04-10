@@ -165,7 +165,7 @@ if __name__ == '__main__':
     config["model"].update({"fcnet_hiddens": [32, 32]})
 
     config["lambda"] = 0.99
-    config["sgd_batchsize"] = min(4 * 1024, config["timesteps_per_batch"])
+    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 30
     config["horizon"] = horizon
