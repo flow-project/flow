@@ -539,7 +539,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
             num_vehicles /= 20
             num_vehicles_list += num_vehicles.flatten().tolist()
         mean_speed = np.nan_to_num([segment_speeds[i][0]/segment_speeds[i][1]
-                      for i in range(self.total_segments)])
+                      for i in range(self.total_segments)])/50
         return np.concatenate((num_vehicles_list, mean_speed))
 
     def _apply_rl_actions(self, actions):
