@@ -27,7 +27,7 @@ def bottleneck(sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui", overtake_right=False)
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary, overtake_right=False)
 
     vehicles = Vehicles()
 
@@ -43,7 +43,7 @@ def bottleneck(sumo_binary=None):
     vehicles.add(veh_id="followerstopper",
                  speed_mode="custom_model",
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 5, 1, 60, 60, 60, 60, 60, 60]}),
+                 # acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 5, 1, 60, 60, 60, 60, 60, 60]}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
@@ -108,4 +108,7 @@ if __name__ == "__main__":
     exp = bottleneck(sumo_binary="sumo-gui")
 
     # run for a set number of rollouts / time steps
-    exp.run(5, 1000)
+    exp.run(5, 2500)
+    print(exp.rollout_total_rewards)
+    # print(exp.per_step_rewards[0])
+    # np.savetxt("rets.csv", np.array(exp.per_step_rewards), delimiter=",")
