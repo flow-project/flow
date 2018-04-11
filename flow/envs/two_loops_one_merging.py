@@ -110,7 +110,6 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
                     dtype=np.float32)
         absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,),
                            dtype=np.float32)
-        # dist_to_merge = Box(low=-1, high=1, shape=(1,))
         queue_length = Box(low=0, high=np.inf, shape=(1,),
                            dtype=np.float32)
         vel_stats = Box(low=-np.inf, high=np.inf, shape=(2,),
@@ -133,7 +132,8 @@ class TwoLoopsMergePOEnv(TwoLoopsMergeEnv):
             """
             return Box(low=-np.abs(self.env_params.max_decel),
                        high=self.env_params.max_accel,
-                       shape=(self.vehicles.num_rl_vehicles,))
+                       shape=(self.vehicles.num_rl_vehicles,),
+                       dtype=np.float32)
 
     def lane_change_action_space(self):
         """

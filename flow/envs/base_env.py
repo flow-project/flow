@@ -319,7 +319,7 @@ class Env(gym.Env, Serializable):
         # store the network observations in the vehicles class
         self.vehicles.update(vehicle_obs, id_lists, self)
 
-    def _step(self, rl_actions):
+    def step(self, rl_actions):
         """
         Run one timestep of the environment's dynamics. An autonomous agent
         (i.e. autonomous vehicles) performs an action provided by the RL
@@ -430,7 +430,7 @@ class Env(gym.Env, Serializable):
 
         return next_observation, reward, crash, {}
 
-    def _reset(self):
+    def reset(self):
         """
         Resets the state of the environment, and re-initializes the vehicles in
         their starting positions. In "vehicle_arrangement_shuffle" is set to
@@ -572,7 +572,7 @@ class Env(gym.Env, Serializable):
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
-            observation, _, _, _ = self._step(rl_actions=[])
+            observation, _, _, _ = self.step(rl_actions=[])
 
         return observation
 
