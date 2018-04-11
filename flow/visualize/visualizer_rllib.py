@@ -108,7 +108,7 @@ if __name__ == "__main__":
         flow_env_name = args.flowenv
         exp_tag = args.exp_tag
     else:
-        flow_params, make_create_env = get_flow_params(result_dir)
+        flow_params, make_create_env = get_flow_params(config)
 
         flow_env_name = flow_params['flowenv']
         exp_tag = flow_params['exp_tag']
