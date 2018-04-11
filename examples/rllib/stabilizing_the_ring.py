@@ -52,8 +52,8 @@ from flow.core.vehicles import Vehicles
 HORIZON = 100
 
 additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                         "max-acc": 1, 
-                         "scenario_type": LoopScenario} # Any way to avoid specifying this here? - nish
+                         "max-acc": 1,
+                         "scenario_type": LoopScenario}  # Any way to avoid specifying this here? - nish
 additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                          "resolution": 40}
 vehicle_params = [dict(veh_id="rl",
@@ -64,29 +64,29 @@ vehicle_params = [dict(veh_id="rl",
                        acceleration_controller=(IDMController, {}),
                        routing_controller=(ContinuousRouter, {}),
                        num_vehicles=21)
-                 ]
+                  ]
 
 flow_params = dict(
-                sumo=dict(
-                    sim_step=0.1
-                  ),
-                env=dict(
-                    horizon=HORIZON,
-                    additional_params=additional_env_params
-                  ),
-                net=dict(
-                    no_internal_links=False,
-                    additional_params=additional_net_params
-                  ),
-                veh=vehicle_params,
-                initial=dict(
-                    spacing="uniform", bunching=30, min_gap=0
-                  )
-              )
+    sumo=dict(
+        sim_step=0.1
+    ),
+    env=dict(
+        horizon=HORIZON,
+        additional_params=additional_env_params
+    ),
+    net=dict(
+        no_internal_links=False,
+        additional_params=additional_net_params
+    ),
+    veh=vehicle_params,
+    initial=dict(
+        spacing="uniform", bunching=30, min_gap=0
+    )
+)
 
 
 def make_create_env(flow_env_name, flow_params=flow_params, version=0, exp_tag="example", sumo="sumo"):
-    env_name = flow_env_name+'-v%s' % version
+    env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
     sumo_params_dict['sumo_binary'] = sumo
@@ -123,18 +123,19 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0, exp_tag="
         env = gym.envs.make(env_name)
 
         return env
+
     return create_env, env_name
+
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 3
-    n_rollouts = 3
+    n_rollouts = 100
+    parallel_rollouts = 40
+    # ray.init(redirect_output=True)
+    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
 
-    ray.init(redirect_output=True)
-    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
-
-    config["num_workers"] = num_cpus
+    config["num_workers"] = parallel_rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16]})
@@ -158,11 +159,11 @@ if __name__ == "__main__":
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
-    logger_creator = rllib_logger_creator(results_dir, 
-                                          flow_env_name, 
+    logger_creator = rllib_logger_creator(results_dir,
+                                          flow_env_name,
                                           UnifiedLogger)
 
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), 
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
     # Logging out flow_params to ray's experiment result folder
@@ -171,7 +172,7 @@ if __name__ == "__main__":
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
     trials = run_experiments({
-        "pendulum_tests": {
+        "ring_stabilize": {
             "run": "PPO",
             "env": "WaveAttenuationPOEnv-v0",
             "config": {
@@ -179,8 +180,9 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 100},
+            "stop": {"training_iteration": 200},
             "repeat": 3,
-            "trial_resources": {"cpu": 1, "gpu": 0, "extra_cpu": 15}
+            "trial_resources": {"cpu": 1, "gpu": 0,
+                                "extra_cpu": parallel_rollouts - 1}
         },
     })

@@ -155,7 +155,6 @@ def make_create_env(flow_env_name, flow_params, version=0,
     init_params = flow_params['initial']
 
     def create_env(env_config):
-
         # note that the vehicles are added sequentially by the generator,
         # so place the merging vehicles after the vehicles in the ring
         vehicles = Vehicles()
@@ -186,13 +185,14 @@ def make_create_env(flow_env_name, flow_params, version=0,
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 2
-    n_rollouts = 3
+    n_rollouts = 100
 
-    ray.init(num_cpus=num_cpus, redirect_output=False)
-    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    # ray.init(redirect_output=False)
+    # replace the redis address with that output by create_or_update
+    ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    config["num_workers"] = num_cpus
+    parallel_rollouts = 48
+    config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
@@ -217,11 +217,11 @@ if __name__ == "__main__":
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
-    logger_creator = rllib_logger_creator(results_dir, 
-                                          flow_env_name, 
+    logger_creator = rllib_logger_creator(results_dir,
+                                          flow_env_name,
                                           UnifiedLogger)
 
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), 
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
     # Logging out flow_params to ray's experiment result folder
@@ -230,15 +230,20 @@ if __name__ == "__main__":
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
     trials = run_experiments({
-            "pendulum_tests": {
-                "run": "PPO",
-                "env": "DoubleMultiAgentPendulumEnv-v0",
-                "config": {
-                   **config
-                },
-                "checkpoint_freq": 20,
-                "max_failures": 999,
-                "stop": {"training_iteration": 1},
-                "trial_resources": {"cpu": 4, "gpu": 0, "extra_cpu": 12}
-            }
-        })
+        "pendulum_tests": {
+            "run": "PPO",
+            "env": "TwoLoopsMergePOEnv-v0",
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "max_failures": 999,
+            "stop": {"training_iteration": 200},
+            "trial_resources": {"cpu": 1, "gpu": 0,
+                                "extra_cpu": parallel_rollouts - 1}
+        }
+    })
+    json_out_file = trials[0].logdir + '/flow_params.json'
+    with open(json_out_file, 'w') as outfile:
+        json.dump(flow_params, outfile, cls=NameEncoder,
+                  sort_keys=True, indent=4)

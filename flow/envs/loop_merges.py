@@ -35,13 +35,17 @@ class LoopMergesEnv(Env):
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles,))
+                   shape=(self.vehicles.num_rl_vehicles,),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
-        edge = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+                  dtype=np.float32)
+        edge = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+                   dtype=np.float32)
         return Tuple([speed, pos, edge])
 
     def _apply_rl_actions(self, rl_actions):
