@@ -158,12 +158,12 @@ if __name__ == '__main__':
 
     parallel_rollouts = 40
     n_rollouts = parallel_rollouts*1
-    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
+    ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [256, 256]})
+    config["model"].update({"fcnet_hiddens": [64, 64]})
 
     config["lambda"] = 0.99
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
@@ -212,7 +212,3 @@ if __name__ == '__main__':
                                 "extra_cpu": parallel_rollouts-1}
         }
     })
-    json_out_file = trials[0].logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder,
-                  sort_keys=True, indent=4)

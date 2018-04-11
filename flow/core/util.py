@@ -241,7 +241,7 @@ def get_rllib_config(path):
 
 def get_flow_params(path):
     """
-    Returns Flow experiment parameters, given an experiment reuslt folder
+    Returns Flow experiment parameters, given an experiment result folder
     
     Parameters
     ----------
