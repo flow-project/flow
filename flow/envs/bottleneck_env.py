@@ -37,6 +37,7 @@ ENV_PARAMS = [
     "segments",  # number of regions for velocity bottleneck controller
     "lanes",  # controlled lanes for EarlyLC experiments
     "symmetric",  # whether lanes in a segment have the same action or not
+    "v_default",  # default FollowerStopper velocity
 ]
 
 NET_PARAMS = [
@@ -601,6 +602,10 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     # set the desired velocity of the controller to the action
                     controller = self.vehicles.get_acc_controller(rl_id)
                     controller.v_des = action
+                else:
+                    # set the desired velocity of the controller to the default
+                    controller = self.vehicles.get_acc_controller(rl_id)
+                    controller.v_des = self.env_params.additional_params.get("v_default", 15)
 
     def compute_reward(self, state, rl_actions, **kwargs):
 
