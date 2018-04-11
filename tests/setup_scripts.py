@@ -9,7 +9,6 @@ from flow.core.traffic_lights import TrafficLights
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.car_following_models import IDMController
-from flow.controllers.rlcontroller import RLController
 
 from flow.envs.loop_accel import AccelEnv
 
@@ -309,7 +308,7 @@ def grid_mxn_exp_setup(row_num=1,
         vehicles.add(veh_id="idm",
                      acceleration_controller=(IDMController, {}),
                      routing_controller=(GridRouter, {}),
-                     sumo_car_following_params=SumoLaneChangeParams(
+                     sumo_car_following_params=SumoCarFollowingParams(
                          max_speed=30,
                      ),
                      num_vehicles=total_vehicles)
