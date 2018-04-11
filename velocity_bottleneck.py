@@ -108,3 +108,4 @@ if __name__ == "__main__":
 
     # run for a set number of rollouts / time steps
     exp.run(10, 500)
+    
