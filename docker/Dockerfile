@@ -5,7 +5,6 @@ FROM ubuntu:16.04
 RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificates \
     libglib2.0-0 libxext6 libsm6 libxrender1 \
     git mercurial subversion
-
 RUN echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh && \
     wget  --no-check-certificate --quiet https://repo.continuum.io/archive/Anaconda2-2.5.0-Linux-x86_64.sh && \
     /bin/bash /Anaconda2-2.5.0-Linux-x86_64.sh -b -p /opt/conda && \
@@ -55,6 +54,7 @@ RUN apt-get update && apt-get -y install -qq \
 
 
 # Download SUMO nightly build
+# Download SUMO nightly build
 RUN git clone https://github.com/DLR-TS/sumo.git
 RUN mv $SUMO_SRC $SUMO_HOME
 RUN cd $SUMO_HOME && git checkout 1d4338ab80
@@ -71,9 +71,9 @@ ENV PYTHONPATH $SUMO_HOME/tools:$PYTHONPATH
 RUN sumo
 
 # ========== OpenAI Gym ==========
-RUN apt-get update --fix-missing
+RUN apt-get -y update --fix-missing 
 RUN apt-get -y install libgtk2.0-0
-RUN pip install gym==0.10.5
+RUN pip install gym
 #RUN apt-get -y install ffmpeg
 RUN apt-get -y install libav-tools
 CMD alias ffmpeg="avconv"
@@ -83,14 +83,17 @@ CMD mkdir /root/code
 ADD environment.yml /root/code/environment.yml
 RUN conda env create -f /root/code/environment.yml
 
-ENV PYTHONPATH /root/code/flow:$PYTHONPATH
+#ENV PYTHONPATH /root/code/rllab/flow:$PYTHONPATH
+#ENV PYTHONPATH /root/code/flow:$PYTHONPATH
+ENV PYTHONPATH /root/code/rllab:$PYTHONPATH
+ENV PYTHONPATH /root/code/rllab/learning-traffic:$PYTHONPATH
 ENV PATH /opt/conda/envs/flow/bin:$PATH
 RUN echo "source activate flow" >> /root/.bashrc
 ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
-#RUN pip install --upgrade pip
-#RUN pip install tensorflow --upgrade --ignore-installed
+
+RUN /opt/conda/envs/flow/bin/pip install --ignore-installed --upgrade tensorflow
 
 RUN apt-get install -y libopenblas-dev
 RUN printf "[blas]\nldflags = -lopenblas\n" > ~/.theanorc
