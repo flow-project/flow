@@ -67,11 +67,11 @@ for i in range(NUM_LANES):
     lane_num = str(i)
     veh_per_hour = flow_rate * flow_dist[i]
     veh_per_second = veh_per_hour / 3600
-    inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.75,  # vehsPerHour=veh_per_hour *0.8,
-               departLane=lane_num, departSpeed=23)
-    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * 0.25,
+    inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.01,  # vehsPerHour=veh_per_hour *0.8,
+               departLane="random", departSpeed=23)
+    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * 0.99,
                # vehsPerHour=veh_per_hour * 0.2,
-               departLane=lane_num, departSpeed=23)
+               departLane="random", departSpeed=23)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -115,7 +115,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=40000,
+        batch_size=10000,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,

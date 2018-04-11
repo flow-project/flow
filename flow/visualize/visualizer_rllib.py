@@ -83,6 +83,9 @@ optional_named.add_argument(
     '--flowenv', type=str, default='',
     help='Flowenv being used')
 optional_named.add_argument(
+    '--use_sumogui', type=bool, default=True,
+    help='Visualize in the guy')
+optional_named.add_argument(
     '--exp_tag', type=str, default='',
     help='Experiment tag')
 
@@ -115,15 +118,21 @@ if __name__ == "__main__":
     # Overwrite config for rendering purposes
     config["num_workers"] = 1
 
+    # Overwrite the visualizer
+    if args.use_sumogui:
+        flow_params['sumo_binary'] = 'sumo_gui'
+    else:
+        flow_params['sumo_binary'] = 'sumo'
+
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, sumo="sumo")
+                                           version=0)
     register_rllib_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
     agent = agent_cls(env=env_name, registry=get_registry(), config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
-    agent.restore(checkpoint)
+    agent._restore(checkpoint)
 
     # Create and register a new gym environment for rendering rollout
     create_render_env, env_render_name = make_create_env(flow_env_name,
@@ -137,8 +146,8 @@ if __name__ == "__main__":
         done = False
         ret = 0
         while not done:
-            if isinstance(state, list):
-                state = np.concatenate(state)
+            # if isinstance(state, list):
+            #     state = np.concatenate(state)
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward
