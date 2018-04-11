@@ -239,7 +239,7 @@ def get_rllib_config(path):
     return jsondata
 
 
-def get_flow_params(path):
+def get_flow_params(config):
     """
     Returns Flow experiment parameters, given an experiment result folder
     
@@ -258,9 +258,8 @@ def get_flow_params(path):
         ``make_create_env`` is the higher-order function passed to 
         rllib as the environment in which to train
     """
-    
-    flow_params_file = path + '/flow_params.json'
-    flow_params = json.loads(open(flow_params_file).read())
+
+    flow_params = json.loads(config['env_config']['flow_params'])
     flow_params = unstring_flow_params(flow_params)
 
     module_name = 'examples.rllib.' + flow_params['module']

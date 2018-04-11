@@ -104,7 +104,7 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0,
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    n_rollouts = 30
+    n_rollouts = 2
 
     ray.init(num_cpus=1, redirect_output=True)
     #ray.init(redis_address="localhost:6379", redirect_output=False)
@@ -127,6 +127,8 @@ if __name__ == "__main__":
     flow_params['flowenv'] = flow_env_name
     flow_params['exp_tag'] = exp_tag
     flow_params['module'] = os.path.basename(__file__)[:-3]
+    flow_json = json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
+                  indent=4)
 
     create_env, env_name = make_create_env(flow_env_name, flow_params,
                                            version=0, exp_tag=exp_tag)
@@ -141,11 +143,11 @@ if __name__ == "__main__":
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
-    # Logging out flow_params to ray's experiment result folder
-    json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
-                  indent=4)
+    # # Logging out flow_params to ray's experiment result folder
+    # json_out_file = alg.logdir + '/flow_params.json'
+    # with open(json_out_file, 'w') as outfile:
+    #     json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
+    #               indent=4)
 
     trials = run_experiments({
         "figure_eight": {
@@ -154,14 +156,11 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 20,
+            "checkpoint_freq": 1,
             "max_failures": 999,
-            "stop": {"training_iteration": 200},
+            "stop": {"training_iteration": 3},
             "trial_resources": {"cpu": 1, "gpu": 0,
                                 "extra_cpu": parallel_rollouts - 1}
         }
     })
-    json_out_file = trials[0].logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder,
-                  sort_keys=True, indent=4)
+
