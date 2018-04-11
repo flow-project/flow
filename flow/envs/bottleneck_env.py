@@ -560,7 +560,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     controller.v_des = action
 
     def compute_reward(self, state, rl_actions, **kwargs):
-
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
             0.01*rewards.desired_velocity(self)/self.max_speed
         return reward
