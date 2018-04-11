@@ -32,17 +32,21 @@ class AccelEnv(Env):
     A rollout is terminated if the time horizon is reached or if two vehicles
     collide into one another.
     """
+
     @property
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles, ))
+                   shape=(self.vehicles.num_rl_vehicles,),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+                  dtype=np.float32)
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
@@ -79,6 +83,7 @@ class AccelMAEnv(AccelEnv):
     Termination
     -----------
     """
+
     @property
     def action_space(self):
         """
@@ -91,7 +96,7 @@ class AccelMAEnv(AccelEnv):
         for _ in self.vehicles.get_rl_ids():
             action_space.append(Box(low=self.env_params.max_deacc,
                                     high=self.env_params.max_acc,
-                                    shape=(1, )))
+                                    shape=(1,), dtype=np.float32))
         return action_space
 
     @property
@@ -101,8 +106,10 @@ class AccelMAEnv(AccelEnv):
         """
         num_vehicles = self.vehicles.num_vehicles
         observation_space = []
-        speed = Box(low=0, high=np.inf, shape=(num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(num_vehicles,),
+                    dtype=np.float32)
+        absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,),
+                           dtype=np.float32)
         obs_tuple = Tuple((speed, absolute_pos))
         for _ in self.vehicles.get_rl_ids():
             observation_space.append(obs_tuple)
@@ -172,9 +179,10 @@ class AccelPOEnv(AccelEnv):
     ----
     This environment assumes only one autonomous vehicle is in the network.
     """
+
     @property
     def observation_space(self):
-        return Box(low=-np.inf, high=np.inf, shape=(3,))
+        return Box(low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32)
 
     def get_state(self, **kwargs):
         """

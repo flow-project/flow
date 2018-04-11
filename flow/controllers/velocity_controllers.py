@@ -18,7 +18,8 @@ class FollowerStopper(BaseController):
         max_accel: float, optional
             maximum achievable acceleration by the vehicle (m/s^2)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0,
+                                fail_safe='safe_velocity')
 
         # desired speed of the vehicle
         self.v_des = v_des
@@ -81,6 +82,7 @@ class FollowerStopper(BaseController):
 
         if edge == "":
             return None
+
         if self.find_intersection_dist(env) <= 10 and \
                         env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
                         env.vehicles.get_edge(self.veh_id)[0] == ":":
@@ -143,7 +145,7 @@ class PISaturation(BaseController):
         # update desired velocity values
         v_des = np.mean(self.v_history)
         v_target = v_des + self.v_catch \
-                           * min(max((dx - self.g_l) / (self.g_u - self.g_l), 0), 1)
+                   * min(max((dx - self.g_l) / (self.g_u - self.g_l), 0), 1)
 
         # update the alpha and beta values
         alpha = min(max((dx - dx_s) / self.gamma, 0), 1)

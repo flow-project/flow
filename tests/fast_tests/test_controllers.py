@@ -387,7 +387,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         # for vehicles
         lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
-            self.env._step(rl_actions=[])
+            self.env.step(rl_actions=[])
             lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
 
         # set the timer as very high and reset (the timer used to cause bugs at
@@ -399,7 +399,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         # index for vehicles
         lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
-            self.env._step(rl_actions=[])
+            self.env.step(rl_actions=[])
             lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
 
         # assert that all lane indices are zero
