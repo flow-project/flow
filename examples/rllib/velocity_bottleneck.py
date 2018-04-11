@@ -196,6 +196,8 @@ if __name__ == '__main__':
     with open(json_out_file, 'w') as outfile:
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
+    config['env_config']['flow_params'] = json_out_file
+
     trials = run_experiments({
         "DesiredVelocity": {
             "run": "PPO",
