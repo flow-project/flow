@@ -98,7 +98,7 @@ class BaseController:
         elif self.fail_safe == 'safe_velocity':
             accel = self.get_safe_velocity_action(env, accel)
 
-        return max(min(accel, self.max_accel), -1 * self.max_deaccel)
+        return accel
 
     def get_safe_action_instantaneous(self, env, action):
         """
@@ -180,7 +180,10 @@ class BaseController:
             sim_step = env.sim_step
 
             if this_vel + action * sim_step > safe_velocity:
-                return (safe_velocity - this_vel)/sim_step
+                if safe_velocity > 0:
+                    return (safe_velocity - this_vel)/sim_step
+                else:
+                    return -this_vel/sim_step
             else:
                 return action
 
