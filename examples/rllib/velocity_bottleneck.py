@@ -20,6 +20,7 @@ from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
+from ray.tune import grid_search
 
 import numpy as np
 import json
@@ -30,15 +31,15 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-HORIZON = 100
-AV_FRAC = 0.25
+HORIZON = 200
+AV_FRAC = 0.99
 
 vehicle_params = [dict(veh_id="human",
                        speed_mode="all_checks",
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
                        lane_change_mode=512,
-                       num_vehicles=5 * SCALING),
+                       num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
                        acceleration_controller=(FollowerStopper,
                                                 {"danger_edges": ["3", "4"]}),
@@ -46,14 +47,18 @@ vehicle_params = [dict(veh_id="human",
                        routing_controller=(ContinuousRouter, {}),
                        speed_mode=9,
                        lane_change_mode=1621,
-                       num_vehicles=5 * SCALING)]
+                       num_vehicles=1 * SCALING)]
 
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
-additional_env_params = {"target_velocity": 40,
+additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 4000 * SCALING
+flow_rate = 3600 * SCALING
+flow_dist = np.ones(NUM_LANES) / NUM_LANES
+
+# percentage of flow coming out of each lane
+# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
@@ -61,12 +66,11 @@ for i in range(NUM_LANES):
     lane_num = str(i)
     veh_per_hour = flow_rate * flow_dist[i]
     veh_per_second = veh_per_hour / 3600
-    inflow.add(veh_type="human", edge="1",
-               probability=veh_per_second * (1 - AV_FRAC),
-               departLane=lane_num, departSpeed=23)
-    inflow.add(veh_type="followerstopper", edge="1",
-               probability=veh_per_second * AV_FRAC,
-               departLane=lane_num, departSpeed=23)
+    inflow.add(veh_type="human", edge="1", probability=veh_per_second * (1-AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
+               departLane="random", departSpeed=23)
+    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * AV_FRAC,
+               # vehsPerHour=veh_per_hour * 0.2,
+               departLane="random", departSpeed=23)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -84,10 +88,11 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
 
 flow_params = dict(
     sumo=dict(
-        sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False
+        sim_step=0.5, sumo_binary="sumo", print_warnings=False,
+        restart_instance=True
     ),
-    env=dict(lane_change_duration=1, warmup_steps=80,
-             sims_per_step=4, horizon=50,
+    env=dict(lane_change_duration=1, warmup_steps=40,
+             sims_per_step=1, horizon=HORIZON,
              additional_params=additional_env_params
              ),
     net=dict(
@@ -102,12 +107,11 @@ flow_params = dict(
     ))
 
 
-def make_create_env(flow_env_name, flow_params=flow_params, version=0,
-                    sumo="sumo"):
+def make_create_env(flow_env_name, flow_params=flow_params, version=0):
+
     env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
-    sumo_params_dict['sumo_binary'] = sumo
     sumo_params = SumoParams(**sumo_params_dict)
 
     env_params_dict = flow_params['env']
@@ -153,18 +157,18 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 40
-    n_rollouts = parallel_rollouts*2
-    ray.init(num_cpus=parallel_rollouts, redirect_output=True)
+    n_rollouts = parallel_rollouts*1
+    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
-    config["gamma"] = 0.99  # discount rate
-    config["model"].update({"fcnet_hiddens": [16, 16]})
+    config["gamma"] = 0.999  # discount rate
+    config["model"].update({"fcnet_hiddens": [256, 256]})
 
     config["lambda"] = 0.99
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
+    config["num_sgd_iter"] = 30
     config["horizon"] = horizon
 
     flow_env_name = "DesiredVelocityEnv"

@@ -26,6 +26,8 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import *
+from flow.core.params import InFlows
+from flow.controllers.velocity_controllers import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.scenarios.loop.loop_scenario import LoopScenario
@@ -104,7 +106,9 @@ def unstring_flow_params(flow_params):
 
     veh_params = flow_params['veh']
     better_veh_params = [eval_veh_params(veh_param) for veh_param in veh_params]
+    better_net_params = eval_net_params(flow_params)
     better_params['veh'] = better_veh_params
+    better_params['net'] = better_net_params
 
     if 'additional_params' in flow_params['env']:
         if 'scenario_type' in flow_params['env']['additional_params']:
@@ -112,6 +116,46 @@ def unstring_flow_params(flow_params):
             better_params['env']['additional_params']['scenario_type'] = evaluated_scenario
 
     return better_params
+
+
+def eval_net_params(flow_params):
+    """
+        Evaluates net parameters, since params like Inflows can't be
+        serialized and output to JSON.
+
+        Parameters
+        ----------
+        orig_params : dict
+            Original flow parameters, read in from ``flow_params.json``
+
+        Returns
+        -------
+        dict
+            Evaluated net params with instantiated inflow
+        """
+
+    better_params = flow_params.copy()
+    inflow = InFlows()
+    new_inflow_list = []
+    if 'in_flows' in flow_params['net']:
+        inflow_obj = flow_params['net']['in_flows']['_InFlows__flows']
+        for obj in inflow_obj:
+            temp = {}
+            for key in obj.keys():
+                if key == 'vtype':
+                    temp['veh_type'] = obj[key]
+                elif key == 'begin':
+                    temp['edge'] = str(obj[key])
+                elif key =='depart_speed':
+                    temp['departSpeed'] = obj[key]
+                elif key == 'probability' or key =='departSpeed' or \
+                    key == 'departLane':
+                    temp[key] = obj[key]
+            new_inflow_list.append(temp)
+        [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
+        better_params['net']['in_flows'] = inflow
+
+    return better_params['net']
 
 
 def eval_veh_params(orig_params):
@@ -140,7 +184,7 @@ def eval_veh_params(orig_params):
     new_params = orig_params.copy()
     
     if 'acceleration_controller' in new_params:
-        new_params['acceleration_controller'] = (eval(orig_params['acceleration_controller'][0]), 
+        new_params['acceleration_controller'] = (eval(orig_params['acceleration_controller'][0]),
                                         orig_params['acceleration_controller'][1])
     if 'lane_change_controller' in new_params:
         new_params['lane_change_controller'] = (eval(orig_params['lane_change_controller'][0]), 
@@ -218,7 +262,7 @@ def get_flow_params(path):
     flow_params_file = path + '/flow_params.json'
     flow_params = json.loads(open(flow_params_file).read())
     flow_params = unstring_flow_params(flow_params)
-    
+
     module_name = 'examples.rllib.' + flow_params['module']
 
     env_module = importlib.import_module(module_name)
