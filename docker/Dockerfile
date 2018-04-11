@@ -83,17 +83,16 @@ CMD mkdir /root/code
 ADD environment.yml /root/code/environment.yml
 RUN conda env create -f /root/code/environment.yml
 
-#ENV PYTHONPATH /root/code/rllab/flow:$PYTHONPATH
-#ENV PYTHONPATH /root/code/flow:$PYTHONPATH
+ENV PYTHONPATH /root/code/rllab/flow:$PYTHONPATH
+ENV PYTHONPATH /root/code/flow:$PYTHONPATH
 ENV PYTHONPATH /root/code/rllab:$PYTHONPATH
 ENV PYTHONPATH /root/code/rllab/learning-traffic:$PYTHONPATH
 ENV PATH /opt/conda/envs/flow/bin:$PATH
 RUN echo "source activate flow" >> /root/.bashrc
+RUN echo "source activate flow"
 ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
-
-RUN /opt/conda/envs/flow/bin/pip install --ignore-installed --upgrade tensorflow
-
 RUN apt-get install -y libopenblas-dev
 RUN printf "[blas]\nldflags = -lopenblas\n" > ~/.theanorc
+RUN conda env list
