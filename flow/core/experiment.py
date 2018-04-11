@@ -23,6 +23,8 @@ class SumoExperiment:
         self.env = env
         self.vehicles = scenario.vehicles
         self.cfg = scenario.cfg
+        self.rollout_total_rewards = []
+        self.per_step_rewards = []
 
         logging.info(" Starting experiment" + str(self.name) + " at "
                      + str(datetime.datetime.utcnow()))
@@ -50,20 +52,22 @@ class SumoExperiment:
         if rl_actions is None:
             rl_actions = []
 
-        rets = []
+
         for i in range(num_runs):
             logging.info("Iter #" + str(i))
-            ret = 0
+            step_rewards = []
+            total_rollout_reward = 0
             self.env.reset()
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions)
-                ret += reward
+                total_rollout_reward += reward
+                step_rewards.append(reward)
                 if done:
                     break
-            rets.append(ret)
-            print("Round {0}, return: {1}".format(i, ret))
-
-        print("Average Return", np.mean(rets))
+            self.rollout_total_rewards.append(total_rollout_reward)
+            print("Round {0}, return: {1}".format(i, total_rollout_reward))
+            self.per_step_rewards.append(step_rewards)
+        print("Average Return", np.mean(self.rollout_total_rewards))
         self.env.terminate()
 
         if convert_to_csv:
@@ -77,4 +81,4 @@ class SumoExperiment:
             # convert the emission file into a csv
             emission_to_csv(emission_path)
 
-        return np.mean(rets)
+        return np.mean(self.rollout_total_rewards)

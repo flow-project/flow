@@ -27,7 +27,7 @@ def bottleneck(sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui", overtake_right=False)
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary, overtake_right=False)
 
     vehicles = Vehicles()
 
@@ -41,15 +41,16 @@ def bottleneck(sumo_binary=None):
                  num_vehicles=5)
 
     vehicles.add(veh_id="followerstopper",
-                 speed_mode=31,
+                 speed_mode="custom_model",
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 # acceleration_controller=(HandTunedVelocityController, {"v_regions":[15, 10, 10, 10, 5, 5, 20, 20, 20]}),
+                 # acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 5, 1, 60, 60, 60, 60, 60, 60]}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
-    horizon = 100
-    num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
+
+    horizon = 1000
+    num_segments = [("1", 1), ("2", 3), ("3", 1), ("4", 1), ("5", 1)]
     additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                              "disable_tb": True, "disable_ramp_metering": True,
                              "segments": num_segments}
@@ -59,7 +60,7 @@ def bottleneck(sumo_binary=None):
     # flow rate
 
     # MAX OF 3600 vehicles per lane per hour i.e. flow_rate <= 3600 *
-    flow_rate = 3000 * SCALING
+    flow_rate = 2300 * SCALING
     # percentage of flow coming out of each lane
     # flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
     flow_dist = np.ones(NUM_LANES)/NUM_LANES
@@ -71,9 +72,9 @@ def bottleneck(sumo_binary=None):
         print(veh_per_hour)
         veh_per_second = veh_per_hour/3600
         print(veh_per_second)
-        inflow.add(veh_type="human", edge="1", probability=veh_per_second*0.75,#vehsPerHour=veh_per_hour *0.8,
+        inflow.add(veh_type="human", edge="1", probability=veh_per_second*0.70,#vehsPerHour=veh_per_hour *0.8,
                    departLane=lane_num, departSpeed=23)
-        inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second*0.25,#vehsPerHour=veh_per_hour * 0.2,
+        inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second*0.30,#vehsPerHour=veh_per_hour * 0.2,
                    departLane=lane_num, departSpeed=23)
 
     traffic_lights = TrafficLights()
@@ -107,4 +108,7 @@ if __name__ == "__main__":
     exp = bottleneck(sumo_binary="sumo-gui")
 
     # run for a set number of rollouts / time steps
-    exp.run(10, 500)
+    exp.run(5, 2500)
+    print(exp.rollout_total_rewards)
+    # print(exp.per_step_rewards[0])
+    # np.savetxt("rets.csv", np.array(exp.per_step_rewards), delimiter=",")
