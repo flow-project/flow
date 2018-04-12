@@ -487,23 +487,33 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def __init__(self, env_params, sumo_params, scenario):
 
-        default = [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)]
+        default = [("1", 1, True), ("2", 1, True), ("3", 1, True),
+                   ("4", 1, True), ("5", 1, True)]
         super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
         self.segments = self.env_params.additional_params.get("segments", default)
+        # number of segments for each edge
         self.num_segments = [segment[1] for segment in self.segments]
-        self.controlled_edges = [segment[0] for segment in self.segments]
+        # whether an edge is controlled
+        self.is_controlled = [segment[2] for segment in self.segments]
+        # list of controlled edges for comparison
+        self.controlled_edges = [segment[0] for segment in self.segments
+                                 if segment[2]]
+        # sum of segments
         self.total_segments = int(np.sum([segment[1] for segment in self.segments]))
+        # sum of controlled segments
+        self.total_controlled_segments = int(np.sum([segment[1]*segment[2]
+                                                     for segment in self.segments]))
         # for convenience, construct the relevant positions we are looking for
         self.slices = {}
-        for edge, num_segments in self.segments:
+        for edge, num_segments, _ in self.segments:
             edge_length = self.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments)
 
-        # construct an indexing to be used for figuring out which
-        # action is useful
+        # action index tells us, given an edge,the offset into
+        # rl_actions that we should take
         self.action_index = [0]
-        for i, segment in enumerate(self.num_segments[:-1]):
-            self.action_index += [self.action_index[i] + segment]
+        for i, (edge, segment, controlled) in enumerate(self.segments[:-1]):
+            self.action_index += [self.action_index[i] + segment*controlled]
 
     @property
     def observation_space(self):
@@ -516,8 +526,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     @property
     def action_space(self):
-        return Box(low=5.0, high=self.max_speed, shape=(int(self.total_segments),
-                                                      ), dtype=np.float32)
+        return Box(low=5.0, high=self.max_speed,
+                   shape=(int(self.total_controlled_segments),),
+                   dtype=np.float32)
 
     def get_state(self):
         # FIXME(ev) add information about AVs)
@@ -544,7 +555,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def _apply_rl_actions(self, actions):
         rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
-        # FIXME(ev) make it so that you don't have to control everrrry edge
+
         veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
                    if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
         for rl_id in veh_ids:
@@ -555,6 +566,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     # find what segment we fall into
                     bucket = np.searchsorted(self.slices[edge], pos) - 1
                     action = rl_actions[bucket + self.action_index[int(edge) - 1]]
+                    print(bucket + self.action_index[int(edge) - 1])
                     # set the desired velocity of the controller to the action
                     controller = self.vehicles.get_acc_controller(rl_id)
                     controller.v_des = action

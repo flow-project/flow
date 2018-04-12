@@ -49,7 +49,8 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_mode=1621,
                        num_vehicles=1 * SCALING)]
 
-num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
+num_segments = [("1", 1, False), ("2", 3, True),
+                ("3", 3, True), ("4", 1, True), ("5", 1, True)]
 additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
@@ -65,11 +66,11 @@ inflow = InFlows()
 for i in range(NUM_LANES):
     lane_num = str(i)
     inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate*(1-AV_FRAC),
-               departLane="random", departSpeed=23)
+               departLane="random", departSpeed=10)
     inflow.add(veh_type="followerstopper", edge="1",
                vehs_per_hour=flow_rate*AV_FRAC,
                # vehsPerHour=veh_per_hour * 0.2,
-               departLane="random", departSpeed=23)
+               departLane="random", departSpeed=10)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
