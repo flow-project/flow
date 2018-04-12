@@ -47,14 +47,14 @@ vehicles.add(veh_id="followerstopper",
              lane_change_mode=1621,#0b100000101,
              num_vehicles=5*SCALING)
 
-horizon = 100
+horizon = 300
 num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 env_params = EnvParams(additional_params=additional_env_params,
-                       lane_change_duration=1, warmup_steps=80,
-                       sims_per_step=4, horizon=50)
+                       lane_change_duration=1, warmup_steps=40,
+                       sims_per_step=1, horizon=horizon)
 
 # flow rate
 flow_rate = 4000 * SCALING
