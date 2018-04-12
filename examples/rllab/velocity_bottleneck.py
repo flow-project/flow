@@ -67,9 +67,9 @@ for i in range(NUM_LANES):
     lane_num = str(i)
     veh_per_hour = flow_rate * flow_dist[i]
     veh_per_second = veh_per_hour / 3600
-    inflow.add(veh_type="human", edge="1", probability=veh_per_second * 0.01,  # vehsPerHour=veh_per_hour *0.8,
+    inflow.add(veh_type="human", edge="1", vehs_per_hour = flow_rate * 0.01,  # vehsPerHour=veh_per_hour *0.8,
                departLane="random", departSpeed=23)
-    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * 0.99,
+    inflow.add(veh_type="followerstopper", edge="1", vehs_per_hour = flow_rate * 0.99,
                # vehsPerHour=veh_per_hour * 0.2,
                departLane="random", departSpeed=23)
 

@@ -31,7 +31,7 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-HORIZON = 200
+HORIZON = 300
 AV_FRAC = 0.99
 
 vehicle_params = [dict(veh_id="human",
@@ -54,7 +54,7 @@ additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 3600 * SCALING
+flow_rate = 4000 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 # percentage of flow coming out of each lane
@@ -64,11 +64,10 @@ flow_dist = np.ones(NUM_LANES) / NUM_LANES
 inflow = InFlows()
 for i in range(NUM_LANES):
     lane_num = str(i)
-    veh_per_hour = flow_rate * flow_dist[i]
-    veh_per_second = veh_per_hour / 3600
-    inflow.add(veh_type="human", edge="1", probability=veh_per_second * (1-AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
+    inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate*(1-AV_FRAC),
                departLane="random", departSpeed=23)
-    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * AV_FRAC,
+    inflow.add(veh_type="followerstopper", edge="1",
+               vehs_per_hour=flow_rate*AV_FRAC,
                # vehsPerHour=veh_per_hour * 0.2,
                departLane="random", departSpeed=23)
 
@@ -80,7 +79,8 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False, additional_params=additional_net_params)
+                       no_internal_links=False,
+                       additional_params=additional_net_params)
 
 initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
@@ -88,7 +88,7 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
 
 flow_params = dict(
     sumo=dict(
-        sim_step=0.5, sumo_binary="sumo", print_warnings=False,
+        sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False,
         restart_instance=True
     ),
     env=dict(lane_change_duration=1, warmup_steps=40,
@@ -107,10 +107,13 @@ flow_params = dict(
     ))
 
 
-def make_create_env(flow_env_name, flow_params=flow_params, version=0):
+def make_create_env(flow_env_name, flow_params=flow_params, version=0,
+                    sumo=None):
 
     env_name = flow_env_name + '-v%s' % version
 
+    if sumo:
+        flow_params['sumo_binary'] = sumo
     sumo_params_dict = flow_params['sumo']
     sumo_params = SumoParams(**sumo_params_dict)
 
@@ -156,7 +159,7 @@ if __name__ == '__main__':
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 40
+    parallel_rollouts = 2
     n_rollouts = parallel_rollouts*1
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
@@ -178,8 +181,13 @@ if __name__ == '__main__':
     flow_params['exp_tag'] = exp_tag
     # filename without '.py'
     flow_params['module'] = os.path.basename(__file__)[:-3]
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=NameEncoder, sort_keys=True,
+                  indent=4)
+    config['env_config']['flow_params'] = flow_json
 
-    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0)
+    create_env, env_name = make_create_env(flow_env_name, flow_params,
+                                           version=0)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
@@ -191,13 +199,6 @@ if __name__ == '__main__':
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
-    # Logging out flow_params to ray's experiment result folder
-    json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
-
-    config['env_config']['flow_params'] = json_out_file
-
     trials = run_experiments({
         "DesiredVelocity": {
             "run": "PPO",
@@ -207,7 +208,7 @@ if __name__ == '__main__':
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 300},
+            "stop": {"training_iteration": 600},
             "trial_resources": {"cpu": 1, "gpu": 0,
                                 "extra_cpu": parallel_rollouts-1}
         }

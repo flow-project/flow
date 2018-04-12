@@ -145,11 +145,6 @@ if __name__ == "__main__":
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
-    # # Logging out flow_params to ray's experiment result folder
-    # json_out_file = alg.logdir + '/flow_params.json'
-    # with open(json_out_file, 'w') as outfile:
-    #     json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
-    #               indent=4)
 
     trials = run_experiments({
         "figure_eight": {
