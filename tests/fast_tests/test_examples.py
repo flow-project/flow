@@ -1,6 +1,5 @@
 import unittest
 import os
-os.environ["TEST_FLAG"] = "True"
 from examples.sumo.cooperative_merge import cooperative_merge_example
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.highway import highway_example
@@ -10,8 +9,9 @@ from examples.sumo.two_lane_change_changer import two_lane_example
 from examples.sumo.two_loops_merge import two_loops_merge_example
 from examples.sumo.two_loops_merge_straight import \
     two_loops_merge_straight_example
-from examples.sumo.two_way_intersection import two_way_intersection_example
 from examples.sumo.grid import grid_example
+
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestSumoExamples(unittest.TestCase):
@@ -97,16 +97,6 @@ class TestSumoExamples(unittest.TestCase):
         """
         # import the experiment variable from the example
         exp = two_loops_merge_straight_example(sumo_binary="sumo")
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_two_way_intersection(self):
-        """
-        Verifies that examples/sumo/two_way_intersection.py is working
-        """
-        # import the experiment variable from the example
-        exp = two_way_intersection_example(sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

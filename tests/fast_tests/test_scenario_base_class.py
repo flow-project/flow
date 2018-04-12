@@ -1,6 +1,5 @@
 import unittest
 import os
-os.environ["TEST_FLAG"] = "True"
 import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
@@ -13,11 +12,14 @@ from tests.setup_scripts import ring_road_exp_setup, figure_eight_exp_setup, \
     highway_exp_setup
 from tests.setup_scripts import variable_lanes_exp_setup
 
+os.environ["TEST_FLAG"] = "True"
+
 
 class TestGetX(unittest.TestCase):
     """
-    Tests the get_x function for vehicles placed in links and in junctions. This
-    is tested on a scenario whose edgestarts are known beforehand (figure 8).
+    Tests the get_x function for vehicles placed in links and in junctions.
+    This is tested on a scenario whose edgestarts are known beforehand
+    (figure 8).
     """
 
     def setUp(self):
@@ -69,8 +71,8 @@ class TestGetEdge(unittest.TestCase):
 
 class TestEvenStartPos(unittest.TestCase):
     """
-    Tests the function gen_even_start_pos in base_scenario.py. This function can
-    be used on any scenario subclass, and therefore may be tested on any of
+    Tests the function gen_even_start_pos in base_scenario.py. This function
+    can be used on any scenario subclass, and therefore may be tested on any of
     these classes. In order to perform this testing, replace the scenario in
     setUp() with the scenario to be tested.
     """
@@ -225,9 +227,9 @@ class TestEvenStartPos(unittest.TestCase):
 
     def test_lanes_distribution(self):
         """
-        Tests that if lanes_distribution is less than the total number of lanes,
-        the vehicles are uniformly distributed over the specified number of
-        lanes.
+        Tests that if lanes_distribution is less than the total number of
+        lanes, the vehicles are uniformly distributed over the specified number
+        of lanes.
         """
         # set the initial_config parameters with a lanes distribution less than
         # the number of lanes in the network.
@@ -289,7 +291,7 @@ class TestEvenStartPos(unittest.TestCase):
         Tests that when lanes_distribution is greater than the number of lanes,
         the vehicles are distributed over the maximum number of lanes instead.
         """
-        # set the initial_config parameters with a very large lanes_distribution
+        # set the initial_config parameter with a very large lanes_distribution
         lanes_distribution = np.inf
         initial_config = InitialConfig(lanes_distribution=lanes_distribution)
 
@@ -517,7 +519,8 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
         all possible lanes.
         """
         expected_num_vehicles = self.env.vehicles.num_vehicles
-        actual_num_vehicles = len(self.env.traci_connection.vehicle.getIDList())
+        actual_num_vehicles = \
+            len(self.env.traci_connection.vehicle.getIDList())
 
         # check that enough vehicles are in the network
         self.assertEqual(expected_num_vehicles, actual_num_vehicles)
@@ -609,7 +612,8 @@ class TestSpeedLimit(unittest.TestCase):
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
-        self.assertAlmostEqual(scenario.speed_limit("bottom_upper_ring_in"), 60)
+        self.assertAlmostEqual(scenario.speed_limit("bottom_upper_ring_in"),
+                               60)
         self.assertAlmostEqual(scenario.speed_limit(":top_upper_ring_0"), 60)
 
 

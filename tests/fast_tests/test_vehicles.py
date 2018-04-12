@@ -1,6 +1,5 @@
 import unittest
 import os
-os.environ["TEST_FLAG"] = "True"
 import numpy as np
 
 from flow.core.vehicles import Vehicles
@@ -11,6 +10,8 @@ from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
 from tests.setup_scripts import ring_road_exp_setup
+
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestVehiclesClass(unittest.TestCase):
@@ -68,13 +69,13 @@ class TestVehiclesClass(unittest.TestCase):
                      acceleration_controller=(SumoCarFollowingController, {}),
                      speed_mode='no_collide',
                      lane_change_mode="no_lat_collide")
-        default_minGap = SumoCarFollowingParams().controller_params["minGap"]
-        self.assertEqual(vehicles.types[0][1]["minGap"], default_minGap)
+        default_mingap = SumoCarFollowingParams().controller_params["minGap"]
+        self.assertEqual(vehicles.types[0][1]["minGap"], default_mingap)
 
     def test_add_vehicles_human(self):
         """
-        Ensures that added human vehicles are placed in the current vehicle IDs,
-        and that the number of vehicles is correct.
+        Ensures that added human vehicles are placed in the current vehicle
+        IDs, and that the number of vehicles is correct.
         """
         # generate a vehicles class
         vehicles = Vehicles()
