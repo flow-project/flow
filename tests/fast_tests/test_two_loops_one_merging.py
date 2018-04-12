@@ -1,14 +1,14 @@
 import unittest
 import os
-import numpy as np
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
-from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
-from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario \
+from flow.scenarios.two_loops_one_merging_new.gen \
+    import TwoLoopOneMergingGenerator
+from flow.scenarios.two_loops_one_merging_new.scenario \
     import TwoLoopsOneMergingScenario
 from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
 
@@ -36,8 +36,10 @@ def two_loops_one_merging_exp_setup(vehicles=None):
                              "max-acc": 3}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    additional_net_params = {"ring_radius": 230 / (2 * np.pi), "lanes": 1,
+    additional_net_params = {"ring_radius": 50, "lane_length": 75,
+                             "inner_lanes": 3, "outer_lanes": 2,
                              "speed_limit": 30, "resolution": 40}
+
     net_params = NetParams(
         no_internal_links=False,
         additional_params=additional_net_params
@@ -102,7 +104,7 @@ class TestLoopMerges(unittest.TestCase):
                 other_starting_edges.append(self.env.vehicles.get_edge(veh_id))
 
         # ensure that all vehicles are starting in the edges they should be in
-        expected_merge_starting_edges = ["right_bottom", "right_top"]
+        expected_merge_starting_edges = ["right", "top", "bottom"]
 
         self.assertTrue(
             all(starting_edge in expected_merge_starting_edges
