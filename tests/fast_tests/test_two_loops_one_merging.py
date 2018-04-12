@@ -1,6 +1,5 @@
 import unittest
 import os
-os.environ["TEST_FLAG"] = "True"
 import numpy as np
 
 from flow.core.experiment import SumoExperiment
@@ -12,6 +11,8 @@ from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.two_loops_one_merging_scenario \
     import TwoLoopsOneMergingScenario
 from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
+
+os.environ["TEST_FLAG"] = "True"
 
 
 def two_loops_one_merging_exp_setup(vehicles=None):
@@ -83,8 +84,8 @@ class TestLoopMerges(unittest.TestCase):
 
     def test_gen_custom_start_pos(self):
         """
-        Tests that vehicle with the prefix "merge" are in the merge_in lane, and
-        all other vehicles are in the ring road.
+        Tests that vehicle with the prefix "merge" are in the merge_in lane,
+        and all other vehicles are in the ring road.
         """
         # reset the environment to ensure all vehicles are at their starting
         # positions

@@ -1,7 +1,6 @@
 import unittest
 from numpy import pi
 import os
-os.environ["TEST_FLAG"] = "True"
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -11,6 +10,8 @@ from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.scenarios.loop_merges.gen import LoopMergesGenerator
 from flow.scenarios.loop_merges.loop_merges_scenario import LoopMergesScenario
 from flow.envs.loop_merges import LoopMergesEnv
+
+os.environ["TEST_FLAG"] = "True"
 
 
 def loop_merge_exp_setup(vehicles=None):
