@@ -49,6 +49,8 @@ vehicles.add(veh_id="followerstopper",
              num_vehicles=1*SCALING)
 
 horizon = 300
+# edge name, how many segments to observe/control, whether the segment is
+# controlled
 num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
                 ("4", 1, True), ("5", 1, True)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
