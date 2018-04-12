@@ -9,8 +9,9 @@ from flow.controllers.car_following_models import IDMController
 
 from tests.setup_scripts import ring_road_exp_setup
 import os
-os.environ["TEST_FLAG"] = "True"
 import numpy as np
+
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestStartingPositionShuffle(unittest.TestCase):
@@ -200,13 +201,13 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
         # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
+        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
 
         # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
+        id_list = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.update(vehicle_obs, id_lists, self.env)
+        self.env.vehicles.update(veh_obs, id_list, self.env)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
@@ -236,13 +237,6 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             ValueError,
             self.env.apply_lane_change, veh_ids=ids, direction=bad_directions)
 
-        # make sure that running apply_lane_change with both directions and
-        # target_lames leads to a ValueError
-        self.assertRaises(
-            ValueError,
-            self.env.apply_lane_change,
-            veh_ids=ids, direction=[], target_lane=[])
-
     def test_apply_lane_change_direction(self):
         """
         Tests the direction method for apply_lane_change. Ensures that the lane
@@ -252,7 +246,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         """
         self.env.reset()
         ids = self.env.vehicles.get_ids()
-        lane0 = np.array([self.env.vehicles.get_lane(veh_id) for veh_id in ids])
+        lane0 = np.array([self.env.vehicles.get_lane(veh_id)
+                          for veh_id in ids])
 
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
@@ -261,21 +256,22 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
-        lane1 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
-                          for veh_id in ids])
+        lane1 = np.array(
+            [self.env.traci_connection.vehicle.getLaneIndex(veh_id)
+             for veh_id in ids])
         expected_lane1 = (lane0 + np.sign(direction0)).clip(
             min=0, max=self.env.scenario.lanes - 1)
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
         # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
+        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
 
         # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
+        id_list = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.update(vehicle_obs, id_lists, self.env)
+        self.env.vehicles.update(veh_obs, id_list, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
@@ -285,57 +281,10 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
-        lane2 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
-                          for veh_id in ids])
+        lane2 = np.array(
+            [self.env.traci_connection.vehicle.getLaneIndex(veh_id)
+             for veh_id in ids])
         expected_lane2 = (lane1 + np.sign(direction1)).clip(
-            min=0, max=self.env.scenario.lanes - 1)
-
-        np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
-
-    def test_apply_lane_change_target_lane(self):
-        """
-        Tests the target_lane method for apply_lane_change. Ensure that vehicles
-        do not jump multiple lanes in a single step, and that invalid directions
-        do not lead to errors with sumo.
-        """
-        self.env.reset()
-        ids = self.env.vehicles.get_ids()
-        lane0 = np.array([self.env.vehicles.get_lane(veh_id) for veh_id in ids])
-
-        # perform lane-changing actions using the direction method
-        target_lane0 = np.array([0, 1, 2, 1, -1])
-        self.env.apply_lane_change(ids, target_lane=target_lane0)
-        self.env.traci_connection.simulationStep()
-
-        # check that the lane vehicle lane changes to the correct direction
-        # without skipping lanes
-        lane1 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
-                          for veh_id in ids])
-        expected_lane1 = (lane0 + np.sign(target_lane0 - lane0)).clip(
-            min=0, max=self.env.scenario.lanes - 1)
-
-        np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
-
-        # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_lists = self.env.traci_connection.simulation.getSubscriptionResults()
-
-        # store the network observations in the vehicles class
-        self.env.vehicles.update(vehicle_obs, id_lists, self.env)
-
-        # perform lane-changing actions using the direction method one more
-        # time to test lane changes to the right
-        target_lane1 = np.array([-1, -1, 2, -1, -1])
-        self.env.apply_lane_change(ids, target_lane=target_lane1)
-        self.env.traci_connection.simulationStep()
-
-        # check that the lane vehicle lane changes to the correct direction
-        # without skipping lanes
-        lane2 = np.array([self.env.traci_connection.vehicle.getLaneIndex(veh_id)
-                          for veh_id in ids])
-        expected_lane2 = (lane1 + np.sign(target_lane1 - lane1)).clip(
             min=0, max=self.env.scenario.lanes - 1)
 
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
@@ -436,7 +385,7 @@ class TestSimsPerStep(unittest.TestCase):
         # time before running a step
         t1 = env.time_counter
         # perform a step
-        env.step(action=[])
+        env.step(rl_actions=[])
         # time after a step
         t2 = env.time_counter
 
