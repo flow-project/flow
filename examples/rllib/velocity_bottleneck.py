@@ -38,7 +38,7 @@ vehicle_params = [dict(veh_id="human",
                        speed_mode="all_checks",
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       lane_change_mode=512,
+                       lane_change_mode=1621,
                        num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
                        acceleration_controller=(FollowerStopper,
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 45
-    n_rollouts = parallel_rollouts*1
+    n_rollouts = parallel_rollouts*2
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
