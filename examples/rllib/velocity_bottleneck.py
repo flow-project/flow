@@ -88,7 +88,7 @@ initial_config = InitialConfig(spacing="uniform", min_gap=5,
 
 flow_params = dict(
     sumo=dict(
-        sim_step=0.5, sumo_binary="sumo-gui", print_warnings=False,
+        sim_step=0.5, sumo_binary="sumo", print_warnings=False,
         restart_instance=True
     ),
     env=dict(lane_change_duration=1, warmup_steps=40,
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 2
+    parallel_rollouts = 45
     n_rollouts = parallel_rollouts*1
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
