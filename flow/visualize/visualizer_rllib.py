@@ -28,6 +28,7 @@ import ray
 import ray.rllib.ppo as ppo
 from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env as register_rllib_env
+from ray.rllib.models import ModelCatalog
 
 from flow.core.util import unstring_flow_params, get_rllib_config, get_flow_params
 
@@ -126,7 +127,7 @@ if __name__ == "__main__":
 
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0)
+                                           version=0, sumo="sumo-gui")
     register_rllib_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
@@ -134,12 +135,18 @@ if __name__ == "__main__":
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
 
+    # FIXME(ev) you can get the wrapper from model catalog if you want
+    # WE NEED TO MAKE SURE THE ENV IS WRAPPED
+
     # Create and register a new gym environment for rendering rollout
-    create_render_env, env_render_name = make_create_env(flow_env_name,
-                                                         flow_params,
-                                                         version=1,
-                                                         sumo="sumo-gui")
-    env = create_render_env(None)
+    env = ModelCatalog.get_preprocessor_as_wrapper(get_registry(),
+                                             gym.make(env_name))
+    # create_render_env, env_render_name = make_create_env(flow_env_name,
+    #                                                      flow_params,
+    #                                                      version=1,
+    #                                                      sumo="sumo-gui")
+    # import ipdb; ipdb.set_trace()
+    # env = create_render_env(None)
     rets = []
     for i in range(args.num_rollouts):
         state = env.reset()
@@ -148,6 +155,7 @@ if __name__ == "__main__":
         while not done:
             # if isinstance(state, list):
             #     state = np.concatenate(state)
+            import ipdb; ipdb.set_trace()
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward

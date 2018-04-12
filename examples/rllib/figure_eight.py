@@ -34,7 +34,7 @@ vehicle_params = [
          routing_controller=(ContinuousRouter, {}),
          num_vehicles=1),
     dict(veh_id="idm",
-         acceleration_controller=(IDMController, {"noise": 0.2}),
+         #acceleration_controller=(IDMController, {"noise": 0.2}),
          routing_controller=(ContinuousRouter, {}),
          num_vehicles=13)
 ]
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     horizon = HORIZON
     n_rollouts = 2
 
-    ray.init(num_cpus=1, redirect_output=True)
+    ray.init(num_cpus=2, redirect_output=True)
     #ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 1
@@ -120,6 +120,7 @@ if __name__ == "__main__":
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = horizon
+    config["observation_filter"] = "NoFilter"
 
     flow_env_name = "AccelEnv"
     exp_tag = "figure8_example"  # experiment prefix
@@ -127,9 +128,10 @@ if __name__ == "__main__":
     flow_params['flowenv'] = flow_env_name
     flow_params['exp_tag'] = exp_tag
     flow_params['module'] = os.path.basename(__file__)[:-3]
-    flow_json = json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=NameEncoder, sort_keys=True,
                   indent=4)
-
+    config['env_config']['flow_params'] = flow_json
     create_env, env_name = make_create_env(flow_env_name, flow_params,
                                            version=0, exp_tag=exp_tag)
 
