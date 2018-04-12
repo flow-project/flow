@@ -31,8 +31,8 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-HORIZON = 300
-AV_FRAC = 0.99
+HORIZON = 500
+AV_FRAC = 0.5
 
 vehicle_params = [dict(veh_id="human",
                        speed_mode="all_checks",
@@ -210,7 +210,7 @@ if __name__ == '__main__':
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 600},
+            "stop": {"training_iteration": 1000},
             "trial_resources": {"cpu": 1, "gpu": 0,
                                 "extra_cpu": parallel_rollouts-1}
         }
