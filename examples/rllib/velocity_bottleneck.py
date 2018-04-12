@@ -112,9 +112,11 @@ def make_create_env(flow_env_name, flow_params=flow_params, version=0,
 
     env_name = flow_env_name + '-v%s' % version
 
+    # FIXME this is a better way
     if sumo:
-        flow_params['sumo_binary'] = sumo
+        flow_params['sumo']['sumo_binary'] = sumo
     sumo_params_dict = flow_params['sumo']
+    #sumo_params_dict['sumo_binary'] = sumo
     sumo_params = SumoParams(**sumo_params_dict)
 
     env_params_dict = flow_params['env']
@@ -159,7 +161,7 @@ if __name__ == '__main__':
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 45
+    parallel_rollouts = 40
     n_rollouts = parallel_rollouts*2
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
