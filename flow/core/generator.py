@@ -110,7 +110,8 @@ class Generator(Serializable):
 
         # add traffic lights to the nodes
         for n_id in traffic_lights.get_ids():
-            indx = next(i for i, n in enumerate(nodes) if n["id"] == n_id)
+            indx = next(i for i, node in enumerate(nodes)
+                        if node["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
         # xml file for nodes; contains nodes for the boundary points with
@@ -523,8 +524,8 @@ class Generator(Serializable):
             else:
                 net_data[edge_id]["speed"] = None
 
-            # if the edge has a type parameters, check that type for a speed
-            # and parameter if one was not already found
+            # if the edge has a type parameters, check that type for a
+            # speed and parameter if one was not already found
             if "type" in edge.attrib and edge.attrib["type"] in types_data:
                 if net_data[edge_id]["speed"] is None:
                     net_data[edge_id]["speed"] = \

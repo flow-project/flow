@@ -34,7 +34,7 @@ class TestUpdateGetState(unittest.TestCase):
                                                  traffic_lights=traffic_lights)
 
         self.env.reset()
-        self.env._step([])
+        self.env.step([])
 
         state = self.env.traffic_lights.get_state("top")
 
