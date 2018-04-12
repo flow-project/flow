@@ -566,7 +566,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     # find what segment we fall into
                     bucket = np.searchsorted(self.slices[edge], pos) - 1
                     action = rl_actions[bucket + self.action_index[int(edge) - 1]]
-                    print(bucket + self.action_index[int(edge) - 1])
                     # set the desired velocity of the controller to the action
                     controller = self.vehicles.get_acc_controller(rl_id)
                     controller.v_des = action
