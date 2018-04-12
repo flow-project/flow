@@ -70,7 +70,7 @@ optional_named.add_argument(
          "user-defined trainable function or class registered in the "
          "tune registry.")
 optional_named.add_argument(
-    '--num_rollouts', type=int, default=10,
+    '--num_rollouts', type=int, default=1,
     help="The number of rollouts to visualize.")
 optional_named.add_argument(
     '--module', type=str, default='',
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     # Overwrite the visualizer
     if args.use_sumogui:
-        sumo_binary = 'sumo_gui'
+        sumo_binary = 'sumo-gui'
     else:
         sumo_binary = 'sumo'
 
@@ -130,10 +130,11 @@ if __name__ == "__main__":
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
 
+    flow_params['sumo_binary'] = sumo_binary
     create_render_env, env_render_name = make_create_env(flow_env_name,
                                                          flow_params,
                                                          version=1,
-                                                         sumo="sumo-gui")
+                                                         sumo=sumo_binary)
     # Make sure the env is wrapped with a preprocessor
     env = ModelCatalog.get_preprocessor_as_wrapper(get_registry(),
                                                    create_render_env(None))
