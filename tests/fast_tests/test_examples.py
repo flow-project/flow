@@ -5,8 +5,6 @@ from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.highway import highway_example
 from examples.sumo.loop_merge import loop_merge_example
 from examples.sumo.sugiyama import sugiyama_example
-from examples.sumo.two_lane_change_changer import two_lane_example
-from examples.sumo.two_loops_merge import two_loops_merge_example
 from examples.sumo.two_loops_merge_straight import \
     two_loops_merge_straight_example
 from examples.sumo.grid import grid_example
@@ -67,26 +65,6 @@ class TestSumoExamples(unittest.TestCase):
         """
         # import the experiment variable from the example
         exp = sugiyama_example(sumo_binary="sumo")
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_two_lane_change_changer(self):
-        """
-        Verifies that examples/sumo/two_lane_change_changer.py is working
-        """
-        # import the experiment variable from the example
-        exp = two_lane_example(sumo_binary="sumo")
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_two_loops_merge(self):
-        """
-        Verifies that examples/sumo/two_loops_merge.py is working
-        """
-        # import the experiment variable from the example
-        exp = two_loops_merge_example(sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
