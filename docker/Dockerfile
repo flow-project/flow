@@ -59,7 +59,7 @@ RUN git clone https://github.com/DLR-TS/sumo.git
 RUN mv $SUMO_SRC $SUMO_HOME
 RUN cd $SUMO_HOME && git checkout 1d4338ab80
 
-#RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/departure-time-issue.patch && patch -p1 < departure-time-issue.patch
+RUN cd $SUMO_HOME && wget https://s3-us-west-1.amazonaws.com/cistar.patch/tmp.patch && patch -p1 < tmp.patch
 
 # Install SUMO
 RUN cd $SUMO_HOME && make -f Makefile.cvs && ./configure && make -j8 && make install
