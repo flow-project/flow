@@ -605,7 +605,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 else:
                     # set the desired velocity of the controller to the default
                     controller = self.vehicles.get_acc_controller(rl_id)
-                    controller.v_des = self.env_params.additional_params.get("v_default", 15)
+                    controller.v_des = None
 
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
