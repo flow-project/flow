@@ -49,8 +49,8 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_mode=1621,
                        num_vehicles=1 * SCALING)]
 
-num_segments = [("1", 1, False), ("2", 3, True),
-                ("3", 3, True), ("4", 1, True), ("5", 1, True)]
+num_segments = [("1", 1, False), ("2", 2, True),
+                ("3", 2, True), ("4", 1, False), ("5", 1, False)]
 additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
