@@ -28,9 +28,8 @@ SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-v_default = 23
 
-sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
@@ -43,7 +42,7 @@ vehicles.add(veh_id="human",
 vehicles.add(veh_id="followerstopper",
              acceleration_controller=(FollowerStopper, 
                                       {"danger_edges": ["3", "4"],
-                                       "v_des": v_default}),
+                                       "v_des": 23}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=9,#"all_checks",
@@ -51,11 +50,10 @@ vehicles.add(veh_id="followerstopper",
              num_vehicles=5*SCALING)
 
 horizon = 100
-segments = [("1", 1, False), ("2", 1, False), ("3", 2, True), ("4", 1, False), ("5", 1, False)]
+segments = [("1", 1, False), ("2", 1, True), ("3", 1, True), ("4", 1, False), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon/2,
                          "disable_tb": True, "disable_ramp_metering": True,
-                         "segments": segments, 'lanes': [1,2], 'symmetric': False,
-                         "v_default": v_default}
+                         "segments": segments, 'lanes': [1,2], 'symmetric': False}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1, warmup_steps=80,
                        sims_per_step=4, horizon=50)
@@ -133,13 +131,13 @@ for seed in [1]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=2,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,

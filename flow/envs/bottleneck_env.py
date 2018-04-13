@@ -490,15 +490,30 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def __init__(self, env_params, sumo_params, scenario):
 
-        default = [("1", 1, True), ("2", 1, True), ("3", 1, True), ("4", 1, True), ("5", 1, True)]
+        # default (edge, segment, controlled) status
+        default = [("1", 1, True), ("2", 1, True), ("3", 1, True),
+                   ("4", 1, True), ("5", 1, True)]
         super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
         self.segments = self.env_params.additional_params.get("segments", default)
 
+        # number of segments for each edge
         self.num_segments = [segment[1] for segment in self.segments]
-        self.num_controlled_segments = [segment[1] for segment in self.segments if segment[2]]
-        self.total_segments = int(np.sum([segment[1] for segment in self.segments if segment[2]]))
 
-        self.controlled_edges = [segment[0] for segment in self.segments if segment[2]]
+        # whether an edge is controlled
+        self.is_controlled = [segment[2] for segment in self.segments]
+
+        self.num_controlled_segments = [segment[1] for segment in self.segments if segment[2]]
+
+        # sum of segments
+        self.total_segments = int(np.sum([segment[1] for segment in self.segments]))
+        # sum of controlled segments
+        self.total_controlled_segments = int(np.sum([segment[1]
+                                                     for segment in self.segments
+                                                     if segment[2]]))
+
+        # list of controlled edges for comparison
+        self.controlled_edges = [segment[0] for segment in self.segments
+                                 if segment[2]]
         self.controlled_lanes = self.env_params.additional_params.get("lanes", [0, 3])
 
         # self.symmetric is True if all lanes in a segment have same action, else False
@@ -512,19 +527,11 @@ class DesiredVelocityEnv(BridgeTollEnv):
             edge_length = self.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments)
 
-        # construct an indexing to be used for figuring out which
-        # action is useful for the segment in question
+        # action index tells us, given an edge,the offset into
+        # rl_actions that we should take
         self.action_index = [0]
-        i = 0  # counter variable
-        # TODO(nskh): naming convention for segments is confusing af 
-        for segment in self.segments[:-1]:  # all but the last edge
-            if segment[2]:  # if a controlled edge
-                # segment[1] is number of segments for that edge
-                next_action_ind = self.action_index[i] + segment[1]
-            else:  # if not a controlled segment
-                next_action_ind = self.action_index[i]
-            self.action_index += [next_action_ind]
-            i += 1
+        for i, (edge, segment, controlled) in enumerate(self.segments[:-1]):
+            self.action_index += [self.action_index[i] + segment*controlled]
 
         # contruct an indexing to be used for figuring out which
         # set of actions apply to a lane
@@ -544,9 +551,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
     @property
     def action_space(self):
         if self.symmetric:
-            action_size = int(self.total_segments)
+            action_size = int(self.total_controlled_segments)
         else:
-            action_size = int(self.total_segments * len(self.controlled_lanes))
+            action_size = int(self.total_controlled_segments * len(self.controlled_lanes))
         return Box(low=5.0, high=self.max_speed, 
                    shape=(action_size,), 
                    dtype=np.float32)
@@ -576,7 +583,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def _apply_rl_actions(self, actions):
         rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
-        # FIXME(ev) make it so that you don't have to control everrrry edge
+
         veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
                    if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
         for rl_id in veh_ids:
@@ -609,7 +616,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
-            0.01*rewards.desired_velocity(self)/self.max_speed
+            rewards.desired_velocity(self)/self.max_speed
         return reward
 
 
