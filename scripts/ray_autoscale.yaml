@@ -1,7 +1,7 @@
 # cluster.yaml ========================================= 
 
 # An unique identifier for the head node and workers of this cluster.
-cluster_name: eugene2 #<YOUR NAME>
+cluster_name: eugene3 #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
@@ -65,7 +65,7 @@ file_mounts: {
 # path to your repo and the desired branch name
 #"/tmp/foo": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
 #"/tmp/foo2": "<PATH TO RAY_AUTOSCALER_KEY>",
-"/tmp/foo": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/velocity_bottleneck",
+"/tmp/foo": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/velocity_hang_test",
 "/tmp/foo2": "/Users/eugenevinitsky/.ssh/ray-autoscaler_1_us-west-1.pem",
 }
 
