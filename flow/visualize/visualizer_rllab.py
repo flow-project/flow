@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str,
                         help='path to the snapshot file')
-    parser.add_argument('--num_rollouts', type=int, default=100, 
+    parser.add_argument('--num_rollouts', type=int, default=100,
                         help='Number of rollouts we will average over')
     parser.add_argument('--plotname', type=str, default="traffic_plot",
                         help='Prefix for all generated plots')
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     # FIXME(ev, ak) only one of these should be needed
     # extract the flow environment
-    #unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
+    # unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
     # if this doesn't work, try the one above it
     unwrapped_env = env.wrapped_env.env.env.unwrapped
 
