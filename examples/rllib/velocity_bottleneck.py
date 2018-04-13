@@ -55,7 +55,7 @@ additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 2000 * SCALING
+flow_rate = 1800 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 # percentage of flow coming out of each lane
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 40
-    n_rollouts = parallel_rollouts*3
+    n_rollouts = parallel_rollouts*4
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
