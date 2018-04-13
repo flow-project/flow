@@ -55,7 +55,7 @@ additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 4000 * SCALING
+flow_rate = 2000 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 # percentage of flow coming out of each lane
@@ -63,14 +63,12 @@ flow_dist = np.ones(NUM_LANES) / NUM_LANES
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
-for i in range(NUM_LANES):
-    lane_num = str(i)
-    inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate*(1-AV_FRAC),
-               departLane="random", departSpeed=10)
-    inflow.add(veh_type="followerstopper", edge="1",
-               vehs_per_hour=flow_rate*AV_FRAC,
-               # vehsPerHour=veh_per_hour * 0.2,
-               departLane="random", departSpeed=10)
+inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate*(1-AV_FRAC),
+           departLane="random", departSpeed=10)
+inflow.add(veh_type="followerstopper", edge="1",
+           vehs_per_hour=flow_rate*AV_FRAC,
+           # vehsPerHour=veh_per_hour * 0.2,
+           departLane="random", departSpeed=10)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -163,7 +161,7 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 40
-    n_rollouts = parallel_rollouts*1
+    n_rollouts = parallel_rollouts*2
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
@@ -211,7 +209,7 @@ if __name__ == '__main__':
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 1000},
+            "stop": {"training_iteration": 400},
             "trial_resources": {"cpu": 1, "gpu": 0,
                                 "extra_cpu": parallel_rollouts-1}
         }
