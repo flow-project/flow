@@ -113,7 +113,8 @@ def run_bottleneck(Kp, ds, num_trials, num_steps):
 
 if __name__ == "__main__":
 
-    Kps = np.arange(10, 110, 10)
+    # Kps = np.arange(10, 110, 10)
+    Kps = np.arange(50, 160, 25)
     ds = np.arange(0.001, 0.005, 0.0005)
 
     # Kps = [10, 20]
@@ -129,3 +130,8 @@ if __name__ == "__main__":
     print('Kp values:', Kps)
     print('desired density values:', ds)
     print('Rewards:', rets)
+    indices = np.unravel_index(np.argmax(rets), rets.shape)
+    print('best Kp:', Kps[indices[0]], 'best d:', ds[indices[1]])
+
+
+# best Kp: 50 . best d: 0.0025

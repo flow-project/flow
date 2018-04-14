@@ -549,7 +549,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         # self.slices is a dictionary mapping 
             # edge (str) -> segment start location (list of int)
         self.slices = {}  
-        for edge, num_segments, controlled_status in self.segments:
+        for edge, num_segments, _ in self.segments:
             edge_length = self.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments)
 
@@ -644,8 +644,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     controller.v_des = None
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
-            rewards.desired_velocity(self)/self.max_speed
+        # reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
+        #     0.1*rewards.desired_velocity(self)/self.max_speed
+        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0
         return reward
 
 
