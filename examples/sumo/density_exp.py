@@ -84,7 +84,7 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
 
     return BottleneckDensityExperiment(env, scenario)
 
-# @ray.remote
+@ray.remote
 def run_bottleneck(density, num_trials, num_steps):
     exp = bottleneck(density, num_steps, sumo_binary="sumo")
     outflow, velocity, bottleneckdensity = exp.run(num_trials, num_steps)
@@ -106,13 +106,13 @@ if __name__ == "__main__":
     per_step_rewards = []
 
 
+    #
+    # bottleneck_outputs = [run_bottleneck(d, 1, 100) for d in densities]
+    # for output in bottleneck_outputs:
 
-    bottleneck_outputs = [run_bottleneck(d, 1, 100) for d in densities]
-    for output in bottleneck_outputs:
-
-    # ray.init()
-    # bottleneck_outputs = [run_bottleneck.remote(d, 30, 2500) for d in densities]
-    # for output in ray.get(bottleneck_outputs):
+    ray.init()
+    bottleneck_outputs = [run_bottleneck.remote(d, 30, 2500) for d in densities]
+    for output in ray.get(bottleneck_outputs):
         outflow, velocity, bottleneckdensity, per_step_vel, per_step_den, per_step_r = output
 
         outflows.append(outflow)
