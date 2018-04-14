@@ -253,9 +253,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
     def get_bottleneck_density(self, lanes=None):
         BOTTLE_NECK_LEN = 280
         if lanes:
-            print(self.vehicles.get_ids_by_edge(['3', '4']))
             veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
-            print("======================", veh_ids)
         else:
             veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
@@ -555,7 +553,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     @property
     def action_space(self):
-        return Box(low=5.0, high=23.0,
+        return Box(low=2.0, high=23.0,
                    shape=(int(self.total_controlled_segments),),
                    dtype=np.float32)
 
@@ -609,7 +607,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/2000.0 + \
             0.01*rewards.desired_velocity(self)/self.max_speed
-        print(reward)
         return reward
 
 
