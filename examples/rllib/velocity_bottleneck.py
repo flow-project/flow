@@ -31,14 +31,14 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-HORIZON = 200
-AV_FRAC = 0.99
+HORIZON = 500
+AV_FRAC = 0.25
 
 vehicle_params = [dict(veh_id="human",
                        speed_mode="all_checks",
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       lane_change_mode=512,
+                       lane_change_mode=1621,
                        num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
                        acceleration_controller=(FollowerStopper,
@@ -49,12 +49,13 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_mode=1621,
                        num_vehicles=1 * SCALING)]
 
-num_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 1), ("5", 1)]
+num_segments = [("1", 1, False), ("2", 3, True),
+                ("3", 3, True), ("4", 1, True), ("5", 1, True)]
 additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 3600 * SCALING
+flow_rate = 2000 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 # percentage of flow coming out of each lane
@@ -62,15 +63,12 @@ flow_dist = np.ones(NUM_LANES) / NUM_LANES
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
-for i in range(NUM_LANES):
-    lane_num = str(i)
-    veh_per_hour = flow_rate * flow_dist[i]
-    veh_per_second = veh_per_hour / 3600
-    inflow.add(veh_type="human", edge="1", probability=veh_per_second * (1-AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
-               departLane="random", departSpeed=23)
-    inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second * AV_FRAC,
-               # vehsPerHour=veh_per_hour * 0.2,
-               departLane="random", departSpeed=23)
+inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate*(1-AV_FRAC),
+           departLane="random", departSpeed=10)
+inflow.add(veh_type="followerstopper", edge="1",
+           vehs_per_hour=flow_rate*AV_FRAC,
+           # vehsPerHour=veh_per_hour * 0.2,
+           departLane="random", departSpeed=10)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -80,7 +78,8 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False, additional_params=additional_net_params)
+                       no_internal_links=False,
+                       additional_params=additional_net_params)
 
 initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
@@ -107,11 +106,16 @@ flow_params = dict(
     ))
 
 
-def make_create_env(flow_env_name, flow_params=flow_params, version=0):
+def make_create_env(flow_env_name, flow_params=flow_params, version=0,
+                    sumo=None):
 
     env_name = flow_env_name + '-v%s' % version
 
+    # FIXME this is a better way
+    if sumo:
+        flow_params['sumo']['sumo_binary'] = sumo
     sumo_params_dict = flow_params['sumo']
+    #sumo_params_dict['sumo_binary'] = sumo
     sumo_params = SumoParams(**sumo_params_dict)
 
     env_params_dict = flow_params['env']
@@ -157,13 +161,13 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 40
-    n_rollouts = parallel_rollouts*1
-    ray.init(num_cpus=parallel_rollouts, redirect_output=False)
+    n_rollouts = parallel_rollouts*2
+    ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [256, 256]})
+    config["model"].update({"fcnet_hiddens": [64, 64]})
 
     config["lambda"] = 0.99
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
@@ -178,8 +182,13 @@ if __name__ == '__main__':
     flow_params['exp_tag'] = exp_tag
     # filename without '.py'
     flow_params['module'] = os.path.basename(__file__)[:-3]
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=NameEncoder, sort_keys=True,
+                  indent=4)
+    config['env_config']['flow_params'] = flow_json
 
-    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0)
+    create_env, env_name = make_create_env(flow_env_name, flow_params,
+                                           version=0)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
@@ -191,11 +200,6 @@ if __name__ == '__main__':
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
-    # Logging out flow_params to ray's experiment result folder
-    json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
-
     trials = run_experiments({
         "DesiredVelocity": {
             "run": "PPO",
@@ -205,12 +209,8 @@ if __name__ == '__main__':
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 300},
+            "stop": {"training_iteration": 400},
             "trial_resources": {"cpu": 1, "gpu": 0,
                                 "extra_cpu": parallel_rollouts-1}
         }
     })
-    json_out_file = trials[0].logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder,
-                  sort_keys=True, indent=4)
