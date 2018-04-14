@@ -679,13 +679,10 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         action = rl_actions[bucket + self.action_index[int(edge) - 1]]
 
                     # set the desired velocity of the controller to the action
-                    controller = self.vehicles.get_acc_controller(rl_id)
-                    controller.v_des = action
-                    print('applying action')
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, action)
                 else:
                     # set the desired velocity of the controller to the default
-                    controller = self.vehicles.get_acc_controller(rl_id)
-                    controller.v_des = None
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 + \
@@ -693,9 +690,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
             
         # penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
-        # if len(bottleneck_ids) > 5:
-        if len(bottleneck_ids) > 5:
-            reward -= len(bottleneck_ids)
+        bottleneck_threshold = 10
+        if len(bottleneck_ids) > bottleneck_threshold:
+            reward -= len(bottleneck_ids) - bottleneck_threshold
         return reward
 
 

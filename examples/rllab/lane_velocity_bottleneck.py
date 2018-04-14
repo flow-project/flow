@@ -33,7 +33,7 @@ DISABLE_RAMP_METER = True
 AV_FRAC = .25
 PARALLEL_ROLLOUTS = 60
 
-sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo-gui")
+sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
 
@@ -134,13 +134,13 @@ for seed in [2]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,#PARALLEL_ROLLOUTS,
+        n_parallel=16,#PARALLEL_ROLLOUTS,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
