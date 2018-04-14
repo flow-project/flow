@@ -65,7 +65,7 @@ def bottleneck(Kp=10, d=0.003, horizon=500, sumo_binary=None):
     # flow rate
 
     # MAX OF 3600 vehicles per lane per hour i.e. flow_rate <= 3600 *
-    flow_rate = 2000 * SCALING
+    flow_rate = 3000 * SCALING
     # percentage of flow coming out of each lane
     # flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
     flow_dist = np.ones(NUM_LANES)/NUM_LANES
