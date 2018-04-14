@@ -91,9 +91,9 @@ def run_bottleneck(density, num_trials, num_steps):
     outflow, velocity, bottleneckdensity = exp.run(num_trials, num_steps)
     per_step_avg_velocities = exp.per_step_avg_velocities[:1]
     per_step_densities = exp.per_step_densities[:1]
-    per_step_rewards = exp.per_step_rewards[:1]
+    per_step_outflows = exp.per_step_outflows[:1]
 
-    return outflow, velocity, bottleneckdensity, per_step_avg_velocities, per_step_densities, per_step_rewards
+    return outflow, velocity, bottleneckdensity, per_step_avg_velocities, per_step_densities, per_step_outflows
 
 if __name__ == "__main__":
     # import the experiment variable
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     per_step_densities = []
     per_step_avg_velocities = []
-    per_step_rewards = []
+    per_step_outflows = []
 
 
     #
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     ray.init()
     bottleneck_outputs = [run_bottleneck.remote(d, 5, 1500) for d in densities]
     for output in ray.get(bottleneck_outputs):
-        outflow, velocity, bottleneckdensity, per_step_vel, per_step_den, per_step_r = output
+        outflow, velocity, bottleneckdensity, per_step_vel, per_step_den, per_step_out = output
 
         outflows.append(outflow)
         velocities.append(velocity)
@@ -122,10 +122,10 @@ if __name__ == "__main__":
 
         per_step_densities.extend(per_step_den)
         per_step_avg_velocities.extend(per_step_vel)
-        per_step_rewards.extend(per_step_r)
+        per_step_outflows.extend(per_step_out)
 
     np.savetxt("rets.csv", np.matrix([densities, outflows, velocities, bottleneckdensities]).T, delimiter=",")
     np.savetxt("vels.csv", np.matrix(per_step_avg_velocities), delimiter=",")
     np.savetxt("dens.csv", np.matrix(per_step_densities), delimiter=",")
-    np.savetxt("outflow.csv", np.matrix(per_step_rewards), delimiter=",")
+    np.savetxt("outflow.csv", np.matrix(per_step_outflows), delimiter=",")
 
