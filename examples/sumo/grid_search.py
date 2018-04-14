@@ -24,6 +24,7 @@ def bottleneck(Kp=10, d=0.003, sumo_binary=None):
     NUM_LANES = 4*SCALING  # number of lanes in the widest highway
     DISABLE_TB = True
     DISABLE_RAMP_METER = True
+    AV_FRAC = .000001
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
@@ -36,7 +37,7 @@ def bottleneck(Kp=10, d=0.003, sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  acceleration_controller=(SumoCarFollowingController, {}),
                  # routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=0b100000101,
+                 lane_change_mode=1621,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
 
@@ -47,12 +48,14 @@ def bottleneck(Kp=10, d=0.003, sumo_binary=None):
                  acceleration_controller=(FeedbackController, \
                                           {"Kp":Kp, "desired_bottleneck_density":d, "danger_edges":["3", "4", "5"]}),
                  routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=0b100000101,
+                 lane_change_mode=1621,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
 
-    horizon = 1000
-    num_segments = [("1", 1, False), ("2", 3, False), ("3", 1, False), ("4", 1, False), ("5", 1, False)]
+    horizon = 500
+    num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
+                    ("4", 1, True), ("5", 1, False)]
+
     additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                              "disable_tb": True, "disable_ramp_metering": True,
                              "segments": num_segments}
@@ -68,16 +71,10 @@ def bottleneck(Kp=10, d=0.003, sumo_binary=None):
     flow_dist = np.ones(NUM_LANES)/NUM_LANES
 
     inflow = InFlows()
-    for i in range(NUM_LANES):
-        lane_num = str(i)
-        veh_per_hour = flow_rate * flow_dist[i]
-        print(veh_per_hour)
-        veh_per_second = veh_per_hour/3600
-        print(veh_per_second)
-        inflow.add(veh_type="human", edge="1", probability=veh_per_second*0.70,#vehsPerHour=veh_per_hour *0.8,
-                   departLane=lane_num, departSpeed=10)
-        inflow.add(veh_type="followerstopper", edge="1", probability=veh_per_second*0.30,#vehsPerHour=veh_per_hour * 0.2,
-                   departLane=lane_num, departSpeed=10)
+    inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate*(1-AV_FRAC),#vehsPerHour=veh_per_hour *0.8,
+               departLane="random", departSpeed=10)
+    inflow.add(veh_type="followerstopper", edge="1", vehs_per_hour=flow_rate*AV_FRAC,#vehsPerHour=veh_per_hour * 0.2,
+               departLane="random", departSpeed=10)
 
     traffic_lights = TrafficLights()
     if not DISABLE_TB:

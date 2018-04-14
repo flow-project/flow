@@ -10,8 +10,9 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
-from flow.controllers.velocity_controllers import FollowerStopper
+#from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers.rlcontroller import RLController
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 
 import ray
@@ -41,21 +42,22 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_mode=1621,
                        num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
-                       acceleration_controller=(FollowerStopper,
-                                                {"danger_edges": ["3", "4"]}),
+                       # acceleration_controller=(RLController,
+                       #                          {"danger_edges": ["3", "4"]}),
+                       acceleration_controller = (RLController, {}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       speed_mode=9,
+                       speed_mode=31,
                        lane_change_mode=1621,
                        num_vehicles=1 * SCALING)]
 
-num_segments = [("1", 1, False), ("2", 3, True),
-                ("3", 3, True), ("4", 1, True), ("5", 1, True)]
+num_segments = [("1", 1, False), ("2", 2, True),
+                ("3", 2, True), ("4", 1, False), ("5", 1, False)]
 additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 2000 * SCALING
+flow_rate = 1800 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 # percentage of flow coming out of each lane
@@ -161,7 +163,7 @@ if __name__ == '__main__':
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
     parallel_rollouts = 40
-    n_rollouts = parallel_rollouts*2
+    n_rollouts = parallel_rollouts*4
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts

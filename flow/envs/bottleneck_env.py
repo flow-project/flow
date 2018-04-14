@@ -2,6 +2,7 @@ from flow.envs.lane_changing import LaneChangeAccelEnv
 from flow.core import rewards
 from flow.core import multi_agent_rewards
 from flow.controllers.velocity_controllers import FollowerStopper
+from flow.controllers.car_following_models import SumoCarFollowingController
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 from collections import defaultdict
@@ -255,10 +256,8 @@ class BridgeTollEnv(LaneChangeAccelEnv):
     def get_bottleneck_density(self, lanes=None):
         BOTTLE_NECK_LEN = 280
         if lanes:
-            print(self.vehicles.get_ids_by_edge(['3', '4']))
             veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) \
                        if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
-            print("======================", veh_ids)
         else:
             veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
@@ -583,7 +582,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
             action_size = int(self.total_controlled_segments)
         else:
             action_size = int(self.total_controlled_segments * len(self.controlled_lanes))
-        return Box(low=5.0, high=self.max_speed, 
+        return Box(low=2.0, high=23.0, 
                    shape=(action_size,), 
                    dtype=np.float32)
 
@@ -611,11 +610,14 @@ class DesiredVelocityEnv(BridgeTollEnv):
         return np.concatenate((num_vehicles_list, mean_speed))
 
     def _apply_rl_actions(self, actions):
-        rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
+        rl_actions = actions
 
-        veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
-                   if isinstance(self.vehicles.get_acc_controller(veh_id), FollowerStopper)]
-        for rl_id in veh_ids:
+        # RLLIB STUFF
+        #rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
+        # veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
+        #            if isinstance(self.vehicles.get_acc_controller(veh_id), SumoCarFollowingModel)]
+
+        for rl_id in self.vehicles.get_rl_ids():
             edge = self.vehicles.get_edge(rl_id)
             lane = self.vehicles.get_lane(rl_id)
             if edge:
@@ -636,12 +638,10 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         action = rl_actions[bucket + self.action_index[int(edge) - 1]]
 
                     # set the desired velocity of the controller to the action
-                    controller = self.vehicles.get_acc_controller(rl_id)
-                    controller.v_des = action
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, action)
                 else:
                     # set the desired velocity of the controller to the default
-                    controller = self.vehicles.get_acc_controller(rl_id)
-                    controller.v_des = None
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
