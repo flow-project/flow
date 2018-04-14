@@ -12,6 +12,7 @@ from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers.rlcontroller import RLController
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
 
@@ -28,7 +29,7 @@ SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-AV_FRAC = .99
+AV_FRAC = .999
 
 sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
@@ -41,18 +42,19 @@ vehicles.add(veh_id="human",
              lane_change_mode=1621,#0b100000101,
              num_vehicles=1*SCALING)
 vehicles.add(veh_id="followerstopper",
-             acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
+             acceleration_controller=(RLController, {}),
+             #acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=9,#"all_checks",
+             speed_mode=31,#"all_checks",
              lane_change_mode=1621,#0b100000101,
              num_vehicles=1*SCALING)
 
-horizon = 500
+horizon = 1000
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
 num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
-                ("4", 1, True), ("5", 1, True)]
+                ("4", 1, True), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
@@ -117,28 +119,29 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=10000,
+        batch_size=horizon,
         max_path_length=horizon,
         # whole_paths=True,
-        n_itr=400,
-        discount=0.995,
+        n_itr=1,
+        discount=0.999,
         # step_size=0.01,
     )
     algo.train()
 
-exp_tag = "DanBottleneckSmall"  # experiment prefix
+exp_tag = "VSLControl"  # experiment prefix
 for seed in [1]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=4,
+        n_parallel=1,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
+        sync_s3_pkl=True
     )
