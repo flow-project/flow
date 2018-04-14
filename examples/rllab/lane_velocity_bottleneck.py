@@ -55,7 +55,7 @@ horizon = 500
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
 segments = [("1", 1, False), ("2", 1, True), ("3", 1, True),
-                ("4", 1, False), ("5", 1, False)]
+                ("4", 2, False), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments":segments, 'symmetric': False, 'lanes':[0,1,2,3]}
@@ -140,7 +140,7 @@ for seed in [2]:  # , 1, 5, 10, 73]:
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,

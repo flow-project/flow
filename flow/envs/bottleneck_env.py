@@ -642,7 +642,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
             if edge:
                 # If in outer lanes, on a controlled edge, in a controlled lane
                 if edge[0] != ':' and edge in self.controlled_edges and lane in self.controlled_lanes:
-                    import ipdb; ipdb.set_trace()
                     pos = self.vehicles.get_position(rl_id)
 
                     if not self.symmetric:
