@@ -44,14 +44,15 @@ def bottleneck(sumo_binary=None):
                  speed_mode="custom_model",
                  lane_change_controller=(SumoLaneChangeController, {}),
                  # acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 5, 1, 60, 60, 60, 60, 60, 60]}),
-                 acceleration_controller=(FeedbackController, {"K":10, "desired_bottleneck_density":0.003, "danger_edges":["3", "4", "5"]}),
+                 acceleration_controller=(FeedbackController, \
+                                          {"K":10, "desired_bottleneck_density":0.003, "danger_edges":["3", "4", "5"]}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
 
     horizon = 1000
-    num_segments = [("1", 1), ("2", 3), ("3", 1), ("4", 1), ("5", 1)]
+    num_segments = [("1", 1, False), ("2", 3, False), ("3", 1, False), ("4", 1, False), ("5", 1, False)]
     additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                              "disable_tb": True, "disable_ramp_metering": True,
                              "segments": num_segments}

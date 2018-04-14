@@ -237,7 +237,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.traci_connection.trafficlights.setRedYellowGreenState(
                 tlsID=TB_TL_ID, state=newTLState)
 
-    def distance_to_bottlneck(self, veh_id):
+    def distance_to_bottleneck(self, veh_id):
         pre_bottleneck_edges = {str(i): self.scenario.edge_length(str(i)) for i in [1, 2, 3]}
         edge_pos = self.vehicles.get_position(veh_id)
         edge = self.vehicles.get_edge(veh_id)
@@ -256,7 +256,8 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         BOTTLE_NECK_LEN = 280
         if lanes:
             print(self.vehicles.get_ids_by_edge(['3', '4']))
-            veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
+            veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) \
+                       if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
             print("======================", veh_ids)
         else:
             veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
