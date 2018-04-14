@@ -514,7 +514,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         # list of controlled edges for comparison
         self.controlled_edges = [segment[0] for segment in self.segments
                                  if segment[2]]
-        self.controlled_lanes = self.env_params.additional_params.get("lanes", [0, 3])
+        self.controlled_lanes = self.env_params.additional_params.get("lanes", [0,1,2,3])
 
         # self.symmetric is True if all lanes in a segment have same action, else False
         self.symmetric = self.env_params.additional_params.get("symmetric", True)
