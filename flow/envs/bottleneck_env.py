@@ -546,8 +546,8 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def observation_space(self):
         num_obs = 0
         for segment in self.segments:
-            num_obs += segment[1] * self.scenario.num_lanes(segment[0])
-        num_obs += self.total_segments
+            num_obs += 2*segment[1] * self.scenario.num_lanes(segment[0])
+        num_obs += 2*self.total_segments
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
                    dtype=np.float32)
 
@@ -558,27 +558,42 @@ class DesiredVelocityEnv(BridgeTollEnv):
                    dtype=np.float32)
 
     def get_state(self):
-        # FIXME(ev) add information about AVs)
+        # action space is number of vehicles in each segment in each lane,
+        # number of rl vehicles in each segment in each lane
+        # mean speed in each segment, and mean rl speed in each segment
         num_vehicles_list = []
+        num_rl_vehicles_list = []
         segment_speeds = np.zeros((self.total_segments, 2))
+        rl_segment_speeds = np.zeros((self.total_segments, 2))
         for i, edge in enumerate(EDGE_LIST):
             num_lanes = self.scenario.num_lanes(edge)
             num_vehicles = np.zeros((self.num_segments[i], num_lanes))
+            num_rl_vehicles = np.zeros((self.num_segments[i], num_lanes))
             ids = self.vehicles.get_ids_by_edge(edge)
             lane_list = self.vehicles.get_lane(ids)
             pos_list = self.vehicles.get_position(ids)
             for i, id in enumerate(ids):
                 segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
                 num_vehicles[segment, lane_list[i]] += 1
-                segment_speeds[segment][0] = self.vehicles.get_speed(id)
+                segment_speeds[segment][0] += self.vehicles.get_speed(id)
                 segment_speeds[segment][1] += 1
+
+                if id in self.vehicles.get_rl_ids():
+                    rl_segment_speeds[segment][0] += self.vehicles.get_speed(id)
+                    rl_segment_speeds[segment][1] += 1
+                    num_rl_vehicles[segment, lane_list[i]] += 1
 
             # normalize
             num_vehicles /= 20
+            num_rl_vehicles /= 20
             num_vehicles_list += num_vehicles.flatten().tolist()
+            num_rl_vehicles_list += num_rl_vehicles.flatten().tolist()
         mean_speed = np.nan_to_num([segment_speeds[i][0]/segment_speeds[i][1]
                       for i in range(self.total_segments)])/50
-        return np.concatenate((num_vehicles_list, mean_speed))
+        mean_rl_speed = np.nan_to_num([rl_segment_speeds[i][0] / rl_segment_speeds[i][1]
+                                    for i in range(self.total_segments)]) / 50
+        return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
+                               mean_speed, mean_rl_speed))
 
     def _apply_rl_actions(self, actions):
         rl_actions = actions
