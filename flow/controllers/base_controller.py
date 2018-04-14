@@ -47,6 +47,8 @@ class BaseController:
         # acceleration queue, for time delayed actions
         self.accel_queue = collections.deque()
 
+        self.sumo_cf_params = sumo_cf_params
+
     def uses_sumo(self):
         return self.sumo_controller
 
