@@ -636,10 +636,12 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         action = rl_actions[bucket + self.action_index[int(edge) - 1]]
 
                     # set the desired velocity of the controller to the action
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, action)
+                    controller = self.vehicles.get_acc_controller(rl_id)
+                    controller.v_des = action
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
+                    controller = self.vehicles.get_acc_controller(rl_id)
+                    controller.v_des = None
 
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
