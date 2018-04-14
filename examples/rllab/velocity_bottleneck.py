@@ -21,7 +21,8 @@ from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+#from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
+from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
 import numpy as np
 
@@ -47,21 +48,21 @@ vehicles.add(veh_id="followerstopper",
              #acceleration_controller=(FollowerStopper, {"danger_edges": ["3", "4"]}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             speed_mode=31,#"all_checks",
-             lane_change_mode=1621,#0b100000101,
+             speed_mode=9,#"all_checks",
+             lane_change_mode=0,#0b100000101,
              num_vehicles=1*SCALING)
 
-horizon = 1000
+horizon = 500
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
-num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
-                ("4", 1, True), ("5", 1, False)]
+num_segments = [("1", 1, False), ("2", 1, True), ("3", 1, True),
+                ("4", 1, False), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1, warmup_steps=40,
-                       sims_per_step=1, horizon=horizon)
+                       sims_per_step=2, horizon=horizon)
 
 # flow rate
 flow_rate = 2000 * SCALING
@@ -109,9 +110,9 @@ def run_task(*_):
     horizon = env.horizon
     env = normalize(env)
 
-    policy = GaussianMLPPolicy(
+    policy = GaussianGRUPolicy(
         env_spec=env.spec,
-        hidden_sizes=(100, 50, 25)
+        hidden_sizes=(32,)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -120,7 +121,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=horizon*PARALLEL_ROLLOUTS*3,
+        batch_size=5000,#horizon,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
@@ -130,17 +131,17 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "VSLControl"  # experiment prefix
-for seed in [1, 2, 3]:  # , 1, 5, 10, 73]:
+for seed in [2]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=PARALLEL_ROLLOUTS,
+        n_parallel=1,#PARALLEL_ROLLOUTS,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="ec2",
+        mode="local",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
