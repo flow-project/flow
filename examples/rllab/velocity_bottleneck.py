@@ -54,8 +54,8 @@ vehicles.add(veh_id="followerstopper",
 horizon = 1000
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
-num_segments = [("1", 1, False), ("2", 1, True), ("3", 1, True),
-                ("4", 1, False), ("5", 1, False)]
+num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
+                ("4", 1, True), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
@@ -120,8 +120,8 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=horizon,
-        max_path_length=horizon*PARALLEL_ROLLOUTS*3,
+        batch_size=horizon*PARALLEL_ROLLOUTS*3,
+        max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
         discount=0.999,
