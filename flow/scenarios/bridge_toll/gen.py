@@ -37,7 +37,7 @@ class BBTollGenerator(Generator):
                  {"id": "3", "from": "3", "to": "4", "length": "140",  # DONE
                   "spreadType": "center", "numLanes": str(4*scaling),
                   "speed": "23"},
-                 {"id": "4", "from": "4", "to": "5", "length": "140",   # DONE
+                 {"id": "4", "from": "4", "to": "5", "length": "280",   # DONE
                   "spreadType": "center", "numLanes": str(2*scaling),
                   "speed": "23"},
                  {"id": "5", "from": "5", "to": "6", "length": "155",
