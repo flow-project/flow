@@ -38,7 +38,6 @@ ENV_PARAMS = [
     "segments",  # number of regions for velocity bottleneck controller
     "lanes",  # controlled lanes for EarlyLC experiments
     "symmetric",  # whether lanes in a segment have the same action or not
-    "v_default",  # default FollowerStopper velocity
 ]
 
 NET_PARAMS = [
@@ -565,6 +564,19 @@ class DesiredVelocityEnv(BridgeTollEnv):
                               for ind,lane  \
                               in enumerate(self.controlled_lanes)}
 
+        # number of controlled segments up to and including edge 4
+        until_four = int(np.sum([segment[1] for segment in self.segments[:4] if segment[2]]))
+        # number of controlled segments up to and including edge 3
+        until_three = int(np.sum([segment[1] for segment in self.segments[:3] if segment[2]]))
+        self.lane_index = {}
+        for ind, lane in enumerate(self.controlled_lanes):
+            if lane < self.scaling:  # full length
+                self.lane_index[lane] = ind*self.total_controlled_segments
+            elif lane < self.scaling*2:  # half length
+                self.lane_index[lane] = ind*until_four
+            else:  # goes away in first level 
+                self.lane_index[lane] = ind*until_three
+
     @property
     def observation_space(self):
         num_obs = 0
@@ -579,7 +591,17 @@ class DesiredVelocityEnv(BridgeTollEnv):
         if self.symmetric:
             action_size = int(self.total_controlled_segments)
         else:
-            action_size = int(self.total_controlled_segments * len(self.controlled_lanes))
+            action_size = 0
+            for segment in self.segments:  # iterate over segments
+                if segment[2]:  # if controlled
+                    if segment[0] == '4':
+                        # edge 4 has half the lanes
+                        action_size += segment[1]*len(self.controlled_lanes)/2
+                    elif segment[0] == '5':
+                        # edge 5 has one quarter the lanes
+                        action_size += segment[1]*len(self.controlled_lanes)/4
+                    else:
+                        action_size += segment[1]*len(self.controlled_lanes)
         return Box(low=2.0, high=23.0, 
                    shape=(action_size,), 
                    dtype=np.float32)
@@ -659,6 +681,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     # set the desired velocity of the controller to the action
                     controller = self.vehicles.get_acc_controller(rl_id)
                     controller.v_des = action
+                    print('applying action')
                 else:
                     # set the desired velocity of the controller to the default
                     controller = self.vehicles.get_acc_controller(rl_id)
