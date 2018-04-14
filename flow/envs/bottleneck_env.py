@@ -92,8 +92,6 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.next_period = START_RECORD_TIME / self.sim_step
         self.cars_arrived = 0
 
-        print(env_params.additional_params)
-
         if "disable_tb" in env_params.additional_params:
             self.disable_tb = env_params.get_additional_param("disable_tb")
 

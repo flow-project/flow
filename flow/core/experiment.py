@@ -52,7 +52,6 @@ class SumoExperiment:
         if rl_actions is None:
             rl_actions = []
 
-
         for i in range(num_runs):
             logging.info("Iter #" + str(i))
             step_rewards = []
@@ -82,3 +81,81 @@ class SumoExperiment:
             emission_to_csv(emission_path)
 
         return np.mean(self.rollout_total_rewards)
+
+class BottleneckDensityExperiment(SumoExperiment):
+
+    def __init__(self, env, scenario):
+        super().__init__(env, scenario)
+        self.per_step_outflows = []
+        self.avg_outflows = []
+        self.per_step_densities = []
+        self.avg_densities = []
+        self.per_step_avg_velocities = []
+        self.rollout_avg_velocities = []
+
+    def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
+        """
+        Runs the given scenario for a set number of runs and a set number of
+        steps per run.
+
+        Parameters
+        ----------
+        num_runs: int
+            number of runs the experiment should perform
+        num_steps: int
+            number of steps to be performs in each run of the experiment
+        rl_actions: list or numpy ndarray, optional
+            actions to be performed by rl vehicles in the network (if there are
+            any)
+        convert_to_csv: bool
+            Specifies whether to convert the emission file created by sumo into
+            a csv file
+        """
+        if rl_actions is None:
+            rl_actions = []
+
+        for i in range(num_runs):
+            logging.info("Iter #" + str(i))
+            step_outflows = []
+            step_densities = []
+            step_avg_vels = []
+            self.env.reset()
+            for j in range(num_steps):
+                state, reward, done, _ = self.env.step(rl_actions)
+
+                step_outflow = self.env.get_bottleneck_outflow_vehicles_per_hour(20)
+                avg_vel = self.env.get_avg_bottleneck_velocity()
+                density = self.env.get_bottleneck_density()
+
+                step_avg_vels.append(avg_vel)
+                step_densities.append(density)
+                step_outflows.append(step_outflow)
+
+                if done:
+                    break
+            print("Round {0}, avg hourly outflow: {1}".format(i, sum(step_outflows)/num_steps))
+            print("Round {0}, avg bottleneck velocity: {1}".format(i, sum(step_avg_vels)/num_steps))
+            print("Round {0}, avg density: {1}".format(i, sum(step_densities)/num_steps))
+
+            self.avg_outflows.append(sum(step_outflows)/num_steps)
+            self.avg_densities.append(sum(step_densities)/num_steps)
+            self.rollout_avg_velocities.append(sum(step_avg_vels)/num_steps)
+
+            self.per_step_outflows.append(step_outflows)
+            self.per_step_avg_velocities.append(step_avg_vels)
+            self.per_step_densities.append(step_densities)
+
+        self.env.terminate()
+
+        if convert_to_csv:
+            # collect the location of the emission file
+            dir_path = self.env.sumo_params.emission_path
+            emission_filename = \
+                "{0}-emission.xml".format(self.env.scenario.name)
+            emission_path = \
+                "{0}/{1}".format(dir_path, emission_filename)
+
+            # convert the emission file into a csv
+            emission_to_csv(emission_path)
+
+        return np.mean(self.avg_outflows), np.mean(self.rollout_avg_velocities), np.mean(self.avg_densities)
