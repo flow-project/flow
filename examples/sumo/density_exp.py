@@ -86,7 +86,7 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
 
 # @ray.remote
 def run_bottleneck(density, num_trials, num_steps):
-    exp = bottleneck(density, num_steps, sumo_binary="sumo-gui")
+    exp = bottleneck(density, num_steps, sumo_binary="sumo")
     outflow, velocity, bottleneckdensity = exp.run(num_trials, num_steps)
     per_step_avg_velocities = exp.per_step_avg_velocities[:1]
     per_step_densities = exp.per_step_densities[:1]
