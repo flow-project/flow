@@ -15,9 +15,9 @@ class BBTollGenerator(Generator):
                  {"id": "3", "x": "410", "y": "0"},  # light
                  {"id": "4", "x": "550", "y": "0", "type": "zipper",
                  "radius": "20"},  # merge1
-                 {"id": "5", "x": "690", "y": "0", "type": "zipper",
+                 {"id": "5", "x": "830", "y": "0", "type": "zipper",
                   "radius": "20"},  # merge2
-                 {"id": "6", "x": "845", "y": "0"}]  # post-merge2
+                 {"id": "6", "x": "985", "y": "0"}]  # post-merge2
 
         return nodes
 
@@ -37,7 +37,7 @@ class BBTollGenerator(Generator):
                  {"id": "3", "from": "3", "to": "4", "length": "140",  # DONE
                   "spreadType": "center", "numLanes": str(4*scaling),
                   "speed": "23"},
-                 {"id": "4", "from": "4", "to": "5", "length": "140",   # DONE
+                 {"id": "4", "from": "4", "to": "5", "length": "280",   # DONE
                   "spreadType": "center", "numLanes": str(2*scaling),
                   "speed": "23"},
                  {"id": "5", "from": "5", "to": "6", "length": "155",

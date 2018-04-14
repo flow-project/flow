@@ -11,6 +11,7 @@ from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.velocity_controllers import HandTunedVelocityController, FeedbackController
 from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers.rlcontroller import RLController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoLaneChangeParams
 from flow.envs.bottleneck_env import DesiredVelocityEnv
@@ -24,11 +25,12 @@ def bottleneck(sumo_binary=None):
     NUM_LANES = 4*SCALING  # number of lanes in the widest highway
     DISABLE_TB = True
     DISABLE_RAMP_METER = True
-    AV_FRAC = .000001
+    AV_FRAC = .50
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary, overtake_right=False, restart_instance=True)
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary,
+                             restart_instance=False)
 
     vehicles = Vehicles()
 
@@ -37,28 +39,29 @@ def bottleneck(sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  acceleration_controller=(SumoCarFollowingController, {}),
                  # routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=1621,
+                 lane_change_mode=0,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
-                 num_vehicles=5)
+                 num_vehicles=1)
 
     vehicles.add(veh_id="followerstopper",
                  lane_change_controller=(SumoLaneChangeController, {}),
+                 acceleration_controller=(RLController, {}),
                  # acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 5, 1, 60, 60, 60, 60, 60, 60]}),
-                 acceleration_controller=(FeedbackController, {"K":10, "desired_bottleneck_density":0.003, "danger_edges":["3", "4", "5"]}),
+                 #acceleration_controller=(FeedbackController, {"K":10, "desired_bottleneck_density":0.003, "danger_edges":["3", "4", "5"]}),
                  routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=1621,
+                 lane_change_mode=0,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  speed_mode=9,
-                 num_vehicles=5)
+                 num_vehicles=1)
 
-    horizon = 500
+    horizon = 20000
     num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
                     ("4", 1, True), ("5", 1, False)]
     additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                              "disable_tb": True, "disable_ramp_metering": True,
                              "segments": num_segments}
     env_params = EnvParams(additional_params=additional_env_params,
-                           lane_change_duration=1)
+                           lane_change_duration=1, sims_per_step=2)
 
     # flow rate
 
