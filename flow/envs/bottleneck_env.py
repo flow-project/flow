@@ -92,8 +92,6 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.next_period = START_RECORD_TIME / self.sim_step
         self.cars_arrived = 0
 
-        print(env_params.additional_params)
-
         if "disable_tb" in env_params.additional_params:
             self.disable_tb = env_params.get_additional_param("disable_tb")
 
@@ -253,9 +251,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
     def get_bottleneck_density(self, lanes=None):
         BOTTLE_NECK_LEN = 280
         if lanes:
-            print(self.vehicles.get_ids_by_edge(['3', '4']))
             veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
-            print("======================", veh_ids)
         else:
             veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
@@ -609,7 +605,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/2000.0 + \
             0.01*rewards.desired_velocity(self)/self.max_speed
-        print(reward)
         return reward
 
 
