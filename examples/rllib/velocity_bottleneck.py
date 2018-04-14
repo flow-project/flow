@@ -10,8 +10,9 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
-from flow.controllers.velocity_controllers import FollowerStopper
+#from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers.rlcontroller import RLController
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 
 import ray
@@ -41,11 +42,12 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_mode=1621,
                        num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
-                       acceleration_controller=(FollowerStopper,
-                                                {"danger_edges": ["3", "4"]}),
+                       # acceleration_controller=(RLController,
+                       #                          {"danger_edges": ["3", "4"]}),
+                       acceleration_controller = (RLController, {}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       speed_mode=9,
+                       speed_mode=31,
                        lane_change_mode=1621,
                        num_vehicles=1 * SCALING)]
 
