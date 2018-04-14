@@ -234,6 +234,34 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.traci_connection.trafficlights.setRedYellowGreenState(
                 tlsID=TB_TL_ID, state=newTLState)
 
+    def distance_to_bottlneck(self, veh_id):
+        pre_bottleneck_edges = {str(i): self.scenario.edge_length(str(i)) for i in [1, 2, 3]}
+        edge_pos = self.vehicles.get_position(veh_id)
+        edge = self.vehicles.get_edge(veh_id)
+        if edge in pre_bottleneck_edges:
+            total_length = pre_bottleneck_edges[edge] - edge_pos
+            for next_edge in range(int(edge)+1, 4):
+                total_length+=pre_bottleneck_edges[str(next_edge)]
+            return total_length
+        else:
+            return -1
+
+    def get_bottleneck_outflow_vehicles_per_hour(self, sample_period):
+        return self.vehicles.get_outflow_rate(sample_period)
+
+    def get_bottleneck_density(self, lanes=None):
+        BOTTLE_NECK_LEN = 280
+        if lanes:
+            print(self.vehicles.get_ids_by_edge(['3', '4']))
+            veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
+            print("======================", veh_ids)
+        else:
+            veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
+        return len(veh_ids) / BOTTLE_NECK_LEN
+
+    def get_avg_bottleneck_velocity(self):
+        veh_ids = self.vehicles.get_ids_by_edge(['3', '4', '5'])
+        return sum(self.vehicles.get_speed(veh_ids))/len(veh_ids) if len(veh_ids) != 0 else 0
 
 class BottleNeckEnv(BridgeTollEnv):
     """Environment used to train vehicles to effectively
