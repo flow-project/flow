@@ -25,7 +25,7 @@ def bottleneck(sumo_binary=None):
     NUM_LANES = 4*SCALING  # number of lanes in the widest highway
     DISABLE_TB = True
     DISABLE_RAMP_METER = True
-    AV_FRAC = .50
+    AV_FRAC = .2
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
@@ -39,17 +39,17 @@ def bottleneck(sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  acceleration_controller=(SumoCarFollowingController, {}),
                  # routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=0,
+                 lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=1)
 
     vehicles.add(veh_id="followerstopper",
                  lane_change_controller=(SumoLaneChangeController, {}),
-                 acceleration_controller=(RLController, {}),
+                 #acceleration_controller=(RLController, {}),
                  # acceleration_controller=(HandTunedVelocityController, {"v_regions":[23, 5, 1, 60, 60, 60, 60, 60, 60]}),
-                 #acceleration_controller=(FeedbackController, {"K":10, "desired_bottleneck_density":0.003, "danger_edges":["3", "4", "5"]}),
+                 acceleration_controller=(FeedbackController, {"K":126, "desired_bottleneck_density":0.001, "danger_edges":["3", "4", "5"]}),
                  routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=0,
+                 lane_change_mode=0b100000101,
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  speed_mode=9,
                  num_vehicles=1)
