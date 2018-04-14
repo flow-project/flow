@@ -33,7 +33,7 @@ DISABLE_RAMP_METER = True
 AV_FRAC = .25
 PARALLEL_ROLLOUTS = 60
 
-sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
+sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo-gui")
 
 vehicles = Vehicles()
 
@@ -140,7 +140,7 @@ for seed in [2]:  # , 1, 5, 10, 73]:
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local_docker",
+        mode="local",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
