@@ -149,7 +149,7 @@ def eval_net_params(flow_params):
                 elif key =='depart_speed':
                     temp['departSpeed'] = obj[key]
                 elif key == 'probability' or key =='departSpeed' or \
-                    key == 'departLane':
+                    key == 'departLane' or key == 'vehsPerHour':
                     temp[key] = obj[key]
             new_inflow_list.append(temp)
         [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
@@ -239,9 +239,9 @@ def get_rllib_config(path):
     return jsondata
 
 
-def get_flow_params(path):
+def get_flow_params(config):
     """
-    Returns Flow experiment parameters, given an experiment reuslt folder
+    Returns Flow experiment parameters, given an experiment result folder
     
     Parameters
     ----------
@@ -258,9 +258,8 @@ def get_flow_params(path):
         ``make_create_env`` is the higher-order function passed to 
         rllib as the environment in which to train
     """
-    
-    flow_params_file = path + '/flow_params.json'
-    flow_params = json.loads(open(flow_params_file).read())
+
+    flow_params = json.loads(config['env_config']['flow_params'])
     flow_params = unstring_flow_params(flow_params)
 
     module_name = 'examples.rllib.' + flow_params['module']
