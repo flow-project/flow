@@ -104,7 +104,7 @@ def bottleneck(sumo_binary=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bottleneck(sumo_binary="sumo-gui")
+    exp = bottleneck(sumo_binary="sumo")
 
     # run for a set number of rollouts / time steps
     exp.run(5, 500)
