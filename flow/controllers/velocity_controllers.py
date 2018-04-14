@@ -200,7 +200,6 @@ class FeedbackController(FollowerStopper):
                 if edge in self.danger_edges:
                     self.v_des = None
                 else:
-
                     self.v_des = max(min(self.v_des + self.Kp * (self.desired_density - current_density), 23), 0)
 
         # print(current_density, self.v_des)
