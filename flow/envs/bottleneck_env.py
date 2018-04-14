@@ -623,6 +623,12 @@ class DesiredVelocityEnv(BridgeTollEnv):
                                mean_speed, mean_rl_speed))
 
     def _apply_rl_actions(self, actions):
+        """
+        RL actions are split up into 3 levels.
+        First, they're split into lane actions.
+        Within lane actions, they're split into edge actions.
+        With edge actions, you can index to obtain the segment action.
+        """
         rl_actions = actions
 
         # RLLIB STUFF
@@ -636,6 +642,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
             if edge:
                 # If in outer lanes, on a controlled edge, in a controlled lane
                 if edge[0] != ':' and edge in self.controlled_edges and lane in self.controlled_lanes:
+                    import ipdb; ipdb.set_trace()
                     pos = self.vehicles.get_position(rl_id)
 
                     if not self.symmetric:
