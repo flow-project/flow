@@ -561,7 +561,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
         # contruct an indexing to be used for figuring out which
         # set of actions apply to a lane
-        self.lane_index = {lane:ind*self.total_segments  \
+        self.lane_index = {lane:ind*self.total_controlled_segments  \
                               for ind,lane  \
                               in enumerate(self.controlled_lanes)}
 
@@ -663,9 +663,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
             0.01*rewards.desired_velocity(self)/self.max_speed
             
         # penalize high density in the bottleneck
-        bottleneck_ids = self.vehicles.get_ids_by_edge(‘4’)
+        bottleneck_ids = self.vehicles.get_ids_by_edge('4')
         # if len(bottleneck_ids) > 5:
-        if len(bottleneck_ids) > 10:
+        if len(bottleneck_ids) > 5:
             reward -= len(bottleneck_ids)
         return reward
 
