@@ -17,8 +17,9 @@ from flow.envs.bottleneck_env import DesiredVelocityEnv
 from flow.core.experiment import SumoExperiment
 
 import numpy as np
+import ray
 
-def bottleneck(Kp=10, d=0.003, sumo_binary=None):
+def bottleneck(Kp=10, d=0.003, horizon=500, sumo_binary=None):
 
     SCALING = 1
     NUM_LANES = 4*SCALING  # number of lanes in the widest highway
@@ -52,7 +53,6 @@ def bottleneck(Kp=10, d=0.003, sumo_binary=None):
                  sumo_lc_params=SumoLaneChangeParams(lcKeepRight=0),
                  num_vehicles=5)
 
-    horizon = 500
     num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
                     ("4", 1, True), ("5", 1, False)]
 
@@ -101,16 +101,31 @@ def bottleneck(Kp=10, d=0.003, sumo_binary=None):
 
     return SumoExperiment(env, scenario)
 
+@ray.remote
+def run_bottleneck(Kp, ds, num_trials, num_steps):
+
+    rewards = []
+    for d in ds:
+        exp = bottleneck(Kp, d, num_steps, sumo_binary="sumo")
+        exp.run(num_trials, num_steps)
+        rewards.append(np.mean(exp.rollout_total_rewards))
+    return rewards
 
 if __name__ == "__main__":
 
-    for Kp in np.arange(10, 110, 10):
-        for d in np.arange(0.001, 0.005, 0.0005):
-            # import the experiment variable
-            exp = bottleneck(Kp, d, sumo_binary="sumo")
+    Kps = np.arange(10, 110, 10)
+    ds = np.arange(0.001, 0.005, 0.0005)
 
-            # run for a set number of rollouts / time steps
-            exp.run(5, 2500)
-            print(exp.rollout_total_rewards)
-            # print(exp.per_step_rewards[0])
-            # np.savetxt("rets.csv", np.array(exp.per_step_rewards), delimiter=",")
+    # Kps = [10, 20]
+    # ds = [0.002, 0.003, 0.004]
+
+    rets = np.zeros((len(Kps), len(ds)))
+
+    ray.init()
+    bottleneck_outputs = [run_bottleneck.remote(Kp, ds, 5, 500) for Kp in Kps]
+    for i, output in enumerate(ray.get(bottleneck_outputs)):  # len(Kps) iterations
+        rets[i,:] = output
+
+    print('Kp values:', Kps)
+    print('desired density values:', ds)
+    print('Rewards:', rets)

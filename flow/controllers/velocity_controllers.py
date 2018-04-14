@@ -199,10 +199,9 @@ class FeedbackController(FollowerStopper):
             if edge[0] != ':' and edge in env.controlled_edges:
                 if edge in self.danger_edges:
                     self.v_des = None
-                    # print(self.veh_id, self.v_des)
                 else:
 
                     self.v_des = max(min(self.v_des + self.Kp * (self.desired_density - current_density), 23), 0)
 
-        print(current_density , self.v_des)
+        # print(current_density, self.v_des)
         return super().get_accel(env)
