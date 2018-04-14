@@ -659,9 +659,14 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     controller.v_des = None
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        # reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0 + \
-        #     0.1*rewards.desired_velocity(self)/self.max_speed
-        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/3600.0
+        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 + \
+            0.01*rewards.desired_velocity(self)/self.max_speed
+            
+        # penalize high density in the bottleneck
+        bottleneck_ids = self.vehicles.get_ids_by_edge(‘4’)
+        # if len(bottleneck_ids) > 5:
+        if len(bottleneck_ids) > 10:
+            reward -= len(bottleneck_ids)
         return reward
 
 
