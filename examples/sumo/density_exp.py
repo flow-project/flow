@@ -96,7 +96,7 @@ def run_bottleneck(density, num_trials, num_steps):
 
 if __name__ == "__main__":
     # import the experiment variable
-    densities = list(range(800,3001,100))
+    densities = list(range(800,3001,500))
     outflows = []
     velocities = []
     bottleneckdensities = []
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # for output in bottleneck_outputs:
 
     ray.init()
-    bottleneck_outputs = [run_bottleneck.remote(d, 30, 2500) for d in densities]
+    bottleneck_outputs = [run_bottleneck.remote(d, 6, 2500) for d in densities]
     for output in ray.get(bottleneck_outputs):
         outflow, velocity, bottleneckdensity, per_step_vel, per_step_den, per_step_r = output
 
