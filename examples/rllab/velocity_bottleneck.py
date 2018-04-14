@@ -29,7 +29,8 @@ SCALING = 1
 NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-AV_FRAC = .999
+AV_FRAC = .25
+PARALLEL_ROLLOUTS = 60
 
 sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
@@ -53,8 +54,8 @@ vehicles.add(veh_id="followerstopper",
 horizon = 1000
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
-num_segments = [("1", 1, False), ("2", 3, True), ("3", 3, True),
-                ("4", 1, True), ("5", 1, False)]
+num_segments = [("1", 1, False), ("2", 1, True), ("3", 1, True),
+                ("4", 1, False), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
@@ -120,20 +121,20 @@ def run_task(*_):
         policy=policy,
         baseline=baseline,
         batch_size=horizon,
-        max_path_length=horizon,
+        max_path_length=horizon*PARALLEL_ROLLOUTS*3,
         # whole_paths=True,
-        n_itr=1,
+        n_itr=400,
         discount=0.999,
         # step_size=0.01,
     )
     algo.train()
 
 exp_tag = "VSLControl"  # experiment prefix
-for seed in [1]:  # , 1, 5, 10, 73]:
+for seed in [1, 2, 3]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=PARALLEL_ROLLOUTS,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a

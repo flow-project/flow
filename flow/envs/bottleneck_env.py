@@ -532,7 +532,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
         # sum of controlled segments
         self.total_controlled_segments = int(np.sum([segment[1]*segment[2]
                                                      for segment in self.segments]))
-        self.old_speeds = []
         # for convenience, construct the relevant positions we are looking for
         self.slices = {}
         for edge, num_segments, _ in self.segments:
@@ -584,15 +583,14 @@ class DesiredVelocityEnv(BridgeTollEnv):
         return np.concatenate((num_vehicles_list, mean_speed))
 
     def _apply_rl_actions(self, actions):
-        #rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
         rl_actions = actions
-        #print(rl_actions)
+
+        # RLLIB STUFF
+        #rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
         # veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
         #            if isinstance(self.vehicles.get_acc_controller(veh_id), SumoCarFollowingModel)]
-        #print(self.vehicles.get_speed(self.vehicles.get_rl_ids()))
 
         for rl_id in self.vehicles.get_rl_ids():
-            #print(self.traci_connection.vehicle.getAccel(rl_id))
             edge = self.vehicles.get_edge(rl_id)
             if edge:
                 if edge[0] != ':' and edge in self.controlled_edges:
@@ -600,12 +598,13 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     # find what segment we fall into
                     bucket = np.searchsorted(self.slices[edge], pos) - 1
                     action = rl_actions[bucket + self.action_index[int(edge) - 1]]
+                    # RLLIB STUFF
                     # set the desired velocity of the controller to the action
                     # controller = self.vehicles.get_acc_controller(rl_id)
                     # controller.v_des = action
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, action)
-            if edge == '1' or edge == '5':
-                self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
+                else:
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/2000.0 + \
