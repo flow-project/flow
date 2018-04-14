@@ -60,8 +60,8 @@ class SumoExperiment:
             self.env.reset()
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions)
-                total_rollout_reward += reward*(.999)**j
-                step_rewards.append(reward*(.999)**j)
+                total_rollout_reward += reward
+                step_rewards.append(reward)
                 if done:
                     break
             self.rollout_total_rewards.append(total_rollout_reward)
