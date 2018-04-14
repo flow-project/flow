@@ -640,7 +640,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
                     if not self.symmetric:
                         action_start = self.lane_index[lane]
-                        lane_actions = rl_actions[action_start:action_start+self.total_segments]
+                        lane_actions = rl_actions[action_start:action_start+self.total_controlled_segments]
                         
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
