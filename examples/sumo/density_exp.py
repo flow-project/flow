@@ -27,7 +27,7 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary, overtake_right=False)
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary, overtake_right=False, restart_instance=True)
 
     vehicles = Vehicles()
 
@@ -47,15 +47,17 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
     env_params = EnvParams(additional_params=additional_env_params,
                            lane_change_duration=1)
 
-    flow_dist = np.ones(NUM_LANES)/NUM_LANES
+    # flow_dist = np.ones(NUM_LANES)/NUM_LANES
 
     inflow = InFlows()
-    for i in range(NUM_LANES):
-        lane_num = str(i)
-        veh_per_hour = flow_rate * flow_dist[i]
-        veh_per_second = veh_per_hour/3600
-        inflow.add(veh_type="human", edge="1", probability=veh_per_second,
-                   departLane=lane_num, departSpeed=10)
+    inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate,#vehsPerHour=veh_per_hour *0.8,
+               departLane="random", departSpeed=10)
+    # for i in range(NUM_LANES):
+    #     lane_num = str(i)
+    #     veh_per_hour = flow_rate * flow_dist[i]
+    #     veh_per_second = veh_per_hour/3600
+    #     inflow.add(veh_type="human", edge="1", probability=veh_per_second,
+    #                departLane=lane_num, departSpeed=10)
 
     traffic_lights = TrafficLights()
     if not DISABLE_TB:
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     per_step_rewards = []
 
 
-
+    #
     # bottleneck_outputs = [run_bottleneck(d, 1, 100) for d in densities]
     # for output in bottleneck_outputs:
 
