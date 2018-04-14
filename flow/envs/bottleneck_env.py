@@ -618,8 +618,13 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/2000.0 + \
+        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 + \
             0.01*rewards.desired_velocity(self)/self.max_speed
+        #reward = rewards.desired_velocity(self)/5
+        #penalize high density in the bottleneck
+        bottleneck_ids = self.vehicles.get_ids_by_edge('4')
+        if len(bottleneck_ids) > 10:
+            reward -= len(bottleneck_ids) - 10
         return reward
 
 
