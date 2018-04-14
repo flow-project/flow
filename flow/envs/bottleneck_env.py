@@ -551,7 +551,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     @property
     def action_space(self):
-        return Box(low=5.0, high=23.0,
+        return Box(low=2.0, high=23.0,
                    shape=(int(self.total_controlled_segments),),
                    dtype=np.float32)
 
