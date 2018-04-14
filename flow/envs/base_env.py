@@ -155,15 +155,15 @@ class Env(gym.Env, Serializable):
         sumo from Python.
         """
         # port number the sumo instance will be run on
-        # if self.sumo_params.port is not None:
-        #     port = self.sumo_params.port
-        # else:
-        #     port = sumolib.miscutils.getFreeSocketPort()
+        if self.sumo_params.port is not None:
+            port = self.sumo_params.port
+        else:
+            port = sumolib.miscutils.getFreeSocketPort()
 
         # command used to start sumo
         sumo_call = [self.sumo_params.sumo_binary,
                      "-c", self.scenario.cfg,
-                     # "--remote-port", str(port),
+                     "--remote-port", str(port),
                      "--step-length", str(self.sim_step)]
 
         # add step logs (if requested)
@@ -203,7 +203,7 @@ class Env(gym.Env, Serializable):
             sumo_call.append("--no-warnings")
             sumo_call.append("true")
 
-        #logging.info(" Starting SUMO on port " + str(port))
+        logging.info(" Starting SUMO on port " + str(port))
         logging.debug(" Cfg file: " + str(self.scenario.cfg))
         logging.debug(" Emission file: " + str(emission_out))
         logging.debug(" Step length: " + str(self.sim_step))
@@ -224,13 +224,7 @@ class Env(gym.Env, Serializable):
                 else:
                     time.sleep(config.SUMO_SLEEP)
 
-                traci.start(cmd=sumo_call,
-                            numRetries=100,
-                            label="sim")
-
-                # connect to the instance
-                self.traci_connection = \
-                    traci.getConnection(label="sim")
+                self.traci_connection = traci.connect(port, numRetries=100)
 
                 self.traci_connection.simulationStep()
                 return
