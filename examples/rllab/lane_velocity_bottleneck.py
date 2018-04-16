@@ -55,7 +55,7 @@ horizon = 500
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
 segments = [("1", 1, False), ("2", 1, True), ("3", 1, True),
-                ("4", 2, False), ("5", 1, False)]
+                ("4", 1, True), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments":segments, 'symmetric': False, 'lanes':[0,1,2,3]}
@@ -120,7 +120,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=5000,#horizon,
+        batch_size=15000,#horizon,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
@@ -130,7 +130,7 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "BottleneckVSLControl"  # experiment prefix
-for seed in [2]:  # , 1, 5, 10, 73]:
+for seed in [1, 5, 10, 73]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
