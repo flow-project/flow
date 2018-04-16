@@ -591,7 +591,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         if self.symmetric:
             action_size = int(self.total_controlled_segments)
         else:
-            action_size = 0
+            action_size = 0.0
             for segment in self.segments:  # iterate over segments
                 if segment[2]:  # if controlled
                     if segment[0] == '4':
@@ -603,7 +603,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                     else:
                         action_size += segment[1]*len(self.controlled_lanes)
         return Box(low=2.0, high=23.0, 
-                   shape=(action_size,), 
+                   shape=(int(action_size),), 
                    dtype=np.float32)
 
     def get_state(self):
@@ -690,7 +690,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
             
         # penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
-        bottleneck_threshold = 10
+        bottleneck_threshold = 30
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
         return reward
