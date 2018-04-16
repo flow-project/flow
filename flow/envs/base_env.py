@@ -352,9 +352,6 @@ class Env(gym.Env, Serializable):
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
-            if self.step_counter > 2e6:
-                self.step_counter = 0
-                self.restart_sumo(self.sumo_params)
 
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.vehicles.get_controlled_ids()) > 0:
@@ -407,6 +404,9 @@ class Env(gym.Env, Serializable):
             self.vehicles.update(vehicle_obs, id_lists, self)
             self.traffic_lights.update(tls_obs)
 
+            # update the colors of vehicles
+            self.update_vehicle_colors()
+
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
@@ -453,7 +453,8 @@ class Env(gym.Env, Serializable):
         # reset the time counter
         self.time_counter = 0
 
-        if self.sumo_params.restart_instance:
+        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+            self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sumo_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
@@ -732,6 +733,37 @@ class Env(gym.Env, Serializable):
             return sorted_ids, None
         else:
             return self.vehicles.get_ids(), None
+
+    def update_vehicle_colors(self):
+        """Modifies the color of vehicles if rendering is active.
+
+        The colors of all vehicles are updated as follows:
+        - red: autonomous (rl) vehicles
+        - white: unobserved human-driven vehicles
+        - cyan: observed human-driven vehicles
+        """
+        # do not change the colors of vehicles if the sumo-gui is not active
+        # (in order to avoid slow downs)
+        if self.sumo_params.sumo_binary != "sumo-gui":
+            return
+
+        for veh_id in self.vehicles.get_rl_ids():
+            # color rl vehicles red
+            self.traci_connection.vehicle.setColor(vehID=veh_id,
+                                                   color=(255, 0, 0, 255))
+
+        # for veh_id in self.vehicles.get_human_ids():
+        #     if veh_id in self.vehicles.get_observed_ids():
+        #         # color observed human-driven vehicles cyan
+        #         color = (0, 255, 255, 255)
+        #     else:
+        #         # color unobserved human-driven vehicles white
+        #         color = (255, 255, 255, 255)
+        #     self.traci_connection.vehicle.setColor(vehID=veh_id, color=color)
+
+        # clear the list of observed vehicles
+        # for veh_id in self.vehicles.get_observed_ids():
+        #     self.vehicles.remove_observed(veh_id)
 
     def get_state(self):
         """
