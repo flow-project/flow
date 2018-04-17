@@ -567,7 +567,7 @@ class InFlows:
             in the Vehicles class.
         edge: str
             starting edge for vehicles in this inflow.
-        start: float, optional
+        begin: float, optional
             see Note
         end: float, optional
             see Note
