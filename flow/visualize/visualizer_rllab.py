@@ -6,88 +6,52 @@ import numpy as np
 from matplotlib import pyplot as plt
 from flow.core.util import emission_to_csv
 
-import pickle
-
-import logging
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str,
                         help='path to the snapshot file')
-    parser.add_argument('--num_rollouts', type=int, default=100, 
+    parser.add_argument('--num_rollouts', type=int, default=100,
                         help='Number of rollouts we will average over')
     parser.add_argument('--plotname', type=str, default="traffic_plot",
                         help='Prefix for all generated plots')
-    parser.add_argument('--use_sumogui', action='store_true',
-                        help='Flag for using sumo-gui vs sumo binary')
-    parser.add_argument('--run_long', type=float, default=1,
-                        help='Number by which to increase max_path_length')
     parser.add_argument('--emission_to_csv', action='store_true',
                         help='Specifies whether to convert the emission file '
                              'created by sumo into a csv file')
 
     args = parser.parse_args()
 
+    # extract the flow environment
     data = joblib.load(args.file)
     policy = data['policy']
-    baseline = data['baseline']
     env = data['env']
-
     # FIXME(ev, ak) only one of these should be needed
-    # extract the flow environment
-    #unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
-    # if this doesn't work, try the one above it
-    unwrapped_env = env.wrapped_env.env.env.unwrapped
-
-    # Input
-    if unwrapped_env.obs_var_labels:
-        obs_vars = unwrapped_env.obs_var_labels
-    else:
-        obs_vars = []
+    # unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
+    # unwrapped_env = env.wrapped_env.env.env.unwrapped
+    unwrapped_env = env._wrapped_env.env.unwrapped
 
     # Recreate experiment params
-    vehicles = unwrapped_env.vehicles
-    tot_cars = vehicles.num_vehicles
-    rl_cars = vehicles.num_rl_vehicles
-    max_path_length = int(np.floor(env.horizon*args.run_long))
+    tot_cars = unwrapped_env.vehicles.num_vehicles
+    rl_cars = unwrapped_env.vehicles.num_rl_vehicles
+    max_path_length = int(env.horizon)
     flat_obs = env._wrapped_env.observation_space.flat_dim
+    obs_vars = unwrapped_env.obs_var_labels or []
     num_obs_var = flat_obs / tot_cars
-
-    # TODO: can we do this in a robust way?
-    # Recreate the sumo scenario, change the loop length
-    scenario = unwrapped_env.scenario
-    exp_tag = scenario.name
-    net_params = scenario.net_params
-    cfg_params = scenario.initial_config
-    initial_config = scenario.initial_config
-
-    scenario_class = scenario.__class__
-    generator_class = scenario.generator_class
-
-    env._wrapped_env.scenario = scenario
-
-    # update the max path length  # FIXME: still not working
-    new_max_path_length = int(np.floor(env.horizon * args.run_long))
-    # env_params.additional_params["num_steps"] = new_max_path_length
-
-    # specify an emission path for sumo to generate an emission file for the
-    # rollout
-    unwrapped_env.emission_path = "./test_time_rollout/"
 
     # Set sumo to make a video
     sumo_params = unwrapped_env.sumo_params
-    sumo_binary = 'sumo-gui' if args.use_sumogui else 'sumo'
-    unwrapped_env.restart_sumo(sumo_params, sumo_binary=sumo_binary)
+    emission_path = "./test_time_rollout/"
+    sumo_binary = 'sumo-gui'
+    unwrapped_env.restart_sumo(emission_path=emission_path,
+                               sumo_binary=sumo_binary)
 
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
     all_rewards = np.zeros((args.num_rollouts, max_path_length))
+    rew = []
     for j in range(args.num_rollouts):
         # run a single rollout of the experiment
-        path = rollout(env, policy,
-                       max_path_length=max_path_length,
-                       animated=False, speedup=1)
+        path = rollout(env=env, agent=policy)
 
         # collect the observations and rewards from the rollout
         new_obs = path['observations']
@@ -95,20 +59,12 @@ if __name__ == "__main__":
         new_rewards = path['rewards']
         all_rewards[j, :len(new_rewards)] = new_rewards
 
-        logging.info("\n Done: {0} / {1}, {2}%".format(
-            j+1, args.num_rollouts, (j+1) / args.num_rollouts * 100))
+        # print the cumulative reward of the most recent rollout
+        print("Round {}, return: {}".format(j, sum(new_rewards)))
+        rew.append(sum(new_rewards))
 
-    # export observations to a pickle file
-    output_filename = 'observations.pkl'
-    output = open(output_filename, 'wb')
-    pickle.dump(all_obs, output)
-    output.close()
-
-    # export rewards to a pickle file
-    output_filename = 'rewards.pkl'
-    output = open(output_filename, 'wb')
-    pickle.dump(all_rewards, output)
-    output.close()
+    # print the average cumulative reward across rollouts
+    print("Average return: {}".format(np.mean(rew)))
 
     # ensure that a reward_plots folder exists in the directory, and if not,
     # create one
@@ -116,7 +72,7 @@ if __name__ == "__main__":
         os.makedirs("plots")
 
     # create an array of time
-    sim_step = sumo_params.sim_step
+    sim_step = unwrapped_env.sumo_params.sim_step
     t = np.arange(max_path_length) * sim_step
 
     for obs_var_idx in range(int(num_obs_var)):
@@ -173,7 +129,8 @@ if __name__ == "__main__":
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = "{0}-emission.xml".format(scenario.name)
+        emission_filename = "{0}-emission.xml".format(
+            unwrapped_env.scenario.name)
 
         emission_path = \
             "{0}/test_time_rollout/{1}".format(dir_path, emission_filename)
