@@ -21,7 +21,7 @@ HORIZON = 1500
 
 def run_task(v):
     sumo_params = SumoParams(sim_step=0.1,
-                             sumo_binary="sumo-gui")
+                             sumo_binary="sumo")
 
     vehicles = Vehicles()
     vehicles.add(veh_id="rl",
@@ -88,7 +88,7 @@ for seed in [5]:  # , 20, 68]:
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         # plot=True,
     )

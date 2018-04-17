@@ -346,9 +346,6 @@ class Env(gym.Env, Serializable):
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
-            if self.step_counter > 2e6:
-                self.step_counter = 0
-                self.restart_sumo(self.sumo_params)
 
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.vehicles.get_controlled_ids()) > 0:
@@ -447,7 +444,8 @@ class Env(gym.Env, Serializable):
         # reset the time counter
         self.time_counter = 0
 
-        if self.sumo_params.restart_instance:
+        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+            self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sumo_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
