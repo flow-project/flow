@@ -20,32 +20,29 @@ vehicle_params : list of dict
     and the number of each vehicle
 """
 
-import gym
 import json
 import os
 
+import gym
 import ray
 import ray.rllib.ppo as ppo
-
+from flow.scenarios.two_loops_one_merging.scenario \
+    import TwoLoopsOneMergingScenario
 from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
-from flow.core.util import NameEncoder, register_env, rllib_logger_creator
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
-
-from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.rlcontroller import RLController
 from flow.controllers.routing_controllers import ContinuousRouter
-
-from flow.scenarios.two_loops_one_merging_new.gen \
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.util import NameEncoder, register_env, rllib_logger_creator
+from flow.core.vehicles import Vehicles
+from flow.scenarios.two_loops_one_merging.gen \
     import TwoLoopOneMergingGenerator
-from flow.scenarios.two_loops_one_merging_new.scenario \
-    import TwoLoopsOneMergingScenario
 
 HORIZON = 100
 RING_RADIUS = 100
