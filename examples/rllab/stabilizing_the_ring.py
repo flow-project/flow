@@ -72,7 +72,6 @@ def run_task(v):
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
-    env = normalize(env)
 
     # policy = GaussianGRUPolicy(
     #     env_spec=env.spec,
@@ -106,13 +105,13 @@ for seed in [5]:  # , 20, 68]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=16,
+        n_parallel=1,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         # plot=True,
     )
