@@ -42,8 +42,10 @@ def desired_velocity(env, fail=False):
 
     return max(max_cost - cost, 0)
 
+
 def reward_density(env):
     return env.vehicles.num_arrived / env.sim_step
+
 
 def max_edge_velocity(env, edge_list, fail=False):
     "The desired velocity rewarded but restricted to a set of edges"
@@ -104,6 +106,14 @@ def min_delay(env):
 
 
 def penalize_tl_changes(env, actions, gain=1):
+    """
+    A reward function that penalizes delay and traffic light switches.
+    :param env: Environment
+        Contains the state of the environment at a time-step
+    :param actions: {list of booleans} - indicates whether a switch is desired
+    :param gain: {float} - multiplicative factor on the action penalty
+    :return: a penalty on vehicle delays and traffic light switches
+    """
     delay = min_delay(env)
     action_penalty = gain * np.sum(actions)
     return delay - action_penalty
@@ -190,7 +200,8 @@ def punish_rl_lane_changes(env, penalty=1):
 
     return total_lane_change_penalty
 
-def punish_queues_in_lane(env, lane, penalty_gain=1, penalty_exponent=1):
+
+def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
     """
     Reward function punishing queues in certain lanes of edge '3'
         
@@ -198,6 +209,8 @@ def punish_queues_in_lane(env, lane, penalty_gain=1, penalty_exponent=1):
     ----------
     env : Environment
         Contains the state of the environment at a time-step
+    edge: str
+        The edge on which to penalize queues
     lane : int
         The lane in which to penalize queues
     penalty_gain : int, optional
@@ -213,14 +226,11 @@ def punish_queues_in_lane(env, lane, penalty_gain=1, penalty_exponent=1):
     """
 
     # IDs of all vehicles in passed-in lane
-    # FIXME(nskh): make this not hardcoded
-    lane_ids = [veh_id for veh_id in env.vehicles.get_human_ids() \
-        if env.vehicles.get_lane(veh_id) == lane\
-           and env.vehicles.get_edge(veh_id) == '3']
-
-    # TODO(nskh): extend to edge 2?
+    lane_ids = [veh_id for veh_id in env.vehicles.get_ids_by_edge(edge) \
+                if env.vehicles.get_lane(veh_id) == lane]
 
     return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
+
 
 def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
     """
@@ -249,7 +259,8 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
         if follower_headway < 0:
             print('negative follower headway of:', follower_headway)
             print('rl id:', rl_id)
-            print('follower id:',follower_id)
+            print('follower id:', follower_id)
+            continue
         total_reward += follower_headway ** reward_exponent
     # print(total_reward)
     if total_reward < 0:
