@@ -632,9 +632,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         rl_actions = actions
 
         # RLLIB STUFF
-        #rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
-        # veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
-        #            if isinstance(self.vehicles.get_acc_controller(veh_id), SumoCarFollowingModel)]
+        # rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
 
         for rl_id in self.vehicles.get_rl_ids():
             edge = self.vehicles.get_edge(rl_id)
@@ -670,9 +668,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
             
         # penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
-        # if len(bottleneck_ids) > 5:
-        if len(bottleneck_ids) > 5:
-            reward -= len(bottleneck_ids)
+        # FIXME(ev) convert to passed in env param
+        if len(bottleneck_ids) > 30:
+            reward -= len(bottleneck_ids) - 30
         return reward
 
 
