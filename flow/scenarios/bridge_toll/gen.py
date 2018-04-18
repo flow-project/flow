@@ -10,15 +10,23 @@ class BBTollGenerator(Generator):
         """
         See parent class
         """
-        nodes = [{"id": "1", "x": "0",   "y": "0"},  # pre-toll
+        # nodes = [{"id": "1", "x": "0",   "y": "0"},  # pre-toll
+        #          {"id": "2", "x": "100", "y": "0"},  # toll
+        #          {"id": "3", "x": "410", "y": "0"},  # light
+        #          {"id": "4", "x": "550", "y": "0", "type": "zipper",
+        #          "radius": "20"},  # merge1
+        #          {"id": "5", "x": "690", "y": "0", "type": "zipper",
+        #           "radius": "20"},  # merge2
+        #          {"id": "6", "x": "845", "y": "0"}]  # post-merge2
+
+        nodes = [{"id": "1", "x": "0", "y": "0"},  # pre-toll
                  {"id": "2", "x": "100", "y": "0"},  # toll
                  {"id": "3", "x": "410", "y": "0"},  # light
                  {"id": "4", "x": "550", "y": "0", "type": "zipper",
-                 "radius": "20"},  # merge1
+                  "radius": "20"},  # merge1
                  {"id": "5", "x": "830", "y": "0", "type": "zipper",
                   "radius": "20"},  # merge2
                  {"id": "6", "x": "985", "y": "0"}]  # post-merge2
-
         return nodes
 
     def specify_edges(self, net_params):
