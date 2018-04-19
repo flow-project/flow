@@ -559,7 +559,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
         # action index tells us, given an edge and a lane,the offset into
         # rl_actions that we should take. The indexing order is
-        # FIXME (ev) put this boy in here
+        # FIXME (ev) add comments
         self.action_index = [0]
         for i, (edge, segment, controlled) in enumerate(self.segments[:-1]):
             if self.symmetric:
@@ -594,8 +594,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def observation_space(self):
         num_obs = 0
         for segment in self.segments:
-            num_obs += 2*segment[1] * self.scenario.num_lanes(segment[0])
-        num_obs += 2*self.total_segments
+            num_obs += 4*segment[1] * self.scenario.num_lanes(segment[0])
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
                    dtype=np.float32)
 
@@ -608,46 +607,62 @@ class DesiredVelocityEnv(BridgeTollEnv):
             for segment in self.segments:  # iterate over segments
                 if segment[2]:  # if controlled
                     num_lanes = self.scenario.num_lanes(segment[0])
-                    action_size += num_lanes
-        return Box(low=2.0, high=23.0, 
+                    action_size += num_lanes*segment[1]
+        return Box(low=-1.5, high=1.0,
                    shape=(int(action_size),), 
                    dtype=np.float32)
 
     def get_state(self):
         # action space is number of vehicles in each segment in each lane,
         # number of rl vehicles in each segment in each lane
-        # mean speed in each segment, and mean rl speed in each segment
+        # mean speed in each segment, and mean rl speed in each
+        # segment in each lane
         num_vehicles_list = []
         num_rl_vehicles_list = []
-        segment_speeds = np.zeros((self.total_segments, 2))
-        rl_segment_speeds = np.zeros((self.total_segments, 2))
+        vehicle_speeds_list = []
+        rl_speeds_list = []
+        NUM_VEHICLE_NORM = 20
         for i, edge in enumerate(EDGE_LIST):
             num_lanes = self.scenario.num_lanes(edge)
             num_vehicles = np.zeros((self.num_segments[i], num_lanes))
             num_rl_vehicles = np.zeros((self.num_segments[i], num_lanes))
+            vehicle_speeds = np.zeros((self.num_segments[i], num_lanes))
+            rl_vehicle_speeds = np.zeros((self.num_segments[i], num_lanes))
             ids = self.vehicles.get_ids_by_edge(edge)
             lane_list = self.vehicles.get_lane(ids)
             pos_list = self.vehicles.get_position(ids)
             for i, id in enumerate(ids):
                 segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
-                num_vehicles[segment, lane_list[i]] += 1
-                segment_speeds[segment][0] += self.vehicles.get_speed(id)
-                segment_speeds[segment][1] += 1
-
                 if id in self.vehicles.get_rl_ids():
-                    rl_segment_speeds[segment][0] += self.vehicles.get_speed(id)
-                    rl_segment_speeds[segment][1] += 1
+                    rl_vehicle_speeds[segment, lane_list[i]] \
+                        += self.vehicles.get_speed(id)
                     num_rl_vehicles[segment, lane_list[i]] += 1
+                else:
+                    num_vehicles[segment, lane_list[i]] += 1
+                    vehicle_speeds[segment, lane_list[i]] \
+                        += self.vehicles.get_speed(id)
 
             # normalize
-            num_vehicles /= 20
-            num_rl_vehicles /= 20
+
+            num_vehicles /= NUM_VEHICLE_NORM
+            num_rl_vehicles /= NUM_VEHICLE_NORM
             num_vehicles_list += num_vehicles.flatten().tolist()
             num_rl_vehicles_list += num_rl_vehicles.flatten().tolist()
-        mean_speed = np.nan_to_num([segment_speeds[i][0]/segment_speeds[i][1]
-                      for i in range(self.total_segments)])/50
-        mean_rl_speed = np.nan_to_num([rl_segment_speeds[i][0] / rl_segment_speeds[i][1]
-                                    for i in range(self.total_segments)]) / 50
+            vehicle_speeds_list += vehicle_speeds.flatten().tolist()
+            rl_speeds_list += rl_vehicle_speeds.flatten().tolist()
+
+        unnorm_veh_list = np.asarray(num_vehicles_list) * \
+                                 NUM_VEHICLE_NORM
+        unnorm_rl_list = np.asarray(num_rl_vehicles_list) * \
+                                 NUM_VEHICLE_NORM
+        # compute the mean speed if the speed isn't zero
+        mean_speed = np.nan_to_num([vehicle_speeds_list[i] / unnorm_veh_list[i]
+                                    if int(unnorm_veh_list[i]) else 0
+                                    for i in range(len(num_vehicles_list))])/50
+        mean_rl_speed = np.nan_to_num([rl_speeds_list[i] / unnorm_rl_list[i]
+                                       if int(unnorm_rl_list[i]) else 0
+                                       for i in range(len(num_rl_vehicles_list))
+                                       ]) / 50
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
                                mean_speed, mean_rl_speed))
 
@@ -675,16 +690,25 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         num_lanes = self.scenario.num_lanes(edge)
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
+                        # print('vehicle ', rl_id)
+                        # print('the vehicle on edge', edge)
+                        # print('and lane', lane)
+                        # print('will get action ', int(lane) + bucket*num_lanes
+                        #                         + self.action_index[int(edge) - 1])
                         action = rl_actions[int(lane) + bucket*num_lanes
                                             + self.action_index[int(edge) - 1]]
+                        # print('the action is', action)
+                        # print('its speed is', self.vehicles.get_speed(rl_id))
+
                     else:
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
                         action = rl_actions[bucket +
                                             self.action_index[int(edge) - 1]]
 
-                    # set the desired velocity of the controller to the action
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, action)
+                    max_speed_curr = self.traci_connection.vehicle.getMaxSpeed(rl_id)
+                    next_max = np.clip(max_speed_curr + action, 2.0, 23.0)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, next_max)
                 else:
                     # set the desired velocity of the controller to the default
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
@@ -697,7 +721,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         # penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
         # FIXME(ev) convert to passed in env param
-        bottleneck_threshold = 25  # could be 10 also
+        bottleneck_threshold = 30  # could be 10 also
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
         return reward

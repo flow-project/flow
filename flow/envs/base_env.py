@@ -206,6 +206,10 @@ class Env(gym.Env, Serializable):
                     sumo_call.append("--no-warnings")
                     sumo_call.append("true")
 
+                # set the time it takes for a gridlock teleport to occur
+                sumo_call.append("--time-to-teleport")
+                sumo_call.append(str(int(self.sumo_params.teleport_time)))
+
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(self.scenario.cfg))
                 logging.debug(" Emission file: " + str(emission_out))
