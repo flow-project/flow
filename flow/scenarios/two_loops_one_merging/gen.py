@@ -86,13 +86,9 @@ class TwoLoopOneMergingGenerator(Generator):
         """
         See parent class
         """
-        # lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
-        # types = [{"id": "edgeType", "numLanes": repr(lanes),
-        #           "speed": repr(speed_limit)}]
-        types = [{"id": "edgeType",
-                  "speed": repr(speed_limit)}]
 
+        types = [{"id": "edgeType", "speed": repr(speed_limit)}]
         return types
 
     def specify_routes(self, net_params):

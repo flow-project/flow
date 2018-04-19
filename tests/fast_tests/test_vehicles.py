@@ -239,5 +239,35 @@ class TestIdsByEdge(unittest.TestCase):
         self.assertCountEqual(ids, expected_ids)
 
 
+class TestObservedIDs(unittest.TestCase):
+    """Tests the observed_ids methods, which are used for visualization."""
+
+    def run_test(self):
+        vehicles = Vehicles()
+        vehicles.add(veh_id="test", num_vehicles=10)
+
+        # test setting new observed values
+        vehicles.set_observed("test_0")
+        self.assertCountEqual(vehicles.get_observed_ids(), ["test_0"])
+
+        vehicles.set_observed("test_1")
+        self.assertCountEqual(vehicles.get_observed_ids(),
+                              ["test_0", "test_1"])
+
+        # ensures that setting vehicles twice doesn't add an element
+        vehicles.set_observed("test_0")
+        self.assertListEqual(vehicles.get_observed_ids(),
+                             ["test_0", "test_1"])
+
+        # test removing observed values
+        vehicles.remove_observed("test_0")
+        self.assertCountEqual(vehicles.get_observed_ids(), ["test_1"])
+
+        # ensures that removing a value that does not exist does not lead to
+        # an error
+        vehicles.remove_observed("test_0")
+        self.assertCountEqual(vehicles.get_observed_ids(), ["test_1"])
+
+
 if __name__ == '__main__':
     unittest.main()

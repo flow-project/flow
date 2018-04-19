@@ -65,6 +65,11 @@ class AccelEnv(Env):
                       for veh_id in self.sorted_ids]
         state = [[vel, pos] for vel, pos in zip(scaled_vel, scaled_pos)]
 
+        # specify observed vehicles
+        if self.vehicles.num_rl_vehicles > 0:
+            for veh_id in self.vehicles.get_human_ids():
+                self.vehicles.set_observed(veh_id)
+
         return np.array(state)
 
 
@@ -148,5 +153,10 @@ class AccelMAEnv(AccelEnv):
 
             tup = (speed, abs_pos)
             obs_arr.append(tup)
+
+        # specify observed vehicles
+        if self.vehicles.num_rl_vehicles > 0:
+            for veh_id in self.vehicles.get_human_ids():
+                self.vehicles.set_observed(veh_id)
 
         return obs_arr
