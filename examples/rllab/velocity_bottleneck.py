@@ -20,6 +20,7 @@ from rllab.envs.gym_env import GymEnv
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
+from rllab.algos.ppo import PPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 #from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
@@ -31,7 +32,7 @@ NUM_LANES = 4*SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = .1
-PARALLEL_ROLLOUTS = 36
+PARALLEL_ROLLOUTS = 32
 
 sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo",
                          restart_instance=True)
@@ -39,24 +40,25 @@ sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo",
 vehicles = Vehicles()
 
 vehicles.add(veh_id="human",
-             speed_mode="all_checks",
+             speed_mode=9,
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              lane_change_mode=1621,#0b100000101,
              num_vehicles=1*SCALING)
 vehicles.add(veh_id="followerstopper",
-             acceleration_controller=(RLController, {}),
+             acceleration_controller=(RLController,
+                                      {"fail_safe": "instantaneous"}),
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
              speed_mode=9,
              lane_change_mode=0,
              num_vehicles=1*SCALING)
 
-horizon = 1000
+horizon = 500
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
 num_segments = [("1", 1, False), ("2", 1, True), ("3", 1, True),
-                ("4", 2, True), ("5", 1, False)]
+                ("4", 1, True), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments, "symmetric": False}
@@ -112,17 +114,17 @@ def run_task(*_):
 
     policy = GaussianGRUPolicy(
         env_spec=env.spec,
-        hidden_sizes=(32,)
+        hidden_sizes=(64,)
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
 
-    algo = TRPO(
+    algo = PPO(
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=horizon*8,
-        max_path_length=horizon*PARALLEL_ROLLOUTS,
+        batch_size=horizon*32,
+        max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
         discount=0.999,
@@ -130,18 +132,18 @@ def run_task(*_):
     )
     algo.train()
 
-exp_tag = "VSLLaneControl"  # experiment prefix
-for seed in [23]:  # , 1, 5, 10, 73]:
+exp_tag = "VSLLaneControlTest"  # experiment prefix
+for seed in [20]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=8, #PARALLEL_ROLLOUTS,
+        n_parallel= 4,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local_docker",
+        mode="local",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
