@@ -1,10 +1,11 @@
 import unittest
 import os
-os.environ["TEST_FLAG"] = "True"
 
 from flow.core.experiment import SumoExperiment
 from tests.setup_scripts import ring_road_exp_setup
 import numpy as np
+
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestNumSteps(unittest.TestCase):
