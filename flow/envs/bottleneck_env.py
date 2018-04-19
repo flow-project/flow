@@ -675,10 +675,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         num_lanes = self.scenario.num_lanes(edge)
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
-                        print('we are accessing action number', int(lane) + bucket*num_lanes
-                                            + self.action_index[int(edge) - 1])
-                        print('at lane', lane)
-                        print('and edge', edge)
                         action = rl_actions[int(lane) + bucket*num_lanes
                                             + self.action_index[int(edge) - 1]]
                     else:
