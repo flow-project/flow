@@ -10,8 +10,9 @@ from flow.controllers.car_following_models import IDMController, \
     OVMController, BCMController, LinearOVM, CFMController
 from tests.setup_scripts import ring_road_exp_setup
 import os
-os.environ["TEST_FLAG"] = "True"
 import numpy as np
+
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestCFMController(unittest.TestCase):
