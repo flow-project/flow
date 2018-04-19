@@ -29,6 +29,7 @@ class Vehicles:
         self.__controlled_ids = []  # ids of flow-controlled vehicles
         self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
         self.__rl_ids = []  # ids of rl-controlled vehicles
+        self.__observed_ids = []  # ids of the observed vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
@@ -517,6 +518,20 @@ class Vehicles:
     def get_rl_ids(self):
         """Returns the names of all rl-controlled vehicles in the network."""
         return self.__rl_ids
+
+    def set_observed(self, veh_id):
+        """Adds a vehicle to the list of observed vehicles."""
+        if veh_id not in self.__observed_ids:
+            self.__observed_ids.append(veh_id)
+
+    def remove_observed(self, veh_id):
+        """Removes a vehicle from the list of observed vehicles."""
+        if veh_id in self.__observed_ids:
+            self.__observed_ids.remove(veh_id)
+
+    def get_observed_ids(self):
+        """Returns the list of observed vehicles."""
+        return self.__observed_ids
 
     def get_ids_by_edge(self, edges):
         """Returns the names of all vehicles in the specified edge. If no

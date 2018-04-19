@@ -38,7 +38,6 @@ ENV_PARAMS = [
     "segments",  # number of regions for velocity bottleneck controller
     "lanes",  # controlled lanes for EarlyLC experiments
     "symmetric",  # whether lanes in a segment have the same action or not
-    "v_default",  # default FollowerStopper velocity
 ]
 
 NET_PARAMS = [
@@ -540,30 +539,56 @@ class DesiredVelocityEnv(BridgeTollEnv):
         # list of controlled edges for comparison
         self.controlled_edges = [segment[0] for segment in self.segments
                                  if segment[2]]
-        self.controlled_lanes = self.env_params.additional_params.get("lanes", [0,1,2,3])
+
+        # list of controlled lanes
+        lanes_list = [str(i) for i in range(MAX_LANES*self.scaling)]
+        additional_params = self.env_params.additional_params
+        self.controlled_lanes = additional_params.get("lanes", lanes_list)
 
         # self.symmetric is True if all lanes in a segment have same action, else False
-        self.symmetric = self.env_params.additional_params.get("symmetric", True)
+        self.symmetric = additional_params.get("symmetric", True)
 
-        # for convenience, construct the relevant positions defining segments within edges
-        # self.slices is a dictionary mapping 
-            # edge (str) -> segment start location (list of int)
+        # for convenience, construct the relevant positions defining
+        # segments within edges
+        # self.slices is a dictionary mapping
+        # edge (str) -> segment start location (list of int)
         self.slices = {}  
         for edge, num_segments, _ in self.segments:
             edge_length = self.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments)
 
-        # action index tells us, given an edge,the offset into
-        # rl_actions that we should take
+        # action index tells us, given an edge and a lane,the offset into
+        # rl_actions that we should take. The indexing order is
+        # FIXME (ev) put this boy in here
         self.action_index = [0]
         for i, (edge, segment, controlled) in enumerate(self.segments[:-1]):
-            self.action_index += [self.action_index[i] + segment*controlled]
+            if self.symmetric:
+                self.action_index += [self.action_index[i] +
+                                      segment * controlled]
+            else:
+                num_lanes = self.scenario.num_lanes(edge)
+                self.action_index += [self.action_index[i] +
+                                      segment * controlled * num_lanes]
 
+        # FIXME(implement this scheme)
         # contruct an indexing to be used for figuring out which
         # set of actions apply to a lane
-        self.lane_index = {lane:ind*self.total_controlled_segments  \
-                              for ind,lane  \
-                              in enumerate(self.controlled_lanes)}
+        # self.lane_index = {lane:ind*self.total_controlled_segments
+        #                       for ind,lane
+        #                       in enumerate(self.controlled_lanes)}
+        #
+        # # number of controlled segments up to and including edge 4
+        # until_four = int(np.sum([segment[1] for segment in self.segments[:4] if segment[2]]))
+        # # number of controlled segments up to and including edge 3
+        # until_three = int(np.sum([segment[1] for segment in self.segments[:3] if segment[2]]))
+        # self.lane_index = {}
+        # for ind, lane in enumerate(self.controlled_lanes):
+        #     if lane < self.scaling:  # full length
+        #         self.lane_index[lane] = ind*self.total_controlled_segments
+        #     elif lane < self.scaling*2:  # half length
+        #         self.lane_index[lane] = ind*until_four
+        #     else:  # goes away in first level
+        #         self.lane_index[lane] = ind*until_three
 
     @property
     def observation_space(self):
@@ -577,11 +602,15 @@ class DesiredVelocityEnv(BridgeTollEnv):
     @property
     def action_space(self):
         if self.symmetric:
-            action_size = int(self.total_controlled_segments)
+            action_size = self.total_controlled_segments
         else:
-            action_size = int(self.total_controlled_segments * len(self.controlled_lanes))
+            action_size = 0.0
+            for segment in self.segments:  # iterate over segments
+                if segment[2]:  # if controlled
+                    num_lanes = self.scenario.num_lanes(segment[0])
+                    action_size += num_lanes
         return Box(low=2.0, high=23.0, 
-                   shape=(action_size,), 
+                   shape=(int(action_size),), 
                    dtype=np.float32)
 
     def get_state(self):
@@ -625,9 +654,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def _apply_rl_actions(self, actions):
         """
         RL actions are split up into 3 levels.
-        First, they're split into lane actions.
-        Within lane actions, they're split into edge actions.
-        With edge actions, you can index to obtain the segment action.
+        First, they're split into edge actions.
+        Then they're split into segment actions.
+        Then they're split into lane actions.
         """
         rl_actions = actions
 
@@ -639,38 +668,42 @@ class DesiredVelocityEnv(BridgeTollEnv):
             lane = self.vehicles.get_lane(rl_id)
             if edge:
                 # If in outer lanes, on a controlled edge, in a controlled lane
-                if edge[0] != ':' and edge in self.controlled_edges and lane in self.controlled_lanes:
+                if edge[0] != ':' and edge in self.controlled_edges: #and lane in self.controlled_lanes:
                     pos = self.vehicles.get_position(rl_id)
 
                     if not self.symmetric:
-                        action_start = self.lane_index[lane]
-                        lane_actions = rl_actions[action_start:action_start+self.total_controlled_segments]
-                        
+                        num_lanes = self.scenario.num_lanes(edge)
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
-                        action = lane_actions[bucket + self.action_index[int(edge) - 1]]
+                        print('we are accessing action number', int(lane) + bucket*num_lanes
+                                            + self.action_index[int(edge) - 1])
+                        print('at lane', lane)
+                        print('and edge', edge)
+                        action = rl_actions[int(lane) + bucket*num_lanes
+                                            + self.action_index[int(edge) - 1]]
                     else:
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
-                        action = rl_actions[bucket + self.action_index[int(edge) - 1]]
+                        action = rl_actions[bucket +
+                                            self.action_index[int(edge) - 1]]
 
                     # set the desired velocity of the controller to the action
-                    controller = self.vehicles.get_acc_controller(rl_id)
-                    controller.v_des = action
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, action)
                 else:
                     # set the desired velocity of the controller to the default
-                    controller = self.vehicles.get_acc_controller(rl_id)
-                    controller.v_des = None
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 + \
             0.01*rewards.desired_velocity(self)/self.max_speed
-            
+
         # penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
         # FIXME(ev) convert to passed in env param
-        if len(bottleneck_ids) > 30:
-            reward -= len(bottleneck_ids) - 30
+        bottleneck_threshold = 25  # could be 10 also
+        if len(bottleneck_ids) > bottleneck_threshold:
+            reward -= len(bottleneck_ids) - bottleneck_threshold
         return reward
 
 
