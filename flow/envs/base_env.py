@@ -154,63 +154,63 @@ class Env(gym.Env, Serializable):
         generator class. Also initializes a traci connection to interface with
         sumo from Python.
         """
-        # port number the sumo instance will be run on
-        if self.sumo_params.port is not None:
-            port = self.sumo_params.port
-        else:
-            port = sumolib.miscutils.getFreeSocketPort()
-
-        # command used to start sumo
-        sumo_call = [self.sumo_params.sumo_binary,
-                     "-c", self.scenario.cfg,
-                     "--remote-port", str(port),
-                     "--step-length", str(self.sim_step)]
-
-        # add step logs (if requested)
-        if self.sumo_params.no_step_log:
-            sumo_call.append("--no-step-log")
-
-        # add the lateral resolution of the sublanes (if requested)
-        if self.sumo_params.lateral_resolution is not None:
-            sumo_call.append("--lateral-resolution")
-            sumo_call.append(str(self.sumo_params.lateral_resolution))
-
-        # add the emission path to the sumo command (if requested)
-        if self.sumo_params.emission_path is not None:
-            ensure_dir(self.sumo_params.emission_path)
-            emission_out = \
-                self.sumo_params.emission_path + "{0}-emission.xml".format(
-                    self.scenario.name)
-            sumo_call.append("--emission-output")
-            sumo_call.append(emission_out)
-        else:
-            emission_out = None
-
-        if self.sumo_params.overtake_right:
-            sumo_call.append("--lanechange.overtake-right")
-            sumo_call.append("true")
-
-        if self.sumo_params.ballistic:
-            sumo_call.append("--step-method.ballistic")
-            sumo_call.append("true")
-
-        # specify a simulation seed (if requested)
-        if self.sumo_params.seed is not None:
-            sumo_call.append("--seed")
-            sumo_call.append(str(self.sumo_params.seed))
-
-        if not self.sumo_params.print_warnings:
-            sumo_call.append("--no-warnings")
-            sumo_call.append("true")
-
-        logging.info(" Starting SUMO on port " + str(port))
-        logging.debug(" Cfg file: " + str(self.scenario.cfg))
-        logging.debug(" Emission file: " + str(emission_out))
-        logging.debug(" Step length: " + str(self.sim_step))
-
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
+                # port number the sumo instance will be run on
+                if self.sumo_params.port is not None:
+                    port = self.sumo_params.port
+                else:
+                    port = sumolib.miscutils.getFreeSocketPort()
+
+                # command used to start sumo
+                sumo_call = [self.sumo_params.sumo_binary,
+                             "-c", self.scenario.cfg,
+                             "--remote-port", str(port),
+                             "--step-length", str(self.sim_step)]
+
+                # add step logs (if requested)
+                if self.sumo_params.no_step_log:
+                    sumo_call.append("--no-step-log")
+
+                # add the lateral resolution of the sublanes (if requested)
+                if self.sumo_params.lateral_resolution is not None:
+                    sumo_call.append("--lateral-resolution")
+                    sumo_call.append(str(self.sumo_params.lateral_resolution))
+
+                # add the emission path to the sumo command (if requested)
+                if self.sumo_params.emission_path is not None:
+                    ensure_dir(self.sumo_params.emission_path)
+                    emission_out = \
+                        self.sumo_params.emission_path + "{0}-emission.xml".format(
+                            self.scenario.name)
+                    sumo_call.append("--emission-output")
+                    sumo_call.append(emission_out)
+                else:
+                    emission_out = None
+
+                if self.sumo_params.overtake_right:
+                    sumo_call.append("--lanechange.overtake-right")
+                    sumo_call.append("true")
+
+                if self.sumo_params.ballistic:
+                    sumo_call.append("--step-method.ballistic")
+                    sumo_call.append("true")
+
+                # specify a simulation seed (if requested)
+                if self.sumo_params.seed is not None:
+                    sumo_call.append("--seed")
+                    sumo_call.append(str(self.sumo_params.seed))
+
+                if not self.sumo_params.print_warnings:
+                    sumo_call.append("--no-warnings")
+                    sumo_call.append("true")
+
+                logging.info(" Starting SUMO on port " + str(port))
+                logging.debug(" Cfg file: " + str(self.scenario.cfg))
+                logging.debug(" Emission file: " + str(emission_out))
+                logging.debug(" Step length: " + str(self.sim_step))
+
                 # Opening the I/O thread to SUMO
                 self.sumo_proc = subprocess.Popen(sumo_call,
                                                   stdout=sys.stdout,
@@ -352,9 +352,6 @@ class Env(gym.Env, Serializable):
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
-            if self.step_counter > 2e6:
-                self.step_counter = 0
-                self.restart_sumo(self.sumo_params)
 
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.vehicles.get_controlled_ids()) > 0:
@@ -407,6 +404,9 @@ class Env(gym.Env, Serializable):
             self.vehicles.update(vehicle_obs, id_lists, self)
             self.traffic_lights.update(tls_obs)
 
+            # update the colors of vehicles
+            self.update_vehicle_colors()
+
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
@@ -453,7 +453,8 @@ class Env(gym.Env, Serializable):
         # reset the time counter
         self.time_counter = 0
 
-        if self.sumo_params.restart_instance:
+        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+            self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sumo_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
@@ -732,6 +733,37 @@ class Env(gym.Env, Serializable):
             return sorted_ids, None
         else:
             return self.vehicles.get_ids(), None
+
+    def update_vehicle_colors(self):
+        """Modifies the color of vehicles if rendering is active.
+
+        The colors of all vehicles are updated as follows:
+        - red: autonomous (rl) vehicles
+        - white: unobserved human-driven vehicles
+        - cyan: observed human-driven vehicles
+        """
+        # do not change the colors of vehicles if the sumo-gui is not active
+        # (in order to avoid slow downs)
+        if self.sumo_params.sumo_binary != "sumo-gui":
+            return
+
+        for veh_id in self.vehicles.get_rl_ids():
+            # color rl vehicles red
+            self.traci_connection.vehicle.setColor(vehID=veh_id,
+                                                   color=(255, 0, 0, 255))
+
+        # for veh_id in self.vehicles.get_human_ids():
+        #     if veh_id in self.vehicles.get_observed_ids():
+        #         # color observed human-driven vehicles cyan
+        #         color = (0, 255, 255, 255)
+        #     else:
+        #         # color unobserved human-driven vehicles white
+        #         color = (255, 255, 255, 255)
+        #     self.traci_connection.vehicle.setColor(vehID=veh_id, color=color)
+
+        # clear the list of observed vehicles
+        # for veh_id in self.vehicles.get_observed_ids():
+        #     self.vehicles.remove_observed(veh_id)
 
     def get_state(self):
         """

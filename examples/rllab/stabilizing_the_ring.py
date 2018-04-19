@@ -33,7 +33,7 @@ from rllab.envs.gym_env import GymEnv
 import numpy as np
 import sys
 
-HORIZON = 10
+HORIZON = 1500
 
 
 def run_task(v):
@@ -54,7 +54,8 @@ def run_task(v):
     additional_env_params = {"target_velocity": 8,
                              "scenario_type": LoopScenario}
     env_params = EnvParams(max_decel=-1, max_accel=1, horizon=HORIZON,
-                           additional_params=additional_env_params)
+                           additional_params=additional_env_params,
+                           warmup_steps=750)
 
     additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                              "resolution": 40}
