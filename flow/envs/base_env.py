@@ -207,8 +207,6 @@ class Env(gym.Env, Serializable):
             try:
                 # Opening the I/O thread to SUMO
                 self.sumo_proc = subprocess.Popen(sumo_call,
-                                                  stdout=sys.stdout,
-                                                  stderr=sys.stderr,
                                                   preexec_fn=os.setsid)
 
                 # wait a small period of time for the subprocess to activate
