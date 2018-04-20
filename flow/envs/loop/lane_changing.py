@@ -6,9 +6,13 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 ADDITIONAL_ENV_PARAMS = {
+    # maximum acceleration for autonomous vehicles, in m/s^2
     "max_accel": 3,
+    # maximum deceleration for autonomous vehicles, in m/s^2
     "max_decel": 3,
+    # lane change duration for autonomous vehicles, in s
     "lane_change_duration": 5,
+    # desired velocity for all vehicles in the network, in m/s
     "target_velocity": 10,
 }
 
@@ -16,6 +20,12 @@ ADDITIONAL_ENV_PARAMS = {
 class LaneChangeAccelEnv(Env):
     """Environment used to train autonomous vehicles to improve traffic flows
     when lane-change and acceleration actions are permitted by the rl agent.
+
+    Required from env_params:
+    - max_accel: maximum acceleration for autonomous vehicles, in m/s^2
+    - max_decel: maximum deceleration for autonomous vehicles, in m/s^2
+    - lane_change_duration: lane change duration for autonomous vehicles, in s
+    - target_velocity: desired velocity for all vehicles in the network, in m/s
 
     States
     ------
@@ -123,53 +133,91 @@ class LaneChangeAccelEnv(Env):
 
 
 class LaneChangeAccelPOEnv(Env):
-    """Partially observable variant of LaneChangeAccelEnv.
+    """POMDP version of LaneChangeAccelEnv.
+
+    Required from env_params:
+    - max_accel: maximum acceleration for autonomous vehicles, in m/s^2
+    - max_decel: maximum deceleration for autonomous vehicles, in m/s^2
+    - lane_change_duration: lane change duration for autonomous vehicles, in s
+    - target_velocity: desired velocity for all vehicles in the network, in m/s
 
     States
     ------
-    The state consists of the velocities, absolute position, and lane index of
-    all vehicles in the network. This assumes a constant number of vehicles.
+    States are a list of rl vehicles speeds, as well as the speeds and bumper-
+    to-bumper headawys between the rl vehicles and their leaders/followers in
+    all lanes. There is no assumption on the number of vehicles in the network,
+    so long as the number of rl vehicles is static.
 
     Actions
     -------
-    Actions consist of:
-    - a (continuous) acceleration from -abs(max_decel) to max_accel, specified
-      in env_params
-    - a (continuous) lane-change action from -1 to 1, used to determine the
-      lateral direction the vehicle will take.
-    Lane change actions are performed only if the vehicle has not changed lanes
-    for the lane change duration specified in env_params.
+    See parent class.
 
     Rewards
     -------
-    The reward function is the two-norm of the distance of the speed of the
-    vehicles in the network from a desired speed, combined with a penalty to
-    discourage excess lane changes by the rl vehicle.
+    See parent class.
 
     Termination
     -----------
-    A rollout is terminated if the time horizon is reached or if two vehicles
-    collide into one another.
+    See parent class.
     """
+    def __init__(self, env_params, sumo_params, scenario):
+        # maximum number of lanes on any edge in the network
+        self.num_lanes = max(self.scenario.num_lanes(edge)
+                             for edge in self.scenario.get_edge_list())
+
+        # lists of visible vehicles, used for visualization purposes
+        self.visible = []
+
+        super().__init__(env_params, sumo_params, scenario)
 
     @property
     def observation_space(self):
-        num_lanes = max(self.scenario.num_lanes(edge)
-                        for edge in self.scenario.get_edge_list())
-
-        return Box(low=-float("inf"),
-                   high=float("inf"),
-                   shape=(4 * self.vehicles.num_rl_vehicles * num_lanes,),
+        return Box(low=-float("inf"), high=float("inf"),
+                   shape=(4 * self.vehicles.num_rl_vehicles * self.num_lanes
+                          + self.vehicles.num_rl_vehicles,),
                    dtype=np.float32)
 
     def get_state(self):
-        return np.array([[self.vehicles.get_speed(veh_id),
-                          self.vehicles.get_absolute_position(veh_id),
-                          self.vehicles.get_lane(veh_id)]
-                         for veh_id in self.sorted_ids])
+        obs = [0 for _ in range(4 * self.vehicles.num_rl_vehicles
+                                * self.num_lanes)]
+
+        self.visible = []
+        for i, rl_id in range(self.vehicles.get_rl_ids()):
+            # set to 1000 since the absence of a vehicle implies a large
+            # headway
+            headway = [1000] * self.num_lanes
+            tailway = [1000] * self.num_lanes
+            vel_in_front = [0] * self.num_lanes
+            vel_behind = [0] * self.num_lanes
+
+            lane_leaders = self.vehicles.get_lane_leaders(rl_id)
+            lane_followers = self.vehicles.get_lane_followers(rl_id)
+            lane_headways = self.vehicles.get_lane_headways(rl_id)
+            lane_tailways = self.vehicles.get_lane_tailways(rl_id)
+            headway[0:len(lane_headways)] = lane_headways
+            tailway[0:len(lane_tailways)] = lane_tailways
+
+            for j, lane_leader in enumerate(lane_leaders):
+                if lane_leader != '':
+                    vel_in_front[j] = self.vehicles.get_speed(lane_leader)
+            for j, lane_follower in enumerate(lane_followers):
+                if lane_follower != '':
+                    vel_behind[j] = self.vehicles.get_speed(lane_follower)
+
+            self.visible.extend(lane_leaders)
+            self.visible.extend(lane_followers)
+
+            # add the headways, tailways, and speed for all lane leaders
+            # and followers
+            obs[4*self.num_lanes*i:4*self.num_lanes*(i+1)] = \
+                np.concatenate((headway, tailway, vel_in_front, vel_behind))
+
+            # add the speed for the ego rl vehicle
+            obs.append(self.vehicles.get_speed(rl_id))
+
+        return obs
 
     def additional_command(self):
         # specify observed vehicles
-        if self.vehicles.num_rl_vehicles > 0:
-            for veh_id in self.vehicles.get_human_ids():
-                self.vehicles.set_observed(veh_id)
+        for veh_id in self.visible:
+            self.vehicles.set_observed(veh_id)

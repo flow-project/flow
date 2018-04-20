@@ -2,18 +2,18 @@
 Example of a multi-lane network with human-driven vehicles.
 """
 import logging
+
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.lane_change_controllers import StaticLaneChanger
+from flow.controllers.routing_controllers import ContinuousRouter
+from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
-from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
-
-from flow.core.experiment import SumoExperiment
-from flow.envs.loop_accel import AccelEnv
+from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway.gen import HighwayGenerator
 from flow.scenarios.highway.scenario import HighwayScenario, \
     ADDITIONAL_NET_PARAMS
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.lane_change_controllers import StaticLaneChanger
 
 
 def highway_example(sumo_binary=None):
@@ -38,8 +38,7 @@ def highway_example(sumo_binary=None):
                  initial_speed=0,
                  num_vehicles=20)
 
-    additional_env_params = {"target_velocity": 8}
-    env_params = EnvParams(additional_params=additional_env_params)
+    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     inflow = InFlows()
     inflow.add(veh_type="human", edge="highway", probability=0.25,

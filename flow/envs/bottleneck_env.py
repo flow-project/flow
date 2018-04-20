@@ -1,12 +1,12 @@
-from flow.envs.lane_changing import LaneChangeAccelEnv
-from flow.core import rewards
-
-from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
 from collections import defaultdict
 from copy import deepcopy
 
 import numpy as np
+from gym.spaces.box import Box
+from gym.spaces.tuple_space import Tuple
+
+from flow.core import rewards
+from flow.envs.loop.lane_changing import LaneChangeAccelEnv
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
