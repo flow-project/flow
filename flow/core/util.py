@@ -21,9 +21,13 @@ import xml.etree.ElementTree as ET
 
 from gym.envs.registration import register
 
-from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
+from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import *
+from flow.controllers.lane_change_controllers import *
+from flow.controllers.routing_controllers import ContinuousRouter
+from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.core.params import InFlows
 
 E = etree.Element
@@ -149,6 +153,7 @@ def eval_net_params(flow_params):
                         key == 'departLane' or key == 'vehsPerHour':
                     temp[key] = obj[key]
             new_inflow_list.append(temp)
+        # add created inflows to inflow container
         [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
         better_params['net']['in_flows'] = inflow
 
