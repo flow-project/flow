@@ -43,7 +43,7 @@ vehicles.add(veh_id="human",
              speed_mode=9,
              lane_change_controller=(SumoLaneChangeController, {}),
              routing_controller=(ContinuousRouter, {}),
-             lane_change_mode=1621,#0b100000101,
+             lane_change_mode=0,#1621,#0b100000101,
              num_vehicles=1*SCALING)
 vehicles.add(veh_id="followerstopper",
              acceleration_controller=(RLController,
@@ -57,8 +57,8 @@ vehicles.add(veh_id="followerstopper",
 horizon = 500
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
-num_segments = [("1", 1, False), ("2", 1, True), ("3", 1, True),
-                ("4", 1, True), ("5", 1, False)]
+num_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
+                ("4", 2, True), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments, "symmetric": False}
@@ -132,18 +132,18 @@ def run_task(*_):
     )
     algo.train()
 
-exp_tag = "VSLLaneControlTest"  # experiment prefix
-for seed in [20]:  # , 1, 5, 10, 73]:
+exp_tag = "VSLLaneControl"  # experiment prefix
+for seed in [20, 21, 22]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel= 4,
+        n_parallel= 16,
         # Only keep the snapshot parameters for the last iteration
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="ec2",
         exp_prefix=exp_tag,
         # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
