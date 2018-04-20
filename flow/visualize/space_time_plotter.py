@@ -33,7 +33,7 @@ def emission_space_time_plot(data, title='Space-time Plot',
                   "left": 3 * edgelen}
 
     def start(edge):
-        edgestarts[edge]
+        return edgestarts[edge]
 
     edge_id_map = np.array(list(map(start, data['edge_id'])))
     data['pos'] = np.array(data['relative_position']) + edge_id_map
