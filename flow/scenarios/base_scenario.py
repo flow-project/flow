@@ -155,7 +155,7 @@ class Scenario(Serializable):
         """Defines the edge starts for internal edge nodes.
 
         These edges are the result of finite-length connections between road
-        sections). This methods does not need to be specified if "no-internal-
+        sections. This methods does not need to be specified if "no-internal-
         links" is set to True in net_params.
 
         Returns
