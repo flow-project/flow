@@ -7,7 +7,11 @@ from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 ADDITIONAL_ENV_PARAMS = {
-    # desired velocity for all vehicles in the network.
+    # maximum acceleration for autonomous vehicles, in m/s^2
+    "max_accel": 3,
+    # maximum deceleration for autonomous vehicles, in m/s^2
+    "max_decel": 3,
+    # desired velocity for all vehicles in the network, in m/s
     "target_velocity": 10,
 }
 
@@ -17,7 +21,9 @@ class AccelEnv(Env):
     when acceleration actions are permitted by the rl agent.
 
     Required from env_params:
-    - target_velocity: desired velocity for all vehicles in the network.
+    - max_accel: maximum acceleration for autonomous vehicles, in m/s^2
+    - max_decel: maximum deceleration for autonomous vehicles, in m/s^2
+    - target_velocity: desired velocity for all vehicles in the network, in m/s
 
     States
     ------
@@ -51,8 +57,8 @@ class AccelEnv(Env):
 
     @property
     def action_space(self):
-        return Box(low=-abs(self.env_params.max_decel),
-                   high=self.env_params.max_accel,
+        return Box(low=-abs(self.env_params.additional_params["max_decel"]),
+                   high=self.env_params.additional_params["max_accel"],
                    shape=(self.vehicles.num_rl_vehicles,),
                    dtype=np.float32)
 
@@ -77,7 +83,7 @@ class AccelEnv(Env):
         scaled_pos = [self.vehicles.get_absolute_position(veh_id) /
                       self.scenario.length for veh_id in self.sorted_ids]
         scaled_vel = [self.vehicles.get_speed(veh_id) /
-                      self.env_params.get_additional_param("target_velocity")
+                      self.env_params.additional_params["target_velocity"]
                       for veh_id in self.sorted_ids]
         state = [[vel, pos] for vel, pos in zip(scaled_vel, scaled_pos)]
 

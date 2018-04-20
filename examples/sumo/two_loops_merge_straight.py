@@ -3,9 +3,6 @@ Example of ring road with larger merging ring.
 """
 import logging
 
-from flow.scenarios.two_loops_one_merging.scenario import \
-    TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS
-
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
@@ -13,9 +10,11 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
-from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
+from flow.envs.loop.two_loops_one_merging import TwoLoopsMergeEnv
 from flow.scenarios.two_loops_one_merging.gen import \
     TwoLoopOneMergingGenerator
+from flow.scenarios.two_loops_one_merging.scenario import \
+    TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS
 
 
 def two_loops_merge_straight_example(sumo_binary=None):
