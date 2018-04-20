@@ -190,7 +190,8 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](v_id, sumo_cf_params=sumo_car_following_params,
+                acceleration_controller[0](v_id,
+                                           sumo_cf_params=sumo_car_following_params,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -372,7 +373,9 @@ class Vehicles:
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id, sumo_cf_params=sumo_cf_params, **accel_controller[1])
+            accel_controller[0](veh_id,
+                                sumo_cf_params=sumo_cf_params,
+                                **accel_controller[1])
 
         # specify the lane-changing controller class
         lc_controller = \
@@ -541,7 +544,7 @@ class Vehicles:
         the last **time_span** seconds."""
         if len(self._num_departed) == 0:
             return 0
-        num_inflow = self._num_departed[-int(time_span/self.sim_step):]
+        num_inflow = self._num_departed[-int(time_span / self.sim_step):]
         return 3600 * sum(num_inflow) / (len(num_inflow) * self.sim_step)
 
     def get_outflow_rate(self, time_span):
@@ -549,7 +552,7 @@ class Vehicles:
         for the last **time_span** seconds."""
         if len(self._num_arrived) == 0:
             return 0
-        num_outflow = self._num_arrived[-int(time_span/self.sim_step):]
+        num_outflow = self._num_arrived[-int(time_span / self.sim_step):]
         return 3600 * sum(num_outflow) / (len(num_outflow) * self.sim_step)
 
     def get_initial_speed(self, veh_id, error=-1001):
@@ -979,8 +982,8 @@ class Vehicles:
         edge_list = env.scenario.get_edge_list()
         junction_list = env.scenario.get_junction_list()
         tot_list = edge_list + junction_list
-        num_edges = len(env.scenario.get_edge_list()) \
-            + len(env.scenario.get_junction_list())
+        num_edges = (len(env.scenario.get_edge_list()) +
+                     len(env.scenario.get_junction_list()))
 
         # maximum number of lanes in the network
         max_lanes = max([env.scenario.num_lanes(edge_id)
@@ -1085,24 +1088,24 @@ class Vehicles:
 
                 # if you are at the end or the front of the edge, the lane
                 # leader is in the edges in front of you
-                if index < len(positions)-1:
+                if index < len(positions) - 1:
                     # check if the index does not correspond to the current
                     # vehicle
                     if ids[index] == veh_id:
-                        leader[lane] = ids[index+1]
-                        headway[lane] = positions[index+1] - this_pos \
-                            - self.get_length(leader[lane])
+                        leader[lane] = ids[index + 1]
+                        headway[lane] = (positions[index + 1] - this_pos -
+                                         self.get_length(leader[lane]))
                     else:
                         leader[lane] = ids[index]
                         headway[lane] = positions[index] - this_pos \
-                            - self.get_length(leader[lane])
+                                        - self.get_length(leader[lane])
 
                 # you are in the back of the queue, the lane follower is in the
                 # edges behind you
                 if index > 0:
-                    follower[lane] = ids[index-1]
-                    tailway[lane] = this_pos - positions[index-1] \
-                        - self.get_length(veh_id)
+                    follower[lane] = ids[index - 1]
+                    tailway[lane] = this_pos - positions[index - 1] \
+                                    - self.get_length(veh_id)
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
@@ -1147,7 +1150,7 @@ class Vehicles:
                 if len(edge_dict[edge][lane]) > 0:
                     leader = edge_dict[edge][lane][0][0]
                     headway = edge_dict[edge][lane][0][1] - pos + add_length \
-                        - self.get_length(leader)
+                              - self.get_length(leader)
             except KeyError:
                 # current edge has no vehicles, so move on
                 continue
@@ -1188,7 +1191,7 @@ class Vehicles:
             try:
                 if len(edge_dict[edge][lane]) > 0:
                     tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
-                        - self.get_length(veh_id)
+                              - self.get_length(veh_id)
                     follower = edge_dict[edge][lane][-1][0]
             except KeyError:
                 # current edge has no vehicles, so move on
