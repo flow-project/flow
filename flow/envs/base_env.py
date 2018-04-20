@@ -154,63 +154,67 @@ class Env(gym.Env, Serializable):
         generator class. Also initializes a traci connection to interface with
         sumo from Python.
         """
-        # port number the sumo instance will be run on
-        if self.sumo_params.port is not None:
-            port = self.sumo_params.port
-        else:
-            port = sumolib.miscutils.getFreeSocketPort()
-
-        # command used to start sumo
-        sumo_call = [self.sumo_params.sumo_binary,
-                     "-c", self.scenario.cfg,
-                     "--remote-port", str(port),
-                     "--step-length", str(self.sim_step)]
-
-        # add step logs (if requested)
-        if self.sumo_params.no_step_log:
-            sumo_call.append("--no-step-log")
-
-        # add the lateral resolution of the sublanes (if requested)
-        if self.sumo_params.lateral_resolution is not None:
-            sumo_call.append("--lateral-resolution")
-            sumo_call.append(str(self.sumo_params.lateral_resolution))
-
-        # add the emission path to the sumo command (if requested)
-        if self.sumo_params.emission_path is not None:
-            ensure_dir(self.sumo_params.emission_path)
-            emission_out = \
-                self.sumo_params.emission_path + "{0}-emission.xml".format(
-                    self.scenario.name)
-            sumo_call.append("--emission-output")
-            sumo_call.append(emission_out)
-        else:
-            emission_out = None
-
-        if self.sumo_params.overtake_right:
-            sumo_call.append("--lanechange.overtake-right")
-            sumo_call.append("true")
-
-        if self.sumo_params.ballistic:
-            sumo_call.append("--step-method.ballistic")
-            sumo_call.append("true")
-
-        # specify a simulation seed (if requested)
-        if self.sumo_params.seed is not None:
-            sumo_call.append("--seed")
-            sumo_call.append(str(self.sumo_params.seed))
-
-        if not self.sumo_params.print_warnings:
-            sumo_call.append("--no-warnings")
-            sumo_call.append("true")
-
-        logging.info(" Starting SUMO on port " + str(port))
-        logging.debug(" Cfg file: " + str(self.scenario.cfg))
-        logging.debug(" Emission file: " + str(emission_out))
-        logging.debug(" Step length: " + str(self.sim_step))
-
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
+                # port number the sumo instance will be run on
+                if self.sumo_params.port is not None:
+                    port = self.sumo_params.port
+                else:
+                    port = sumolib.miscutils.getFreeSocketPort()
+
+                # command used to start sumo
+                sumo_call = [self.sumo_params.sumo_binary,
+                             "-c", self.scenario.cfg,
+                             "--remote-port", str(port),
+                             "--step-length", str(self.sim_step)]
+
+                # add step logs (if requested)
+                if self.sumo_params.no_step_log:
+                    sumo_call.append("--no-step-log")
+
+                # add the lateral resolution of the sublanes (if requested)
+                if self.sumo_params.lateral_resolution is not None:
+                    sumo_call.append("--lateral-resolution")
+                    sumo_call.append(str(self.sumo_params.lateral_resolution))
+
+                # add the emission path to the sumo command (if requested)
+                if self.sumo_params.emission_path is not None:
+                    ensure_dir(self.sumo_params.emission_path)
+                    emission_out = \
+                        self.sumo_params.emission_path + "{0}-emission.xml".format(
+                            self.scenario.name)
+                    sumo_call.append("--emission-output")
+                    sumo_call.append(emission_out)
+                else:
+                    emission_out = None
+
+                if self.sumo_params.overtake_right:
+                    sumo_call.append("--lanechange.overtake-right")
+                    sumo_call.append("true")
+
+                if self.sumo_params.ballistic:
+                    sumo_call.append("--step-method.ballistic")
+                    sumo_call.append("true")
+
+                # specify a simulation seed (if requested)
+                if self.sumo_params.seed is not None:
+                    sumo_call.append("--seed")
+                    sumo_call.append(str(self.sumo_params.seed))
+
+                if not self.sumo_params.print_warnings:
+                    sumo_call.append("--no-warnings")
+                    sumo_call.append("true")
+
+                # set the time it takes for a gridlock teleport to occur
+                sumo_call.append("--time-to-teleport")
+                sumo_call.append(str(int(self.sumo_params.teleport_time)))
+
+                logging.info(" Starting SUMO on port " + str(port))
+                logging.debug(" Cfg file: " + str(self.scenario.cfg))
+                logging.debug(" Emission file: " + str(emission_out))
+                logging.debug(" Step length: " + str(self.sim_step))
+
                 # Opening the I/O thread to SUMO
                 self.sumo_proc = subprocess.Popen(sumo_call,
                                                   stdout=sys.stdout,

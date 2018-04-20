@@ -182,9 +182,9 @@ class HandTunedVelocityController(FollowerStopper):
 
 
 class FeedbackController(FollowerStopper):
-    def __init__(self, veh_id, sumo_cf_params, K, desired_bottleneck_density, danger_edges=None):
+    def __init__(self, veh_id, sumo_cf_params, Kp, desired_bottleneck_density, danger_edges=None):
         super().__init__(veh_id, sumo_cf_params, danger_edges=danger_edges)
-        self.K = K
+        self.Kp = Kp
         self.desired_density = desired_bottleneck_density
 
     def get_accel(self, env):
@@ -199,10 +199,8 @@ class FeedbackController(FollowerStopper):
             if edge[0] != ':' and edge in env.controlled_edges:
                 if edge in self.danger_edges:
                     self.v_des = None
-                    print(self.veh_id, self.v_des)
                 else:
+                    self.v_des = max(min(self.v_des + self.Kp * (self.desired_density - current_density), 23), 0)
 
-                    self.v_des = max(min(self.v_des + self.K * (self.desired_density - current_density), 23), 0)
-
-        print(current_density , self.v_des)
+        # print(current_density, self.v_des)
         return super().get_accel(env)

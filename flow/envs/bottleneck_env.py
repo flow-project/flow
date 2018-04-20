@@ -35,7 +35,9 @@ ENV_PARAMS = [
     "target_velocity",  # velocity to use in reward functions
     "num_steps",  # horizon
     "add_rl_if_exit",  # if an RL vehicle exits, place it back at the front
-    "segments", # number of regions for velocity bottleneck controller
+    "segments",  # number of regions for velocity bottleneck controller
+    "lanes",  # controlled lanes for EarlyLC experiments
+    "symmetric",  # whether lanes in a segment have the same action or not
 ]
 
 NET_PARAMS = [
@@ -233,7 +235,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.traci_connection.trafficlights.setRedYellowGreenState(
                 tlsID=TB_TL_ID, state=newTLState)
 
-    def distance_to_bottlneck(self, veh_id):
+    def distance_to_bottleneck(self, veh_id):
         pre_bottleneck_edges = {str(i): self.scenario.edge_length(str(i)) for i in [1, 2, 3]}
         edge_pos = self.vehicles.get_position(veh_id)
         edge = self.vehicles.get_edge(veh_id)
@@ -251,7 +253,8 @@ class BridgeTollEnv(LaneChangeAccelEnv):
     def get_bottleneck_density(self, lanes=None):
         BOTTLE_NECK_LEN = 280
         if lanes:
-            veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
+            veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) \
+                       if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
         else:
             veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
@@ -512,120 +515,215 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def __init__(self, env_params, sumo_params, scenario):
 
+        # default (edge, segment, controlled) status
         default = [("1", 1, True), ("2", 1, True), ("3", 1, True),
                    ("4", 1, True), ("5", 1, True)]
         super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
         self.segments = self.env_params.additional_params.get("segments", default)
+
         # number of segments for each edge
         self.num_segments = [segment[1] for segment in self.segments]
+
         # whether an edge is controlled
         self.is_controlled = [segment[2] for segment in self.segments]
-        # list of controlled edges for comparison
-        self.controlled_edges = [segment[0] for segment in self.segments
-                                 if segment[2]]
+
+        self.num_controlled_segments = [segment[1] for segment in self.segments if segment[2]]
+
         # sum of segments
         self.total_segments = int(np.sum([segment[1] for segment in self.segments]))
         # sum of controlled segments
-        self.total_controlled_segments = int(np.sum([segment[1]*segment[2]
-                                                     for segment in self.segments]))
-        # for convenience, construct the relevant positions we are looking for
-        self.slices = {}
+        self.total_controlled_segments = int(np.sum([segment[1]
+                                                     for segment in self.segments
+                                                     if segment[2]]))
+
+        # list of controlled edges for comparison
+        self.controlled_edges = [segment[0] for segment in self.segments
+                                 if segment[2]]
+
+        # list of controlled lanes
+        lanes_list = [str(i) for i in range(MAX_LANES*self.scaling)]
+        additional_params = self.env_params.additional_params
+        self.controlled_lanes = additional_params.get("lanes", lanes_list)
+
+        # self.symmetric is True if all lanes in a segment have same action, else False
+        self.symmetric = additional_params.get("symmetric", True)
+
+        # for convenience, construct the relevant positions defining
+        # segments within edges
+        # self.slices is a dictionary mapping
+        # edge (str) -> segment start location (list of int)
+        self.slices = {}  
         for edge, num_segments, _ in self.segments:
             edge_length = self.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments)
 
-        # action index tells us, given an edge,the offset into
-        # rl_actions that we should take
+        # action index tells us, given an edge and a lane,the offset into
+        # rl_actions that we should take. The indexing order is
+        # FIXME (ev) add comments
         self.action_index = [0]
         for i, (edge, segment, controlled) in enumerate(self.segments[:-1]):
-            self.action_index += [self.action_index[i] + segment*controlled]
+            if self.symmetric:
+                self.action_index += [self.action_index[i] +
+                                      segment * controlled]
+            else:
+                num_lanes = self.scenario.num_lanes(edge)
+                self.action_index += [self.action_index[i] +
+                                      segment * controlled * num_lanes]
+
+        # FIXME(implement this scheme)
+        # contruct an indexing to be used for figuring out which
+        # set of actions apply to a lane
+        # self.lane_index = {lane:ind*self.total_controlled_segments
+        #                       for ind,lane
+        #                       in enumerate(self.controlled_lanes)}
+        #
+        # # number of controlled segments up to and including edge 4
+        # until_four = int(np.sum([segment[1] for segment in self.segments[:4] if segment[2]]))
+        # # number of controlled segments up to and including edge 3
+        # until_three = int(np.sum([segment[1] for segment in self.segments[:3] if segment[2]]))
+        # self.lane_index = {}
+        # for ind, lane in enumerate(self.controlled_lanes):
+        #     if lane < self.scaling:  # full length
+        #         self.lane_index[lane] = ind*self.total_controlled_segments
+        #     elif lane < self.scaling*2:  # half length
+        #         self.lane_index[lane] = ind*until_four
+        #     else:  # goes away in first level
+        #         self.lane_index[lane] = ind*until_three
 
     @property
     def observation_space(self):
         num_obs = 0
         for segment in self.segments:
-            num_obs += 2*segment[1] * self.scenario.num_lanes(segment[0])
-        num_obs += 2*self.total_segments
+            num_obs += 4*segment[1] * self.scenario.num_lanes(segment[0])
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
                    dtype=np.float32)
 
     @property
     def action_space(self):
-        return Box(low=2.0, high=23.0,
-                   shape=(int(self.total_controlled_segments),),
+        if self.symmetric:
+            action_size = self.total_controlled_segments
+        else:
+            action_size = 0.0
+            for segment in self.segments:  # iterate over segments
+                if segment[2]:  # if controlled
+                    num_lanes = self.scenario.num_lanes(segment[0])
+                    action_size += num_lanes*segment[1]
+        return Box(low=-1.5, high=1.0,
+                   shape=(int(action_size),), 
                    dtype=np.float32)
 
     def get_state(self):
         # action space is number of vehicles in each segment in each lane,
         # number of rl vehicles in each segment in each lane
-        # mean speed in each segment, and mean rl speed in each segment
+        # mean speed in each segment, and mean rl speed in each
+        # segment in each lane
         num_vehicles_list = []
         num_rl_vehicles_list = []
-        segment_speeds = np.zeros((self.total_segments, 2))
-        rl_segment_speeds = np.zeros((self.total_segments, 2))
+        vehicle_speeds_list = []
+        rl_speeds_list = []
+        NUM_VEHICLE_NORM = 20
         for i, edge in enumerate(EDGE_LIST):
             num_lanes = self.scenario.num_lanes(edge)
             num_vehicles = np.zeros((self.num_segments[i], num_lanes))
             num_rl_vehicles = np.zeros((self.num_segments[i], num_lanes))
+            vehicle_speeds = np.zeros((self.num_segments[i], num_lanes))
+            rl_vehicle_speeds = np.zeros((self.num_segments[i], num_lanes))
             ids = self.vehicles.get_ids_by_edge(edge)
             lane_list = self.vehicles.get_lane(ids)
             pos_list = self.vehicles.get_position(ids)
             for i, id in enumerate(ids):
                 segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
-                num_vehicles[segment, lane_list[i]] += 1
-                segment_speeds[segment][0] += self.vehicles.get_speed(id)
-                segment_speeds[segment][1] += 1
-
                 if id in self.vehicles.get_rl_ids():
-                    rl_segment_speeds[segment][0] += self.vehicles.get_speed(id)
-                    rl_segment_speeds[segment][1] += 1
+                    rl_vehicle_speeds[segment, lane_list[i]] \
+                        += self.vehicles.get_speed(id)
                     num_rl_vehicles[segment, lane_list[i]] += 1
+                else:
+                    num_vehicles[segment, lane_list[i]] += 1
+                    vehicle_speeds[segment, lane_list[i]] \
+                        += self.vehicles.get_speed(id)
 
             # normalize
-            num_vehicles /= 20
-            num_rl_vehicles /= 20
+
+            num_vehicles /= NUM_VEHICLE_NORM
+            num_rl_vehicles /= NUM_VEHICLE_NORM
             num_vehicles_list += num_vehicles.flatten().tolist()
             num_rl_vehicles_list += num_rl_vehicles.flatten().tolist()
-        mean_speed = np.nan_to_num([segment_speeds[i][0]/segment_speeds[i][1]
-                      for i in range(self.total_segments)])/50
-        mean_rl_speed = np.nan_to_num([rl_segment_speeds[i][0] / rl_segment_speeds[i][1]
-                                    for i in range(self.total_segments)]) / 50
+            vehicle_speeds_list += vehicle_speeds.flatten().tolist()
+            rl_speeds_list += rl_vehicle_speeds.flatten().tolist()
+
+        unnorm_veh_list = np.asarray(num_vehicles_list) * \
+                                 NUM_VEHICLE_NORM
+        unnorm_rl_list = np.asarray(num_rl_vehicles_list) * \
+                                 NUM_VEHICLE_NORM
+        # compute the mean speed if the speed isn't zero
+        mean_speed = np.nan_to_num([vehicle_speeds_list[i] / unnorm_veh_list[i]
+                                    if int(unnorm_veh_list[i]) else 0
+                                    for i in range(len(num_vehicles_list))])/50
+        mean_rl_speed = np.nan_to_num([rl_speeds_list[i] / unnorm_rl_list[i]
+                                       if int(unnorm_rl_list[i]) else 0
+                                       for i in range(len(num_rl_vehicles_list))
+                                       ]) / 50
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
                                mean_speed, mean_rl_speed))
 
     def _apply_rl_actions(self, actions):
+        """
+        RL actions are split up into 3 levels.
+        First, they're split into edge actions.
+        Then they're split into segment actions.
+        Then they're split into lane actions.
+        """
         rl_actions = actions
 
         # RLLIB STUFF
-        #rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
-        # veh_ids = [veh_id for veh_id in self.vehicles.get_ids()
-        #            if isinstance(self.vehicles.get_acc_controller(veh_id), SumoCarFollowingModel)]
+        # rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
 
         for rl_id in self.vehicles.get_rl_ids():
             edge = self.vehicles.get_edge(rl_id)
+            lane = self.vehicles.get_lane(rl_id)
             if edge:
-                if edge[0] != ':' and edge in self.controlled_edges:
+                # If in outer lanes, on a controlled edge, in a controlled lane
+                if edge[0] != ':' and edge in self.controlled_edges: #and lane in self.controlled_lanes:
                     pos = self.vehicles.get_position(rl_id)
-                    # find what segment we fall into
-                    bucket = np.searchsorted(self.slices[edge], pos) - 1
-                    action = rl_actions[bucket + self.action_index[int(edge) - 1]]
-                    # RLLIB STUFF
-                    # set the desired velocity of the controller to the action
-                    # controller = self.vehicles.get_acc_controller(rl_id)
-                    # controller.v_des = action
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, action)
+
+                    if not self.symmetric:
+                        num_lanes = self.scenario.num_lanes(edge)
+                        # find what segment we fall into
+                        bucket = np.searchsorted(self.slices[edge], pos) - 1
+                        # print('vehicle ', rl_id)
+                        # print('the vehicle on edge', edge)
+                        # print('and lane', lane)
+                        # print('will get action ', int(lane) + bucket*num_lanes
+                        #                         + self.action_index[int(edge) - 1])
+                        action = rl_actions[int(lane) + bucket*num_lanes
+                                            + self.action_index[int(edge) - 1]]
+                        # print('the action is', action)
+                        # print('its speed is', self.vehicles.get_speed(rl_id))
+
+                    else:
+                        # find what segment we fall into
+                        bucket = np.searchsorted(self.slices[edge], pos) - 1
+                        action = rl_actions[bucket +
+                                            self.action_index[int(edge) - 1]]
+
+                    max_speed_curr = self.traci_connection.vehicle.getMaxSpeed(rl_id)
+                    next_max = np.clip(max_speed_curr + action, 2.0, 23.0)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, next_max)
                 else:
+                    # set the desired velocity of the controller to the default
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 + \
             0.01*rewards.desired_velocity(self)/self.max_speed
-        #reward = rewards.desired_velocity(self)/5
-        #penalize high density in the bottleneck
+
+        # penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
-        if len(bottleneck_ids) > 30:
-            reward -= len(bottleneck_ids) - 30
-        print(self.vehicles.get_outflow_rate(10000*self.sim_step))
+        # FIXME(ev) convert to passed in env param
+        bottleneck_threshold = 30  # could be 10 also
+        if len(bottleneck_ids) > bottleneck_threshold:
+            reward -= len(bottleneck_ids) - bottleneck_threshold
         return reward
 
 
