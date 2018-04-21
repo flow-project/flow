@@ -32,8 +32,8 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-HORIZON = 500
-AV_FRAC = 0.25
+HORIZON = 1000
+AV_FRAC = 0.10
 
 vehicle_params = [dict(veh_id="human",
                        speed_mode="all_checks",
