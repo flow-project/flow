@@ -707,7 +707,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                                             self.action_index[int(edge) - 1]]
 
                     max_speed_curr = self.traci_connection.vehicle.getMaxSpeed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 2.0, 23.0)
+                    next_max = np.clip(max_speed_curr + action, 0.0, 23.0)
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, next_max)
                 else:
                     # set the desired velocity of the controller to the default
