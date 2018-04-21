@@ -186,16 +186,16 @@ def eval_veh_params(orig_params):
     new_params = orig_params.copy()
 
     if 'acceleration_controller' in new_params:
-        new_controller = (eval(orig_params['acceleration_controller'][0]),
-                               orig_params['acceleration_controller'][1])
+        new_controller = (eval(orig_params['acceleration_controller'][0],
+                               orig_params['acceleration_controller'][1]))
         new_params['acceleration_controller'] = new_controller
     if 'lane_change_controller' in new_params:
-        new_lc_controller = (eval(orig_params['lane_change_controller'][0]),
-                                  orig_params['lane_change_controller'][1])
+        new_lc_controller = (eval(orig_params['lane_change_controller'][0],
+                                  orig_params['lane_change_controller'][1]))
         new_params['lane_change_controller'] = new_lc_controller
     if 'routing_controller' in new_params:
-        new_route_controller = (eval(orig_params['routing_controller'][0]),
-                                     orig_params['routing_controller'][1])
+        new_route_controller = (eval(orig_params['routing_controller'][0],
+                                     orig_params['routing_controller'][1]))
         new_params['routing_controller'] = new_route_controller
     if 'sumo_car_following_params' in new_params:
         cf_params = SumoCarFollowingParams()
