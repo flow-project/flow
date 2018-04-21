@@ -54,7 +54,7 @@ vehicles.add(veh_id="followerstopper",
              lane_change_mode=0,
              num_vehicles=1*SCALING)
 
-horizon = 500
+horizon = 1000
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
 num_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
@@ -123,7 +123,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=horizon*32,
+        batch_size=horizon*64,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
