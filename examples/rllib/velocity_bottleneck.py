@@ -39,7 +39,7 @@ vehicle_params = [dict(veh_id="human",
                        speed_mode="all_checks",
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       lane_change_mode=1621,
+                       lane_change_mode=0,
                        num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
                        # acceleration_controller=(RLController,
@@ -47,8 +47,8 @@ vehicle_params = [dict(veh_id="human",
                        acceleration_controller = (RLController, {}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
-                       speed_mode=31,
-                       lane_change_mode=1621,
+                       speed_mode=9,
+                       lane_change_mode=0,
                        num_vehicles=1 * SCALING)]
 
 num_segments = [("1", 1, False), ("2", 2, True),
@@ -57,7 +57,7 @@ additional_env_params = {"target_velocity": 55.0,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments}
 # flow rate
-flow_rate = 1800 * SCALING
+flow_rate = 1900 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 # percentage of flow coming out of each lane
