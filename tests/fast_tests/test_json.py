@@ -74,8 +74,7 @@ class TestJSON(unittest.TestCase):
         # dump the config so we can fetch it
         json_out_file = '~/params.json'
         with open(os.path.expanduser(json_out_file), 'w+') as outfile:
-            json.dump(config, outfile, cls=NameEncoder, sort_keys=True,
-                      indent=4)
+            json.dump(config, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
         config = get_rllib_config(os.path.expanduser('~'))
 
