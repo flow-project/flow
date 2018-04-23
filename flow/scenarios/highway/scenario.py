@@ -14,15 +14,16 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class HighwayScenario(Scenario):
+
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Initializes a highway scenario.
 
         Requires from net_params:
-        - length: length of the circle
-        - lanes: number of lanes in the circle
-        - speed_limit: max speed limit of the circle
+        - length: length of the highway
+        - lanes: number of lanes in the highway
+        - speed_limit: max speed limit of the highway
 
         See Scenario.py for description of params.
         """
@@ -37,9 +38,5 @@ class HighwayScenario(Scenario):
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
-        """
-        See parent class
-        """
         edgestarts = [("highway", 0)]
-
         return edgestarts
