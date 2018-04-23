@@ -1,16 +1,16 @@
 import os
 import unittest
 
-from flow.scenarios.two_loops_one_merging.scenario \
-    import TwoLoopsOneMergingScenario
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.envs.two_loops_one_merging import TwoLoopsMergeEnv
+from flow.envs.loop.two_loops_one_merging import TwoLoopsMergeEnv
 from flow.scenarios.two_loops_one_merging.gen \
     import TwoLoopOneMergingGenerator
+from flow.scenarios.two_loops_one_merging.scenario \
+    import TwoLoopsOneMergingScenario
 
 os.environ["TEST_FLAG"] = "True"
 

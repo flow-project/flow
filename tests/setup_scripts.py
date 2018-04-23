@@ -1,28 +1,26 @@
 import logging
+
 from numpy import pi, sin, cos, linspace, ones, random
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
-
-from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.car_following_models import IDMController
-
-from flow.envs.loop_accel import AccelEnv
-
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
-from flow.scenarios.figure8.gen import Figure8Generator
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    InFlows, SumoCarFollowingParams
+from flow.core.traffic_lights import TrafficLights
+from flow.core.vehicles import Vehicles
+from flow.envs.green_wave_env import GreenWaveTestEnv
+from flow.envs.loop.loop_accel import AccelEnv
+from flow.scenarios.bridge_toll.gen import BBTollGenerator
+from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
+from flow.scenarios.figure8.gen import Figure8Generator
 from flow.scenarios.grid.gen import SimpleGridGenerator
 from flow.scenarios.grid.grid_scenario import SimpleGridScenario
-from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.scenarios.highway.gen import HighwayGenerator
 from flow.scenarios.highway.scenario import HighwayScenario
-from flow.scenarios.bridge_toll.scenario import BBTollScenario
-from flow.scenarios.bridge_toll.gen import BBTollGenerator
+from flow.scenarios.loop.gen import CircleGenerator
+from flow.scenarios.loop.loop_scenario import LoopScenario
 
 
 def ring_road_exp_setup(sumo_params=None,
@@ -49,8 +47,8 @@ def ring_road_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a single lane
         ring road of length 230 m
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """
@@ -72,7 +70,10 @@ def ring_road_exp_setup(sumo_params=None,
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8, "num_steps": 500}
+        additional_env_params = {"target_velocity": 8,
+                                 "max_accel": 1,
+                                 "max_decel": 1,
+                                 "num_steps": 500}
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
@@ -129,8 +130,8 @@ def figure_eight_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a figure eight
         with a 30 m radius and "no_internal_links" set to False
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """
@@ -152,7 +153,10 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8, "num_steps": 500}
+        additional_env_params = {"target_velocity": 8,
+                                 "max_accel": 1,
+                                 "max_decel": 1,
+                                 "num_steps": 500}
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
@@ -210,8 +214,8 @@ def highway_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a single lane
         highway of length 100 m
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """
@@ -233,7 +237,10 @@ def highway_exp_setup(sumo_params=None,
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8, "num_steps": 500}
+        additional_env_params = {"target_velocity": 8,
+                                 "max_accel": 1,
+                                 "max_decel": 1,
+                                 "num_steps": 500}
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
@@ -280,6 +287,10 @@ def grid_mxn_exp_setup(row_num=1,
 
     Parameters
     ----------
+    row_num: int, optional
+        number of horizontal rows of edges in the grid network
+    col_num: int, optional
+        number of vertical columns of edges in the grid network
     sumo_params: SumoParams type
     vehicles: Vehicles type
         vehicles to be placed in the network, default is 5 vehicles per edge
@@ -354,8 +365,8 @@ def grid_mxn_exp_setup(row_num=1,
 
     # create the environment
     env = GreenWaveTestEnv(env_params=env_params,
-                       sumo_params=sumo_params,
-                       scenario=scenario)
+                           sumo_params=sumo_params,
+                           scenario=scenario)
 
     return env, scenario
 
@@ -385,8 +396,8 @@ def variable_lanes_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a figure eight
         with a 30 m radius and "no_internal_links" set to False
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """
@@ -408,7 +419,10 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8, "num_steps": 500}
+        additional_env_params = {"target_velocity": 8,
+                                 "max_accel": 1,
+                                 "max_decel": 1,
+                                 "num_steps": 500}
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
@@ -449,8 +463,7 @@ def setup_bottlenecks(sumo_params=None,
                       traffic_lights=None,
                       inflow=None,
                       scaling=1):
-    SCALING = 1
-    NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
+    num_lanes = 4 * scaling  # number of lanes in the widest highway
 
     logging.basicConfig(level=logging.INFO)
 
@@ -466,21 +479,22 @@ def setup_bottlenecks(sumo_params=None,
                      lane_change_mode=512,
                      sumo_car_following_params=SumoCarFollowingParams(
                          minGap=2.5, tau=1.0),
-                     num_vehicles=40 * SCALING)
+                     num_vehicles=40 * scaling)
 
     if env_params is None:
-        additional_env_params = {"target_velocity": 40, "num_steps": 150}
+        additional_env_params = {"target_velocity": 40,
+                                 "max_accel": 1, "max_decel": 1}
         env_params = EnvParams(additional_params=additional_env_params,
                                lane_change_duration=1)
 
     if inflow is None:
         # flow rate
-        flow_rate = 3750 * SCALING
+        flow_rate = 3750 * scaling
         # percentage of flow coming out of each lane
-        flow_dist = random.dirichlet(ones(NUM_LANES), size=1)[0]
+        flow_dist = random.dirichlet(ones(num_lanes), size=1)[0]
 
         inflow = InFlows()
-        for i in range(NUM_LANES):
+        for i in range(num_lanes):
             lane_num = str(i)
             veh_per_hour = flow_rate * flow_dist[i]
             inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
@@ -494,7 +508,8 @@ def setup_bottlenecks(sumo_params=None,
     if net_params is None:
         additional_net_params = {"scaling": scaling}
         net_params = NetParams(in_flows=inflow,
-                               no_internal_links=False, additional_params=additional_net_params)
+                               no_internal_links=False,
+                               additional_params=additional_net_params)
 
     if initial_config is None:
         initial_config = InitialConfig(spacing="uniform", min_gap=5,
@@ -540,7 +555,7 @@ class VariableLanesGenerator(CircleGenerator):
             {"id": "left", "from": "left", "to": "bottom", "speed": str(v),
              "length": repr(edgelen), "numLanes": "4",
              "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(pi, 3 * pi / 2, resolution)])}
+                                for t in linspace(pi, 3*pi / 2, resolution)])}
         ]
 
         return edges
