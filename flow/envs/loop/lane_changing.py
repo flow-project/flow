@@ -10,7 +10,9 @@ ADDITIONAL_ENV_PARAMS = {
     "max_accel": 3,
     # maximum deceleration for autonomous vehicles, in m/s^2
     "max_decel": 3,
-    # lane change duration for autonomous vehicles, in s
+    # lane change duration for autonomous vehicles, in s. Autonomous vehicles
+    # reject new lane changing commands for this duration after successfully
+    # changing lanes.
     "lane_change_duration": 5,
     # desired velocity for all vehicles in the network, in m/s
     "target_velocity": 10,
@@ -99,8 +101,12 @@ class LaneChangeAccelEnv(Env):
         return reward
 
     def get_state(self):
-        return np.array([[self.vehicles.get_speed(veh_id),
-                          self.vehicles.get_absolute_position(veh_id),
+        # normalizers
+        max_speed = 30
+        length = self.scenario.length
+
+        return np.array([[self.vehicles.get_speed(veh_id) / max_speed,
+                          self.vehicles.get_absolute_position(veh_id) / length,
                           self.vehicles.get_lane(veh_id)]
                          for veh_id in self.sorted_ids])
 
@@ -132,7 +138,7 @@ class LaneChangeAccelEnv(Env):
                 self.vehicles.set_observed(veh_id)
 
 
-class LaneChangeAccelPOEnv(Env):
+class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
     """POMDP version of LaneChangeAccelEnv.
 
     Required from env_params:
@@ -160,10 +166,11 @@ class LaneChangeAccelPOEnv(Env):
     -----------
     See parent class.
     """
+
     def __init__(self, env_params, sumo_params, scenario):
         # maximum number of lanes on any edge in the network
-        self.num_lanes = max(self.scenario.num_lanes(edge)
-                             for edge in self.scenario.get_edge_list())
+        self.num_lanes = max(scenario.num_lanes(edge)
+                             for edge in scenario.get_edge_list())
 
         # lists of visible vehicles, used for visualization purposes
         self.visible = []
@@ -182,7 +189,11 @@ class LaneChangeAccelPOEnv(Env):
                                 * self.num_lanes)]
 
         self.visible = []
-        for i, rl_id in range(self.vehicles.get_rl_ids()):
+        for i, rl_id in enumerate(self.vehicles.get_rl_ids()):
+            # normalizers
+            max_length = 1000
+            max_speed = 30
+
             # set to 1000 since the absence of a vehicle implies a large
             # headway
             headway = [1000] * self.num_lanes
@@ -199,10 +210,14 @@ class LaneChangeAccelPOEnv(Env):
 
             for j, lane_leader in enumerate(lane_leaders):
                 if lane_leader != '':
-                    vel_in_front[j] = self.vehicles.get_speed(lane_leader)
+                    lane_headways[j] /= max_length
+                    vel_in_front[j] = self.vehicles.get_speed(lane_leader) \
+                        / max_speed
             for j, lane_follower in enumerate(lane_followers):
                 if lane_follower != '':
-                    vel_behind[j] = self.vehicles.get_speed(lane_follower)
+                    lane_headways[j] /= max_length
+                    vel_behind[j] = self.vehicles.get_speed(lane_follower) \
+                        / max_speed
 
             self.visible.extend(lane_leaders)
             self.visible.extend(lane_followers)
@@ -215,7 +230,7 @@ class LaneChangeAccelPOEnv(Env):
             # add the speed for the ego rl vehicle
             obs.append(self.vehicles.get_speed(rl_id))
 
-        return obs
+            return np.array(obs)
 
     def additional_command(self):
         # specify observed vehicles
