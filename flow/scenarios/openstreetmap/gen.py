@@ -15,6 +15,7 @@ class OpenStreetMapGenerator(Generator):
     "specify_routes" file is still needed to specify the appropriate routes
     vehicles can traverse in the network.
     """
+
     def generate_net(self, net_params, traffic_lights):
         """
         See parent class.
@@ -36,7 +37,7 @@ class OpenStreetMapGenerator(Generator):
         net_cmd += \
             " --remove-edges.by-vclass rail_slow,rail_fast,bicycle,pedestrian"
 
-        # this removes edges that are not connected to a network (i.e. isolated)
+        # this removes edges that are not connected to a network (isolated)
         net_cmd += " --remove-edges.isolated"
 
         # this removes internal links from the network (useful when the network

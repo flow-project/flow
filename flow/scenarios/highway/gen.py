@@ -2,13 +2,9 @@ from flow.core.generator import Generator
 
 
 class HighwayGenerator(Generator):
-    """
-    Generator for multi-lane highways.
-    """
+    """Generator for multi-lane highways."""
+
     def __init__(self, net_params, base):
-        """
-        See parent class
-        """
         length = net_params.additional_params["length"]
         lanes = net_params.additional_params["lanes"]
         self.name = "%s-%dm%dl" % (base, length, lanes)
