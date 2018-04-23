@@ -8,6 +8,7 @@ E = etree.Element
 
 class SimpleGridGenerator(Generator):
     """Generator for nxm grid networks."""
+
     def __init__(self, net_params, base):
         super().__init__(net_params, base)
 

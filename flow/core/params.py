@@ -73,7 +73,6 @@ class SumoParams:
 class EnvParams:
 
     def __init__(self,
-                 max_speed=55.0,  # TODO: delete me
                  lane_change_duration=None,
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
@@ -127,7 +126,6 @@ class EnvParams:
             simulation steps.
 
         """
-        self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle

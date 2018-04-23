@@ -94,7 +94,6 @@ class Env(gym.Env, Serializable):
             env_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = env_params.starting_position_shuffle
 
-        self.max_speed = env_params.max_speed
         self.lane_change_duration = \
             env_params.get_lane_change_duration(self.sim_step)
 
@@ -278,7 +277,6 @@ class Env(gym.Env, Serializable):
             self.vehicles.set_state(
                 veh_id, "length",
                 self.traci_connection.vehicle.getLength(veh_id))
-            self.vehicles.set_state(veh_id, "max_speed", self.max_speed)
 
             # import initial state data to initial_observations dict
             self.initial_observations[veh_id] = dict()
