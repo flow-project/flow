@@ -6,6 +6,7 @@ from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
+from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
 
 from tests.setup_scripts import ring_road_exp_setup
 import os
@@ -23,7 +24,7 @@ class TestStartingPositionShuffle(unittest.TestCase):
     def setUp(self):
         # turn on starting position shuffle
         env_params = EnvParams(starting_position_shuffle=True,
-                               additional_params={"target_velocity": 30})
+                               additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -77,7 +78,7 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
     def setUp(self):
         # turn on vehicle arrangement shuffle
         env_params = EnvParams(vehicle_arrangement_shuffle=True,
-                               additional_params={"target_velocity": 30})
+                               additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -152,7 +153,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         # turn on starting position shuffle
         env_params = EnvParams(starting_position_shuffle=True,
-                               additional_params={"target_velocity": 30})
+                               additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
@@ -299,7 +300,7 @@ class TestSorting(unittest.TestCase):
 
     def test_sorting(self):
         # setup a environment with the "sort_vehicles" attribute set to True
-        additional_env_params = {"target_velocity": 8, "num_steps": 500}
+        additional_env_params = ADDITIONAL_ENV_PARAMS
         env_params = EnvParams(additional_params=additional_env_params,
                                sort_vehicles=True)
         initial_config = InitialConfig(shuffle=True)
@@ -321,7 +322,7 @@ class TestSorting(unittest.TestCase):
     def test_no_sorting(self):
         # setup a environment with the "sort_vehicles" attribute set to False,
         # and shuffling so that the vehicles are not sorted by their ids
-        additional_env_params = {"target_velocity": 8, "num_steps": 500}
+        additional_env_params = ADDITIONAL_ENV_PARAMS
         env_params = EnvParams(additional_params=additional_env_params,
                                sort_vehicles=True)
         initial_config = InitialConfig(shuffle=True)
@@ -350,9 +351,8 @@ class TestWarmUpSteps(unittest.TestCase):
 
         # start an environment with a number of simulations per step greater
         # than one
-        additional_params = {"target_velocity": 30}
         env_params = EnvParams(warmup_steps=warmup_step,
-                               additional_params=additional_params)
+                               additional_params=ADDITIONAL_ENV_PARAMS)
         env, scenario = ring_road_exp_setup(env_params=env_params)
 
         # time before running a reset
@@ -376,9 +376,8 @@ class TestSimsPerStep(unittest.TestCase):
 
         # start an environment with a number of simulations per step greater
         # than one
-        additional_params = {"target_velocity": 30}
         env_params = EnvParams(sims_per_step=sims_per_step,
-                               additional_params=additional_params)
+                               additional_params=ADDITIONAL_ENV_PARAMS)
         env, scenario = ring_road_exp_setup(env_params=env_params)
 
         env.reset()
