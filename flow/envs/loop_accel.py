@@ -32,17 +32,21 @@ class AccelEnv(Env):
     A rollout is terminated if the time horizon is reached or if two vehicles
     collide into one another.
     """
+
     @property
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles, ))
+                   shape=(self.vehicles.num_rl_vehicles,),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+                  dtype=np.float32)
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
@@ -60,6 +64,11 @@ class AccelEnv(Env):
                       self.env_params.get_additional_param("target_velocity")
                       for veh_id in self.sorted_ids]
         state = [[vel, pos] for vel, pos in zip(scaled_vel, scaled_pos)]
+
+        # specify observed vehicles
+        if self.vehicles.num_rl_vehicles > 0:
+            for veh_id in self.vehicles.get_human_ids():
+                self.vehicles.set_observed(veh_id)
 
         return np.array(state)
 
@@ -79,6 +88,7 @@ class AccelMAEnv(AccelEnv):
     Termination
     -----------
     """
+
     @property
     def action_space(self):
         """
@@ -91,7 +101,7 @@ class AccelMAEnv(AccelEnv):
         for _ in self.vehicles.get_rl_ids():
             action_space.append(Box(low=self.env_params.max_deacc,
                                     high=self.env_params.max_acc,
-                                    shape=(1, )))
+                                    shape=(1,), dtype=np.float32))
         return action_space
 
     @property
@@ -101,8 +111,10 @@ class AccelMAEnv(AccelEnv):
         """
         num_vehicles = self.vehicles.num_vehicles
         observation_space = []
-        speed = Box(low=0, high=np.inf, shape=(num_vehicles,))
-        absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(num_vehicles,),
+                    dtype=np.float32)
+        absolute_pos = Box(low=0., high=np.inf, shape=(num_vehicles,),
+                           dtype=np.float32)
         obs_tuple = Tuple((speed, absolute_pos))
         for _ in self.vehicles.get_rl_ids():
             observation_space.append(obs_tuple)
@@ -142,63 +154,9 @@ class AccelMAEnv(AccelEnv):
             tup = (speed, abs_pos)
             obs_arr.append(tup)
 
+        # specify observed vehicles
+        if self.vehicles.num_rl_vehicles > 0:
+            for veh_id in self.vehicles.get_human_ids():
+                self.vehicles.set_observed(veh_id)
+
         return obs_arr
-
-
-class AccelPOEnv(AccelEnv):
-    """POMDP version of AccelEnv
-
-    States
-    ------
-    The observation consists of only local information is provided to the agent
-    about the network; i.e. headway, velocity, and velocity difference.
-
-    Actions
-    -------
-    Actions are a list of acceleration for each rl vehicles, bounded by the
-    maximum accelerations and decelerations specified in EnvParams.
-
-    Rewards
-    -------
-    The reward function is the two-norm of the distance of the speed of the
-    vehicles in the network from a desired speed.
-
-    Termination
-    -----------
-    A rollout is terminated if the time horizon is reached or if two vehicles
-    collide into one another.
-
-    Note
-    ----
-    This environment assumes only one autonomous vehicle is in the network.
-    """
-    @property
-    def observation_space(self):
-        return Box(low=-np.inf, high=np.inf, shape=(3,))
-
-    def get_state(self, **kwargs):
-        """
-        See parent class
-
-        The state is an array consisting of the speed of the rl vehicle, the
-        relative speed of the vehicle ahead of it, and the headway between the
-        rl vehicle and the vehicle ahead of it.
-        """
-        rl_id = self.vehicles.get_rl_ids()[0]
-        lead_id = self.vehicles[rl_id]["leader"]
-        max_speed = max(self.scenario.speed_limit(edge)
-                        for edge in self.scenario.get_edge_list())
-
-        # if a vehicle crashes into the car ahead of it, it no longer processes
-        # a lead vehicle
-        if lead_id is None:
-            lead_id = rl_id
-            self.vehicles[rl_id]["headway"] = 0
-
-        observation = np.array([
-            [self.vehicles[rl_id]["speed"] / max_speed],
-            [(self.vehicles[lead_id]["speed"] - self.vehicles[rl_id]["speed"])
-             / max_speed],
-            [self.vehicles[rl_id]["headway"] / self.scenario.length]])
-
-        return observation

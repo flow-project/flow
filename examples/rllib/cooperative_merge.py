@@ -20,31 +20,29 @@ vehicle_params : list of dict
     and the number of each vehicle
 """
 
-import gym
 import json
 import os
 
+import gym
 import ray
 import ray.rllib.ppo as ppo
-
+from flow.scenarios.two_loops_one_merging.scenario \
+    import TwoLoopsOneMergingScenario
+from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
-from flow.core.util import NameEncoder, register_env, rllib_logger_creator
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
-
-from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.rlcontroller import RLController
 from flow.controllers.routing_controllers import ContinuousRouter
-
-from flow.scenarios.two_loops_one_merging_new.gen \
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.util import NameEncoder, register_env, rllib_logger_creator
+from flow.core.vehicles import Vehicles
+from flow.scenarios.two_loops_one_merging.gen \
     import TwoLoopOneMergingGenerator
-from flow.scenarios.two_loops_one_merging_new.scenario \
-    import TwoLoopsOneMergingScenario
 
 HORIZON = 100
 RING_RADIUS = 100
@@ -154,7 +152,6 @@ def make_create_env(flow_env_name, flow_params, version=0,
     init_params = flow_params['initial']
 
     def create_env(env_config):
-
         # note that the vehicles are added sequentially by the generator,
         # so place the merging vehicles after the vehicles in the ring
         vehicles = Vehicles()
@@ -185,13 +182,14 @@ def make_create_env(flow_env_name, flow_params, version=0,
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 2
-    n_rollouts = 3
+    n_rollouts = 100
 
-    ray.init(num_cpus=num_cpus, redirect_output=False)
-    # ray.init(redis_address="172.31.92.24:6379", redirect_output=True)
+    # ray.init(redirect_output=False)
+    # replace the redis address with that output by create_or_update
+    ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    config["num_workers"] = num_cpus
+    parallel_rollouts = 48
+    config["num_workers"] = parallel_rollouts  # number of parallel rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
@@ -216,11 +214,11 @@ if __name__ == "__main__":
     # Register as rllib env
     register_rllib_env(env_name, create_env)
 
-    logger_creator = rllib_logger_creator(results_dir, 
-                                          flow_env_name, 
+    logger_creator = rllib_logger_creator(results_dir,
+                                          flow_env_name,
                                           UnifiedLogger)
 
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), 
+    alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
     # Logging out flow_params to ray's experiment result folder
@@ -228,7 +226,21 @@ if __name__ == "__main__":
     with open(json_out_file, 'w') as outfile:
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
 
-    for i in range(2):
-        alg.train()
-        if i % 20 == 0:
-            alg.save()  # save checkpoint
+    trials = run_experiments({
+        "pendulum_tests": {
+            "run": "PPO",
+            "env": "TwoLoopsMergePOEnv-v0",
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "max_failures": 999,
+            "stop": {"training_iteration": 200},
+            "trial_resources": {"cpu": 1, "gpu": 0,
+                                "extra_cpu": parallel_rollouts - 1}
+        }
+    })
+    json_out_file = trials[0].logdir + '/flow_params.json'
+    with open(json_out_file, 'w') as outfile:
+        json.dump(flow_params, outfile, cls=NameEncoder,
+                  sort_keys=True, indent=4)
