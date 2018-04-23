@@ -47,8 +47,8 @@ def ring_road_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a single lane
         ring road of length 230 m
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """
@@ -130,8 +130,8 @@ def figure_eight_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a figure eight
         with a 30 m radius and "no_internal_links" set to False
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """
@@ -214,8 +214,8 @@ def highway_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a single lane
         highway of length 100 m
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """
@@ -287,6 +287,10 @@ def grid_mxn_exp_setup(row_num=1,
 
     Parameters
     ----------
+    row_num: int, optional
+        number of horizontal rows of edges in the grid network
+    col_num: int, optional
+        number of vertical columns of edges in the grid network
     sumo_params: SumoParams type
     vehicles: Vehicles type
         vehicles to be placed in the network, default is 5 vehicles per edge
@@ -315,6 +319,9 @@ def grid_mxn_exp_setup(row_num=1,
         vehicles.add(veh_id="idm",
                      acceleration_controller=(IDMController, {}),
                      routing_controller=(GridRouter, {}),
+                     sumo_car_following_params=SumoCarFollowingParams(
+                         max_speed=30,
+                     ),
                      num_vehicles=total_vehicles)
 
     if env_params is None:
@@ -323,7 +330,6 @@ def grid_mxn_exp_setup(row_num=1,
                                  "control-length": 150, "switch_time": 3.0}
 
         env_params = EnvParams(additional_params=additional_env_params,
-                               max_speed=30,
                                horizon=100)
 
     if net_params is None:
@@ -390,8 +396,8 @@ def variable_lanes_exp_setup(sumo_params=None,
         network-specific configuration parameters, defaults to a figure eight
         with a 30 m radius and "no_internal_links" set to False
     initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly distributed
-        vehicles across the length of the network
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
     traffic_lights: TrafficLights type
         traffic light signals, defaults to no traffic lights in the network
     """

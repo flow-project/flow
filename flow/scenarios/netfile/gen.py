@@ -1,10 +1,5 @@
 from flow.core.generator import Generator
-
-import sys
-import subprocess
-import os
 from lxml import etree
-import xml.etree.ElementTree as ET
 
 E = etree.Element
 
@@ -20,6 +15,7 @@ class NetFileGenerator(Generator):
     "specify_routes" file is still needed to specify the appropriate routes
     vehicles can traverse in the network.
     """
+
     def generate_net(self, net_params, traffic_lights):
         """
         See parent class.

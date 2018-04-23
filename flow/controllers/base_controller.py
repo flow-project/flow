@@ -1,9 +1,13 @@
 import numpy as np
-import collections
 
 
 class BaseController:
-    def __init__(self, veh_id, sumo_cf_params, delay=0, fail_safe=None, noise=0):
+    def __init__(self,
+                 veh_id,
+                 sumo_cf_params,
+                 delay=0,
+                 fail_safe=None,
+                 noise=0):
         """Base class for flow-controlled acceleration behavior.
 
         Instantiates a controller and forces the user to pass a
@@ -16,10 +20,11 @@ class BaseController:
         veh_id: string
             ID of the vehicle this controller is used for
         sumo_cf_params: SumoCarFollowingParams
-            The underlying sumo model for car following that will be overwritten. A Flow controller will
-            override the behavior this sumo car following model; however, if control is ceded back to
-            sumo, the vehicle will use these params.
-            Ensure that accel / decel parameters that are specified to in this model are as desired.
+            The underlying sumo model for car that will be overwritten. A Flow
+            controller will override the behavior this sumo car following
+            model; however, if control is ceded back to sumo, the vehicle will
+            use these params. Ensure that accel / decel parameters that are
+            specified to in this model are as desired.
         delay: int
             delay in applying the action (time)
         fail_safe: string
@@ -42,16 +47,10 @@ class BaseController:
 
         self.max_accel = sumo_cf_params.controller_params['accel']
         # max deaccel should always be a positive
-        self.max_deaccel = sumo_cf_params.controller_params['decel']
-
-        # acceleration queue, for time delayed actions
-        self.accel_queue = collections.deque()
+        self.max_deaccel = abs(sumo_cf_params.controller_params['decel'])
 
     def uses_sumo(self):
         return self.sumo_controller
-
-    def reset_delay(self):
-        self.accel_queue.clear()
 
     def get_accel(self, env):
         """Returns the acceleration of the controller"""
@@ -89,7 +88,8 @@ class BaseController:
         if self.accel_noise > 0:
             accel += np.random.normal(0, self.accel_noise)
 
-        # constrain the accel to be between the min and max set by SumoCarFollowingParams
+        # constrain the accel to be between the min and max set by
+        # SumoCarFollowingParams
         accel = max(min(accel, self.max_accel), -1 * self.max_deaccel)
 
         # run the failsafes, if requested

@@ -83,6 +83,9 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.add_rl_if_exit = False
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
+        # normalizing constant for speeds
+        self.max_speed = 55
+
         if "disable_tb" in env_params.additional_params:
             self.disable_tb = env_params.get_additional_param("disable_tb")
 

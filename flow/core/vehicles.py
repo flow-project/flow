@@ -408,7 +408,6 @@ class Vehicles:
         # some constant vehicle parameters to the vehicles class
         self.set_length(
             veh_id, env.traci_connection.vehicle.getLength(veh_id))
-        self.set_state(veh_id, "max_speed", env.max_speed)
 
         # set the absolute position of the vehicle
         self.set_absolute_position(veh_id, 0)
@@ -429,9 +428,6 @@ class Vehicles:
         lc_mode = self.type_parameters[veh_type]["lane_change_mode"]
         self.__vehicles[veh_id]["lane_change_mode"] = lc_mode
         env.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
-
-        # set the max speed in sumo
-        env.traci_connection.vehicle.setMaxSpeed(veh_id, env.max_speed)
 
         # change the color of the vehicle based on its type
         env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
