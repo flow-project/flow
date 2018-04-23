@@ -3,6 +3,12 @@ from flow.core import rewards
 from flow.core import multi_agent_rewards
 from flow.controllers.velocity_controllers import FollowerStopper
 from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.routing_controllers import ContinuousRouter
+from flow.core.params import InFlows, NetParams
+from flow.core.vehicles import Vehicles
+
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 from collections import defaultdict
@@ -608,7 +614,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 if segment[2]:  # if controlled
                     num_lanes = self.scenario.num_lanes(segment[0])
                     action_size += num_lanes*segment[1]
-        return Box(low=-1.5, high=1.0,
+        return Box(low=-1.5*self.sim_step, high=1.0*self.sim_step,
                    shape=(int(action_size),), 
                    dtype=np.float32)
 
@@ -707,11 +713,12 @@ class DesiredVelocityEnv(BridgeTollEnv):
                                             self.action_index[int(edge) - 1]]
 
                     max_speed_curr = self.traci_connection.vehicle.getMaxSpeed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.0, 23.0)
+                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, next_max)
+
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
 
     def compute_reward(self, state, rl_actions, **kwargs):
 
@@ -724,7 +731,58 @@ class DesiredVelocityEnv(BridgeTollEnv):
         bottleneck_threshold = 30  # could be 10 also
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
+
+        #print(self.vehicles.get_outflow_rate(10000))
         return reward
+
+
+
+    def reset(self):
+        flow_rate = np.random.uniform(1000, 2500) * self.scaling
+        print('flow rate is ', flow_rate)
+        for _ in range(100):
+            try:
+                inflow = InFlows()
+                inflow.add(veh_type="followerstopper", edge="1",
+                                vehs_per_hour = flow_rate*.1,
+                                 departLane = "random", departSpeed=10)
+                inflow.add(veh_type="human", edge="1",
+                           vehs_per_hour=flow_rate*.9,
+                           departLane="random", departSpeed=10)
+                additional_net_params = {"scaling": self.scaling}
+                net_params = NetParams(in_flows=inflow,
+                                       no_internal_links=False, additional_params=additional_net_params)
+                vehicles = Vehicles()
+                vehicles.add(veh_id="human",
+                             speed_mode=9,
+                             lane_change_controller=(SumoLaneChangeController, {}),
+                             routing_controller=(ContinuousRouter, {}),
+                             lane_change_mode=0,  # 1621,#0b100000101,
+                             num_vehicles=1 * self.scaling)
+                vehicles.add(veh_id="followerstopper",
+                             acceleration_controller=(RLController,
+                                                      {"fail_safe": "instantaneous"}),
+                             lane_change_controller=(SumoLaneChangeController, {}),
+                             routing_controller=(ContinuousRouter, {}),
+                             speed_mode=9,
+                             lane_change_mode=0,
+                             num_vehicles=1 * self.scaling)
+                self.vehicles = vehicles
+                self.scenario = self.scenario.__class__(
+                            name=self.scenario.name, generator_class=self.scenario.generator_class,
+                            vehicles=vehicles, net_params=net_params,
+                            initial_config=self.scenario.initial_config, traffic_lights=self.scenario.traffic_lights)
+
+                # perform the generic reset function
+                observation = super().reset()
+
+                # reset the timer to zero
+                self.time_counter = 0
+
+                return observation
+            except Exception as e:
+                print('error on reset ', e)
+
 
 
 class MultiBottleNeckEnv(BottleNeckEnv):
