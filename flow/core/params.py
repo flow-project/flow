@@ -172,7 +172,14 @@ class NetParams:
                  additional_params=None):
         """Network configuration parameters
 
-        (blank)
+        Unlike most other parameters, NetParams may vary drastically dependent
+        on the specific network configuration. For example, for the ring road
+        the network parameters will include a characteristic length, number of
+        lanes, and speed limit.
+
+        In order to determine which additional_params variable may be needed
+        for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
+        located in the scenario file.
 
         Parameters
         ----------
@@ -224,12 +231,11 @@ class InitialConfig:
                  positions=None,
                  lanes=None,
                  additional_params=None):
-        """(blank)
+        """Initial configuration parameters.
 
-        (blank)
-        Parameters that affect the positioning of vehicle in the network at
-        the start of a rollout. By default, vehicles are uniformly distributed
-        in the network.
+        These parameters that affect the positioning of vehicle in the
+        network at the start of a rollout. By default, vehicles are uniformly
+        distributed in the network.
 
         Attributes
         ----------
@@ -298,8 +304,6 @@ class SumoCarFollowingParams:
                  car_follow_model="IDM",
                  **kwargs):
         """Parameters for sumo-controlled acceleration behavior
-
-        (specify how we specify it in Vehicles.add())  #### TODO ####
 
         Attributes
         ----------
@@ -391,8 +395,6 @@ class SumoLaneChangeParams:
                  lc_accel_lat=1.0,
                  **kwargs):
         """Parameters for sumo-controlled lane change behavior
-
-        (specify how we specify it in Vehicles.add())  #### TODO ####
 
         Attributes
         ----------
@@ -563,7 +565,7 @@ class InFlows:
             in the Vehicles class.
         edge: str
             starting edge for vehicles in this inflow.
-        start: float, optional
+        begin: float, optional
             see Note
         end: float, optional
             see Note
