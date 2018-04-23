@@ -33,17 +33,21 @@ class WaveAttenuationEnv(Env):
     A rollout is terminated if the time horizon is reached or if two vehicles
     collide into one another.
     """
+
     @property
     def action_space(self):
         return Box(low=-np.abs(self.env_params.max_decel),
                    high=self.env_params.max_accel,
-                   shape=(self.vehicles.num_rl_vehicles, ))
+                   shape=(self.vehicles.num_rl_vehicles,),
+                   dtype=np.float32)
 
     @property
     def observation_space(self):
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,))
-        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,))
+        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
+        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+                  dtype=np.float32)
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
@@ -60,7 +64,7 @@ class WaveAttenuationEnv(Env):
 
         # reward average velocity
         eta_2 = 4.
-        reward = eta_2 * np.mean(vel) / self.v_eq_max
+        reward = eta_2 * np.mean(vel) / 20
 
         # punish accelerations (should lead to reduced stop-and-go waves)
         eta = 8  # 0.25
@@ -87,10 +91,15 @@ class WaveAttenuationEnv(Env):
         indx_sorted_ids = np.mod(np.arange(len(self.sorted_ids)) + indx_rl,
                                  len(self.sorted_ids))
 
+        # specify observed vehicles
+        if self.vehicles.num_rl_vehicles > 0:
+            for veh_id in self.vehicles.get_human_ids():
+                self.vehicles.set_observed(veh_id)
+
         return np.array([[scaled_vel[i], scaled_headway[i]]
                          for i in indx_sorted_ids])
 
-    def _reset(self):
+    def reset(self):
         """The sumo instance is reset with a new ring length, and a number of
         steps are performed with the rl vehicle acting as a human vehicle."""
         # update the scenario
@@ -135,85 +144,12 @@ class WaveAttenuationEnv(Env):
                           sumo_binary=self.sumo_params.sumo_binary)
 
         # perform the generic reset function
-        observation = super()._reset()
-
-        # run the experiment for a few steps with the rl vehicle acting as a
-        # human vehicle (before beginning the learning portion of the rollout)
-        num_pre_steps = 750
-        if num_pre_steps > 0:
-            for i in range(num_pre_steps):
-                observation = self.pre_step()
+        observation = super().reset()
 
         # reset the timer to zero
         self.time_counter = 0
 
         return observation
-
-    def pre_step(self):
-        self.time_counter += 1
-
-        # rl controllers are embedded with IDM Controllers to simulate human
-        # driving at first
-        rl_ids = self.vehicles.get_rl_ids()
-        embedded_controller = dict.fromkeys(rl_ids)
-        for veh_id in rl_ids:
-            embedded_controller[veh_id] = IDMController(veh_id)
-
-        # perform accelerations for rl vehicles moving like human vehicles
-        accel = []
-        for veh_id in rl_ids:
-            action = embedded_controller[veh_id].get_action(self)
-            accel.append(action)
-        self.apply_acceleration(rl_ids, acc=accel)
-
-        # perform acceleration actions for controlled human-driven vehicles
-        if len(self.vehicles.get_controlled_ids()) > 0:
-            accel = []
-            for veh_id in self.vehicles.get_controlled_ids():
-                accel_contr = self.vehicles.get_acc_controller(veh_id)
-                action = accel_contr.get_action(self)
-                accel.append(action)
-            self.apply_acceleration(self.vehicles.get_controlled_ids(), accel)
-
-        # perform (optionally) routing actions for all vehicle in the network,
-        # including rl and sumo-controlled vehicles
-        routing_ids = []
-        routing_actions = []
-        for veh_id in self.vehicles.get_ids():
-            if self.vehicles.get_routing_controller(veh_id) is not None:
-                routing_ids.append(veh_id)
-                route_contr = self.vehicles.get_routing_controller(veh_id)
-                routing_actions.append(route_contr.choose_route(self))
-
-        self.choose_routes(veh_ids=routing_ids, route_choices=routing_actions)
-
-        self.traci_connection.simulationStep()
-
-        # collect information on the vehicle in the network from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_lists = self.traci_connection.simulation.getSubscriptionResults()
-
-        # store the network observations in the vehicles class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-
-        # collect list of sorted vehicle ids
-        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
-
-        # collect information of the state of the network based on the
-        # environment class used
-        if isinstance(self.action_space, list):
-            # rllab requires non-multi agent to have state shape as
-            # num-states x num_vehicles
-            self.state = self.get_state()
-        else:
-            self.state = self.get_state().T
-
-        # collect observation new state associated with action
-        next_observation = list(self.state)
-
-        return next_observation
 
 
 class WaveAttenuationPOEnv(WaveAttenuationEnv):
@@ -244,9 +180,10 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     ----
     This environment assumes only one autonomous vehicle is in the network.
     """
+
     @property
     def observation_space(self):
-        return Tuple((Box(low=-1, high=1, shape=(4,)),))
+        return Tuple((Box(low=-1, high=1, shape=(4,), dtype=np.float32),))
         # return Box(low=-1, high=1, shape=(4,))
 
     def get_state(self, **kwargs):
@@ -262,5 +199,8 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
             [self.vehicles.get_headway(vehID) / max_scenario_length],
             [self.scenario.length / max_scenario_length]
         ])
+
+        # specify observed vehicles
+        self.vehicles.set_observed(lead_id)
 
         return observation

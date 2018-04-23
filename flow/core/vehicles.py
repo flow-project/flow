@@ -29,6 +29,7 @@ class Vehicles:
         self.__controlled_ids = []  # ids of flow-controlled vehicles
         self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
         self.__rl_ids = []  # ids of rl-controlled vehicles
+        self.__observed_ids = []  # ids of the observed vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
@@ -52,6 +53,15 @@ class Vehicles:
 
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
+
+        # number of vehicles that entered the network for every time-step
+        self._num_departed = []
+
+        # number of vehicles to exit the network for every time-step
+        self._num_arrived = []
+
+        # simulation step size
+        self.sim_step = 0
 
     def add(self,
             veh_id,
@@ -180,7 +190,7 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](veh_id=v_id,
+                acceleration_controller[0](v_id, sumo_cf_params=sumo_car_following_params,
                                            **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -270,11 +280,12 @@ class Vehicles:
                 self._add_departed(veh_id, veh_type, env)
 
         if env.time_counter == 0:
-            # if the time_counter is 0, this we need to reset all necessary
-            # values
+            # reset all necessary values
             for veh_id in self.__rl_ids:
-                # set the initial last_lc
                 self.set_state(veh_id, "last_lc", -env.lane_change_duration)
+            self._num_departed.clear()
+            self._num_arrived.clear()
+            self.sim_step = env.sim_step
         else:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
@@ -298,6 +309,12 @@ class Vehicles:
                     new_abs_pos = (self.get_absolute_position(veh_id) +
                                    change) % env.scenario.length
                     self.set_absolute_position(veh_id, new_abs_pos)
+
+            # updated the list of departed and arrived vehicles
+            self._num_departed.append(
+                len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
+            self._num_arrived.append(
+                len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -348,11 +365,14 @@ class Vehicles:
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
+        sumo_cf_params = \
+            self.type_parameters[veh_type]["sumo_car_following_params"]
+
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id=veh_id, **accel_controller[1])
+            accel_controller[0](veh_id, sumo_cf_params=sumo_cf_params, **accel_controller[1])
 
         # specify the lane-changing controller class
         lc_controller = \
@@ -491,12 +511,42 @@ class Vehicles:
         """Returns the names of all rl-controlled vehicles in the network."""
         return self.__rl_ids
 
+    def set_observed(self, veh_id):
+        """Adds a vehicle to the list of observed vehicles."""
+        if veh_id not in self.__observed_ids:
+            self.__observed_ids.append(veh_id)
+
+    def remove_observed(self, veh_id):
+        """Removes a vehicle from the list of observed vehicles."""
+        if veh_id in self.__observed_ids:
+            self.__observed_ids.remove(veh_id)
+
+    def get_observed_ids(self):
+        """Returns the list of observed vehicles."""
+        return self.__observed_ids
+
     def get_ids_by_edge(self, edges):
         """Returns the names of all vehicles in the specified edge. If no
         vehicles are currently in the edge, then returns an empty list."""
         if isinstance(edges, (list, np.ndarray)):
             return sum([self.get_ids_by_edge(edge) for edge in edges], [])
         return self._ids_by_edge.get(edges, []) or []
+
+    def get_inflow_rate(self, time_span):
+        """Returns the inflow rate (in veh/hr) of vehicles from the network for
+        the last **time_span** seconds."""
+        if len(self._num_departed) == 0:
+            return 0
+        num_inflow = self._num_departed[-int(time_span/self.sim_step):]
+        return 3600 * sum(num_inflow) / (len(num_inflow) * self.sim_step)
+
+    def get_outflow_rate(self, time_span):
+        """Returns the outflow rate (in veh/hr) of vehicles from the network
+        for the last **time_span** seconds."""
+        if len(self._num_arrived) == 0:
+            return 0
+        num_outflow = self._num_arrived[-int(time_span/self.sim_step):]
+        return 3600 * sum(num_outflow) / (len(num_outflow) * self.sim_step)
 
     def get_initial_speed(self, veh_id, error=-1001):
         """Returns the initial speed upon reset of the specified vehicle.

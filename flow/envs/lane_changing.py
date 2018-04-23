@@ -44,16 +44,19 @@ class LaneChangeAccelEnv(Env):
         lb = [-abs(max_decel), -1] * self.vehicles.num_rl_vehicles
         ub = [max_accel, 1] * self.vehicles.num_rl_vehicles
 
-        return Box(np.array(lb), np.array(ub))
+        return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
     @property
     def observation_space(self):
         speed = Box(low=-np.inf, high=np.inf,
-                    shape=(self.vehicles.num_vehicles,))
+                    shape=(self.vehicles.num_vehicles,),
+                    dtype=np.float32)
         lane = Box(low=0, high=self.scenario.lanes-1,
-                   shape=(self.vehicles.num_vehicles,))
+                   shape=(self.vehicles.num_vehicles,),
+                   dtype=np.float32)
         absolute_pos = Box(low=0., high=np.inf,
-                           shape=(self.vehicles.num_vehicles,))
+                           shape=(self.vehicles.num_vehicles,),
+                           dtype=np.float32)
         return Tuple((speed, absolute_pos, lane))
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -70,6 +73,11 @@ class LaneChangeAccelEnv(Env):
         return reward
 
     def get_state(self):
+        # specify observed vehicles
+        if self.vehicles.num_rl_vehicles > 0:
+            for veh_id in self.vehicles.get_human_ids():
+                self.vehicles.set_observed(veh_id)
+
         return np.array([[self.vehicles.get_speed(veh_id),
                           self.vehicles.get_absolute_position(veh_id),
                           self.vehicles.get_lane(veh_id)]

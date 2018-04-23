@@ -267,7 +267,8 @@ class BottleNeckEnv(BridgeTollEnv):
         print("--------------")
         print("--------------")
         print("--------------")
-        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,))
+        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
+                   dtype=np.float32)
 
     def get_state(self):
 

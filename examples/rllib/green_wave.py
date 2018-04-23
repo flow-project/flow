@@ -23,6 +23,7 @@ import os
 
 import ray
 import ray.rllib.ppo as ppo
+from ray.tune import run_experiments
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 
 from flow.core.util import register_env, NameEncoder
@@ -77,6 +78,7 @@ def get_non_flow_params(enter_speed, additional_net_params):
 
     return initial_config, net_params
 
+
 HORIZON = 200
 v_enter = 30
 
@@ -86,12 +88,12 @@ short_length = 800
 n = 1
 m = 5
 num_cars_left = 3
-num_cars_right = 3  
+num_cars_right = 3
 num_cars_top = 15
 num_cars_bot = 15
 rl_veh = 0
 tot_cars = (num_cars_left + num_cars_right) * m \
-    + (num_cars_bot + num_cars_top) * n
+           + (num_cars_bot + num_cars_top) * n
 
 grid_array = {"short_length": short_length, "inner_length": inner_length,
               "long_length": long_length, "row_num": n, "col_num": m,
@@ -101,7 +103,7 @@ grid_array = {"short_length": short_length, "inner_length": inner_length,
 
 additional_env_params = {"target_velocity": 50, "num_steps": HORIZON,
                          "control-length": 150, "switch_time": 3.0}
-                         
+
 additional_net_params = {"speed_limit": 35, "grid_array": grid_array,
                          "horizontal_lanes": 1, "vertical_lanes": 1,
                          "traffic_lights": True}
@@ -137,7 +139,7 @@ flow_params = dict(
 
 def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example",
                     sumo="sumo"):
-    env_name = flow_env_name+'-v%s' % version
+    env_name = flow_env_name + '-v%s' % version
 
     sumo_params_dict = flow_params['sumo']
     sumo_params_dict['sumo_binary'] = sumo
@@ -175,18 +177,19 @@ def make_create_env(flow_env_name, flow_params, version=0, exp_tag="example",
         env = gym.envs.make(env_name)
 
         return env
+
     return create_env, env_name
 
 
 def main():
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
-    num_cpus = 1
-    n_rollouts = 1
+    n_rollouts = 100
+    parallel_rollouts = 48
+    # ray.init(num_cpus=num_cpus, redirect_output=False)
+    ray.init(redis_address="localhost:6379", redirect_output=True)
 
-    ray.init(num_cpus=num_cpus, redirect_output=False)
-
-    config["num_workers"] = num_cpus
+    config["num_workers"] = parallel_rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32]})
@@ -223,10 +226,24 @@ def main():
                   indent=4)
 
     # NOTE KATHY: THESE ARE ITERATIONS
-    for i in range(1): 
-        alg.train()
-        if i % 1 == 0:
-            alg.save()  # save checkpoint
+    trials = run_experiments({
+        "green_wave": {
+            "run": "PPO",
+            "env": "GreenWaveEnv-v0",
+            "config": {
+                **config
+            },
+            "checkpoint_freq": 20,
+            "max_failures": 999,
+            "stop": {"training_iteration": 200},
+            "trial_resources": {"cpu": 1, "gpu": 0,
+                                "extra_cpu": parallel_rollouts - 1}
+        }
+    })
+    json_out_file = trials[0].logdir + '/flow_params.json'
+    with open(json_out_file, 'w') as outfile:
+        json.dump(flow_params, outfile, cls=NameEncoder,
+                  sort_keys=True, indent=4)
 
 
 if __name__ == "__main__":

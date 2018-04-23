@@ -10,5 +10,5 @@ class TestBottleneck(unittest.TestCase):
         self.exp = SumoExperiment(self.env, self.scenario)
         self.exp.run(5, 50)
 
-if __name__=='__main__':
+if __name__ == '__main__':
     unittest.main()
