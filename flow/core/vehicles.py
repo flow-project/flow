@@ -29,6 +29,7 @@ class Vehicles:
         self.__controlled_ids = []  # ids of flow-controlled vehicles
         self.__controlled_lc_ids = []  # ids of flow lc-controlled vehicles
         self.__rl_ids = []  # ids of rl-controlled vehicles
+        self.__observed_ids = []  # ids of the observed vehicles
 
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
@@ -407,7 +408,6 @@ class Vehicles:
         # some constant vehicle parameters to the vehicles class
         self.set_length(
             veh_id, env.traci_connection.vehicle.getLength(veh_id))
-        self.set_state(veh_id, "max_speed", env.max_speed)
 
         # set the absolute position of the vehicle
         self.set_absolute_position(veh_id, 0)
@@ -428,9 +428,6 @@ class Vehicles:
         lc_mode = self.type_parameters[veh_type]["lane_change_mode"]
         self.__vehicles[veh_id]["lane_change_mode"] = lc_mode
         env.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
-
-        # set the max speed in sumo
-        env.traci_connection.vehicle.setMaxSpeed(veh_id, env.max_speed)
 
         # change the color of the vehicle based on its type
         env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
@@ -513,6 +510,20 @@ class Vehicles:
     def get_rl_ids(self):
         """Returns the names of all rl-controlled vehicles in the network."""
         return self.__rl_ids
+
+    def set_observed(self, veh_id):
+        """Adds a vehicle to the list of observed vehicles."""
+        if veh_id not in self.__observed_ids:
+            self.__observed_ids.append(veh_id)
+
+    def remove_observed(self, veh_id):
+        """Removes a vehicle from the list of observed vehicles."""
+        if veh_id in self.__observed_ids:
+            self.__observed_ids.remove(veh_id)
+
+    def get_observed_ids(self):
+        """Returns the list of observed vehicles."""
+        return self.__observed_ids
 
     def get_ids_by_edge(self, edges):
         """Returns the names of all vehicles in the specified edge. If no

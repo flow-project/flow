@@ -19,6 +19,8 @@ import ray.rllib.ppo as ppo
 
 os.environ["TEST_FLAG"] = "True"
 
+os.environ["TEST_FLAG"] = "True"
+
 
 class TestJSON(unittest.TestCase):
     # def setUp(self):
@@ -65,22 +67,16 @@ class TestJSON(unittest.TestCase):
                                                version=0,
                                                exp_tag=exp_tag)
 
-        config = ppo.DEFAULT_CONFIG.copy()
-        # save the flow params for replay
-        flow_json = json.dumps(flow_params, cls=NameEncoder, sort_keys=True,
-                               indent=4)
-        config['env_config']['flow_params'] = flow_json
-
-        # dump the config so we can fetch it
-        json_out_file = '~/params.json'
-        with open(os.path.expanduser(json_out_file), 'w+') as outfile:
-            json.dump(config, outfile, cls=NameEncoder, sort_keys=True, indent=4)
-
-        config = get_rllib_config(os.path.expanduser('~'))
+        # Logging out flow_params to ray's experiment result folder
+        current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
+        json_out_file = current_path + '/test_files/flow_params.json'
+        with open(json_out_file, 'w') as outfile:
+            json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
+                      indent=4)
 
         # Fetching values using utility function `get_flow_params`
         imported_flow_params, mce = \
-            get_flow_params(config)
+            get_flow_params(current_path + '/test_files')
 
         # Making sure the right make_create_env is returned
         self.assertTrue(mce is make_create_env)
