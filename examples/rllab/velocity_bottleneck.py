@@ -58,7 +58,7 @@ horizon = 1000
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
 num_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
-                ("4", 2, True), ("5", 1, False)]
+                ("4", 3, True), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments, "symmetric": False}
@@ -67,10 +67,7 @@ env_params = EnvParams(additional_params=additional_env_params,
                        sims_per_step=2, horizon=horizon)
 
 # flow rate
-flow_rate = 1900 * SCALING
-# percentage of flow coming out of each lane
-# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
-flow_dist = np.ones(NUM_LANES) / NUM_LANES
+flow_rate = 2100 * SCALING
 
 inflow = InFlows()
 inflow.add(veh_type="human", edge="1",
@@ -78,7 +75,6 @@ inflow.add(veh_type="human", edge="1",
            departLane="random", departSpeed=10)
 inflow.add(veh_type="followerstopper", edge="1",
            vehs_per_hour = flow_rate * (AV_FRAC),
-           # vehsPerHour=veh_per_hour * 0.2,
            departLane="random", departSpeed=10)
 
 traffic_lights = TrafficLights()
@@ -133,7 +129,7 @@ def run_task(*_):
     algo.train()
 
 exp_tag = "VSLLaneControl"  # experiment prefix
-for seed in [20, 21, 22]:  # , 1, 5, 10, 73]:
+for seed in [20]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling

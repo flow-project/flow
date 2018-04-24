@@ -599,8 +599,11 @@ class DesiredVelocityEnv(BridgeTollEnv):
     @property
     def observation_space(self):
         num_obs = 0
+        # density and velocity for rl and non-rl vehicles per segment
+        # Last element is the outflow
         for segment in self.segments:
             num_obs += 4*segment[1] * self.scenario.num_lanes(segment[0])
+        num_obs += 1
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
                    dtype=np.float32)
 
@@ -669,8 +672,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
                                        if int(unnorm_rl_list[i]) else 0
                                        for i in range(len(num_rl_vehicles_list))
                                        ]) / 50
+        outflow = np.asarray(self.vehicles.get_outflow_rate(5*self.sim_step)/2000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
-                               mean_speed, mean_rl_speed))
+                               mean_speed, mean_rl_speed, [outflow]))
 
     def _apply_rl_actions(self, actions):
         """
@@ -713,75 +717,75 @@ class DesiredVelocityEnv(BridgeTollEnv):
                                             self.action_index[int(edge) - 1]]
 
                     max_speed_curr = self.traci_connection.vehicle.getMaxSpeed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
+                    next_max = np.clip(max_speed_curr + action, 0.01, 30.0)
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 30.0)
 
     def compute_reward(self, state, rl_actions, **kwargs):
 
         reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 + \
             0.01*rewards.desired_velocity(self)/self.max_speed
 
-        # penalize high density in the bottleneck
+        #penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
         # FIXME(ev) convert to passed in env param
-        bottleneck_threshold = 30  # could be 10 also
+        bottleneck_threshold = 35  # could be 10 also
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
 
-        #print(self.vehicles.get_outflow_rate(10000))
         return reward
 
 
 
-    def reset(self):
-        flow_rate = np.random.uniform(1000, 2500) * self.scaling
-        print('flow rate is ', flow_rate)
-        for _ in range(100):
-            try:
-                inflow = InFlows()
-                inflow.add(veh_type="followerstopper", edge="1",
-                                vehs_per_hour = flow_rate*.1,
-                                 departLane = "random", departSpeed=10)
-                inflow.add(veh_type="human", edge="1",
-                           vehs_per_hour=flow_rate*.9,
-                           departLane="random", departSpeed=10)
-                additional_net_params = {"scaling": self.scaling}
-                net_params = NetParams(in_flows=inflow,
-                                       no_internal_links=False, additional_params=additional_net_params)
-                vehicles = Vehicles()
-                vehicles.add(veh_id="human",
-                             speed_mode=9,
-                             lane_change_controller=(SumoLaneChangeController, {}),
-                             routing_controller=(ContinuousRouter, {}),
-                             lane_change_mode=0,  # 1621,#0b100000101,
-                             num_vehicles=1 * self.scaling)
-                vehicles.add(veh_id="followerstopper",
-                             acceleration_controller=(RLController,
-                                                      {"fail_safe": "instantaneous"}),
-                             lane_change_controller=(SumoLaneChangeController, {}),
-                             routing_controller=(ContinuousRouter, {}),
-                             speed_mode=9,
-                             lane_change_mode=0,
-                             num_vehicles=1 * self.scaling)
-                self.vehicles = vehicles
-                self.scenario = self.scenario.__class__(
-                            name=self.scenario.name, generator_class=self.scenario.generator_class,
-                            vehicles=vehicles, net_params=net_params,
-                            initial_config=self.scenario.initial_config, traffic_lights=self.scenario.traffic_lights)
-
-                # perform the generic reset function
-                observation = super().reset()
-
-                # reset the timer to zero
-                self.time_counter = 0
-
-                return observation
-            except Exception as e:
-                print('error on reset ', e)
+    # def reset(self):
+    #     print(self.vehicles.get_outflow_rate(10000))
+    #     flow_rate = np.random.uniform(1000, 2000) * self.scaling
+    #     print('flow rate is ', flow_rate)
+    #     for _ in range(100):
+    #         try:
+    #             inflow = InFlows()
+    #             inflow.add(veh_type="followerstopper", edge="1",
+    #                             vehs_per_hour = flow_rate*.1,
+    #                              departLane = "random", departSpeed=10)
+    #             inflow.add(veh_type="human", edge="1",
+    #                        vehs_per_hour=flow_rate*.9,
+    #                        departLane="random", departSpeed=10)
+    #             additional_net_params = {"scaling": self.scaling}
+    #             net_params = NetParams(in_flows=inflow,
+    #                                    no_internal_links=False, additional_params=additional_net_params)
+    #             vehicles = Vehicles()
+    #             vehicles.add(veh_id="human",
+    #                          speed_mode=9,
+    #                          lane_change_controller=(SumoLaneChangeController, {}),
+    #                          routing_controller=(ContinuousRouter, {}),
+    #                          lane_change_mode=0,  # 1621,#0b100000101,
+    #                          num_vehicles=1 * self.scaling)
+    #             vehicles.add(veh_id="followerstopper",
+    #                          acceleration_controller=(RLController,
+    #                                                   {"fail_safe": "instantaneous"}),
+    #                          lane_change_controller=(SumoLaneChangeController, {}),
+    #                          routing_controller=(ContinuousRouter, {}),
+    #                          speed_mode=9,
+    #                          lane_change_mode=0,
+    #                          num_vehicles=1 * self.scaling)
+    #             self.vehicles = vehicles
+    #             self.scenario = self.scenario.__class__(
+    #                         name=self.scenario.name, generator_class=self.scenario.generator_class,
+    #                         vehicles=vehicles, net_params=net_params,
+    #                         initial_config=self.scenario.initial_config, traffic_lights=self.scenario.traffic_lights)
+    #
+    #             # perform the generic reset function
+    #             observation = super().reset()
+    #
+    #             # reset the timer to zero
+    #             self.time_counter = 0
+    #
+    #             return observation
+    #         except Exception as e:
+    #             print('error on reset ', e)
 
 
 

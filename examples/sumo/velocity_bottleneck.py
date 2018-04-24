@@ -25,7 +25,7 @@ def bottleneck(sumo_binary=None):
     NUM_LANES = 4*SCALING  # number of lanes in the widest highway
     DISABLE_TB = True
     DISABLE_RAMP_METER = True
-    AV_FRAC = .2
+    AV_FRAC = .1
 
     if sumo_binary is None:
         sumo_binary = "sumo-gui"
