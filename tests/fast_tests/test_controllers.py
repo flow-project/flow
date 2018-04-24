@@ -3,14 +3,16 @@ import unittest
 from flow.core.experiment import SumoExperiment
 from flow.core.params import EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
+from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
     OVMController, BCMController, LinearOVM, CFMController
 from tests.setup_scripts import ring_road_exp_setup
 import os
-os.environ["TEST_FLAG"] = "True"
 import numpy as np
+
+os.environ["TEST_FLAG"] = "True"
 
 
 class TestCFMController(unittest.TestCase):
@@ -20,15 +22,17 @@ class TestCFMController(unittest.TestCase):
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
-        contr_params = \
-            {"k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8,
-             "accel_max": 20, "decel_max": -5, "tau": 0, "dt": 0.1, "noise": 0}
+
+        contr_params = {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1,
+                        "d_des": 1, "v_des": 8, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test_0",
             acceleration_controller=(CFMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                accel=20, decel=5),
             num_vehicles=5
         )
 
@@ -66,14 +70,14 @@ class TestBCMController(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
         contr_params = \
-            {"k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8,
-             "accel_max": 15, "decel_max": -5, "tau": 0, "dt": 0.1, "noise": 0}
+            {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(BCMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
+            sumo_car_following_params=SumoCarFollowingParams(accel=15, decel=5),
             num_vehicles=5
         )
 
@@ -98,7 +102,7 @@ class TestBCMController(unittest.TestCase):
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [-12., 13., 13., 13., 13.]
+        expected_accel = [-5., 13., 13., 13., 13.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -110,15 +114,16 @@ class TestOVMController(unittest.TestCase):
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
-        contr_params = \
-            {"alpha": 1, "beta": 1, "h_st": 2, "h_go": 15, "v_max": 30,
-             "accel_max": 15, "decel_max": -5, "tau": 0, "dt": 0.1, "noise": 0}
+        contr_params = {"time_delay": 0, "alpha": 1, "beta": 1, "h_st": 2,
+                        "h_go": 15, "v_max": 30, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                accel=15, decel=5),
             num_vehicles=5
         )
 
@@ -157,14 +162,16 @@ class TestLinearOVM(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
         contr_params = \
-            {"v_max": 30, "accel_max": 15, "decel_max": -5, "adaptation": 0.65,
-             "h_st": 5, "tau": 0, "dt": 0.1, "noise": 0}
+            {"time_delay": 0, "v_max": 30, "adaptation": 0.65,
+             "h_st": 5, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, contr_params),
             routing_controller=(ContinuousRouter, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                accel=15, decel=5),
             num_vehicles=5
         )
 
@@ -201,8 +208,8 @@ class TestIDMController(unittest.TestCase):
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
-        contr_params = {"v0": 30, "T": 1, "a": 1, "b": 1.5, "delta": 4,
-                        "s0": 2, "s1": 0, "decel_max": -5, "dt": 0.1,
+        contr_params = {"v0": 30, "b": 1.5, "delta": 4,
+                        "s0": 2, "s1": 0,
                         "noise": 0}
 
         vehicles = Vehicles()
@@ -210,6 +217,8 @@ class TestIDMController(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                tau=1, accel=1, decel=5),
             num_vehicles=5
         )
 
@@ -256,8 +265,8 @@ class TestInstantaneousFailsafe(unittest.TestCase):
     would. This is tested on two crash-prone controllers: OVM and LinearOVM
     """
     def setUp_failsafe(self, vehicles):
-        additional_env_params = {"target_velocity": 8, "max-deacc": 3,
-                                 "max-acc": 3}
+        additional_env_params = {"target_velocity": 8, "max_accel": 3,
+                                 "max_decel": 3}
         env_params = EnvParams(additional_params=additional_env_params)
 
         additional_net_params = {"length": 100, "lanes": 1, "speed_limit": 30,
@@ -383,7 +392,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         # for vehicles
         lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
-            self.env._step(rl_actions=[])
+            self.env.step(rl_actions=[])
             lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
 
         # set the timer as very high and reset (the timer used to cause bugs at
@@ -395,7 +404,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         # index for vehicles
         lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
-            self.env._step(rl_actions=[])
+            self.env.step(rl_actions=[])
             lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
 
         # assert that all lane indices are zero

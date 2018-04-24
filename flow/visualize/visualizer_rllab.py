@@ -116,8 +116,8 @@ if __name__ == "__main__":
         os.makedirs("plots")
 
     # create an array of time
-    time_step = sumo_params.time_step
-    t = np.arange(max_path_length) * time_step
+    sim_step = sumo_params.sim_step
+    t = np.arange(max_path_length) * sim_step
 
     for obs_var_idx in range(int(num_obs_var)):
         if len(obs_vars) < obs_var_idx + 1:

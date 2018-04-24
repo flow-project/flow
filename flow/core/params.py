@@ -13,7 +13,8 @@ class SumoParams:
                  sumo_binary="sumo",
                  overtake_right=False,
                  ballistic=False,
-                 seed=None):
+                 seed=None,
+                 restart_instance=False):
         """Sumo-specific parameters
 
         These parameters are used to customize a sumo simulation instance upon
@@ -50,6 +51,12 @@ class SumoParams:
             Defaults to False
         seed: int, optional
             seed for sumo instance
+        restart_instance: bool, optional
+            specifies whether to restart a sumo instance upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "sumo_binary" is set to True.
+
         """
         self.port = port
         self.sim_step = sim_step
@@ -60,12 +67,12 @@ class SumoParams:
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
+        self.restart_instance = restart_instance
 
 
 class EnvParams:
 
     def __init__(self,
-                 max_speed=55.0,  # TODO: delete me
                  lane_change_duration=None,
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
@@ -119,7 +126,6 @@ class EnvParams:
             simulation steps.
 
         """
-        self.max_speed = max_speed
         self.lane_change_duration = lane_change_duration
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
@@ -166,7 +172,14 @@ class NetParams:
                  additional_params=None):
         """Network configuration parameters
 
-        (blank)
+        Unlike most other parameters, NetParams may vary drastically dependent
+        on the specific network configuration. For example, for the ring road
+        the network parameters will include a characteristic length, number of
+        lanes, and speed limit.
+
+        In order to determine which additional_params variable may be needed
+        for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
+        located in the scenario file.
 
         Parameters
         ----------
@@ -218,12 +231,11 @@ class InitialConfig:
                  positions=None,
                  lanes=None,
                  additional_params=None):
-        """(blank)
+        """Initial configuration parameters.
 
-        (blank)
-        Parameters that affect the positioning of vehicle in the network at
-        the start of a rollout. By default, vehicles are uniformly distributed
-        in the network.
+        These parameters that affect the positioning of vehicle in the
+        network at the start of a rollout. By default, vehicles are uniformly
+        distributed in the network.
 
         Attributes
         ----------
@@ -292,8 +304,6 @@ class SumoCarFollowingParams:
                  car_follow_model="IDM",
                  **kwargs):
         """Parameters for sumo-controlled acceleration behavior
-
-        (specify how we specify it in Vehicles.add())  #### TODO ####
 
         Attributes
         ----------
@@ -385,8 +395,6 @@ class SumoLaneChangeParams:
                  lc_accel_lat=1.0,
                  **kwargs):
         """Parameters for sumo-controlled lane change behavior
-
-        (specify how we specify it in Vehicles.add())  #### TODO ####
 
         Attributes
         ----------
@@ -557,7 +565,7 @@ class InFlows:
             in the Vehicles class.
         edge: str
             starting edge for vehicles in this inflow.
-        start: float, optional
+        begin: float, optional
             see Note
         end: float, optional
             see Note

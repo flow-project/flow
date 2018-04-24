@@ -16,12 +16,11 @@ class NetFileScenario(Scenario):
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
-        """
-        See parent class.
+        """See parent class.
 
         The edge starts are specified from the network configuration file. Note
-        that, the values are arbitrary but do not allow the positions of any two
-        edges to overlap, thereby making them compatible with all starting
+        that, the values are arbitrary but do not allow the positions of any
+        two edges to overlap, thereby making them compatible with all starting
         position methods for vehicles.
         """
         # the total length of the network is defined within this function
@@ -29,7 +28,8 @@ class NetFileScenario(Scenario):
 
         edgestarts = []
         for edge_id in self._edge_list:
-            # the current edge starts (in 1D position) where the last edge ended
+            # the current edge starts (in 1D position) where the last edge
+            # ended
             edgestarts.append((edge_id, self.length))
             # increment the total length of the network with the length of the
             # current edge
@@ -38,11 +38,10 @@ class NetFileScenario(Scenario):
         return edgestarts
 
     def specify_internal_edge_starts(self):
-        """
-        See parent class.
+        """See parent class.
 
         All internal edge starts are given a position of -1. This may be
-        overridden; however, in general we do not worry about internal edges and
-        junctions in large networks.
+        overridden; however, in general we do not worry about internal edges
+        and junctions in large networks.
         """
         return [(":", -1)]

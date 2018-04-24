@@ -14,7 +14,6 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
 from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import *
-from flow.controllers.lane_change_controllers import *
 from flow.controllers.car_following_models \
     import SumoCarFollowingController
 
@@ -88,15 +87,17 @@ def run_task(*_):
     vehicles = Vehicles()
     vehicles.add(veh_id="idm",
                  acceleration_controller=(SumoCarFollowingController, {}),
-                 sumo_car_following_params=SumoCarFollowingParams(minGap=2.5),
+                 sumo_car_following_params=SumoCarFollowingParams(
+                     minGap=2.5,
+                     max_speed=v_enter,
+                 ),
                  routing_controller=(GridRouter, {}),
                  num_vehicles=tot_cars,
                  speed_mode="all_checks")
 
     additional_env_params = {"target_velocity": 50, "num_steps": 500,
                              "control-length": 150, "switch_time": 3.0}
-    env_params = EnvParams(max_speed=v_enter,
-                           additional_params=additional_env_params)
+    env_params = EnvParams(additional_params=additional_env_params)
 
     additional_net_params = {"speed_limit": 35, "grid_array": grid_array,
                              "horizontal_lanes": 1, "vertical_lanes": 1,

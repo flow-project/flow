@@ -1,9 +1,9 @@
 import unittest
 import os
-os.environ["TEST_FLAG"] = "True"
 import pickle
 import numpy as np
 
+os.environ["TEST_FLAG"] = "True"
 BROKEN_TESTS = os.environ.get('BROKEN_TESTS', False)
 
 
