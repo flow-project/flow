@@ -12,7 +12,7 @@ class BBTollGenerator(Generator):
         """
         nodes = [{"id": "1", "x": "0", "y": "0"},  # pre-toll
                  {"id": "2", "x": "100", "y": "0"},  # toll
-                 {"id": "3", "x": "410", "y": "0", "type": "traffic_light"},  # light
+                 {"id": "3", "x": "410", "y": "0", "type": "traffic_light"},
                  {"id": "4", "x": "550", "y": "0", "type": "zipper",
                   "radius": "20"},  # merge1
                  {"id": "5", "x": "830", "y": "0", "type": "zipper",

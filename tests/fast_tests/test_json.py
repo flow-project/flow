@@ -4,7 +4,6 @@ Unit tests for JSON file output and reading (used for visualization)
 
 import json
 import os
-os.environ["TEST_FLAG"] = "True"
 import unittest
 
 import ray
@@ -17,6 +16,8 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.util import NameEncoder, get_flow_params
 
+os.environ["TEST_FLAG"] = "True"
+
 
 class TestJSON(unittest.TestCase):
     # def setUp(self):
@@ -26,11 +27,10 @@ class TestJSON(unittest.TestCase):
         """
         Integration test for json export and import workflow
         """
-
-        HORIZON = 500
+        horizon = 500
 
         additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                                 "max-acc": 1, "num_steps": HORIZON,
+                                 "max-acc": 1, "num_steps": horizon,
                                  "scenario_type": LoopScenario}
         additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                                  "resolution": 40}
@@ -60,17 +60,20 @@ class TestJSON(unittest.TestCase):
 
         # Just to make sure an env can be created successfully
         # using these current flow_params
-        create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
+        create_env, env_name = make_create_env(flow_env_name, flow_params,
+                                               version=0,
                                                exp_tag=exp_tag)
 
         # Logging out flow_params to ray's experiment result folder
         current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
         json_out_file = current_path + '/test_files/flow_params.json'
         with open(json_out_file, 'w') as outfile:
-            json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+            json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
+                      indent=4)
 
         # Fetching values using utility function `get_flow_params`
-        imported_flow_params, mce = get_flow_params(current_path + '/test_files')
+        imported_flow_params, mce = \
+            get_flow_params(current_path + '/test_files')
 
         # Making sure the right make_create_env is returned
         self.assertTrue(mce is make_create_env)

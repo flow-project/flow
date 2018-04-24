@@ -131,10 +131,6 @@ if __name__ == "__main__":
                                                          version=1,
                                                          sumo="sumo-gui")
     env = create_render_env(None)
-    env_num_steps = env.env.env_params.additional_params['num_steps']
-    if env_num_steps != config['horizon']:
-        print("WARNING: mismatch of experiment horizon and rendering horizon "
-              "{} != {}".format(config['horizon'], env_num_steps))
     rets = []
     for i in range(args.num_rollouts):
         state = env.reset()

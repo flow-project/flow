@@ -39,18 +39,19 @@ COLORS = [(255, 0, 0, 255), (0, 255, 0, 255), (255, 255, 0, 255),
 
 class Env(gym.Env, Serializable):
     def __init__(self, env_params, sumo_params, scenario):
-        """
-        Base environment class. Provides the interface for controlling a SUMO
-        simulation. Using this class, you can start sumo, provide a scenario to
-        specify a configuration and controllers, perform simulation steps, and
-        reset the simulation to an initial configuration.
+        """Base environment class.
 
-        SumoEnvironment is Serializable to allow for pickling of the policy.
+        Provides the interface for controlling a SUMO simulation. Using this
+        class, you can start sumo, provide a scenario to specify a
+        configuration and controllers, perform simulation steps, and reset the
+        simulation to an initial configuration.
+
+        Env is Serializable to allow for pickling and replaying of the policy.
 
         This class cannot be used as is: you must extend it to implement an
-        action applicator method, and properties to define the MDP if you choose
-        to use it with RLLab. This can be done by overloading the following
-        functions in a child class:
+        action applicator method, and properties to define the MDP if you
+        choose to use it with an rl library (e.g. RLlib). This can be done by
+        overloading the following functions in a child class:
          - action_space
          - observation_space
          - apply_rl_action
@@ -93,7 +94,6 @@ class Env(gym.Env, Serializable):
             env_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = env_params.starting_position_shuffle
 
-        self.max_speed = env_params.max_speed
         self.lane_change_duration = \
             env_params.get_lane_change_duration(self.sim_step)
 
@@ -111,6 +111,9 @@ class Env(gym.Env, Serializable):
         # store the initial vehicle ids
         self.initial_ids = deepcopy(self.vehicles.get_ids())
 
+        # store the initial state of the vehicles class (for restarting sumo)
+        self.initial_vehicles = deepcopy(self.vehicles)
+
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
 
@@ -126,6 +129,7 @@ class Env(gym.Env, Serializable):
         rollout.
         """
         self.traci_connection.close(False)
+        self.sumo_proc.kill()
 
         if sumo_binary is not None:
             self.sumo_params.sumo_binary = sumo_binary
@@ -202,8 +206,6 @@ class Env(gym.Env, Serializable):
             try:
                 # Opening the I/O thread to SUMO
                 self.sumo_proc = subprocess.Popen(sumo_call,
-                                                  stdout=sys.stdout,
-                                                  stderr=sys.stderr,
                                                   preexec_fn=os.setsid)
 
                 # wait a small period of time for the subprocess to activate
@@ -275,7 +277,6 @@ class Env(gym.Env, Serializable):
             self.vehicles.set_state(
                 veh_id, "length",
                 self.traci_connection.vehicle.getLength(veh_id))
-            self.vehicles.set_state(veh_id, "max_speed", self.max_speed)
 
             # import initial state data to initial_observations dict
             self.initial_observations[veh_id] = dict()
@@ -341,9 +342,6 @@ class Env(gym.Env, Serializable):
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
-            if self.step_counter > 2e6:
-                self.step_counter = 0
-                self.restart_sumo(self.sumo_params)
 
             # perform acceleration actions for controlled human-driven vehicles
             if len(self.vehicles.get_controlled_ids()) > 0:
@@ -357,14 +355,14 @@ class Env(gym.Env, Serializable):
 
             # perform lane change actions for controlled human-driven vehicles
             if len(self.vehicles.get_controlled_lc_ids()) > 0:
-                new_lane = []
+                direction = []
                 for veh_id in self.vehicles.get_controlled_lc_ids():
-                    lc_contr = \
-                        self.vehicles.get_lane_changing_controller(veh_id)
+                    lc_contr = self.vehicles.get_lane_changing_controller(
+                        veh_id)
                     target_lane = lc_contr.get_action(self)
-                    new_lane.append(target_lane)
+                    direction.append(target_lane)
                 self.apply_lane_change(self.vehicles.get_controlled_lc_ids(),
-                                       target_lane=new_lane)
+                                       direction=direction)
 
             # perform (optionally) routing actions for all vehicle in the
             # network, including rl and sumo-controlled vehicles
@@ -396,8 +394,20 @@ class Env(gym.Env, Serializable):
             self.vehicles.update(vehicle_obs, id_lists, self)
             self.traffic_lights.update(tls_obs)
 
+            # update the colors of vehicles
+            self.update_vehicle_colors()
+
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
+
+            # crash encodes whether the simulator experienced a collision
+            crash = \
+                self.traci_connection.simulation.getStartingTeleportNumber() \
+                != 0
+
+            # stop collecting new simulation steps if there is a collision
+            if crash:
+                break
 
         # collect information of the state of the network based on the
         # environment class used
@@ -410,10 +420,6 @@ class Env(gym.Env, Serializable):
 
         # collect observation new state associated with action
         next_observation = list(self.state)
-
-        # crash encodes whether sumo experienced a crash
-        crash = \
-            self.traci_connection.simulation.getStartingTeleportNumber() != 0
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
@@ -436,11 +442,15 @@ class Env(gym.Env, Serializable):
         """
         # reset the time counter
         self.time_counter = 0
-        if self.step_counter > 2e6:
-            self.step_counter = 0
-            self.restart_sumo(self.sumo_params, self.sumo_params.sumo_binary)
 
-        # TODO(ak): handling number of vehicles during reset
+        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+            self.step_counter = 0
+            # issue a random seed to induce randomness into the next rollout
+            self.sumo_params.seed = random.randint(0, 1e5)
+            # modify the vehicles class to match initial data
+            self.vehicles = deepcopy(self.initial_vehicles)
+            # restart the sumo instance
+            self.restart_sumo(self.sumo_params)
 
         # create the list of colors used to visually distinguish between
         # different types of vehicles
@@ -559,7 +569,7 @@ class Env(gym.Env, Serializable):
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
-            observation, _, _, _ = self._step(rl_actions=[])
+            observation, _, _, _ = self.step(rl_actions=[])
 
         return observation
 
@@ -606,60 +616,45 @@ class Env(gym.Env, Serializable):
             next_vel = max([this_vel + acc[i]*self.sim_step, 0])
             self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
-    def apply_lane_change(self, veh_ids, direction=None, target_lane=None):
-        """
-        Applies an instantaneous lane-change to a set of vehicles, while
+    def apply_lane_change(self, veh_ids, direction):
+        """Applies an instantaneous lane-change to a set of vehicles, while
         preventing vehicles from moving to lanes that do not exist.
 
         Parameters
         ----------
-        veh_ids: list of strings
+        veh_ids: list of str
             vehicles IDs associated with the requested accelerations
-        direction: list of int (-1, 0, or 1), optional
+        direction: list of {-1, 0, 1}
             -1: lane change to the right
              0: no lane change
              1: lane change to the left
-        target_lane: list of int, optional
-            lane indices the vehicles should lane-change to in the next step
 
         Raises
         ------
         ValueError
-            If either both or none of "direction" and "target_lane" are provided
-            as inputs. Only one should be provided at a time.
-        ValueError
             If any of the direction values are not -1, 0, or 1.
         """
-        if direction is not None and target_lane is not None:
-            raise ValueError("Cannot provide both a direction and target_lane.")
-        elif direction is None and target_lane is None:
-            raise ValueError("A direction or target_lane must be specified.")
-
-        current_lane = np.array(self.vehicles.get_lane(veh_ids))
-
-        # if the direction is given, compute the target lane for vehicles
-        if target_lane is None:
-            # if any of the directions are not -1, 0, or 1, raise a ValueError
-            if np.any(np.sign(direction) != np.array(direction)):
-                raise ValueError("Direction values for lane changes may only "
-                                 "be: -1, 0, or 1.")
-
-            target_lane = current_lane + np.array(direction)
+        # if any of the directions are not -1, 0, or 1, raise a ValueError
+        if any(d not in [-1, 0, 1] for d in direction):
+            raise ValueError(
+                "Direction values for lane changes may only be: -1, 0, or 1.")
 
         for i, veh_id in enumerate(veh_ids):
-
-            this_edge = self.vehicles.get_edge(veh_id)
-
-            # check for multiple lanes
-            if self.scenario.num_lanes(this_edge) == 1:
+            # check for no lane change
+            if direction[i] == 0:
                 continue
 
-            target_lane[i] = min(
-                max(target_lane[i], 0), self.scenario.num_lanes(this_edge) - 1)
+            # compute the target lane, and clip it so vehicle don't try to lane
+            # change out of range
+            this_lane = self.vehicles.get_lane(veh_id)
+            this_edge = self.vehicles.get_edge(veh_id)
+            target_lane = min(max(this_lane + direction[i], 0),
+                              self.scenario.num_lanes(this_edge) - 1)
 
-            if target_lane[i] != current_lane[i]:
+            # perform the requested lane action action in TraCI
+            if target_lane != this_lane:
                 self.traci_connection.vehicle.changeLane(
-                    veh_id, int(target_lane[i]), 100000)
+                    veh_id, int(target_lane), 100000)
 
                 if veh_id in self.vehicles.get_rl_ids():
                     self.prev_last_lc[veh_id] = \
@@ -724,6 +719,37 @@ class Env(gym.Env, Serializable):
             return sorted_ids, None
         else:
             return self.vehicles.get_ids(), None
+
+    def update_vehicle_colors(self):
+        """Modifies the color of vehicles if rendering is active.
+
+        The colors of all vehicles are updated as follows:
+        - red: autonomous (rl) vehicles
+        - white: unobserved human-driven vehicles
+        - cyan: observed human-driven vehicles
+        """
+        # do not change the colors of vehicles if the sumo-gui is not active
+        # (in order to avoid slow downs)
+        if self.sumo_params.sumo_binary != "sumo-gui":
+            return
+
+        for veh_id in self.vehicles.get_rl_ids():
+            # color rl vehicles red
+            self.traci_connection.vehicle.setColor(vehID=veh_id,
+                                                   color=(255, 0, 0, 255))
+
+        for veh_id in self.vehicles.get_human_ids():
+            if veh_id in self.vehicles.get_observed_ids():
+                # color observed human-driven vehicles cyan
+                color = (0, 255, 255, 255)
+            else:
+                # color unobserved human-driven vehicles white
+                color = (255, 255, 255, 255)
+            self.traci_connection.vehicle.setColor(vehID=veh_id, color=color)
+
+        # clear the list of observed vehicles
+        for veh_id in self.vehicles.get_observed_ids():
+            self.vehicles.remove_observed(veh_id)
 
     def get_state(self):
         """

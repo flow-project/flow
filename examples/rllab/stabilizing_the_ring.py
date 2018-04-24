@@ -1,45 +1,28 @@
+"""Script used to train a single autonomous vehicle to stabilize a variable
+density ring road.
 """
-Script used to train test platooning on a single lane.
-
-RL vehicles are bunched together. The emergent behavior we are hoping to witness
-is that rl-vehicles group together in other to allow non rl-vehicles a larger headway,
-and thus larger equilibrium speeds.
-
-One concern is whether rl-vehicles will start tail-gating human vehicles.
-"""
-
-import logging
 
 from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import stub, run_experiment_lite
+from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
-
-# recurrent stuff
 from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
-from rllab.optimizers.conjugate_gradient_optimizer import ConjugateGradientOptimizer, FiniteDifferenceHvp
 
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import *
 from flow.controllers.car_following_models import *
 from flow.controllers.routing_controllers import *
 from flow.core.vehicles import Vehicles
 from flow.core.params import *
 from rllab.envs.gym_env import GymEnv
 
-import numpy as np
-import sys
-
-HORIZON = 10
+HORIZON = 1500
 
 
-def run_task(v):
-    logging.basicConfig(level=logging.INFO)
-
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo", seed=0)
+def run_task(*_):
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui", seed=0)
 
     vehicles = Vehicles()
     vehicles.add(veh_id="rl",
@@ -52,9 +35,11 @@ def run_task(v):
                  num_vehicles=21)
 
     additional_env_params = {"target_velocity": 8,
-                             "scenario_type": LoopScenario}
-    env_params = EnvParams(max_decel=-1, max_accel=1, horizon=HORIZON,
-                           additional_params=additional_env_params)
+                             "ring_length": [220, 270],
+                             "max_accel": 1, "max_decel": 1}
+    env_params = EnvParams(horizon=HORIZON,
+                           additional_params=additional_env_params,
+                           warmup_steps=750)
 
     additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                              "resolution": 40}
@@ -100,13 +85,13 @@ def run_task(v):
     )
     algo.train(),
 
-exp_tag = str(22) + "-car-stabilizing-the-ring-local-robust-0-std"
+exp_tag = "stabilizing-the-ring"
 
 for seed in [5]:  # , 20, 68]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=16,
+        n_parallel=1,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a

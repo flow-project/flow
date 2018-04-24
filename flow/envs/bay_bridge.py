@@ -1,7 +1,7 @@
 import numpy as np
 from collections import defaultdict
 
-from flow.envs.loop_accel import AccelEnv
+from flow.envs.loop.loop_accel import AccelEnv
 
 EDGE_LIST = ['11198593', '236348360#1', '157598960', '11415208', '236348361',
              '11198599', '35536683', '11198595.0', '11198595.656.0', "gneE5",
@@ -45,7 +45,7 @@ class BridgeBaseEnv(AccelEnv):
         super().__init__(env_params, sumo_params, scenario)
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
-        self.cars_waiting_before_ramp_meter = dict()
+        self.cars_before_ramp = dict()
         self.toll_wait_time = np.abs(
             np.random.normal(MEAN_SECONDS_WAIT_AT_TOLL / self.sim_step,
                              4 / self.sim_step, NUM_TOLL_LANES))
@@ -88,11 +88,11 @@ class BridgeBaseEnv(AccelEnv):
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
-        for veh_id in self.cars_waiting_before_ramp_meter:
+        for veh_id in self.cars_before_ramp:
             if self.vehicles.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
-                lane_change_mode = self.cars_waiting_before_ramp_meter[veh_id][
+                lane_change_mode = self.cars_before_ramp[veh_id][
                     "lane_change_mode"]
-                color = self.cars_waiting_before_ramp_meter[veh_id]["color"]
+                color = self.cars_before_ramp[veh_id]["color"]
                 self.traci_connection.vehicle.setColor(veh_id, color)
                 self.traci_connection.vehicle.setLaneChangeMode(
                     veh_id, lane_change_mode)
@@ -100,7 +100,7 @@ class BridgeBaseEnv(AccelEnv):
                 cars_that_have_left.append(veh_id)
 
         for veh_id in cars_that_have_left:
-            self.cars_waiting_before_ramp_meter.__delitem__(veh_id)
+            self.cars_before_ramp.__delitem__(veh_id)
 
         for lane in range(NUM_RAMP_METERS):
             cars_in_lane = self.edge_dict[EDGE_BEFORE_RAMP_METER][lane]
@@ -113,7 +113,7 @@ class BridgeBaseEnv(AccelEnv):
                         lane_change_mode = self.vehicles.get_lane_change_mode(
                             veh_id)
                         color = self.traci_connection.vehicle.getColor(veh_id)
-                        self.cars_waiting_before_ramp_meter[veh_id] = {
+                        self.cars_before_ramp[veh_id] = {
                             "lane_change_mode": lane_change_mode,
                             "color": color}
                         self.traci_connection.vehicle.setLaneChangeMode(
