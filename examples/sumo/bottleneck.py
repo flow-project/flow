@@ -17,7 +17,7 @@ from flow.core.experiment import SumoExperiment
 SCALING = 1
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-FLOW_RATE = 1500 * SCALING  # inflow rate
+FLOW_RATE = 2000 * SCALING  # inflow rate
 
 
 def bottleneck_example(sumo_binary=None):
@@ -40,6 +40,7 @@ def bottleneck_example(sumo_binary=None):
                              "disable_tb": True,
                              "disable_ramp_metering": False}
     env_params = EnvParams(additional_params=additional_env_params,
+                           sims_per_step=2,
                            lane_change_duration=1)
 
     inflow = InFlows()
@@ -78,4 +79,4 @@ if __name__ == "__main__":
     exp = bottleneck_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(10, 1000)
+    exp.run(10, 2000)
