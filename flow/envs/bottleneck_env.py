@@ -82,19 +82,19 @@ class BridgeTollEnv(Env):
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         # values for the ramp meter
-        self.n_crit = env_add_params.get("n_crit", 100) # capacity drop value
-        self.q = 0 # ramp meter feedback controller
-        self.q_max = env_add_params.get("q_max", 15000) #FIXME(ev) calibrate
-        self.q_min = env_add_params.get("q_min", 4000) #FIXME(ev) calibrate
+        self.n_crit = env_add_params.get("n_crit", 40) # capacity drop value
+        self.q = 1200 # ramp meter feedback controller
+        self.q_max = env_add_params.get("q_max", 1.2*1200) #FIXME(ev) calibrate
+        self.q_min = env_add_params.get("q_min", .5*1200) #FIXME(ev) calibrate
         self.feedback_update_time = env_add_params.get("feedback_update", 30)
         self.feedback_timer = 0.0
         self.cycle_time = 6
-        cycle_offset = 0.2
+        cycle_offset = 0.5
         self.ramp_state = np.linspace(0, cycle_offset*self.scaling*MAX_LANES,
                                       self.scaling * MAX_LANES)
         self.green_time = 4
         self.red_min = 2
-        self.feedback_coeff = env_add_params.get("feedback_coeff", 10)
+        self.feedback_coeff = env_add_params.get("feedback_coeff", 25) #FIXME(ev) calibrate
 
 
     def additional_command(self):
@@ -162,10 +162,14 @@ class BridgeTollEnv(Env):
             self.feedback_timer = 0
             # now implement the integral controller update
             # find all the vehicles in an edge
-            N = len(self.vehicles.get_ids_by_edge(':4_0'))
-            self.q = self.q + self.feedback_coeff*(self.n_crit - N)
+            N = len(self.vehicles.get_ids_by_edge('4'))
+            print('N is', N)
+            self.q = np.clip(self.q + self.feedback_coeff*(self.n_crit - N),
+                             a_min=self.q_min, a_max=self.q_max)
             # convert q to cycle time
-            self.cycle_time = 7200*(4*self.scaling)/self.q
+            self.cycle_time = 7200/self.q
+            print('cycle time is', self.cycle_time)
+            print('q value is', self.q)
 
         # now apply the ramp meter
         self.ramp_state %= self.cycle_time
