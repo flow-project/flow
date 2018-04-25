@@ -561,7 +561,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         self.slices = {}  
         for edge, num_segments, _ in self.segments:
             edge_length = self.scenario.edge_length(edge)
-            self.slices[edge] = np.linspace(0, edge_length, num_segments)
+            self.slices[edge] = np.linspace(0, edge_length, num_segments+1)
 
         # action index tells us, given an edge and a lane,the offset into
         # rl_actions that we should take. The indexing order is
@@ -732,9 +732,11 @@ class DesiredVelocityEnv(BridgeTollEnv):
         #penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
         # FIXME(ev) convert to passed in env param
-        bottleneck_threshold = 25  # could be 10 also
+        bottleneck_threshold = 30  # could be 10 also
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
+
+        #print('outflow is', self.vehicles.get_outflow_rate(300))
 
         return reward
 

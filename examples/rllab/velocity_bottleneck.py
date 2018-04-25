@@ -59,7 +59,7 @@ horizon = 1000
 # edge name, how many segments to observe/control, whether the segment is
 # controlled
 num_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
-                ("4", 3, True), ("5", 1, False)]
+                ("4", 2, True), ("5", 1, False)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "segments": num_segments, "symmetric": False}
@@ -150,8 +150,9 @@ def run_task(*_):
     algo.train()
 
 
-for _ in range(2):
-    exp_tag = "VSLLaneControl"  # experiment prefix
+#for _ in range(2):
+exp_tag = "VSLLaneInflowSweep"  # experiment prefix
+for j in range(12):
     for seed in [20]:  # , 1, 5, 10, 73]:
         run_experiment_lite(
             run_task,
@@ -169,4 +170,3 @@ for _ in range(2):
             sync_s3_pkl=True
         )
     i += 1
-    print(i)
