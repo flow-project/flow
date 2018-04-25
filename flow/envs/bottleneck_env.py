@@ -82,14 +82,14 @@ class BridgeTollEnv(Env):
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         # values for the ramp meter
-        self.n_crit = env_add_params.get("n_crit", 8) # capacity drop value
+        self.n_crit = env_add_params.get("n_crit", 10) # capacity drop value 8 is best value so far
         self.q_max = env_add_params.get("q_max", 1.2*1100) #FIXME(ev) calibrate
         self.q_min = env_add_params.get("q_min", .25*1100) #FIXME(ev) calibrate
         self.q = self.q_min # ramp meter feedback controller
         self.feedback_update_time = env_add_params.get("feedback_update", 30)
         self.feedback_timer = 0.0
         self.cycle_time = 6
-        cycle_offset = 0.4
+        cycle_offset = 8
         self.ramp_state = np.linspace(0, cycle_offset*self.scaling*MAX_LANES,
                                       self.scaling * MAX_LANES)
         self.green_time = 4
