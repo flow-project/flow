@@ -82,10 +82,10 @@ class BridgeTollEnv(Env):
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         # values for the ramp meter
-        self.n_crit = env_add_params.get("n_crit", 40) # capacity drop value
+        self.n_crit = env_add_params.get("n_crit", 8) # capacity drop value
         self.q = 1200 # ramp meter feedback controller
         self.q_max = env_add_params.get("q_max", 1.2*1200) #FIXME(ev) calibrate
-        self.q_min = env_add_params.get("q_min", .5*1200) #FIXME(ev) calibrate
+        self.q_min = env_add_params.get("q_min", .2*1200) #FIXME(ev) calibrate
         self.feedback_update_time = env_add_params.get("feedback_update", 30)
         self.feedback_timer = 0.0
         self.cycle_time = 6
@@ -94,10 +94,14 @@ class BridgeTollEnv(Env):
                                       self.scaling * MAX_LANES)
         self.green_time = 4
         self.red_min = 2
-        self.feedback_coeff = env_add_params.get("feedback_coeff", 25) #FIXME(ev) calibrate
+        self.feedback_coeff = env_add_params.get("feedback_coeff", 100) #FIXME(ev) calibrate
+
+        self.outflow_history = np.zeros(20)
+        self.outflow_index = 0
 
 
     def additional_command(self):
+        # print(self.vehicles.get_outflow_rate(100))
         super().additional_command()
         # build a list of vehicles and their edges and positions
         self.edge_dict = defaultdict(list)
@@ -121,6 +125,11 @@ class BridgeTollEnv(Env):
         if not self.disable_ramp_metering:
             self.ramp_meter_lane_change_control()
             self.alinea()
+
+        # compute the outflow
+        veh_ids = self.vehicles.get_ids_by_edge('4')
+        self.outflow_history[self.outflow_index] = len(veh_ids)
+        self.outflow_index = (self.outflow_index + 1) % self.outflow_history.shape[0]
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
@@ -162,9 +171,16 @@ class BridgeTollEnv(Env):
             self.feedback_timer = 0
             # now implement the integral controller update
             # find all the vehicles in an edge
-            N = len(self.vehicles.get_ids_by_edge('4'))
-            print('N is', N)
-            self.q = np.clip(self.q + self.feedback_coeff*(self.n_crit - N),
+            veh_ids = self.vehicles.get_ids_by_edge('4')
+            N = len(veh_ids)
+            # print('N is', N)
+            # density = N/self.scenario.edge_length('4')
+            # velocity = np.average(self.vehicles.get_speed(veh_ids))
+            # outflow = density*velocity*3600
+            # print('outflow is', outflow)
+            print('outflow is ', self.vehicles.get_outflow_rate(10000))
+            print('crit diff is ', self.n_crit -  np.average(self.outflow_history))
+            self.q = np.clip(self.q + self.feedback_coeff*(self.n_crit - np.average(self.outflow_history)),
                              a_min=self.q_min, a_max=self.q_max)
             # convert q to cycle time
             self.cycle_time = 7200/self.q
