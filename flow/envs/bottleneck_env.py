@@ -732,7 +732,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         #penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
         # FIXME(ev) convert to passed in env param
-        bottleneck_threshold = 35  # could be 10 also
+        bottleneck_threshold = 25  # could be 10 also
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
 
