@@ -17,7 +17,7 @@ from flow.core.experiment import SumoExperiment
 SCALING = 1
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-FLOW_RATE = 2000 * SCALING  # inflow rate
+FLOW_RATE = 1800 * SCALING  # inflow rate
 
 
 def bottleneck_example(sumo_binary=None):
@@ -30,7 +30,7 @@ def bottleneck_example(sumo_binary=None):
     vehicles = Vehicles()
 
     vehicles.add(veh_id="human",
-                 speed_mode=31,
+                 speed_mode=25,
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
