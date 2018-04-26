@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from flow.envs.lane_changing import LaneChangeAccelEnv
 from flow.core import rewards
 from flow.core import multi_agent_rewards
@@ -11,10 +12,17 @@ from flow.core.vehicles import Vehicles
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
+=======
+>>>>>>> ALINEA
 from collections import defaultdict
 from copy import deepcopy
 
 import numpy as np
+from gym.spaces.box import Box
+from gym.spaces.tuple_space import Tuple
+
+from flow.core import rewards
+from flow.envs.base_env import Env
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
@@ -53,8 +61,7 @@ NET_PARAMS = [
 START_RECORD_TIME = 0.0
 PERIOD = 10.0
 
-
-class BridgeTollEnv(LaneChangeAccelEnv):
+class BridgeTollEnv(Env):
     def __init__(self, env_params, sumo_params, scenario):
         """Environment used as a simplified representation of the toll
             booth portion of the bay bridge. Contains ramp meters,
@@ -80,6 +87,7 @@ class BridgeTollEnv(LaneChangeAccelEnv):
 
         self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
+        env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
         self.scaling = scenario.net_params.additional_params.get("scaling", 1)
         self.edge_dict = defaultdict(list)
@@ -87,14 +95,10 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.cars_before_ramp = dict()
         self.toll_wait_time = np.abs(
             np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step,
-                             4 / self.sim_step, NUM_TOLL_LANES * self.scaling))
-        # these values place the fast track in the middle lanes
+                             4 / self.sim_step, NUM_TOLL_LANES*self.scaling))
         self.fast_track_lanes = range(int(np.ceil(1.5 * self.scaling)),
                                       int(np.ceil(2.6 * self.scaling)))
-        self.tl_state = ""
-        self.disable_tb = False
-        self.disable_ramp_metering = False
-        self.add_rl_if_exit = False
+        self.tb_state = ""
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         self.next_period = START_RECORD_TIME / self.sim_step
@@ -106,12 +110,27 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         if "disable_ramp_metering" in env_params.additional_params:
             self.disable_ramp_metering = \
                 env_params.get_additional_param("disable_ramp_metering")
+        # values for the ramp meter
+        self.n_crit = env_add_params.get("n_crit", 10) # capacity drop value 8 is best value so far
+        self.q_max = env_add_params.get("q_max", 1.2*1100) #FIXME(ev) calibrate
+        self.q_min = env_add_params.get("q_min", .25*1100) #FIXME(ev) calibrate
+        self.q = self.q_min # ramp meter feedback controller
+        self.feedback_update_time = env_add_params.get("feedback_update", 30)
+        self.feedback_timer = 0.0
+        self.cycle_time = 6
+        cycle_offset = 8
+        self.ramp_state = np.linspace(0, cycle_offset*self.scaling*MAX_LANES,
+                                      self.scaling * MAX_LANES)
+        self.green_time = 4
+        self.red_min = 2
+        self.feedback_coeff = env_add_params.get("feedback_coeff", 40) #FIXME(ev) calibrate
 
-        if "add_rl_if_exit" in env_params.additional_params:
-            self.add_rl_if_exit = \
-                env_params.get_additional_param("add_rl_if_exit")
+        self.outflow_history = np.zeros(20)
+        self.outflow_index = 0
+
 
     def additional_command(self):
+        # print(self.vehicles.get_outflow_rate(100))
         super().additional_command()
         # build a list of vehicles and their edges and positions
         self.edge_dict = defaultdict(list)
@@ -134,6 +153,12 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             self.apply_toll_bridge_control()
         if not self.disable_ramp_metering:
             self.ramp_meter_lane_change_control()
+            self.alinea()
+
+        # compute the outflow
+        veh_ids = self.vehicles.get_ids_by_edge('4')
+        self.outflow_history[self.outflow_index] = len(veh_ids)
+        self.outflow_index = (self.outflow_index + 1) % self.outflow_history.shape[0]
 
         if self.time_counter > self.next_period:
             self.density = self.cars_arrived  # / (PERIOD/self.sim_step)
@@ -170,14 +195,43 @@ class BridgeTollEnv(LaneChangeAccelEnv):
                         lane_change_mode = \
                             self.vehicles.get_lane_change_mode(veh_id)
                         color = self.traci_connection.vehicle.getColor(veh_id)
-                        self.cars_before_ramp[veh_id] = {"lane_change_mode":
-                                                             lane_change_mode,
-                                                         "color":
-                                                             color}
-                        self.traci_connection.vehicle.setLaneChangeMode(
-                            veh_id, 512)
-                        self.traci_connection.vehicle.setColor(
-                            veh_id, (0, 255, 255, 0))
+                        self.cars_before_ramp[veh_id] = {"lane_change_mode": lane_change_mode, "color": color}
+                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 512)
+                        self.traci_connection.vehicle.setColor(veh_id, (0, 255, 255, 255))
+
+    def alinea(self):
+        """Implementation of ALINEA from Toll Plaza Merging Traffic Control for
+            Throughput Maximization"""
+        self.feedback_timer += self.sim_step
+        self.ramp_state += self.sim_step
+        if self.feedback_timer > self.feedback_update_time:
+            self.feedback_timer = 0
+            # now implement the integral controller update
+            # find all the vehicles in an edge
+            veh_ids = self.vehicles.get_ids_by_edge('4')
+            N = len(veh_ids)
+            # print('N is', N)
+            # density = N/self.scenario.edge_length('4')
+            # velocity = np.average(self.vehicles.get_speed(veh_ids))
+            # outflow = density*velocity*3600
+            # print('outflow is', outflow)
+            print('outflow is ', self.vehicles.get_outflow_rate(10000))
+            print('crit diff is ', self.n_crit -  np.average(self.outflow_history))
+            self.q = np.clip(self.q + self.feedback_coeff*(self.n_crit - np.average(self.outflow_history)),
+                             a_min=self.q_min, a_max=self.q_max)
+            # convert q to cycle time
+            self.cycle_time = 7200/self.q
+            print('cycle time is', self.cycle_time)
+            print('q value is', self.q)
+
+        # now apply the ramp meter
+        self.ramp_state %= self.cycle_time
+        # step through, if the value of tl_state is below self.green_time
+        # we should be green, otherwise we should be red
+        tl_mask = (self.ramp_state <= self.green_time)
+        colors = ['G' if val else 'r' for val in tl_mask]
+        self.traffic_lights.set_state('3', ''.join(colors), self)
+
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
@@ -268,6 +322,17 @@ class BridgeTollEnv(LaneChangeAccelEnv):
     def get_avg_bottleneck_velocity(self):
         veh_ids = self.vehicles.get_ids_by_edge(['3', '4', '5'])
         return sum(self.vehicles.get_speed(veh_ids))/len(veh_ids) if len(veh_ids) != 0 else 0
+    # Dummy action and observation spaces
+    @property
+    def action_space(self):
+        return Box(low=-float("inf"), high=float("inf"), shape=(1,),
+                   dtype=np.float32)
+    @property
+    def observation_space(self):
+        return Box(low=-float("inf"), high=float("inf"), shape=(1,),
+                   dtype=np.float32)
+    def get_state(self):
+        return np.asarray([1])
 
 class BottleNeckEnv(BridgeTollEnv):
     """Environment used to train vehicles to effectively
