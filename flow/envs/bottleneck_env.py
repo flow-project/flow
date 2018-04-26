@@ -617,7 +617,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 if segment[2]:  # if controlled
                     num_lanes = self.scenario.num_lanes(segment[0])
                     action_size += num_lanes*segment[1]
-        return Box(low=-1.5*self.sim_step, high=1.0*self.sim_step,
+        return Box(low=-1.5, high=1.0,
                    shape=(int(action_size),), 
                    dtype=np.float32)
 
@@ -672,7 +672,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
                                        if int(unnorm_rl_list[i]) else 0
                                        for i in range(len(num_rl_vehicles_list))
                                        ]) / 50
-        outflow = np.asarray(self.vehicles.get_outflow_rate(5*self.sim_step)/2000.0)
+        outflow = np.asarray(self.vehicles.get_outflow_rate(20*self.sim_step)/2000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
                                mean_speed, mean_rl_speed, [outflow]))
 
@@ -717,22 +717,22 @@ class DesiredVelocityEnv(BridgeTollEnv):
                                             self.action_index[int(edge) - 1]]
 
                     max_speed_curr = self.traci_connection.vehicle.getMaxSpeed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.01, 30.0)
+                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 30.0)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
 
     def compute_reward(self, state, rl_actions, **kwargs):
 
-        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 + \
-            0.01*rewards.desired_velocity(self)/self.max_speed
+        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 #+ \
+            #0.01*rewards.desired_velocity(self)/self.max_speed
 
         #penalize high density in the bottleneck
         bottleneck_ids = self.vehicles.get_ids_by_edge('4')
         # FIXME(ev) convert to passed in env param
-        bottleneck_threshold = 30  # could be 10 also
+        bottleneck_threshold = 35  # could be 10 also
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
 
@@ -743,9 +743,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
 
     def reset(self):
-        print(self.vehicles.get_outflow_rate(10000))
-        flow_rate = np.random.uniform(1000, 2000) * self.scaling
-        print('flow rate is ', flow_rate)
+        #print(self.vehicles.get_outflow_rate(10000))
+        flow_rate = np.random.uniform(1000, 2200) * self.scaling
+        #print('flow rate is ', flow_rate)
         for _ in range(100):
             try:
                 inflow = InFlows()

@@ -133,9 +133,10 @@ class BottleneckDensityExperiment(SumoExperiment):
 
                 if done:
                     break
-            print("Round {0}, avg hourly outflow: {1}".format(i, sum(step_outflows)/num_steps))
-            print("Round {0}, avg bottleneck velocity: {1}".format(i, sum(step_avg_vels)/num_steps))
-            print("Round {0}, avg density: {1}".format(i, sum(step_densities)/num_steps))
+            # print("Round {0}, avg hourly outflow: {1}".format(i, sum(step_outflows[100:])/(num_steps-100)))
+            print("Round {0}, avg hourly outflow: {1}".format(i, self.env.get_bottleneck_outflow_vehicles_per_hour(10000)))
+            print("Round {0}, avg bottleneck velocity: {1}".format(i, sum(step_avg_vels[100:])/(num_steps-100)))
+            print("Round {0}, avg density: {1}".format(i, sum(step_densities[100:])/(num_steps-100)))
 
             self.avg_outflows.append(sum(step_outflows)/num_steps)
             self.avg_densities.append(sum(step_densities)/num_steps)

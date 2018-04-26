@@ -67,61 +67,66 @@ env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1, warmup_steps=40,
                        sims_per_step=2, horizon=horizon)
 
-# flow rate
-# flow_rate = 1000 * SCALING + i*2000
-# print('flow rate is ', flow_rate)
+flow_rate = 1000 * SCALING + i*2000
+print('flow rate is ', flow_rate)
+env_name = "DesiredVelocityEnv"
 
-# inflow = InFlows()
-# inflow.add(veh_type="human", edge="1",
-#            vehs_per_hour = flow_rate *(1-AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
-#            departLane="random", departSpeed=10)
-# inflow.add(veh_type="followerstopper", edge="1",
-#            vehs_per_hour = flow_rate * (AV_FRAC),
-#            departLane="random", departSpeed=10)
-#
-# traffic_lights = TrafficLights()
-# if not DISABLE_TB:
-#     traffic_lights.add(node_id="2")
-# if not DISABLE_RAMP_METER:
-#     traffic_lights.add(node_id="3")
-#
-# additional_net_params = {"scaling": SCALING}
-# net_params = NetParams(in_flows=inflow,
-#                        no_internal_links=False, additional_params=additional_net_params)
+inflow = InFlows()
+inflow.add(veh_type="human", edge="1",
+           vehs_per_hour = flow_rate *(1-AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
+           departLane="random", departSpeed=10)
+inflow.add(veh_type="followerstopper", edge="1",
+           vehs_per_hour = flow_rate * (AV_FRAC),
+           departLane="random", departSpeed=10)
+
+traffic_lights = TrafficLights()
+if not DISABLE_TB:
+    traffic_lights.add(node_id="2")
+if not DISABLE_RAMP_METER:
+    traffic_lights.add(node_id="3")
+
+additional_net_params = {"scaling": SCALING}
+net_params = NetParams(in_flows=inflow,
+                       no_internal_links=False, additional_params=additional_net_params)
 
 initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
                                edges_distribution=["2", "3", "4", "5"])
-
-
-
-def run_task(*_):
-    flow_rate = 1000 * SCALING + i * 100
-    print('flow rate is ', flow_rate)
-    env_name = "DesiredVelocityEnv"
-    inflow = InFlows()
-    inflow.add(veh_type="human", edge="1",
-               vehs_per_hour=flow_rate * (1 - AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
-               departLane="random", departSpeed=10)
-    inflow.add(veh_type="followerstopper", edge="1",
-               vehs_per_hour=flow_rate * (AV_FRAC),
-               departLane="random", departSpeed=10)
-
-    traffic_lights = TrafficLights()
-    if not DISABLE_TB:
-        traffic_lights.add(node_id="2")
-    if not DISABLE_RAMP_METER:
-        traffic_lights.add(node_id="3")
-
-    additional_net_params = {"scaling": SCALING}
-    net_params = NetParams(in_flows=inflow,
-                           no_internal_links=False, additional_params=additional_net_params)
-    scenario = BBTollScenario(name="bay_bridge_toll",
+scenario = BBTollScenario(name="bay_bridge_toll",
                               generator_class=BBTollGenerator,
                               vehicles=vehicles,
                               net_params=net_params,
                               initial_config=initial_config,
                               traffic_lights=traffic_lights)
+
+
+def run_task(*_):
+    # flow_rate = 1000 * SCALING + i * 100
+    # print('flow rate is ', flow_rate)
+    # env_name = "DesiredVelocityEnv"
+    # inflow = InFlows()
+    # inflow.add(veh_type="human", edge="1",
+    #            vehs_per_hour=flow_rate * (1 - AV_FRAC),  # vehsPerHour=veh_per_hour *0.8,
+    #            departLane="random", departSpeed=10)
+    # inflow.add(veh_type="followerstopper", edge="1",
+    #            vehs_per_hour=flow_rate * (AV_FRAC),
+    #            departLane="random", departSpeed=10)
+    #
+    # traffic_lights = TrafficLights()
+    # if not DISABLE_TB:
+    #     traffic_lights.add(node_id="2")
+    # if not DISABLE_RAMP_METER:
+    #     traffic_lights.add(node_id="3")
+    #
+    # additional_net_params = {"scaling": SCALING}
+    # net_params = NetParams(in_flows=inflow,
+    #                        no_internal_links=False, additional_params=additional_net_params)
+    # scenario = BBTollScenario(name="bay_bridge_toll",
+    #                           generator_class=BBTollGenerator,
+    #                           vehicles=vehicles,
+    #                           net_params=net_params,
+    #                           initial_config=initial_config,
+    #                           traffic_lights=traffic_lights)
     pass_params = (env_name, sumo_params, vehicles, env_params,
                        net_params, initial_config, scenario)
 
@@ -140,7 +145,7 @@ def run_task(*_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=horizon*64,
+        batch_size=horizon*32*2,
         max_path_length=horizon,
         # whole_paths=True,
         n_itr=400,
@@ -151,19 +156,19 @@ def run_task(*_):
 
 
 #for _ in range(2):
-exp_tag = "VSLLaneInflowDensityLearning"  # experiment prefix
+exp_tag = "VSLLaneInflowDensityLearning3"  # experiment prefix
 for j in range(1):
     for seed in [20]:  # , 1, 5, 10, 73]:
         run_experiment_lite(
             run_task,
             # Number of parallel workers for sampling
-            n_parallel= 1,
+            n_parallel= 16,
             # Only keep the snapshot parameters for the last iteration
             snapshot_mode="all",
             # Specifies the seed for the experiment. If this is not provided, a
             # random seed will be used
             seed=seed,
-            mode="local_docker",
+            mode="ec2",
             exp_prefix=exp_tag,
             # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
             # plot=True,
