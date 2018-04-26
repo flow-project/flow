@@ -42,6 +42,7 @@ ENV_PARAMS = [
     "segments",  # number of regions for velocity bottleneck controller
     "lanes",  # controlled lanes for EarlyLC experiments
     "symmetric",  # whether lanes in a segment have the same action or not
+    "observed_segments",  # which edges are observed
 ]
 
 NET_PARAMS = [
@@ -597,17 +598,36 @@ class DesiredVelocityEnv(BridgeTollEnv):
         additional_params = self.env_params.additional_params
         self.controlled_lanes = additional_params.get("lanes", lanes_list)
 
-        # self.symmetric is True if all lanes in a segment have same action, else False
-        self.symmetric = additional_params.get("symmetric", True)
+        # for convenience, construct the relevant positions defining
+        # segments within edges
+        # self.slices is a dictionary mapping
+        # edge (str) -> segment start location (list of int)
+        self.slices = {}
+        for edge, num_segments, _ in self.segments:
+            edge_length = self.scenario.edge_length(edge)
+            self.slices[edge] = np.linspace(0, edge_length, num_segments + 1)
+
+        # get info for observed segments
+        default_obs = [("1", 1), ("2", 1), ("3", 1),
+                   ("4", 1), ("5", 1)]
+        self.obs_segments = self.env_params.additional_params.get("observed_segments", default)
+
+        # number of segments for each edge
+        self.num_obs_segments = [segment[1] for segment in self.obs_segments]
 
         # for convenience, construct the relevant positions defining
         # segments within edges
         # self.slices is a dictionary mapping
         # edge (str) -> segment start location (list of int)
-        self.slices = {}  
-        for edge, num_segments, _ in self.segments:
+        self.obs_slices = {}
+        for edge, num_segments in self.obs_segments:
             edge_length = self.scenario.edge_length(edge)
-            self.slices[edge] = np.linspace(0, edge_length, num_segments+1)
+            self.obs_slices[edge] = np.linspace(0, edge_length, num_segments + 1)
+
+        # self.symmetric is True if all lanes in a segment have same action, else False
+        self.symmetric = additional_params.get("symmetric", True)
+
+
 
         # action index tells us, given an edge and a lane,the offset into
         # rl_actions that we should take. The indexing order is
@@ -647,7 +667,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         num_obs = 0
         # density and velocity for rl and non-rl vehicles per segment
         # Last element is the outflow
-        for segment in self.segments:
+        for segment in self.obs_segments:
             num_obs += 4*segment[1] * self.scenario.num_lanes(segment[0])
         num_obs += 1
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
@@ -679,15 +699,15 @@ class DesiredVelocityEnv(BridgeTollEnv):
         NUM_VEHICLE_NORM = 20
         for i, edge in enumerate(EDGE_LIST):
             num_lanes = self.scenario.num_lanes(edge)
-            num_vehicles = np.zeros((self.num_segments[i], num_lanes))
-            num_rl_vehicles = np.zeros((self.num_segments[i], num_lanes))
-            vehicle_speeds = np.zeros((self.num_segments[i], num_lanes))
-            rl_vehicle_speeds = np.zeros((self.num_segments[i], num_lanes))
+            num_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
+            num_rl_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
+            vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
+            rl_vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
             ids = self.vehicles.get_ids_by_edge(edge)
             lane_list = self.vehicles.get_lane(ids)
             pos_list = self.vehicles.get_position(ids)
             for i, id in enumerate(ids):
-                segment = np.searchsorted(self.slices[edge], pos_list[i]) - 1
+                segment = np.searchsorted(self.obs_slices[edge], pos_list[i]) - 1
                 if id in self.vehicles.get_rl_ids():
                     rl_vehicle_speeds[segment, lane_list[i]] \
                         += self.vehicles.get_speed(id)
@@ -772,17 +792,17 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def compute_reward(self, state, rl_actions, **kwargs):
 
-        reward = self.vehicles.get_outflow_rate(20*self.sim_step)/200.0 #+ \
+        reward = self.vehicles.get_outflow_rate(10*self.sim_step)/200.0 #+ \
             #0.01*rewards.desired_velocity(self)/self.max_speed
 
         #penalize high density in the bottleneck
-        bottleneck_ids = self.vehicles.get_ids_by_edge('4')
-        # FIXME(ev) convert to passed in env param
-        bottleneck_threshold = 35  # could be 10 also
-        if len(bottleneck_ids) > bottleneck_threshold:
-            reward -= len(bottleneck_ids) - bottleneck_threshold
-
-        print('outflow is', self.vehicles.get_outflow_rate(800))
+        # bottleneck_ids = self.vehicles.get_ids_by_edge('4')
+        # # FIXME(ev) convert to passed in env param
+        # bottleneck_threshold = 35  # could be 10 also
+        # if len(bottleneck_ids) > bottleneck_threshold:
+        #     reward -= len(bottleneck_ids) - bottleneck_threshold
+        #
+        # print('outflow is', self.vehicles.get_outflow_rate(800))
 
         return reward
 
@@ -790,7 +810,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def reset(self):
         #print(self.vehicles.get_outflow_rate(10000))
-        flow_rate = np.random.uniform(1000, 2200) * self.scaling
+        flow_rate = np.random.uniform(1000, 2000) * self.scaling
         print('flow rate is ', flow_rate)
         for _ in range(100):
             try:

@@ -60,9 +60,12 @@ horizon = 1000
 # controlled
 num_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
                 ("4", 2, True), ("5", 1, False)]
+num_observed_segments = [("1", 1), ("2", 3), ("3", 3),
+                ("4", 3), ("5", 1)]
 additional_env_params = {"target_velocity": 40, "num_steps": horizon,
                          "disable_tb": True, "disable_ramp_metering": True,
-                         "segments": num_segments, "symmetric": False}
+                         "segments": num_segments, "symmetric": False,
+                         "observed_segments": num_observed_segments}
 env_params = EnvParams(additional_params=additional_env_params,
                        lane_change_duration=1, warmup_steps=40,
                        sims_per_step=2, horizon=horizon)
@@ -156,9 +159,9 @@ def run_task(*_):
 
 
 #for _ in range(2):
-exp_tag = "VSLLaneInflowDensityLearning3"  # experiment prefix
+exp_tag = "VSLLaneInflowDensityLearning4"  # experiment prefix
 for j in range(1):
-    for seed in [20]:  # , 1, 5, 10, 73]:
+    for seed in [2, 3, 4]:  # , 1, 5, 10, 73]:
         run_experiment_lite(
             run_task,
             # Number of parallel workers for sampling
