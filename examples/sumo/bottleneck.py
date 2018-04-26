@@ -27,7 +27,8 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary)
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary,
+                             overtake_right=False, restart_instance=True)
 
     vehicles = Vehicles()
 
@@ -80,7 +81,7 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
 @ray.remote
 def run_bottleneck(density, num_trials, num_steps):
     print("Running experiment for density: ", density)
-    exp = bottleneck(density, num_steps, sumo_binary="sumo-gui")
+    exp = bottleneck(density, num_steps, sumo_binary="sumo")
     outflow, velocity, bottleneckdensity = exp.run(num_trials, num_steps)
     per_step_avg_velocities = exp.per_step_avg_velocities[:1]
     per_step_densities = exp.per_step_densities[:1]
@@ -90,7 +91,7 @@ def run_bottleneck(density, num_trials, num_steps):
 
 if __name__ == "__main__":
     # import the experiment variable
-    densities = list(range(1800,2000,100)) # start stop step
+    densities = list(range(800,2000,100)) # start stop step
     outflows = []
     velocities = []
     bottleneckdensities = []
@@ -104,7 +105,7 @@ if __name__ == "__main__":
     # bottleneck_outputs = [run_bottleneck(d, 5, 1500) for d in densities]
     # for output in bottleneck_outputs:
 
-    ray.init(num_cpus=1, redirect_output=False)
+    ray.init(num_cpus=8)
     bottleneck_outputs = [run_bottleneck.remote(d, 5, 2000) for d in densities]
     for output in ray.get(bottleneck_outputs):
         outflow, velocity, bottleneckdensity, per_step_vel, per_step_den, per_step_out = output
