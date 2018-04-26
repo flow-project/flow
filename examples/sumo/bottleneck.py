@@ -11,22 +11,22 @@ from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
-from flow.envs.bottleneck_env import BottleNeckEnv
+from flow.envs.bottleneck_env import BridgeTollEnv
+from flow.core.experiment import BottleneckDensityExperiment
 from flow.core.experiment import SumoExperiment
+import numpy as np
+import ray
 
-SCALING = 4
+SCALING = 1
 DISABLE_TB = True
-DISABLE_RAMP_METER = True
-FLOW_RATE = 1500 * SCALING  # inflow rate
+DISABLE_RAMP_METER = False
 
 
-def bottleneck_example(sumo_binary=None):
-    sumo_params = SumoParams(sim_step=0.5,
-                             sumo_binary="sumo-gui")
+def bottleneck(flow_rate, horizon, sumo_binary=None):
 
     if sumo_binary is None:
-        sumo_binary = "sumo-gui"
-    sumo_params = SumoParams(sim_step = 0.5, sumo_binary="sumo-gui")
+        sumo_binary = "sumo"
+    sumo_params = SumoParams(sim_step = 0.5, sumo_binary=sumo_binary)
 
     vehicles = Vehicles()
 
@@ -35,18 +35,17 @@ def bottleneck_example(sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
-                 # sumo_car_following_params=SumoCarFollowingParams(
-                 #     minGap=2.5, tau=1.0, speedDev=0.5),
                  num_vehicles=1*SCALING)
 
     additional_env_params = {"target_velocity": 40,
                              "disable_tb": True,
                              "disable_ramp_metering": True}
-    env_params = EnvParams(additional_params=additional_env_params,
+    env_params = EnvParams(horizon=horizon,
+                           additional_params=additional_env_params,
                            lane_change_duration=1)
 
     inflow = InFlows()
-    inflow.add(veh_type="human", edge="1", vehsPerHour=FLOW_RATE,
+    inflow.add(veh_type="human", edge="1", vehsPerHour=flow_rate,
                departLane="random", departSpeed=10)
 
     traffic_lights = TrafficLights()
@@ -71,14 +70,52 @@ def bottleneck_example(sumo_binary=None):
                               initial_config=initial_config,
                               traffic_lights=traffic_lights)
 
-    env = BottleNeckEnv(env_params, sumo_params, scenario)
+    env = BridgeTollEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return BottleneckDensityExperiment(env, scenario)
 
+
+@ray.remote
+def run_bottleneck(density, num_trials, num_steps):
+    print("Running experiment for density: ", density)
+    exp = bottleneck(density, num_steps, sumo_binary="sumo-gui")
+    outflow, velocity, bottleneckdensity = exp.run(num_trials, num_steps)
+    per_step_avg_velocities = exp.per_step_avg_velocities[:1]
+    per_step_densities = exp.per_step_densities[:1]
+    per_step_outflows = exp.per_step_outflows[:1]
+
+    return outflow, velocity, bottleneckdensity, per_step_avg_velocities, per_step_densities, per_step_outflows
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bottleneck_example()
+    densities = list(range(1800,2000,100)) # start stop step
+    outflows = []
+    velocities = []
+    bottleneckdensities = []
 
-    # run for a set number of rollouts / time steps
-    exp.run(10, 300)
+    per_step_densities = []
+    per_step_avg_velocities = []
+    per_step_outflows = []
+
+
+    #
+    # bottleneck_outputs = [run_bottleneck(d, 5, 1500) for d in densities]
+    # for output in bottleneck_outputs:
+
+    ray.init(num_cpus=1, redirect_output=False)
+    bottleneck_outputs = [run_bottleneck.remote(d, 5, 2000) for d in densities]
+    for output in ray.get(bottleneck_outputs):
+        outflow, velocity, bottleneckdensity, per_step_vel, per_step_den, per_step_out = output
+
+        outflows.append(outflow)
+        velocities.append(velocity)
+        bottleneckdensities.append(bottleneckdensity)
+
+        per_step_densities.extend(per_step_den)
+        per_step_avg_velocities.extend(per_step_vel)
+        per_step_outflows.extend(per_step_out)
+
+    np.savetxt("rets_alinea.csv", np.matrix([densities, outflows, velocities, bottleneckdensities]).T, delimiter=",")
+    np.savetxt("vels_alinea.csv", np.matrix(per_step_avg_velocities), delimiter=",")
+    np.savetxt("dens_alinea.csv", np.matrix(per_step_densities), delimiter=",")
+    np.savetxt("outflow_alinea.csv", np.matrix(per_step_outflows), delimiter=",")
