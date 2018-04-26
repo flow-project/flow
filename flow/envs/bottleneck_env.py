@@ -1,19 +1,9 @@
-<<<<<<< HEAD
-from flow.envs.lane_changing import LaneChangeAccelEnv
-from flow.core import rewards
-from flow.core import multi_agent_rewards
-from flow.controllers.velocity_controllers import FollowerStopper
-from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import InFlows, NetParams
 from flow.core.vehicles import Vehicles
 
-from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
-=======
->>>>>>> ALINEA
 from collections import defaultdict
 from copy import deepcopy
 
