@@ -16,14 +16,23 @@ RETRIES_ON_ERROR = 100
 
 
 class Scenario(Serializable):
+
     def __init__(self, name, generator_class, vehicles, net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """
-        Abstract base class. Initializes a new scenario. This class can be
-        instantiated once and reused in multiple experiments. Note that this
-        function stores all the relevant parameters. The generate() function
-        still needs to be called separately.
+        """Base scenario class.
+
+        Initializes a new scenario. Scenarios are used to specify features of
+        a network, including the positions of nodes, properties of the edges
+        and junctions connecting these nodes, properties of vehicles and
+        traffic lights, and other features as well.
+
+        Several network specific features can be acquired from this class via a
+        plethora of get methods (see documentation).
+
+        This class can be instantiated once and reused in multiple experiments.
+        Note that this function stores all the relevant parameters. The
+        generate() function still needs to be called separately.
 
         Attributes
         ----------
@@ -115,9 +124,9 @@ class Scenario(Serializable):
         return
 
     def specify_edge_starts(self):
-        """
-        Defines edge starts for road sections with respect to some global
+        """Defines edge starts for road sections with respect to some global
         reference frame.
+
         MUST BE implemented in any new scenario subclass.
 
         Returns
@@ -129,11 +138,12 @@ class Scenario(Serializable):
         raise NotImplementedError
 
     def specify_intersection_edge_starts(self):
-        """
-        Defines edge starts for intersections with respect to some global
-        reference frame. Need not be specified if no intersections exist.
-        These values can be used to determine the distance of some agent from
-        the nearest and/or all intersections.
+        """Defines edge starts for intersections with respect to some global
+        reference frame.
+
+        This does not need to be specified if no intersections exist. These
+        values can be used to determine the distance of some agent from the
+        nearest and/or all intersections.
 
         Returns
         -------
@@ -144,12 +154,11 @@ class Scenario(Serializable):
         return []
 
     def specify_internal_edge_starts(self):
-        """
-        Defines the edge starts for internal edge nodes
-        (caused by finite-length connections between road sections) with
-        respect to some global reference frame. Does not need to be
-        specified if "no-internal-links" is set to
-        True in net_params.
+        """Defines the edge starts for internal edge nodes.
+
+        These edges are the result of finite-length connections between road
+        sections. This methods does not need to be specified if "no-internal-
+        links" is set to True in net_params.
 
         Returns
         -------
@@ -160,9 +169,8 @@ class Scenario(Serializable):
         return []
 
     def get_edge(self, x):
-        """
-        Given an absolute position x on the track, returns the edge (name) and
-        relative position on that edge.
+        """Given an absolute position x on the track, returns the edge (name)
+        and relative position on that edge.
 
         Parameters
         ----------
@@ -180,9 +188,8 @@ class Scenario(Serializable):
                 return edge, x - start_pos
 
     def get_x(self, edge, position):
-        """
-        Given an edge name and relative position, return the absolute position
-        on the track.
+        """Given an edge name and relative position, return the absolute
+        position on the track.
 
         Parameters
         ----------
@@ -208,14 +215,14 @@ class Scenario(Serializable):
                 # in case several internal links are being generalized for
                 # by a single element (for backwards compatibility)
                 edge_name = edge.rsplit("_", 1)[0]
-                return self.total_edgestarts_dict.get(edge_name, 0)
+                return self.total_edgestarts_dict.get(edge_name, -1001)
         else:
             return self.total_edgestarts_dict[edge] + position
 
     def generate_starting_positions(self, num_vehicles=None, **kwargs):
-        """
-        Generates starting positions for vehicles in the network. Calls all
-        other starting position generating classes.
+        """Generates starting positions for vehicles in the network.
+
+        Calls all other starting position generating classes.
 
         Parameters
         ----------
@@ -251,12 +258,13 @@ class Scenario(Serializable):
         return startpositions, startlanes
 
     def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """
-        Generates start positions that are uniformly spaced across the network.
+        """Generates start positions that are uniformly spaced across the
+        network.
+
         If the perturbation term in initial_config is set to some positive
         value, then the start positions are perturbed from a uniformly spaced
-        distribution by a gaussian whose std is equal to this
-        perturbation term.
+        distribution by a gaussian whose std is equal to this perturbation
+        term.
 
         Parameters
         ----------
@@ -353,9 +361,8 @@ class Scenario(Serializable):
         return startpositions, startlanes
 
     def gen_random_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """
-        Generates random starting positions for vehicles in the allocated lanes
-        and edges.
+        """Generates random starting positions for vehicles in the allocated
+        lanes and edges.
 
         Parameters
         ----------
@@ -432,8 +439,7 @@ class Scenario(Serializable):
         return startpositions, startlanes
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """
-        Generates a user defined set of starting positions. Optional
+        """Generates a user defined set of starting positions.
 
         Parameters
         ----------
@@ -455,7 +461,8 @@ class Scenario(Serializable):
         raise NotImplementedError
 
     def _get_start_pos_util(self, initial_config, num_vehicles, **kwargs):
-        """
+        """Utility function for generating starting position.
+
         Performs some pre-processing to the initial_config and **kwargs terms,
         and returns the necessary values for all starting position generating
         functions.
@@ -554,9 +561,7 @@ class Scenario(Serializable):
                 available_edges, initial_config)
 
     def edge_length(self, edge_id):
-        """
-        Returns the length of a given edge/junction.
-        """
+        """Returns the length of a given edge/junction. Returns -1001 if edge not found."""
         try:
             return self._edges[edge_id]["length"]
         except KeyError:
@@ -564,9 +569,7 @@ class Scenario(Serializable):
             return -1001
 
     def speed_limit(self, edge_id):
-        """
-        Returns the speed limit of a given edge/junction.
-        """
+        """Returns the speed limit of a given edge/junction. Returns -1001 if edge not found."""
         try:
             return self._edges[edge_id]["speed"]
         except KeyError:
@@ -574,9 +577,7 @@ class Scenario(Serializable):
             return -1001
 
     def num_lanes(self, edge_id):
-        """
-        Returns the number of lanes of a given edge/junction.
-        """
+        """Returns the number of lanes of a given edge/junction. Returns -1001 if edge not found."""
         try:
             return self._edges[edge_id]["lanes"]
         except KeyError:
@@ -584,34 +585,26 @@ class Scenario(Serializable):
             return -1001
 
     def get_edge_list(self):
-        """
-        Returns the names of all edges in the network.
-        """
+        """Returns the names of all edges in the network."""
         return self._edge_list
 
     def get_junction_list(self):
-        """
-        Returns the names of all junctions in the network.
-        """
+        """Returns the names of all junctions in the network."""
         return self._junction_list
 
     def next_edge(self, edge, lane):
-        """
-        Returns the next edge/lane pair from the given edge/lane. These edges
-        may also be internal links (junctions). Returns an empty list if there
-        are no edge/lane pairs in front.
-        """
+        """Returns the next edge/lane pair from the given edge/lane. These
+        edges may also be internal links (junctions). Returns an empty list if
+        there are no edge/lane pairs in front."""
         try:
             return self._connections["next"][edge][lane]
         except KeyError:
             return []
 
     def prev_edge(self, edge, lane):
-        """
-        Returns the edge/lane pair right before this edge/lane. These edges may
-        also be internal links (junctions). Returns an empty list if there
-        are no edge/lane pairs behind.
-        """
+        """Returns the edge/lane pair right before this edge/lane. These edges
+        may also be internal links (junctions). Returns an empty list if there
+        are no edge/lane pairs behind."""
         try:
             return self._connections["prev"][edge][lane]
         except KeyError:

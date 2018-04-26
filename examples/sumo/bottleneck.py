@@ -22,6 +22,7 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = False
 
 
+
 def bottleneck(flow_rate, horizon, sumo_binary=None):
 
     if sumo_binary is None:
@@ -31,7 +32,7 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
     vehicles = Vehicles()
 
     vehicles.add(veh_id="human",
-                 speed_mode=31,
+                 speed_mode=25,
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
@@ -39,9 +40,10 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
 
     additional_env_params = {"target_velocity": 40,
                              "disable_tb": True,
-                             "disable_ramp_metering": True}
+                             "disable_ramp_metering": DISABLE_RAMP_METER}
     env_params = EnvParams(horizon=horizon,
                            additional_params=additional_env_params,
+
                            lane_change_duration=1)
 
     inflow = InFlows()
@@ -119,3 +121,4 @@ if __name__ == "__main__":
     np.savetxt("vels_alinea.csv", np.matrix(per_step_avg_velocities), delimiter=",")
     np.savetxt("dens_alinea.csv", np.matrix(per_step_densities), delimiter=",")
     np.savetxt("outflow_alinea.csv", np.matrix(per_step_outflows), delimiter=",")
+

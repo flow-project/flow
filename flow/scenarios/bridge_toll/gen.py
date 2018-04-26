@@ -66,7 +66,6 @@ class BBTollGenerator(Generator):
         for i in range(2*scaling):
             conn += [{"from": "4", "to": "5", "fromLane": str(i),
                       "toLane": str(int(np.floor(i/2)))}]
-
         return conn
 
     def specify_routes(self, net_params):

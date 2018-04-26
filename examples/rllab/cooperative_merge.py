@@ -4,30 +4,25 @@ vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
 merge into the inner ring. rllab version.
 """
 
-import logging
-import numpy as np
-
-from rllab.envs.normalized_env import normalize
-from rllab.misc.instrument import run_experiment_lite
+from flow.scenarios.two_loops_one_merging.scenario \
+    import TwoLoopsOneMergingScenario
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
+from rllab.envs.normalized_env import normalize
+from rllab.misc.instrument import run_experiment_lite
+from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from flow.core.params import *
-from flow.core.vehicles import Vehicles
-
-from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import *
 from flow.controllers.lane_change_controllers import *
+from flow.controllers.rlcontroller import RLController
 from flow.controllers.routing_controllers import ContinuousRouter
-
-from flow.scenarios.two_loops_one_merging_new.gen import TwoLoopOneMergingGenerator
-from flow.scenarios.two_loops_one_merging_new.scenario \
-    import TwoLoopsOneMergingScenario
-
+from flow.core.params import *
+from flow.core.vehicles import Vehicles
+from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
 
 HORIZON = 300
+
 
 def run_task(*_):
     logging.basicConfig(level=logging.INFO)
