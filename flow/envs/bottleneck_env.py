@@ -101,11 +101,11 @@ class BridgeTollEnv(Env):
             self.disable_ramp_metering = \
                 env_params.get_additional_param("disable_ramp_metering")
         # values for the ramp meter
-        self.n_crit = env_add_params.get("n_crit", 10) # capacity drop value 8 is best value so far
-        self.q_max = env_add_params.get("q_max", 1.2*1100) #FIXME(ev) calibrate
+        self.n_crit = env_add_params.get("n_crit", 8) # capacity drop value 8 is best value so far
+        self.q_max = env_add_params.get("q_max", 1100) #FIXME(ev) calibrate
         self.q_min = env_add_params.get("q_min", .25*1100) #FIXME(ev) calibrate
         self.q = self.q_min # ramp meter feedback controller
-        self.feedback_update_time = env_add_params.get("feedback_update", 30)
+        self.feedback_update_time = env_add_params.get("feedback_update", 15)
         self.feedback_timer = 0.0
         self.cycle_time = 6
         cycle_offset = 8
@@ -113,9 +113,9 @@ class BridgeTollEnv(Env):
                                       self.scaling * MAX_LANES)
         self.green_time = 4
         self.red_min = 2
-        self.feedback_coeff = env_add_params.get("feedback_coeff", 40) #FIXME(ev) calibrate
+        self.feedback_coeff = env_add_params.get("feedback_coeff", 20) #FIXME(ev) calibrate
 
-        self.outflow_history = np.zeros(20)
+        self.smoothed_num = np.zeros(10) # averaged number of vehs in '4'
         self.outflow_index = 0
 
 
@@ -147,8 +147,8 @@ class BridgeTollEnv(Env):
 
         # compute the outflow
         veh_ids = self.vehicles.get_ids_by_edge('4')
-        self.outflow_history[self.outflow_index] = len(veh_ids)
-        self.outflow_index = (self.outflow_index + 1) % self.outflow_history.shape[0]
+        self.smoothed_num[self.outflow_index] = len(veh_ids)
+        self.outflow_index = (self.outflow_index + 1) % self.smoothed_num.shape[0]
 
         if self.time_counter > self.next_period:
             self.density = self.cars_arrived  # / (PERIOD/self.sim_step)
@@ -200,19 +200,10 @@ class BridgeTollEnv(Env):
             # find all the vehicles in an edge
             veh_ids = self.vehicles.get_ids_by_edge('4')
             N = len(veh_ids)
-            # print('N is', N)
-            # density = N/self.scenario.edge_length('4')
-            # velocity = np.average(self.vehicles.get_speed(veh_ids))
-            # outflow = density*velocity*3600
-            # print('outflow is', outflow)
-            print('outflow is ', self.vehicles.get_outflow_rate(10000))
-            print('crit diff is ', self.n_crit -  np.average(self.outflow_history))
-            self.q = np.clip(self.q + self.feedback_coeff*(self.n_crit - np.average(self.outflow_history)),
+            self.q = np.clip(self.q + self.feedback_coeff*(self.n_crit - np.average(self.smoothed_num)),
                              a_min=self.q_min, a_max=self.q_max)
             # convert q to cycle time
             self.cycle_time = 7200/self.q
-            print('cycle time is', self.cycle_time)
-            print('q value is', self.q)
 
         # now apply the ramp meter
         self.ramp_state %= self.cycle_time
@@ -282,7 +273,7 @@ class BridgeTollEnv(Env):
 
         if newTLState != self.tl_state:
             self.tl_state = newTLState
-            self.traci_connection.trafficlights.setRedYellowGreenState(
+            self.traci_connection.trafficlight.setRedYellowGreenState(
                 tlsID=TB_TL_ID, state=newTLState)
 
     def distance_to_bottleneck(self, veh_id):
@@ -702,9 +693,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         += self.vehicles.get_speed(id)
                     num_rl_vehicles[segment, lane_list[i]] += 1
                 else:
-                    num_vehicles[segment, lane_list[i]] += 1
                     vehicle_speeds[segment, lane_list[i]] \
                         += self.vehicles.get_speed(id)
+                    num_vehicles[segment, lane_list[i]] += 1
 
             # normalize
 
@@ -791,7 +782,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         if len(bottleneck_ids) > bottleneck_threshold:
             reward -= len(bottleneck_ids) - bottleneck_threshold
 
-        #print('outflow is', self.vehicles.get_outflow_rate(300))
+        print('outflow is', self.vehicles.get_outflow_rate(800))
 
         return reward
 
@@ -800,7 +791,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def reset(self):
         #print(self.vehicles.get_outflow_rate(10000))
         flow_rate = np.random.uniform(1000, 2200) * self.scaling
-        #print('flow rate is ', flow_rate)
+        print('flow rate is ', flow_rate)
         for _ in range(100):
             try:
                 inflow = InFlows()
