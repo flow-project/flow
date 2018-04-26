@@ -610,7 +610,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         # get info for observed segments
         default_obs = [("1", 1), ("2", 1), ("3", 1),
                    ("4", 1), ("5", 1)]
-        self.obs_segments = self.env_params.additional_params.get("observed_segments", default)
+        self.obs_segments = self.env_params.additional_params.get("observed_segments", default_obs)
 
         # number of segments for each edge
         self.num_obs_segments = [segment[1] for segment in self.obs_segments]
