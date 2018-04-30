@@ -164,7 +164,7 @@ def punish_small_rl_headways(vehicles, rl_ids, headway_threshold,
     return -np.abs(headway_penalty)
 
 
-def punish_rl_lane_changes(vehicles, rl_ids, penalty=1):
+def punish_rl_lane_changes(env, vehicles, rl_ids, penalty=1):
     """
     A reward function that minimizes lane changes by producing a penalty
     every time an rl vehicle performs one.
@@ -177,7 +177,7 @@ def punish_rl_lane_changes(vehicles, rl_ids, penalty=1):
     """
     total_lane_change_penalty = 0
     for veh_id in rl_ids:
-        if vehicles[veh_id]["last_lc"] == self.timer:  # FIXME
+        if vehicles[veh_id]["last_lc"] == env.time_counter:  # FIXME
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
