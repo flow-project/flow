@@ -14,7 +14,8 @@ from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.util import NameEncoder, get_flow_params
+from flow.core.util import NameEncoder, get_flow_params, get_rllib_config
+import ray.rllib.ppo as ppo
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -64,22 +65,31 @@ class TestJSON(unittest.TestCase):
                                                version=0,
                                                exp_tag=exp_tag)
 
-        # Logging out flow_params to ray's experiment result folder
-        current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
-        json_out_file = current_path + '/test_files/flow_params.json'
-        with open(json_out_file, 'w') as outfile:
-            json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
-                      indent=4)
+        config = ppo.DEFAULT_CONFIG.copy()
+        # save the flow params for replay
+        flow_json = json.dumps(flow_params, cls=NameEncoder, sort_keys=True,
+                               indent=4)
+        config['env_config']['flow_params'] = flow_json
+
+        # dump the config so we can fetch it
+        json_out_file = '~/params.json'
+        with open(os.path.expanduser(json_out_file), 'w+') as outfile:
+            json.dump(config, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+
+        config = get_rllib_config(os.path.expanduser('~'))
 
         # Fetching values using utility function `get_flow_params`
         imported_flow_params, mce = \
-            get_flow_params(current_path + '/test_files')
+            get_flow_params(config)
 
         # Making sure the right make_create_env is returned
         self.assertTrue(mce is make_create_env)
 
         # Making sure the imported flow_params match the originals
         self.assertTrue(imported_flow_params == flow_params)
+
+        # delete the created file
+        os.remove(os.path.expanduser('~/params.json'))
 
     def tearDown(self):
         ray.worker.cleanup()

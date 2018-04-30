@@ -6,7 +6,6 @@ Attributes
 EXAMPLE_USAGE : str
     Example call to the function, which is
     ::
-    
         python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
 
 optional_named : ArgumentGroup
@@ -18,19 +17,16 @@ required_named : ArgumentGroup
 """
 
 import argparse
-import json
 import importlib
 
 import numpy as np
 
-import gym
 import ray
-import ray.rllib.ppo as ppo
 from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env as register_rllib_env
+from ray.rllib.models import ModelCatalog
 
-from flow.core.util import unstring_flow_params, get_rllib_config, get_flow_params
-
+from flow.core.util import get_rllib_config, get_flow_params
 
 EXAMPLE_USAGE = """
 example usage:
@@ -38,7 +34,7 @@ example usage:
 OR
     python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO \
         --module cooperative_merge --flowenv TwoLoopsMergePOEnv \
-        --exp_tag cooperative_merge_example    
+        --exp_tag cooperative_merge_example
 
 Here the arguments are:
 1 - the number of the checkpoint
@@ -74,7 +70,7 @@ optional_named.add_argument(
          "user-defined trainable function or class registered in the "
          "tune registry.")
 optional_named.add_argument(
-    '--num_rollouts', type=int, default=10,
+    '--num_rollouts', type=int, default=1,
     help="The number of rollouts to visualize.")
 optional_named.add_argument(
     '--module', type=str, default='',
@@ -105,7 +101,7 @@ if __name__ == "__main__":
         flow_env_name = args.flowenv
         exp_tag = args.exp_tag
     else:
-        flow_params, make_create_env = get_flow_params(result_dir)
+        flow_params, make_create_env = get_flow_params(config)
 
         flow_env_name = flow_params['flowenv']
         exp_tag = flow_params['exp_tag']
@@ -123,22 +119,24 @@ if __name__ == "__main__":
     agent_cls = get_agent_class(args.run)
     agent = agent_cls(env=env_name, registry=get_registry(), config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
-    agent.restore(checkpoint)
+    agent._restore(checkpoint)
 
-    # Create and register a new gym environment for rendering rollout
+    flow_params['sumo_binary'] = "sumo-gui"
     create_render_env, env_render_name = make_create_env(flow_env_name,
                                                          flow_params,
                                                          version=1,
                                                          sumo="sumo-gui")
-    env = create_render_env(None)
+    # Make sure the env is wrapped with a preprocessor
+    env = ModelCatalog.get_preprocessor_as_wrapper(get_registry(),
+                                                   create_render_env(None))
     rets = []
     for i in range(args.num_rollouts):
         state = env.reset()
         done = False
         ret = 0
         while not done:
-            if isinstance(state, list):
-                state = np.concatenate(state)
+            # if isinstance(state, list):
+            #     state = np.concatenate(state)
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward
