@@ -73,12 +73,9 @@ class SumoParams:
 class EnvParams:
 
     def __init__(self,
-                 lane_change_duration=None,
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
                  additional_params=None,
-                 max_decel=-6,
-                 max_accel=3,
                  horizon=500,
                  sort_vehicles=False,
                  warmup_steps=0,
@@ -91,10 +88,6 @@ class EnvParams:
 
         Attributes
         ----------
-        lane_change_duration: float, optional
-            lane changing duration is always present in the environment, but
-            only used by sub-classes that apply lane changing; defaults to
-            5 seconds
         vehicle_arrangement_shuffle: bool, optional
             determines if initial conditions of vehicles are shuffled at reset;
             False by default
@@ -104,10 +97,6 @@ class EnvParams:
         additional_params: dict, optional
             Specify additional environment params for a specific environment
             configuration
-        max_decel: float, optional
-            maximum deceleration of autonomous vehicles, defaults to -6 m/s2
-        max_accel: float, optional
-            maximum acceleration of autonomous vehicles, defaults to 3 m/s2
         horizon: int, optional
             number of steps per rollouts
         sort_vehicles: bool, optional
@@ -126,13 +115,10 @@ class EnvParams:
             simulation steps.
 
         """
-        self.lane_change_duration = lane_change_duration
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
         self.additional_params = \
             additional_params if additional_params is not None else {}
-        self.max_decel = max_decel
-        self.max_accel = max_accel
         self.horizon = horizon
         self.sort_vehicles = sort_vehicles
         self.warmup_steps = warmup_steps
@@ -140,24 +126,6 @@ class EnvParams:
 
     def get_additional_param(self, key):
         return self.additional_params[key]
-
-    def get_lane_change_duration(self, sim_step):
-        """Determines the lane change duration in units of steps
-
-        Parameters
-        ----------
-        sim_step: float
-            elapsed time per simulation step
-
-        Returns
-        -------
-        float
-            minimum number of steps in between lane changes
-        """
-        if not self.lane_change_duration:
-            return 5 / sim_step
-        else:
-            return self.lane_change_duration / sim_step
 
 
 class NetParams:

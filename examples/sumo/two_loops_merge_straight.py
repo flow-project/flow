@@ -1,7 +1,6 @@
 """
 Example of ring road with larger merging ring.
 """
-import logging
 
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
@@ -10,7 +9,7 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.two_loops_one_merging import TwoLoopsMergeEnv
+from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.two_loops_one_merging.gen import \
     TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.scenario import \
@@ -18,8 +17,6 @@ from flow.scenarios.two_loops_one_merging.scenario import \
 
 
 def two_loops_merge_straight_example(sumo_binary=None):
-    logging.basicConfig(level=logging.INFO)
-
     sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
                              sumo_binary="sumo-gui")
 
@@ -41,16 +38,15 @@ def two_loops_merge_straight_example(sumo_binary=None):
                  acceleration_controller=(IDMController, {}),
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
-                 num_vehicles=7,
+                 num_vehicles=10,
                  sumo_car_following_params=SumoCarFollowingParams(
                      minGap=0.01, tau=0.5),
                  sumo_lc_params=SumoLaneChangeParams())
 
-    additional_env_params = {"target_velocity": 20}
-    env_params = EnvParams(additional_params=additional_env_params)
+    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-    additional_net_params["ring_radius"] = 75
+    additional_net_params["ring_radius"] = 50
     additional_net_params["inner_lanes"] = 1
     additional_net_params["outer_lanes"] = 1
     additional_net_params["lane_length"] = 75
@@ -73,13 +69,9 @@ def two_loops_merge_straight_example(sumo_binary=None):
         initial_config=initial_config
     )
 
-    env = TwoLoopsMergeEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sumo_params, scenario)
 
-    exp = SumoExperiment(env, scenario)
-
-    logging.info("Experiment Set Up complete")
-
-    return exp
+    return SumoExperiment(env, scenario)
 
 
 if __name__ == "__main__":

@@ -6,8 +6,8 @@ class FollowerStopper(BaseController):
     def __init__(self, veh_id, sumo_cf_params, v_des=15, danger_edges=None):
         """Inspired by Dan Work's... work:
 
-        Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
-        https://arxiv.org/abs/1705.01693
+        Dissipation of stop-and-go waves via control of autonomous vehicles:
+        Field experiments https://arxiv.org/abs/1705.01693
 
         Parameters
         ----------
@@ -15,8 +15,6 @@ class FollowerStopper(BaseController):
             unique vehicle identifier
         v_des: float, optional
             desired speed of the vehicles (m/s)
-        max_accel: float, optional
-            maximum achievable acceleration by the vehicle (m/s^2)
         """
         BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
@@ -70,7 +68,8 @@ class FollowerStopper(BaseController):
             elif dx <= dx_2:
                 v_cmd = this_vel * (dx - dx_1) / (dx_2 - dx_1)
             elif dx <= dx_3:
-                v_cmd = this_vel + (self.v_des - this_vel) * (dx - dx_2) / (dx_3 - dx_2)
+                v_cmd = this_vel + (self.v_des - this_vel) * (dx - dx_2) \
+                        / (dx_3 - dx_2)
             else:
                 v_cmd = self.v_des
 
@@ -79,8 +78,8 @@ class FollowerStopper(BaseController):
         if edge == "":
             return None
         if self.find_intersection_dist(env) <= 10 and \
-                        env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
-                        env.vehicles.get_edge(self.veh_id)[0] == ":":
+                env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
+                env.vehicles.get_edge(self.veh_id)[0] == ":":
             return None
         else:
             # compute the acceleration from the desired velocity
@@ -91,15 +90,13 @@ class PISaturation(BaseController):
     def __init__(self, veh_id, sumo_cf_params):
         """Inspired by Dan Work's... work:
 
-        Dissipation of stop-and-go waves via control of autonomous vehicles: Field experiments
-        https://arxiv.org/abs/1705.01693
+        Dissipation of stop-and-go waves via control of autonomous vehicles:
+        Field experiments https://arxiv.org/abs/1705.01693
 
         Parameters
         ----------
         veh_id: str
             unique vehicle identifier
-        max_accel: float, optional
-            maximum achievable acceleration by the vehicle (m/s^2)
         """
         BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
@@ -140,7 +137,7 @@ class PISaturation(BaseController):
         # update desired velocity values
         v_des = np.mean(self.v_history)
         v_target = v_des + self.v_catch \
-                           * min(max((dx - self.g_l) / (self.g_u - self.g_l), 0), 1)
+            * min(max((dx - self.g_l) / (self.g_u - self.g_l), 0), 1)
 
         # update the alpha and beta values
         alpha = min(max((dx - dx_s) / self.gamma, 0), 1)
@@ -148,7 +145,7 @@ class PISaturation(BaseController):
 
         # compute desired velocity
         self.v_cmd = beta * (alpha * v_target + (1 - alpha) * lead_vel) \
-                     + (1 - beta) * self.v_cmd
+            + (1 - beta) * self.v_cmd
 
         # compute the acceleration
         accel = (self.v_cmd - this_vel) / env.sim_step
@@ -157,8 +154,10 @@ class PISaturation(BaseController):
 
 
 class HandTunedVelocityController(FollowerStopper):
+
     def __init__(self, veh_id, v_regions, sumo_cf_params, danger_edges=None):
-        super().__init__(veh_id, sumo_cf_params, v_regions[0], danger_edges=danger_edges)
+        super().__init__(veh_id, sumo_cf_params, v_regions[0],
+                         danger_edges=danger_edges)
         self.v_regions = v_regions
 
     def get_accel(self, env):
@@ -168,7 +167,8 @@ class HandTunedVelocityController(FollowerStopper):
                 pos = env.vehicles.get_position(self.veh_id)
                 # find what segment we fall into
                 bucket = np.searchsorted(env.slices[edge], pos) - 1
-                action = self.v_regions[bucket + env.action_index[int(edge) - 1]]
+                action = self.v_regions[bucket +
+                                        env.action_index[int(edge) - 1]]
                 # set the desired velocity of the controller to the action
                 controller = env.vehicles.get_acc_controller(self.veh_id)
                 controller.v_des = action

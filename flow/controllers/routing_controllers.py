@@ -27,6 +27,8 @@ class GridRouter(BaseRouter):
         else:
             new_route = None
 
+        return new_route
+
 
 class BayBridgeRouter(ContinuousRouter):
     """

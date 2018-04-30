@@ -190,8 +190,10 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](v_id, sumo_cf_params=sumo_car_following_params,
-                                           **acceleration_controller[1])
+                acceleration_controller[0](
+                    v_id,
+                    sumo_cf_params=sumo_car_following_params,
+                    **acceleration_controller[1])
 
             # specify the lane-changing controller class
             self.__vehicles[v_id]["lane_changer"] = \
@@ -272,17 +274,15 @@ class Vehicles:
                 # placed again in the network to ensure a constant number of
                 # total vehicles (e.g. GreenWaveEnv). In this case, the vehicle
                 # is already in the class; its state data just needs to be
-                # updated, and it's color needs to be made to match the color
-                # of other vehicles of its type.
-                env.traci_connection.vehicle.setColor(veh_id,
-                                                      env.colors[veh_type])
+                # updated
+                pass
             else:
                 self._add_departed(veh_id, veh_type, env)
 
         if env.time_counter == 0:
             # reset all necessary values
             for veh_id in self.__rl_ids:
-                self.set_state(veh_id, "last_lc", -env.lane_change_duration)
+                self.set_state(veh_id, "last_lc", -float("inf"))
             self._num_departed.clear()
             self._num_arrived.clear()
             self.sim_step = env.sim_step
@@ -372,7 +372,8 @@ class Vehicles:
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
-            accel_controller[0](veh_id, sumo_cf_params=sumo_cf_params, **accel_controller[1])
+            accel_controller[0](veh_id, sumo_cf_params=sumo_cf_params,
+                                **accel_controller[1])
 
         # specify the lane-changing controller class
         lc_controller = \
@@ -428,9 +429,6 @@ class Vehicles:
         lc_mode = self.type_parameters[veh_type]["lane_change_mode"]
         self.__vehicles[veh_id]["lane_change_mode"] = lc_mode
         env.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
-
-        # change the color of the vehicle based on its type
-        env.traci_connection.vehicle.setColor(veh_id, env.colors[veh_type])
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
