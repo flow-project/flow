@@ -6,10 +6,24 @@ from gym.spaces.tuple_space import Tuple
 
 import numpy as np
 
+ADDITIONAL_ENV_PARAMS = {
+    # maximum acceleration for autonomous vehicles, in m/s^2
+    "max_accel": 3,
+    # maximum deceleration for autonomous vehicles, in m/s^2
+    "max_decel": 3,
+    # desired velocity for all vehicles in the network, in m/s
+    "target_velocity": 10,
+}
+
 
 class AccelEnv(Env):
     """Environment used to train autonomous vehicles to improve traffic flows
     when acceleration actions are permitted by the rl agent.
+
+    Required from env_params:
+    - max_accel: maximum acceleration for autonomous vehicles, in m/s^2
+    - max_decel: maximum deceleration for autonomous vehicles, in m/s^2
+    - target_velocity: desired velocity for all vehicles in the network, in m/s
 
     States
     ------
@@ -24,7 +38,8 @@ class AccelEnv(Env):
     Rewards
     -------
     The reward function is the two-norm of the distance of the speed of the
-    vehicles in the network from a desired speed.
+    vehicles in the network from the "target_velocity" term. For a description
+    of the reward, see: flow.core.rewards.desired_speed
 
     Termination
     -----------
@@ -32,10 +47,18 @@ class AccelEnv(Env):
     collide into one another.
     """
 
+    def __init__(self, env_params, sumo_params, scenario):
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError('Environment parameter "{}" not supplied'.
+                               format(p))
+
+        super().__init__(env_params, sumo_params, scenario)
+
     @property
     def action_space(self):
-        return Box(low=-np.abs(self.env_params.max_decel),
-                   high=self.env_params.max_accel,
+        return Box(low=-abs(self.env_params.additional_params["max_decel"]),
+                   high=self.env_params.additional_params["max_accel"],
                    shape=(self.vehicles.num_rl_vehicles,),
                    dtype=np.float32)
 
@@ -60,13 +83,14 @@ class AccelEnv(Env):
         scaled_pos = [self.vehicles.get_absolute_position(veh_id) /
                       self.scenario.length for veh_id in self.sorted_ids]
         scaled_vel = [self.vehicles.get_speed(veh_id) /
-                      self.env_params.get_additional_param("target_velocity")
+                      self.env_params.additional_params["target_velocity"]
                       for veh_id in self.sorted_ids]
         state = [[vel, pos] for vel, pos in zip(scaled_vel, scaled_pos)]
 
+        return np.array(state)
+
+    def additional_command(self):
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
                 self.vehicles.set_observed(veh_id)
-
-        return np.array(state)

@@ -111,7 +111,10 @@ additional_net_params = {"speed_limit": 35, "grid_array": grid_array,
 vehicle_params = [
     dict(veh_id="idm",
          acceleration_controller=(SumoCarFollowingController, {}),
-         sumo_car_following_params=SumoCarFollowingParams(minGap=2.5),
+         sumo_car_following_params=SumoCarFollowingParams(
+             minGap=2.5,
+             max_speed=v_enter,
+         ),
          routing_controller=(GridRouter, {}),
          num_vehicles=tot_cars,
          speed_mode="all_checks"),
@@ -126,7 +129,6 @@ flow_params = dict(
     ),
     env=dict(
         additional_params=additional_env_params,
-        max_speed=v_enter,
         horizon=HORIZON,
     ),
     net=net_params,
