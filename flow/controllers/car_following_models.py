@@ -9,7 +9,6 @@ includes the function:
 """
 import math
 import numpy as np
-from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.base_controller import BaseController
 

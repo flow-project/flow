@@ -6,16 +6,15 @@ from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
-from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.car_following_models import *
-from flow.controllers.routing_controllers import *
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
-from flow.core.params import *
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from rllab.envs.gym_env import GymEnv
 
 HORIZON = 1500
@@ -59,15 +58,9 @@ def run_task(*_):
     horizon = env.horizon
     env = normalize(env)
 
-    # policy = GaussianGRUPolicy(
-    #     env_spec=env.spec,
-    #     hidden_sizes=(5,)
-    # )
-
-    policy = GaussianMLPPolicy(
+    policy = GaussianGRUPolicy(
         env_spec=env.spec,
-        hidden_sizes=(16, 16)
-        # hidden_sizes=(100, 50, 25)
+        hidden_sizes=(5,),
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
@@ -80,10 +73,11 @@ def run_task(*_):
         max_path_length=horizon,
         n_itr=5,
         # whole_paths=True,
-        # discount=0.999,
+        discount=0.999,
         # step_size=v["step_size"],
     )
     algo.train(),
+
 
 exp_tag = "stabilizing-the-ring"
 

@@ -6,6 +6,7 @@ import numpy as np
 
 from ray.rllib.models.preprocessors import Preprocessor
 
+
 class TuplePreprocessor(Preprocessor):
 
     def _init(self):
@@ -13,4 +14,3 @@ class TuplePreprocessor(Preprocessor):
 
     def transform(self, observation):
         return np.concatenate(observation)
-

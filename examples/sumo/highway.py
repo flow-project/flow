@@ -1,7 +1,6 @@
 """
-Example of a multi-lane network with human-driven vehicles.
+Example of an open multi-lane network with human-driven vehicles.
 """
-import logging
 
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
@@ -17,8 +16,6 @@ from flow.scenarios.highway.scenario import HighwayScenario, \
 
 
 def highway_example(sumo_binary=None):
-    logging.basicConfig(level=logging.INFO)
-
     sumo_params = SumoParams(sumo_binary="sumo-gui")
 
     if sumo_binary is not None:
@@ -62,11 +59,7 @@ def highway_example(sumo_binary=None):
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
-    exp = SumoExperiment(env, scenario)
-
-    logging.info("Experiment Set Up complete")
-
-    return exp
+    return SumoExperiment(env, scenario)
 
 
 if __name__ == "__main__":
