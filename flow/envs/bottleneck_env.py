@@ -1,12 +1,12 @@
-from flow.envs.lane_changing import LaneChangeAccelEnv
-from flow.core import rewards
-
-from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
 from collections import defaultdict
 from copy import deepcopy
 
 import numpy as np
+from gym.spaces.box import Box
+from gym.spaces.tuple_space import Tuple
+
+from flow.core import rewards
+from flow.envs.loop.lane_changing import LaneChangeAccelEnv
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
@@ -82,6 +82,9 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.disable_ramp_metering = False
         self.add_rl_if_exit = False
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
+
+        # normalizing constant for speeds
+        self.max_speed = 55
 
         if "disable_tb" in env_params.additional_params:
             self.disable_tb = env_params.get_additional_param("disable_tb")

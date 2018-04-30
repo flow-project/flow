@@ -1,17 +1,33 @@
 from flow.envs.base_env import Env
-from flow.controllers.car_following_models import IDMController
 from flow.core.params import InitialConfig, NetParams
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
+import random
 import numpy as np
 from scipy.optimize import fsolve
+
+ADDITIONAL_ENV_PARAMS = {
+    # maximum acceleration of autonomous vehicles
+    "max_accel": 1,
+    # maximum deceleration of autonomous vehicles
+    "max_decel": 1,
+    # bounds on the ranges of ring road lengths the autonomous vehicle is
+    # trained on
+    "ring_length": [220, 270],
+}
 
 
 class WaveAttenuationEnv(Env):
     """Environment used to train autonomous vehicles to attenuate the formation
-    and propagation of waves in  a ring road setting.
+    and propagation of waves in a variable density ring road.
+
+    Required from env_params:
+    - max_accel: maximum acceleration of autonomous vehicles
+    - max_decel: maximum deceleration of autonomous vehicles
+    - ring_length: bounds on the ranges of ring road lengths the autonomous
+      vehicle is trained on
 
     States
     ------
@@ -34,10 +50,17 @@ class WaveAttenuationEnv(Env):
     collide into one another.
     """
 
+    def __init__(self, env_params, sumo_params, scenario):
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError('Environment parameter "{}" not supplied'.
+                               format(p))
+        super().__init__(env_params, sumo_params, scenario)
+
     @property
     def action_space(self):
-        return Box(low=-np.abs(self.env_params.max_decel),
-                   high=self.env_params.max_accel,
+        return Box(low=-np.abs(self.env_params.additional_params["max_decel"]),
+                   high=self.env_params.additional_params["max_accel"],
                    shape=(self.vehicles.num_rl_vehicles,),
                    dtype=np.float32)
 
@@ -77,27 +100,19 @@ class WaveAttenuationEnv(Env):
         return float(reward)
 
     def get_state(self, **kwargs):
-        target_vel = self.env_params.additional_params["target_velocity"]
-        length = self.scenario.length
-        scaled_vel = [self.vehicles.get_speed(veh_id) / target_vel
+        max_speed = 30
+        scaled_vel = [self.vehicles.get_speed(veh_id) / max_speed
                       for veh_id in self.sorted_ids]
-        scaled_headway = [(self.vehicles.get_headway(veh_id) % length) / length
-                          for veh_id in self.sorted_ids]
-
-        # for stabilizing the ring: place the rl car at index 0 to maintain
-        # continuity between rollouts
-        indx_rl = [ind for ind, veh_id in enumerate(self.sorted_ids)
-                   if veh_id in self.vehicles.get_rl_ids()][0]
-        indx_sorted_ids = np.mod(np.arange(len(self.sorted_ids)) + indx_rl,
-                                 len(self.sorted_ids))
+        scaled_headway = \
+            [self.vehicles.get_headway(veh_id) / self.scenario.length
+             for veh_id in self.sorted_ids]
 
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
                 self.vehicles.set_observed(veh_id)
 
-        return np.array([[scaled_vel[i], scaled_headway[i]]
-                         for i in indx_sorted_ids])
+        return np.array([scaled_vel, scaled_headway])
 
     def reset(self):
         """The sumo instance is reset with a new ring length, and a number of
@@ -105,14 +120,14 @@ class WaveAttenuationEnv(Env):
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {
-            "length": np.random.choice(np.arange(200, 350)),
+            "length": random.randint(
+                self.env_params.additional_params["ring_length"][0],
+                self.env_params.additional_params["ring_length"][1]),
             "lanes": 1, "speed_limit": 30, "resolution": 40
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # TODO(nish): figure out what exactly this does (ask @cathywu?)
-        # - shouldn't need to reinstantiate scenario, right? 
-        self.scenario = self.env_params.additional_params["scenario_type"](
+        self.scenario = self.scenario.__class__(
             self.scenario.name, self.scenario.generator_class,
             self.scenario.vehicles, net_params, initial_config)
 
@@ -120,23 +135,24 @@ class WaveAttenuationEnv(Env):
         def v_eq_max_function(v):
             num_veh = self.vehicles.num_vehicles - 1
             # maximum gap in the presence of one rl vehicle
-            s_eq_max = (self.scenario.length - self.vehicles.num_vehicles * 5) / num_veh
+            s_eq_max = (self.scenario.length
+                        - self.vehicles.num_vehicles * 5) / num_veh
 
             v0 = 30
             s0 = 2
             T = 1
             gamma = 4
 
-            error = s_eq_max - (s0 + v * T) * (1 - (v / v0) ** gamma) ** (- 1 / 2)
+            error = s_eq_max - (s0 + v*T) * (1 - (v/v0)**gamma) ** -0.5
 
             return error
 
         v_guess = 4.
-        self.v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
+        v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
 
         print('\n-----------------------')
         print('ring length:', net_params.additional_params["length"])
-        print("v_max:", self.v_eq_max)
+        print("v_max:", v_eq_max)
         print('-----------------------')
 
         # restart the sumo instance
@@ -153,7 +169,16 @@ class WaveAttenuationEnv(Env):
 
 
 class WaveAttenuationPOEnv(WaveAttenuationEnv):
-    """POMDP version of wave attenuation environment.
+    """POMDP version of WaveAttenuationEnv.
+
+    Required from env_params:
+    - max_accel: maximum acceleration of autonomous vehicles
+    - max_decel: maximum deceleration of autonomous vehicles
+    - ring_length: bounds on the ranges of ring road lengths the autonomous
+      vehicle is trained on
+
+    Note that this environment only works when there is one autonomous vehicle
+    on the network.
 
     States
     ------
@@ -163,40 +188,33 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
     Actions
     -------
-    Actions are a list of acceleration for each rl vehicles, bounded by the
-    maximum accelerations and decelerations specified in EnvParams.
+    See parent class
 
     Rewards
     -------
-    The reward function rewards high average speeds from all vehicles in the
-    network, and penalizes accelerations by the rl vehicle.
+    See parent class
 
     Termination
     -----------
-    A rollout is terminated if the time horizon is reached or if two vehicles
-    collide into one another.
+    See parent class
 
-    Note
-    ----
-    This environment assumes only one autonomous vehicle is in the network.
     """
 
     @property
     def observation_space(self):
-        return Tuple((Box(low=-1, high=1, shape=(4,), dtype=np.float32),))
-        # return Box(low=-1, high=1, shape=(4,))
+        return Box(low=-1, high=1, shape=(4,), dtype=np.float32)
 
     def get_state(self, **kwargs):
-        vehID = self.vehicles.get_rl_ids()[0]
-        lead_id = self.vehicles.get_leader(vehID) or vehID
+        rl_id = self.vehicles.get_rl_ids()[0]
+        lead_id = self.vehicles.get_leader(rl_id) or rl_id
         max_speed = 15.
         max_scenario_length = 350.
 
         observation = np.array([
-            [self.vehicles.get_speed(vehID) / max_speed],
+            [self.vehicles.get_speed(rl_id) / max_speed],
             [(self.vehicles.get_speed(lead_id) - self.vehicles.get_speed(
-                vehID)) / max_speed],
-            [self.vehicles.get_headway(vehID) / max_scenario_length],
+                rl_id)) / max_speed],
+            [self.vehicles.get_headway(rl_id) / max_scenario_length],
             [self.scenario.length / max_scenario_length]
         ])
 
@@ -204,3 +222,9 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         self.vehicles.set_observed(lead_id)
 
         return observation
+
+    def additional_command(self):
+        # specify observed vehicles
+        rl_id = self.vehicles.get_rl_ids()[0]
+        lead_id = self.vehicles.get_leader(rl_id) or rl_id
+        self.vehicles.set_observed(lead_id)
