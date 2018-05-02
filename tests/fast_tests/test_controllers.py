@@ -57,7 +57,7 @@ class TestCFMController(unittest.TestCase):
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [12., 17., 20., 20., 20.]
+        expected_accel = [12., 17., 22., 27., 32.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -70,14 +70,16 @@ class TestBCMController(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
         contr_params = \
-            {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1, "v_des": 8, "noise": 0}
+            {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1,
+             "v_des": 8, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(BCMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(accel=15, decel=5),
+            sumo_car_following_params=SumoCarFollowingParams(
+                accel=15, decel=5),
             num_vehicles=5
         )
 
@@ -102,7 +104,7 @@ class TestBCMController(unittest.TestCase):
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [-5., 13., 13., 13., 13.]
+        expected_accel = [-12., 13., 13., 13., 13.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -148,7 +150,7 @@ class TestOVMController(unittest.TestCase):
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [0., 15., 3.772339, 3.772339, 3.772339]
+        expected_accel = [0., 20.319073, 3.772339, 3.772339, 3.772339]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
@@ -196,7 +198,7 @@ class TestLinearOVM(unittest.TestCase):
         requested_accel = [self.env.vehicles.get_acc_controller(
             veh_id).get_action(self.env) for veh_id in ids]
 
-        expected_accel = [0., 12.992308, 12.992308, 15., 0.]
+        expected_accel = [0., 12.992308, 12.992308, 25.984615, 0.]
 
         np.testing.assert_array_almost_equal(requested_accel, expected_accel)
 
