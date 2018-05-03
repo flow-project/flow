@@ -6,11 +6,10 @@ Attributes
 E : etree.Element
     Description
 """
-
+# flake8: noqa
 import csv
 import errno
 import importlib
-import inspect
 import json
 import os
 import tempfile
@@ -31,12 +30,12 @@ from flow.controllers.velocity_controllers import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.scenarios.loop.loop_scenario import LoopScenario
-
+from flow.core.params import InFlows
 
 E = etree.Element
 
-class NameEncoder(json.JSONEncoder):
 
+class NameEncoder(json.JSONEncoder):
     """
     Custom encoder used to generate ``flow_params.json``
     Extends ``json.JSONEncoder``.
@@ -74,7 +73,8 @@ class NameEncoder(json.JSONEncoder):
 
 
 def rllib_logger_creator(result_dir, env_name, loggerfn):
-    logdir_prefix = env_name + '_' + datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+    logdir_prefix = env_name + '_' + \
+                    datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     logdir = tempfile.mkdtemp(
@@ -105,15 +105,18 @@ def unstring_flow_params(flow_params):
     better_params = flow_params.copy()
 
     veh_params = flow_params['veh']
-    better_veh_params = [eval_veh_params(veh_param) for veh_param in veh_params]
+    better_veh_params = [eval_veh_params(veh_param) for
+                         veh_param in veh_params]
     better_net_params = eval_net_params(flow_params)
     better_params['veh'] = better_veh_params
     better_params['net'] = better_net_params
 
     if 'additional_params' in flow_params['env']:
         if 'scenario_type' in flow_params['env']['additional_params']:
-            evaluated_scenario = eval(flow_params['env']['additional_params']['scenario_type'])
-            better_params['env']['additional_params']['scenario_type'] = evaluated_scenario
+            evaluated_scenario = eval(flow_params['env']['additional_params']
+                                      ['scenario_type'])
+            better_params['env']['additional_params']['scenario_type'] = \
+                evaluated_scenario
 
     return better_params
 
@@ -146,13 +149,13 @@ def eval_net_params(flow_params):
                     temp['veh_type'] = obj[key]
                 elif key == 'begin':
                     temp['edge'] = str(obj[key])
-                elif key =='depart_speed':
+                elif key == 'depart_speed':
                     temp['departSpeed'] = obj[key]
-                elif key == 'probability' or key =='departSpeed' or \
-                    key == 'departLane' or key == 'vehsPerHour':
+                elif key == 'probability' or key == 'departSpeed' or \
+                        key == 'departLane' or key == 'vehsPerHour':
                     temp[key] = obj[key]
             new_inflow_list.append(temp)
-        # add the created inflow to the inflow container
+        # add created inflows to inflow container
         [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
         better_params['net']['in_flows'] = inflow
 
@@ -185,17 +188,21 @@ def eval_veh_params(orig_params):
     new_params = orig_params.copy()
 
     if 'acceleration_controller' in new_params:
-        new_params['acceleration_controller'] = (eval(orig_params['acceleration_controller'][0]),
-                                        orig_params['acceleration_controller'][1])
+        new_controller = (eval(orig_params['acceleration_controller'][0]),
+                               orig_params['acceleration_controller'][1])
+        new_params['acceleration_controller'] = new_controller
     if 'lane_change_controller' in new_params:
-        new_params['lane_change_controller'] = (eval(orig_params['lane_change_controller'][0]),
-                                        orig_params['lane_change_controller'][1])
+        new_lc_controller = (eval(orig_params['lane_change_controller'][0]),
+                                  orig_params['lane_change_controller'][1])
+        new_params['lane_change_controller'] = new_lc_controller
     if 'routing_controller' in new_params:
-        new_params['routing_controller'] = (eval(orig_params['routing_controller'][0]),
-                                        orig_params['routing_controller'][1])
+        new_route_controller = (eval(orig_params['routing_controller'][0]),
+                                     orig_params['routing_controller'][1])
+        new_params['routing_controller'] = new_route_controller
     if 'sumo_car_following_params' in new_params:
         cf_params = SumoCarFollowingParams()
-        cf_params.controller_params = orig_params['sumo_car_following_params']['controller_params']
+        cf_params.controller_params = (orig_params['sumo_car_following_params']
+                                       ['controller_params'])
         new_params['sumo_car_following_params'] = cf_params
 
     if 'sumo_lc_params' in new_params:
@@ -228,14 +235,15 @@ def get_rllib_params(path):
     gamma = jsondata['gamma']
     horizon = jsondata['horizon']
     hidden_layers = jsondata['model']['fcnet_hiddens']
-    rllib_params = {'gamma':gamma,
-                    'horizon':horizon,
-                    'hidden_layers':hidden_layers}
+    rllib_params = {'gamma': gamma,
+                    'horizon': horizon,
+                    'hidden_layers': hidden_layers}
 
     return rllib_params
 
+
 def get_rllib_config(path):
-    jsonfile = path + '/params.json' #  params.json is the config file
+    jsonfile = path + '/params.json'  # params.json is the config file
     jsondata = json.loads(open(jsonfile).read())
     return jsondata
 
@@ -272,11 +280,11 @@ def get_flow_params(config):
 
 
 def register_env(env_name, sumo_params, type_params, env_params, net_params,
-                initial_config, scenario, env_version_num=0):
+                 initial_config, scenario, env_version_num=0):
     num_steps = env_params.horizon
     register(
-        id=env_name+'-v'+str(env_version_num),
-        entry_point='flow.envs:'+env_name,
+        id=env_name + '-v' + str(env_version_num),
+        entry_point='flow.envs:' + env_name,
         max_episode_steps=num_steps,
         kwargs={"env_params": env_params, "sumo_params": sumo_params, "scenario": scenario}
     )

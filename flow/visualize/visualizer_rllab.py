@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str,
                         help='path to the snapshot file')
-    parser.add_argument('--num_rollouts', type=int, default=100, 
+    parser.add_argument('--num_rollouts', type=int, default=100,
                         help='Number of rollouts we will average over')
     parser.add_argument('--plotname', type=str, default="traffic_plot",
                         help='Prefix for all generated plots')
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     # FIXME(ev, ak) only one of these should be needed
     # extract the flow environment
-    #unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
+    # unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
     # if this doesn't work, try the one above it
     unwrapped_env = env.wrapped_env.env.env.unwrapped
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     vehicles = unwrapped_env.vehicles
     tot_cars = vehicles.num_vehicles
     rl_cars = vehicles.num_rl_vehicles
-    max_path_length = int(np.floor(env.horizon*args.run_long))
+    max_path_length = int(np.floor(env.horizon * args.run_long))
     flat_obs = env._wrapped_env.observation_space.flat_dim
     num_obs_var = flat_obs / tot_cars
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
         all_rewards[j, :len(new_rewards)] = new_rewards
 
         logging.info("\n Done: {0} / {1}, {2}%".format(
-            j+1, args.num_rollouts, (j+1) / args.num_rollouts * 100))
+            j + 1, args.num_rollouts, (j + 1) / args.num_rollouts * 100))
 
     # export observations to a pickle file
     output_filename = 'observations.pkl'
@@ -128,7 +128,8 @@ if __name__ == "__main__":
         # plot mean value for observation for each vehicle across rollouts
         plt.figure()
         for car in range(tot_cars):
-            center = np.mean(all_obs[:, :, tot_cars*obs_var_idx + car], axis=0)
+            center = np.mean(all_obs[:, :, tot_cars * obs_var_idx + car],
+                             axis=0)
             plt.plot(range(max_path_length), center, lw=2.0,
                      label='Veh {}'.format(car))
         plt.ylabel(obs_var, fontsize=15)
@@ -144,7 +145,7 @@ if __name__ == "__main__":
         # plot mean values for the observations across all vehicles and all
         # rollouts
         car_mean = np.mean(np.mean(
-            all_obs[:, :, tot_cars*obs_var_idx:tot_cars*(obs_var_idx + 1)],
+            all_obs[:, :, tot_cars * obs_var_idx:tot_cars * (obs_var_idx + 1)],
             axis=0), axis=1)
         plt.figure()
         plt.plot(t, car_mean)
