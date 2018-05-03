@@ -25,6 +25,8 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import *
+from flow.core.params import InFlows
+from flow.controllers.velocity_controllers import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.scenarios.loop.loop_scenario import LoopScenario
