@@ -1,8 +1,9 @@
-"""
-(blank)
-"""
+"""Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
+merges in an open network.
 
+"""
 import json
+import math
 
 import ray
 import ray.rllib.ppo as ppo
@@ -13,10 +14,11 @@ from ray.tune.result import DEFAULT_RESULTS_DIR as RESULTS_DIR
 
 from flow.core.util import rllib_logger_creator
 from flow.utils.rllib import make_create_env, FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    InFlows
+from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.controllers.car_following_models import IDMController
-from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
 
 # time horizon of a single rollout
@@ -26,56 +28,82 @@ N_ROLLOUTS = 20
 # number of parrallel workers
 PARALLEL_ROLLOUTS = 10
 
-# We place one autonomous vehicle and 13 human-driven vehicles in the network
+# inflow rate at the highway
+FLOW_RATE = 2000
+# percent of autonomous vehicles
+RL_PENETRATION = 0.1
+# initial number of vehicles
+NUM_VEH = 5
+# initial number of AVs
+NUM_AV = math.floor(RL_PENETRATION * NUM_VEH)
+
+
+# We consider a highway network with an upstream merging lane producing
+# shockwaves
+additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+additional_net_params["merge_lanes"] = 1
+additional_net_params["highway_lanes"] = 1
+additional_net_params["pre_merge_length"] = 500
+
+# RL vehicles constitute 5% of the total number of vehicles
 vehicles = Vehicles()
 vehicles.add(veh_id="human",
              acceleration_controller=(IDMController, {"noise": 0.2}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=13)
+             num_vehicles=NUM_VEH-NUM_AV)
 vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=1)
+             num_vehicles=NUM_AV)
+
+# Vehicles are introduced from both sides of merge, with RL vehicles entering
+# from the highway portion as well
+inflow = InFlows()
+inflow.add(veh_type="human", edge="inflow_highway",
+           vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
+           departLane="free", departSpeed=10)
+inflow.add(veh_type="rl", edge="inflow_highway",
+           vehs_per_hour=RL_PENETRATION * FLOW_RATE,
+           departLane="free", departSpeed=10)
+inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
+           departLane="free", departSpeed=7.5)
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="figure_eight_intersection_control",
+    exp_tag="stabilizing_open_network_merges",
 
     # name of the flow environment the experiment is running on
-    env_name="AccelEnv",
+    env_name="WaveAttenuationMergePOEnv",
 
     # name of the scenario class the experiment is running on
-    scenario="Figure8Scenario",
+    scenario="MergeScenario",
 
     # name of the generator used to create/modify network configuration files
-    generator="Figure8Generator",
+    generator="MergeGenerator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
-        sim_step=0.1,
+        sim_step=0.2,
         sumo_binary="sumo-gui",
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        warmup_steps=750,
+        sims_per_step=5,
+        warmup_steps=0,
         additional_params={
+            "max_accel": 1.5,
+            "max_decel": 1.5,
             "target_velocity": 20,
-            "max_accel": 1,
-            "max_decel": 1,
+            "num_rl": 5,
         },
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        additional_params={
-            "length": 260,
-            "lanes": 1,
-            "speed_limit": 30,
-            "resolution": 40,
-        },
+        in_flows=inflow,
+        no_internal_links=False,
+        additional_params=additional_net_params,
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -89,13 +117,13 @@ flow_params = dict(
 
 
 if __name__ == "__main__":
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
+    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
+    config["model"].update({"fcnet_hiddens": [32, 32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
@@ -120,17 +148,22 @@ if __name__ == "__main__":
                   cls=FlowParamsEncoder, sort_keys=True, indent=4)
 
     trials = run_experiments({
-        "figure_eight": {
+        "highway_stabilize": {
             "run": "PPO",
             "env": env_name,
             "config": {
                 **config
             },
-            "checkpoint_freq": 20,
+            "checkpoint_freq": 5,
             "max_failures": 999,
-            "stop": {"training_iteration": 200},
+            "stop": {
+                "training_iteration": 200,
+            },
             "repeat": 3,
-            "trial_resources": {"cpu": 1, "gpu": 0,
-                                "extra_cpu": PARALLEL_ROLLOUTS - 1}
+            "trial_resources": {
+                "cpu": 1,
+                "gpu": 0,
+                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+            },
         },
     })

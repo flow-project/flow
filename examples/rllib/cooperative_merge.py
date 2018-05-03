@@ -2,22 +2,6 @@
 Cooperative merging example, consisting of 1 learning agent and 6 additional
 vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
 merge into the inner ring.
-
-Attributes
-----------
-additional_env_params : dict
-    Extra environment params
-additional_net_params : dict
-    Extra network parameters
-flow_params : dict
-    Large dictionary of flow parameters for experiment,
-    passed in to `make_create_env` and used to create
-    `flow_params.json` file used by exp visualizer
-HORIZON : int
-    Length of rollout, in steps
-vehicle_params : list of dict
-    List of dictionaries specifying vehicle characteristics
-    and the number of each vehicle
 """
 
 import json
@@ -208,8 +192,8 @@ if __name__ == "__main__":
     # filename without '.py'
     flow_params['module'] = os.path.basename(__file__)[:-3]
 
-    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
-                                           exp_tag=exp_tag)
+    create_env, env_name = make_create_env(flow_env_name, flow_params,
+                                           version=0, exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
@@ -224,7 +208,8 @@ if __name__ == "__main__":
     # Logging out flow_params to ray's experiment result folder
     json_out_file = alg.logdir + '/flow_params.json'
     with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+        json.dump(flow_params, outfile,
+                  cls=NameEncoder, sort_keys=True, indent=4)
 
     trials = run_experiments({
         "pendulum_tests": {
