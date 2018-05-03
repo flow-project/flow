@@ -1,5 +1,6 @@
 """
-(blank)
+Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
+vehicles in a variable length ring road.
 """
 
 import json
@@ -63,7 +64,7 @@ flow_params = dict(
         additional_params={
             "max_accel": 1,
             "max_decel": 1,
-            "blank": [220, 270],
+            "ring_length": [220, 270],
         },
     ),
 

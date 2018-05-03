@@ -2,17 +2,16 @@
 Example of ring road with larger merging ring.
 """
 
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
-from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers import IDMController, SumoLaneChangeController, \
+    ContinuousRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.two_loops_one_merging.gen import \
+from flow.scenarios.loop_merge.gen import \
     TwoLoopOneMergingGenerator
-from flow.scenarios.two_loops_one_merging.scenario import \
+from flow.scenarios.loop_merge.scenario import \
     TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS
 
 

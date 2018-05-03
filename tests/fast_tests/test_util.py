@@ -2,7 +2,7 @@ import unittest
 import csv
 import os
 
-from flow.core.util import emission_to_csv
+from flow.utils.emission_to_csv import emission_to_csv
 from flow.utils.warnings import deprecation_warning
 
 os.environ["TEST_FLAG"] = "True"

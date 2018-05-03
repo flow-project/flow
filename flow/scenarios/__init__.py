@@ -11,7 +11,7 @@ from flow.scenarios.highway.gen import HighwayGenerator
 from flow.scenarios.loop.gen import CircleGenerator
 from flow.scenarios.merge.gen import MergeGenerator
 from flow.scenarios.netfile.gen import NetFileGenerator
-from flow.scenarios.two_loops_one_merging.gen \
+from flow.scenarios.loop_merge.gen \
     import TwoLoopOneMergingGenerator
 
 # custom scenarios
@@ -24,5 +24,20 @@ from flow.scenarios.highway.scenario import HighwayScenario
 from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.scenarios.merge.scenario import MergeScenario
 from flow.scenarios.netfile.scenario import NetFileScenario
-from flow.scenarios.two_loops_one_merging.scenario \
+from flow.scenarios.loop_merge.scenario \
     import TwoLoopsOneMergingScenario
+
+# base scenario class
+__all__ = ["Scenario"]
+
+# custom generators
+__all__ += ["BayBridgeGenerator", "BottleneckGenerator", "BBTollGenerator",
+            "Figure8Generator", "SimpleGridGenerator", "HighwayGenerator",
+            "CircleGenerator", "MergeGenerator", "NetFileGenerator",
+            "TwoLoopOneMergingGenerator"]
+
+# custom scenarios
+__all__ += ["BayBridgeScenario", "BottleneckScenario", "BBTollScenario",
+            "Figure8Scenario", "SimpleGridScenario", "HighwayScenario",
+            "LoopScenario", "MergeScenario", "NetFileScenario",
+            "TwoLoopsOneMergingScenario"]

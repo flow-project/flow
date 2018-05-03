@@ -10,7 +10,7 @@ import os
 import gym
 import ray
 import ray.rllib.ppo as ppo
-from flow.scenarios.two_loops_one_merging.scenario \
+from flow.scenarios.loop_merge.scenario \
     import TwoLoopsOneMergingScenario
 from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
@@ -25,7 +25,7 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 from flow.core.vehicles import Vehicles
-from flow.scenarios.two_loops_one_merging.gen \
+from flow.scenarios.loop_merge.gen \
     import TwoLoopOneMergingGenerator
 
 HORIZON = 100

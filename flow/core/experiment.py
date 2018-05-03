@@ -2,7 +2,7 @@ import logging
 import datetime
 import numpy as np
 
-from flow.core.util import emission_to_csv
+from flow.utils.emission_to_csv import emission_to_csv
 
 
 class SumoExperiment:

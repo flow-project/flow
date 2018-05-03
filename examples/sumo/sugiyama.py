@@ -3,8 +3,7 @@ Used as example of sugiyama experiment.
 22 IDM cars on a ring create shockwaves.
 """
 
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers import IDMController, ContinuousRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
