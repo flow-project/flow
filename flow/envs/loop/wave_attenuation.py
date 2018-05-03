@@ -202,7 +202,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
     @property
     def observation_space(self):
-        return Box(low=-1, high=1, shape=(4,), dtype=np.float32)
+        return Box(low=-1, high=1, shape=(3,), dtype=np.float32)
 
     def get_state(self, **kwargs):
         rl_id = self.vehicles.get_rl_ids()[0]
@@ -214,12 +214,8 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
             [self.vehicles.get_speed(rl_id) / max_speed],
             [(self.vehicles.get_speed(lead_id) - self.vehicles.get_speed(
                 rl_id)) / max_speed],
-            [self.vehicles.get_headway(rl_id) / max_scenario_length],
-            [self.scenario.length / max_scenario_length]
+            [self.vehicles.get_headway(rl_id) / max_scenario_length]
         ])
-
-        # specify observed vehicles
-        self.vehicles.set_observed(lead_id)
 
         return observation
 
