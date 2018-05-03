@@ -25,9 +25,12 @@ if __name__ == "__main__":
     data = joblib.load(args.file)
     policy = data['policy']
     env = data['env']
+
     # FIXME(ev, ak) only one of these should be needed
     # unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
     # unwrapped_env = env.wrapped_env.env.env.unwrapped
+
+    # if this doesn't work, try the one above it 
     unwrapped_env = env._wrapped_env.env.unwrapped
 
     # Recreate experiment params
