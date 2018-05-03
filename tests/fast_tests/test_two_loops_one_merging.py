@@ -7,9 +7,9 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_merges import TwoLoopsMergeEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.two_loops_one_merging.gen \
+from flow.scenarios.loop_merge.gen \
     import TwoLoopOneMergingGenerator
-from flow.scenarios.two_loops_one_merging.scenario \
+from flow.scenarios.loop_merge.scenario \
     import TwoLoopsOneMergingScenario
 from flow.controllers.rlcontroller import RLController
 

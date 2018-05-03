@@ -4,7 +4,7 @@ import argparse
 import joblib
 import numpy as np
 from matplotlib import pyplot as plt
-from flow.core.util import emission_to_csv
+from flow.utils.emission_to_csv import emission_to_csv
 
 import pickle
 

@@ -190,9 +190,10 @@ class Vehicles:
 
             # specify the acceleration controller class
             self.__vehicles[v_id]["acc_controller"] = \
-                acceleration_controller[0](v_id,
-                                           sumo_cf_params=sumo_car_following_params,
-                                           **acceleration_controller[1])
+                acceleration_controller[0](
+                    v_id,
+                    sumo_cf_params=sumo_car_following_params,
+                    **acceleration_controller[1])
 
             # specify the lane-changing controller class
             self.__vehicles[v_id]["lane_changer"] = \
@@ -1089,14 +1090,14 @@ class Vehicles:
                     else:
                         leader[lane] = ids[index]
                         headway[lane] = positions[index] - this_pos \
-                                        - self.get_length(leader[lane])
+                            - self.get_length(leader[lane])
 
                 # you are in the back of the queue, the lane follower is in the
                 # edges behind you
                 if index > 0:
                     follower[lane] = ids[index - 1]
                     tailway[lane] = this_pos - positions[index - 1] \
-                                    - self.get_length(veh_id)
+                        - self.get_length(veh_id)
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
@@ -1141,7 +1142,7 @@ class Vehicles:
                 if len(edge_dict[edge][lane]) > 0:
                     leader = edge_dict[edge][lane][0][0]
                     headway = edge_dict[edge][lane][0][1] - pos + add_length \
-                              - self.get_length(leader)
+                        - self.get_length(leader)
             except KeyError:
                 # current edge has no vehicles, so move on
                 continue
