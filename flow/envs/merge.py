@@ -20,7 +20,7 @@ ADDITIONAL_ENV_PARAMS = {
 
 class WaveAttenuationMergePOEnv(Env):
     """Environment used to train autonomous vehicles to attenuate the formation
-    and propagation of waves in a open merge network.
+    and propagation of waves in an open merge network.
 
     Required from env_params:
     - max_accel: maximum acceleration for autonomous vehicles, in m/s^2
