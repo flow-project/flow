@@ -505,8 +505,8 @@ class m_BottleNeckEnv(BottleNeckEnv):
          - a (continuous) lane-change action from -1 to 1,
            used to determine the lateral direction the vehicle will take.
         """
-        max_decel = self.env_params.max_decel
-        max_accel = self.env_params.max_accel
+        max_decel = -abs(self.env_params.additional_params["max_decel"])
+        max_accel = self.env_params.additional_params["max_accel"]
 
         lb = [-abs(max_decel), -1]
         ub = [max_accel, 1]

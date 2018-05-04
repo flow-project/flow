@@ -17,7 +17,6 @@ from ray.rllib.models import ModelCatalog
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
-from flow.utils.tuple_preprocessor import TuplePreprocessor
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.scenarios.figure8.gen import Figure8Generator
