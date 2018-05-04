@@ -6,11 +6,12 @@ from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.two_loops_one_merging import TwoLoopsMergeEnv
+from flow.envs.loop.loop_merges import TwoLoopsMergeEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.two_loops_one_merging.gen \
     import TwoLoopOneMergingGenerator
 from flow.scenarios.two_loops_one_merging.scenario \
     import TwoLoopsOneMergingScenario
+from flow.controllers.rlcontroller import RLController
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -21,6 +22,11 @@ def two_loops_one_merging_exp_setup(vehicles=None):
 
     if vehicles is None:
         vehicles = Vehicles()
+        vehicles.add(veh_id="rl",
+                     acceleration_controller=(RLController, {}),
+                     lane_change_controller=(StaticLaneChanger, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=1)
         vehicles.add(veh_id="idm",
                      acceleration_controller=(IDMController, {}),
                      lane_change_controller=(StaticLaneChanger, {}),
@@ -32,9 +38,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
                      speed_mode="no_collide",
                      num_vehicles=5)
 
-    additional_env_params = {"target_velocity": 8, "max-deacc": -6,
-                             "max-acc": 3}
-    env_params = EnvParams(additional_params=additional_env_params)
+    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = {"ring_radius": 50, "lane_length": 75,
                              "inner_lanes": 3, "outer_lanes": 2,

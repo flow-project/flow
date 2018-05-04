@@ -68,7 +68,7 @@ class CircleGenerator(Generator):
              "to": "bottom",
              "length": repr(edgelen),
              "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(pi, 3 * pi / 2, resolution)])}
+                                for t in linspace(pi, 3 * pi/2, resolution)])}
         ]
 
         return edges

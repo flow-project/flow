@@ -27,42 +27,42 @@ RAMP_METER_AREA = 80
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
 
-ENV_PARAMS = [
-    "disable_tb",  # whether the toll booth should be active
-    "disable_ramp_metering",  # whether the ramp meter is active
-    "target_velocity",  # velocity to use in reward functions
-    "num_steps",  # horizon
-    "add_rl_if_exit",  # if an RL vehicle exits, place it back at the front
-]
-
-NET_PARAMS = [
-    "scaling",  # the factor multiplying number of lanes.
-]
+ADDITIONAL_ENV_PARAMS = {
+    # maximum acceleration for autonomous vehicles, in m/s^2
+    "max_accel": 3,
+    # maximum deceleration for autonomous vehicles, in m/s^2
+    "max_decel": 3,
+    # lane change duration for autonomous vehicles, in s. Autonomous vehicles
+    # reject new lane changing commands for this duration after successfully
+    # changing lanes.
+    "lane_change_duration": 5,
+    # whether the toll booth should be active
+    "disable_tb": True,
+    # whether the ramp meter is active
+    "disable_ramp_metering": True,
+    # velocity to use in reward functions
+    "target_velocity": 30,
+    # if an RL vehicle exits, place it back at the front
+    "add_rl_if_exit": True,
+}
 
 
 class BridgeTollEnv(LaneChangeAccelEnv):
+
     def __init__(self, env_params, sumo_params, scenario):
-        """Environment used as a simplified representation of the toll
-            booth portion of the bay bridge. Contains ramp meters,
-            and a toll both.
+        """Environment used as a simplified representation of the toll booth
+        portion of the bay bridge. Contains ramp meters, and a toll both.
 
-           Additional
-           ----------
-           Vehicles are rerouted to the start of their original routes
-           once they reach the end of the network in order
-           to ensure a constant number of vehicles.
-           """
-        for k in env_params.additional_params.keys():
-            if k not in ENV_PARAMS:
-                raise Exception(
-                    "Unknown env params key `{}`, all keys: {}".format(
-                        k, ENV_PARAMS))
-
-        for k in scenario.net_params.additional_params.keys():
-            if k not in NET_PARAMS:
-                raise Exception(
-                    "Unknown net params key `{}`, all keys: {}".format(
-                        k, NET_PARAMS))
+        Additional
+        ----------
+        Vehicles are rerouted to the start of their original routes once they
+        reach the end of the network in order to ensure a constant number of
+        vehicles.
+        """
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError('Environment parameter "{}" not supplied'.
+                               format(p))
 
         self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
@@ -78,24 +78,14 @@ class BridgeTollEnv(LaneChangeAccelEnv):
         self.fast_track_lanes = range(int(np.ceil(1.5 * self.scaling)),
                                       int(np.ceil(2.6 * self.scaling)))
         self.tl_state = ""
-        self.disable_tb = False
-        self.disable_ramp_metering = False
-        self.add_rl_if_exit = False
+        self.disable_tb = env_params.get_additional_param("disable_tb")
+        self.disable_ramp_metering = \
+            env_params.get_additional_param("disable_ramp_metering")
+        self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         # normalizing constant for speeds
         self.max_speed = 55
-
-        if "disable_tb" in env_params.additional_params:
-            self.disable_tb = env_params.get_additional_param("disable_tb")
-
-        if "disable_ramp_metering" in env_params.additional_params:
-            self.disable_ramp_metering = \
-                env_params.get_additional_param("disable_ramp_metering")
-
-        if "add_rl_if_exit" in env_params.additional_params:
-            self.add_rl_if_exit = \
-                env_params.get_additional_param("add_rl_if_exit")
 
     def additional_command(self):
         super().additional_command()
@@ -110,7 +100,8 @@ class BridgeTollEnv(LaneChangeAccelEnv):
             try:
                 edge = self.vehicles.get_edge(veh_id)
                 if edge not in self.edge_dict:
-                    self.edge_dict.update({edge: [[] for _ in range(MAX_LANES * self.scaling)]})
+                    self.edge_dict.update(
+                        {edge: [[] for _ in range(MAX_LANES * self.scaling)]})
                 lane = self.vehicles.get_lane(veh_id)  # integer
                 pos = self.vehicles.get_position(veh_id)
                 self.edge_dict[edge][lane].append((veh_id, pos))
@@ -514,8 +505,8 @@ class m_BottleNeckEnv(BottleNeckEnv):
          - a (continuous) lane-change action from -1 to 1,
            used to determine the lateral direction the vehicle will take.
         """
-        max_decel = self.env_params.max_decel
-        max_accel = self.env_params.max_accel
+        max_decel = -abs(self.env_params.additional_params["max_decel"])
+        max_accel = self.env_params.additional_params["max_accel"]
 
         lb = [-abs(max_decel), -1]
         ub = [max_accel, 1]
@@ -623,7 +614,7 @@ class m_BottleNeckEnv(BottleNeckEnv):
                rewards.rl_forward_progress(self, gain=0.1) - \
                rewards.boolean_action_penalty(lane_change_acts, gain=1.0)
 
-    def apply_rl_actions(self, rl_actions):
+    def _apply_rl_actions(self, rl_actions):
         """
         See parent class
 
