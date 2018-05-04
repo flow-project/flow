@@ -12,10 +12,7 @@ from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.scenarios import *
-from flow.controllers.rlcontroller import *
-from flow.controllers.car_following_models import *
-from flow.controllers.lane_change_controllers import *
-from flow.controllers.routing_controllers import *
+from flow.controllers import *
 
 
 def make_create_env(params, version=0, sumo_binary=None):

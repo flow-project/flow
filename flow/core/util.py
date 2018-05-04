@@ -17,10 +17,9 @@ from datetime import datetime
 
 from gym.envs.registration import register
 
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-
 from flow.controllers import *
-from flow.core.params import InFlows
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams, \
+    InFlows
 
 E = etree.Element
 
