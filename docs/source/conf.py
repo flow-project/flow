@@ -157,6 +157,3 @@ texinfo_documents = [
      author, 'flow', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-

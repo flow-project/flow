@@ -1,12 +1,12 @@
 import unittest
 import os
-from examples.sumo.cooperative_merge import cooperative_merge_example
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.highway import highway_example
 from examples.sumo.sugiyama import sugiyama_example
 from examples.sumo.two_loops_merge_straight import \
     two_loops_merge_straight_example
 from examples.sumo.grid import grid_example
+from examples.sumo.bottleneck import bottleneck_example
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -18,12 +18,13 @@ class TestSumoExamples(unittest.TestCase):
     few time steps. Note that, this does not test for any refactoring changes
     done to the functions within the experiment class.
     """
-    def test_cooperative_merge(self):
+
+    def test_bottleneck(self):
         """
-        Verifies that examples/sumo/cooperative_merge.py is working
+        Verifies that examples/sumo/bottleneck.py is working
         """
         # import the experiment variable from the example
-        exp = cooperative_merge_example(sumo_binary="sumo")
+        exp = bottleneck_example(sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -34,6 +35,16 @@ class TestSumoExamples(unittest.TestCase):
         """
         # import the experiment variable from the example
         exp = figure_eight_example(sumo_binary="sumo")
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+    def test_grid(self):
+        """
+        Verifies that examples/sumo/grid.py is working
+        """
+        # import the experiment variable from the example
+        exp = grid_example(sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -64,16 +75,6 @@ class TestSumoExamples(unittest.TestCase):
         """
         # import the experiment variable from the example
         exp = two_loops_merge_straight_example(sumo_binary="sumo")
-
-        # run the experiment for a few time steps to ensure it doesn't fail
-        exp.run(1, 5)
-
-    def test_grid(self):
-        """
-        Verifies that examples/sumo/grid.py is working
-        """
-        # import the experiment variable from the example
-        exp = grid_example(sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

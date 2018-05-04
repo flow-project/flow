@@ -8,9 +8,8 @@ from flow.core.traffic_lights import TrafficLights
 
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
-from flow.controllers.lane_change_controllers import *
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.params import SumoCarFollowingParams
 from flow.envs.bottleneck_env import BottleNeckEnv
 from flow.core.experiment import SumoExperiment
 
@@ -34,15 +33,16 @@ def bottleneck_example(sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
-                 # sumo_car_following_params=SumoCarFollowingParams(
-                 #     minGap=2.5, tau=1.0, speedDev=0.5),
                  num_vehicles=1*SCALING)
 
     additional_env_params = {"target_velocity": 40,
+                             "max_accel": 1,
+                             "max_decel": 1,
+                             "lane_change_duration": 5,
+                             "add_rl_if_exit": False,
                              "disable_tb": True,
                              "disable_ramp_metering": True}
-    env_params = EnvParams(additional_params=additional_env_params,
-                           lane_change_duration=1)
+    env_params = EnvParams(additional_params=additional_env_params)
 
     inflow = InFlows()
     inflow.add(veh_type="human", edge="1", vehsPerHour=FLOW_RATE,

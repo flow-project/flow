@@ -13,7 +13,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
 from flow.core.params import SumoCarFollowingParams
 
-from flow.controllers.routing_controllers import *
+from flow.controllers.routing_controllers import GridRouter
 from flow.controllers.car_following_models \
     import SumoCarFollowingController
 
@@ -118,8 +118,6 @@ def run_task(*_):
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     horizon = env.horizon
     env = normalize(env)
-
-    logging.info("Experiment Set Up complete")
 
     policy = GaussianMLPPolicy(
         env_spec=env.spec,

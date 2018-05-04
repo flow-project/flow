@@ -32,12 +32,9 @@ from flow.core.util import ensure_dir
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
-# Colors are [red, green, yellow, cyan, purple, white]
-COLORS = [(255, 0, 0, 255), (0, 255, 0, 255), (255, 255, 0, 255),
-          (0, 255, 255, 255), (255, 0, 255, 255), (255, 255, 255, 255)]
-
 
 class Env(gym.Env, Serializable):
+
     def __init__(self, env_params, sumo_params, scenario):
         """Base environment class.
 
@@ -94,18 +91,16 @@ class Env(gym.Env, Serializable):
             env_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = env_params.starting_position_shuffle
 
-        self.lane_change_duration = \
-            env_params.get_lane_change_duration(self.sim_step)
-
-        # the available_routes variable contains a dictionary of routes vehicles
-        # can traverse; to be used when routes need to be chosen dynamically
+        # the available_routes variable contains a dictionary of routes
+        # vehicles can traverse; to be used when routes need to be chosen
+        # dynamically
         self.available_routes = self.scenario.generator.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
 
-        # dictionary of initial observations used while resetting vehicles after
-        # each rollout
+        # dictionary of initial observations used while resetting vehicles
+        # after each rollout
         self.initial_observations = dict.fromkeys(self.vehicles.get_ids())
 
         # store the initial vehicle ids
@@ -124,9 +119,20 @@ class Env(gym.Env, Serializable):
         self.setup_initial_state()
 
     def restart_sumo(self, sumo_params, sumo_binary=None):
-        """
-        Restarts an already initialized environment. Used when visualizing a
-        rollout.
+        """Restarts an already initialized sumo instance.
+
+        This is used when visualizing a rollout, in order to update the
+        sumo_binary with potentially a gui and export emission data from sumo.
+
+        This is also used to handle cases when the runtime of an experiment is
+        too long, causing the sumo instance
+
+        Parameters
+        ----------
+        sumo_params: SumoParams type
+            sumo-specific parameters
+        sumo_binary: str, optional
+            specifies whether to use sumo's gui
         """
         self.traci_connection.close(False)
         self.sumo_proc.kill()
@@ -136,8 +142,6 @@ class Env(gym.Env, Serializable):
 
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
 
-        # TODO(ak): replace input with emission_path, but make sure this doesn't
-        # break visualizer_rllab.py
         if sumo_params.emission_path is not None:
             ensure_dir(sumo_params.emission_path)
             self.sumo_params.emission_path = sumo_params.emission_path
@@ -146,10 +150,11 @@ class Env(gym.Env, Serializable):
         self.setup_initial_state()
 
     def start_sumo(self):
-        """
-        Starts a sumo instance using the configuration files created by the
-        generator class. Also initializes a traci connection to interface with
-        sumo from Python.
+        """Starts a sumo instance.
+
+        Uses the configuration files created by the generator class to
+        initialize a sumo instance. Also initializes a traci connection to
+        interface with sumo from Python.
         """
         # port number the sumo instance will be run on
         if self.sumo_params.port is not None:
@@ -316,12 +321,18 @@ class Env(gym.Env, Serializable):
         self.vehicles.update(vehicle_obs, id_lists, self)
 
     def step(self, rl_actions):
-        """
-        Run one timestep of the environment's dynamics. An autonomous agent
-        (i.e. autonomous vehicles) performs an action provided by the RL
-        algorithm. Other cars step forward based on their car following model.
-        When end of episode is reached, reset() should be called to reset the
-        environment's initial state.
+        """Advances the environment by one step.
+
+        Assigns actions to autonomous and human-driven agents (i.e. vehicles,
+        traffic lights, etc...). Actions that are not assigned are left to the
+        control of the simulator. The actions are then used to advance the
+        simulator by the number of time steps requested per environment step.
+
+        Results from the simulations are processed through various classes,
+        such as the Vehicles and TrafficLights classes, to produce standardized
+        methods for identifying specific network state features. Finally,
+        results from the simulator are used to generate appropriate
+        observations.
 
         Parameters
         ----------
@@ -334,9 +345,9 @@ class Env(gym.Env, Serializable):
             agent's observation of the current environment
         reward: float
             amount of reward associated with the previous state/action pair
-        done: boolean
+        done: bool
             indicates whether the episode has ended
-        info: dictionary
+        info: dict
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
@@ -411,12 +422,7 @@ class Env(gym.Env, Serializable):
 
         # collect information of the state of the network based on the
         # environment class used
-        if isinstance(self.action_space, list):
-            # rllab requires non-multi agent to have state shape as
-            # num-states x num_vehicles
-            self.state = self.get_state()
-        else:
-            self.state = self.get_state().T
+        self.state = np.asarray(self.get_state()).T
 
         # collect observation new state associated with action
         next_observation = list(self.state)
@@ -427,12 +433,20 @@ class Env(gym.Env, Serializable):
         return next_observation, reward, crash, {}
 
     def reset(self):
-        """
-        Resets the state of the environment, and re-initializes the vehicles in
-        their starting positions. In "vehicle_arrangement_shuffle" is set to
-        True in env_params, the vehicles swap initial positions with one
-        another. Also, if a "starting_position_shuffle" is set to True, the
-        initial position of vehicles is offset by some value.
+        """Resets the environment.
+
+        This method is performed in between rollouts. It resets the state of
+        the environment, and re-initializes the vehicles in their starting
+        positions.
+
+        If "vehicle_arrangement_shuffle" is set to True in env_params, the
+        vehicles swap initial positions with one another. Also, if a
+        "starting_position_shuffle" is set to True, the initial position of
+        vehicles are redone.
+
+        If "warmup_steps" is set to a value greater than 0, then this method
+        also runs the necessary number of warmup steps before beginning
+        training, with actions to the agents being assigned by the simulator.
 
         Returns
         -------
@@ -451,15 +465,6 @@ class Env(gym.Env, Serializable):
             self.vehicles = deepcopy(self.initial_vehicles)
             # restart the sumo instance
             self.restart_sumo(self.sumo_params)
-
-        # create the list of colors used to visually distinguish between
-        # different types of vehicles
-        key_index = 1
-        color_choice = np.random.choice(len(COLORS))
-        for i in range(self.vehicles.num_types):
-            self.colors[self.vehicles.types[i][0]] = \
-                COLORS[(color_choice + key_index) % len(COLORS)]
-            key_index += 1
 
         # perform shuffling (if requested)
         if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
@@ -501,7 +506,7 @@ class Env(gym.Env, Serializable):
         for veh_id in self.traci_connection.vehicle.getIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)  # TODO(ak): add to master
+                self.traci_connection.vehicle.unsubscribe(veh_id)
                 self.vehicles.remove(veh_id)
             except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
@@ -546,6 +551,9 @@ class Env(gym.Env, Serializable):
         self.vehicles.update(vehicle_obs, id_lists, self)
         self.traffic_lights.update(tls_obs)
 
+        # update the colors of vehicles
+        self.update_vehicle_colors()
+
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
             # re-initialize the vehicles class with the states of the vehicles
@@ -554,15 +562,14 @@ class Env(gym.Env, Serializable):
                                                 self.get_x_by_id(veh_id))
 
             # re-initialize memory on last lc
-            self.prev_last_lc[veh_id] = -1 * self.lane_change_duration
+            self.prev_last_lc[veh_id] = -float("inf")
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        if isinstance(self.action_space, list):
-            self.state = self.get_state()
-        else:
-            self.state = self.get_state().T
+        # collect information of the state of the network based on the
+        # environment class used
+        self.state = np.asarray(self.get_state()).T
 
         # observation associated with the reset (no warm-up steps)
         observation = list(self.state)
@@ -574,9 +581,7 @@ class Env(gym.Env, Serializable):
         return observation
 
     def additional_command(self):
-        """
-        Additional commands that may be performed before a simulation step.
-        """
+        """Additional commands that may be performed by the step method."""
         pass
 
     def apply_rl_actions(self, rl_actions=list()):
@@ -598,17 +603,17 @@ class Env(gym.Env, Serializable):
         raise NotImplementedError
 
     def apply_acceleration(self, veh_ids, acc):
-        """
-        Applies the acceleration requested by a vehicle in sumo. Note that, if
-        the sumo-specified speed mode of the vehicle is not "aggressive", the
-        acceleration may be clipped by some safety velocity or maximum possible
-        acceleration.
+        """Applies the acceleration requested by a vehicle in sumo.
+
+        Note that, if the sumo-specified speed mode of the vehicle is not
+        "aggressive", the acceleration may be clipped by some safety velocity
+        or maximum possible acceleration.
 
         Parameters
         ----------
-        veh_ids: list of strings
+        veh_ids: list of str
             vehicles IDs associated with the requested accelerations
-        acc: numpy array or list of float
+        acc: numpy ndarray or list of float
             requested accelerations from the vehicles
         """
         for i, vid in enumerate(veh_ids):
@@ -661,17 +666,16 @@ class Env(gym.Env, Serializable):
                         self.vehicles.get_state(veh_id, "last_lc")
 
     def choose_routes(self, veh_ids, route_choices):
-        """
-        Updates the route choice of vehicles in the network.
+        """Updates the route choice of vehicles in the network.
 
         Parameters
         ----------
         veh_ids: list
             list of vehicle identifiers
         route_choices: numpy array or list of floats
-            list of edges the vehicle wishes to traverse, starting with the edge
-            the vehicle is currently on. If a value of None is provided, the
-            vehicle does not update its route
+            list of edges the vehicle wishes to traverse, starting with the
+            edge the vehicle is currently on. If a value of None is provided,
+            the vehicle does not update its route
         """
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
@@ -679,17 +683,16 @@ class Env(gym.Env, Serializable):
                     vehID=veh_id, edgeList=route_choices[i])
 
     def get_x_by_id(self, veh_id):
-        """
-        Provides a 1-dimensional representation of the position of a vehicle
+        """Provides a 1-dimensional representation of the position of a vehicle
         in the network.
 
         Parameters
         ----------
-        veh_id: string
+        veh_id: str
             vehicle identifier
 
-        Yields
-        ------
+        Returns
+        -------
         float
             position of a vehicle relative to a certain reference.
         """
@@ -700,8 +703,9 @@ class Env(gym.Env, Serializable):
                                    self.vehicles.get_position(veh_id))
 
     def sort_by_position(self):
-        """Sorts the vehicle ids of vehicles in the network by position. The
-        base environment does this by sorting vehicles by their absolute
+        """Sorts the vehicle ids of vehicles in the network by position.
+
+        The base environment does this by sorting vehicles by their absolute
         position.
 
         Returns
@@ -752,8 +756,8 @@ class Env(gym.Env, Serializable):
             self.vehicles.remove_observed(veh_id)
 
     def get_state(self):
-        """
-        Returns the state of the simulation as perceived by the learning agent.
+        """Returns the state of the simulation as perceived by the RL agent.
+
         MUST BE implemented in new environments.
 
         Returns
@@ -766,12 +770,12 @@ class Env(gym.Env, Serializable):
 
     @property
     def action_space(self):
-        """
-        Identifies the dimensions and bounds of the action space (needed for
+        """Identifies the dimensions and bounds of the action space (needed for
         gym environments).
+
         MUST BE implemented in new environments.
 
-        Yields
+        Returns
         -------
         gym Box or Tuple type
             a bounded box depicting the shape and bounds of the action space
@@ -780,12 +784,12 @@ class Env(gym.Env, Serializable):
 
     @property
     def observation_space(self):
-        """
-        Identifies the dimensions and bounds of the observation space (needed
-        for gym environments).
+        """Identifies the dimensions and bounds of the observation space
+        (needed for gym environments).
+
         MUST BE implemented in new environments.
 
-        Yields
+        Returns
         -------
         gym Box or Tuple type
             a bounded box depicting the shape and bounds of the observation
@@ -794,8 +798,8 @@ class Env(gym.Env, Serializable):
         raise NotImplementedError
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """
-        Reward function for RL.
+        """Reward function for the RL agent(s).
+
         MUST BE implemented in new environments.
         Defaults to 0 for non-implemented environments.
 
@@ -805,7 +809,7 @@ class Env(gym.Env, Serializable):
             state of all the vehicles in the simulation
         rl_actions: numpy ndarray
             actions performed by rl vehicles
-        kwargs: dictionary
+        kwargs: dict
             other parameters of interest. Contains a "fail" element, which
             is True if a vehicle crashed, and False otherwise
 
@@ -816,10 +820,10 @@ class Env(gym.Env, Serializable):
         return 0
 
     def terminate(self):
-        """
-        Closes the TraCI I/O connection. Should be done at end of every
-        experiment. Must be in Environment because the environment opens the
-        TraCI connection.
+        """Closes the TraCI I/O connection.
+
+        Should be done at end of every experiment. Must be in Env because the
+        environment opens the TraCI connection.
         """
         self._close()
 
@@ -834,3 +838,6 @@ class Env(gym.Env, Serializable):
 
     def _seed(self, seed=None):
         return []
+
+    def render(self, mode='human'):
+        pass
