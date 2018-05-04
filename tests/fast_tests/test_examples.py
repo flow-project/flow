@@ -7,6 +7,7 @@ from examples.sumo.two_loops_merge_straight import \
     two_loops_merge_straight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.bottleneck import bottleneck_example
+from examples.sumo.merge import merge_example
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -21,7 +22,7 @@ class TestSumoExamples(unittest.TestCase):
 
     def test_bottleneck(self):
         """
-        Verifies that examples/sumo/figure_eight.py is working
+        Verifies that examples/sumo/bottleneck.py is working
         """
         # import the experiment variable from the example
         exp = bottleneck_example(sumo_binary="sumo")
@@ -55,6 +56,16 @@ class TestSumoExamples(unittest.TestCase):
         """
         # import the experiment variable from the example
         exp = highway_example(sumo_binary="sumo")
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+    def test_merge(self):
+        """
+        Verifies that examples/sumo/merge.py is working
+        """
+        # import the experiment variable from the example
+        exp = merge_example(sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

@@ -121,8 +121,7 @@ class Env(gym.Env, Serializable):
         """Restarts an already initialized sumo instance.
 
         This is used when visualizing a rollout, in order to update the
-        sumo_binary with a potentially a gui and export emission data from
-        sumo.
+        sumo_binary with potentially a gui and export emission data from sumo.
 
         This is also used to handle cases when the runtime of an experiment is
         too long, causing the sumo instance
@@ -422,12 +421,7 @@ class Env(gym.Env, Serializable):
 
         # collect information of the state of the network based on the
         # environment class used
-        if isinstance(self.action_space, list):
-            # rllab requires non-multi agent to have state shape as
-            # num-states x num_vehicles
-            self.state = np.asarray(self.get_state())
-        else:
-            self.state = np.asarray(self.get_state()).T
+        self.state = np.asarray(self.get_state()).T
 
         # collect observation new state associated with action
         next_observation = list(self.state)
@@ -447,7 +441,7 @@ class Env(gym.Env, Serializable):
         If "vehicle_arrangement_shuffle" is set to True in env_params, the
         vehicles swap initial positions with one another. Also, if a
         "starting_position_shuffle" is set to True, the initial position of
-        vehicles is offset by some value.
+        vehicles are redone.
 
         If "warmup_steps" is set to a value greater than 0, then this method
         also runs the necessary number of warmup steps before beginning
@@ -572,10 +566,9 @@ class Env(gym.Env, Serializable):
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        if isinstance(self.action_space, list):
-            self.state = np.asarray(self.get_state())
-        else:
-            self.state = np.asarray(self.get_state()).T
+        # collect information of the state of the network based on the
+        # environment class used
+        self.state = np.asarray(self.get_state()).T
 
         # observation associated with the reset (no warm-up steps)
         observation = list(self.state)
