@@ -13,9 +13,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
 from flow.core.params import SumoCarFollowingParams
 
-from flow.controllers.routing_controllers import GridRouter
-from flow.controllers.car_following_models \
-    import SumoCarFollowingController
+from flow.controllers import SumoCarFollowingController, GridRouter
 
 from flow.scenarios.grid.gen import SimpleGridGenerator
 from flow.scenarios.grid.grid_scenario import SimpleGridScenario
