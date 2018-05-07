@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # unwrapped_env = env._wrapped_env._wrapped_env.env.unwrapped
     # unwrapped_env = env.wrapped_env.env.env.unwrapped
 
-    # if this doesn't work, try the one above it 
+    # if this doesn't work, try the one above it
     unwrapped_env = env._wrapped_env.env.unwrapped
 
     # Recreate experiment params
