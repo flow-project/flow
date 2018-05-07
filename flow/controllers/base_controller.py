@@ -88,10 +88,6 @@ class BaseController:
         if self.accel_noise > 0:
             accel += np.random.normal(0, self.accel_noise)
 
-        # constrain the accel to be between the min and max set by
-        # SumoCarFollowingParams
-        accel = max(min(accel, self.max_accel), -1 * self.max_deaccel)
-
         # run the failsafes, if requested
         if self.fail_safe == 'instantaneous':
             accel = self.get_safe_action_instantaneous(env, accel)
