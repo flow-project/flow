@@ -5,227 +5,171 @@ merge into the inner ring.
 """
 
 import json
-import os
 
-import gym
 import ray
 import ray.rllib.ppo as ppo
-from flow.scenarios.loop_merge.scenario \
-    import TwoLoopsOneMergingScenario
 from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
-from ray.tune.registry import get_registry, register_env as register_rllib_env
-from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
+from ray.tune.registry import get_registry, register_env
+from ray.tune.result import DEFAULT_RESULTS_DIR as RESULTS_DIR
 
-from flow.controllers.car_following_models import SumoCarFollowingController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.util import NameEncoder, register_env, rllib_logger_creator
+from flow.controllers import RLController, IDMController, ContinuousRouter, \
+    SumoLaneChangeController
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams, \
+    SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.util import rllib_logger_creator
+from flow.utils.rllib import make_create_env, FlowParamsEncoder
 from flow.core.vehicles import Vehicles
-from flow.scenarios.loop_merge.gen \
-    import TwoLoopOneMergingGenerator
 
 HORIZON = 100
+N_ROLLOUTS = 100
+PARALLEL_ROLLOUTS = 48
+
 RING_RADIUS = 100
 NUM_MERGE_HUMANS = 9
 NUM_MERGE_RL = 1
-additional_env_params = {"target_velocity": 20, "max-deacc": -1.5,
-                         "max-acc": 1, "num_steps": HORIZON}
-additional_net_params = {"ring_radius": RING_RADIUS, "lanes": 1,
-                         "inner_lanes": 3, "outer_lanes": 2,
-                         "lane_length": 75, "speed_limit": 30,
-                         "resolution": 40}
-vehicle_params = [dict(veh_id="human",
-                       acceleration_controller=(SumoCarFollowingController,
-                                                {}),
-                       lane_change_controller=(SumoLaneChangeController,
-                                               {}),
-                       routing_controller=(ContinuousRouter, {}),
-                       lane_change_mode="strategic",
-                       num_vehicles=10,
-                       sumo_car_following_params=SumoCarFollowingParams(
-                           minGap=1.0, tau=0.5),
-                       sumo_lc_params=SumoLaneChangeParams()),
-                  dict(veh_id="on-rl",
-                       acceleration_controller=(RLController,
-                                                {"fail_safe": "safe_velocity"}),
-                       lane_change_controller=(SumoLaneChangeController,
-                                               {}),
-                       routing_controller=(ContinuousRouter, {}),
-                       speed_mode="no_collide",
-                       lane_change_mode="strategic",
-                       num_vehicles=1,
-                       sumo_car_following_params=SumoCarFollowingParams(
-                           minGap=0.01, tau=0.5),
-                       sumo_lc_params=SumoLaneChangeParams()),
-                  dict(veh_id="merge-human",
-                       acceleration_controller=(SumoCarFollowingController, {}),
-                       lane_change_controller=(SumoLaneChangeController, {}),
-                       routing_controller=(ContinuousRouter, {}),
-                       lane_change_mode="strategic",
-                       num_vehicles=NUM_MERGE_HUMANS,
-                       sumo_car_following_params=SumoCarFollowingParams(
-                           minGap=1.0, tau=0.5),
-                       sumo_lc_params=SumoLaneChangeParams()),
-                  dict(veh_id="merge-rl",
-                       acceleration_controller=(RLController,
-                                                {"fail_safe": "safe_velocity"}),
-                       lane_change_controller=(SumoLaneChangeController, {}),
-                       routing_controller=(ContinuousRouter, {}),
-                       speed_mode="no_collide",
-                       lane_change_mode="strategic",
-                       num_vehicles=NUM_MERGE_RL,
-                       sumo_car_following_params=SumoCarFollowingParams(
-                           minGap=0.01, tau=0.5),
-                       sumo_lc_params=SumoLaneChangeParams())
-                  ]
 
-merge_ids = []
-for i in range(NUM_MERGE_HUMANS):
-    merge_ids.append('merge-human_' + str(i))
-for i in range(NUM_MERGE_RL):
-    merge_ids.append('merge-rl_' + str(i))
-merge_list = [merge_ids]
+# note that the vehicles are added sequentially by the generator,
+# so place the merging vehicles after the vehicles in the ring
+vehicles = Vehicles()
+# Inner ring vehicles
+vehicles.add(veh_id="human",
+             acceleration_controller=(IDMController, {"noise": 0.2}),
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             num_vehicles=6,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=0.0,
+                 tau=0.5
+             ),
+             sumo_lc_params=SumoLaneChangeParams())
+# A single learning agent in the inner ring
+vehicles.add(veh_id="rl",
+             acceleration_controller=(RLController, {}),
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             speed_mode="no_collide",
+             num_vehicles=1,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=0.01,
+                 tau=0.5
+             ),
+             sumo_lc_params=SumoLaneChangeParams())
+# Outer ring vehicles
+vehicles.add(veh_id="merge-human",
+             acceleration_controller=(IDMController, {"noise": 0.2}),
+             lane_change_controller=(SumoLaneChangeController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             num_vehicles=10,
+             sumo_car_following_params=SumoCarFollowingParams(
+                 minGap=0.0,
+                 tau=0.5
+             ),
+             sumo_lc_params=SumoLaneChangeParams())
 
 flow_params = dict(
-    sumo=dict(
-        sim_step=0.1
+    # name of the experiment
+    exp_tag="cooperative_merge",
+
+    # name of the flow environment the experiment is running on
+    env_name="TwoLoopsMergeEnv",
+
+    # name of the scenario class the experiment is running on
+    scenario="TwoLoopsOneMergingScenario",
+
+    # name of the generator used to create/modify network configuration files
+    generator="TwoLoopOneMergingGenerator",
+
+    # sumo-related parameters (see flow.core.params.SumoParams)
+    sumo=SumoParams(
+        sim_step=0.1,
+        sumo_binary="sumo-gui",
     ),
-    env=dict(vehicle_arrangement_shuffle=True,
-             horizon=HORIZON,
-             additional_params=additional_env_params
-             ),
-    net=dict(
+
+    # environment related parameters (see flow.core.params.EnvParams)
+    env=EnvParams(
+        horizon=HORIZON,
+        additional_params={
+            "target_velocity": 20,
+            "max_accel": 1,
+            "max_decel": 1.5,
+        },
+    ),
+
+    # network-related parameters (see flow.core.params.NetParams and the
+    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    net=NetParams(
         no_internal_links=False,
-        additional_params=additional_net_params
+        additional_params={
+            "ring_radius": 50,
+            "lanes": 1,
+            "lane_length": 75,
+            "speed_limit": 30,
+            "resolution": 40,
+        },
     ),
-    veh=vehicle_params,
-    initial=dict(
+
+    # vehicles to be placed in the network at the start of a rollout (see
+    # flow.core.vehicles.Vehicles)
+    veh=vehicles,
+
+    # parameters specifying the positioning of vehicles upon initialization/
+    # reset (see flow.core.params.InitialConfig)
+    initial=InitialConfig(
         x0=50,
         spacing="custom",
-        lanes_distribution=1,
-        # shuffle=False,
-        # TODO add a consistent set of values for the bunching params
-        # TODO add some non-uniformity
-        additional_params={"merge_bunching": 300,
-                           "merge_shuffle": True,
-                           "gaussian_scale": 2,
-                           "merge_from_top": True,
-                           "shuffle_ids": merge_list}
-    )
+        additional_params={
+            "merge_bunching": 0,
+        },
+    ),
 )
 
 
-def make_create_env(flow_env_name, flow_params, version=0,
-                    exp_tag="example", sumo="sumo"):
-    env_name = flow_env_name + '-v%s' % version
-
-    sumo_params_dict = flow_params['sumo']
-    sumo_params_dict['sumo_binary'] = sumo
-    sumo_params = SumoParams(**sumo_params_dict)
-
-    env_params_dict = flow_params['env']
-    env_params = EnvParams(**env_params_dict)
-
-    net_params_dict = flow_params['net']
-    net_params = NetParams(**net_params_dict)
-
-    init_params = flow_params['initial']
-
-    def create_env(env_config):
-        # note that the vehicles are added sequentially by the generator,
-        # so place the merging vehicles after the vehicles in the ring
-        vehicles = Vehicles()
-        for i in range(len(vehicle_params)):
-            vehicles.add(**vehicle_params[i])
-
-        initial_config = InitialConfig(**init_params)
-
-        scenario = TwoLoopsOneMergingScenario(
-            name=exp_tag,
-            generator_class=TwoLoopOneMergingGenerator,
-            vehicles=vehicles,
-            net_params=net_params,
-            initial_config=initial_config
-        )
-
-        pass_params = (flow_env_name, sumo_params, vehicles, env_params,
-                       net_params, initial_config, scenario, version)
-
-        register_env(*pass_params)
-        env = gym.envs.make(env_name)
-
-        return env
-
-    return create_env, env_name
-
-
 if __name__ == "__main__":
-    config = ppo.DEFAULT_CONFIG.copy()
-    horizon = HORIZON
-    n_rollouts = 100
-
-    # ray.init(redirect_output=False)
-    # replace the redis address with that output by create_or_update
     ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 48
-    config["num_workers"] = parallel_rollouts  # number of parallel rollouts
-    config["timesteps_per_batch"] = horizon * n_rollouts
+    config = ppo.DEFAULT_CONFIG.copy()
+    config["num_workers"] = PARALLEL_ROLLOUTS
+    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
-
     config["lambda"] = 0.97
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
-    config["horizon"] = horizon
+    config["horizon"] = HORIZON
 
-    flow_env_name = "TwoLoopsMergePOEnv"
-    exp_tag = "cooperative_merge_example"  # experiment prefix
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
+                           indent=4)
+    config['env_config']['flow_params'] = flow_json
 
-    flow_params['flowenv'] = flow_env_name
-    flow_params['exp_tag'] = exp_tag
-    # filename without '.py'
-    flow_params['module'] = os.path.basename(__file__)[:-3]
-
-    create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, exp_tag=exp_tag)
+    create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
-    register_rllib_env(env_name, create_env)
+    register_env(env_name, create_env)
 
-    logger_creator = rllib_logger_creator(results_dir,
-                                          flow_env_name,
-                                          UnifiedLogger)
+    logger_creator = rllib_logger_creator(RESULTS_DIR, env_name, UnifiedLogger)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
-    # Logging out flow_params to ray's experiment result folder
-    json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile,
-                  cls=NameEncoder, sort_keys=True, indent=4)
-
     trials = run_experiments({
-        "pendulum_tests": {
+        "cooperative_merge": {
             "run": "PPO",
-            "env": "TwoLoopsMergePOEnv-v0",
+            "env": env_name,
             "config": {
                 **config
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 200},
-            "trial_resources": {"cpu": 1, "gpu": 0,
-                                "extra_cpu": parallel_rollouts - 1}
+            "stop": {
+                "training_iteration": 200,
+            },
+            "trial_resources": {
+                "cpu": 1,
+                "gpu": 0,
+                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+            },
         }
     })
-    json_out_file = trials[0].logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder,
-                  sort_keys=True, indent=4)

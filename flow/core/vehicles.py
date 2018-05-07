@@ -17,6 +17,7 @@ LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
 
 class Vehicles:
+
     def __init__(self):
         """Base vehicle class.
 
@@ -62,6 +63,9 @@ class Vehicles:
 
         # simulation step size
         self.sim_step = 0
+
+        # initial state of the vehicles class, used for serialization purposes
+        self.initial = []
 
     def add(self,
             veh_id,
@@ -173,6 +177,18 @@ class Vehicles:
              "lane_change_mode": lane_change_mode,
              "sumo_car_following_params": sumo_car_following_params,
              "sumo_lc_params": sumo_lc_params}
+
+        self.initial.append({
+            "veh_id": veh_id,
+            "acceleration_controller": acceleration_controller,
+            "lane_change_controller": lane_change_controller,
+            "routing_controller": routing_controller,
+            "initial_speed": initial_speed,
+            "num_vehicles": num_vehicles,
+            "speed_mode": speed_mode,
+            "lane_change_mode": lane_change_mode,
+            "sumo_car_following_params": sumo_car_following_params,
+            "sumo_lc_params": sumo_lc_params})
 
         # this is used to return the actual headways from the vehicles class
         self.minGap[veh_id] = type_params["minGap"]

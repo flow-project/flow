@@ -18,13 +18,14 @@ from flow.core.vehicles import Vehicles
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
+from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
-# number of parrallel workers
-PARALLEL_ROLLOUTS = 10
+# number of parallel workers
+PARALLEL_ROLLOUTS = 1
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -62,20 +63,16 @@ flow_params = dict(
         warmup_steps=750,
         additional_params={
             "target_velocity": 20,
-            "max_accel": 1,
-            "max_decel": 1,
+            "max_accel": 3,
+            "max_decel": 3,
         },
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        additional_params={
-            "length": 260,
-            "lanes": 1,
-            "speed_limit": 30,
-            "resolution": 40,
-        },
+        no_internal_links=False,
+        additional_params=ADDITIONAL_NET_PARAMS,
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -89,7 +86,7 @@ flow_params = dict(
 
 
 if __name__ == "__main__":
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
+    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=False)
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
@@ -103,6 +100,11 @@ if __name__ == "__main__":
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
 
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
+                           indent=4)
+    config['env_config']['flow_params'] = flow_json
+
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
@@ -113,12 +115,6 @@ if __name__ == "__main__":
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
-    # Logging out flow_params to ray's experiment result folder
-    json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile,
-                  cls=FlowParamsEncoder, sort_keys=True, indent=4)
-
     trials = run_experiments({
         "figure_eight": {
             "run": "PPO",
@@ -126,11 +122,16 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 20,
+            "checkpoint_freq": 1,
             "max_failures": 999,
-            "stop": {"training_iteration": 200},
+            "stop": {
+                "training_iteration": 200
+            },
             "repeat": 3,
-            "trial_resources": {"cpu": 1, "gpu": 0,
-                                "extra_cpu": PARALLEL_ROLLOUTS - 1}
+            "trial_resources": {
+                "cpu": 1,
+                "gpu": 0,
+                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+            },
         },
     })
