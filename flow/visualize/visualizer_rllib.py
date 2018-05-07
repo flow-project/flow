@@ -21,7 +21,7 @@ from ray.tune.registry import get_registry, register_env
 
 from flow.utils.rllib import make_create_env, get_flow_params
 from flow.core.util import get_rllib_config
-from flow.utils.emission_to_csv import emission_to_csv
+from flow.core.util import emission_to_csv
 
 EXAMPLE_USAGE = """
 example usage:
