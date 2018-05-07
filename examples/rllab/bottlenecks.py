@@ -9,9 +9,8 @@ from flow.core.traffic_lights import TrafficLights
 
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers import SumoLaneChangeController, ContinuousRouter
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoLaneChangeParams
 
 from rllab.envs.gym_env import GymEnv
