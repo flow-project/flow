@@ -16,9 +16,7 @@ from flow.core.util import rllib_logger_creator
 from flow.utils.rllib import make_create_env, FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.rlcontroller import RLController
+from flow.controllers import RLController, IDMController, ContinuousRouter
 
 # time horizon of a single rollout
 HORIZON = 3000
@@ -104,6 +102,11 @@ if __name__ == "__main__":
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
 
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
+                           indent=4)
+    config['env_config']['flow_params'] = flow_json
+
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
@@ -114,12 +117,6 @@ if __name__ == "__main__":
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
                        config=config, logger_creator=logger_creator)
 
-    # Logging out flow_params to ray's experiment result folder
-    json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile,
-                  cls=FlowParamsEncoder, sort_keys=True, indent=4)
-
     trials = run_experiments({
         "ring_stabilize": {
             "run": "PPO",
@@ -129,9 +126,14 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 200},
+            "stop": {
+                "training_iteration": 200,
+            },
             "repeat": 3,
-            "trial_resources": {"cpu": 1, "gpu": 0,
-                                "extra_cpu": PARALLEL_ROLLOUTS - 1}
+            "trial_resources": {
+                "cpu": 1,
+                "gpu": 0,
+                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+            },
         },
     })

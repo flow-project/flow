@@ -3,22 +3,20 @@ Grid/green wave example
 """
 
 import json
-import os
 
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune import run_experiments
-from ray.tune.registry import get_registry, register_env as register_rllib_env
+from ray.tune.logger import UnifiedLogger
+from ray.tune.registry import get_registry, register_env
+from ray.tune.result import DEFAULT_RESULTS_DIR as RESULTS_DIR
 
-from flow.core.util import register_env, NameEncoder
-
-from flow.core.params import SumoParams, EnvParams, InFlows, NetParams, \
-    InitialConfig
-from flow.core.params import SumoCarFollowingParams
+from flow.core.util import rllib_logger_creator
+from flow.utils.rllib import make_create_env, FlowParamsEncoder
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-
-from flow.controllers.routing_controllers import GridRouter
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers import SumoCarFollowingController, GridRouter
 
 # time horizon of a single rollout
 HORIZON = 200
@@ -151,7 +149,7 @@ flow_params = dict(
 )
 
 
-def main():
+if __name__ == "__main__":
     ray.init(redis_address="localhost:6379", redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
@@ -159,7 +157,6 @@ def main():
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32]})
-
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 30
@@ -169,27 +166,19 @@ def main():
     config["clip_param"] = 0.2
     config["horizon"] = HORIZON
 
-    flow_env_name = "GreenWaveEnv"
-    exp_tag = "66"  # experiment prefix
+    # save the flow params for replay
+    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
+                           indent=4)
+    config['env_config']['flow_params'] = flow_json
 
-    flow_params['flowenv'] = flow_env_name
-    flow_params['exp_tag'] = exp_tag
-    flow_params['module'] = os.path.basename(__file__)[:-3]
-
-    create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, exp_tag=exp_tag,
-                                           sumo="sumo")
+    create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
-    register_rllib_env(env_name, create_env)
+    register_env(env_name, create_env)
+
+    logger_creator = rllib_logger_creator(RESULTS_DIR, env_name, UnifiedLogger)
 
     alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
-
-    # Logging out flow_params to ray's experiment result folder
-    json_out_file = alg.logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True,
-                  indent=4)
 
     trials = run_experiments({
         "green_wave": {
@@ -200,16 +189,13 @@ def main():
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
-            "stop": {"training_iteration": 200},
-            "trial_resources": {"cpu": 1, "gpu": 0,
-                                "extra_cpu": PARALLEL_ROLLOUTS - 1}
+            "stop": {
+                "training_iteration": 200,
+            },
+            "trial_resources": {
+                "cpu": 1,
+                "gpu": 0,
+                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+            },
         }
     })
-    json_out_file = trials[0].logdir + '/flow_params.json'
-    with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder,
-                  sort_keys=True, indent=4)
-
-
-if __name__ == "__main__":
-    main()

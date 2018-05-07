@@ -11,8 +11,6 @@ from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
-from flow.scenarios import *
-from flow.controllers import *
 
 
 def make_create_env(params, version=0, sumo_binary=None):
@@ -67,8 +65,11 @@ def make_create_env(params, version=0, sumo_binary=None):
     exp_tag = params["exp_tag"]
 
     env_name = params["env_name"] + '-v{}'.format(version)
-    scenario_class = eval(params["scenario"])
-    generator_class = eval(params["generator"])
+
+    module = __import__("flow.scenarios", fromlist=[params["scenario"]])
+    scenario_class = getattr(module, params["scenario"])
+    module = __import__("flow.scenarios", fromlist=[params["generator"]])
+    generator_class = getattr(module, params["generator"])
 
     sumo_params = params['sumo']
     env_params = params['env']
@@ -116,19 +117,19 @@ class FlowParamsEncoder(json.JSONEncoder):
 
         if obj not in allowed_types:
             if isinstance(obj, Vehicles):
-                res = obj.type_parameters
-                for key in res.keys():
-                    res[key]["acceleration_controller"] = \
-                        (res[key]["acceleration_controller"][0].__name__,
-                         res[key]["acceleration_controller"][1])
-                    res[key]["lane_change_controller"] = \
-                        (res[key]["lane_change_controller"][0].__name__,
-                         res[key]["lane_change_controller"][1])
-                    if res[key]["routing_controller"] is not None:
-                        res[key]["routing_controller"] = \
-                            (res[key]["routing_controller"][0].__name__,
-                             res[key]["routing_controller"][1])
-                return obj.type_parameters
+                res = obj.initial
+                for res_i in res:
+                    res_i["acceleration_controller"] = \
+                        (res_i["acceleration_controller"][0].__name__,
+                         res_i["acceleration_controller"][1])
+                    res_i["lane_change_controller"] = \
+                        (res_i["lane_change_controller"][0].__name__,
+                         res_i["lane_change_controller"][1])
+                    if res_i["routing_controller"] is not None:
+                        res_i["routing_controller"] = \
+                            (res_i["routing_controller"][0].__name__,
+                             res_i["routing_controller"][1])
+                return obj.initial
             if hasattr(obj, '__name__'):
                 return obj.__name__
             else:
@@ -137,14 +138,13 @@ class FlowParamsEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def get_flow_params(path):
+def get_flow_params(config):
     """Returns Flow experiment parameters, given an experiment result folder
 
     Parameters
     ----------
-    path : str
-        Path to an rllib experiment result directory (``flow_params.json`` is
-        in the same folder as ``params.json``)
+    config : dict
+        stored RLlib configuration dict
 
     Returns
     -------
@@ -153,25 +153,28 @@ def get_flow_params(path):
         characteristics, etc
     """
     # collect all data from the json file
-    flow_params_file = path
-    flow_params = json.loads(open(flow_params_file).read())
+    flow_params = json.loads(config['env_config']['flow_params'])
 
     # reinitialize the vehicles class from stored data
     veh = Vehicles()
-    for veh_id, veh_params in flow_params["veh"].items():
-        acceleration_controller = (
-            eval(veh_params['acceleration_controller'][0]),
-            veh_params['acceleration_controller'][1])
+    for veh_params in flow_params["veh"]:
+        veh_id = veh_params["veh_id"]
+        print(veh_id)
 
-        lane_change_controller = (
-            eval(veh_params['lane_change_controller'][0]),
-            veh_params['lane_change_controller'][1])
+        module = __import__(
+            "flow.controllers",
+            fromlist=[veh_params['acceleration_controller'][0]]
+        )
+        acc_class = getattr(module, veh_params['acceleration_controller'][0])
+        lc_class = getattr(module, veh_params['lane_change_controller'][0])
 
-        routing_controller = None
-        if veh_params['lane_change_controller'] is not None:
-            routing_controller = (
-                eval(veh_params['routing_controller'][0]),
-                veh_params['routing_controller'][1])
+        acc_controller = (acc_class, veh_params['acceleration_controller'][1])
+        lc_controller = (lc_class, veh_params['lane_change_controller'][1])
+
+        rt_controller = None
+        if veh_params['routing_controller'] is not None:
+            rt_class = getattr(module, veh_params['routing_controller'][0])
+            rt_controller = (rt_class, veh_params['routing_controller'][1])
 
         sumo_cf_params = SumoCarFollowingParams()
         sumo_cf_params.__dict__ = veh_params["sumo_car_following_params"]
@@ -185,10 +188,9 @@ def get_flow_params(path):
             veh_params["lane_change_controller"], \
             veh_params["routing_controller"]
 
-        veh.add(veh_id=veh_id,
-                acceleration_controller=acceleration_controller,
-                lane_change_controller=lane_change_controller,
-                routing_controller=routing_controller,
+        veh.add(acceleration_controller=acc_controller,
+                lane_change_controller=lc_controller,
+                routing_controller=rt_controller,
                 sumo_car_following_params=sumo_cf_params,
                 sumo_lc_params=sumo_lc_params,
                 **veh_params)
