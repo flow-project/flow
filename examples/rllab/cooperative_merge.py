@@ -4,8 +4,6 @@ vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
 merge into the inner ring. rllab version.
 """
 
-from flow.scenarios.two_loops_one_merging.scenario \
-    import TwoLoopsOneMergingScenario
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.envs.gym_env import GymEnv
@@ -20,7 +18,8 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
-from flow.scenarios.two_loops_one_merging.gen import TwoLoopOneMergingGenerator
+from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
+from flow.scenarios.loop_merge.scenario import TwoLoopsOneMergingScenario
 
 HORIZON = 300
 

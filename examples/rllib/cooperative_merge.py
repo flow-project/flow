@@ -22,12 +22,10 @@ vehicle_params : list of dict
 
 import json
 import os
-
 import gym
+
 import ray
 import ray.rllib.ppo as ppo
-from flow.scenarios.two_loops_one_merging.scenario \
-    import TwoLoopsOneMergingScenario
 from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import get_registry, register_env as register_rllib_env
@@ -41,8 +39,8 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
 from flow.core.vehicles import Vehicles
-from flow.scenarios.two_loops_one_merging.gen \
-    import TwoLoopOneMergingGenerator
+from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
+from flow.scenarios.loop_merge.scenario import TwoLoopsOneMergingScenario
 
 HORIZON = 100
 RING_RADIUS = 100
