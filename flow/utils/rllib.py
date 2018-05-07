@@ -158,9 +158,6 @@ def get_flow_params(config):
     # reinitialize the vehicles class from stored data
     veh = Vehicles()
     for veh_params in flow_params["veh"]:
-        veh_id = veh_params["veh_id"]
-        print(veh_id)
-
         module = __import__(
             "flow.controllers",
             fromlist=[veh_params['acceleration_controller'][0]]
