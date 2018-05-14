@@ -52,8 +52,7 @@ from flow.core.vehicles import Vehicles
 HORIZON = 100
 
 additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                         "max-acc": 1,
-                         "scenario_type": LoopScenario}  # Any way to avoid specifying this here? - nish
+                         "max-acc": 1}
 additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                          "resolution": 40}
 vehicle_params = [dict(veh_id="rl",

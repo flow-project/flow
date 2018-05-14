@@ -11,10 +11,8 @@ from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers import RLController, IDMController, \
+    SumoLaneChangeController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
