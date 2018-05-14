@@ -26,10 +26,6 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 FLOW_RATE = 1500 * SCALING  # inflow rate
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 0fe6c9cf958d9a49b13baaf86860a4ffaeb62758
 sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
