@@ -47,7 +47,7 @@ def highway_example(sumo_binary=None):
     net_params = NetParams(in_flows=inflow,
                            additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="random",
+    initial_config = InitialConfig(spacing="uniform",
                                    lanes_distribution=4,
                                    shuffle=True)
 

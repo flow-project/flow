@@ -627,12 +627,10 @@ class Env(gym.Env, Serializable):
             requested accelerations from the vehicles
         """
         for i, vid in enumerate(veh_ids):
-            if acc[i]:
+            if acc[i] is not None:
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i]*self.sim_step, 0])
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
-            else:
-                self.traci_connection.vehicle.setSpeed(vid, -1)
 
     def apply_lane_change(self, veh_ids, direction):
         """Applies an instantaneous lane-change to a set of vehicles, while
