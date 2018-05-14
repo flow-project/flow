@@ -92,7 +92,7 @@ scenario = BBTollScenario(name="bay_bridge_toll",
 
 
 def run_task(*_):
-    env_name = "BottleNeckEnv"
+    env_name = "BottleneckEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params,
                    net_params, initial_config, scenario)
 

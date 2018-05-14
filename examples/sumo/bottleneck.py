@@ -10,7 +10,7 @@ from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.envs.bottleneck_env import BridgeTollEnv
+from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import SumoExperiment
 
 SCALING = 1
@@ -20,7 +20,7 @@ DISABLE_RAMP_METER = True
 INFLOW = 1800
 
 
-def bottleneck(flow_rate, horizon, sumo_binary=None):
+def bottleneck_example(flow_rate, horizon, sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo"
@@ -72,7 +72,7 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
                               initial_config=initial_config,
                               traffic_lights=traffic_lights)
 
-    env = BridgeTollEnv(env_params, sumo_params, scenario)
+    env = BottleneckEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 
@@ -80,5 +80,5 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
 if __name__ == "__main__":
     # import the experiment variable
     # inflow, number of steps, binary
-    exp = bottleneck(INFLOW, 1000, sumo_binary="sumo-gui")
+    exp = bottleneck_example(INFLOW, 1000, sumo_binary="sumo-gui")
     exp.run(5, 1000)

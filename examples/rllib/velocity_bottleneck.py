@@ -67,9 +67,6 @@ flow_rate = 1900 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 # percentage of flow coming out of each lane
-# flow_dist = np.random.dirichlet(np.ones(NUM_LANES), size=1)[0]
-flow_dist = np.ones(NUM_LANES) / NUM_LANES
-
 inflow = InFlows()
 inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate * (1 - AV_FRAC),
            departLane="random", departSpeed=10)
