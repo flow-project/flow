@@ -23,11 +23,11 @@ class TrafficLights:
             phases=None):
         """Adds a traffic light component to the network.
 
-        When generating networks using xml files, adding traffic lights in here
-        will explicitly place the traffic light in the requested node of the
-        generated network.
+        When generating networks using xml files, using this method to add a
+        traffic light will explicitly place the traffic light in the requested
+        node of the generated network.
 
-        If traffic lights are not added here but are alreday present in the
+        If traffic lights are not added here but are already present in the
         network (e.g. through a prebuilt net.xml file), then the traffic light
         class will identify and add them separately.
 
