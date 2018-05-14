@@ -3,7 +3,6 @@ import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, InFlows
-from flow.controllers.routing_controllers import BayBridgeRouter
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
@@ -11,7 +10,7 @@ from flow.core.experiment import SumoExperiment
 from flow.envs.bay_bridge import BridgeBaseEnv
 from flow.scenarios.bay_bridge.gen import BayBridgeGenerator
 from flow.scenarios.bay_bridge.scenario import BayBridgeScenario
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
 NETFILE = "bay_bridge.net.xml"
 

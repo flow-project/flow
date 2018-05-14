@@ -3,8 +3,6 @@ Example script for use of two-level fully connected network policy,
 using the single-lane ring road setting.
 """
 
-import cloudpickle
-
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env

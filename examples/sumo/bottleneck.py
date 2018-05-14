@@ -8,8 +8,7 @@ from flow.core.traffic_lights import TrafficLights
 
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
-from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers import SumoLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import SumoExperiment
 

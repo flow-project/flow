@@ -1,9 +1,7 @@
 """
 (description)
 """
-import cloudpickle
 import os
-import tensorflow as tf
 
 import ray
 import ray.rllib.ppo as ppo
@@ -38,16 +36,12 @@ if __name__ == "__main__":
     config["horizon"] = horizon
 
     # Two-level policy parameters
-    config["model"].update(
-        {"fcnet_hiddens": [32, 32]})
-    # fn = list(cloudpickle.dumps(lambda x: 0))
-    # fn = list(cloudpickle.dumps(choose_subpolicy))
+    config["model"].update({"fcnet_hiddens": [32, 32]})
 
     options = {"num_subpolicies": 2,
-                "fn_choose_subpolicy": fn_choose_subpolicy,
+               "fn_choose_subpolicy": fn_choose_subpolicy,
                "hierarchical_fcnet_hiddens": [[32, 32]] * 2}
     config["model"].update({"custom_options": options})
-
 
     flow_env_name = "TwoLoopsMergePOEnv"
     exp_tag = "merge_two_level_policy_example"
@@ -56,10 +50,10 @@ if __name__ == "__main__":
     flow_params["exp_tag"] = exp_tag
     flow_params["module"] = os.path.basename(__file__)[:-3]
     config['model']['custom_options'].update({'flowenv': flow_env_name,
-                                'exp_tag': exp_tag,
-                                'module': this_file})
-    create_env, env_name = make_create_env(flow_env_name, flow_params, version=0,
-                                           exp_tag=exp_tag)
+                                              'exp_tag': exp_tag,
+                                              'module': this_file})
+    create_env, env_name = make_create_env(flow_env_name, flow_params,
+                                           version=0, exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)
