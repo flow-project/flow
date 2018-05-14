@@ -13,23 +13,19 @@ import importlib
 import json
 import os
 import tempfile
-
 from lxml import etree
 from datetime import datetime
-
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
 
 from gym.envs.registration import register
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import *
 from flow.core.params import InFlows
 from flow.controllers.velocity_controllers import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.scenarios.loop.loop_scenario import LoopScenario
 from flow.core.params import InFlows
 
 E = etree.Element
@@ -333,7 +329,7 @@ def emission_to_csv(emission_path, output_path=None):
     available from the emission file, but can be recreated.
     """
     parser = etree.XMLParser(recover=True)
-    tree = ET.parse(emission_path, parser=parser)
+    tree = ElementTree.parse(emission_path, parser=parser)
     root = tree.getroot()
 
     # parse the xml data into a dict
