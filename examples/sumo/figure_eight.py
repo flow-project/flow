@@ -1,9 +1,10 @@
+"""Example of a figure 8 network with human-driven vehicles.
+
+Right-of-way dynamics near the intersection causes vehicles to queue up on
+either side of the intersection, leading to a significant reduction in the
+average speed of vehicles in the network.
 """
-Example of a figure 8 network with human-driven vehicles.
-"""
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.lane_change_controllers import StaticLaneChanger
-from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams
 from flow.core.vehicles import Vehicles

@@ -12,7 +12,7 @@ from flow.core.experiment import SumoExperiment
 from flow.scenarios.merge.gen import MergeGenerator
 from flow.scenarios.merge.scenario import MergeScenario, \
     ADDITIONAL_NET_PARAMS
-from flow.controllers.car_following_models import IDMController
+from flow.controllers import IDMController
 from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
 
 # inflow rate at the highway

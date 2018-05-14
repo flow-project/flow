@@ -2,9 +2,7 @@
 Example of an open multi-lane network with human-driven vehicles.
 """
 
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.lane_change_controllers import StaticLaneChanger
-from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
@@ -24,15 +22,9 @@ def highway_example(sumo_binary=None):
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
                  acceleration_controller=(IDMController, {}),
-                 lane_change_controller=(StaticLaneChanger, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 initial_speed=0,
                  num_vehicles=20)
     vehicles.add(veh_id="human2",
                  acceleration_controller=(IDMController, {}),
-                 lane_change_controller=(StaticLaneChanger, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 initial_speed=0,
                  num_vehicles=20)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)

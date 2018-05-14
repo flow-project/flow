@@ -2,7 +2,6 @@ import logging
 import os
 import signal
 import subprocess
-import sys
 from copy import deepcopy
 import time
 import traceback

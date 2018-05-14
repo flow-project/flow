@@ -31,8 +31,7 @@ class TestJSON(unittest.TestCase):
         horizon = 500
 
         additional_env_params = {"target_velocity": 8, "max-deacc": -1,
-                                 "max-acc": 1, "num_steps": horizon,
-                                 "scenario_type": LoopScenario}
+                                 "max-acc": 1, "num_steps": horizon}
         additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
                                  "resolution": 40}
         vehicle_params = [dict(veh_id="rl", num_vehicles=1,

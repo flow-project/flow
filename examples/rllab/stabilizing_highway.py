@@ -12,8 +12,7 @@ from rllab.envs.gym_env import GymEnv
 
 from flow.scenarios.merge.gen import MergeGenerator
 from flow.scenarios.merge.scenario import MergeScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.car_following_models import IDMController
+from flow.controllers import RLController, IDMController
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, InFlows, EnvParams, NetParams, \
     InitialConfig
