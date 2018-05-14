@@ -559,7 +559,8 @@ class Scenario(Serializable):
                 available_edges, initial_config)
 
     def edge_length(self, edge_id):
-        """Returns the length of a given edge/junction. Returns -1001 if edge not found."""
+        """Returns the length of a given edge/junction. Returns -1001 if edge
+        not found."""
         try:
             return self._edges[edge_id]["length"]
         except KeyError:
@@ -567,7 +568,8 @@ class Scenario(Serializable):
             return -1001
 
     def speed_limit(self, edge_id):
-        """Returns the speed limit of a given edge/junction. Returns -1001 if edge not found."""
+        """Returns the speed limit of a given edge/junction. Returns -1001 if
+        edge not found."""
         try:
             return self._edges[edge_id]["speed"]
         except KeyError:
@@ -575,7 +577,8 @@ class Scenario(Serializable):
             return -1001
 
     def num_lanes(self, edge_id):
-        """Returns the number of lanes of a given edge/junction. Returns -1001 if edge not found."""
+        """Returns the number of lanes of a given edge/junction. Returns -1001
+        if edge not found."""
         try:
             return self._edges[edge_id]["lanes"]
         except KeyError:
