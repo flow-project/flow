@@ -6,11 +6,10 @@ Attributes
 E : etree.Element
     Description
 """
-
+# flake8: noqa
 import csv
 import errno
 import importlib
-import inspect
 import json
 import os
 import tempfile
@@ -31,34 +30,29 @@ from flow.controllers.velocity_controllers import *
 from flow.controllers.lane_change_controllers import *
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.scenarios.loop.loop_scenario import LoopScenario
-
+from flow.core.params import InFlows
 
 E = etree.Element
+
 
 class NameEncoder(json.JSONEncoder):
 
     """
     Custom encoder used to generate ``flow_params.json``
     Extends ``json.JSONEncoder``.
-    
-    Attributes
-    ----------
-    allowed_types : list
-        A list of primitive types that can be automatically
-        serialized by the default JSON encoder
     """
 
     allowed_types = [dict, list, tuple, str, int, float, bool, type(None)]
-    
+
     def default(self, obj):
         """
         Default encoder (required to extend ``JSONEncoder``)
-        
+
         Parameters
         ----------
         obj : Object
             Object to encode
-        
+
         Returns
         -------
         Object
@@ -74,11 +68,11 @@ class NameEncoder(json.JSONEncoder):
 
 
 def rllib_logger_creator(result_dir, env_name, loggerfn):
-    logdir_prefix = env_name + '_' + datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+    logdir_prefix = env_name + '_' + \
+                    datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
-    logdir = tempfile.mkdtemp(
-        prefix=logdir_prefix, dir=result_dir)
+    logdir = tempfile.mkdtemp(prefix=logdir_prefix, dir=result_dir)
 
     return lambda config: loggerfn(config, logdir, None)
 
@@ -86,14 +80,14 @@ def rllib_logger_creator(result_dir, env_name, loggerfn):
 def unstring_flow_params(flow_params):
     """
     Summary
-    
+
     Parameters
     ----------
     flow_params : dict
         Large dictionary of flow parameters for experiment,
         passed in to ``make_create_env`` and used to create
         ``flow_params.json`` file used by exp visualizer
-    
+
     Returns
     -------
     dict
@@ -105,15 +99,18 @@ def unstring_flow_params(flow_params):
     better_params = flow_params.copy()
 
     veh_params = flow_params['veh']
-    better_veh_params = [eval_veh_params(veh_param) for veh_param in veh_params]
+    better_veh_params = [eval_veh_params(veh_param) for
+                         veh_param in veh_params]
     better_net_params = eval_net_params(flow_params)
     better_params['veh'] = better_veh_params
     better_params['net'] = better_net_params
 
     if 'additional_params' in flow_params['env']:
         if 'scenario_type' in flow_params['env']['additional_params']:
-            evaluated_scenario = eval(flow_params['env']['additional_params']['scenario_type'])
-            better_params['env']['additional_params']['scenario_type'] = evaluated_scenario
+            evaluated_scenario = eval(flow_params['env']['additional_params']
+                                      ['scenario_type'])
+            better_params['env']['additional_params']['scenario_type'] = \
+                evaluated_scenario
 
     return better_params
 
@@ -163,17 +160,17 @@ def eval_veh_params(orig_params):
     Evaluates vehicle parameters, since params like IDMController can't be
     serialized and output to JSON. Thus, the JSON file stores those as
     their names, with string 'IDMController' instead of the object
-    ``<flow.controllers.car_following_models.IDMController``. ``util.py`` 
-    imports required car-following models, lane-change controllers, 
+    ``<flow.controllers.car_following_models.IDMController``. ``util.py``
+    imports required car-following models, lane-change controllers,
     routers, and SUMO parameters. This function evaluates those names
     and returns a dict with the actual objects (evaluated) instead of
     their names.
-    
+
     Parameters
     ----------
     orig_params : dict
         Original vehicle parameters, read in from ``flow_params.json``
-    
+
     Returns
     -------
     dict
@@ -182,24 +179,29 @@ def eval_veh_params(orig_params):
     """
 
     new_params = orig_params.copy()
-    
+
     if 'acceleration_controller' in new_params:
-        new_params['acceleration_controller'] = (eval(orig_params['acceleration_controller'][0]),
-                                        orig_params['acceleration_controller'][1])
+        new_controller = (eval(orig_params['acceleration_controller'][0]),
+                               orig_params['acceleration_controller'][1])
+        new_params['acceleration_controller'] = new_controller
     if 'lane_change_controller' in new_params:
-        new_params['lane_change_controller'] = (eval(orig_params['lane_change_controller'][0]), 
-                                        orig_params['lane_change_controller'][1])
+        new_lc_controller = (eval(orig_params['lane_change_controller'][0]),
+                                  orig_params['lane_change_controller'][1])
+        new_params['lane_change_controller'] = new_lc_controller
     if 'routing_controller' in new_params:
-        new_params['routing_controller'] = (eval(orig_params['routing_controller'][0]), 
-                                        orig_params['routing_controller'][1])
+        new_route_controller = (eval(orig_params['routing_controller'][0]),
+                                     orig_params['routing_controller'][1])
+        new_params['routing_controller'] = new_route_controller
     if 'sumo_car_following_params' in new_params:
         cf_params = SumoCarFollowingParams()
-        cf_params.controller_params = orig_params['sumo_car_following_params']['controller_params']
+        cf_params.controller_params = (orig_params['sumo_car_following_params']
+                                       ['controller_params'])
         new_params['sumo_car_following_params'] = cf_params
 
     if 'sumo_lc_params' in new_params:
         lc_params = SumoLaneChangeParams()
-        lc_params.controller_params = orig_params['sumo_lc_params']['controller_params']
+        lc_params.controller_params = \
+            orig_params['sumo_lc_params']['controller_params']
         new_params['sumo_lc_params'] = lc_params
 
     return new_params
@@ -208,12 +210,12 @@ def eval_veh_params(orig_params):
 def get_rllib_params(path):
     """
     Returns rllib experiment parameters, given an experiment result folder
-    
+
     Parameters
     ----------
     path : str
         Path to an rllib experiment result directory
-    
+
     Returns
     -------
     dict
@@ -227,14 +229,15 @@ def get_rllib_params(path):
     gamma = jsondata['gamma']
     horizon = jsondata['horizon']
     hidden_layers = jsondata['model']['fcnet_hiddens']
-    rllib_params = {'gamma':gamma, 
-                    'horizon':horizon,
-                    'hidden_layers':hidden_layers}
-    
+    rllib_params = {'gamma': gamma,
+                    'horizon': horizon,
+                    'hidden_layers': hidden_layers}
+
     return rllib_params
 
+
 def get_rllib_config(path):
-    jsonfile = path + '/params.json' #  params.json is the config file
+    jsonfile = path + '/params.json'  # params.json is the config file
     jsondata = json.loads(open(jsonfile).read())
     return jsondata
 
@@ -242,20 +245,20 @@ def get_rllib_config(path):
 def get_flow_params(config):
     """
     Returns Flow experiment parameters, given an experiment result folder
-    
+
     Parameters
     ----------
     path : str
         Path to an rllib experiment result directory (``flow_params.json`` is
         in the same folder as ``params.json``)
-    
+
     Returns
     -------
     dict
         Dict of flow parameters, like net_params, env_params, vehicle
         characteristics, etc
     function
-        ``make_create_env`` is the higher-order function passed to 
+        ``make_create_env`` is the higher-order function passed to
         rllib as the environment in which to train
     """
 
@@ -271,13 +274,17 @@ def get_flow_params(config):
 
 
 def register_env(env_name, sumo_params, type_params, env_params, net_params,
-                initial_config, scenario, env_version_num=0):
+                 initial_config, scenario, env_version_num=0):
     num_steps = env_params.horizon
     register(
-        id=env_name+'-v'+str(env_version_num),
-        entry_point='flow.envs:'+env_name,
+        id=env_name + '-v' + str(env_version_num),
+        entry_point='flow.envs:' + env_name,
         max_episode_steps=num_steps,
-        kwargs={"env_params": env_params, "sumo_params": sumo_params, "scenario": scenario}
+        kwargs={
+            "env_params": env_params,
+            "sumo_params": sumo_params,
+            "scenario": scenario
+        }
     )
 
 
@@ -304,8 +311,7 @@ def ensure_dir(path):
 
 
 def emission_to_csv(emission_path, output_path=None):
-    """
-    Converts an emission file generated by sumo during an computational
+    """Converts an emission file generated by sumo during an computational
     experiment into a csv file.
 
     Parameters
@@ -323,8 +329,8 @@ def emission_to_csv(emission_path, output_path=None):
     Note
     ----
     The emission file contains information generated by sumo, not flow. This
-    means tha some data, such as absolute position, is not immediately available
-    from the emission file, but can be recreated.
+    means that some data, such as absolute position, is not immediately
+    available from the emission file, but can be recreated.
     """
     parser = etree.XMLParser(recover=True)
     tree = ET.parse(emission_path, parser=parser)
@@ -358,7 +364,8 @@ def emission_to_csv(emission_path, output_path=None):
                 out_data[-1]['PMx'] = float(car.attrib['PMx'])
                 out_data[-1]['speed'] = float(car.attrib['speed'])
                 out_data[-1]['edge_id'] = car.attrib['lane'].rpartition('_')[0]
-                out_data[-1]['lane_number'] = car.attrib['lane'].rpartition('_')[-1]
+                out_data[-1]['lane_number'] = car.attrib['lane'].\
+                    rpartition('_')[-1]
             except KeyError:
                 del out_data[-1]
 

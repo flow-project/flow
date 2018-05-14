@@ -134,7 +134,7 @@ if __name__ == "__main__":
     create_render_env, env_render_name = make_create_env(flow_env_name,
                                                          flow_params,
                                                          version=1,
-                                                         sumo=sumo_binary)
+                                                         sumo="sumo-gui")
     # Make sure the env is wrapped with a preprocessor
     env = ModelCatalog.get_preprocessor_as_wrapper(get_registry(),
                                                    create_render_env(None))

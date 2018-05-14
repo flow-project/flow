@@ -2,7 +2,6 @@
 Used as example of sugiyama experiment.
 22 IDM cars on a ring create shockwaves.
 """
-import logging
 
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
@@ -17,8 +16,6 @@ from flow.scenarios.loop.loop_scenario import LoopScenario, \
 
 
 def sugiyama_example(sumo_binary=None):
-    logging.basicConfig(level=logging.INFO)
-
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
     if sumo_binary is not None:
@@ -45,11 +42,7 @@ def sugiyama_example(sumo_binary=None):
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
-    exp = SumoExperiment(env, scenario)
-
-    logging.info("Experiment Set Up complete")
-
-    return exp
+    return SumoExperiment(env, scenario)
 
 
 if __name__ == "__main__":

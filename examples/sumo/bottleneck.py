@@ -37,12 +37,13 @@ def bottleneck(flow_rate, horizon, sumo_binary=None):
                  num_vehicles=1*SCALING)
 
     additional_env_params = {"target_velocity": 40,
-                             "disable_tb": True,
+                             "max_accel": 1,
+                             "max_decel": 1,
+                             "lane_change_duration": 5,
+                             "add_rl_if_exit": False,
+                             "disable_tb": DISABLE_TB,
                              "disable_ramp_metering": DISABLE_RAMP_METER}
-    env_params = EnvParams(horizon=horizon,
-                           additional_params=additional_env_params,
-
-                           lane_change_duration=1)
+    env_params = EnvParams(additional_params=additional_env_params)
 
     inflow = InFlows()
     inflow.add(veh_type="human", edge="1", vehsPerHour=flow_rate,

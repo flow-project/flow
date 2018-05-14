@@ -51,8 +51,8 @@ class TwoLoopOneMergingGenerator(Generator):
 
         edges = [
             {"id": "center", "from": "bottom_left", "to": "top_left",
-             "type": "edgeType", "length": repr(ring_edgelen), "priority": "46",
-             "shape": " ".join(
+             "type": "edgeType", "length": repr(ring_edgelen),
+             "priority": "46", "shape": " ".join(
                  ["%.2f,%.2f" % (r * cos(t), r * sin(t))
                   for t in linspace(- pi / 2, pi / 2, resolution)]),
              "numLanes": str(self.inner_lanes)},

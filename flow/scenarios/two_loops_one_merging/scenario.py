@@ -55,6 +55,16 @@ class TwoLoopsOneMergingScenario(Scenario):
             2 * x + 2 * pi * radius + \
             2 * self.intersection_length + 2 * self.junction_length
 
+        num_vehicles = vehicles.num_vehicles
+        num_merge_vehicles = sum("merge" in vehicles.get_state(veh_id, "type")
+                                 for veh_id in vehicles.get_ids())
+        self.n_inner_vehicles = num_merge_vehicles
+        self.n_outer_vehicles = num_vehicles - num_merge_vehicles
+
+        radius = net_params.additional_params["ring_radius"]
+        length_loop = 2 * pi * radius
+        self.length_loop = length_loop
+
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
 
@@ -127,10 +137,8 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         num_vehicles = self.vehicles.num_vehicles
         num_merge_vehicles = \
-            sum(["merge" in self.vehicles.get_state(veh_id, "type")
-                 for veh_id in self.vehicles.get_ids()])
-        self.n_inner_vehicles = num_merge_vehicles
-        self.n_outer_vehicles = num_vehicles - num_merge_vehicles
+            sum("merge" in self.vehicles.get_state(veh_id, "type")
+                for veh_id in self.vehicles.get_ids())
 
         radius = self.net_params.additional_params["ring_radius"]
         lane_length = self.net_params.additional_params["lane_length"]
@@ -138,11 +146,10 @@ class TwoLoopsOneMergingScenario(Scenario):
         startpositions = []
         startlanes = []
         length_loop = 2 * pi * radius
-        self.length_loop = length_loop
 
         try:
             increment_loop = \
-                (length_loop - bunching) \
+                (self.length_loop - bunching) \
                 * self.net_params.additional_params["inner_lanes"] \
                 / (num_vehicles - num_merge_vehicles)
 
@@ -180,8 +187,9 @@ class TwoLoopsOneMergingScenario(Scenario):
                 startpositions.append(pos)
                 startlanes.append(lane_count)
 
-                x[lane_count] = (x[lane_count] + increment_loop
-                                 + random_scale*np.random.randn()) % length_loop
+                x[lane_count] = \
+                    (x[lane_count] + increment_loop
+                     + random_scale * np.random.randn()) % length_loop
 
                 # increment the car_count and lane_num
                 car_count += 1
