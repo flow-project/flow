@@ -9,8 +9,7 @@ from flow.core.traffic_lights import TrafficLights
 
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
-from flow.controllers.lane_change_controllers import *
-#from flow.controllers.velocity_controllers import FollowerStopper
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
@@ -19,9 +18,8 @@ import ray
 import ray.rllib.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.logger import UnifiedLogger
-from ray.tune.registry import get_registry, register_env as register_rllib_env
+from ray.tune.registry import register_env as register_rllib_env
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
-from ray.tune import grid_search
 
 import numpy as np
 import json
@@ -42,20 +40,28 @@ vehicle_params = [dict(veh_id="human",
                        lane_change_mode=0,
                        num_vehicles=1 * SCALING),
                   dict(veh_id="followerstopper",
-                       # acceleration_controller=(RLController,
-                       #                          {"danger_edges": ["3", "4"]}),
-                       acceleration_controller = (RLController, {}),
+                       acceleration_controller=(RLController, {}),
                        lane_change_controller=(SumoLaneChangeController, {}),
                        routing_controller=(ContinuousRouter, {}),
                        speed_mode=9,
                        lane_change_mode=0,
                        num_vehicles=1 * SCALING)]
 
-num_segments = [("1", 1, False), ("2", 2, True),
-                ("3", 2, True), ("4", 1, False), ("5", 1, False)]
-additional_env_params = {"target_velocity": 55.0,
-                         "disable_tb": True, "disable_ramp_metering": True,
-                         "segments": num_segments}
+controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
+                       ("4", 2, True), ("5", 1, False)]
+num_observed_segments = [("1", 1), ("2", 3), ("3", 3),
+                         ("4", 3), ("5", 1)]
+additional_env_params = {"target_velocity": 40,
+                         "disable_tb": True,
+                         "disable_ramp_metering": True,
+                         "controlled_segments": controlled_segments,
+                         "symmetric": False,
+                         "observed_segments": num_observed_segments,
+                         "reset_inflow": False,
+                         "lane_change_duration": 5,
+                         "max_accel": 3,
+                         "max_decel": 3
+                         }
 # flow rate
 flow_rate = 1900 * SCALING
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
@@ -65,10 +71,10 @@ flow_dist = np.ones(NUM_LANES) / NUM_LANES
 flow_dist = np.ones(NUM_LANES) / NUM_LANES
 
 inflow = InFlows()
-inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate*(1-AV_FRAC),
+inflow.add(veh_type="human", edge="1", vehs_per_hour=flow_rate * (1 - AV_FRAC),
            departLane="random", departSpeed=10)
 inflow.add(veh_type="followerstopper", edge="1",
-           vehs_per_hour=flow_rate*AV_FRAC,
+           vehs_per_hour=flow_rate * AV_FRAC,
            # vehsPerHour=veh_per_hour * 0.2,
            departLane="random", departSpeed=10)
 
@@ -92,7 +98,7 @@ flow_params = dict(
         sim_step=0.5, sumo_binary="sumo", print_warnings=False,
         restart_instance=True
     ),
-    env=dict(lane_change_duration=1, warmup_steps=40,
+    env=dict(warmup_steps=40,
              sims_per_step=1, horizon=HORIZON,
              additional_params=additional_env_params
              ),
@@ -110,14 +116,13 @@ flow_params = dict(
 
 def make_create_env(flow_env_name, flow_params=flow_params, version=0,
                     sumo=None):
-
     env_name = flow_env_name + '-v%s' % version
 
     # FIXME this is a better way
     if sumo:
         flow_params['sumo']['sumo_binary'] = sumo
     sumo_params_dict = flow_params['sumo']
-    #sumo_params_dict['sumo_binary'] = sumo
+    # sumo_params_dict['sumo_binary'] = sumo
     sumo_params = SumoParams(**sumo_params_dict)
 
     env_params_dict = flow_params['env']
@@ -162,8 +167,8 @@ if __name__ == '__main__':
     # replace the redis address with that output by create_or_update
     # ray.init(redis_address="localhost:6379", redirect_output=False)
 
-    parallel_rollouts = 40
-    n_rollouts = parallel_rollouts*4
+    parallel_rollouts = 2
+    n_rollouts = parallel_rollouts * 4
     ray.init(num_cpus=parallel_rollouts, redirect_output=True)
 
     config["num_workers"] = parallel_rollouts  # number of parallel rollouts
@@ -186,7 +191,7 @@ if __name__ == '__main__':
     flow_params['module'] = os.path.basename(__file__)[:-3]
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=NameEncoder, sort_keys=True,
-                  indent=4)
+                           indent=4)
     config['env_config']['flow_params'] = flow_json
 
     create_env, env_name = make_create_env(flow_env_name, flow_params,
@@ -210,6 +215,6 @@ if __name__ == '__main__':
             "max_failures": 999,
             "stop": {"training_iteration": 400},
             "trial_resources": {"cpu": 1, "gpu": 0,
-                                "extra_cpu": parallel_rollouts-1}
+                                "extra_cpu": parallel_rollouts - 1}
         }
     })

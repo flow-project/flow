@@ -46,10 +46,19 @@ ADDITIONAL_ENV_PARAMS = {
     "disable_tb": True,
     # whether the ramp meter is active
     "disable_ramp_metering": True,
+}
+
+# Keys for RL experiments
+ADDITIONAL_RL_ENV_PARAMS = {
     # velocity to use in reward functions
     "target_velocity": 30,
     # if an RL vehicle exits, place it back at the front
     "add_rl_if_exit": True,
+
+}
+
+# Keys for VSL style experiments
+ADDITIONAL_VSL_ENV_PARAMS = {
     # number of controlled regions for velocity bottleneck controller
     "controlled_segments": [("1", 1, True), ("2", 1, True), ("3", 1, True),
                             ("4", 1, True), ("5", 1, True)],
@@ -61,9 +70,9 @@ ADDITIONAL_ENV_PARAMS = {
     "reset_inflow": False
 }
 
-ADDITIONAL_NET_PARAMS = [
-    "scaling",  # the factor multiplying number of lanes.
-]
+ADDITIONAL_NET_PARAMS = {
+    "scaling": 1  # the factor multiplying number of lanes.
+}
 
 START_RECORD_TIME = 0.0
 PERIOD = 10.0
@@ -108,7 +117,6 @@ class BridgeTollEnv(Env):
         self.disable_tb = env_params.get_additional_param("disable_tb")
         self.disable_ramp_metering = \
             env_params.get_additional_param("disable_ramp_metering")
-        self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         self.next_period = START_RECORD_TIME / self.sim_step
@@ -372,6 +380,16 @@ class BottleNeckEnv(BridgeTollEnv):
        A rollout is terminated once the time horizon is reached.
 
        """
+    def __init__(self, env_params, sumo_params, scenario):
+
+        for p in ADDITIONAL_RL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError('Environment parameter "{}" not supplied'.
+                               format(p))
+
+        super().__init__(env_params, sumo_params, scenario)
+        self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
+
 
     @property
     def observation_space(self):
@@ -587,6 +605,11 @@ class DesiredVelocityEnv(BridgeTollEnv):
     """
 
     def __init__(self, env_params, sumo_params, scenario):
+        super().__init__(env_params, sumo_params, scenario)
+        for p in ADDITIONAL_VSL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError('Environment parameter "{}" not supplied'.
+                               format(p))
 
         # default (edge, segment, controlled) status
         add_env_params = self.env_params.additional_params
@@ -616,7 +639,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
         self.controlled_edges = [segment[0] for segment in self.segments
                                  if segment[2]]
 
-        additional_params = self.env_params.additional_params
+        additional_params = env_params.additional_params
 
         # for convenience, construct the relevant positions defining
         # segments within edges
@@ -800,7 +823,6 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def reset(self):
         if self.env_params.additional_params.get("reset_inflow"):
             flow_rate = np.random.uniform(1000, 2000) * self.scaling
-            print('flow rate is ', flow_rate)
             for _ in range(100):
                 try:
                     inflow = InFlows()
