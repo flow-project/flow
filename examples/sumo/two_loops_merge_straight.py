@@ -55,7 +55,7 @@ def two_loops_merge_straight_example(sumo_binary=None):
 
     initial_config = InitialConfig(
         x0=50,
-        spacing="custom",
+        spacing="uniform",
         additional_params={"merge_bunching": 0}
     )
 

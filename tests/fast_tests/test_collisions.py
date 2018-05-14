@@ -49,7 +49,7 @@ class TestCollisions(unittest.TestCase):
 
         # go through the env and set all the lights to green
         for i in range(self.env.rows * self.env.cols):
-            self.env.traci_connection.trafficlights.setRedYellowGreenState(
+            self.env.traci_connection.trafficlight.setRedYellowGreenState(
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
@@ -97,7 +97,7 @@ class TestCollisions(unittest.TestCase):
 
         # go through the env and set all the lights to green
         for i in range(self.env.rows * self.env.cols):
-            self.env.traci_connection.trafficlights.setRedYellowGreenState(
+            self.env.traci_connection.trafficlight.setRedYellowGreenState(
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class

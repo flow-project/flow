@@ -14,6 +14,8 @@ import gym
 
 import sumolib
 
+from flow.controllers.velocity_controllers import FollowerStopper
+
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
@@ -155,59 +157,67 @@ class Env(gym.Env, Serializable):
         initialize a sumo instance. Also initializes a traci connection to
         interface with sumo from Python.
         """
-        # port number the sumo instance will be run on
-        if self.sumo_params.port is not None:
-            port = self.sumo_params.port
-        else:
-            port = sumolib.miscutils.getFreeSocketPort()
-
-        # command used to start sumo
-        sumo_call = [self.sumo_params.sumo_binary,
-                     "-c", self.scenario.cfg,
-                     "--remote-port", str(port),
-                     "--step-length", str(self.sim_step)]
-
-        # add step logs (if requested)
-        if self.sumo_params.no_step_log:
-            sumo_call.append("--no-step-log")
-
-        # add the lateral resolution of the sublanes (if requested)
-        if self.sumo_params.lateral_resolution is not None:
-            sumo_call.append("--lateral-resolution")
-            sumo_call.append(str(self.sumo_params.lateral_resolution))
-
-        # add the emission path to the sumo command (if requested)
-        if self.sumo_params.emission_path is not None:
-            ensure_dir(self.sumo_params.emission_path)
-            emission_out = \
-                self.sumo_params.emission_path + "{0}-emission.xml".format(
-                    self.scenario.name)
-            sumo_call.append("--emission-output")
-            sumo_call.append(emission_out)
-        else:
-            emission_out = None
-
-        if self.sumo_params.overtake_right:
-            sumo_call.append("--lanechange.overtake-right")
-            sumo_call.append("true")
-
-        if self.sumo_params.ballistic:
-            sumo_call.append("--step-method.ballistic")
-            sumo_call.append("true")
-
-        # specify a simulation seed (if requested)
-        if self.sumo_params.seed is not None:
-            sumo_call.append("--seed")
-            sumo_call.append(str(self.sumo_params.seed))
-
-        logging.info(" Starting SUMO on port " + str(port))
-        logging.debug(" Cfg file: " + str(self.scenario.cfg))
-        logging.debug(" Emission file: " + str(emission_out))
-        logging.debug(" Step length: " + str(self.sim_step))
-
         error = None
         for _ in range(RETRIES_ON_ERROR):
             try:
+                # port number the sumo instance will be run on
+                if self.sumo_params.port is not None:
+                    port = self.sumo_params.port
+                else:
+                    port = sumolib.miscutils.getFreeSocketPort()
+
+                # command used to start sumo
+                sumo_call = [self.sumo_params.sumo_binary,
+                             "-c", self.scenario.cfg,
+                             "--remote-port", str(port),
+                             "--step-length", str(self.sim_step)]
+
+                # add step logs (if requested)
+                if self.sumo_params.no_step_log:
+                    sumo_call.append("--no-step-log")
+
+                # add the lateral resolution of the sublanes (if requested)
+                if self.sumo_params.lateral_resolution is not None:
+                    sumo_call.append("--lateral-resolution")
+                    sumo_call.append(str(self.sumo_params.lateral_resolution))
+
+                # add the emission path to the sumo command (if requested)
+                if self.sumo_params.emission_path is not None:
+                    ensure_dir(self.sumo_params.emission_path)
+                    emission_out = \
+                        self.sumo_params.emission_path + "{0}-emission.xml".format(
+                            self.scenario.name)
+                    sumo_call.append("--emission-output")
+                    sumo_call.append(emission_out)
+                else:
+                    emission_out = None
+
+                if self.sumo_params.overtake_right:
+                    sumo_call.append("--lanechange.overtake-right")
+                    sumo_call.append("true")
+
+                if self.sumo_params.ballistic:
+                    sumo_call.append("--step-method.ballistic")
+                    sumo_call.append("true")
+
+                # specify a simulation seed (if requested)
+                if self.sumo_params.seed is not None:
+                    sumo_call.append("--seed")
+                    sumo_call.append(str(self.sumo_params.seed))
+
+                if not self.sumo_params.print_warnings:
+                    sumo_call.append("--no-warnings")
+                    sumo_call.append("true")
+
+                # set the time it takes for a gridlock teleport to occur
+                sumo_call.append("--time-to-teleport")
+                sumo_call.append(str(int(self.sumo_params.teleport_time)))
+
+                logging.info(" Starting SUMO on port " + str(port))
+                logging.debug(" Cfg file: " + str(self.scenario.cfg))
+                logging.debug(" Emission file: " + str(emission_out))
+                logging.debug(" Step length: " + str(self.sim_step))
+
                 # Opening the I/O thread to SUMO
                 self.sumo_proc = subprocess.Popen(sumo_call,
                                                   preexec_fn=os.setsid)
@@ -253,7 +263,7 @@ class Env(gym.Env, Serializable):
             exit()
 
         # add missing traffic lights in the list of traffic light ids
-        tls_ids = self.traci_connection.trafficlights.getIDList()
+        tls_ids = self.traci_connection.trafficlight.getIDList()
 
         for tl_id in list(set(tls_ids) - set(self.traffic_lights.get_ids())):
             self.traffic_lights.add(tl_id)
@@ -273,7 +283,7 @@ class Env(gym.Env, Serializable):
 
         # subscribe the traffic light
         for node_id in self.traffic_lights.get_ids():
-            self.traci_connection.trafficlights.subscribe(
+            self.traci_connection.trafficlight.subscribe(
                 node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
         for veh_id in self.vehicles.get_ids():
@@ -307,7 +317,7 @@ class Env(gym.Env, Serializable):
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
         id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
                     tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
                     tc.VAR_ARRIVED_VEHICLES_IDS: []}
@@ -398,7 +408,7 @@ class Env(gym.Env, Serializable):
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
             tls_obs = \
-                self.traci_connection.trafficlights.getSubscriptionResults()
+                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
@@ -544,7 +554,7 @@ class Env(gym.Env, Serializable):
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlights.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -616,9 +626,10 @@ class Env(gym.Env, Serializable):
             requested accelerations from the vehicles
         """
         for i, vid in enumerate(veh_ids):
-            this_vel = self.vehicles.get_speed(vid)
-            next_vel = max([this_vel + acc[i]*self.sim_step, 0])
-            self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+            if acc[i] is not None:
+                this_vel = self.vehicles.get_speed(vid)
+                next_vel = max([this_vel + acc[i]*self.sim_step, 0])
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
     def apply_lane_change(self, veh_ids, direction):
         """Applies an instantaneous lane-change to a set of vehicles, while

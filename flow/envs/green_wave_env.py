@@ -64,7 +64,7 @@ class GreenWaveEnv(Env):
         # For third column, 0 signifies yellow and 1 green or red
         self.min_switch_time = env_params.additional_params["switch_time"]
         for i in range(self.rows * self.cols):
-            self.traci_connection.trafficlights.setRedYellowGreenState(
+            self.traci_connection.trafficlight.setRedYellowGreenState(
                 'center' + str(i), "GGGrrrGGGrrr")
             self.last_change[i, 2] = 1
 
