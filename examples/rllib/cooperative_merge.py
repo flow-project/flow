@@ -133,6 +133,7 @@ if __name__ == "__main__":
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
+    config["use_gae"] = True
     config["lambda"] = 0.97
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
