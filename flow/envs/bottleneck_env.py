@@ -178,7 +178,7 @@ class BottleneckEnv(Env):
             self.next_period += PERIOD / self.sim_step
             self.cars_arrived = 0
 
-        self.cars_arrived += self.vehicles.num_arrived
+        self.cars_arrived += self.vehicles.get_num_arrived()
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []

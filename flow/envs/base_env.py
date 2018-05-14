@@ -754,17 +754,17 @@ class Env(gym.Env, Serializable):
                                                    color=(255, 0, 0, 255))
 
         for veh_id in self.vehicles.get_human_ids():
-            # if veh_id in self.vehicles.get_observed_ids():
-            #     # color observed human-driven vehicles cyan
-            #     color = (0, 255, 255, 255)
-            # else:
+            if veh_id in self.vehicles.get_observed_ids():
+                # color observed human-driven vehicles cyan
+                color = (0, 255, 255, 255)
+            else:
                 # color unobserved human-driven vehicles white
-            color = (255, 255, 255, 255)
+                color = (255, 255, 255, 255)
             self.traci_connection.vehicle.setColor(vehID=veh_id, color=color)
 
         # clear the list of observed vehicles
-        # for veh_id in self.vehicles.get_observed_ids():
-        #     self.vehicles.remove_observed(veh_id)
+        for veh_id in self.vehicles.get_observed_ids():
+            self.vehicles.remove_observed(veh_id)
 
     def get_state(self):
         """Returns the state of the simulation as perceived by the RL agent.

@@ -12,7 +12,6 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
 VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
-RETRIES_ON_ERROR = 100
 
 
 class Scenario(Serializable):
@@ -121,7 +120,6 @@ class Scenario(Serializable):
 
         # specify the location of the sumo configuration file
         self.cfg = self.generator.cfg_path + cfg_name
-        return
 
     def specify_edge_starts(self):
         """Defines edge starts for road sections with respect to some global
