@@ -16,7 +16,8 @@ class FollowerStopper(BaseController):
         v_des: float, optional
             desired speed of the vehicles (m/s)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
+        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0,
+                                fail_safe='safe_velocity')
 
         # desired speed of the vehicle
         self.v_des = v_des
@@ -52,6 +53,9 @@ class FollowerStopper(BaseController):
         this_vel = env.vehicles.get_speed(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
 
+        if self.v_des is None:
+            return None
+
         if lead_id is None:
             v_cmd = self.v_des
         else:
@@ -77,6 +81,7 @@ class FollowerStopper(BaseController):
 
         if edge == "":
             return None
+
         if self.find_intersection_dist(env) <= 10 and \
                 env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
                 env.vehicles.get_edge(self.veh_id)[0] == ":":
@@ -173,4 +178,29 @@ class HandTunedVelocityController(FollowerStopper):
                 controller = env.vehicles.get_acc_controller(self.veh_id)
                 controller.v_des = action
 
+        return super().get_accel(env)
+
+
+class FeedbackController(FollowerStopper):
+    def __init__(self, veh_id, sumo_cf_params, Kp, desired_bottleneck_density, danger_edges=None):
+        super().__init__(veh_id, sumo_cf_params, danger_edges=danger_edges)
+        self.Kp = Kp
+        self.desired_density = desired_bottleneck_density
+
+    def get_accel(self, env):
+        max_speed = self.sumo_cf_params.controller_params['maxSpeed']
+        current_lane = env.vehicles.get_lane(veh_id=self.veh_id)
+        future_lanes = env.scenario.get_bottleneck_lanes(current_lane)
+        future_edge_lanes = ["3_"+str(current_lane), "4_"+str(future_lanes[0]), "5_"+str(future_lanes[1])]
+
+        current_density = env.get_bottleneck_density(future_edge_lanes)
+        edge = env.vehicles.get_edge(self.veh_id)
+        if edge:
+            if edge[0] != ':' and edge in env.controlled_edges:
+                if edge in self.danger_edges:
+                    self.v_des = None
+                else:
+                    self.v_des = max(min(self.v_des + self.Kp * (self.desired_density - current_density), 23), 0)
+
+        # print(current_density, self.v_des)
         return super().get_accel(env)

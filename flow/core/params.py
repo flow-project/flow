@@ -14,7 +14,9 @@ class SumoParams:
                  overtake_right=False,
                  ballistic=False,
                  seed=None,
-                 restart_instance=False):
+                 restart_instance=False,
+                 print_warnings=True,
+                 teleport_time=-100):
         """Sumo-specific parameters
 
         These parameters are used to customize a sumo simulation instance upon
@@ -56,6 +58,11 @@ class SumoParams:
             the instance helps avoid slowdowns cause by excessive inflows over
             large experiment runtimes, but also require the gui to be started
             after every reset if "sumo_binary" is set to True.
+        print_warnings: bool, optional
+            If set to false, this will silence sumo warnings on the stdout
+        teleport_time: int, optional
+            If negative, vehicles don't teleport in gridlock. If positive,
+            they teleport after teleport_time seconds
 
         """
         self.port = port
@@ -68,6 +75,8 @@ class SumoParams:
         self.ballistic = ballistic
         self.overtake_right = overtake_right
         self.restart_instance = restart_instance
+        self.print_warnings = print_warnings
+        self.teleport_time = teleport_time
 
 
 class EnvParams:
@@ -263,14 +272,27 @@ class SumoCarFollowingParams:
                  accel=1.0,
                  decel=1.5,
                  sigma=0.5,
-                 tau=0.6,  # past 1 at sim_step=0.1 you no longer see waves
-                 min_gap=1.5,
+                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
+                 min_gap=2.5,
                  max_speed=30,
                  speed_factor=1.0,
                  speed_dev=0.1,
                  impatience=0.5,
                  car_follow_model="IDM",
                  **kwargs):
+
+    # def __init__(self,
+    #              accel=2.6,
+    #              decel=4.5,
+    #              sigma=0.5,
+    #              tau=0.6,  # past 1 at sim_step=0.1 you no longer see waves
+    #              min_gap=1.5,
+    #              max_speed=30,
+    #              speed_factor=1.0,
+    #              speed_dev=0.1,
+    #              impatience=0.0,
+    #              car_follow_model="IDM",
+    #              **kwargs):
         """Parameters for sumo-controlled acceleration behavior
 
         Attributes

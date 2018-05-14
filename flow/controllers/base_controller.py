@@ -49,6 +49,8 @@ class BaseController:
         # max deaccel should always be a positive
         self.max_deaccel = abs(sumo_cf_params.controller_params['decel'])
 
+        self.sumo_cf_params = sumo_cf_params
+
     def uses_sumo(self):
         return self.sumo_controller
 
@@ -176,7 +178,10 @@ class BaseController:
             sim_step = env.sim_step
 
             if this_vel + action * sim_step > safe_velocity:
-                return (safe_velocity - this_vel)/sim_step
+                if safe_velocity > 0:
+                    return (safe_velocity - this_vel)/sim_step
+                else:
+                    return -this_vel/sim_step
             else:
                 return action
 

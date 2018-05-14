@@ -45,6 +45,10 @@ def desired_velocity(env, fail=False):
     return max(max_cost - cost, 0)
 
 
+def reward_density(env):
+    return env.vehicles.get_num_arrived() / env.sim_step
+
+
 def max_edge_velocity(env, edge_list, fail=False):
     """The desired velocity rewarded but restricted to a set of edges.
 
@@ -124,6 +128,14 @@ def min_delay(env):
 
 
 def penalize_tl_changes(env, actions, gain=1):
+    """
+    A reward function that penalizes delay and traffic light switches.
+    :param env: Environment
+        Contains the state of the environment at a time-step
+    :param actions: {list of booleans} - indicates whether a switch is desired
+    :param gain: {float} - multiplicative factor on the action penalty
+    :return: a penalty on vehicle delays and traffic light switches
+    """
     delay = min_delay(env)
     action_penalty = gain * np.sum(actions)
     return delay - action_penalty
@@ -185,7 +197,8 @@ def punish_small_rl_headways(env, headway_threshold,
 
 
 def punish_rl_lane_changes(env, penalty=1):
-    """A reward function that minimizes lane changes by producing a penalty
+    """
+    A reward function that minimizes lane changes by producing a penalty
     every time an rl vehicle performs one.
 
     Parameters
@@ -202,3 +215,70 @@ def punish_rl_lane_changes(env, penalty=1):
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
+
+
+def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
+    """
+    Reward function punishing queues in certain lanes of edge '3'
+        
+    Parameters
+    ----------
+    env : Environment
+        Contains the state of the environment at a time-step
+    edge: str
+        The edge on which to penalize queues
+    lane : int
+        The lane in which to penalize queues
+    penalty_gain : int, optional
+        Multiplier on number of cars in the lane
+    penalty_exponent : int, optional
+        Exponent on number of cars in the lane
+    
+    Returns
+    -------
+    int
+        total reward (in this case a negative cost) corresponding
+        to the queues in the lane in question
+    """
+
+    # IDs of all vehicles in passed-in lane
+    lane_ids = [veh_id for veh_id in env.vehicles.get_ids_by_edge(edge) \
+                if env.vehicles.get_lane(veh_id) == lane]
+
+    return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
+
+
+def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
+    """
+    Reward function that rewards RL vehicles opening large headways.
+    
+    Parameters
+    ----------
+    env : Environment
+        SUMO environment
+    reward_gain : int, optional
+        Multiplicative gain on reward
+    reward_exponent : int, optional
+        Exponent gain on reward
+    
+    Returns
+    -------
+    int
+        Reward value
+    """
+    total_reward = 0
+    for rl_id in env.vehicles.get_rl_ids():
+        follower_id = env.vehicles.get_follower(rl_id)
+        if not follower_id:
+            continue
+        follower_headway = env.vehicles.get_headway(follower_id)
+        if follower_headway < 0:
+            print('negative follower headway of:', follower_headway)
+            print('rl id:', rl_id)
+            print('follower id:', follower_id)
+            continue
+        total_reward += follower_headway ** reward_exponent
+    # print(total_reward)
+    if total_reward < 0:
+        print('negative total reward of:', total_reward)
+    return total_reward * reward_gain

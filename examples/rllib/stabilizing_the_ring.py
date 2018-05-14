@@ -130,9 +130,9 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
     n_rollouts = 100
-    parallel_rollouts = 40
-    # ray.init(redirect_output=True)
-    ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
+    parallel_rollouts = 2
+    ray.init(num_cpus = parallel_rollouts, redirect_output=True)
+    # ray.init(redis_address="172.31.92.24:6379", redirect_output=False)
 
     config["num_workers"] = parallel_rollouts
     config["timesteps_per_batch"] = horizon * n_rollouts
@@ -169,6 +169,8 @@ if __name__ == "__main__":
     json_out_file = alg.logdir + '/flow_params.json'
     with open(json_out_file, 'w') as outfile:
         json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+
+    config['env_config']['flow_params'] = json_out_file
 
     trials = run_experiments({
         "ring_stabilize": {
