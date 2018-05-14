@@ -159,7 +159,7 @@ if __name__ == "__main__":
     config["num_sgd_iter"] = 30
     config["sgd_stepsize"] = 5e-5
     config["observation_filter"] = "NoFilter"
-    config["use_gae"] = False
+    config["use_gae"] = True
     config["clip_param"] = 0.2
     config["horizon"] = HORIZON
 
