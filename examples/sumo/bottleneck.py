@@ -34,7 +34,7 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
-                 num_vehicles=1*SCALING)
+                 num_vehicles=1)
 
     additional_env_params = {"target_velocity": 40,
                              "max_accel": 1,
