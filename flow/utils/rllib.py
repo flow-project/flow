@@ -24,7 +24,7 @@ def make_create_env(params, version=0, sumo_binary=None):
     etc...).
 
     This method can also be used to recreate the environment a policy was
-    trained on and asses it performance, or a modified form of the previous
+    trained on and assess it performance, or a modified form of the previous
     environment may be used to profile the performance of the policy on other
     types of networks.
 

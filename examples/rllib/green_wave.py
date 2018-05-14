@@ -7,11 +7,8 @@ import json
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune import run_experiments
-from ray.tune.logger import UnifiedLogger
-from ray.tune.registry import get_registry, register_env
-from ray.tune.result import DEFAULT_RESULTS_DIR as RESULTS_DIR
+from ray.tune.registry import register_env
 
-from flow.core.util import rllib_logger_creator
 from flow.utils.rllib import make_create_env, FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
@@ -22,7 +19,7 @@ from flow.controllers import SumoCarFollowingController, GridRouter
 HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
-# number of parrallel workers
+# number of parallel workers
 PARALLEL_ROLLOUTS = 10
 
 
@@ -175,10 +172,6 @@ if __name__ == "__main__":
 
     # Register as rllib env
     register_env(env_name, create_env)
-
-    logger_creator = rllib_logger_creator(RESULTS_DIR, env_name, UnifiedLogger)
-
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(), config=config)
 
     trials = run_experiments({
         "green_wave": {
