@@ -4,10 +4,11 @@ import traci.constants as tc
 class TrafficLights:
 
     def __init__(self):
-        """
-        Base traffic light class used to place traffic lights in the network
-        and describe the state of these traffic lights. In addition, this class
-        supports modifying the states of certain lights via TraCI.
+        """Base traffic light.
+
+        This class is used to place traffic lights in the network and describe
+        the state of these traffic lights. In addition, this class supports
+        modifying the states of certain lights via TraCI.
         """
         self.__tls = dict()  # contains current time step traffic light data
         self.__ids = list()  # names of nodes with traffic lights
@@ -20,10 +21,15 @@ class TrafficLights:
             programID=None,
             offset=None,
             phases=None):
-        """
-        Adds a traffic light component to the network. When generating networks
-        using xml files, this will explicitly place the traffic light in the
-        requested node.
+        """Adds a traffic light component to the network.
+
+        When generating networks using xml files, using this method to add a
+        traffic light will explicitly place the traffic light in the requested
+        node of the generated network.
+
+        If traffic lights are not added here but are already present in the
+        network (e.g. through a prebuilt net.xml file), then the traffic light
+        class will identify and add them separately.
 
         Parameters
         ----------
@@ -63,8 +69,7 @@ class TrafficLights:
             self.__tls_properties[node_id]["phase"] = phases
 
     def update(self, tls_subscriptions):
-        """
-        Updates the states and phases of the traffic lights to match current
+        """Updates the states and phases of the traffic lights to match current
         traffic light data.
 
         Parameters
@@ -75,21 +80,16 @@ class TrafficLights:
         self.__tls = tls_subscriptions.copy()
 
     def get_ids(self):
-        """
-        Returns the names of all nodes with traffic lights.
-        """
+        """Returns the names of all nodes with traffic lights."""
         return self.__ids
 
     def get_properties(self):
-        """
-        Returns traffic light properties. Meant to be used by the generator to
-        import traffic light data to the .net.xml file
-        """
+        """Returns traffic light properties. This is meant to be used by the
+        generator to import traffic light data to the .net.xml file"""
         return self.__tls_properties
 
     def set_state(self, node_id, state, env, link_index="all"):
-        """
-        Sets the state of the traffic lights on a specific node.
+        """Sets the state of the traffic lights on a specific node.
 
         Parameters
         ----------
@@ -113,8 +113,7 @@ class TrafficLights:
                 tlsID=node_id, tlsLinkIndex=link_index, state=state)
 
     def get_state(self, node_id):
-        """
-        Returns the state of the traffic light(s) at the specified node
+        """Returns the state of the traffic light(s) at the specified node
 
         Parameters
         ----------
