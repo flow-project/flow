@@ -80,7 +80,7 @@ optional_named.add_argument(
     help='Flowenv being used')
 optional_named.add_argument(
     '--use_sumogui', type=bool, default=True,
-    help='Visualize in the guy')
+    help='Visualize in the gui')
 optional_named.add_argument(
     '--exp_tag', type=str, default='',
     help='Experiment tag')

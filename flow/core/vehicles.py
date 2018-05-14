@@ -44,7 +44,6 @@ class Vehicles:
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
         self.initial_speeds = []  # speed of vehicles at the start of a rollout
-        self.num_arrived = 0 # number of arrived vehicles at the last time_step
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
@@ -143,7 +142,7 @@ class Vehicles:
         # does not tamper with the dynamics of the controller
         if acceleration_controller[0] != SumoCarFollowingController \
                 and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 2.5
+            type_params["minGap"] = 0.0
 
         # adjust the speed mode value
         if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
@@ -257,8 +256,6 @@ class Vehicles:
         env: Environment type
             state of the environment at the current time step
         """
-
-        self.num_arrived = len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
 
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
@@ -549,6 +546,14 @@ class Vehicles:
             return 0
         num_outflow = self._num_arrived[-int(time_span / self.sim_step):]
         return 3600 * sum(num_outflow) / (len(num_outflow) * self.sim_step)
+
+    def get_num_arrived(self):
+        """Returns the number of vehicles that arrived in the last
+        time step"""
+        if len(self._num_arrived) > 0:
+            return self._num_arrived[-1]
+        else:
+            return 0
 
     def get_initial_speed(self, veh_id, error=-1001):
         """Returns the initial speed upon reset of the specified vehicle.

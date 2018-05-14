@@ -46,7 +46,7 @@ def desired_velocity(env, fail=False):
 
 
 def reward_density(env):
-    return env.vehicles.num_arrived / env.sim_step
+    return env.vehicles.get_num_arrived() / env.sim_step
 
 
 def max_edge_velocity(env, edge_list, fail=False):
