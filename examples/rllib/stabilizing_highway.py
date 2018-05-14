@@ -25,7 +25,7 @@ from flow.controllers.rlcontroller import RLController
 HORIZON = 1500
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
-# number of parrallel workers
+# number of parallel workers
 PARALLEL_ROLLOUTS = 10
 
 # inflow rate at the highway
@@ -140,11 +140,6 @@ if __name__ == "__main__":
 
     # Register as rllib env
     register_env(env_name, create_env)
-
-    logger_creator = rllib_logger_creator(RESULTS_DIR, env_name, UnifiedLogger)
-
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
-                       config=config, logger_creator=logger_creator)
 
     trials = run_experiments({
         "highway_stabilize": {
