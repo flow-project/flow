@@ -78,7 +78,7 @@ START_RECORD_TIME = 0.0
 PERIOD = 10.0
 
 
-class BridgeTollEnv(Env):
+class BottleneckEnv(Env):
 
     def __init__(self, env_params, sumo_params, scenario):
         """Environment used as a simplified representation of the toll booth
@@ -349,7 +349,7 @@ class BridgeTollEnv(Env):
         return np.asarray([1])
 
 
-class BottleNeckEnv(BridgeTollEnv):
+class BottleNeckAccelEnv(BottleneckEnv):
     """Environment used to train vehicles to effectively
         pass through a bottleneck.
 
@@ -582,7 +582,7 @@ class BottleNeckEnv(BridgeTollEnv):
                     pass
 
 
-class DesiredVelocityEnv(BridgeTollEnv):
+class DesiredVelocityEnv(BottleneckEnv):
     """Environment used to train vehicles to effectively pass
        through a bottleneck by specifying the velocity that RL vehicles
        should attempt to travel in certain regions of space
