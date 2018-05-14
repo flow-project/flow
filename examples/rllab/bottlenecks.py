@@ -1,6 +1,7 @@
 """
-Example of a multi-lane network with human-driven vehicles.
+(description)
 """
+
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows
 from flow.core.vehicles import Vehicles
@@ -8,10 +9,9 @@ from flow.core.traffic_lights import TrafficLights
 
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
-from flow.controllers.lane_change_controllers import *
+from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
 
 from rllab.envs.gym_env import GymEnv
@@ -21,15 +21,15 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-import logging
-import numpy as np
-
 SCALING = 1
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 FLOW_RATE = 1500 * SCALING  # inflow rate
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0fe6c9cf958d9a49b13baaf86860a4ffaeb62758
 sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
 
 vehicles = Vehicles()
@@ -66,8 +66,7 @@ vehicles.add(veh_id="human2",
 additional_env_params = {"target_velocity": 50, "num_steps": 150,
                          "disable_tb": True, "disable_ramp_metering": True,
                          "add_rl_if_exit": True}
-env_params = EnvParams(additional_params=additional_env_params,
-                       lane_change_duration=1)
+env_params = EnvParams(additional_params=additional_env_params)
 
 inflow = InFlows()
 inflow.add(veh_type="human", edge="1", vehsPerHour=FLOW_RATE,
@@ -125,7 +124,9 @@ def run_task(*_):
     )
     algo.train()
 
+
 exp_tag = "BottleNeckVerySmall"  # experiment prefix
+
 for seed in [1]:  # , 1, 5, 10, 73]:
     run_experiment_lite(
         run_task,
@@ -138,6 +139,5 @@ for seed in [1]:  # , 1, 5, 10, 73]:
         seed=seed,
         mode="local",
         exp_prefix=exp_tag,
-        # python_command="/home/aboudy/anaconda2/envs/rllab-multiagent/bin/python3.5"
         # plot=True,
     )

@@ -157,7 +157,8 @@ class Figure8Generator(Generator):
         """
         See parent class
         """
-        rts = {"bottom_lower_ring": ["bottom_lower_ring", "right_lower_ring_in",
+        rts = {"bottom_lower_ring": ["bottom_lower_ring",
+                                     "right_lower_ring_in",
                                      "right_lower_ring_out", "left_upper_ring",
                                      "top_upper_ring", "right_upper_ring",
                                      "bottom_upper_ring_in",
@@ -193,8 +194,8 @@ class Figure8Generator(Generator):
                                   "bottom_upper_ring_in",
                                   "bottom_upper_ring_out", "top_lower_ring",
                                   "left_lower_ring", "bottom_lower_ring",
-                                  "right_lower_ring_in", "right_lower_ring_out",
-                                  "left_upper_ring"],
+                                  "right_lower_ring_in",
+                                  "right_lower_ring_out", "left_upper_ring"],
 
                "right_upper_ring": ["right_upper_ring", "bottom_upper_ring_in",
                                     "bottom_upper_ring_out",

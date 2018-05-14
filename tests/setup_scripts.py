@@ -483,9 +483,9 @@ def setup_bottlenecks(sumo_params=None,
 
     if env_params is None:
         additional_env_params = {"target_velocity": 40,
+                                 "lane_change_duration": 1,
                                  "max_accel": 1, "max_decel": 1}
-        env_params = EnvParams(additional_params=additional_env_params,
-                               lane_change_duration=1)
+        env_params = EnvParams(additional_params=additional_env_params)
 
     if inflow is None:
         # flow rate

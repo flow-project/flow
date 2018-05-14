@@ -15,11 +15,11 @@ from ray.tune.registry import get_registry, register_env as register_rllib_env
 from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
 
 from flow.core.util import NameEncoder, register_env, rllib_logger_creator
+
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.scenarios.figure8.gen import Figure8Generator
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
 

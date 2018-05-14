@@ -33,92 +33,104 @@ RAMP_METER_AREA = 80
 MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
 MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
 
-ENV_PARAMS = [
-    "disable_tb",  # whether the toll booth should be active
-    "disable_ramp_metering",  # whether the ramp meter is active
-    "target_velocity",  # velocity to use in reward functions
-    "num_steps",  # horizon
-    "add_rl_if_exit",  # if an RL vehicle exits, place it back at the front
-    "segments",  # number of regions for velocity bottleneck controller
-    "lanes",  # controlled lanes for EarlyLC experiments
-    "symmetric",  # whether lanes in a segment have the same action or not
-    "observed_segments",  # which edges are observed
-]
+ADDITIONAL_ENV_PARAMS = {
+    # maximum acceleration for autonomous vehicles, in m/s^2
+    "max_accel": 3,
+    # maximum deceleration for autonomous vehicles, in m/s^2
+    "max_decel": 3,
+    # lane change duration for autonomous vehicles, in s. Autonomous vehicles
+    # reject new lane changing commands for this duration after successfully
+    # changing lanes.
+    "lane_change_duration": 5,
+    # whether the toll booth should be active
+    "disable_tb": True,
+    # whether the ramp meter is active
+    "disable_ramp_metering": True,
+    # velocity to use in reward functions
+    "target_velocity": 30,
+    # if an RL vehicle exits, place it back at the front
+    "add_rl_if_exit": True,
+    # number of controlled regions for velocity bottleneck controller
+    "controlled_segments": [("1", 1, True), ("2", 1, True), ("3", 1, True),
+                            ("4", 1, True), ("5", 1, True)],
+    # whether lanes in a segment have the same action or not
+    "symmetric": False,
+    # which edges are observed
+    "observed_segments": [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)],
+    # whether the inflow should be reset on each rollout
+    "reset_inflow": False
+}
 
-NET_PARAMS = [
+ADDITIONAL_NET_PARAMS = [
     "scaling",  # the factor multiplying number of lanes.
 ]
 
 START_RECORD_TIME = 0.0
 PERIOD = 10.0
 
+
 class BridgeTollEnv(Env):
+
     def __init__(self, env_params, sumo_params, scenario):
-        """Environment used as a simplified representation of the toll
-            booth portion of the bay bridge. Contains ramp meters,
-            and a toll both.
+        """Environment used as a simplified representation of the toll booth
+        portion of the bay bridge. Contains ramp meters, and a toll both.
 
-           Additional
-           ----------
-           Vehicles are rerouted to the start of their original routes
-           once they reach the end of the network in order
-           to ensure a constant number of vehicles.
-           """
-        for k in env_params.additional_params.keys():
-            if k not in ENV_PARAMS:
-                raise Exception(
-                    "Unknown env params key `{}`, all keys: {}".format(
-                        k, ENV_PARAMS))
-
-        for k in scenario.net_params.additional_params.keys():
-            if k not in NET_PARAMS:
-                raise Exception(
-                    "Unknown net params key `{}`, all keys: {}".format(
-                        k, NET_PARAMS))
+        Additional
+        ----------
+        Vehicles are rerouted to the start of their original routes once they
+        reach the end of the network in order to ensure a constant number of
+        vehicles.
+        """
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError('Environment parameter "{}" not supplied'.
+                               format(p))
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in scenario.net_params.additional_params:
+                raise KeyError('Net parameter "{}" not supplied'.
+                               format(p))
 
         self.num_rl = deepcopy(scenario.vehicles.num_rl_vehicles)
         super().__init__(env_params, sumo_params, scenario)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
-        self.scaling = scenario.net_params.additional_params.get("scaling", 1)
+        self.scaling = scenario.net_params.additional_params.get("scaling")
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
         self.cars_before_ramp = dict()
         self.toll_wait_time = np.abs(
             np.random.normal(MEAN_NUM_SECONDS_WAIT_AT_TOLL / self.sim_step,
-                             4 / self.sim_step, NUM_TOLL_LANES*self.scaling))
+                             4 / self.sim_step, NUM_TOLL_LANES * self.scaling))
         self.fast_track_lanes = range(int(np.ceil(1.5 * self.scaling)),
                                       int(np.ceil(2.6 * self.scaling)))
-        self.tb_state = ""
+
+        self.tl_state = ""
+        self.disable_tb = env_params.get_additional_param("disable_tb")
+        self.disable_ramp_metering = \
+            env_params.get_additional_param("disable_ramp_metering")
+        self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
         self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
 
         self.next_period = START_RECORD_TIME / self.sim_step
         self.cars_arrived = 0
 
-        if "disable_tb" in env_params.additional_params:
-            self.disable_tb = env_params.get_additional_param("disable_tb")
-
-        if "disable_ramp_metering" in env_params.additional_params:
-            self.disable_ramp_metering = \
-                env_params.get_additional_param("disable_ramp_metering")
         # values for the ramp meter
-        self.n_crit = env_add_params.get("n_crit", 8) # capacity drop value 8 is best value so far
-        self.q_max = env_add_params.get("q_max", 1100) #FIXME(ev) calibrate
-        self.q_min = env_add_params.get("q_min", .25*1100) #FIXME(ev) calibrate
-        self.q = self.q_min # ramp meter feedback controller
+        self.n_crit = env_add_params.get("n_crit", 8)
+        self.q_max = env_add_params.get("q_max", 1100)
+        self.q_min = env_add_params.get("q_min", .25 * 1100)
+        self.q = self.q_min  # ramp meter feedback controller
         self.feedback_update_time = env_add_params.get("feedback_update", 15)
         self.feedback_timer = 0.0
         self.cycle_time = 6
         cycle_offset = 8
-        self.ramp_state = np.linspace(0, cycle_offset*self.scaling*MAX_LANES,
+        self.ramp_state = np.linspace(0, cycle_offset * self.scaling * MAX_LANES,
                                       self.scaling * MAX_LANES)
         self.green_time = 4
         self.red_min = 2
-        self.feedback_coeff = env_add_params.get("feedback_coeff", 20) #FIXME(ev) calibrate
+        self.feedback_coeff = env_add_params.get("feedback_coeff", 20)
 
-        self.smoothed_num = np.zeros(10) # averaged number of vehs in '4'
+        self.smoothed_num = np.zeros(10)  # averaged number of vehs in '4'
         self.outflow_index = 0
-
 
     def additional_command(self):
         # print(self.vehicles.get_outflow_rate(100))
@@ -134,7 +146,8 @@ class BridgeTollEnv(Env):
             try:
                 edge = self.vehicles.get_edge(veh_id)
                 if edge not in self.edge_dict:
-                    self.edge_dict.update({edge: [[] for _ in range(MAX_LANES * self.scaling)]})
+                    self.edge_dict.update(
+                        {edge: [[] for _ in range(MAX_LANES * self.scaling)]})
                 lane = self.vehicles.get_lane(veh_id)  # integer
                 pos = self.vehicles.get_position(veh_id)
                 self.edge_dict[edge][lane].append((veh_id, pos))
@@ -182,17 +195,20 @@ class BridgeTollEnv(Env):
                 veh_id, pos = car
                 if pos > RAMP_METER_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
+                        traci_veh = self.traci_connection.vehicle
                         # Disable lane changes inside Toll Area
                         lane_change_mode = \
                             self.vehicles.get_lane_change_mode(veh_id)
-                        color = self.traci_connection.vehicle.getColor(veh_id)
-                        self.cars_before_ramp[veh_id] = {"lane_change_mode": lane_change_mode, "color": color}
-                        self.traci_connection.vehicle.setLaneChangeMode(veh_id, 512)
-                        self.traci_connection.vehicle.setColor(veh_id, (0, 255, 255, 255))
+                        color = traci_veh.getColor(veh_id)
+                        self.cars_before_ramp[veh_id] = {"lane_change_mode":
+                                                             lane_change_mode,
+                                                         "color": color}
+                        traci_veh.setLaneChangeMode(veh_id, 512)
+                        traci_veh.setColor(veh_id, (0, 255, 255, 255))
 
     def alinea(self):
-        """Implementation of ALINEA from Toll Plaza Merging Traffic Control for
-            Throughput Maximization"""
+        """Implementation of ALINEA from Toll Plaza Merging Traffic Control
+           for Throughput Maximization"""
         self.feedback_timer += self.sim_step
         self.ramp_state += self.sim_step
         if self.feedback_timer > self.feedback_update_time:
@@ -201,10 +217,12 @@ class BridgeTollEnv(Env):
             # find all the vehicles in an edge
             veh_ids = self.vehicles.get_ids_by_edge('4')
             N = len(veh_ids)
-            self.q = np.clip(self.q + self.feedback_coeff*(self.n_crit - np.average(self.smoothed_num)),
+            q_update = self.feedback_coeff * (self.n_crit -
+                                              np.average(self.smoothed_num))
+            self.q = np.clip(self.q + q_update,
                              a_min=self.q_min, a_max=self.q_max)
             # convert q to cycle time
-            self.cycle_time = 7200/self.q
+            self.cycle_time = 7200 / self.q
 
         # now apply the ramp meter
         self.ramp_state %= self.cycle_time
@@ -213,7 +231,6 @@ class BridgeTollEnv(Env):
         tl_mask = (self.ramp_state <= self.green_time)
         colors = ['G' if val else 'r' for val in tl_mask]
         self.traffic_lights.set_state('3', ''.join(colors), self)
-
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
@@ -278,13 +295,14 @@ class BridgeTollEnv(Env):
                 tlsID=TB_TL_ID, state=newTLState)
 
     def distance_to_bottleneck(self, veh_id):
-        pre_bottleneck_edges = {str(i): self.scenario.edge_length(str(i)) for i in [1, 2, 3]}
+        pre_bottleneck_edges = {str(i): self.scenario.edge_length(str(i))
+                                for i in [1, 2, 3]}
         edge_pos = self.vehicles.get_position(veh_id)
         edge = self.vehicles.get_edge(veh_id)
         if edge in pre_bottleneck_edges:
             total_length = pre_bottleneck_edges[edge] - edge_pos
-            for next_edge in range(int(edge)+1, 4):
-                total_length+=pre_bottleneck_edges[str(next_edge)]
+            for next_edge in range(int(edge) + 1, 4):
+                total_length += pre_bottleneck_edges[str(next_edge)]
             return total_length
         else:
             return -1
@@ -294,27 +312,34 @@ class BridgeTollEnv(Env):
 
     def get_bottleneck_density(self, lanes=None):
         BOTTLE_NECK_LEN = 280
+        bottleneck_ids = self.vehicles.get_ids_by_edge(['3', '4'])
         if lanes:
-            veh_ids = [veh_id for veh_id in self.vehicles.get_ids_by_edge(['3', '4']) \
-                       if str(self.vehicles.get_edge(veh_id))+ "_" + str(self.vehicles.get_lane(veh_id)) in lanes]
+            veh_ids = [veh_id for veh_id in bottleneck_ids \
+                       if str(self.vehicles.get_edge(veh_id)) + "_" +
+                       str(self.vehicles.get_lane(veh_id)) in lanes]
         else:
             veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
 
     def get_avg_bottleneck_velocity(self):
         veh_ids = self.vehicles.get_ids_by_edge(['3', '4', '5'])
-        return sum(self.vehicles.get_speed(veh_ids))/len(veh_ids) if len(veh_ids) != 0 else 0
+        return sum(self.vehicles.get_speed(veh_ids)) / len(veh_ids) \
+            if len(veh_ids) != 0 else 0
+
     # Dummy action and observation spaces
     @property
     def action_space(self):
         return Box(low=-float("inf"), high=float("inf"), shape=(1,),
                    dtype=np.float32)
+
     @property
     def observation_space(self):
         return Box(low=-float("inf"), high=float("inf"), shape=(1,),
                    dtype=np.float32)
+
     def get_state(self):
         return np.asarray([1])
+
 
 class BottleNeckEnv(BridgeTollEnv):
     """Environment used to train vehicles to effectively
@@ -530,11 +555,6 @@ class BottleNeckEnv(BridgeTollEnv):
                 lane_num = self.rl_id_list.index(rl_id) % \
                            MAX_LANES * self.scaling
                 # reintroduce it at the start of the network
-                # FIXME(ev) the try is for when we've already
-                # FIXME called to introduce
-                # FIXME but the introduce has been blocked by an inflow
-                # FIXME a better way would be keeping track of when
-                # FIXME we have made this call
                 try:
                     self.traci_connection.vehicle.addFull(
                         rl_id, 'route1', typeID=str('rl'),
@@ -545,9 +565,9 @@ class BottleNeckEnv(BridgeTollEnv):
 
 
 class DesiredVelocityEnv(BridgeTollEnv):
-    """Environment used to train vehicles to effectively pass through a bottleneck
-       by specifying the velocity that RL vehicles should attempt to travel
-       in certain regions of space
+    """Environment used to train vehicles to effectively pass
+       through a bottleneck by specifying the velocity that RL vehicles
+       should attempt to travel in certain regions of space
 
        States
        ------
@@ -569,10 +589,12 @@ class DesiredVelocityEnv(BridgeTollEnv):
     def __init__(self, env_params, sumo_params, scenario):
 
         # default (edge, segment, controlled) status
+        add_env_params = self.env_params.additional_params
         default = [("1", 1, True), ("2", 1, True), ("3", 1, True),
                    ("4", 1, True), ("5", 1, True)]
-        super(DesiredVelocityEnv, self).__init__(env_params, sumo_params, scenario)
-        self.segments = self.env_params.additional_params.get("segments", default)
+        super(DesiredVelocityEnv, self).__init__(env_params,
+                                                 sumo_params, scenario)
+        self.segments = add_env_params.get("controlled_segments", default)
 
         # number of segments for each edge
         self.num_segments = [segment[1] for segment in self.segments]
@@ -580,23 +602,21 @@ class DesiredVelocityEnv(BridgeTollEnv):
         # whether an edge is controlled
         self.is_controlled = [segment[2] for segment in self.segments]
 
-        self.num_controlled_segments = [segment[1] for segment in self.segments if segment[2]]
+        self.num_controlled_segments = [segment[1] for segment in
+                                        self.segments if segment[2]]
 
         # sum of segments
-        self.total_segments = int(np.sum([segment[1] for segment in self.segments]))
+        self.total_segments = int(np.sum([segment[1] for
+                                          segment in self.segments]))
         # sum of controlled segments
-        self.total_controlled_segments = int(np.sum([segment[1]
-                                                     for segment in self.segments
-                                                     if segment[2]]))
+        segment_list = [segment[1] for segment in self.segments if segment[2]]
+        self.total_controlled_segments = int(np.sum(segment_list))
 
         # list of controlled edges for comparison
         self.controlled_edges = [segment[0] for segment in self.segments
                                  if segment[2]]
 
-        # list of controlled lanes
-        lanes_list = [str(i) for i in range(MAX_LANES*self.scaling)]
         additional_params = self.env_params.additional_params
-        self.controlled_lanes = additional_params.get("lanes", lanes_list)
 
         # for convenience, construct the relevant positions defining
         # segments within edges
@@ -608,9 +628,7 @@ class DesiredVelocityEnv(BridgeTollEnv):
             self.slices[edge] = np.linspace(0, edge_length, num_segments + 1)
 
         # get info for observed segments
-        default_obs = [("1", 1), ("2", 1), ("3", 1),
-                   ("4", 1), ("5", 1)]
-        self.obs_segments = self.env_params.additional_params.get("observed_segments", default_obs)
+        self.obs_segments = additional_params.get("observed_segments")
 
         # number of segments for each edge
         self.num_obs_segments = [segment[1] for segment in self.obs_segments]
@@ -622,16 +640,15 @@ class DesiredVelocityEnv(BridgeTollEnv):
         self.obs_slices = {}
         for edge, num_segments in self.obs_segments:
             edge_length = self.scenario.edge_length(edge)
-            self.obs_slices[edge] = np.linspace(0, edge_length, num_segments + 1)
+            self.obs_slices[edge] = np.linspace(0, edge_length,
+                                                num_segments + 1)
 
-        # self.symmetric is True if all lanes in a segment have same action, else False
-        self.symmetric = additional_params.get("symmetric", True)
-
-
+        # self.symmetric is True if all lanes in a segment
+        # have same action, else False
+        self.symmetric = additional_params.get("symmetric")
 
         # action index tells us, given an edge and a lane,the offset into
-        # rl_actions that we should take. The indexing order is
-        # FIXME (ev) add comments
+        # rl_actions that we should take.
         self.action_index = [0]
         for i, (edge, segment, controlled) in enumerate(self.segments[:-1]):
             if self.symmetric:
@@ -642,33 +659,13 @@ class DesiredVelocityEnv(BridgeTollEnv):
                 self.action_index += [self.action_index[i] +
                                       segment * controlled * num_lanes]
 
-        # FIXME(implement this scheme)
-        # contruct an indexing to be used for figuring out which
-        # set of actions apply to a lane
-        # self.lane_index = {lane:ind*self.total_controlled_segments
-        #                       for ind,lane
-        #                       in enumerate(self.controlled_lanes)}
-        #
-        # # number of controlled segments up to and including edge 4
-        # until_four = int(np.sum([segment[1] for segment in self.segments[:4] if segment[2]]))
-        # # number of controlled segments up to and including edge 3
-        # until_three = int(np.sum([segment[1] for segment in self.segments[:3] if segment[2]]))
-        # self.lane_index = {}
-        # for ind, lane in enumerate(self.controlled_lanes):
-        #     if lane < self.scaling:  # full length
-        #         self.lane_index[lane] = ind*self.total_controlled_segments
-        #     elif lane < self.scaling*2:  # half length
-        #         self.lane_index[lane] = ind*until_four
-        #     else:  # goes away in first level
-        #         self.lane_index[lane] = ind*until_three
-
     @property
     def observation_space(self):
         num_obs = 0
         # density and velocity for rl and non-rl vehicles per segment
         # Last element is the outflow
         for segment in self.obs_segments:
-            num_obs += 4*segment[1] * self.scenario.num_lanes(segment[0])
+            num_obs += 4 * segment[1] * self.scenario.num_lanes(segment[0])
         num_obs += 1
         return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
                    dtype=np.float32)
@@ -682,9 +679,9 @@ class DesiredVelocityEnv(BridgeTollEnv):
             for segment in self.segments:  # iterate over segments
                 if segment[2]:  # if controlled
                     num_lanes = self.scenario.num_lanes(segment[0])
-                    action_size += num_lanes*segment[1]
+                    action_size += num_lanes * segment[1]
         return Box(low=-1.5, high=1.0,
-                   shape=(int(action_size),), 
+                   shape=(int(action_size),),
                    dtype=np.float32)
 
     def get_state(self):
@@ -707,7 +704,8 @@ class DesiredVelocityEnv(BridgeTollEnv):
             lane_list = self.vehicles.get_lane(ids)
             pos_list = self.vehicles.get_position(ids)
             for i, id in enumerate(ids):
-                segment = np.searchsorted(self.obs_slices[edge], pos_list[i]) - 1
+                segment = np.searchsorted(self.obs_slices[edge],
+                                          pos_list[i]) - 1
                 if id in self.vehicles.get_rl_ids():
                     rl_vehicle_speeds[segment, lane_list[i]] \
                         += self.vehicles.get_speed(id)
@@ -727,20 +725,24 @@ class DesiredVelocityEnv(BridgeTollEnv):
             rl_speeds_list += rl_vehicle_speeds.flatten().tolist()
 
         unnorm_veh_list = np.asarray(num_vehicles_list) * \
-                                 NUM_VEHICLE_NORM
+                          NUM_VEHICLE_NORM
         unnorm_rl_list = np.asarray(num_rl_vehicles_list) * \
-                                 NUM_VEHICLE_NORM
+                         NUM_VEHICLE_NORM
         # compute the mean speed if the speed isn't zero
+        num_rl = len(num_rl_vehicles_list)
+        num_veh = len(num_vehicles_list)
         mean_speed = np.nan_to_num([vehicle_speeds_list[i] / unnorm_veh_list[i]
                                     if int(unnorm_veh_list[i]) else 0
-                                    for i in range(len(num_vehicles_list))])/50
+                                    for i in range(num_veh)])
+        mean_speed_norm = mean_speed / 50
         mean_rl_speed = np.nan_to_num([rl_speeds_list[i] / unnorm_rl_list[i]
                                        if int(unnorm_rl_list[i]) else 0
-                                       for i in range(len(num_rl_vehicles_list))
+                                       for i in range(num_rl)
                                        ]) / 50
-        outflow = np.asarray(self.vehicles.get_outflow_rate(20*self.sim_step)/2000.0)
+        outflow = np.asarray(self.vehicles.get_outflow_rate(20 * self.sim_step)
+                             / 2000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
-                               mean_speed, mean_rl_speed, [outflow]))
+                               mean_speed_norm, mean_rl_speed, [outflow]))
 
     def _apply_rl_actions(self, actions):
         """
@@ -751,30 +753,20 @@ class DesiredVelocityEnv(BridgeTollEnv):
         """
         rl_actions = actions
 
-        # RLLIB STUFF
-        # rl_actions = (20*actions).clip(self.action_space.low, self.action_space.high)
-
         for rl_id in self.vehicles.get_rl_ids():
             edge = self.vehicles.get_edge(rl_id)
             lane = self.vehicles.get_lane(rl_id)
             if edge:
                 # If in outer lanes, on a controlled edge, in a controlled lane
-                if edge[0] != ':' and edge in self.controlled_edges: #and lane in self.controlled_lanes:
+                if edge[0] != ':' and edge in self.controlled_edges:
                     pos = self.vehicles.get_position(rl_id)
 
                     if not self.symmetric:
                         num_lanes = self.scenario.num_lanes(edge)
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
-                        # print('vehicle ', rl_id)
-                        # print('the vehicle on edge', edge)
-                        # print('and lane', lane)
-                        # print('will get action ', int(lane) + bucket*num_lanes
-                        #                         + self.action_index[int(edge) - 1])
-                        action = rl_actions[int(lane) + bucket*num_lanes
+                        action = rl_actions[int(lane) + bucket * num_lanes
                                             + self.action_index[int(edge) - 1]]
-                        # print('the action is', action)
-                        # print('its speed is', self.vehicles.get_speed(rl_id))
 
                     else:
                         # find what segment we fall into
@@ -782,9 +774,10 @@ class DesiredVelocityEnv(BridgeTollEnv):
                         action = rl_actions[bucket +
                                             self.action_index[int(edge) - 1]]
 
-                    max_speed_curr = self.traci_connection.vehicle.getMaxSpeed(rl_id)
+                    traci_veh = self.traci_connection.vehicle
+                    max_speed_curr = traci_veh.getMaxSpeed(rl_id)
                     next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, next_max)
+                    traci_veh.setMaxSpeed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
@@ -792,12 +785,10 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
     def compute_reward(self, state, rl_actions, **kwargs):
 
-        reward = self.vehicles.get_outflow_rate(10*self.sim_step)/200.0 #+ \
-            #0.01*rewards.desired_velocity(self)/self.max_speed
+        reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / 200.0
 
-        #penalize high density in the bottleneck
+        # penalize high density in the bottleneck
         # bottleneck_ids = self.vehicles.get_ids_by_edge('4')
-        # # FIXME(ev) convert to passed in env param
         # bottleneck_threshold = 35  # could be 10 also
         # if len(bottleneck_ids) > bottleneck_threshold:
         #     reward -= len(bottleneck_ids) - bottleneck_threshold
@@ -806,279 +797,50 @@ class DesiredVelocityEnv(BridgeTollEnv):
 
         return reward
 
-
-
     def reset(self):
-        #print(self.vehicles.get_outflow_rate(10000))
-        flow_rate = np.random.uniform(1000, 2000) * self.scaling
-        print('flow rate is ', flow_rate)
-        for _ in range(100):
-            try:
-                inflow = InFlows()
-                inflow.add(veh_type="followerstopper", edge="1",
-                                vehs_per_hour = flow_rate*.1,
-                                 departLane = "random", departSpeed=10)
-                inflow.add(veh_type="human", edge="1",
-                           vehs_per_hour=flow_rate*.9,
-                           departLane="random", departSpeed=10)
-                additional_net_params = {"scaling": self.scaling}
-                net_params = NetParams(in_flows=inflow,
-                                       no_internal_links=False, additional_params=additional_net_params)
-                vehicles = Vehicles()
-                vehicles.add(veh_id="human",
-                             speed_mode=9,
-                             lane_change_controller=(SumoLaneChangeController, {}),
-                             routing_controller=(ContinuousRouter, {}),
-                             lane_change_mode=0,  # 1621,#0b100000101,
-                             num_vehicles=1 * self.scaling)
-                vehicles.add(veh_id="followerstopper",
-                             acceleration_controller=(RLController,
-                                                      {"fail_safe": "instantaneous"}),
-                             lane_change_controller=(SumoLaneChangeController, {}),
-                             routing_controller=(ContinuousRouter, {}),
-                             speed_mode=9,
-                             lane_change_mode=0,
-                             num_vehicles=1 * self.scaling)
-                self.vehicles = vehicles
-                self.scenario = self.scenario.__class__(
-                            name=self.scenario.name, generator_class=self.scenario.generator_class,
-                            vehicles=vehicles, net_params=net_params,
-                            initial_config=self.scenario.initial_config, traffic_lights=self.scenario.traffic_lights)
+        if self.env_params.additional_params.get("reset_inflow"):
+            flow_rate = np.random.uniform(1000, 2000) * self.scaling
+            print('flow rate is ', flow_rate)
+            for _ in range(100):
+                try:
+                    inflow = InFlows()
+                    inflow.add(veh_type="followerstopper", edge="1",
+                               vehs_per_hour=flow_rate * .1,
+                               departLane="random", departSpeed=10)
+                    inflow.add(veh_type="human", edge="1",
+                               vehs_per_hour=flow_rate * .9,
+                               departLane="random", departSpeed=10)
+                    additional_net_params = {"scaling": self.scaling}
+                    net_params = NetParams(in_flows=inflow,
+                                           no_internal_links=False,
+                                           additional_params=additional_net_params)
+                    vehicles = Vehicles()
+                    vehicles.add(veh_id="human",
+                                 speed_mode=9,
+                                 lane_change_controller=(SumoLaneChangeController, {}),
+                                 routing_controller=(ContinuousRouter, {}),
+                                 lane_change_mode=0,  # 1621,#0b100000101,
+                                 num_vehicles=1 * self.scaling)
+                    vehicles.add(veh_id="followerstopper",
+                                 acceleration_controller=(RLController,
+                                                          {"fail_safe": "instantaneous"}),
+                                 lane_change_controller=(SumoLaneChangeController, {}),
+                                 routing_controller=(ContinuousRouter, {}),
+                                 speed_mode=9,
+                                 lane_change_mode=0,
+                                 num_vehicles=1 * self.scaling)
+                    self.vehicles = vehicles
+                    self.scenario = self.scenario.__class__(
+                        name=self.scenario.name, generator_class=self.scenario.generator_class,
+                        vehicles=vehicles, net_params=net_params,
+                        initial_config=self.scenario.initial_config, traffic_lights=self.scenario.traffic_lights)
 
-                # perform the generic reset function
-                observation = super().reset()
+                except Exception as e:
+                    print('error on reset ', e)
+                    # perform the generic reset function
+        observation = super().reset()
 
-                # reset the timer to zero
-                self.time_counter = 0
+        # reset the timer to zero
+        self.time_counter = 0
 
-                return observation
-            except Exception as e:
-                print('error on reset ', e)
-
-
-
-class MultiBottleNeckEnv(BottleNeckEnv):
-    """Multiagent environment used to train vehicles
-    to effectively pass through a bottleneck.
-
-       States
-       ------
-       An observation is the edge position, speed, lane, and edge number of the
-       AV, the distance to and velocity of the vehicles
-       in front and behind the AV for all lanes. Additionally, we pass the
-       density and average velocity of all edges. Finally, we add the
-       position and velocity of all other AVs in order of the list
-       Additionally, we pad with zeros
-       in case an AV has exited the system.
-       Note: the vehicles are arranged in an initial order, so we pad
-       the missing vehicle at its normal position in the order
-
-       Actions
-       -------
-       The action space consist of a list of lists in which
-       the first half of each list
-       is accelerations and the second half is a direction for lane changing
-       that we round
-
-       Rewards
-       -------
-       The reward is the two-norm of the difference between the speed of all
-       vehicles in the network and some desired speed. To this we add
-       a positive reward for moving the vehicles forward and a
-       penalty for lane changing
-
-       Termination
-       -----------
-       A rollout is terminated once the time horizon is reached.
-
-       """
-
-    @property
-    def observation_space(self):
-        num_edges = len(self.scenario.get_edge_list())
-        num_rl_veh = self.num_rl
-        num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling + 4 * num_rl_veh
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        print(num_obs)
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        return Tuple(tuple(Box(low=-float("inf"), high=float("inf"),
-                               shape=(num_obs,), dtype=np.float32)
-                           for _ in range(self.num_rl)))
-
-    @property
-    def action_space(self):
-        return [self.lane_change_action_space() for _ in range(self.num_rl)]
-
-    def lane_change_action_space(self):
-        """
-        See parent class
-        Actions are:
-         - a (continuous) acceleration from max-deacc to max-acc
-         - a (continuous) lane-change action from -1 to 1,
-           used to determine the lateral direction the vehicle will take.
-        """
-        max_decel = self.env_params.max_decel
-        max_accel = self.env_params.max_accel
-
-        lb = [-abs(max_decel), -1]
-        ub = [max_accel, 1]
-
-        return Box(np.array(lb), np.array(ub), dtype=np.float32)
-
-    def get_state(self):
-
-        headway_scale = 1000
-
-        rl_ids = self.rl_id_list
-        obs_list = []
-        for veh_id in rl_ids:
-            rl_obs = np.empty(0)
-            # if the vehicle is in the system, look for it
-            if veh_id in self.vehicles.get_rl_ids():
-                # rearrange both rl_id_list and rl_ids to have the right order
-                # maximal number of ids
-                all_rl_ids = deepcopy(rl_ids)
-                all_index = all_rl_ids.index(veh_id)
-                # list with possibly missing ids
-                local_ids = deepcopy(self.vehicles.get_rl_ids())
-                local_index = local_ids.index(veh_id)
-                del all_rl_ids[all_index]
-                del local_ids[local_index]
-                all_rl_ids = [veh_id] + all_rl_ids
-                local_ids = [veh_id] + local_ids
-
-                # Get the info for for all the vehicles
-                id_counter = 0
-                for av_id in local_ids:
-                    # check if we have skipped a vehicle, if not, pad
-                    rl_id_num = all_rl_ids.index(av_id)
-                    if rl_id_num != id_counter:
-                        rl_obs = np.concatenate((rl_obs,
-                                                 np.zeros(4 * (rl_id_num -
-                                                               id_counter))))
-                        id_counter = rl_id_num + 1
-                    else:
-                        id_counter += 1
-                        rl_obs = np.concatenate((rl_obs,
-                                                 self.get_vehicle_info(av_id)))
-                # if all the missing vehicles are at the end, pad
-                diff = self.num_rl - int(rl_obs.shape[0] / 4)
-                if diff > 0:
-                    rl_obs = np.concatenate((rl_obs, np.zeros(4 * diff)))
-
-                # relative vehicles data (lane headways,
-                # tailways, vel_ahead, and vel_behind)
-                num_lanes = MAX_LANES * self.scaling
-                headway = np.asarray([1000 for _ in
-                                      range(num_lanes)]) / headway_scale
-                tailway = np.asarray([1000 for _ in
-                                      range(num_lanes)]) / headway_scale
-                vel_in_front = np.asarray([0 for _ in
-                                           range(num_lanes)]) / self.max_speed
-                vel_behind = np.asarray([0 for _ in
-                                         range(num_lanes)]) / self.max_speed
-
-                lane_leaders = self.vehicles.get_lane_leaders(veh_id)
-                lane_followers = self.vehicles.get_lane_followers(veh_id)
-                lane_headways = self.vehicles.get_lane_headways(veh_id)
-                lane_tailways = self.vehicles.get_lane_tailways(veh_id)
-                headway[0:len(lane_headways)] = (np.asarray(lane_headways) /
-                                                 headway_scale)
-                tailway[0:len(lane_tailways)] = (np.asarray(lane_tailways) /
-                                                 headway_scale)
-                for i, lane_leader in enumerate(lane_leaders):
-                    if lane_leader != '':
-                        vel_in_front[i] = (self.vehicles.get_speed(lane_leader)
-                                           / self.max_speed)
-                for i, lane_follower in enumerate(lane_followers):
-                    if lane_followers != '':
-                        vel_behind[i] = (self.vehicles.get_speed(lane_follower)
-                                         / self.max_speed)
-
-                relative_obs = np.concatenate((headway, tailway,
-                                               vel_in_front, vel_behind))
-            # otherwise, just pass zeros
-            else:
-                rl_obs = np.zeros(4 * self.num_rl)
-                relative_obs = np.zeros(4 * MAX_LANES * self.scaling)
-
-            # per edge data (average speed, density
-            edge_obs = []
-            for edge in self.scenario.get_edge_list():
-                veh_ids = self.vehicles.get_ids_by_edge(edge)
-                if len(veh_ids) > 0:
-                    avg_speed = (sum(self.vehicles.get_speed(veh_ids))
-                                 / len(veh_ids)) / self.max_speed
-                    density = len(veh_ids) / self.scenario.edge_length(edge)
-                    edge_obs += [avg_speed, density]
-                else:
-                    edge_obs += [0, 0]
-
-            obs_list.append(np.concatenate((rl_obs, relative_obs,
-                                            edge_obs)))
-
-        return obs_list
-
-    def compute_reward(self, state, rl_actions, **kwargs):
-        num_rl = self.num_rl
-        lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
-        return rewards.max_edge_velocity(self, ["4", "5"]) + \
-               rewards.rl_forward_progress(self, gain=0.1) - \
-               rewards.boolean_action_penalty(lane_change_acts, gain=1.0)
-
-    def _apply_rl_actions(self, rl_actions):
-        """
-        See parent class
-
-        Apply a lane change for a multi-agent system
-        """
-        accelerations = []
-        directions = []
-        for veh_id in self.vehicles.get_rl_ids():
-            index = self.rl_id_list.index(veh_id)
-            accelerations.append(rl_actions[index][0][0])
-            direction = np.round(rl_actions[index][0][1]).clip(min=-1, max=1)
-
-            # if we have lane changed recently or are on a junction
-            try:
-                if self.time_counter <= self.lane_change_duration + \
-                        self.vehicles.get_state(veh_id, 'last_lc') or \
-                        self.vehicles.get_edge(veh_id)[0] == ':':
-                    direction = 0
-            except:
-                direction = 0
-            directions.append(direction)
-
-        self.apply_acceleration(self.vehicles.get_rl_ids(),
-                                acc=accelerations)
-        self.apply_lane_change(self.vehicles.get_rl_ids(),
-                               direction=directions)
-
-    # ===============================
-    # ============ UTILS ============
-    # ===============================
-    def get_vehicle_info(self, veh_id):
-        """
-        Gets standard information for the state space
-        :return: list containing edge num, edge position, speed, and lane
-        """
-        edge_num = self.vehicles.get_edge(veh_id)
-        if edge_num is None:
-            edge_num = -1
-        elif edge_num == '':
-            edge_num = -1
-        elif edge_num[0] == ':':
-            edge_num = -1
-        else:
-            edge_num = int(edge_num) / 6
-        veh_obs = [self.get_x_by_id(veh_id) / 1000,
-                   self.vehicles.get_speed(veh_id) / self.max_speed,
-                   self.vehicles.get_lane(veh_id) / MAX_LANES,
-                   edge_num / 5]
-        return veh_obs
+        return observation
