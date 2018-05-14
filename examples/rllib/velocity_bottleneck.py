@@ -199,9 +199,6 @@ if __name__ == '__main__':
                                           flow_env_name,
                                           UnifiedLogger)
 
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
-                       config=config, logger_creator=logger_creator)
-
     trials = run_experiments({
         "DesiredVelocity": {
             "run": "PPO",
