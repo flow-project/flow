@@ -3,14 +3,13 @@ import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoLaneChangeParams, SumoCarFollowingParams, InFlows
-from flow.controllers.routing_controllers import BayBridgeRouter
 from flow.core.vehicles import Vehicles
 
 from flow.core.experiment import SumoExperiment
 from flow.envs.bay_bridge import BridgeBaseEnv
 from flow.scenarios.bottleneck.gen import BottleneckGenerator
 from flow.scenarios.bottleneck.scenario import BottleneckScenario
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
 NETFILE = "bottleneck.net.xml"
 
