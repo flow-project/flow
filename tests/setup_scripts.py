@@ -463,47 +463,39 @@ def setup_bottlenecks(sumo_params=None,
                       traffic_lights=None,
                       inflow=None,
                       scaling=1):
-    num_lanes = 4 * scaling  # number of lanes in the widest highway
-
-    logging.basicConfig(level=logging.INFO)
 
     if sumo_params is None:
-        sumo_params = SumoParams(sim_step=0.5, sumo_binary="sumo")
+        # set default sumo_params configuration
+        sumo_params = SumoParams(sim_step=0.1,
+                                 sumo_binary="sumo")
 
     if vehicles is None:
         vehicles = Vehicles()
+
         vehicles.add(veh_id="human",
-                     speed_mode=0b11111,
+                     speed_mode=25,
                      lane_change_controller=(SumoLaneChangeController, {}),
                      routing_controller=(ContinuousRouter, {}),
-                     lane_change_mode=512,
-                     sumo_car_following_params=SumoCarFollowingParams(
-                         minGap=2.5, tau=1.0),
-                     num_vehicles=40 * scaling)
+                     lane_change_mode=1621,
+                     num_vehicles=1 * scaling)
 
     if env_params is None:
         additional_env_params = {"target_velocity": 40,
-                                 "lane_change_duration": 1,
-                                 "max_accel": 1, "max_decel": 1}
+                                 "max_accel": 1,
+                                 "max_decel": 1,
+                                 "lane_change_duration": 5,
+                                 "add_rl_if_exit": False,
+                                 "disable_tb": True,
+                                 "disable_ramp_metering": True}
         env_params = EnvParams(additional_params=additional_env_params)
 
     if inflow is None:
-        # flow rate
-        flow_rate = 3750 * scaling
-        # percentage of flow coming out of each lane
-        flow_dist = random.dirichlet(ones(num_lanes), size=1)[0]
-
         inflow = InFlows()
-        for i in range(num_lanes):
-            lane_num = str(i)
-            veh_per_hour = flow_rate * flow_dist[i]
-            inflow.add(veh_type="human", edge="1", vehsPerHour=veh_per_hour,
-                       departLane=lane_num, departSpeed=10)
+        inflow.add(veh_type="human", edge="1", vehsPerHour=1000,
+                   departLane="random", departSpeed=10)
 
     if traffic_lights is None:
         traffic_lights = TrafficLights()
-        traffic_lights.add(node_id="2")
-        traffic_lights.add(node_id="3")
 
     if net_params is None:
         additional_net_params = {"scaling": scaling}
@@ -512,7 +504,7 @@ def setup_bottlenecks(sumo_params=None,
                                additional_params=additional_net_params)
 
     if initial_config is None:
-        initial_config = InitialConfig(spacing="uniform", min_gap=5,
+        initial_config = InitialConfig(spacing="random", min_gap=5,
                                        lanes_distribution=float("inf"),
                                        edges_distribution=["2", "3", "4", "5"])
 
