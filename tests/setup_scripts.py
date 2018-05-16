@@ -1,6 +1,6 @@
 import logging
 
-from numpy import pi, sin, cos, linspace, ones, random
+from numpy import pi, sin, cos, linspace
 
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController

@@ -1,5 +1,4 @@
-"""
-Visualizer for rllib experimenst
+"""Visualizer for rllib experiments
 
 Attributes
 ----------
@@ -8,40 +7,29 @@ EXAMPLE_USAGE : str
     ::
         python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
 
-optional_named : ArgumentGroup
-    Optional named command-line arguments
 parser : ArgumentParser
     Command-line argument parser
-required_named : ArgumentGroup
-    Required named command-line arguments
 """
 
 import argparse
-import importlib
-
 import numpy as np
+import os
 
 import ray
 from ray.rllib.agent import get_agent_class
-from ray.tune.registry import get_registry, register_env as register_rllib_env
-from ray.rllib.models import ModelCatalog
+from ray.tune.registry import get_registry, register_env
 
-from flow.core.util import get_rllib_config, get_flow_params
+from flow.utils.rllib import make_create_env, get_flow_params
+from flow.core.util import get_rllib_config
+from flow.core.util import emission_to_csv
 
 EXAMPLE_USAGE = """
 example usage:
     python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
-OR
-    python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO \
-        --module cooperative_merge --flowenv TwoLoopsMergePOEnv \
-        --exp_tag cooperative_merge_example
 
 Here the arguments are:
 1 - the number of the checkpoint
 PPO - the name of the algorithm the code was run with
-cooperative_merge - the run script
-TwoLoopsMergePOEnv - the gym environment that was used
-cooperative_merge_example - Not actually used. Anything can be passed here.
 """
 
 parser = argparse.ArgumentParser(
@@ -49,44 +37,25 @@ parser = argparse.ArgumentParser(
     description="[Flow] Evaluates a reinforcement learning agent "
                 "given a checkpoint.", epilog=EXAMPLE_USAGE)
 
-parser.add_argument(
-    "result_dir", type=str, help="Directory containing results")
-parser.add_argument(
-    "checkpoint_num", type=str, help="Checkpoint number.")
+# required input parameters
+parser.add_argument("result_dir", type=str,
+                    help="Directory containing results")
+parser.add_argument("checkpoint_num", type=str,
+                    help="Checkpoint number.")
 
-# required_named = parser.add_argument_group("required named arguments")
-# required_named.add_argument(
-#     "--run", type=str, required=True,
-#     help="The algorithm or model to train. This may refer to the name "
-#          "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
-#          "user-defined trainable function or class registered in the "
-#          "tune registry.")
-
-optional_named = parser.add_argument_group("optional named arguments")
-optional_named.add_argument(
-    "--run", type=str, default='PPO',
-    help="The algorithm or model to train. This may refer to the name "
-         "of a built-on algorithm (e.g. RLLib's DQN or PPO), or a "
-         "user-defined trainable function or class registered in the "
-         "tune registry.")
-optional_named.add_argument(
-    '--num_rollouts', type=int, default=1,
-    help="The number of rollouts to visualize.")
-optional_named.add_argument(
-    '--module', type=str, default='',
-    help='Location of the make_create_env function to use')
-optional_named.add_argument(
-    '--flowenv', type=str, default='',
-    help='Flowenv being used')
-optional_named.add_argument(
-    '--use_sumogui', type=bool, default=True,
-    help='Visualize in the gui')
-optional_named.add_argument(
-    '--exp_tag', type=str, default='',
-    help='Experiment tag')
+# optional input parameters
+parser.add_argument("--run", type=str, default='PPO',
+                    help="The algorithm or model to train. This may refer to "
+                         "the name of a built-on algorithm (e.g. RLLib's DQN "
+                         "or PPO), or a user-defined trainable function or "
+                         "class registered in the tune registry.")
+parser.add_argument('--num_rollouts', type=int, default=1,
+                    help="The number of rollouts to visualize.")
+parser.add_argument('--emission_to_csv', action='store_true',
+                    help='Specifies whether to convert the emission file '
+                         'created by sumo into a csv file')
 
 if __name__ == "__main__":
-
     args = parser.parse_args()
 
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
@@ -94,61 +63,80 @@ if __name__ == "__main__":
 
     config = get_rllib_config(result_dir)
 
-    if args.module:
-        module_name = 'examples.rllib.' + args.module
-        env_module = importlib.import_module(module_name)
-
-        make_create_env = env_module.make_create_env
-        flow_params = env_module.flow_params
-
-        flow_env_name = args.flowenv
-        exp_tag = args.exp_tag
-    else:
-        flow_params, make_create_env = get_flow_params(config)
-
-        flow_env_name = flow_params['flowenv']
-        exp_tag = flow_params['exp_tag']
-
+    # Run on only one cpu for rendering purposes
     ray.init(num_cpus=1)
-
-    # Overwrite config for rendering purposes
     config["num_workers"] = 1
 
-    # Overwrite the visualizer
-    if args.use_sumogui:
-        sumo_binary = 'sumo-gui'
-    else:
-        sumo_binary = 'sumo'
+    flow_params = get_flow_params(config)
 
     # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, sumo="sumo")
-    register_rllib_env(env_name, create_env)
+    create_env, env_name = make_create_env(params=flow_params,
+                                           version=0,
+                                           sumo_binary="sumo")
+    register_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
     agent = agent_cls(env=env_name, registry=get_registry(), config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
 
-    flow_params['sumo_binary'] = sumo_binary
-    create_render_env, env_render_name = make_create_env(flow_env_name,
-                                                         flow_params,
-                                                         version=1,
-                                                         sumo="sumo-gui")
-    # Make sure the env is wrapped with a preprocessor
-    env = ModelCatalog.get_preprocessor_as_wrapper(get_registry(),
-                                                   create_render_env(None))
+    # Recreate the scenario from the pickled parameters
+    exp_tag = flow_params["exp_tag"]
+    net_params = flow_params['net']
+    vehicles = flow_params['veh']
+    initial_config = flow_params['initial']
+    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
+    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__("flow.scenarios", fromlist=[flow_params["generator"]])
+    generator_class = getattr(module, flow_params["generator"])
+
+    scenario = scenario_class(name=exp_tag,
+                              generator_class=generator_class,
+                              vehicles=vehicles,
+                              net_params=net_params,
+                              initial_config=initial_config)
+
+    # Start the environment with the gui turned on and a path for the
+    # emission file
+    module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
+    env_class = getattr(module, flow_params["env_name"])
+    env_params = flow_params['env']
+    sumo_params = flow_params['sumo']
+    sumo_params.sumo_binary = "sumo-gui"
+    sumo_params.emission_path = "./test_time_rollout"
+
+    env = env_class(env_params=env_params,
+                    sumo_params=sumo_params,
+                    scenario=scenario)
+
+    # Run the environment in the presence of the pre-trained RL agent for the
+    # requested number of time steps / rollouts
     rets = []
     for i in range(args.num_rollouts):
         state = env.reset()
         done = False
         ret = 0
-        while not done:
-            # if isinstance(state, list):
-            #     state = np.concatenate(state)
+        for _ in range(env_params.horizon):
+            if isinstance(state, list):
+                state = np.concatenate(state)
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward
+            if done:
+                break
         rets.append(ret)
         print("Return:", ret)
     print("Average Return", np.mean(rets))
+
+    # terminate the environment
+    env.terminate()
+
+    # if prompted, convert the emission file into a csv file
+    if args.emission_to_csv:
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        emission_filename = "{0}-emission.xml".format(scenario.name)
+
+        emission_path = \
+            "{0}/test_time_rollout/{1}".format(dir_path, emission_filename)
+
+        emission_to_csv(emission_path)

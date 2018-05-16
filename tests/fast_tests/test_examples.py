@@ -90,5 +90,6 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,112 +1,108 @@
-"""
-Cooperative merging example, consisting of 1 learning agent and 6 additional
-vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
-merge into the inner ring.
-"""
+"""Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
+merges in an open network.
 
+"""
 import json
+import math
 
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
-from flow.controllers import RLController, IDMController, ContinuousRouter, \
-    SumoLaneChangeController
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams, \
-    SumoParams, EnvParams, InitialConfig, NetParams
 from flow.utils.rllib import make_create_env, FlowParamsEncoder
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    InFlows
+from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.rlcontroller import RLController
 
 # time horizon of a single rollout
-HORIZON = 100
+HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 10
+N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+PARALLEL_ROLLOUTS = 10
 
-RING_RADIUS = 100
-NUM_MERGE_HUMANS = 9
-NUM_MERGE_RL = 1
+# inflow rate at the highway
+FLOW_RATE = 2000
+# percent of autonomous vehicles
+RL_PENETRATION = 0.1
+# initial number of vehicles
+NUM_VEH = 5
+# initial number of AVs
+NUM_AV = math.floor(RL_PENETRATION * NUM_VEH)
 
-# note that the vehicles are added sequentially by the generator,
-# so place the merging vehicles after the vehicles in the ring
+
+# We consider a highway network with an upstream merging lane producing
+# shockwaves
+additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+additional_net_params["merge_lanes"] = 1
+additional_net_params["highway_lanes"] = 1
+additional_net_params["pre_merge_length"] = 500
+
+# RL vehicles constitute 5% of the total number of vehicles
 vehicles = Vehicles()
-# Inner ring vehicles
 vehicles.add(veh_id="human",
              acceleration_controller=(IDMController, {"noise": 0.2}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=6,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.0,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
-# A single learning agent in the inner ring
+             speed_mode="no_collide",
+             num_vehicles=NUM_VEH-NUM_AV)
 vehicles.add(veh_id="rl",
              acceleration_controller=(RLController, {}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
              speed_mode="no_collide",
-             num_vehicles=1,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.01,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
-# Outer ring vehicles
-vehicles.add(veh_id="merge-human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=10,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.0,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
+             num_vehicles=NUM_AV)
+
+# Vehicles are introduced from both sides of merge, with RL vehicles entering
+# from the highway portion as well
+inflow = InFlows()
+inflow.add(veh_type="human", edge="inflow_highway",
+           vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
+           departLane="free", departSpeed=10)
+inflow.add(veh_type="rl", edge="inflow_highway",
+           vehs_per_hour=RL_PENETRATION * FLOW_RATE,
+           departLane="free", departSpeed=10)
+inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
+           departLane="free", departSpeed=7.5)
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="cooperative_merge",
+    exp_tag="stabilizing_open_network_merges",
 
     # name of the flow environment the experiment is running on
-    env_name="TwoLoopsMergeEnv",
+    env_name="WaveAttenuationMergePOEnv",
 
     # name of the scenario class the experiment is running on
-    scenario="TwoLoopsOneMergingScenario",
+    scenario="MergeScenario",
 
     # name of the generator used to create/modify network configuration files
-    generator="TwoLoopOneMergingGenerator",
+    generator="MergeGenerator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
-        sim_step=0.1,
-        sumo_binary="sumo",
+        sim_step=0.2,
+        sumo_binary="sumo-gui",
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
+        sims_per_step=5,
+        warmup_steps=0,
         additional_params={
-            "target_velocity": 20,
-            "max_accel": 1,
+            "max_accel": 1.5,
             "max_decel": 1.5,
+            "target_velocity": 20,
+            "num_rl": 5,
         },
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
+        in_flows=inflow,
         no_internal_links=False,
-        additional_params={
-            "ring_radius": 50,
-            "lanes": 1,
-            "lane_length": 75,
-            "speed_limit": 30,
-            "resolution": 40,
-        },
+        additional_params=additional_net_params,
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -115,24 +111,18 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(
-        x0=50,
-        spacing="custom",
-        additional_params={
-            "merge_bunching": 0,
-        },
-    ),
+    initial=InitialConfig(),
 )
 
 
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=False)
+    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [16, 16, 16]})
+    config["model"].update({"fcnet_hiddens": [32, 32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
@@ -151,21 +141,22 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        "cooperative_merge": {
+        "highway_stabilize": {
             "run": "PPO",
             "env": env_name,
             "config": {
                 **config
             },
-            "checkpoint_freq": 20,
+            "checkpoint_freq": 5,
             "max_failures": 999,
             "stop": {
                 "training_iteration": 200,
             },
+            "repeat": 3,
             "trial_resources": {
                 "cpu": 1,
                 "gpu": 0,
                 "extra_cpu": PARALLEL_ROLLOUTS - 1,
             },
-        }
+        },
     })

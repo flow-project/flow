@@ -36,8 +36,8 @@ class WaveAttenuationMergePOEnv(Env):
 
     In order to maintain a fixed observation size, when the number of AVs in
     the network is less than "num_rl", the extra entries are filled in with
-    zeros. Conversely, if the number of autonomous vehicles is greater than 
-    "num_rl", the observations from the additional vehicles are not included 
+    zeros. Conversely, if the number of autonomous vehicles is greater than
+    "num_rl", the observations from the additional vehicles are not included
     in the state space.
 
     Actions

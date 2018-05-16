@@ -9,7 +9,6 @@ from copy import deepcopy
 
 import numpy as np
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
 
 from flow.core import rewards
 from flow.envs.base_env import Env
@@ -131,7 +130,8 @@ class BottleneckEnv(Env):
         self.feedback_timer = 0.0
         self.cycle_time = 6
         cycle_offset = 8
-        self.ramp_state = np.linspace(0, cycle_offset * self.scaling * MAX_LANES,
+        self.ramp_state = np.linspace(0,
+                                      cycle_offset * self.scaling * MAX_LANES,
                                       self.scaling * MAX_LANES)
         self.green_time = 4
         self.red_min = 2
@@ -170,7 +170,8 @@ class BottleneckEnv(Env):
         # compute the outflow
         veh_ids = self.vehicles.get_ids_by_edge('4')
         self.smoothed_num[self.outflow_index] = len(veh_ids)
-        self.outflow_index = (self.outflow_index + 1) % self.smoothed_num.shape[0]
+        self.outflow_index = \
+            (self.outflow_index + 1) % self.smoothed_num.shape[0]
 
         if self.time_counter > self.next_period:
             self.density = self.cars_arrived  # / (PERIOD/self.sim_step)
@@ -208,9 +209,10 @@ class BottleneckEnv(Env):
                         lane_change_mode = \
                             self.vehicles.get_lane_change_mode(veh_id)
                         color = traci_veh.getColor(veh_id)
-                        self.cars_before_ramp[veh_id] = {"lane_change_mode":
-                                                             lane_change_mode,
-                                                         "color": color}
+                        self.cars_before_ramp[veh_id] = {
+                            "lane_change_mode": lane_change_mode,
+                            "color": color
+                        }
                         traci_veh.setLaneChangeMode(veh_id, 512)
                         traci_veh.setColor(veh_id, (0, 255, 255, 255))
 
@@ -223,8 +225,6 @@ class BottleneckEnv(Env):
             self.feedback_timer = 0
             # now implement the integral controller update
             # find all the vehicles in an edge
-            veh_ids = self.vehicles.get_ids_by_edge('4')
-            N = len(veh_ids)
             q_update = self.feedback_coeff * (self.n_crit -
                                               np.average(self.smoothed_num))
             self.q = np.clip(self.q + q_update,
@@ -322,7 +322,7 @@ class BottleneckEnv(Env):
         BOTTLE_NECK_LEN = 280
         bottleneck_ids = self.vehicles.get_ids_by_edge(['3', '4'])
         if lanes:
-            veh_ids = [veh_id for veh_id in bottleneck_ids \
+            veh_ids = [veh_id for veh_id in bottleneck_ids
                        if str(self.vehicles.get_edge(veh_id)) + "_" +
                        str(self.vehicles.get_lane(veh_id)) in lanes]
         else:
@@ -380,8 +380,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
        A rollout is terminated once the time horizon is reached.
 
        """
-    def __init__(self, env_params, sumo_params, scenario):
 
+    def __init__(self, env_params, sumo_params, scenario):
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError('Environment parameter "{}" not supplied'.
@@ -390,13 +390,12 @@ class BottleNeckAccelEnv(BottleneckEnv):
         super().__init__(env_params, sumo_params, scenario)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
 
-
     @property
     def observation_space(self):
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
         num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
-                  * num_rl_veh + 4 * num_rl_veh
+            * num_rl_veh + 4 * num_rl_veh
         print("--------------")
         print("--------------")
         print("--------------")
@@ -410,7 +409,6 @@ class BottleNeckAccelEnv(BottleneckEnv):
                    dtype=np.float32)
 
     def get_state(self):
-
         headway_scale = 1000
 
         rl_ids = self.vehicles.get_rl_ids()
@@ -748,9 +746,9 @@ class DesiredVelocityEnv(BottleneckEnv):
             rl_speeds_list += rl_vehicle_speeds.flatten().tolist()
 
         unnorm_veh_list = np.asarray(num_vehicles_list) * \
-                          NUM_VEHICLE_NORM
+            NUM_VEHICLE_NORM
         unnorm_rl_list = np.asarray(num_rl_vehicles_list) * \
-                         NUM_VEHICLE_NORM
+            NUM_VEHICLE_NORM
         # compute the mean speed if the speed isn't zero
         num_rl = len(num_rl_vehicles_list)
         num_veh = len(num_vehicles_list)
@@ -832,30 +830,38 @@ class DesiredVelocityEnv(BottleneckEnv):
                     inflow.add(veh_type="human", edge="1",
                                vehs_per_hour=flow_rate * .9,
                                departLane="random", departSpeed=10)
+
                     additional_net_params = {"scaling": self.scaling}
-                    net_params = NetParams(in_flows=inflow,
-                                           no_internal_links=False,
-                                           additional_params=additional_net_params)
+                    net_params = NetParams(
+                        in_flows=inflow,
+                        no_internal_links=False,
+                        additional_params=additional_net_params
+                    )
+
                     vehicles = Vehicles()
                     vehicles.add(veh_id="human",
                                  speed_mode=9,
-                                 lane_change_controller=(SumoLaneChangeController, {}),
+                                 lane_change_controller=(
+                                     SumoLaneChangeController, {}),
                                  routing_controller=(ContinuousRouter, {}),
                                  lane_change_mode=0,  # 1621,#0b100000101,
                                  num_vehicles=1 * self.scaling)
                     vehicles.add(veh_id="followerstopper",
-                                 acceleration_controller=(RLController,
-                                                          {"fail_safe": "instantaneous"}),
-                                 lane_change_controller=(SumoLaneChangeController, {}),
+                                 acceleration_controller=(RLController, {}),
+                                 lane_change_controller=(
+                                     SumoLaneChangeController, {}),
                                  routing_controller=(ContinuousRouter, {}),
                                  speed_mode=9,
                                  lane_change_mode=0,
                                  num_vehicles=1 * self.scaling)
                     self.vehicles = vehicles
                     self.scenario = self.scenario.__class__(
-                        name=self.scenario.name, generator_class=self.scenario.generator_class,
+                        name=self.scenario.name,
+                        generator_class=self.scenario.generator_class,
                         vehicles=vehicles, net_params=net_params,
-                        initial_config=self.scenario.initial_config, traffic_lights=self.scenario.traffic_lights)
+                        initial_config=self.scenario.initial_config,
+                        traffic_lights=self.scenario.traffic_lights
+                    )
 
                 except Exception as e:
                     print('error on reset ', e)
