@@ -220,7 +220,7 @@ def punish_rl_lane_changes(env, penalty=1):
 def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
     """
     Reward function punishing queues in certain lanes of edge '3'
-        
+
     Parameters
     ----------
     env : Environment
@@ -233,16 +233,15 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
         Multiplier on number of cars in the lane
     penalty_exponent : int, optional
         Exponent on number of cars in the lane
-    
+
     Returns
     -------
     int
         total reward (in this case a negative cost) corresponding
         to the queues in the lane in question
     """
-
     # IDs of all vehicles in passed-in lane
-    lane_ids = [veh_id for veh_id in env.vehicles.get_ids_by_edge(edge) \
+    lane_ids = [veh_id for veh_id in env.vehicles.get_ids_by_edge(edge)
                 if env.vehicles.get_lane(veh_id) == lane]
 
     return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
@@ -251,7 +250,7 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
 def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
     """
     Reward function that rewards RL vehicles opening large headways.
-    
+
     Parameters
     ----------
     env : Environment
@@ -260,7 +259,7 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
         Multiplicative gain on reward
     reward_exponent : int, optional
         Exponent gain on reward
-    
+
     Returns
     -------
     int

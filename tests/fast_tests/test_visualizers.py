@@ -29,7 +29,8 @@ class TestVisualizerFlow(unittest.TestCase):
         self.assert_(True)
 
         # open the generated observations file, and check it isn't all zeros
-        observations = pickle.load(open(current_path + "/observations.pkl", "rb"))
+        observations = pickle.load(open(current_path + "/observations.pkl",
+                                        "rb"))
 
         self.assertNotEqual(np.sum(np.sum(observations)), 0)
 

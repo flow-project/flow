@@ -6,7 +6,6 @@ Attributes
 E : etree.Element
     Description
 """
-# flake8: noqa
 import csv
 import errno
 import importlib
@@ -19,14 +18,9 @@ from xml.etree import ElementTree
 
 from gym.envs.registration import register
 
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.car_following_models import *
-from flow.core.params import InFlows
-from flow.controllers.velocity_controllers import *
-from flow.controllers.lane_change_controllers import *
-from flow.controllers.routing_controllers import ContinuousRouter
-from flow.core.params import InFlows
+from flow.controllers import *
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams, \
+    InFlows
 
 E = etree.Element
 
@@ -139,10 +133,10 @@ def eval_net_params(flow_params):
                     temp['veh_type'] = obj[key]
                 elif key == 'begin':
                     temp['edge'] = str(obj[key])
-                elif key =='depart_speed':
+                elif key == 'depart_speed':
                     temp['departSpeed'] = obj[key]
-                elif key == 'probability' or key =='departSpeed' or \
-                    key == 'departLane' or key == 'vehsPerHour':
+                elif key == 'probability' or key == 'departSpeed' or \
+                        key == 'departLane' or key == 'vehsPerHour':
                     temp[key] = obj[key]
             new_inflow_list.append(temp)
         [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
@@ -178,15 +172,15 @@ def eval_veh_params(orig_params):
 
     if 'acceleration_controller' in new_params:
         new_controller = (eval(orig_params['acceleration_controller'][0]),
-                               orig_params['acceleration_controller'][1])
+                          orig_params['acceleration_controller'][1])
         new_params['acceleration_controller'] = new_controller
     if 'lane_change_controller' in new_params:
         new_lc_controller = (eval(orig_params['lane_change_controller'][0]),
-                                  orig_params['lane_change_controller'][1])
+                             orig_params['lane_change_controller'][1])
         new_params['lane_change_controller'] = new_lc_controller
     if 'routing_controller' in new_params:
         new_route_controller = (eval(orig_params['routing_controller'][0]),
-                                     orig_params['routing_controller'][1])
+                                orig_params['routing_controller'][1])
         new_params['routing_controller'] = new_route_controller
     if 'sumo_car_following_params' in new_params:
         cf_params = SumoCarFollowingParams()

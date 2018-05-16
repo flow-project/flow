@@ -1,163 +1,132 @@
 """
-(description)
+(blank)
 """
 
 import json
-import os
-
-import gym
 
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune import run_experiments
-from ray.tune.logger import UnifiedLogger
-from ray.tune.registry import get_registry, register_env as register_rllib_env
-from ray.tune.result import DEFAULT_RESULTS_DIR as results_dir
+from ray.tune.registry import register_env
 
-from flow.core.util import NameEncoder, register_env, rllib_logger_creator
-
+from flow.utils.rllib import make_create_env, FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.scenarios.figure8.gen import Figure8Generator
-from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.vehicles import Vehicles
+from flow.controllers.car_following_models import IDMController
+from flow.controllers.routing_controllers import ContinuousRouter
+from flow.controllers.rlcontroller import RLController
+from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 
+# time horizon of a single rollout
 HORIZON = 1500
+# number of rollouts per training iteration
+N_ROLLOUTS = 20
+# number of parallel workers
+PARALLEL_ROLLOUTS = 2
 
-additional_env_params = {"target_velocity": 20}
-additional_net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30,
-                         "resolution": 40}
-vehicle_params = [
-    dict(veh_id="rl",
-         acceleration_controller=(RLController, {}),
-         routing_controller=(ContinuousRouter, {}),
-         num_vehicles=1),
-    dict(veh_id="idm",
-         #acceleration_controller=(IDMController, {"noise": 0.2}),
-         routing_controller=(ContinuousRouter, {}),
-         num_vehicles=13)
-]
+# We place one autonomous vehicle and 13 human-driven vehicles in the network
+vehicles = Vehicles()
+vehicles.add(veh_id="human",
+             acceleration_controller=(IDMController, {"noise": 0.2}),
+             routing_controller=(ContinuousRouter, {}),
+             speed_mode="no_collide",
+             num_vehicles=13)
+vehicles.add(veh_id="rl",
+             acceleration_controller=(RLController, {}),
+             routing_controller=(ContinuousRouter, {}),
+             speed_mode="no_collide",
+             num_vehicles=1)
 
 flow_params = dict(
-    sumo=dict(
-        sim_step=0.1
+    # name of the experiment
+    exp_tag="figure_eight_intersection_control",
+
+    # name of the flow environment the experiment is running on
+    env_name="AccelEnv",
+
+    # name of the scenario class the experiment is running on
+    scenario="Figure8Scenario",
+
+    # name of the generator used to create/modify network configuration files
+    generator="Figure8Generator",
+
+    # sumo-related parameters (see flow.core.params.SumoParams)
+    sumo=SumoParams(
+        sim_step=0.1,
+        sumo_binary="sumo",
     ),
-    env=dict(
+
+    # environment related parameters (see flow.core.params.EnvParams)
+    env=EnvParams(
         horizon=HORIZON,
-        additional_params=additional_env_params
+        warmup_steps=750,
+        additional_params={
+            "target_velocity": 20,
+            "max_accel": 3,
+            "max_decel": 3,
+        },
     ),
-    net=dict(
+
+    # network-related parameters (see flow.core.params.NetParams and the
+    # scenario's documentation or ADDITIONAL_NET_PARAMS component)
+    net=NetParams(
         no_internal_links=False,
-        additional_params=additional_net_params
+        additional_params=ADDITIONAL_NET_PARAMS,
     ),
-    veh=vehicle_params,
-    initial=dict(
-        spacing="uniform",
-    )
+
+    # vehicles to be placed in the network at the start of a rollout (see
+    # flow.core.vehicles.Vehicles)
+    veh=vehicles,
+
+    # parameters specifying the positioning of vehicles upon initialization/
+    # reset (see flow.core.params.InitialConfig)
+    initial=InitialConfig(),
 )
 
 
-def make_create_env(flow_env_name, flow_params=flow_params, version=0,
-                    exp_tag="example", sumo="sumo"):
-    env_name = flow_env_name + '-v%s' % version
-
-    sumo_params_dict = flow_params['sumo']
-    sumo_params_dict['sumo_binary'] = sumo
-    sumo_params = SumoParams(**sumo_params_dict)
-
-    env_params_dict = flow_params['env']
-    env_params = EnvParams(**env_params_dict)
-
-    net_params_dict = flow_params['net']
-    net_params = NetParams(**net_params_dict)
-
-    veh_params = flow_params['veh']
-
-    init_params = flow_params['initial']
-
-    def create_env(env_config):
-        import flow.envs as flow_envs
-
-        # note that the vehicles are added sequentially by the generator,
-        # so place the merging vehicles after the vehicles in the ring
-        vehicles = Vehicles()
-        for v_param in vehicle_params:
-            vehicles.add(**v_param)
-
-        initial_config = InitialConfig(**init_params)
-
-        scenario = Figure8Scenario(exp_tag, Figure8Generator, vehicles,
-                                   net_params, initial_config=initial_config)
-
-        pass_params = (flow_env_name, sumo_params, vehicles, env_params,
-                       net_params, initial_config, scenario, version)
-
-        register_env(*pass_params)
-        env = gym.envs.make(env_name)
-
-        return env
-
-    return create_env, env_name
-
-
 if __name__ == "__main__":
+    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=False)
+
     config = ppo.DEFAULT_CONFIG.copy()
-    horizon = HORIZON
-    n_rollouts = 2
-
-    ray.init(num_cpus=2, redirect_output=True)
-    #ray.init(redis_address="localhost:6379", redirect_output=False)
-
-    parallel_rollouts = 1
-    config["num_workers"] = parallel_rollouts
-    config["timesteps_per_batch"] = horizon * n_rollouts
+    config["num_workers"] = PARALLEL_ROLLOUTS
+    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [16, 16]})
-
+    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
+    config["use_gae"] = True
     config["lambda"] = 0.97
     config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
-    config["horizon"] = horizon
+    config["horizon"] = HORIZON
     config["observation_filter"] = "NoFilter"
 
-    flow_env_name = "AccelEnv"
-    exp_tag = "figure8_example"  # experiment prefix
-
-    flow_params['flowenv'] = flow_env_name
-    flow_params['exp_tag'] = exp_tag
-    flow_params['module'] = os.path.basename(__file__)[:-3]
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=NameEncoder, sort_keys=True,
-                  indent=4)
+    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
+                           indent=4)
     config['env_config']['flow_params'] = flow_json
-    create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, exp_tag=exp_tag)
+
+    create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
-    register_rllib_env(env_name, create_env)
-
-    logger_creator = rllib_logger_creator(results_dir,
-                                          flow_env_name,
-                                          UnifiedLogger)
-
-    alg = ppo.PPOAgent(env=env_name, registry=get_registry(),
-                       config=config, logger_creator=logger_creator)
-
+    register_env(env_name, create_env)
 
     trials = run_experiments({
         "figure_eight": {
             "run": "PPO",
-            "env": "AccelEnv-v0",
+            "env": env_name,
             "config": {
                 **config
             },
             "checkpoint_freq": 1,
             "max_failures": 999,
-            "stop": {"training_iteration": 3},
-            "trial_resources": {"cpu": 1, "gpu": 0,
-                                "extra_cpu": parallel_rollouts - 1}
-        }
+            "stop": {
+                "training_iteration": 200
+            },
+            "repeat": 3,
+            "trial_resources": {
+                "cpu": 1,
+                "gpu": 0,
+                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+            },
+        },
     })
-
