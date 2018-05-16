@@ -21,9 +21,9 @@ from flow.core.vehicles import Vehicles
 # time horizon of a single rollout
 HORIZON = 100
 # number of rollouts per training iteration
-N_ROLLOUTS = 100
+N_ROLLOUTS = 10
 # number of parallel workers
-PARALLEL_ROLLOUTS = 48
+PARALLEL_ROLLOUTS = 2
 
 RING_RADIUS = 100
 NUM_MERGE_HUMANS = 9
@@ -83,7 +83,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.1,
-        sumo_binary="sumo-gui",
+        sumo_binary="sumo",
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

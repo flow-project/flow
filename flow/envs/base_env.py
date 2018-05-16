@@ -14,8 +14,6 @@ import gym
 
 import sumolib
 
-from flow.controllers.velocity_controllers import FollowerStopper
-
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
@@ -185,8 +183,8 @@ class Env(gym.Env, Serializable):
                 if self.sumo_params.emission_path is not None:
                     ensure_dir(self.sumo_params.emission_path)
                     emission_out = \
-                        self.sumo_params.emission_path + "{0}-emission.xml".format(
-                            self.scenario.name)
+                        self.sumo_params.emission_path + \
+                        "{0}-emission.xml".format(self.scenario.name)
                     sumo_call.append("--emission-output")
                     sumo_call.append(emission_out)
                 else:

@@ -12,6 +12,7 @@ from examples.rllib.stabilizing_the_ring import make_create_env
 def to_subpolicy_state(inputs):
     return inputs
 
+
 fn_choose_subpolicy = """
 def choose_policy(inputs):
     return tf.cast(inputs[:, 0] > 1e6, tf.int32)

@@ -42,4 +42,3 @@ class BBTollScenario(Scenario):
 
     def get_bottleneck_lanes(self, lane):
         return [int(lane/2), int(lane/4)]
-
