@@ -1,5 +1,5 @@
 from flow.envs.base_env import Env
-from flow.envs.bottleneck_env import BridgeTollEnv, BottleNeckEnv
+from flow.envs.bottleneck_env import BottleNeckAccelEnv, BottleneckEnv
 from flow.envs.green_wave_env import GreenWaveEnv, GreenWaveTestEnv
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
     LaneChangeAccelPOEnv
@@ -11,5 +11,5 @@ from flow.envs.merge import WaveAttenuationMergePOEnv
 
 __all__ = ["Env", "AccelEnv", "LaneChangeAccelEnv", "LaneChangeAccelPOEnv",
            "GreenWaveTestEnv", "GreenWaveEnv", "WaveAttenuationMergePOEnv",
-           "TwoLoopsMergeEnv", "BottleNeckEnv", "BridgeTollEnv",
+           "TwoLoopsMergeEnv", "BottleneckEnv", "BottleNeckAccelEnv",
            "WaveAttenuationEnv", "WaveAttenuationPOEnv"]

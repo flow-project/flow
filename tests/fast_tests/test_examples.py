@@ -25,7 +25,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/bottleneck.py is working
         """
         # import the experiment variable from the example
-        exp = bottleneck_example(sumo_binary="sumo")
+        exp = bottleneck_example(1000, 5, sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

@@ -96,6 +96,7 @@ if __name__ == "__main__":
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
+    config["observation_filter"] = "NoFilter"
 
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,

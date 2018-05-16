@@ -85,7 +85,7 @@ flow_params = dict(
 
 
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=False)
+    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
