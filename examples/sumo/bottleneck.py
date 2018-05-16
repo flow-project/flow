@@ -1,5 +1,5 @@
 """
-(description)
+File demonstrating formation of congestion in bottleneck
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows
@@ -9,42 +9,44 @@ from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.bridge_toll.gen import BBTollGenerator
 from flow.scenarios.bridge_toll.scenario import BBTollScenario
 from flow.controllers import SumoLaneChangeController, ContinuousRouter
-from flow.envs.bottleneck_env import BottleNeckEnv
+from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import SumoExperiment
 
-SCALING = 4
+SCALING = 1
 DISABLE_TB = True
+# If set to False, ALINEA will control the ramp meter
 DISABLE_RAMP_METER = True
-FLOW_RATE = 1500 * SCALING  # inflow rate
+INFLOW = 1800
 
 
-def bottleneck_example(sumo_binary=None):
-    sumo_params = SumoParams(sim_step=0.5,
-                             sumo_binary="sumo-gui")
+def bottleneck_example(flow_rate, horizon, sumo_binary=None):
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if sumo_binary is None:
+        sumo_binary = "sumo"
+    sumo_params = SumoParams(sim_step=0.5, sumo_binary=sumo_binary,
+                             overtake_right=False, restart_instance=True)
 
     vehicles = Vehicles()
 
     vehicles.add(veh_id="human",
-                 speed_mode=31,
+                 speed_mode=25,
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=1621,
-                 num_vehicles=1*SCALING)
+                 num_vehicles=1)
 
     additional_env_params = {"target_velocity": 40,
                              "max_accel": 1,
                              "max_decel": 1,
                              "lane_change_duration": 5,
                              "add_rl_if_exit": False,
-                             "disable_tb": True,
-                             "disable_ramp_metering": True}
-    env_params = EnvParams(additional_params=additional_env_params)
+                             "disable_tb": DISABLE_TB,
+                             "disable_ramp_metering": DISABLE_RAMP_METER}
+    env_params = EnvParams(horizon=horizon,
+                           additional_params=additional_env_params)
 
     inflow = InFlows()
-    inflow.add(veh_type="human", edge="1", vehsPerHour=FLOW_RATE,
+    inflow.add(veh_type="human", edge="1", vehsPerHour=flow_rate,
                departLane="random", departSpeed=10)
 
     traffic_lights = TrafficLights()
@@ -69,14 +71,13 @@ def bottleneck_example(sumo_binary=None):
                               initial_config=initial_config,
                               traffic_lights=traffic_lights)
 
-    env = BottleNeckEnv(env_params, sumo_params, scenario)
+    env = BottleneckEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bottleneck_example()
-
-    # run for a set number of rollouts / time steps
-    exp.run(10, 300)
+    # inflow, number of steps, binary
+    exp = bottleneck_example(INFLOW, 1000, sumo_binary="sumo-gui")
+    exp.run(5, 1000)

@@ -74,7 +74,7 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            speed_mode='no_collide',
+            speed_mode='all_checks',
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -273,6 +273,7 @@ class Vehicles:
         env: Environment type
             state of the environment at the current time step
         """
+
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
@@ -562,6 +563,14 @@ class Vehicles:
             return 0
         num_outflow = self._num_arrived[-int(time_span / self.sim_step):]
         return 3600 * sum(num_outflow) / (len(num_outflow) * self.sim_step)
+
+    def get_num_arrived(self):
+        """Returns the number of vehicles that arrived in the last
+        time step"""
+        if len(self._num_arrived) > 0:
+            return self._num_arrived[-1]
+        else:
+            return 0
 
     def get_initial_speed(self, veh_id, error=-1001):
         """Returns the initial speed upon reset of the specified vehicle.

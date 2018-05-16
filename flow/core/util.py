@@ -133,13 +133,12 @@ def eval_net_params(flow_params):
                     temp['veh_type'] = obj[key]
                 elif key == 'begin':
                     temp['edge'] = str(obj[key])
-                elif key == 'depart_speed':
+                elif key =='depart_speed':
                     temp['departSpeed'] = obj[key]
-                elif key == 'probability' or key == 'departSpeed' or \
-                        key == 'departLane' or key == 'vehsPerHour':
+                elif key == 'probability' or key =='departSpeed' or \
+                    key == 'departLane' or key == 'vehsPerHour':
                     temp[key] = obj[key]
             new_inflow_list.append(temp)
-        # add created inflows to inflow container
         [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
         better_params['net']['in_flows'] = inflow
 

@@ -39,3 +39,7 @@ class BBTollScenario(Scenario):
                 ("3", 405),
                 ("4", 425),
                 ("5", 580)]
+
+    def get_bottleneck_lanes(self, lane):
+        return [int(lane/2), int(lane/4)]
+
