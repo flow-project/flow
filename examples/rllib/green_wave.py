@@ -20,7 +20,7 @@ HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 10
+PARALLEL_ROLLOUTS = 2
 
 
 def gen_edges(row_num, col_num):

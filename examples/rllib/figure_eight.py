@@ -22,7 +22,7 @@ HORIZON = 1500
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 1
+PARALLEL_ROLLOUTS = 2
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -51,7 +51,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.1,
-        sumo_binary="sumo-gui",
+        sumo_binary="sumo",
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

@@ -1,6 +1,4 @@
 from flow.controllers.base_controller import BaseController
-from flow.core.params import SumoCarFollowingParams
-
 
 
 class RLController(BaseController):

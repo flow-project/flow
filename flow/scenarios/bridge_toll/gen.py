@@ -1,6 +1,7 @@
 from flow.core.generator import Generator
 import numpy as np
 
+
 class BBTollGenerator(Generator):
     """
     Generator class for simulating the Bay Bridge toll. No parameters needed
