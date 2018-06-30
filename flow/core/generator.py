@@ -7,7 +7,7 @@ import os
 import traceback
 import time
 from lxml import etree
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElementTree
 
 try:
     # Import serializable if rllab is installed
@@ -44,8 +44,10 @@ class Generator(Serializable):
         if Serializable is not object:
             Serializable.quick_init(self, locals())
         self.net_params = net_params
-        self.net_path = net_params.net_path
-        self.cfg_path = net_params.cfg_path
+        self.net_path = os.path.dirname(os.path.abspath(__file__)) \
+            + "/debug/net/"
+        self.cfg_path = os.path.dirname(os.path.abspath(__file__)) \
+            + "/debug/cfg/"
         self.base = base
         self.netfn = ""
         self.vehicle_ids = []
@@ -62,16 +64,17 @@ class Generator(Serializable):
         """Generates Net files for the transportation network.
 
         Creates different network configuration files for:
-        - nodes: x,y position of points which are connected together to form
+
+        * nodes: x,y position of points which are connected together to form
           links. The nodes may also be fitted with traffic lights, or can be
           treated as priority or zipper merge regions if they combines several
           lanes or edges together.
-        - edges: directed edges combining nodes together. These constitute the
+        * edges: directed edges combining nodes together. These constitute the
           lanes vehicles will be allowed to drive on.
-        - types (optional): parameters used to describe common features amount
+        * types (optional): parameters used to describe common features amount
           several edges of similar types. If edges are not defined with common
           types, this is not needed.
-        - connections (optional): describes how incoming and outgoing edge/lane
+        * connections (optional): describes how incoming and outgoing edge/lane
           pairs on a specific node as connected. If none is specified, SUMO
           handles these connections by default.
 
@@ -97,6 +100,7 @@ class Generator(Serializable):
                 Key = lane index
                 Element = list of edge/lane pairs that a vehicle can traverse
                 from the arriving edge/lane pairs
+
         """
         nodfn = "%s.nod.xml" % self.name
         edgfn = "%s.edg.xml" % self.name
@@ -104,14 +108,12 @@ class Generator(Serializable):
         cfgfn = "%s.netccfg" % self.name
         netfn = "%s.net.xml" % self.name
         confn = "%s.con.xml" % self.name
-
         # specify the attributes of the nodes
         nodes = self.specify_nodes(net_params)
 
         # add traffic lights to the nodes
         for n_id in traffic_lights.get_ids():
-            indx = next(i for i, node in enumerate(nodes)
-                        if node["id"] == n_id)
+            indx = next(i for i, nd in enumerate(nodes) if nd["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
         # xml file for nodes; contains nodes for the boundary points with
@@ -202,18 +204,21 @@ class Generator(Serializable):
                 time.sleep(WAIT_ON_ERROR)
         raise error
 
-    def generate_cfg(self, net_params):
+    def generate_cfg(self, net_params, traffic_lights):
         """Generates .sumo.cfg files using net files and netconvert.
 
-        This includes files such as the routes vehicles can traverse and the
-        view settings of the gui (whether the gui is used or not). The
-        background of the gui is set here to be grey, with RGB values:
-        (100, 100, 100).
+        This includes files such as the routes vehicles can traverse,
+        properties of the traffic lights, and the view settings of the gui
+        (whether the gui is used or not). The background of the gui is set here
+        to be grey, with RGB values: (100, 100, 100).
 
         Parameters
         ----------
         net_params: NetParams type
             see flow/core/params.py
+        traffic_lights : flow.core.traffic_lights.TrafficLights type
+            traffic light information, used to determine which nodes are
+            treated as traffic lights
         """
         start_time = 0
         end_time = None
@@ -228,8 +233,69 @@ class Generator(Serializable):
 
         add = makexml("additional",
                       "http://sumo.dlr.de/xsd/additional_file.xsd")
+
+        # add the routes to the .add.xml file
         for (edge, route) in self.rts.items():
             add.append(E("route", id="route%s" % edge, edges=" ".join(route)))
+
+        # add (optionally) the traffic light properties to the .add.xml file
+        if traffic_lights.num_traffic_lights > 0:
+            if traffic_lights.baseline:
+                tl_type = str(traffic_lights["tl_type"])
+                program_id = str(traffic_lights["program_id"])
+                phases = traffic_lights["phases"]
+                max_gap = str(traffic_lights["max_gap"])
+                detector_gap = str(traffic_lights["detector_gap"])
+                show_detector = traffic_lights["show_detectors"]
+
+                detectors = {"key": "detector-gap", "value": detector_gap}
+                gap = {"key": "max-gap", "value": max_gap}
+
+                if show_detector:
+                    show_detector = {"key": "show-detectors", "value": "true"}
+                else:
+                    show_detector = {"key": "show-detectors", "value": "false"}
+
+                # FIXME(ak): add abstract method
+                nodes = self.specify_tll(net_params)
+                tll = []
+                for node in nodes:
+                    tll.append({"id": node['id'], "type": tl_type,
+                                "programID": program_id})
+
+                for elem in tll:
+                    e = E("tlLogic", **elem)
+                    e.append(E("param", **show_detector))
+                    e.append(E("param", **gap))
+                    e.append(E("param", **detectors))
+                    for phase in phases:
+                        e.append(E("phase", **phase))
+                    add.append(e)
+
+            else:
+                tl_properties = traffic_lights.get_properties()
+                for node in tl_properties.values():
+                    # at this point, the generator assumes that traffic lights
+                    # are properly formed. If there are no phases for a static
+                    # traffic light, ignore and use default
+                    if node["type"] == "static" and not node.get("phases"):
+                        continue
+
+                    elem = {"id": str(node["id"]), "type": str(node["type"]),
+                            "programID": str(node["programID"])}
+                    if node.get("offset"):
+                        elem["offset"] = str(node.get("offset"))
+
+                    e = E("tlLogic", **elem)
+                    for key, value in node.items():
+                        if key == "phases":
+                            for phase in node.get("phases"):
+                                e.append(E("phase", **phase))
+                        else:
+                            e.append(E("param",
+                                       **{"key": key, "value": str(value)}))
+
+                    add.append(e)
 
         printxml(add, self.cfg_path + addfn)
 
@@ -320,11 +386,13 @@ class Generator(Serializable):
         Returns
         -------
         nodes: list of dict
+
             A list of node attributes (a separate dict for each node). Nodes
             attributes must include:
-             - id {string} -- name of the node
-             - x {float} -- x coordinate of the node
-             - y {float} -- y coordinate of the node
+
+            * id {string} -- name of the node
+            * x {float} -- x coordinate of the node
+            * y {float} -- y coordinate of the node
 
         Other attributes may also be specified. See:
         http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Node_Descriptions
@@ -343,18 +411,22 @@ class Generator(Serializable):
         Returns
         -------
         edges: list of dict
+
             A list of edges attributes (a separate dict for each edge). Edge
             attributes must include:
-             - id {string} -- name of the edge
-             - from {string} -- name of node the directed edge starts from
-             - to {string} -- name of the node the directed edge ends at
+
+            * id {string} -- name of the edge
+            * from {string} -- name of node the directed edge starts from
+            * to {string} -- name of the node the directed edge ends at
+
             In addition, the attributes must contain at least one of the
             following:
-             - "numLanes" {int} and "speed" {float} -- the number of lanes and
-               speed limit of the edge, respectively
-             - type {string} -- a type identifier for the edge, which can be
-               used if several edges are supposed to possess the same number of
-               lanes, speed limits, etc...
+
+            * "numLanes" {int} and "speed" {float} -- the number of lanes and
+              speed limit of the edge, respectively
+            * type {string} -- a type identifier for the edge, which can be
+              used if several edges are supposed to possess the same number of
+              lanes, speed limits, etc...
 
         Other attributes may also be specified. See:
         http://sumo.dlr.de/wiki/Networks/Building_Networks_from_own_XML-descriptions#Edge_Descriptions
@@ -482,8 +554,9 @@ class Generator(Serializable):
         """
         # import the .net.xml file containing all edge/type data
         parser = etree.XMLParser(recover=True)
-        tree = ET.parse(os.path.join(self.net_params.cfg_path, self.netfn),
-                        parser=parser)
+        tree = ElementTree.parse(os.path.join(self.cfg_path, self.netfn),
+                                 parser=parser)
+
         root = tree.getroot()
 
         # Collect information on the available types (if any are available).

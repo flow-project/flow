@@ -11,7 +11,7 @@ import traci.constants as tc
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
-SPEED_MODES = {"aggressive": 0, "no_collide": 1, "custom_model": 25,
+SPEED_MODES = {"aggressive": 0, "no_collide": 1, "right_of_way": 25,
                "all_checks": 31}
 LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
 
@@ -74,7 +74,7 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            speed_mode='all_checks',
+            speed_mode='right_of_way',
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -102,31 +102,35 @@ class Vehicles:
             number of vehicles of this type to be added to the network
         speed_mode: str or int, optional
             may be one of the following:
-             - "no_collide" (default): Human and RL cars are preventing from
+
+             * "no_collide" (default): Human and RL cars are preventing from
                reaching speeds that may cause crashes (also serves as a
                failsafe).
-             - "aggressive": Human and RL cars are not limited by sumo with
+             * "aggressive": Human and RL cars are not limited by sumo with
                regard to their accelerations, and can crash longitudinally
-             - "all_checks": all sumo safety checks are activated
-             - "custom_model": respect safe speed, right of way and
+             * "all_checks": all sumo safety checks are activated
+             * "right_of_way": respect safe speed, right of way and
                brake hard at red lights if needed. DOES NOT respect
                max accel and decel which enables emergency stopping.
                Necessary to prevent custom models from crashing
-             - int values may be used to define custom speed mode for the given
+             * int values may be used to define custom speed mode for the given
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
+
         lane_change_mode: str or int, optional
             may be one of the following:
-            - "strategic": Human cars make lane changes in accordance with SUMO
+
+            * "strategic": Human cars make lane changes in accordance with SUMO
               to provide speed boosts
-            - "no_lat_collide": Human cars will not make lane changes, RL cars
+            * "no_lat_collide": Human cars will not make lane changes, RL cars
               can lane change into any space, no matter how likely it is to
               crash (default)
-            - "aggressive": RL cars are not limited by sumo with regard to
+            * "aggressive": RL cars are not limited by sumo with regard to
               their lane-change actions, and can crash longitudinally
-            - int values may be used to define custom lane change modes for the
+            * int values may be used to define custom lane change modes for the
               given vehicles, specified at:
               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
+
         sumo_car_following_params: flow.core.params.SumoCarFollowingParams type
             Params object specifying attributes for Sumo car following model.
         sumo_lc_params: flow.core.params.SumoLaneChangeParams type
@@ -258,10 +262,11 @@ class Vehicles:
         the current time step.
 
         The following actions are performed:
-        - The state of all vehicles is modified to match their state at the
+
+        * The state of all vehicles is modified to match their state at the
           current time step. This includes states specified by sumo, and states
           explicitly defined by flow, e.g. "absolute_position".
-        - If vehicles exit the network, they are removed from the vehicles
+        * If vehicles exit the network, they are removed from the vehicles
           class, and newly departed vehicles are introduced to the class.
 
         Parameters

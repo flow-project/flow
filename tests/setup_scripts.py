@@ -11,8 +11,8 @@ from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
-from flow.scenarios.bridge_toll.gen import BBTollGenerator
-from flow.scenarios.bridge_toll.scenario import BBTollScenario
+from flow.scenarios.bottleneck.gen import BottleneckGenerator
+from flow.scenarios.bottleneck.scenario import BottleneckScenario
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
 from flow.scenarios.figure8.gen import Figure8Generator
 from flow.scenarios.grid.gen import SimpleGridGenerator
@@ -84,7 +84,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     if initial_config is None:
         # set default initial_config configuration
-        initial_config = InitialConfig()
+        initial_config = InitialConfig(lanes_distribution=1)
 
     if traffic_lights is None:
         # set default to no traffic lights
@@ -168,7 +168,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if initial_config is None:
         # set default initial_config configuration
-        initial_config = InitialConfig()
+        initial_config = InitialConfig(lanes_distribution=1)
 
     if traffic_lights is None:
         # set default to no traffic lights
@@ -279,7 +279,8 @@ def grid_mxn_exp_setup(row_num=1,
                        vehicles=None,
                        env_params=None,
                        net_params=None,
-                       initial_config=None):
+                       initial_config=None,
+                       tl_logic=None):
     """
     Creates an environment and scenario pair for grid 1x1 test experiments.
     sumo-related configuration parameters, defaults to a time step of 1s
@@ -305,8 +306,13 @@ def grid_mxn_exp_setup(row_num=1,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
+    tl_logic: TrafficLights type
+        specifies logic of any traffic lights added to the system
     """
     logging.basicConfig(level=logging.WARNING)
+
+    if tl_logic is None:
+        tl_logic = TrafficLights(baseline=False)
 
     if sumo_params is None:
         # set default sumo_params configuration
@@ -318,16 +324,18 @@ def grid_mxn_exp_setup(row_num=1,
         vehicles = Vehicles()
         vehicles.add(veh_id="idm",
                      acceleration_controller=(IDMController, {}),
-                     routing_controller=(GridRouter, {}),
                      sumo_car_following_params=SumoCarFollowingParams(
-                         max_speed=30,
-                     ),
+                        min_gap=2.5,
+                        tau=1.1,
+                        max_speed=30
+                        ),
+                     routing_controller=(GridRouter, {}),
                      num_vehicles=total_vehicles)
 
     if env_params is None:
         # set default env_params configuration
         additional_env_params = {"target_velocity": 50, "num_steps": 100,
-                                 "control-length": 150, "switch_time": 3.0}
+                                 "switch_time": 3.0}
 
         env_params = EnvParams(additional_params=additional_env_params,
                                horizon=100)
@@ -345,8 +353,7 @@ def grid_mxn_exp_setup(row_num=1,
 
         additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
                                  "resolution": 40, "grid_array": grid_array,
-                                 "horizontal_lanes": 1, "vertical_lanes": 1,
-                                 "traffic_lights": 1}
+                                 "horizontal_lanes": 1, "vertical_lanes": 1}
 
         net_params = NetParams(no_internal_links=False,
                                additional_params=additional_net_params)
@@ -361,7 +368,8 @@ def grid_mxn_exp_setup(row_num=1,
                                   generator_class=SimpleGridGenerator,
                                   vehicles=vehicles,
                                   net_params=net_params,
-                                  initial_config=initial_config)
+                                  initial_config=initial_config,
+                                  traffic_lights=tl_logic)
 
     # create the environment
     env = GreenWaveTestEnv(env_params=env_params,
@@ -508,12 +516,12 @@ def setup_bottlenecks(sumo_params=None,
                                        lanes_distribution=float("inf"),
                                        edges_distribution=["2", "3", "4", "5"])
 
-    scenario = BBTollScenario(name="bay_bridge_toll",
-                              generator_class=BBTollGenerator,
-                              vehicles=vehicles,
-                              net_params=net_params,
-                              initial_config=initial_config,
-                              traffic_lights=traffic_lights)
+    scenario = BottleneckScenario(name="bay_bridge_toll",
+                                  generator_class=BottleneckGenerator,
+                                  vehicles=vehicles,
+                                  net_params=net_params,
+                                  initial_config=initial_config,
+                                  traffic_lights=traffic_lights)
 
     # create the environment
     env = AccelEnv(env_params=env_params,

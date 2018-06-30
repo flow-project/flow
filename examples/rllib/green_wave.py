@@ -9,7 +9,8 @@ import ray.rllib.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
-from flow.utils.rllib import make_create_env, FlowParamsEncoder
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
@@ -85,12 +86,10 @@ grid_array = {"short_length": short_length, "inner_length": inner_length,
               "cars_top": num_cars_top, "cars_bot": num_cars_bot,
               "rl_veh": rl_veh}
 
-additional_env_params = {"target_velocity": 50, "num_steps": HORIZON,
-                         "control-length": 150, "switch_time": 3.0}
+additional_env_params = {"target_velocity": 50, "switch_time": 3.0}
 
 additional_net_params = {"speed_limit": 35, "grid_array": grid_array,
-                         "horizontal_lanes": 1, "vertical_lanes": 1,
-                         "traffic_lights": True}
+                         "horizontal_lanes": 1, "vertical_lanes": 1}
 
 vehicles = Vehicles()
 vehicles.add(veh_id="idm",
@@ -112,7 +111,7 @@ flow_params = dict(
     exp_tag="green_wave",
 
     # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationMergePOEnv",
+    env_name="PO_TrafficLightGridEnv",
 
     # name of the scenario class the experiment is running on
     scenario="SimpleGridScenario",
@@ -174,7 +173,7 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        "green_wave": {
+        flow_params["exp_tag"]: {
             "run": "PPO",
             "env": env_name,
             "config": {

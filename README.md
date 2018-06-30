@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.com/cathywu/learning-traffic.svg?token=wbU1B66dmFhiJUsJezgC&branch=master)](https://travis-ci.com/cathywu/learning-traffic)
+[![Build Status](https://travis-ci.com/berkeleyflow/flow.svg?branch=master)](https://travis-ci.com/berkeleyflow/flow)
 [![Docs](https://readthedocs.org/projects/berkeleyflow/badge)](http://berkeleyflow.readthedocs.org/en/latest/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cathywu/flow/blob/master/LICENSE.md)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/berkeleyflow/flow/blob/master/LICENSE.md)
 
 # Flow
 
@@ -14,7 +14,7 @@ See [results and videos](https://sites.google.com/view/ieee-tro-flow/home) of th
 - [Installation instructions](http://berkeleyflow.readthedocs.io/en/latest/flow_setup.html)
 - [Tutorial](http://berkeleyflow.readthedocs.io/en/latest/tutorial.html)
 
-# Getting involved!!
+# Getting involved
 
 - Ask questions on our mailing list: [flow-dev@googlegroups.com](https://groups.google.com/forum/#!forum/flow-dev).
 - Please report bugs by submitting a [GitHub issue](https://github.com/cathywu/flow/issues).

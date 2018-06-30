@@ -19,7 +19,7 @@ class build_ext(_build_ext.build_ext):
             subprocess.check_call(['pip', 'install', 'tensorflow>=0.11.0'])
 
         try:
-            import gym 
+            import gym
         except ImportError:
             subprocess.check_call(
                 ['pip', 'install',
@@ -31,9 +31,10 @@ class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
 
+
 setup(
     name='flow',
-    version='0.0.1',
+    version='0.1.0',
     distclass=BinaryDistribution,
     cmdclass={"build_ext": build_ext},
     packages=find_packages(),

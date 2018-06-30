@@ -11,6 +11,7 @@ import random
 import traci
 from traci import constants as tc
 import gym
+from gym.spaces import Box
 
 import sumolib
 
@@ -70,6 +71,9 @@ class Env(gym.Env, Serializable):
         self.env_params = env_params
         self.scenario = scenario
         self.sumo_params = sumo_params
+        time_stamp = ''.join(str(time.time()).split('.'))
+        time.sleep(8.0 * int(time_stamp[-6:]) / 1e6)
+        self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
         self.vehicles = scenario.vehicles
         self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
@@ -114,6 +118,10 @@ class Env(gym.Env, Serializable):
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
 
+        # TODO(ak): temporary fix to support old pkl files
+        if not hasattr(self.env_params, "evaluate"):
+            self.env_params.evaluate = False
+
         self.start_sumo()
         self.setup_initial_state()
 
@@ -139,8 +147,6 @@ class Env(gym.Env, Serializable):
         if sumo_binary is not None:
             self.sumo_params.sumo_binary = sumo_binary
 
-        self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
-
         if sumo_params.emission_path is not None:
             ensure_dir(sumo_params.emission_path)
             self.sumo_params.emission_path = sumo_params.emission_path
@@ -162,7 +168,12 @@ class Env(gym.Env, Serializable):
                 if self.sumo_params.port is not None:
                     port = self.sumo_params.port
                 else:
-                    port = sumolib.miscutils.getFreeSocketPort()
+                    # Don't do backoff when testing
+                    if os.environ.get("TEST_FLAG", 0):
+                        # backoff to decrease likelihood of race condition
+                        time_stamp = ''.join(str(time.time()).split('.'))
+                        time.sleep(2.0 * int(time_stamp[-6:]) / 1e6)
+                        port = sumolib.miscutils.getFreeSocketPort()
 
                 # command used to start sumo
                 sumo_call = [self.sumo_params.sumo_binary,
@@ -432,7 +443,7 @@ class Env(gym.Env, Serializable):
         self.state = np.asarray(self.get_state()).T
 
         # collect observation new state associated with action
-        next_observation = list(self.state)
+        next_observation = np.copy(self.state)
 
         # compute the reward
         reward = self.compute_reward(self.state, rl_actions, fail=crash)
@@ -579,7 +590,7 @@ class Env(gym.Env, Serializable):
         self.state = np.asarray(self.get_state()).T
 
         # observation associated with the reset (no warm-up steps)
-        observation = list(self.state)
+        observation = np.copy(self.state)
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
@@ -602,8 +613,16 @@ class Env(gym.Env, Serializable):
         rl_actions: list or numpy ndarray
             list of actions provided by the RL algorithm
         """
+        # ignore if no actions are issued
         if len(rl_actions) == 0:
             return
+
+        # clip according to the action space requirements
+        if isinstance(self.action_space, Box):
+            rl_actions = np.clip(rl_actions,
+                                 a_min=self.action_space.low,
+                                 a_max=self.action_space.high)
+
         self._apply_rl_actions(rl_actions)
 
     def _apply_rl_actions(self, rl_actions):
@@ -746,18 +765,25 @@ class Env(gym.Env, Serializable):
             return
 
         for veh_id in self.vehicles.get_rl_ids():
-            # color rl vehicles red
-            self.traci_connection.vehicle.setColor(vehID=veh_id,
-                                                   color=(255, 0, 0, 255))
+            try:
+                # color rl vehicles red
+                self.traci_connection.vehicle.setColor(vehID=veh_id,
+                                                       color=(255, 0, 0, 255))
+            except:
+                pass
 
         for veh_id in self.vehicles.get_human_ids():
-            if veh_id in self.vehicles.get_observed_ids():
-                # color observed human-driven vehicles cyan
-                color = (0, 255, 255, 255)
-            else:
-                # color unobserved human-driven vehicles white
-                color = (255, 255, 255, 255)
-            self.traci_connection.vehicle.setColor(vehID=veh_id, color=color)
+            try:
+                if veh_id in self.vehicles.get_observed_ids():
+                    # color observed human-driven vehicles cyan
+                    color = (0, 255, 255, 255)
+                else:
+                    # color unobserved human-driven vehicles white
+                    color = (255, 255, 255, 255)
+                self.traci_connection.vehicle.setColor(vehID=veh_id,
+                                                       color=color)
+            except:
+                pass
 
         # clear the list of observed vehicles
         for veh_id in self.vehicles.get_observed_ids():
