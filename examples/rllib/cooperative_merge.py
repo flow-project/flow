@@ -15,7 +15,8 @@ from flow.controllers import RLController, IDMController, ContinuousRouter, \
     SumoLaneChangeController
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams, \
     SumoParams, EnvParams, InitialConfig, NetParams
-from flow.utils.rllib import make_create_env, FlowParamsEncoder
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 from flow.core.vehicles import Vehicles
 
 # time horizon of a single rollout
@@ -151,7 +152,7 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        "cooperative_merge": {
+        flow_params["exp_tag"]: {
             "run": "PPO",
             "env": env_name,
             "config": {

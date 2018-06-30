@@ -5,6 +5,7 @@ Attributes
 EXAMPLE_USAGE : str
     Example call to the function, which is
     ::
+
         python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
 
 parser : ArgumentParser
@@ -19,7 +20,8 @@ import ray
 from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env
 
-from flow.utils.rllib import make_create_env, get_flow_params
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import get_flow_params
 from flow.core.util import get_rllib_config
 from flow.core.util import emission_to_csv
 
@@ -103,7 +105,7 @@ if __name__ == "__main__":
     env_params = flow_params['env']
     sumo_params = flow_params['sumo']
     sumo_params.sumo_binary = "sumo-gui"
-    sumo_params.emission_path = "./test_time_rollout"
+    sumo_params.emission_path = "./test_time_rollout/"
 
     env = env_class(env_params=env_params,
                     sumo_params=sumo_params,
@@ -117,8 +119,6 @@ if __name__ == "__main__":
         done = False
         ret = 0
         for _ in range(env_params.horizon):
-            if isinstance(state, list):
-                state = np.concatenate(state)
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward
@@ -126,7 +126,7 @@ if __name__ == "__main__":
                 break
         rets.append(ret)
         print("Return:", ret)
-    print("Average Return", np.mean(rets))
+    print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
 
     # terminate the environment
     env.terminate()

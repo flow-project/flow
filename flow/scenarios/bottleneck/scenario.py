@@ -1,27 +1,44 @@
-from flow.scenarios.netfile.scenario import NetFileScenario
+from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
+from flow.scenarios.base_scenario import Scenario
+
+ADDITIONAL_NET_PARAMS = {
+    # the factor multiplying number of lanes.
+    "scaling": 1,
+}
 
 
-class BottleneckScenario(NetFileScenario):
-    """
-    A scenario used to simulate the Bay Bridge.
-    """
-    def generate_starting_positions(self, **kwargs):
+class BottleneckScenario(Scenario):
+
+    def __init__(self, name, generator_class, vehicles, net_params,
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
+        """Scenario class for Bay Bridge toll simulations.
+
+        Requires from net_params:
+        - scaling: the factor multiplying number of lanes
+
+        In order for right-of-way dynamics to take place at the intersection,
+        set "no_internal_links" in net_params to False.
+
+        See Scenario.py for description of params.
         """
-        See parent class.
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
 
-        Vehicles are only placed in the edges of the Bay Bridge moving from
-        Oakland to San Francisco.
+        super().__init__(name, generator_class, vehicles, net_params,
+                         initial_config, traffic_lights)
+
+    def specify_edge_starts(self):
         """
-        self.initial_config.edges_distribution = [
-            '157598960', '11198599',
-            '11198595.0', '11198595.656.0',
-            '124952171', "gneE0", "11198599", "124952182.0",
-            '340686911#2.0.0',
-            '340686911#1', "32661309#1.0",
-            "90077193#1.777", "90077193#1.0", "90077193#1.812", "gneE1",
-            "124952179",
-            "gneE3", "340686911#0.54.0",
-            "340686911#0.54.54.0", "340686911#0.54.54.127.0", "340686911#2.35",
-        ]
+        See parent class
+        """
+        return [("1", 0),
+                ("2", 100),
+                ("3", 405),
+                ("4", 425),
+                ("5", 580)]
 
-        return super().generate_starting_positions(**kwargs)
+    def get_bottleneck_lanes(self, lane):
+        return [int(lane/2), int(lane/4)]

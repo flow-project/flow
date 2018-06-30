@@ -17,8 +17,6 @@ from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
 
 # inflow rate at the highway
 FLOW_RATE = 2000
-# percent of autonomous vehicles
-RL_PENETRATION = 0.1
 
 
 def merge_example(sumo_binary=None):
@@ -33,6 +31,7 @@ def merge_example(sumo_binary=None):
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
                  acceleration_controller=(IDMController, {"noise": 0.2}),
+                 speed_mode="no_collide",
                  num_vehicles=5)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS,
@@ -41,7 +40,7 @@ def merge_example(sumo_binary=None):
 
     inflow = InFlows()
     inflow.add(veh_type="human", edge="inflow_highway",
-               vehs_per_hour=(1-RL_PENETRATION)*FLOW_RATE,
+               vehs_per_hour=FLOW_RATE,
                departLane="free", departSpeed=10)
     inflow.add(veh_type="human", edge="inflow_merge",
                vehs_per_hour=100,
@@ -56,8 +55,7 @@ def merge_example(sumo_binary=None):
                            additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform",
-                                   perturbation=5.0,
-                                   lanes_distribution=float("inf"))
+                                   perturbation=5.0)
 
     scenario = MergeScenario(name="merge-baseline",
                              generator_class=MergeGenerator,

@@ -6,7 +6,7 @@ using the single-lane ring road setting.
 import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
-from examples.rllib.stabilizing_the_ring import make_create_env
+from .stabilizing_the_ring import make_create_env
 
 
 def to_subpolicy_state(inputs):

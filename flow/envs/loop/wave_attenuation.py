@@ -24,30 +24,27 @@ class WaveAttenuationEnv(Env):
     and propagation of waves in a variable density ring road.
 
     Required from env_params:
-    - max_accel: maximum acceleration of autonomous vehicles
-    - max_decel: maximum deceleration of autonomous vehicles
-    - ring_length: bounds on the ranges of ring road lengths the autonomous
+
+    * max_accel: maximum acceleration of autonomous vehicles
+    * max_decel: maximum deceleration of autonomous vehicles
+    * ring_length: bounds on the ranges of ring road lengths the autonomous
       vehicle is trained on
 
     States
-    ------
-    The state consists of the velocities and absolute position of all vehicles
-    in the network. This assumes a constant number of vehicles.
+        The state consists of the velocities and absolute position of all
+        vehicles in the network. This assumes a constant number of vehicles.
 
     Actions
-    -------
-    Actions are a list of acceleration for each rl vehicles, bounded by the
-    maximum accelerations and decelerations specified in EnvParams.
+        Actions are a list of acceleration for each rl vehicles, bounded by the
+        maximum accelerations and decelerations specified in EnvParams.
 
     Rewards
-    -------
-    The reward function rewards high average speeds from all vehicles in the
-    network, and penalizes accelerations by the rl vehicle.
+        The reward function rewards high average speeds from all vehicles in
+        the network, and penalizes accelerations by the rl vehicle.
 
     Termination
-    -----------
-    A rollout is terminated if the time horizon is reached or if two vehicles
-    collide into one another.
+        A rollout is terminated if the time horizon is reached or if two
+        vehicles collide into one another.
     """
 
     def __init__(self, env_params, sumo_params, scenario):
@@ -55,6 +52,7 @@ class WaveAttenuationEnv(Env):
             if p not in env_params.additional_params:
                 raise KeyError('Environment parameter "{}" not supplied'.
                                format(p))
+
         super().__init__(env_params, sumo_params, scenario)
 
     @property
@@ -67,9 +65,9 @@ class WaveAttenuationEnv(Env):
     @property
     def observation_space(self):
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=np.inf, shape=(self.vehicles.num_vehicles,),
+        speed = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,),
                     dtype=np.float32)
-        pos = Box(low=0., high=np.inf, shape=(self.vehicles.num_vehicles,),
+        pos = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,),
                   dtype=np.float32)
         return Tuple((speed, pos))
 
@@ -100,19 +98,16 @@ class WaveAttenuationEnv(Env):
         return float(reward)
 
     def get_state(self, **kwargs):
-        max_speed = 30
-        scaled_vel = [self.vehicles.get_speed(veh_id) / max_speed
-                      for veh_id in self.sorted_ids]
-        scaled_headway = \
-            [self.vehicles.get_headway(veh_id) / self.scenario.length
-             for veh_id in self.sorted_ids]
+        return np.array(
+            [[self.vehicles.get_speed(veh_id) / self.scenario.max_speed,
+              self.get_x_by_id(veh_id) / self.scenario.length]
+             for veh_id in self.sorted_ids])
 
+    def additional_command(self):
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
                 self.vehicles.set_observed(veh_id)
-
-        return np.array([scaled_vel, scaled_headway])
 
     def reset(self):
         """The sumo instance is reset with a new ring length, and a number of
@@ -128,7 +123,7 @@ class WaveAttenuationEnv(Env):
         net_params = NetParams(additional_params=additional_net_params)
 
         self.scenario = self.scenario.__class__(
-            self.scenario.name, self.scenario.generator_class,
+            self.scenario.orig_name, self.scenario.generator_class,
             self.scenario.vehicles, net_params, initial_config)
 
         # solve for the velocity upper bound of the ring
@@ -171,50 +166,49 @@ class WaveAttenuationEnv(Env):
 class WaveAttenuationPOEnv(WaveAttenuationEnv):
     """POMDP version of WaveAttenuationEnv.
 
-    Required from env_params:
-    - max_accel: maximum acceleration of autonomous vehicles
-    - max_decel: maximum deceleration of autonomous vehicles
-    - ring_length: bounds on the ranges of ring road lengths the autonomous
-      vehicle is trained on
-
     Note that this environment only works when there is one autonomous vehicle
     on the network.
 
+    Required from env_params:
+
+    * max_accel: maximum acceleration of autonomous vehicles
+    * max_decel: maximum deceleration of autonomous vehicles
+    * ring_length: bounds on the ranges of ring road lengths the autonomous
+      vehicle is trained on
+
     States
-    ------
-    The state consists of the speed and headway of the ego vehicle, as well as
-    the difference in speed between the ego vehicle and its leader. There is no
-    assumption on the number of vehicles in the network.
+        The state consists of the speed and headway of the ego vehicle, as well
+        as the difference in speed between the ego vehicle and its leader.
+        There is no assumption on the number of vehicles in the network.
 
     Actions
-    -------
-    See parent class
+        See parent class
 
     Rewards
-    -------
-    See parent class
+        See parent class
 
     Termination
-    -----------
-    See parent class
+        See parent class
 
     """
 
     @property
     def observation_space(self):
-        return Box(low=-1, high=1, shape=(3,), dtype=np.float32)
+        return Box(low=0, high=1, shape=(3,), dtype=np.float32)
 
     def get_state(self, **kwargs):
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
+
+        # normalizers
         max_speed = 15.
-        max_scenario_length = 350.
+        max_length = self.env_params.additional_params["ring_length"][1]
 
         observation = np.array([
-            [self.vehicles.get_speed(rl_id) / max_speed],
-            [(self.vehicles.get_speed(lead_id) - self.vehicles.get_speed(
-                rl_id)) / max_speed],
-            [self.vehicles.get_headway(rl_id) / max_scenario_length]
+            self.vehicles.get_speed(rl_id) / max_speed,
+            (self.vehicles.get_speed(lead_id) - self.vehicles.get_speed(
+                rl_id)) / max_speed,
+            self.vehicles.get_headway(rl_id) / max_length
         ])
 
         return observation

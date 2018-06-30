@@ -40,7 +40,6 @@ def highway_example(sumo_binary=None):
                            additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform",
-                                   lanes_distribution=4,
                                    shuffle=True)
 
     scenario = HighwayScenario(name="highway",
