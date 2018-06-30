@@ -24,36 +24,36 @@ class LaneChangeAccelEnv(Env):
     when lane-change and acceleration actions are permitted by the rl agent.
 
     Required from env_params:
-    - max_accel: maximum acceleration for autonomous vehicles, in m/s^2
-    - max_decel: maximum deceleration for autonomous vehicles, in m/s^2
-    - lane_change_duration: lane change duration for autonomous vehicles, in s
-    - target_velocity: desired velocity for all vehicles in the network, in m/s
+
+    * max_accel: maximum acceleration for autonomous vehicles, in m/s^2
+    * max_decel: maximum deceleration for autonomous vehicles, in m/s^2
+    * lane_change_duration: lane change duration for autonomous vehicles, in s
+    * target_velocity: desired velocity for all vehicles in the network, in m/s
 
     States
-    ------
-    The state consists of the velocities, absolute position, and lane index of
-    all vehicles in the network. This assumes a constant number of vehicles.
+        The state consists of the velocities, absolute position, and lane index
+        of all vehicles in the network. This assumes a constant number of
+        vehicles.
 
     Actions
-    -------
-    Actions consist of:
-    - a (continuous) acceleration from -abs(max_decel) to max_accel, specified
-      in env_params
-    - a (continuous) lane-change action from -1 to 1, used to determine the
-      lateral direction the vehicle will take.
-    Lane change actions are performed only if the vehicle has not changed lanes
-    for the lane change duration specified in env_params.
+        Actions consist of:
+
+        * a (continuous) acceleration from -abs(max_decel) to max_accel,
+          specified in env_params
+        * a (continuous) lane-change action from -1 to 1, used to determine the
+          lateral direction the vehicle will take.
+
+        Lane change actions are performed only if the vehicle has not changed
+        lanes for the lane change duration specified in env_params.
 
     Rewards
-    -------
-    The reward function is the two-norm of the distance of the speed of the
-    vehicles in the network from a desired speed, combined with a penalty to
-    discourage excess lane changes by the rl vehicle.
+        The reward function is the two-norm of the distance of the speed of the
+        vehicles in the network from a desired speed, combined with a penalty
+        to discourage excess lane changes by the rl vehicle.
 
     Termination
-    -----------
-    A rollout is terminated if the time horizon is reached or if two vehicles
-    collide into one another.
+        A rollout is terminated if the time horizon is reached or if two
+        vehicles collide into one another.
     """
 
     def __init__(self, env_params, sumo_params, scenario):
@@ -76,16 +76,13 @@ class LaneChangeAccelEnv(Env):
 
     @property
     def observation_space(self):
-        speed = Box(low=-np.inf, high=np.inf,
-                    shape=(self.vehicles.num_vehicles,),
+        speed = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,),
                     dtype=np.float32)
-        lane = Box(low=0, high=self.scenario.lanes-1,
-                   shape=(self.vehicles.num_vehicles,),
+        lane = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,),
                    dtype=np.float32)
-        absolute_pos = Box(low=0., high=np.inf,
-                           shape=(self.vehicles.num_vehicles,),
-                           dtype=np.float32)
-        return Tuple((speed, absolute_pos, lane))
+        pos = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,),
+                  dtype=np.float32)
+        return Tuple((speed, pos, lane))
 
     def compute_reward(self, state, rl_actions, **kwargs):
         # compute the system-level performance of vehicles from a velocity
@@ -93,26 +90,28 @@ class LaneChangeAccelEnv(Env):
         reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
         # punish excessive lane changes by reducing the reward by a set value
-        # every time an rl car changes lanes
+        # every time an rl car changes lanes (10% of max reward)
         for veh_id in self.vehicles.get_rl_ids():
             if self.vehicles.get_state(veh_id, "last_lc") == self.time_counter:
-                reward -= 1
+                reward -= 0.1
 
         return reward
 
     def get_state(self):
         # normalizers
-        max_speed = 30
+        max_speed = self.scenario.max_speed
         length = self.scenario.length
+        max_lanes = max(self.scenario.num_lanes(edge)
+                        for edge in self.scenario.get_edge_list())
 
         return np.array([[self.vehicles.get_speed(veh_id) / max_speed,
-                          self.vehicles.get_absolute_position(veh_id) / length,
-                          self.vehicles.get_lane(veh_id)]
+                          self.get_x_by_id(veh_id) / length,
+                          self.vehicles.get_lane(veh_id) / max_lanes]
                          for veh_id in self.sorted_ids])
 
     def _apply_rl_actions(self, actions):
         acceleration = actions[::2]
-        direction = np.round(actions[1::2])
+        direction = actions[1::2]
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
@@ -142,29 +141,27 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
     """POMDP version of LaneChangeAccelEnv.
 
     Required from env_params:
-    - max_accel: maximum acceleration for autonomous vehicles, in m/s^2
-    - max_decel: maximum deceleration for autonomous vehicles, in m/s^2
-    - lane_change_duration: lane change duration for autonomous vehicles, in s
-    - target_velocity: desired velocity for all vehicles in the network, in m/s
+
+    * max_accel: maximum acceleration for autonomous vehicles, in m/s^2
+    * max_decel: maximum deceleration for autonomous vehicles, in m/s^2
+    * lane_change_duration: lane change duration for autonomous vehicles, in s
+    * target_velocity: desired velocity for all vehicles in the network, in m/s
 
     States
-    ------
-    States are a list of rl vehicles speeds, as well as the speeds and bumper-
-    to-bumper headawys between the rl vehicles and their leaders/followers in
-    all lanes. There is no assumption on the number of vehicles in the network,
-    so long as the number of rl vehicles is static.
+        States are a list of rl vehicles speeds, as well as the speeds and
+        bumper-to-bumper headawys between the rl vehicles and their
+        leaders/followers in all lanes. There is no assumption on the number of
+        vehicles in the network, so long as the number of rl vehicles is
+        static.
 
     Actions
-    -------
-    See parent class.
+        See parent class.
 
     Rewards
-    -------
-    See parent class.
+        See parent class.
 
     Termination
-    -----------
-    See parent class.
+        See parent class.
     """
 
     def __init__(self, env_params, sumo_params, scenario):
@@ -179,7 +176,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
 
     @property
     def observation_space(self):
-        return Box(low=-float("inf"), high=float("inf"),
+        return Box(low=0, high=1,
                    shape=(4 * self.vehicles.num_rl_vehicles * self.num_lanes
                           + self.vehicles.num_rl_vehicles,),
                    dtype=np.float32)
@@ -191,13 +188,13 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         self.visible = []
         for i, rl_id in enumerate(self.vehicles.get_rl_ids()):
             # normalizers
-            max_length = 1000
-            max_speed = 30
+            max_length = self.scenario.length
+            max_speed = self.scenario.max_speed
 
             # set to 1000 since the absence of a vehicle implies a large
             # headway
-            headway = [1000] * self.num_lanes
-            tailway = [1000] * self.num_lanes
+            headway = [1] * self.num_lanes
+            tailway = [1] * self.num_lanes
             vel_in_front = [0] * self.num_lanes
             vel_behind = [0] * self.num_lanes
 

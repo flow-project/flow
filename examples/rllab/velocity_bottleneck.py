@@ -7,8 +7,8 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
-from flow.scenarios.bridge_toll.gen import BBTollGenerator
-from flow.scenarios.bridge_toll.scenario import BBTollScenario
+from flow.scenarios.bottleneck.gen import BottleneckGenerator
+from flow.scenarios.bottleneck.scenario import BottleneckScenario
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
@@ -65,12 +65,13 @@ additional_env_params = {"target_velocity": 40,
                          "lane_change_duration": 5,
                          "max_accel": 3,
                          "max_decel": 3,
+                         "inflow_range": [1000, 2000]
                          }
 env_params = EnvParams(additional_params=additional_env_params,
                        warmup_steps=40,
                        sims_per_step=2, horizon=horizon)
 
-flow_rate = 1000 * SCALING + i * 2000
+flow_rate = 1500 * SCALING
 print('flow rate is ', flow_rate)
 env_name = "DesiredVelocityEnv"
 
@@ -96,12 +97,12 @@ net_params = NetParams(in_flows=inflow,
 initial_config = InitialConfig(spacing="uniform", min_gap=5,
                                lanes_distribution=float("inf"),
                                edges_distribution=["2", "3", "4", "5"])
-scenario = BBTollScenario(name="bay_bridge_toll",
-                          generator_class=BBTollGenerator,
-                          vehicles=vehicles,
-                          net_params=net_params,
-                          initial_config=initial_config,
-                          traffic_lights=traffic_lights)
+scenario = BottleneckScenario(name="bay_bridge_toll",
+                              generator_class=BottleneckGenerator,
+                              vehicles=vehicles,
+                              net_params=net_params,
+                              initial_config=initial_config,
+                              traffic_lights=traffic_lights)
 
 
 def run_task(*_):

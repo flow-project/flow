@@ -17,12 +17,25 @@ from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, InFlows, EnvParams, NetParams, \
     InitialConfig
 
-HORIZON = 3600
+# experiment number
+# - 0: 10% RL penetration,  5 max controllable vehicles
+# - 1: 25% RL penetration, 13 max controllable vehicles
+# - 2: 33% RL penetration, 17 max controllable vehicles
+EXP_NUM = 0
+
+# time horizon of a single rollout
+HORIZON = 600
+# number of rollouts per training iteration
+N_ROLLOUTS = 20
+# number of parallel workers
+PARALLEL_ROLLOUTS = 1
 
 # inflow rate at the highway
 FLOW_RATE = 2000
 # percent of autonomous vehicles
-RL_PENETRATION = 0.05
+RL_PENETRATION = [0.1, 0.25, 0.33][EXP_NUM]
+# num_rl term (see ADDITIONAL_ENV_PARAMs)
+NUM_RL = [5, 13, 17][EXP_NUM]
 
 
 def run_task(_):
@@ -53,7 +66,7 @@ def run_task(_):
     inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
                departLane="free", departSpeed=7.5)
 
-    additional_env_params = {"target_velocity": 25, "num_rl": 5,
+    additional_env_params = {"target_velocity": 25, "num_rl": NUM_RL,
                              "max_accel": 1.5, "max_decel": 1.5}
     env_params = EnvParams(horizon=HORIZON,
                            sims_per_step=5,
@@ -82,7 +95,6 @@ def run_task(_):
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
-    horizon = env.horizon
     env = normalize(env)
 
     policy = GaussianMLPPolicy(
@@ -96,8 +108,8 @@ def run_task(_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=18000,
-        max_path_length=horizon,
+        batch_size=HORIZON*N_ROLLOUTS,
+        max_path_length=HORIZON,
         n_itr=1000,
         # whole_paths=True,
         discount=0.999,
@@ -111,7 +123,7 @@ for seed in [5]:  # , 20, 68, 72, 125]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=1,
+        n_parallel=PARALLEL_ROLLOUTS,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a

@@ -14,7 +14,7 @@ def desired_velocity(env, fail=False):
     are set to this desired velocity. Moreover, in order to ensure that the
     reward function naturally punishing the early termination of rollouts due
     to collisions or other failures, the function is formulated as a mapping
-    $r: \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}_{\geq 0}$.
+    :math:`r: \\mathcal{S} \\times \\mathcal{A} \\rightarrow \\mathbb{R}_{\\geq 0}`.
     This is done by subtracting the deviation of the system from the
     desired velocity from the peak allowable deviation from the desired
     velocity. Additionally, since the velocity of vehicles are
@@ -42,7 +42,7 @@ def desired_velocity(env, fail=False):
     cost = vel - env.env_params.additional_params["target_velocity"]
     cost = np.linalg.norm(cost)
 
-    return max(max_cost - cost, 0)
+    return max(max_cost - cost, 0) / max_cost
 
 
 def reward_density(env):
@@ -115,7 +115,7 @@ def min_delay(env):
         state of the system.
     """
 
-    vel = np.array(env.vehicles.get_speed())
+    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
 
     vel = vel[vel >= -1e-6]
     v_top = max(env.scenario.speed_limit(edge)
@@ -124,21 +124,39 @@ def min_delay(env):
 
     max_cost = time_step * sum(vel.shape)
     cost = time_step * sum((v_top - vel) / v_top)
-    return max(max_cost - cost, 0)
+    return max((max_cost - cost)/max_cost, 0)
 
 
-def penalize_tl_changes(env, actions, gain=1):
+def min_delay_unscaled(env):
+    """The average delay for all vehicles in the system
+
+    Parameters
+    ----------
+    env: flow.envs.Env type
+        the environment variable, which contains information on the current
+        state of the system.
+    """
+
+    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
+
+    vel = vel[vel >= -1e-6]
+    v_top = max(env.scenario.speed_limit(edge)
+                for edge in env.scenario.get_edge_list())
+    time_step = env.sim_step
+
+    cost = time_step * sum((v_top - vel) / v_top)
+    return cost/len(env.vehicles.get_ids())
+
+
+def penalize_tl_changes(actions, gain=1):
     """
     A reward function that penalizes delay and traffic light switches.
-    :param env: Environment
-        Contains the state of the environment at a time-step
     :param actions: {list of booleans} - indicates whether a switch is desired
     :param gain: {float} - multiplicative factor on the action penalty
     :return: a penalty on vehicle delays and traffic light switches
     """
-    delay = min_delay(env)
-    action_penalty = gain * np.sum(actions)
-    return delay - action_penalty
+    action_penalty = gain * np.sum(np.round(actions))
+    return -action_penalty
 
 
 def penalize_headway_variance(vehicles, vids, normalization=1, penalty_gain=1,

@@ -114,7 +114,7 @@ class TestEvenStartPos(unittest.TestCase):
         """
         # set the initial_config parameters as default (even spacing, no extra
         # conditions), and reset
-        initial_config = InitialConfig()
+        initial_config = InitialConfig(lanes_distribution=1)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
@@ -145,7 +145,7 @@ class TestEvenStartPos(unittest.TestCase):
         # set the initial_config parameters with an x0 value that is something
         # in between zero and the length of the network
         x0 = 10
-        initial_config = InitialConfig(x0=x0)
+        initial_config = InitialConfig(x0=x0, lanes_distribution=1)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
@@ -174,7 +174,8 @@ class TestEvenStartPos(unittest.TestCase):
         """
         # set the initial_config parameters with a modest bunching term
         bunching = 10
-        initial_config = InitialConfig(bunching=bunching)
+        initial_config = InitialConfig(bunching=bunching,
+                                       lanes_distribution=1)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
@@ -204,7 +205,8 @@ class TestEvenStartPos(unittest.TestCase):
         """
         # set the initial_config parameters with a negative bunching term
         bunching = -10
-        initial_config = InitialConfig(bunching=bunching)
+        initial_config = InitialConfig(bunching=bunching,
+                                       lanes_distribution=1)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)

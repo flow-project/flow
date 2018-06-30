@@ -12,6 +12,8 @@ from gym.spaces.box import Box
 
 from flow.core import rewards
 from flow.envs.base_env import Env
+import os
+import glob
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
@@ -66,7 +68,9 @@ ADDITIONAL_VSL_ENV_PARAMS = {
     # which edges are observed
     "observed_segments": [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)],
     # whether the inflow should be reset on each rollout
-    "reset_inflow": False
+    "reset_inflow": False,
+    # the range of inflows to reset on
+    "inflow_range": [1000, 2000]
 }
 
 ADDITIONAL_NET_PARAMS = {
@@ -345,39 +349,42 @@ class BottleneckEnv(Env):
         return Box(low=-float("inf"), high=float("inf"), shape=(1,),
                    dtype=np.float32)
 
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """ Outflow rate over last ten seconds normalized to max of 1 """
+
+        reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+            (2000.0 * self.scaling)
+        return reward
+
     def get_state(self):
         return np.asarray([1])
 
 
 class BottleNeckAccelEnv(BottleneckEnv):
     """Environment used to train vehicles to effectively
-        pass through a bottleneck.
+       pass through a bottleneck.
 
        States
-       ------
-       An observation is the edge position, speed, lane, and edge number of the
-       AV, the distance to and velocity of the vehicles
-       in front and behind the AV for all lanes. Additionally, we pass the
-       density and average velocity of all edges. Finally, we pad with zeros
-       in case an AV has exited the system.
-       Note: the vehicles are arranged in an initial order, so we pad
-       the missing vehicle at its normal position in the order
+           An observation is the edge position, speed, lane, and edge number of
+           the AV, the distance to and velocity of the vehicles
+           in front and behind the AV for all lanes. Additionally, we pass the
+           density and average velocity of all edges. Finally, we pad with
+           zeros in case an AV has exited the system.
+           Note: the vehicles are arranged in an initial order, so we pad
+           the missing vehicle at its normal position in the order
 
        Actions
-       -------
-       The action space consist of a list in which the first half
-       is accelerations and the second half is a direction for lane changing
-       that we round
+           The action space consist of a list in which the first half
+           is accelerations and the second half is a direction for lane
+           changing that we round
 
        Rewards
-       -------
-       The reward is the two-norm of the difference between the speed of all
-       vehicles in the network and some desired speed. To this we add
-       a positive reward for moving the vehicles forward
+           The reward is the two-norm of the difference between the speed of
+           all vehicles in the network and some desired speed. To this we add
+           a positive reward for moving the vehicles forward
 
        Termination
-       -----------
-       A rollout is terminated once the time horizon is reached.
+           A rollout is terminated once the time horizon is reached.
 
        """
 
@@ -396,17 +403,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
         num_rl_veh = self.num_rl
         num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
             * num_rl_veh + 4 * num_rl_veh
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        print(num_obs)
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        print("--------------")
-        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
-                   dtype=np.float32)
+
+        return Box(low=0, high=1, shape=(num_obs,), dtype=np.float32)
 
     def get_state(self):
         headway_scale = 1000
@@ -586,20 +584,17 @@ class DesiredVelocityEnv(BottleneckEnv):
        should attempt to travel in certain regions of space
 
        States
-       ------
-       An observation is the number of vehicles in each lane in each
-       segment
+           An observation is the number of vehicles in each lane in each
+           segment
 
        Actions
-       -------
-       The action space consist of a list in which each element
-       corresponds to the desired speed that RL vehicles should travel in that
-       region of space
+           The action space consist of a list in which each element
+           corresponds to the desired speed that RL vehicles should travel in
+           that region of space
 
        Rewards
-       -------
-       The reward is the outflow of the bottleneck plus a reward
-       for RL vehicles making forward progress
+           The reward is the outflow of the bottleneck plus a reward
+           for RL vehicles making forward progress
     """
 
     def __init__(self, env_params, sumo_params, scenario):
@@ -680,6 +675,21 @@ class DesiredVelocityEnv(BottleneckEnv):
                 self.action_index += [self.action_index[i] +
                                       segment * controlled * num_lanes]
 
+        self.action_index = {}
+        action_list = [0]
+        index = 0
+        for (edge, num_segments, controlled) in self.segments:
+            if controlled:
+                if self.symmetric:
+                    self.action_index[edge] = [action_list[index]]
+                    action_list += [action_list[index] + controlled]
+                else:
+                    num_lanes = self.scenario.num_lanes(edge)
+                    self.action_index[edge] = [action_list[index]]
+                    action_list += [action_list[index]
+                                    + num_segments * controlled * num_lanes]
+                index += 1
+
     @property
     def observation_space(self):
         num_obs = 0
@@ -688,7 +698,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         for segment in self.obs_segments:
             num_obs += 4 * segment[1] * self.scenario.num_lanes(segment[0])
         num_obs += 1
-        return Box(low=-float("inf"), high=float("inf"), shape=(num_obs,),
+        return Box(low=0.0, high=1.0, shape=(num_obs,),
                    dtype=np.float32)
 
     @property
@@ -765,15 +775,13 @@ class DesiredVelocityEnv(BottleneckEnv):
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
                                mean_speed_norm, mean_rl_speed, [outflow]))
 
-    def _apply_rl_actions(self, actions):
+    def _apply_rl_actions(self, rl_actions):
         """
         RL actions are split up into 3 levels.
         First, they're split into edge actions.
         Then they're split into segment actions.
         Then they're split into lane actions.
         """
-        rl_actions = actions
-
         for rl_id in self.vehicles.get_rl_ids():
             edge = self.vehicles.get_edge(rl_id)
             lane = self.vehicles.get_lane(rl_id)
@@ -787,13 +795,12 @@ class DesiredVelocityEnv(BottleneckEnv):
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
                         action = rl_actions[int(lane) + bucket * num_lanes
-                                            + self.action_index[int(edge) - 1]]
-
+                                            + self.action_index[edge]]
                     else:
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
                         action = rl_actions[bucket +
-                                            self.action_index[int(edge) - 1]]
+                                            self.action_index[edge]]
 
                     traci_veh = self.traci_connection.vehicle
                     max_speed_curr = traci_veh.getMaxSpeed(rl_id)
@@ -805,22 +812,21 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """ Outflow rate over last ten seconds normalized to max of 1 """
 
-        reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / 200.0
-
-        # penalize high density in the bottleneck
-        # bottleneck_ids = self.vehicles.get_ids_by_edge('4')
-        # bottleneck_threshold = 35  # could be 10 also
-        # if len(bottleneck_ids) > bottleneck_threshold:
-        #     reward -= len(bottleneck_ids) - bottleneck_threshold
-        #
-        # print('outflow is', self.vehicles.get_outflow_rate(800))
-
+        if self.env_params.evaluate:
+            reward = self.vehicles.get_outflow_rate(500)
+        else:
+            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+                     (2000.0 * self.scaling)
         return reward
 
     def reset(self):
-        if self.env_params.additional_params.get("reset_inflow"):
-            flow_rate = np.random.uniform(1000, 2000) * self.scaling
+        add_params = self.env_params.additional_params
+        if add_params.get("reset_inflow"):
+            inflow_range = add_params.get("inflow_range")
+            flow_rate = np.random.uniform(min(inflow_range),
+                                          max(inflow_range)) * self.scaling
             for _ in range(100):
                 try:
                     inflow = InFlows()
@@ -855,17 +861,35 @@ class DesiredVelocityEnv(BottleneckEnv):
                                  lane_change_mode=0,
                                  num_vehicles=1 * self.scaling)
                     self.vehicles = vehicles
+
+                    # delete the cfg and net files
+                    net_path = self.scenario.generator.net_path
+                    net_name = net_path + self.scenario.generator.name
+                    cfg_path = self.scenario.generator.cfg_path
+                    cfg_name = cfg_path + self.scenario.generator.name
+                    for f in glob.glob(net_name+'*'):
+                        os.remove(f)
+                    for f in glob.glob(cfg_name+'*'):
+                        os.remove(f)
+
                     self.scenario = self.scenario.__class__(
-                        name=self.scenario.name,
+                        name=self.scenario.orig_name,
                         generator_class=self.scenario.generator_class,
                         vehicles=vehicles, net_params=net_params,
                         initial_config=self.scenario.initial_config,
                         traffic_lights=self.scenario.traffic_lights
                     )
+                    observation = super().reset()
+
+                    # reset the timer to zero
+                    self.time_counter = 0
+
+                    return observation
 
                 except Exception as e:
                     print('error on reset ', e)
                     # perform the generic reset function
+
         observation = super().reset()
 
         # reset the timer to zero

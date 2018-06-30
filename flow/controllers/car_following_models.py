@@ -1,11 +1,12 @@
-"""This script contains several car-following control models for
+"""
+This script contains several car-following control models for
 flow-controlled vehicles.
 
 Controllers can have their output delayed by some duration. Each controller
-includes the function:
-    get_accel(self, env) -> acc
-        - using the current state of the world and existing parameters,
-        uses the control model to return a vehicle acceleration.
+includes the function ``get_accel(self, env) -> acc`` which, using the
+current state of the world and existing parameters, uses the control
+model to return a vehicle acceleration.
+
 """
 import math
 import numpy as np
@@ -30,25 +31,25 @@ class CFMController(BaseController):
 
         Attributes
         ----------
-        veh_id: str
+        veh_id : str
             Vehicle ID for SUMO identification
-        sumo_cf_params: SumoCarFollowingParams
+        sumo_cf_params : SumoCarFollowingParams
             see parent class
-        k_d: float
+        k_d : float
             headway gain (default: 1)
-        k_v: float, optional
+        k_v : float, optional
             gain on difference between lead velocity and current (default: 1)
-        k_c: float, optional
+        k_c : float, optional
             gain on difference from desired velocity to current (default: 1)
-        d_des: float, optional
+        d_des : float, optional
             desired headway (default: 1)
-        v_des: float, optional
+        v_des : float, optional
             desired velocity (default: 8)
-        time_delay: float, optional
+        time_delay : float, optional
             time delay (default: 0.0)
-        noise: float, optional
+        noise : float, optional
             std dev of normal perturbation to the acceleration (default: 0)
-        fail_safe: str, optional
+        fail_safe : str, optional
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """

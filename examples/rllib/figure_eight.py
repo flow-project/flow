@@ -9,12 +9,11 @@ import ray.rllib.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
-from flow.utils.rllib import make_create_env, FlowParamsEncoder
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.controllers.car_following_models import IDMController
-from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.rlcontroller import RLController
+from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
@@ -111,7 +110,7 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        "figure_eight": {
+        flow_params["exp_tag"]: {
             "run": "PPO",
             "env": env_name,
             "config": {
