@@ -46,6 +46,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
     )
 
     initial_config = InitialConfig(spacing="custom",
+                                   lanes_distribution=1,
                                    additional_params={"merge_bunching": 0})
 
     scenario = TwoLoopsOneMergingScenario(

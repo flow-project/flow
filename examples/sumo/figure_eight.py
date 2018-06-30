@@ -25,6 +25,7 @@ def figure_eight_example(sumo_binary=None):
                  acceleration_controller=(IDMController, {}),
                  lane_change_controller=(StaticLaneChanger, {}),
                  routing_controller=(ContinuousRouter, {}),
+                 speed_mode="no_collide",
                  initial_speed=0,
                  num_vehicles=14)
 

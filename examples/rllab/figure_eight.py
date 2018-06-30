@@ -33,7 +33,8 @@ def run_task(*_):
                  speed_mode="no_collide",
                  num_vehicles=13)
 
-    additional_env_params = {"target_velocity": 20}
+    additional_env_params = {"target_velocity": 20,
+                             "max_accel": 3, "max_decel": 3}
     env_params = EnvParams(horizon=HORIZON,
                            additional_params=additional_env_params)
 
@@ -89,7 +90,7 @@ for seed in [5]:  # , 20, 68]:
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local_docker",
+        mode="local",
         exp_prefix=exp_tag,
         # plot=True,
     )

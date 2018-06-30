@@ -16,7 +16,7 @@ class SumoParams:
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
-                 teleport_time=-100):
+                 teleport_time=-1):
         """Sumo-specific parameters
 
         These parameters are used to customize a sumo simulation instance upon
@@ -88,7 +88,8 @@ class EnvParams:
                  horizon=500,
                  sort_vehicles=False,
                  warmup_steps=0,
-                 sims_per_step=1):
+                 sims_per_step=1,
+                 evaluate=False):
         """Environment and experiment-specific parameters.
 
         This includes specifying the bounds of the action space and relevant
@@ -96,32 +97,35 @@ class EnvParams:
         positions of vehicles are modified in between rollouts.
 
         Attributes
-        ----------
-        vehicle_arrangement_shuffle: bool, optional
-            determines if initial conditions of vehicles are shuffled at reset;
-            False by default
-        starting_position_shuffle: bool, optional
-            determines if starting position of vehicles should be updated
-            between rollouts; False by default
-        additional_params: dict, optional
-            Specify additional environment params for a specific environment
-            configuration
-        horizon: int, optional
-            number of steps per rollouts
-        sort_vehicles: bool, optional
-            specifies whether vehicles are to be sorted by position during a
-            simulation step. If set to True, the environment parameter
-            self.sorted_ids will return a list of all vehicles ideas sorted by
-            their absolute position.
-        warmup_steps: int, optional
-            number of steps performed before the initialization of training
-            during a rollout. These warmup steps are not added as steps into
-            training, and the actions of rl agents during these steps are
-            dictated by sumo. Defaults to zero
-        sims_per_step: int, optional
-            number of sumo simulation steps performed in any given rollout
-            step. RL agents perform the same action for the duration of these
-            simulation steps.
+            vehicle_arrangement_shuffle: bool, optional
+                determines if initial conditions of vehicles are shuffled at
+                reset; False by default
+            starting_position_shuffle: bool, optional
+                determines if starting position of vehicles should be updated
+                between rollouts; False by default
+            additional_params: dict, optional
+                Specify additional environment params for a specific
+                environment configuration
+            horizon: int, optional
+                number of steps per rollouts
+            sort_vehicles: bool, optional
+                specifies whether vehicles are to be sorted by position during
+                a simulation step. If set to True, the environment parameter
+                self.sorted_ids will return a list of all vehicles ideas sorted
+                by their absolute position.
+            warmup_steps: int, optional
+                number of steps performed before the initialization of training
+                during a rollout. These warmup steps are not added as steps
+                into training, and the actions of rl agents during these steps
+                are dictated by sumo. Defaults to zero
+            sims_per_step: int, optional
+                number of sumo simulation steps performed in any given rollout
+                step. RL agents perform the same action for the duration of
+                these simulation steps.
+            evaluate: bool, optional
+                flag indicating that the evaluation reward should be used
+                so the evaluation reward should be used rather than the
+                normal reward
 
         """
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
@@ -132,6 +136,7 @@ class EnvParams:
         self.sort_vehicles = sort_vehicles
         self.warmup_steps = warmup_steps
         self.sims_per_step = sims_per_step
+        self.evaluate = evaluate
 
     def get_additional_param(self, key):
         return self.additional_params[key]
@@ -140,8 +145,6 @@ class EnvParams:
 class NetParams:
 
     def __init__(self,
-                 net_path="debug/net/",
-                 cfg_path="debug/cfg/",
                  no_internal_links=True,
                  in_flows=None,
                  osm_path=None,
@@ -160,10 +163,6 @@ class NetParams:
 
         Parameters
         ----------
-        net_path : str, optional
-            path to the network files created to create a network with sumo
-        cfg_path : str, optional
-            path to the config files created to create a network with sumo
         no_internal_links : bool, optional
             determines whether the space between edges is finite. Important
             when using networks with intersections; default is False
@@ -183,15 +182,11 @@ class NetParams:
             network specific parameters; see each subclass for a description of
             what is needed
         """
-        if additional_params is None:
-            additional_params = {}
-        self.net_path = net_path
-        self.cfg_path = cfg_path
         self.no_internal_links = no_internal_links
         self.in_flows = in_flows
         self.osm_path = osm_path
         self.netfile = netfile
-        self.additional_params = additional_params
+        self.additional_params = additional_params or {}
 
 
 class InitialConfig:
@@ -203,7 +198,7 @@ class InitialConfig:
                  perturbation=0.0,
                  x0=0,
                  bunching=0,
-                 lanes_distribution=1,
+                 lanes_distribution=float("inf"),
                  edges_distribution="all",
                  positions=None,
                  lanes=None,
@@ -561,7 +556,7 @@ class InFlows:
         ----
         For information on the parameters start, end, vehs_per_hour, period,
         probability, number, as well as other vehicle type and routing
-        parameters that may be added via **kwargs, refer to:
+        parameters that may be added via \*\*kwargs, refer to:
         http://sumo.dlr.de/wiki/Definition_of_Vehicles,_Vehicle_Types,_and_Routes
 
         """

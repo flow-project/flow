@@ -7,48 +7,59 @@ from gym.spaces.tuple_space import Tuple
 from flow.core import rewards
 from flow.envs.base_env import Env
 
+ADDITIONAL_ENV_PARAMS = {
+    # minimum switch time for each traffic light (in seconds)
+    "switch_time": 2.0,
+    # whether the traffic lights should be actuated by sumo or RL
+    # options are "controlled" and "actuated"
+    "tl_type": "controlled"
+}
 
-class GreenWaveEnv(Env):
+
+class TrafficLightGridEnv(Env):
     """Environment used to train traffic lights to regulate traffic flow
     through an n x m grid.
 
+    Required from env_params:
+
+    * switch_time: minimum switch time for each traffic light (in seconds).
+      Earlier RL commands are ignored.
+
     States
-    ------
-    An observation is the distance of each vehicle to its intersection, a
-    number uniquely identifying which edge the vehicle is on, and the speed of
-    the vehicle.
+        An observation is the distance of each vehicle to its intersection, a
+        number uniquely identifying which edge the vehicle is on, and the speed
+        of the vehicle.
 
     Actions
-    -------
-    The action space consist of a list of float variables ranging from 0-1
-    specifying whether a traffic light is supposed to switch or not. The
-    actions are sent to the traffic light in the grid from left to right and
-    then top to bottom.
+        The action space consist of a list of float variables ranging from 0-1
+        specifying whether a traffic light is supposed to switch or not. The
+        actions are sent to the traffic light in the grid from left to right
+        and then top to bottom.
 
     Rewards
-    -------
-    The reward is the two-norm of the difference between the speed of all
-    vehicles in the network and some desired speed.
+        The reward is the negative per vehicle delay minus a penalty for
+        switching traffic lights
 
     Termination
-    -----------
-    A rollout is terminated once the time horizon is reached.
+        A rollout is terminated once the time horizon is reached.
 
     Additional
-    ----------
-    Vehicles are rerouted to the start of their original routes once they reach
-    the end of the network in order to ensure a constant number of vehicles.
+        Vehicles are rerouted to the start of their original routes once they
+        reach the end of the network in order to ensure a constant number of
+        vehicles.
     """
     def __init__(self, env_params, sumo_params, scenario):
         self.grid_array = scenario.net_params.additional_params["grid_array"]
         self.rows = self.grid_array["row_num"]
         self.cols = self.grid_array["col_num"]
+        # self.num_observed = self.grid_array.get("num_observed", 3)
         self.num_traffic_lights = self.rows * self.cols
+        self.tl_type = env_params.additional_params.get('tl_type')
 
         super().__init__(env_params, sumo_params, scenario)
 
         # Saving env variables for plotting
-        self.steps = env_params.additional_params.get('num_steps', 0)
+        self.steps = env_params.horizon
         self.obs_var_labels = {
             'edges': np.zeros((self.steps, self.vehicles.num_vehicles)),
             'velocities': np.zeros((self.steps, self.vehicles.num_vehicles)),
@@ -63,10 +74,12 @@ class GreenWaveEnv(Env):
         # allowed to flow. 0 is flowing top to bottom, 1 is left to right
         # For third column, 0 signifies yellow and 1 green or red
         self.min_switch_time = env_params.additional_params["switch_time"]
-        for i in range(self.rows * self.cols):
-            self.traci_connection.trafficlight.setRedYellowGreenState(
-                'center' + str(i), "GGGrrrGGGrrr")
-            self.last_change[i, 2] = 1
+
+        if self.tl_type != "actuated":
+            for i in range(self.rows * self.cols):
+                self.traci_connection.trafficlight.setRedYellowGreenState(
+                    'center' + str(i), "GGGrrrGGGrrr")
+                self.last_change[i, 2] = 1
 
         # Additional Information for Plotting
         self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
@@ -91,22 +104,20 @@ class GreenWaveEnv(Env):
                                dtype=np.float32)
         edge_num = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,),
                        dtype=np.float32)
-        traffic_lights = Box(low=0., high=np.inf,
-                             shape=(3 * self.rows * self.cols),
+        traffic_lights = Box(low=0., high=1,
+                             shape=(3 * self.rows * self.cols,),
                              dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
     def get_state(self):
         # compute the normalizers
-        max_speed = max(self.scenario.speed_limit(edge)
-                        for edge in self.scenario.get_edge_list())
         max_dist = max(self.scenario.short_length,
                        self.scenario.long_length,
                        self.scenario.inner_length)
 
         # get the state arrays
-        speeds = [self.vehicles.get_speed(veh_id) / max_speed for veh_id in
-                  self.vehicles.get_ids()]
+        speeds = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
+                  for veh_id in self.vehicles.get_ids()]
         dist_to_intersec = [self.get_distance_to_intersection(veh_id)/max_dist
                             for veh_id in self.vehicles.get_ids()]
         edges = [self._convert_edge(self.vehicles.get_edge(veh_id)) / (
@@ -117,6 +128,10 @@ class GreenWaveEnv(Env):
         return np.array(state)
 
     def _apply_rl_actions(self, rl_actions):
+
+        if self.env_params.evaluate:
+            return
+
         # convert values less than 0.5 to zero and above to 1. 0's indicate
         # that should not switch the direction
         rl_mask = rl_actions > 0.5
@@ -151,11 +166,26 @@ class GreenWaveEnv(Env):
                     self.last_change[i, 2] = 0
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        return rewards.penalize_tl_changes(self, rl_actions >= 0.5, gain=1)
+        return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
 
     # ===============================
     # ============ UTILS ============
     # ===============================
+
+    def record_obs_var(self):
+        """
+        Records velocities and edges in self.obs_var_labels at each time
+        step. This is used for plotting.
+        """
+        for i, veh_id in enumerate(self.vehicles.get_ids()):
+            self.obs_var_labels['velocities'][
+                self.time_counter - 1, i] = self.vehicles.get_speed(veh_id)
+            self.obs_var_labels['edges'][self.time_counter - 1, i] = \
+                self._convert_edge(self.vehicles.get_edge(veh_id))
+            x = self.get_x_by_id(veh_id)
+            if x > 2000:  # hardcode
+                x = 0
+            self.obs_var_labels['positions'][self.time_counter - 1, i] = x
 
     def get_distance_to_intersection(self, veh_ids):
         """Determines the smallest distance from the current vehicle's position
@@ -265,7 +295,7 @@ class GreenWaveEnv(Env):
         row_index, col_index = [int(x) for x in edge]
 
         # find the route that we're going to place the vehicle on if we are
-        # going tyo remove it
+        # going to remove it
         route_id = None
         if edge_type == 'bot' and col_index == self.cols:
             route_id = "bot{}_0".format(row_index)
@@ -287,21 +317,169 @@ class GreenWaveEnv(Env):
                 veh_id, route_id, typeID=str(type_id),
                 departLane=str(lane_index),
                 departPos="0", departSpeed="max")
+            speed_mode = self.vehicles.type_parameters[type_id]["speed_mode"]
+            self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
-    def record_obs_var(self):
-        """Records the edges and velocities in the observation variables."""
-        for i, veh_id in enumerate(self.vehicles.get_ids()):
-            self.obs_var_labels['velocities'][
-                self.time_counter - 1, i] = self.vehicles.get_speed(veh_id)
-            self.obs_var_labels['edges'][self.time_counter - 1, i] = \
-                self._convert_edge(self.vehicles.get_edge(veh_id))
-            x = self.get_x_by_id(veh_id)
-            if x > 2000:  # hardcode
-                x = 0
-            self.obs_var_labels['positions'][self.time_counter - 1, i] = x
+    def k_closest_to_intersection(self, edges, k):
+        """
+        Return the veh_id of the k closest vehicles to an intersection for
+        each edge. Performs no check on whether or not edge is going toward an
+        intersection or not. Does no padding
+        """
+        if k < 0:
+            raise IndexError("k must be greater than 0")
+        dists = []
+        if isinstance(edges, list):
+            for edge in edges:
+                vehicles = self.vehicles.get_ids_by_edge(edge)
+                dist = sorted(vehicles,
+                              key=lambda veh_id:
+                              self.get_distance_to_intersection(veh_id))
+                dists += dist[:k]
+        else:
+            vehicles = self.vehicles.get_ids_by_edge(edges)
+            dist = sorted(vehicles,
+                          key=lambda veh_id:
+                          self.get_distance_to_intersection(veh_id))
+            dists += dist[:k]
+        return dists
 
 
-class GreenWaveTestEnv(GreenWaveEnv):
+class PO_TrafficLightGridEnv(TrafficLightGridEnv):
+    """Environment used to train traffic lights to regulate traffic flow
+    through an n x m grid.
+
+    Required from env_params:
+
+    * switch_time: minimum switch time for each traffic light (in seconds).
+      Earlier RL commands are ignored.
+    * num_observed: number of vehicles nearest each intersection that is
+      observed in the state space; defaults to 2
+
+    States
+        An observation is the number of observe vehicles in each intersection
+        closest to the traffic lights, a
+        number uniquely identifying which edge the vehicle is on, and the speed
+        of the vehicle.
+
+    Actions
+        The action space consist of a list of float variables ranging from 0-1
+        specifying whether a traffic light is supposed to switch or not. The
+        actions are sent to the traffic light in the grid from left to right
+        and then top to bottom.
+
+    Rewards
+        The reward is the delay of each vehicle minus a penalty for switching
+        traffic lights
+
+    Termination
+        A rollout is terminated once the time horizon is reached.
+
+    Additional
+        Vehicles are rerouted to the start of their original routes once they
+        reach the end of the network in order to ensure a constant number of
+        vehicles.
+
+    """
+
+    def __init__(self, env_params, sumo_params, scenario):
+        super().__init__(env_params, sumo_params, scenario)
+
+        # number of vehicles nearest each intersection that is observed in the
+        # state space; defaults to 2
+        self.num_observed = env_params.additional_params.get("num_observed", 2)
+
+        # used while computing the reward
+        self.env_params.additional_params["target_velocity"] = \
+            max(self.scenario.speed_limit(edge)
+                for edge in self.scenario.get_edge_list())
+
+        # used during visualization
+        self.observed_ids = []
+
+    @property
+    def observation_space(self):
+        """
+        Partial observed state space. Velocities, distance to intersections,
+        edge number (for nearby vehicles) traffic light state
+        """
+        tl_box = Box(low=0.,
+                     high=1,
+                     shape=(12 * self.num_observed * self.num_traffic_lights
+                            + 2 * len(self.scenario.get_edge_list())
+                            + 3 * self.num_traffic_lights,),
+                     dtype=np.float32)
+        return tl_box
+
+    def get_state(self):
+        """
+        Returns self.num_observed number of vehicles closest to each traffic
+        light and for each vehicle its velocity, distance to intersection,
+        edge_number traffic light state. This is partially observed
+        """
+        speeds = []
+        dist_to_intersec = []
+        edge_number = []
+        max_speed = max(self.scenario.speed_limit(edge)
+                        for edge in self.scenario.get_edge_list())
+        max_dist = max(self.scenario.short_length, self.scenario.long_length,
+                       self.scenario.inner_length)
+        all_observed_ids = []
+
+        for node, edges in self.scenario.get_node_mapping():
+            for edge in edges:
+                observed_ids = \
+                    self.k_closest_to_intersection(edge, self.num_observed)
+                all_observed_ids += observed_ids
+
+                # check which edges we have so we can always pad in the right
+                # positions
+                speeds += [self.vehicles.get_speed(veh_id) / max_speed
+                           for veh_id in observed_ids]
+                dist_to_intersec += [
+                    (self.scenario.edge_length(self.vehicles.get_edge(veh_id))
+                     - self.vehicles.get_position(veh_id)) / max_dist
+                    for veh_id in observed_ids]
+                edge_number += \
+                    [self._convert_edge(self.vehicles.get_edge(veh_id))
+                     / (self.scenario.num_edges - 1)
+                     for veh_id in observed_ids]
+
+                if len(observed_ids) < self.num_observed:
+                    diff = self.num_observed - len(observed_ids)
+                    speeds += [0] * diff
+                    dist_to_intersec += [0] * diff
+                    edge_number += [0] * diff
+
+        # now add in the density and average velocity on the edges
+        density = []
+        velocity_avg = []
+        for edge in self.scenario.get_edge_list():
+            ids = self.vehicles.get_ids_by_edge(edge)
+            if len(ids) > 0:
+                density += [5 * len(ids) / self.scenario.edge_length(edge)]
+                velocity_avg += [np.mean([self.vehicles.get_speed(veh_id)
+                                          for veh_id in ids]) / max_speed]
+            else:
+                density += [0]
+                velocity_avg += [0]
+        self.observed_ids = all_observed_ids
+        return np.array(np.concatenate([speeds, dist_to_intersec, edge_number,
+                                        density, velocity_avg,
+                                        self.last_change.flatten().tolist()]))
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        if self.env_params.evaluate:
+            return rewards.min_delay_unscaled(self)
+        else:
+            return rewards.desired_velocity(self, fail=kwargs["fail"])
+
+    def additional_command(self):
+        # specify observed vehicles
+        [self.vehicles.set_observed(veh_id) for veh_id in self.observed_ids]
+
+
+class GreenWaveTestEnv(TrafficLightGridEnv):
     """
     Class that overrides RL methods of green wave so we can test
     construction without needing to specify RL methods

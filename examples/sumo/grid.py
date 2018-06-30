@@ -5,6 +5,7 @@ from flow.controllers.routing_controllers import GridRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
+from flow.core.traffic_lights import TrafficLights
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid.gen import SimpleGridGenerator
 from flow.scenarios.grid.grid_scenario import SimpleGridScenario
@@ -41,9 +42,21 @@ def grid_example(sumo_binary=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
+    tl_logic = TrafficLights(baseline=False)
+    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
+               "state": "GGGrrrGGGrrr"},
+              {"duration": "6", "minDur": "3", "maxDur": "6",
+               "state": "yyyrrryyyrrr"},
+              {"duration": "31", "minDur": "8", "maxDur": "45",
+               "state": "rrrGGGrrrGGG"},
+              {"duration": "6", "minDur": "3", "maxDur": "6",
+               "state": "rrryyyrrryyy"}]
+    tl_logic.add("center0", phases=phases, programID=1)
+    tl_logic.add("center1", phases=phases, programID=1)
+    tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
+
     additional_net_params = {"grid_array": grid_array, "speed_limit": 35,
-                             "horizontal_lanes": 1, "vertical_lanes": 1,
-                             "traffic_lights": True}
+                             "horizontal_lanes": 1, "vertical_lanes": 1}
     net_params = NetParams(no_internal_links=False,
                            additional_params=additional_net_params)
 
@@ -53,7 +66,8 @@ def grid_example(sumo_binary=None):
                                   generator_class=SimpleGridGenerator,
                                   vehicles=vehicles,
                                   net_params=net_params,
-                                  initial_config=initial_config)
+                                  initial_config=initial_config,
+                                  traffic_lights=tl_logic)
 
     env = AccelEnv(env_params, sumo_params, scenario)
 

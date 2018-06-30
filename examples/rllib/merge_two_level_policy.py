@@ -7,8 +7,7 @@ import ray
 import ray.rllib.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 
-from examples.rllib.cooperative_merge import make_create_env
-from examples.rllib.cooperative_merge import flow_params, HORIZON
+from .cooperative_merge import flow_params, HORIZON, make_create_env
 
 # Inner ring distances closest to the merge are range 300-365 (normalized)
 fn_choose_subpolicy = """

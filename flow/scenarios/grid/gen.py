@@ -25,6 +25,9 @@ class SimpleGridGenerator(Generator):
         nodes += self._build_outer_nodes()
         return nodes
 
+    def specify_tll(self, net_params):
+        return self._build_inner_nodes()
+
     def specify_edges(self, net_params):
         edges = []
         edges += self._build_inner_edges()
@@ -93,7 +96,7 @@ class SimpleGridGenerator(Generator):
         list <dict>
             List of inner nodes
         """
-        tls = self.net_params.additional_params.get("traffic_lights", False)
+        tls = self.net_params.additional_params.get("traffic_lights", True)
         node_type = "traffic_light" if tls else "priority"
         row_num = self.grid_array["row_num"]
         col_num = self.grid_array["col_num"]
