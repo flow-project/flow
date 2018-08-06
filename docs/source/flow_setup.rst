@@ -2,10 +2,11 @@ Setup Instructions
 ******************
 
 To get Flow running, you need three things: Flow,
-SUMO, and rllab. Once each component is installed successfully,
-you might get some missing module bugs from Python. Just install the
-missing module using your OS-specific package manager / installation
-tool. Follow the shell commands below to get started.
+SUMO, and a reinforcement learning library (RLlib/rllab). Once each 
+component is installed successfully, you might get some missing 
+module bugs from Python. Just install the missing module using 
+your OS-specific package manager / installation tool. Follow the 
+shell commands below to get started.
 
 Dependencies
 ============
@@ -35,10 +36,12 @@ human-driven agents during the simulation process.
 ::
 
     cd ~
-    git clone --recursive https://github.com/eclipse/sumo
-    cd sumo
-    git fetch origin refs/replace/*:refs/replace/*
+    git clone https://github.com/DLR-TS/sumo.git
+    cd sumo 
+    git checkout 1d4338ab80
     make -f Makefile.cvs
+    export CPPFLAGS=-I/opt/X11/include
+    export LDFLAGS=-L/opt/X11/lib
     ./configure
     make
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
@@ -50,8 +53,8 @@ rllab-multiagent
 ================
 Flow has been tested on a variety of RL libraries, the installation of which is
 optional but may be of use when trying to execute some of the examples files
-located in Flow. In order to install the `rllab-multiagent` library, follow the
-below instructions
+located in Flow. rllab-multiagent is one of these such libraries.  In order 
+to install the `rllab-multiagent` library, follow the below instructions
 ::
 
     cd ~
@@ -74,7 +77,7 @@ below instructions
 
 Ray/RLlib
 =========
-RLlib is the second RL library that has been extensively tested on the Flow
+RLlib is another RL library that has been extensively tested on the Flow
 repository. The installation process for this library is as follows:
 ::
 
