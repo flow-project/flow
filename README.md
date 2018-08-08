@@ -6,7 +6,7 @@
 
 Flow is a computational framework for deep RL and control experiments for traffic microsimulation.
 
-See [results and videos](https://sites.google.com/view/ieee-tro-flow/home) of the application of Flow to several mixed-autonomy traffic scenarios.
+See [our website](https://berkeleyflow.github.io) for more information on the application of Flow to several mixed-autonomy traffic scenarios. Other [results and videos](https://sites.google.com/view/ieee-tro-flow/home) are available as well.
 
 # More information
 
