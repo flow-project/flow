@@ -20,7 +20,7 @@ Tutorials `are available <https://github.com/berkeleyflow/flow/tree/master/tutor
    flow_setup
    visualizing
    modules
-
+   Tutorials <https://github.com/berkeleyflow/flow/tree/master/tutorials/>
 
 
 .. Citing Flow
