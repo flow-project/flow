@@ -18,9 +18,9 @@ Tutorials `are available <https://github.com/berkeleyflow/flow/tree/master/tutor
 
    intro
    flow_setup
+   Tutorials <https://github.com/berkeleyflow/flow/tree/master/tutorials/>
    visualizing
    modules
-   Tutorials <https://github.com/berkeleyflow/flow/tree/master/tutorials/>
 
 
 .. Citing Flow
