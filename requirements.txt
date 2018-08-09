@@ -1,5 +1,5 @@
 gym==0.10.5
-numpy
+numpy=1.14.5
 lxml
 theano==0.8.2
 pyprind
