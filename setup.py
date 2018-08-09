@@ -16,11 +16,13 @@ class build_ext(_build_ext.build_ext):
         try:
             import tensorflow
         except ImportError:
+            print('importing tf from pip')
             subprocess.check_call(['pip', 'install', 'tensorflow>=0.11.0'])
 
         try:
             import gym
         except ImportError:
+            print('importing gym from pip')
             subprocess.check_call(['pip', 'install' 'gym==0.10.5'])
             # subprocess.check_call(
             #     ['pip', 'install',
