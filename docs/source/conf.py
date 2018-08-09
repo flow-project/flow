@@ -43,7 +43,7 @@ napoleon_use_ivar = True
 # mock imports for sumolib (another module that errors) leads to build failures
 # entirely.
 
-# autodoc_mock_imports = ["traci"]
+autodoc_mock_imports = ["traci"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
