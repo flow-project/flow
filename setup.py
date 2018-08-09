@@ -13,6 +13,7 @@ def _read_requirements_file():
 
 class build_ext(_build_ext.build_ext):
     def run(self):
+        print('running build_ext in setup.py')
         try:
             import tensorflow
         except ImportError:
@@ -28,6 +29,7 @@ class build_ext(_build_ext.build_ext):
             #     ['pip', 'install',
             #      'git+https://github.com/openai/gym.git@'
             #      '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
+        print('passed the try statements, build done')
 
 
 class BinaryDistribution(Distribution):
