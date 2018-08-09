@@ -37,6 +37,14 @@ napoleon_google_docstring = False
 napoleon_use_param = False
 napoleon_use_ivar = True
 
+# This prevents some errors during the autodoc building process, since
+# errors occur when importing traci and sumolib. A mock import for traci
+# enables some more autodocs to be built, as flow.core.vehicles, but
+# mock imports for sumolib (another module that errors) leads to build failures
+# entirely.
+
+autodoc_mock_imports = ["traci"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
