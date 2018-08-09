@@ -13,23 +13,18 @@ def _read_requirements_file():
 
 class build_ext(_build_ext.build_ext):
     def run(self):
-        print('running build_ext in setup.py')
         try:
             import tensorflow
         except ImportError:
-            print('importing tf from pip')
             subprocess.check_call(['pip', 'install', 'tensorflow>=0.11.0'])
 
         try:
             import gym
         except ImportError:
-            print('importing gym from pip')
-            subprocess.check_call(['pip', 'install' 'gym==0.10.5'])
-            # subprocess.check_call(
-            #     ['pip', 'install',
-            #      'git+https://github.com/openai/gym.git@'
-            #      '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
-        print('passed the try statements, build done')
+            subprocess.check_call(
+                ['pip', 'install',
+                 'git+https://github.com/openai/gym.git@'
+                 '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
 
 
 class BinaryDistribution(Distribution):
