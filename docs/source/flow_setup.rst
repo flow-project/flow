@@ -45,14 +45,26 @@ human-driven agents during the simulation process.
     cd sumo
     git checkout 1d4338ab80
     make -f Makefile.cvs
+
+If you have OSX, run the following commands
+::
     export CPPFLAGS=-I/opt/X11/include
     export LDFLAGS=-L/opt/X11/lib
+
+Now for both OSX and linux run the following command
+::
     ./configure
     make -j$nproc
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
+
+Test your sumo install and version by running the following commands
+::
+    which sumo
+    sumo --version
+    sumo-gui
 
 Flow
 ====
