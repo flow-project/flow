@@ -2,6 +2,9 @@ import unittest
 import os
 
 from flow.core.experiment import SumoExperiment
+from flow.core.vehicles import Vehicles
+from flow.controllers import IDMController, RLController, ContinuousRouter
+
 from tests.setup_scripts import ring_road_exp_setup
 import numpy as np
 
@@ -55,6 +58,37 @@ class TestNumRuns(unittest.TestCase):
 
         # check that the final position is the same in both instances
         np.testing.assert_array_almost_equal(vel1, vel2)
+
+
+class TestRLActions(unittest.TestCase):
+    """
+    Test that the rl_actions parameter acts as it should when it is specified,
+    and does not break the simulation when it is left blank.
+    """
+
+    def runTest(self):
+        def test_rl_actions(*_):
+            return [1]  # actions are always an acceleration of 1 for one veh
+
+        # create an environment using AccelEnv with 1 RL vehicle
+        vehicles = Vehicles()
+        vehicles.add(veh_id="rl",
+                     acceleration_controller=(RLController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     speed_mode="aggressive",
+                     num_vehicles=1)
+
+        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+        exp = SumoExperiment(env=env, scenario=scenario)
+
+        exp.run(1, 10, rl_actions=test_rl_actions)
+
+        # check that the acceleration of the RL vehicle was that specified by
+        # the rl_actions method
+        self.assertAlmostEqual(exp.env.vehicles.get_speed("rl_0"), 1, places=1)
+
+        pass
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ See [our website](https://berkeleyflow.github.io) for more information on the ap
 
 - [Documentation](https://berkeleyflow.readthedocs.org/en/latest/)
 - [Installation instructions](http://berkeleyflow.readthedocs.io/en/latest/flow_setup.html)
-- [Tutorial](http://berkeleyflow.readthedocs.io/en/latest/tutorial.html)
+- [Tutorials](https://github.com/berkeleyflow/flow/tree/master/tutorials)
 
 # Getting involved
 
