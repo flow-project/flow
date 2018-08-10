@@ -52,7 +52,7 @@ class SumoExperiment:
         info_dict = {}
         if rl_actions is None:
             def rl_actions(*_):
-                return []
+                return None
 
         rets = []
         mean_rets = []
