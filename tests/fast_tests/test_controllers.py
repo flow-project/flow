@@ -211,8 +211,7 @@ class TestIDMController(unittest.TestCase):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
         contr_params = {"v0": 30, "b": 1.5, "delta": 4,
-                        "s0": 2, "s1": 0,
-                        "noise": 0}
+                        "s0": 2, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
