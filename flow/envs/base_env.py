@@ -72,7 +72,9 @@ class Env(gym.Env, Serializable):
         self.scenario = scenario
         self.sumo_params = sumo_params
         time_stamp = ''.join(str(time.time()).split('.'))
-        time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)  # 1.0 works with stress_test_start 10k times
+        if os.environ.get("TEST_FLAG", 0):
+            # 1.0 works with stress_test_start 10k times
+            time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
         self.vehicles = scenario.vehicles
         self.traffic_lights = scenario.traffic_lights
