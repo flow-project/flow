@@ -297,7 +297,6 @@ class IDMController(BaseController):
                  b=1.5,
                  delta=4,
                  s0=2,
-                 s1=0,
                  time_delay=0.0,
                  dt=0.1,
                  noise=0,
@@ -321,8 +320,6 @@ class IDMController(BaseController):
             acceleration exponent (default: 4)
         s0: float, optional
             linear jam distance, in m (default: 2)
-        s1: float, optional
-            nonlinear jam distance, in m (default: 0)
         dt: float, optional
             timestep, in s (default: 0.1)
         noise: float, optional
@@ -340,7 +337,6 @@ class IDMController(BaseController):
         self.b = b
         self.delta = delta
         self.s0 = s0
-        self.s1 = s1
         self.dt = dt
 
     def get_accel(self, env):
