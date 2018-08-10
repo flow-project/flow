@@ -1,3 +1,4 @@
+from .version import __version__
 import logging
 from gym.envs.registration import register
 
