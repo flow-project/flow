@@ -22,7 +22,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class TwoLoopsMergeEnv(Env):
+class TwoLoopsMergePOEnv(Env):
     """Environment for training cooperative merging behavior in a closed loop
     merge scenario.
 
