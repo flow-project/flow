@@ -9,10 +9,11 @@ import ray
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
+from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from benchmarks.lanedrop0 import flow_params, env_name, create_env
+from benchmarks.bottleneck0 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 50
@@ -45,6 +46,9 @@ if __name__ == "__main__":
     ray.init(redirect_output=False)
     flow_params["env"].horizon = 1
     horizon = flow_params["env"].horizon
+
+    create_env, env_name = make_create_env(params=flow_params, version=0)
+
     if alg == 'ARS':
         import ray.rllib.ars as ars
         config = ars.DEFAULT_CONFIG.copy()
