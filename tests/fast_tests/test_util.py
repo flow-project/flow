@@ -1,9 +1,17 @@
 import unittest
 import csv
 import os
+import json
+import collections
 
+from flow.core.vehicles import Vehicles
+from flow.core.traffic_lights import TrafficLights
+from flow.controllers import IDMController, ContinuousRouter, RLController
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.util import emission_to_csv
 from flow.utils.warnings import deprecation_warning
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -67,6 +75,152 @@ class TestWarnings(unittest.TestCase):
                          "use bar_new instead.",
             deprecation_warning, Foo(), dep_from, dep_to)
 
+
+class TestRegistry(unittest.TestCase):
+
+    """Tests the methods located in flow/utils/registry.py"""
+
+    def test_make_create_env(self):
+        """blank."""
+        pass
+
+
+class TestRllib(unittest.TestCase):
+
+    """Tests the methods located in flow/utils/rllib.py"""
+
+    def test_encoder_and_get_flow_params(self):
+        """Tests both FlowParamsEncoder and get_flow_params.
+
+        FlowParamsEncoder is used to serialize the data from a flow_params dict
+        for replay by the visualizer later. Then, the get_flow_params method is
+        used to try and read the parameters from the config file, and is
+        checked to match expected results.
+        """
+        # use a flow_params dict derived from flow/benchmarks/figureeight0.py
+        vehicles = Vehicles()
+        vehicles.add(veh_id="human",
+                     acceleration_controller=(IDMController, {"noise": 0.2}),
+                     routing_controller=(ContinuousRouter, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=13)
+        vehicles.add(veh_id="rl",
+                     acceleration_controller=(RLController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=1)
+
+        flow_params = dict(
+            exp_tag="figure_eight_0",
+            env_name="AccelEnv",
+            scenario="Figure8Scenario",
+            generator="Figure8Generator",
+            sumo=SumoParams(
+                sim_step=0.1,
+                sumo_binary="sumo",
+            ),
+            env=EnvParams(
+                horizon=1500,
+                additional_params={
+                    "target_velocity": 20,
+                    "max_accel": 3,
+                    "max_decel": 3,
+                },
+            ),
+            net=NetParams(
+                no_internal_links=False,
+                additional_params={
+                    "radius_ring": 30,
+                    "lanes": 1,
+                    "speed_limit": 30,
+                    "resolution": 40,
+                },
+            ),
+            veh=vehicles,
+            initial=InitialConfig(),
+            tls=TrafficLights(),
+        )
+
+        # create an config dict with space for the flow_params dict
+        config = {"env_config": {}}
+
+        # save the flow params for replay
+        flow_json = json.dumps(flow_params, cls=FlowParamsEncoder,
+                               sort_keys=True, indent=4)
+        config['env_config']['flow_params'] = flow_json
+
+        # dump the config so we can fetch it
+        json_out_file = 'params.json'
+        with open(os.path.expanduser(json_out_file), 'w+') as outfile:
+            json.dump(config, outfile, cls=FlowParamsEncoder,
+                      sort_keys=True, indent=4)
+
+        # fetch values using utility function `get_flow_params`
+        imported_flow_params = get_flow_params(config)
+
+        # delete the created file
+        os.remove(os.path.expanduser('params.json'))
+
+        # TODO(ak): deal with this hack
+        imported_flow_params["initial"].positions = None
+        imported_flow_params["initial"].lanes = None
+        imported_flow_params["net"].in_flows = None
+
+        # make sure the imported flow_params match the originals
+        self.assertTrue(imported_flow_params["env"].__dict__ ==
+                        flow_params["env"].__dict__)
+        self.assertTrue(imported_flow_params["initial"].__dict__ ==
+                        flow_params["initial"].__dict__)
+        self.assertTrue(imported_flow_params["tls"].__dict__ ==
+                        flow_params["tls"].__dict__)
+        self.assertTrue(imported_flow_params["sumo"].__dict__ ==
+                        flow_params["sumo"].__dict__)
+        self.assertTrue(imported_flow_params["net"].__dict__ ==
+                        flow_params["net"].__dict__)
+
+        self.assertTrue(imported_flow_params["exp_tag"] ==
+                        flow_params["exp_tag"])
+        self.assertTrue(imported_flow_params["env_name"] ==
+                        flow_params["env_name"])
+        self.assertTrue(imported_flow_params["scenario"] ==
+                        flow_params["scenario"])
+        self.assertTrue(imported_flow_params["generator"] ==
+                        flow_params["generator"])
+
+        def search_dicts(obj1, obj2):
+            """Searches through dictionaries as well as lists of dictionaries
+            recursively to determine if any two components are mismatched."""
+            for key in obj1.keys():
+                # if an next element is a list, either compare the two lists,
+                # or if the lists contain dictionaries themselves, look at each
+                # dictionary component recursively to check for mismatches
+                if isinstance(obj1[key], list):
+                    if len(obj1[key]) > 0:
+                        if isinstance(obj1[key][0], dict):
+                            for i in range(len(obj1[key])):
+                                if not search_dicts(obj1[key][i], obj2[key][i]):
+                                    return False
+                        elif obj1[key] != obj2[key]:
+                            return False
+                # if the next element is a dict, run through it recursively to
+                # determine if the separate elements of the dict match
+                if isinstance(obj1[key], (dict, collections.OrderedDict)):
+                    if not search_dicts(obj1[key], obj2[key]):
+                        return False
+                # if it is neither a list or a dictionary, compare to determine
+                # if the two elements match
+                elif obj1[key] != obj2[key]:
+                    # if the two elements that are being compared are objects,
+                    # make sure that they are the same type
+                    if not isinstance(obj1[key], type(obj2[key])):
+                        return False
+            return True
+
+        # make sure that the Vehicles class that was imported matches the
+        # original one
+        if not search_dicts(imported_flow_params["veh"].__dict__,
+                            flow_params["veh"].__dict__):
+            raise AssertionError
 
 if __name__ == '__main__':
     unittest.main()

@@ -60,7 +60,7 @@ class TestVehiclesClass(unittest.TestCase):
                      acceleration_controller=(IDMController, {}),
                      speed_mode='no_collide',
                      lane_change_mode="no_lat_collide")
-        self.assertEqual(vehicles.types[0][1]["minGap"], 0)
+        self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
 
         # check that, if the vehicle is a SumoCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
@@ -70,7 +70,8 @@ class TestVehiclesClass(unittest.TestCase):
                      speed_mode='no_collide',
                      lane_change_mode="no_lat_collide")
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]
-        self.assertEqual(vehicles.types[0][1]["minGap"], default_mingap)
+        self.assertEqual(vehicles.types[0]["type_params"]["minGap"],
+                         default_mingap)
 
     def test_add_vehicles_human(self):
         """

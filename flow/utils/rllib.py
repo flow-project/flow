@@ -3,6 +3,7 @@ Utility functions for Flow compatibility with RLlib, including: environment
 generation, serialization, and visualization.
 """
 import json
+from copy import deepcopy
 
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
@@ -21,7 +22,7 @@ class FlowParamsEncoder(json.JSONEncoder):
 
         if obj not in allowed_types:
             if isinstance(obj, Vehicles):
-                res = obj.initial
+                res = deepcopy(obj.initial)
                 for res_i in res:
                     res_i["acceleration_controller"] = \
                         (res_i["acceleration_controller"][0].__name__,
@@ -33,7 +34,7 @@ class FlowParamsEncoder(json.JSONEncoder):
                         res_i["routing_controller"] = \
                             (res_i["routing_controller"][0].__name__,
                              res_i["routing_controller"][1])
-                return obj.initial
+                return res
             if hasattr(obj, '__name__'):
                 return obj.__name__
             else:
@@ -115,7 +116,7 @@ def get_flow_params(config):
 
     tls = TrafficLights()
     if "tls" in flow_params:
-        initial.__dict__ = flow_params["tls"].copy()
+        tls.__dict__ = flow_params["tls"].copy()
 
     flow_params["sumo"] = sumo
     flow_params["env"] = env
