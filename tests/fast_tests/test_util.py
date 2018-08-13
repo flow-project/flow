@@ -282,7 +282,8 @@ class TestRllib(unittest.TestCase):
                     if len(obj1[key]) > 0:
                         if isinstance(obj1[key][0], dict):
                             for i in range(len(obj1[key])):
-                                if not search_dicts(obj1[key][i], obj2[key][i]):
+                                if not search_dicts(obj1[key][i],
+                                                    obj2[key][i]):
                                     return False
                         elif obj1[key] != obj2[key]:
                             return False
@@ -305,6 +306,7 @@ class TestRllib(unittest.TestCase):
         if not search_dicts(imported_flow_params["veh"].__dict__,
                             flow_params["veh"].__dict__):
             raise AssertionError
+
 
 if __name__ == '__main__':
     unittest.main()
