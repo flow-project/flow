@@ -81,8 +81,92 @@ class TestRegistry(unittest.TestCase):
     """Tests the methods located in flow/utils/registry.py"""
 
     def test_make_create_env(self):
-        """blank."""
-        pass
+        """Tests that the make_create_env methods generates an environment with
+        the expected flow parameters."""
+        # use a flow_params dict derived from flow/benchmarks/figureeight0.py
+        vehicles = Vehicles()
+        vehicles.add(veh_id="human",
+                     acceleration_controller=(IDMController, {"noise": 0.2}),
+                     routing_controller=(ContinuousRouter, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=13)
+        vehicles.add(veh_id="rl",
+                     acceleration_controller=(RLController, {}),
+                     routing_controller=(ContinuousRouter, {}),
+                     speed_mode="no_collide",
+                     num_vehicles=1)
+
+        flow_params = dict(
+            exp_tag="figure_eight_0",
+            env_name="AccelEnv",
+            scenario="Figure8Scenario",
+            generator="Figure8Generator",
+            sumo=SumoParams(
+                sim_step=0.1,
+                sumo_binary="sumo",
+            ),
+            env=EnvParams(
+                horizon=1500,
+                additional_params={
+                    "target_velocity": 20,
+                    "max_accel": 3,
+                    "max_decel": 3,
+                },
+            ),
+            net=NetParams(
+                no_internal_links=False,
+                additional_params={
+                    "radius_ring": 30,
+                    "lanes": 1,
+                    "speed_limit": 30,
+                    "resolution": 40,
+                },
+            ),
+            veh=vehicles,
+            initial=InitialConfig(),
+            tls=TrafficLights(),
+        )
+
+        # some random version number for testing
+        v = 23434
+
+        # call make_create_env
+        create_env, env_name = make_create_env(params=flow_params, version=v)
+
+        # check that the name is correct
+        self.assertEqual(env_name, '{}-v{}'.format(flow_params["env_name"], v))
+
+        # create the gym environment
+        env = create_env()
+
+        # Note that we expect the port number is sumo_params to change, and
+        # that this feature is in fact needed to avoid race conditions
+        flow_params["sumo"].port = env.env.sumo_params.port
+
+        # TODO(ak): deal with this hack
+        flow_params["initial"].positions = \
+            env.env.scenario.initial_config.positions
+        flow_params["initial"].lanes = env.env.scenario.initial_config.lanes
+
+        # check that each of the parameter match
+        self.assertEqual(env.env.env_params.__dict__,
+                         flow_params["env"].__dict__)
+        self.assertEqual(env.env.sumo_params.__dict__,
+                         flow_params["sumo"].__dict__)
+        self.assertEqual(env.env.traffic_lights.__dict__,
+                         flow_params["tls"].__dict__)
+        self.assertEqual(env.env.scenario.net_params.__dict__,
+                         flow_params["net"].__dict__)
+        self.assertEqual(env.env.scenario.net_params.__dict__,
+                         flow_params["net"].__dict__)
+        self.assertEqual(env.env.scenario.initial_config.__dict__,
+                         flow_params["initial"].__dict__)
+        self.assertEqual(env.env.__class__.__name__,
+                         flow_params["env_name"])
+        self.assertEqual(env.env.scenario.__class__.__name__,
+                         flow_params["scenario"])
+        self.assertEqual(env.env.scenario.generator_class.__name__,
+                         flow_params["generator"])
 
 
 class TestRllib(unittest.TestCase):
