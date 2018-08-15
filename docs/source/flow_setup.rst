@@ -172,7 +172,7 @@ See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#
 In order to test run an Flow experiment in RLlib, try the following command:
 ::
 
-    python examples/rllab/stabilizing_the_ring.py
+    python examples/rllib/stabilizing_the_ring.py
 
 If it does not fail, this means that you have Flow properly configured with
 RLlib.
