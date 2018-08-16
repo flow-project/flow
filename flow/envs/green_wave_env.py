@@ -1,6 +1,7 @@
 import numpy as np
 import re
 
+from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
@@ -12,7 +13,9 @@ ADDITIONAL_ENV_PARAMS = {
     "switch_time": 2.0,
     # whether the traffic lights should be actuated by sumo or RL
     # options are "controlled" and "actuated"
-    "tl_type": "controlled"
+    "tl_type": "controlled",
+    # determines whether the action space is meant to be discrete or continuous
+    "discrete": False,
 }
 
 
@@ -24,6 +27,10 @@ class TrafficLightGridEnv(Env):
 
     * switch_time: minimum switch time for each traffic light (in seconds).
       Earlier RL commands are ignored.
+    * tl_type: whether the traffic lights should be actuated by sumo or RL
+      options are "controlled" and "actuated"
+    * discrete: determines whether the action space is meant to be discrete or
+      continuous
 
     States
         An observation is the distance of each vehicle to its intersection, a
@@ -90,10 +97,16 @@ class TrafficLightGridEnv(Env):
                     self.edge_mapping[key].append(i)
                     break
 
+        # check whether the action space is meant to be discrete or continuous
+        self.discrete = env_params.additional_params.get("discrete", False)
+
     @property
     def action_space(self):
-        return Box(low=0, high=1, shape=(self.num_traffic_lights,),
-                   dtype=np.float32)
+        if self.discrete:
+            return Discrete(2 ** self.num_traffic_lights)
+        else:
+            return Box(low=0, high=1, shape=(self.num_traffic_lights,),
+                       dtype=np.float32)
 
     @property
     def observation_space(self):
@@ -128,15 +141,17 @@ class TrafficLightGridEnv(Env):
         return np.array(state)
 
     def _apply_rl_actions(self, rl_actions):
+        # check if the action space is discrete
+        if self.discrete:
+            # convert single value to list of 0's and 1's
+            rl_mask = [int(x) for x in list('{0:0b}'.format(rl_actions))]
+            rl_mask = [0] * (self.num_traffic_lights - len(rl_mask)) + rl_mask
+        else:
+            # convert values less than 0.5 to zero and above to 1. 0's indicate
+            # that should not switch the direction
+            rl_mask = rl_actions > 0.5
 
-        if self.env_params.evaluate:
-            return
-
-        # convert values less than 0.5 to zero and above to 1. 0's indicate
-        # that should not switch the direction
-        rl_mask = rl_actions > 0.5
-
-        for i, action in enumerate(rl_actions):
+        for i, action in enumerate(rl_mask):
             # check if our timer has exceeded the yellow phase, meaning it
             # should switch to red
             if self.last_change[i, 2] == 0:  # currently yellow
@@ -152,7 +167,7 @@ class TrafficLightGridEnv(Env):
                             state='rrrGGGrrrGGG', env=self)
                     self.last_change[i, 2] = 1
             else:
-                if rl_mask[i]:
+                if action:
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
@@ -196,8 +211,8 @@ class TrafficLightGridEnv(Env):
         veh_ids: str
             vehicle identifier
 
-        Yields
-        ------
+        Returns
+        -------
         tup
             1st element: distance to closest intersection
             2nd element: intersection ID (which also specifies which side of
@@ -239,8 +254,8 @@ class TrafficLightGridEnv(Env):
         edges: list <str> or str
             name of the edge(s)
 
-        Yields
-        ------
+        Returns
+        -------
         list <int> or int
             a number uniquely identifying each edge
         """

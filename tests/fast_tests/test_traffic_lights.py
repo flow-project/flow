@@ -173,7 +173,7 @@ class TestPOEnv(unittest.TestCase):
         self.assertTrue(self.compare_ordering(ordering))
 
     def test_k_closest(self):
-        self.env.step([])
+        self.env.step(None)
         node_mapping = self.env.scenario.get_node_mapping()
 
         # get the node mapping for node center0
