@@ -5,7 +5,8 @@ from flow.controllers import RLController, IDMController, StaticLaneChanger
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_merges import TwoLoopsMergeEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.loop.loop_merges import TwoLoopsMergePOEnv, \
+    ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
 from flow.scenarios.loop_merge.scenario import TwoLoopsOneMergingScenario
 
@@ -53,7 +54,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
         "loop-merges", TwoLoopOneMergingGenerator, vehicles, net_params,
         initial_config=initial_config)
 
-    env = TwoLoopsMergeEnv(env_params, sumo_params, scenario)
+    env = TwoLoopsMergePOEnv(env_params, sumo_params, scenario)
 
     return env, scenario
 

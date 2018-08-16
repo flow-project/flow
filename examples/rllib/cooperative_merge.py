@@ -73,7 +73,7 @@ flow_params = dict(
     exp_tag="cooperative_merge",
 
     # name of the flow environment the experiment is running on
-    env_name="TwoLoopsMergeEnv",
+    env_name="TwoLoopsMergePOEnv",
 
     # name of the scenario class the experiment is running on
     scenario="TwoLoopsOneMergingScenario",
@@ -91,9 +91,12 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         additional_params={
-            "target_velocity": 20,
-            "max_accel": 1,
-            "max_decel": 1.5,
+            "max_accel": 3,
+            "max_decel": 3,
+            "target_velocity": 10,
+            "n_preceding": 2,
+            "n_following": 2,
+            "n_merging_in": 2,
         },
     ),
 
@@ -103,14 +106,15 @@ flow_params = dict(
         no_internal_links=False,
         additional_params={
             "ring_radius": 50,
-            "lanes": 1,
             "lane_length": 75,
+            "inner_lanes": 1,
+            "outer_lanes": 1,
             "speed_limit": 30,
             "resolution": 40,
         },
     ),
 
-    # vehicles to be placed in the network at the start of a rollout (see
+# vehicles to be placed in the network at the start of a rollout (see
     # flow.core.vehicles.Vehicles)
     veh=vehicles,
 
@@ -118,7 +122,7 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(
         x0=50,
-        spacing="custom",
+        spacing="uniform",
         additional_params={
             "merge_bunching": 0,
         },
