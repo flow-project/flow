@@ -21,12 +21,14 @@ def bay_bridge_bottleneck_example(sumo_binary=None,
     Performs a non-RL simulation of the bottleneck portion of the Oakland-San
     Francisco Bay Bridge. This consists of the toll booth and sections of the
     road leading up to it.
+
     Parameters
     ----------
     sumo_binary: bool, optional
         specifies whether to use sumo's gui during execution
     use_traffic_lights: bool, optional
         whether to activate the traffic lights in the scenario
+
     Note
     ----
     Unlike the bay_bridge_example, inflows are always activated here.
