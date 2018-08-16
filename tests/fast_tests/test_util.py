@@ -140,7 +140,7 @@ class TestRegistry(unittest.TestCase):
         # create the gym environment
         env = create_env()
 
-        # Note that we expect the port number is sumo_params to change, and
+        # Note that we expect the port number in sumo_params to change, and
         # that this feature is in fact needed to avoid race conditions
         flow_params["sumo"].port = env.env.sumo_params.port
 
