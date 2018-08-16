@@ -45,14 +45,26 @@ human-driven agents during the simulation process.
     cd sumo
     git checkout 1d4338ab80
     make -f Makefile.cvs
+
+If you have OSX, run the following commands
+::
     export CPPFLAGS=-I/opt/X11/include
     export LDFLAGS=-L/opt/X11/lib
+
+Now for both OSX and linux run the following command
+::
     ./configure
     make -j$nproc
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
+
+Test your sumo install and version by running the following commands
+::
+    which sumo
+    sumo --version
+    sumo-gui
 
 Flow
 ====
@@ -160,7 +172,7 @@ See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#
 In order to test run an Flow experiment in RLlib, try the following command:
 ::
 
-    python examples/rllab/stabilizing_the_ring.py
+    python examples/rllib/stabilizing_the_ring.py
 
 If it does not fail, this means that you have Flow properly configured with
 RLlib.

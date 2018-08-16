@@ -22,9 +22,9 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class TwoLoopsMergeEnv(Env):
-    """Environment for training cooperative merging behavior in a closed loop
-    merge scenario.
+class TwoLoopsMergePOEnv(Env):
+    """Environment for training cooperative merging behavior in a partially
+    observable closed loop merge scenario.
 
     WARNING: only supports 1 RL vehicle
 

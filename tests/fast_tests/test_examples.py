@@ -3,8 +3,7 @@ import os
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.highway import highway_example
 from examples.sumo.sugiyama import sugiyama_example
-from examples.sumo.two_loops_merge_straight import \
-    two_loops_merge_straight_example
+from examples.sumo.loop_merge import loop_merge_example
 from examples.sumo.grid import grid_example
 from examples.sumo.bottleneck import bottleneck_example
 from examples.sumo.merge import merge_example
@@ -80,12 +79,12 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
-    def test_two_loops_merge_straight(self):
+    def test_loop_merge(self):
         """
         Verifies that examples/sumo/two_loops_merge_straight.py is working
         """
         # import the experiment variable from the example
-        exp = two_loops_merge_straight_example(sumo_binary="sumo")
+        exp = loop_merge_example(sumo_binary="sumo")
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

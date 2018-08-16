@@ -38,7 +38,7 @@ def start():
                             initial_config=initial_config)
 
     env = AccelEnv(env_params, sumo_params, scenario)
-    env.start_sumo()
+    env._close()
 
 
 ray.init()

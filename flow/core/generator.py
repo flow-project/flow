@@ -341,10 +341,10 @@ class Generator(Serializable):
         routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
         # add the types of vehicles to the xml file
-        for vtype, type_params in vehicles.types:
-            type_params_str = {key: str(type_params[key])
-                               for key in type_params}
-            routes.append(E("vType", id=vtype, **type_params_str))
+        for params in vehicles.types:
+            type_params_str = {key: str(params["type_params"][key])
+                               for key in params["type_params"]}
+            routes.append(E("vType", id=params["veh_id"], **type_params_str))
 
         self.vehicle_ids = vehicles.get_ids()
 
