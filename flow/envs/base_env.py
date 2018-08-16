@@ -174,7 +174,7 @@ class Env(gym.Env, Serializable):
                     if os.environ.get("TEST_FLAG", 0):
                         # backoff to decrease likelihood of race condition
                         time_stamp = ''.join(str(time.time()).split('.'))
-                        time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)  # 1.0 for consistency w/ above
+                        time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
                 # command used to start sumo

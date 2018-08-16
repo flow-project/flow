@@ -3,7 +3,7 @@ import os
 
 from flow.core.experiment import SumoExperiment
 from flow.core.vehicles import Vehicles
-from flow.controllers import IDMController, RLController, ContinuousRouter
+from flow.controllers import RLController, ContinuousRouter
 
 from tests.setup_scripts import ring_road_exp_setup
 import numpy as np
