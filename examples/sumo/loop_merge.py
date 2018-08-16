@@ -14,8 +14,9 @@ from flow.scenarios.loop_merge.scenario import \
 from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
 
 
-def two_loops_merge_straight_example(sumo_binary=None):
-    sumo_params = SumoParams(sim_step=0.1, emission_path="./data/",
+def loop_merge_example(sumo_binary=None):
+    sumo_params = SumoParams(sim_step=0.1,
+                             emission_path="./data/",
                              sumo_binary="sumo-gui")
 
     if sumo_binary is not None:
@@ -29,6 +30,7 @@ def two_loops_merge_straight_example(sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=7,
+                 speed_mode="no_collide",
                  sumo_car_following_params=SumoCarFollowingParams(
                      minGap=0.0, tau=0.5),
                  sumo_lc_params=SumoLaneChangeParams())
@@ -37,6 +39,7 @@ def two_loops_merge_straight_example(sumo_binary=None):
                  lane_change_controller=(SumoLaneChangeController, {}),
                  routing_controller=(ContinuousRouter, {}),
                  num_vehicles=10,
+                 speed_mode="no_collide",
                  sumo_car_following_params=SumoCarFollowingParams(
                      minGap=0.01, tau=0.5),
                  sumo_lc_params=SumoLaneChangeParams())
@@ -74,7 +77,7 @@ def two_loops_merge_straight_example(sumo_binary=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = two_loops_merge_straight_example()
+    exp = loop_merge_example()
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500, convert_to_csv=True)

@@ -72,7 +72,9 @@ class Env(gym.Env, Serializable):
         self.scenario = scenario
         self.sumo_params = sumo_params
         time_stamp = ''.join(str(time.time()).split('.'))
-        time.sleep(8.0 * int(time_stamp[-6:]) / 1e6)
+        if os.environ.get("TEST_FLAG", 0):
+            # 1.0 works with stress_test_start 10k times
+            time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
         self.vehicles = scenario.vehicles
         self.traffic_lights = scenario.traffic_lights
@@ -172,7 +174,8 @@ class Env(gym.Env, Serializable):
                     if os.environ.get("TEST_FLAG", 0):
                         # backoff to decrease likelihood of race condition
                         time_stamp = ''.join(str(time.time()).split('.'))
-                        time.sleep(2.0 * int(time_stamp[-6:]) / 1e6)
+                        # 1.0 for consistency w/ above
+                        time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
                 # command used to start sumo
@@ -602,7 +605,7 @@ class Env(gym.Env, Serializable):
         """Additional commands that may be performed by the step method."""
         pass
 
-    def apply_rl_actions(self, rl_actions=list()):
+    def apply_rl_actions(self, rl_actions=None):
         """Specifies the actions to be performed by the rl agent(s).
 
         If no actions are provided at any given step, the rl agents default to
@@ -614,7 +617,7 @@ class Env(gym.Env, Serializable):
             list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued
-        if len(rl_actions) == 0:
+        if rl_actions is None:
             return
 
         # clip according to the action space requirements
