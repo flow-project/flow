@@ -29,8 +29,8 @@ class IntersectionEnv(Env):
         veh_ids: str
             vehicle identifier
 
-        Yields
-        ------
+        Returns
+        -------
         tup
             1st element: distance to closest intersection
             2nd element: intersection ID (which also specifies which side of
