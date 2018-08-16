@@ -19,7 +19,7 @@ HORIZON = 1500
 
 def run_task(*_):
     sumo_params = SumoParams(sim_step=0.1,
-                             sumo_binary="sumo")
+                             sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
     vehicles.add(veh_id="rl",
