@@ -255,7 +255,7 @@ class Vehicles:
         # increase the number of unique types of vehicles in the network, and
         # add the type to the list of types
         self.num_types += 1
-        self.types.append((veh_id, type_params))
+        self.types.append({"veh_id": veh_id, "type_params": type_params})
 
     def update(self, vehicle_obs, sim_obs, env):
         """Updates the vehicle class with data pertaining to the vehicles at
