@@ -7,7 +7,8 @@ import collections
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
+    InFlows
 from flow.core.util import emission_to_csv
 from flow.utils.warnings import deprecation_warning
 from flow.utils.registry import make_create_env
@@ -181,43 +182,58 @@ class TestRllib(unittest.TestCase):
         used to try and read the parameters from the config file, and is
         checked to match expected results.
         """
-        # use a flow_params dict derived from flow/benchmarks/figureeight0.py
+        # use a flow_params dict derived from flow/benchmarks/merge0.py
         vehicles = Vehicles()
         vehicles.add(veh_id="human",
-                     acceleration_controller=(IDMController, {"noise": 0.2}),
-                     routing_controller=(ContinuousRouter, {}),
+                     acceleration_controller=(IDMController, {}),
                      speed_mode="no_collide",
-                     num_vehicles=13)
+                     num_vehicles=5)
         vehicles.add(veh_id="rl",
                      acceleration_controller=(RLController, {}),
-                     routing_controller=(ContinuousRouter, {}),
                      speed_mode="no_collide",
-                     num_vehicles=1)
+                     num_vehicles=0)
+
+        inflow = InFlows()
+        inflow.add(veh_type="human", edge="inflow_highway",
+                   vehs_per_hour=1800,
+                   departLane="free", departSpeed=10)
+        inflow.add(veh_type="rl", edge="inflow_highway",
+                   vehs_per_hour=200,
+                   departLane="free", departSpeed=10)
+        inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
+                   departLane="free", departSpeed=7.5)
 
         flow_params = dict(
-            exp_tag="figure_eight_0",
-            env_name="AccelEnv",
-            scenario="Figure8Scenario",
-            generator="Figure8Generator",
+            exp_tag="merge_0",
+            env_name="WaveAttenuationMergePOEnv",
+            scenario="MergeScenario",
+            generator="MergeGenerator",
             sumo=SumoParams(
-                sim_step=0.1,
+                restart_instance=True,
+                sim_step=0.5,
                 sumo_binary="sumo",
             ),
             env=EnvParams(
-                horizon=1500,
+                horizon=750,
+                sims_per_step=2,
+                warmup_steps=0,
                 additional_params={
+                    "max_accel": 1.5,
+                    "max_decel": 1.5,
                     "target_velocity": 20,
-                    "max_accel": 3,
-                    "max_decel": 3,
+                    "num_rl": 5,
                 },
             ),
             net=NetParams(
+                in_flows=inflow,
                 no_internal_links=False,
                 additional_params={
-                    "radius_ring": 30,
-                    "lanes": 1,
+                    "merge_length": 100,
+                    "pre_merge_length": 500,
+                    "post_merge_length": 100,
+                    "merge_lanes": 1,
+                    "highway_lanes": 1,
                     "speed_limit": 30,
-                    "resolution": 40,
                 },
             ),
             veh=vehicles,
@@ -248,9 +264,15 @@ class TestRllib(unittest.TestCase):
         # TODO(ak): deal with this hack
         imported_flow_params["initial"].positions = None
         imported_flow_params["initial"].lanes = None
-        imported_flow_params["net"].in_flows = None
 
-        # make sure the imported flow_params match the originals
+        # test that this inflows are correct
+        self.assertTrue(imported_flow_params["net"].in_flows.__dict__ ==
+                        flow_params["net"].in_flows.__dict__)
+
+        imported_flow_params["net"].in_flows = None
+        flow_params["net"].in_flows = None
+
+        # make sure the rest of the imported flow_params match the originals
         self.assertTrue(imported_flow_params["env"].__dict__ ==
                         flow_params["env"].__dict__)
         self.assertTrue(imported_flow_params["initial"].__dict__ ==
