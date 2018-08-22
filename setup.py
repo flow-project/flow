@@ -4,7 +4,7 @@ from os.path import dirname, realpath
 from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
 import subprocess
-from .flow.version import __version__
+from flow.version import __version__
 
 
 def _read_requirements_file():
