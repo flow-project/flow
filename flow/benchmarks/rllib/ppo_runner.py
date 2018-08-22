@@ -8,7 +8,7 @@ parameters can be specified here once and used on multiple environments.
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -60,10 +60,5 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": 5},
             "repeat": 1,
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
-            },
         },
     })

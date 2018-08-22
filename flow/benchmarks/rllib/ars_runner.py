@@ -8,7 +8,7 @@ parameters can be specified here once and used on multiple environments.
 import json
 
 import ray
-import ray.rllib.ars as ars
+import ray.rllib.agents.ars as ars
 from ray.tune import run_experiments, grid_search
 from ray.tune.registry import register_env
 
@@ -60,10 +60,5 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": 500},
             "repeat": 3,
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
-            },
         },
     })

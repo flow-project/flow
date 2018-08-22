@@ -5,7 +5,7 @@ merges in an open network.
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -118,7 +118,7 @@ flow_params = dict(
 
 
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
+    ray.init(num_cpus=PARALLEL_ROLLOUTS+1, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
@@ -155,10 +155,5 @@ if __name__ == "__main__":
                 "training_iteration": 200,
             },
             "repeat": 3,
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
-            },
         },
     })
