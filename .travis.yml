@@ -1,0 +1,84 @@
+language: python
+
+python:
+  - "3.5"
+
+sudo: required
+
+before_install:
+  # Setup conda (needed for opencv, ray dependency)
+  # WARNING: enforces py3.6
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - export TEST_FLAG="True"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - python -V
+
+  # Requirements for ray
+  - pip install tensorflow
+
+  # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
+  - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/22c7c87e1450a06bd0fdcfa7b6c1b15565b2f336/ray-0.3.0-cp36-cp36m-manylinux1_x86_64.whl
+  # - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
+  - pip install gym==0.10.5
+
+  # Copy over local rllib changes (testing branch)
+  - pushd $HOME/build/berkeleyflow
+  -     git clone https://github.com/eugenevinitsky/ray.git
+  -     pushd ray
+  -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
+  -         rm -rf $RAY_SITE_DIR/rllib
+  -         ls $RAY_SITE_DIR
+  -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
+  -     popd
+  - popd
+
+  # [sumo] dependencies and binaries
+  - sudo apt-get update
+  # - sudo apt-get upgrade -y
+  - sudo apt-get install -y subversion autoconf build-essential libtool
+  - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
+  - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
+  - sudo apt-get install -y libfox-1.6-dev
+  - pushd $HOME/build/berkeleyflow
+  -     mkdir -p sumo/bin
+  -     pushd sumo/bin
+  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
+  -         chmod u+x sumo
+  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
+  -         chmod u+x netconvert
+  -     popd
+  -     export SUMO_HOME="$HOME/build/berkeleyflow/sumo"
+  -     export PATH="$SUMO_HOME/bin:$PATH"
+  # -     LD_DEBUG=libs sumo  # debug sumo library dependencies
+  # -     LD_DEBUG=libs netconvert  # debug netconvert library dependencies
+  #     [sumo] Add data directory
+  -     pushd sumo
+  -         wget https://s3.amazonaws.com/cathywu/sumo/data.tar.gz
+  -         tar xzf data.tar.gz
+  -     popd
+  #     [sumo] Add python tools traci and sumolib
+  -     mkdir -p sumo/tools
+  -     pushd sumo/tools
+  -         wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
+  -         tar xzf traci.tar.gz
+  -         wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
+  -         tar xzf sumolib.tar.gz
+  -         export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+  -     popd
+  - popd
+
+  - ls ../
+
+install:
+  - pip install flake8 .
+
+before_script:
+  - flake8 --show-source
+
+script:
+  - nose2
