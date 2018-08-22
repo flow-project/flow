@@ -1,22 +1,39 @@
 import logging
+import random
 import numpy as np
-from collections import OrderedDict
+import time
+import os
 
-from rllab.core.serializable import Serializable
+try:
+    # Import serializable if rllab is installed
+    from rllab.core.serializable import Serializable
+except ImportError:
+    Serializable = object
 
-from flow.core.generator import Generator
 from flow.core.params import InitialConfig
-from flow.controllers.rlcontroller import RLController
+from flow.core.traffic_lights import TrafficLights
+
+VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
 class Scenario(Serializable):
+
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=InitialConfig()):
-        """
-        Abstract base class. Initializes a new scenario. This class can be
-        instantiated once and reused in multiple experiments. Note that this
-        function stores all the relevant parameters. The generate() function
-        still needs to be called separately.
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
+        """Base scenario class.
+
+        Initializes a new scenario. Scenarios are used to specify features of
+        a network, including the positions of nodes, properties of the edges
+        and junctions connecting these nodes, properties of vehicles and
+        traffic lights, and other features as well.
+
+        Several network specific features can be acquired from this class via a
+        plethora of get methods (see documentation).
+
+        This class can be instantiated once and reused in multiple experiments.
+        Note that this function stores all the relevant parameters. The
+        generate() function still needs to be called separately.
 
         Attributes
         ----------
@@ -31,19 +48,38 @@ class Scenario(Serializable):
             see flow/core/params.py
         initial_config: InitialConfig type
             see flow/core/params.py
-
-        Raises
-        ------
-        ValueError
-            If no "length" is provided in net_params
+        traffic_lights: flow.core.traffic_lights.TrafficLights type
+            see flow/core/traffic_lights.py
         """
-        Serializable.quick_init(self, locals())
+        # Invoke serializable if using rllab
+        if Serializable is not object:
+            Serializable.quick_init(self, locals())
 
-        self.name = name
+        self.orig_name = name  # To avoid repeated concatenation upon reset
+        self.name = name + time.strftime("_%Y%m%d-%H%M%S")
+
         self.generator_class = generator_class
         self.vehicles = vehicles
         self.net_params = net_params
         self.initial_config = initial_config
+        self.traffic_lights = traffic_lights
+
+        # create a generator instance
+        self.generator = self.generator_class(self.net_params, self.name)
+
+        # create the network configuration file from the generator
+        self._edges, self._connections = self.generator.generate_net(
+            self.net_params, self.traffic_lights)
+
+        # list of edges and internal links (junctions)
+        self._edge_list = [edge_id for edge_id in self._edges.keys()
+                           if edge_id[0] != ":"]
+        self._junction_list = list(set(self._edges.keys()) -
+                                   set(self._edge_list))
+
+        # maximum achievable speed on any edge in the network
+        self.max_speed = max(self.speed_limit(edge)
+                             for edge in self.get_edge_list())
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -62,6 +98,7 @@ class Scenario(Serializable):
         self.internal_edgestarts = \
             [item for item in self.internal_edgestarts
              if item[1] not in seen and not seen.add(item[1])]
+        self.internal_edgestarts_dict = dict(self.internal_edgestarts)
 
         # total_edgestarts and total_edgestarts_dict contain all of the above
         # edges, with the former being ordered by position
@@ -73,26 +110,31 @@ class Scenario(Serializable):
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
-        # length of the network, or the portion of the network in which cars are
-        # meant to be distributed (to be calculated during subclass __init__(),
-        # or specified in net_params)
+        # length of the network, or the portion of the network in
+        # which cars are meant to be distributed
+        # (may be overridden by subclass __init__())
         if not hasattr(self, "length"):
-            if "length" in self.net_params.additional_params:
-                self.length = self.net_params.additional_params["length"]
-            else:
-                raise ValueError("The network does not have a specified length.")
+            self.length = sum([self.edge_length(edge_id)
+                               for edge_id in self.get_edge_list()])
 
         # generate starting position for vehicles in the network
         if self.initial_config.positions is None:
             self.initial_config.positions, self.initial_config.lanes = \
                 self.generate_starting_positions()
 
-        self.cfg = self.generate()
+        # create the sumo configuration files using the generator class
+        cfg_name = self.generator.generate_cfg(self.net_params,
+                                               self.traffic_lights)
+
+        self.generator.make_routes(self, self.initial_config)
+
+        # specify the location of the sumo configuration file
+        self.cfg = self.generator.cfg_path + cfg_name
 
     def specify_edge_starts(self):
-        """
-        Defines edge starts for road sections with respect to some global
+        """Defines edge starts for road sections with respect to some global
         reference frame.
+
         MUST BE implemented in any new scenario subclass.
 
         Returns
@@ -104,11 +146,12 @@ class Scenario(Serializable):
         raise NotImplementedError
 
     def specify_intersection_edge_starts(self):
-        """
-        Defines edge starts for intersections with respect to some global
-        reference frame. Need not be specified if no intersections exist.
-        These values can be used to determine the distance of some agent from
-        the nearest and/or all intersections.
+        """Defines edge starts for intersections with respect to some global
+        reference frame.
+
+        This does not need to be specified if no intersections exist. These
+        values can be used to determine the distance of some agent from the
+        nearest and/or all intersections.
 
         Returns
         -------
@@ -119,11 +162,11 @@ class Scenario(Serializable):
         return []
 
     def specify_internal_edge_starts(self):
-        """
-        Defines the edge starts for internal edge nodes (caused by finite-length
-        connections between road sections) with respect to some global reference
-        frame. Does not need to be specified if "no-internal-links" is set to
-        True in net_params.
+        """Defines the edge starts for internal edge nodes.
+
+        These edges are the result of finite-length connections between road
+        sections. This methods does not need to be specified if "no-internal-
+        links" is set to True in net_params.
 
         Returns
         -------
@@ -133,29 +176,9 @@ class Scenario(Serializable):
         """
         return []
 
-    def generate(self):
-        """
-        Applies self.generator_class to create a net and corresponding cfg
-        files, including placement of vehicles (name.rou.xml).
-
-        Returns
-        -------
-        cfg: str
-            path to configuration (.sumo.cfg) file
-        """
-        logging.info("Config file not defined, generating using generator")
-
-        self.generator = self.generator_class(self.net_params, self.name)
-        self.generator.generate_net(self.net_params)
-        cfg_name = self.generator.generate_cfg(self.net_params)
-        self.generator.make_routes(self, self.initial_config)
-
-        return self.generator.cfg_path + cfg_name
-
     def get_edge(self, x):
-        """
-        Given an absolute position x on the track, returns the edge (name) and
-        relative position on that edge.
+        """Given an absolute position x on the track, returns the edge (name)
+        and relative position on that edge.
 
         Parameters
         ----------
@@ -168,20 +191,13 @@ class Scenario(Serializable):
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
-        starte = ""
-        startx = 0
-
-        for (e, s) in self.total_edgestarts:
-            if x >= s:
-                starte = e
-                startx = x - s
-
-        return starte, startx
+        for (edge, start_pos) in reversed(self.total_edgestarts):
+            if x >= start_pos:
+                return edge, x - start_pos
 
     def get_x(self, edge, position):
-        """
-        Given an edge name and relative position, return the absolute position
-        on the track.
+        """Given an edge name and relative position, return the absolute
+        position on the track.
 
         Parameters
         ----------
@@ -195,20 +211,32 @@ class Scenario(Serializable):
         absolute_position: float
             position with respect to some global reference
         """
-        if edge in dict(self.edgestarts).keys():
-            return self.total_edgestarts_dict[edge] + position
-        else:
-            for edge_tuple in self.internal_edgestarts:
-                if edge_tuple[0] in edge:
-                    return edge_tuple[1] + position
+        # if there was a collision which caused the vehicle to disappear,
+        # return an x value of -1001
+        if len(edge) == 0:
+            return -1001
 
-    def generate_starting_positions(self, **kwargs):
-        """
-        Generates starting positions for vehicles in the network. Calls all
-        other starting position generating classes.
+        if edge[0] == ":":
+            try:
+                return self.internal_edgestarts_dict[edge] + position
+            except KeyError:
+                # in case several internal links are being generalized for
+                # by a single element (for backwards compatibility)
+                edge_name = edge.rsplit("_", 1)[0]
+                return self.total_edgestarts_dict.get(edge_name, -1001)
+        else:
+            return self.total_edgestarts_dict[edge] + position
+
+    def generate_starting_positions(self, num_vehicles=None, **kwargs):
+        """Generates starting positions for vehicles in the network.
+
+        Calls all other starting position generating classes.
 
         Parameters
         ----------
+        num_vehicles: int, optional
+            number of vehicles to be placed on the network. If no value is
+            specified, the value is collected from the vehicles class
         kwargs: dict
             additional arguments that may be updated beyond initial
             configurations, such as modifying the starting position
@@ -220,31 +248,38 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
-        if self.initial_config.spacing == "gaussian_additive":
-            startpositions, startlanes = \
-                self.gen_gaussian_additive_start_pos(self.initial_config, **kwargs)
-        elif self.initial_config.spacing == "gaussian":
-            startpositions, startlanes = \
-                self.gen_gaussian_start_pos(self.initial_config, **kwargs)
-        elif self.initial_config.spacing == "uniform":
-            startpositions, startlanes = \
-                self.gen_even_start_pos(self.initial_config, **kwargs)
+        num_vehicles = num_vehicles or self.vehicles.num_vehicles
+
+        if self.initial_config.spacing == "uniform":
+            startpositions, startlanes = self.gen_even_start_pos(
+                self.initial_config, num_vehicles, **kwargs)
+        elif self.initial_config.spacing == "random":
+            startpositions, startlanes = self.gen_random_start_pos(
+                self.initial_config, num_vehicles, **kwargs)
         elif self.initial_config.spacing == "custom":
-            startpositions, startlanes = \
-                self.gen_custom_start_pos(self.initial_config, **kwargs)
+            startpositions, startlanes = self.gen_custom_start_pos(
+                self.initial_config, num_vehicles, **kwargs)
         else:
-            raise ValueError('"spacing" argument in initial_config does not contain a valid option')
+            raise ValueError('"spacing" argument in initial_config does not '
+                             'contain a valid option')
 
         return startpositions, startlanes
 
-    def gen_even_start_pos(self, initial_config, **kwargs):
-        """
-        Generates start positions that are uniformly spaced across the network.
+    def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
+        """Generates start positions that are uniformly spaced across the
+        network.
+
+        If the perturbation term in initial_config is set to some positive
+        value, then the start positions are perturbed from a uniformly spaced
+        distribution by a gaussian whose std is equal to this perturbation
+        term.
 
         Parameters
         ----------
         initial_config: InitialConfig type
             see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -256,99 +291,93 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
-        x0 = initial_config.x0
-        # changes to x0 in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
+        (x0, min_gap, bunching, lanes_distr, available_length,
+         available_edges, initial_config) = \
+            self._get_start_pos_util(initial_config, num_vehicles, **kwargs)
 
-        bunching = initial_config.bunching
-        # check if requested bunching value is not valid (negative)
-        if bunching < 0:
-            logging.warning('"bunching" cannot be negative; setting to 0')
-            bunching = 0
-        # changes to bunching in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "bunching" in kwargs:
-            bunching = kwargs["bunching"]
+        increment = available_length / num_vehicles
 
-        distribution_length = self.length
-        if initial_config.distribution_length is not None:
-            if initial_config.distribution_length > self.length:
-                logging.warning('"distribution_length" cannot be larger than '
-                                'the length of network; setting to max value')
-            else:
-                distribution_length = initial_config.distribution_length
+        # if not all lanes are equal, then we must ensure that vehicles are in
+        # two edges at the same time
+        flag = False
+        lanes = [self.num_lanes(edge) for edge in self.get_edge_list()]
+        if any(lanes[0] != lanes[i] for i in range(1, len(lanes))):
+            flag = True
 
-        if initial_config.lanes_distribution > self.lanes:
-            logging.warning('"lanes_distribution" is greater than the number '
-                            'of lanes in the network; distributing over all '
-                            'lanes instead.')
-            lanes_distribution = self.lanes
-        elif initial_config.lanes_distribution < 1:
-            logging.warning('"lanes_distribution" is too small; setting to 1')
-            lanes_distribution = 1
-        else:
-            lanes_distribution = initial_config.lanes_distribution
-
-        startpositions = []
-        startlanes = []
-        increment = (distribution_length - bunching) / np.ceil(
-            self.vehicles.num_vehicles / lanes_distribution)
-
-        if increment < 5:  # 5 is the length of all vehicles
-            logging.warning("distribution is too compact; replacing with tight"
-                            " (zero headway) starting positions")
-            increment = 5
-
-        x = [x0] * lanes_distribution
+        x = x0
         car_count = 0
-        lane_count = 0
-        while car_count < self.vehicles.num_vehicles:
+        startpositions, startlanes = [], []
+
+        # generate uniform starting positions
+        while car_count < num_vehicles:
             # collect the position and lane number of each new vehicle
-            pos = self.get_edge(x[lane_count])
+            pos = self.get_edge(x)
 
             # ensures that vehicles are not placed in an internal junction
             while pos[0] in dict(self.internal_edgestarts).keys():
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
+                indx_edge = next(i for i, edge in enumerate(edges)
+                                 if edge == pos[0])
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
-                if indx_edge == len(edges)-1:
+                if indx_edge == len(edges) - 1:
                     next_edge_pos = self.total_edgestarts[0]
                 else:
-                    next_edge_pos = self.total_edgestarts[indx_edge+1]
+                    next_edge_pos = self.total_edgestarts[indx_edge + 1]
 
-                x[lane_count] = next_edge_pos[1]
+                x = next_edge_pos[1]
                 pos = (next_edge_pos[0], 0)
 
-            startpositions.append(pos)
-            startlanes.append(lane_count)
+            # ensures that you are in an acceptable edge
+            while pos[0] not in available_edges:
+                x = (x + self.edge_length(pos[0])) % self.length
+                pos = self.get_edge(x)
 
-            x[lane_count] = (x[lane_count] + increment) % self.length
+            # ensure that in variable lane settings vehicles always start a
+            # vehicle's length away from the start of the edge. This, however,
+            # prevents the spacing to be completely uniform.
+            if flag and pos[1] < VEHICLE_LENGTH:
+                pos0, pos1 = pos
+                pos = (pos0, VEHICLE_LENGTH)
+                x += VEHICLE_LENGTH
+                increment -= (VEHICLE_LENGTH * self.num_lanes(pos0)) / \
+                             (num_vehicles - car_count)
 
-            # increment the car_count and lane_num
-            car_count += 1
-            lane_count += 1
-            # if the lane num exceeds the number of lanes the vehicles should be
-            # distributed on in the network, reset
-            if lane_count >= lanes_distribution:
-                lane_count = 0
+            # place vehicles side-by-side in all available lanes on this edge
+            for lane in range(min([self.num_lanes(pos[0]), lanes_distr])):
+                car_count += 1
+                startpositions.append(pos)
+                startlanes.append(lane)
+
+                if car_count == num_vehicles:
+                    break
+
+            x = (x + increment + VEHICLE_LENGTH + min_gap) % self.length
+
+        # add a perturbation to each vehicle, while not letting the vehicle
+        # leave its current edge
+        if initial_config.perturbation > 0:
+            for i in range(num_vehicles):
+                perturb = np.random.normal(0, initial_config.perturbation)
+                edge, pos = startpositions[i]
+                pos = max(0, min(self.edge_length(edge), pos + perturb))
+                startpositions[i] = (edge, pos)
 
         return startpositions, startlanes
 
-    def gen_gaussian_start_pos(self, initial_config, **kwargs):
-        """
-        Generates start positions that are perturbed from a uniformly spaced
-        distribution by some gaussian noise.
+    def gen_random_start_pos(self, initial_config, num_vehicles, **kwargs):
+        """Generates random starting positions for vehicles in the allocated
+        lanes and edges.
 
         Parameters
         ----------
         initial_config: InitialConfig type
             see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -360,220 +389,72 @@ class Scenario(Serializable):
         startlanes: list
             list of start lanes
         """
-        x0 = initial_config.x0
-        # changes to x0 in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
+        (x0, min_gap, bunching, lanes_distr, available_length,
+         available_edges, initial_config) = self._get_start_pos_util(
+            initial_config, num_vehicles, **kwargs)
 
-        bunching = initial_config.bunching
-        # check if requested bunching value is not valid (negative)
-        if bunching < 0:
-            logging.warning('"bunching" cannot be negative; setting to 0')
-            bunching = 0
-        # changes to bunching in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "bunching" in kwargs:
-            bunching = kwargs["bunching"]
+        # extra space a vehicle needs to cover from the start of an edge to be
+        # fully in the edge and not risk having a gap with a vehicle behind it
+        # that is smaller than min_gap
+        efs = min_gap + VEHICLE_LENGTH  # extra front space
 
-        distribution_length = self.length
-        if initial_config.distribution_length is not None:
-            if initial_config.distribution_length > self.length:
-                logging.warning('"distribution_length" cannot be larger than '
-                                'the length of network; setting to max value')
-            else:
-                distribution_length = initial_config.distribution_length
+        for edge in available_edges:
+            available_length -= efs * min([self.num_lanes(edge), lanes_distr])
 
-        if initial_config.lanes_distribution > self.lanes:
-            logging.warning('"lanes_distribution" is greater than the number '
-                            'of lanes in the network; distributing over all '
-                            'lanes instead.')
-            lanes_distribution = self.lanes
-        elif initial_config.lanes_distribution < 1:
-            logging.warning('"lanes_distribution" is too small; setting to 1')
-            lanes_distribution = 1
-        else:
-            lanes_distribution = initial_config.lanes_distribution
+        # choose random positions for each vehicle
+        init_absolute_pos = \
+            [random.random() * available_length
+             for _ in range(num_vehicles)]
 
+        # sort the positions of vehicles, for simplicity in using
+        init_absolute_pos.sort()
+
+        # these positions do not include the length of the vehicle, which need
+        # to be added
+        for i in range(num_vehicles):
+            init_absolute_pos[i] += (VEHICLE_LENGTH + min_gap) * i
+
+        decrement = 0
+        edge_indx = 0
         startpositions = []
         startlanes = []
-        increment = (distribution_length - bunching) / np.ceil(
-            self.vehicles.num_vehicles / lanes_distribution)
+        for i in range(num_vehicles):
+            edge_i = available_edges[edge_indx]
+            pos_i = (init_absolute_pos[i] - decrement) % (
+                    self.edge_length(edge_i) - efs)
+            lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
+                         (self.edge_length(edge_i) - efs))
 
-        # if the increment is too small, bunch vehicles as close together as
-        # possible
-        if increment < 5:  # 5 is the length of all vehicles
-            return self.gen_even_start_pos(initial_config, **kwargs)
+            pos_i += efs
 
-        x = [x0] * lanes_distribution
-        x_start = np.array([])
-        car_count = 0
-        lane_count = 0
-        while car_count < self.vehicles.num_vehicles:
-            # collect the position and lane number of each new vehicle
-            x_start = np.append(x_start, x[lane_count])
-            startlanes.append(lane_count)
+            while lane_i > min([self.num_lanes(edge_i), lanes_distr]) - 1:
+                decrement += min([self.num_lanes(edge_i), lanes_distr]) \
+                             * (self.edge_length(edge_i) - efs)
+                edge_indx += 1
 
-            x[lane_count] = (x[lane_count] + increment) % distribution_length
+                edge_i = available_edges[edge_indx]
+                pos_i = (init_absolute_pos[i] - decrement) % (
+                        self.edge_length(edge_i) - efs)
 
-            # increment the car_count and lane_num
-            car_count += 1
-            lane_count += 1
-            # if the lane num exceeds the number of lanes the vehicles should
-            # be distributed on in the network, reset
-            if lane_count >= lanes_distribution:
-                lane_count = 0
+                lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
+                             (self.edge_length(edge_i) - efs))
 
-        # perturb from uniform distribution
-        for i in range(len(x_start)):
-            perturb = np.random.normal(loc=0, scale=initial_config.scale)
-            x_start[i] = (x_start[i] + perturb) % distribution_length
+                pos_i += efs
 
-            pos = self.get_edge(x_start[i])
-
-            # ensures that vehicles are not placed in an internal junction
-            while pos[0] in dict(self.internal_edgestarts).keys():
-                # find the location of the internal edge in total_edgestarts,
-                # which has the edges ordered by position
-                edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
-
-                # take the next edge in the list, and place the car at the
-                # beginning of this edge
-                if indx_edge == len(edges)-1:
-                    next_edge_pos = self.total_edgestarts[0]
-                else:
-                    next_edge_pos = self.total_edgestarts[indx_edge+1]
-
-                x[lane_count] = next_edge_pos[1]
-                pos = (next_edge_pos[0], 0)
-
-            startpositions.append(pos)
+            startpositions.append((edge_i, pos_i))
+            startlanes.append(lane_i)
 
         return startpositions, startlanes
 
-    def gen_gaussian_additive_start_pos(self, initial_config, **kwargs):
-        """
-        Generate random start positions via additive Gaussian.
-        WARNING: this does not absolutely gaurantee that the order of
-        vehicles is preserved.
+    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+        """Generates a user defined set of starting positions.
 
         Parameters
         ----------
         initial_config: InitialConfig type
             see flow/core/params.py
-        kwargs: dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
-
-        Returns
-        -------
-        startpositions: list
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
-            list of start lanes
-        """
-        x0 = initial_config.x0
-        # changes to x0 in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
-
-        bunching = initial_config.bunching
-        # check if requested bunching value is not valid (negative)
-        if bunching < 0:
-            logging.warning('"bunching" cannot be negative; setting to 0')
-            bunching = 0
-        # changes to bunching in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "bunching" in kwargs:
-            bunching = kwargs["bunching"]
-
-        distribution_length = self.length
-        if initial_config.distribution_length is not None:
-            if initial_config.distribution_length > self.length:
-                logging.warning('"distribution_length" cannot be larger than '
-                                'the length of network; setting to max value')
-            else:
-                distribution_length = initial_config.distribution_length
-
-        if initial_config.lanes_distribution > self.lanes:
-            logging.warning('"lanes_distribution" is greater than the number '
-                            'of lanes in the network; distributing over all '
-                            'lanes instead.')
-            lanes_distribution = self.lanes
-        elif initial_config.lanes_distribution < 1:
-            logging.warning('"lanes_distribution" is too small; setting to 1')
-            lanes_distribution = 1
-        else:
-            lanes_distribution = initial_config.lanes_distribution
-
-        startpositions = []
-        startlanes = []
-        mean = (distribution_length - bunching) / np.ceil(
-            self.vehicles.num_vehicles / lanes_distribution)
-
-        # if the mean (increment) is too small, bunch vehicles as close together
-        # as possible
-        if mean < 5:  # 5 is the length of all vehicles
-            return self.gen_even_start_pos(initial_config, **kwargs)
-
-        x = [x0] * lanes_distribution
-        car_count = 0
-        lane_count = 0
-        while car_count < self.vehicles.num_vehicles:
-
-            pos = self.get_edge(x[lane_count])
-
-            # ensures that vehicles are not placed in an internal junction
-            while pos[0] in dict(self.internal_edgestarts).keys():
-                # find the location of the internal edge in total_edgestarts,
-                # which has the edges ordered by position
-                edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = [i for i in range(len(edges)) if edges[i] == pos[0]][0]
-
-                # take the next edge in the list, and place the car at the
-                # beginning of this edge
-                if indx_edge == len(edges)-1:
-                    next_edge_pos = self.total_edgestarts[0]
-                else:
-                    next_edge_pos = self.total_edgestarts[indx_edge+1]
-
-                x[lane_count] = next_edge_pos[1]
-                pos = (next_edge_pos[0], 0)
-
-            # collect the position and lane number of each new vehicle
-            startpositions.append(pos)
-            startlanes.append(lane_count)
-
-            # calculate the increment given the mean, and ensure that the
-            # increment is never too large or too small (between 0 and the
-            # length of the network)
-            increment = np.clip(
-                np.random.normal(scale=mean/initial_config.downscale, loc=mean),
-                a_min=0, a_max=self.length
-            )
-
-            x[lane_count] = (x[lane_count] + increment) % self.length
-
-            # increment the car_count and lane_num
-            car_count += 1
-            lane_count += 1
-            # if the lane num exceeds the number of lanes the vehicles should
-            # be distributed on in the network, reset
-            if lane_count >= lanes_distribution:
-                lane_count = 0
-
-        return startpositions, startlanes
-
-    def gen_custom_start_pos(self, initial_config, **kwargs):
-        """
-        Generates a user defined set of starting postions. Optional
-
-        Parameters
-        ----------
-        initial_config: InitialConfig type
-            see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
         kwargs: dict
             extra components, usually defined during reset to overwrite initial
             config parameters
@@ -587,6 +468,183 @@ class Scenario(Serializable):
         """
         raise NotImplementedError
 
+    def _get_start_pos_util(self, initial_config, num_vehicles, **kwargs):
+        """Utility function for generating starting position.
+
+        Performs some pre-processing to the initial_config and **kwargs terms,
+        and returns the necessary values for all starting position generating
+        functions.
+
+        Parameters
+        ----------
+        initial_config: InitialConfig type
+            see flow/core/params.py
+        num_vehicles: int
+            number of vehicles to be placed on the network
+        kwargs: dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        x0: float
+            starting position of the first vehicle, in meters
+        min_gap: float
+            minimum gap between vehicles
+        bunching: float
+            the amount of space freed up in the network (per lane)
+        lanes_distribution: int
+            number of lanes the vehicles are supposed to be distributed over
+        available_length: float
+            total available free space for vehicle to be placed, over all lanes
+            within the distributable lanes, in meters
+        initial_config: InitialConfig type
+            modified version of the initial_config parameter
+
+        Raises
+        ------
+        ValueError
+            If there is not enough space to place all vehicles in the allocated
+            space in the network with the specified minimum gap.
+        """
+        x0 = initial_config.x0
+        # changes to x0 in kwargs suggests a switch in between rollouts, and so
+        # overwrites anything in initial_config
+        if "x0" in kwargs:
+            x0 = kwargs["x0"]
+
+        bunching = initial_config.bunching
+        # check if requested bunching value is not valid (negative)
+        if bunching < 0:
+            logging.warning('"bunching" cannot be negative; setting to 0')
+            bunching = 0
+        # changes to bunching in kwargs suggests a switch in between rollouts,
+        #  and so overwrites anything in initial_config
+        if "bunching" in kwargs:
+            bunching = kwargs["bunching"]
+
+        # compute the lanes distribution (adjust of edge cases)
+        if initial_config.edges_distribution == "all":
+            max_lane = max([self.num_lanes(edge_id)
+                            for edge_id in self.get_edge_list()])
+        else:
+            max_lane = max([self.num_lanes(edge_id)
+                            for edge_id in initial_config.edges_distribution])
+
+        if initial_config.lanes_distribution > max_lane:
+            lanes_distribution = max_lane
+        elif initial_config.lanes_distribution < 1:
+            logging.warning('"lanes_distribution" is too small; setting to 1')
+            lanes_distribution = 1
+        else:
+            lanes_distribution = initial_config.lanes_distribution
+
+        if initial_config.edges_distribution == "all":
+            distribution_length = \
+                sum([self.edge_length(edge_id) *
+                     min([self.num_lanes(edge_id), lanes_distribution])
+                     for edge_id in self.get_edge_list()])
+        else:
+            distribution_length = \
+                sum([self.edge_length(edge_id) *
+                     min([self.num_lanes(edge_id), lanes_distribution])
+                     for edge_id in initial_config.edges_distribution])
+
+        min_gap = max(0, initial_config.min_gap)
+
+        if initial_config.edges_distribution == "all":
+            available_edges = self.get_edge_list()
+        else:
+            available_edges = initial_config.edges_distribution
+
+        available_length = \
+            distribution_length - lanes_distribution * bunching - \
+            num_vehicles * (min_gap + VEHICLE_LENGTH)
+
+        if available_length < 0:
+            raise ValueError("There is not enough space to place all vehicles "
+                             "in the network.")
+
+        return (x0, min_gap, bunching, lanes_distribution, available_length,
+                available_edges, initial_config)
+
+    def edge_length(self, edge_id):
+        """Returns the length of a given edge/junction. Returns -1001 if edge
+        not found."""
+        try:
+            return self._edges[edge_id]["length"]
+        except KeyError:
+            print('Error in edge length with key', edge_id)
+            return -1001
+
+    def speed_limit(self, edge_id):
+        """Returns the speed limit of a given edge/junction. Returns -1001 if
+        edge not found."""
+        try:
+            return self._edges[edge_id]["speed"]
+        except KeyError:
+            print('Error in speed limit with key', edge_id)
+            return -1001
+
+    def num_lanes(self, edge_id):
+        """Returns the number of lanes of a given edge/junction. Returns -1001
+        if edge not found."""
+        try:
+            return self._edges[edge_id]["lanes"]
+        except KeyError:
+            print('Error in num lanes with key', edge_id)
+            return -1001
+
+    def get_edge_list(self):
+        """Returns the names of all edges in the network."""
+        return self._edge_list
+
+    def get_junction_list(self):
+        """Returns the names of all junctions in the network."""
+        return self._junction_list
+
+    def next_edge(self, edge, lane):
+        """Returns the next edge/lane pair from the given edge/lane. These
+        edges may also be internal links (junctions). Returns an empty list if
+        there are no edge/lane pairs in front."""
+        try:
+            return self._connections["next"][edge][lane]
+        except KeyError:
+            return []
+
+    def prev_edge(self, edge, lane):
+        """Returns the edge/lane pair right before this edge/lane. These edges
+        may also be internal links (junctions). Returns an empty list if there
+        are no edge/lane pairs behind."""
+        try:
+            return self._connections["prev"][edge][lane]
+        except KeyError:
+            return []
+
+    def close(self):
+        """Deletes the xml files that were created by the generator class. This
+        is to prevent them from building up in the debug folder."""
+        os.remove(self.generator.net_path + self.generator.nodfn)
+        os.remove(self.generator.net_path + self.generator.edgfn)
+        os.remove(self.generator.net_path + self.generator.cfgfn)
+        os.remove(self.generator.cfg_path + self.generator.addfn)
+        os.remove(self.generator.cfg_path + self.generator.guifn)
+        os.remove(self.generator.cfg_path + self.generator.netfn)
+        os.remove(self.generator.cfg_path + self.generator.roufn)
+        os.remove(self.generator.cfg_path + self.generator.sumfn)
+
+        # the connection file is not always created
+        try:
+            os.remove(self.generator.net_path + self.generator.confn)
+        except OSError:
+            pass
+
+        # neither is the type file
+        try:
+            os.remove(self.generator.net_path + self.generator.typfn)
+        except OSError:
+            pass
+
     def __str__(self):
-        # TODO(cathywu) return the parameters too.
-        return "Scenario " + self.name + " with " + str(self.vehicles.num_vehicles) + " vehicles."
+        return "Scenario " + self.name + " with " + \
+               str(self.vehicles.num_vehicles) + " vehicles."

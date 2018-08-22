@@ -1,21 +1,44 @@
 import numpy as np
 
 from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
 
-class Figure8Scenario(Scenario):
+ADDITIONAL_NET_PARAMS = {
+    # radius of the circular components
+    "radius_ring": 30,
+    # number of lanes
+    "lanes": 1,
+    # speed limit for all edges
+    "speed_limit": 30,
+    # resolution of the curved portions
+    "resolution": 40
+}
 
+
+class Figure8Scenario(Scenario):
     def __init__(self, name, generator_class, vehicles, net_params,
-                 initial_config=InitialConfig()):
-        """
-        Initializes a figure 8 scenario.
-        Required net_params: radius_ring, lanes, speed_limit, resolution.
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
+        """Initializes a figure 8 scenario.
+
+        Requires from net_params:
+        - ring_radius: radius of the circular portions of the network. Also
+          corresponds to half the length of the perpendicular straight lanes.
+        - resolution: number of nodes resolution in the circular portions
+        - lanes: number of lanes in the network
+        - speed: max speed of vehicles in the network
+
         In order for right-of-way dynamics to take place at the intersection,
         set "no_internal_links" in net_params to False.
 
         See Scenario.py for description of params.
         """
+        for p in ADDITIONAL_NET_PARAMS.keys():
+            if p not in net_params.additional_params:
+                raise KeyError('Network parameter "{}" not supplied'.format(p))
+
         self.ring_edgelen = net_params.additional_params[
                                 "radius_ring"] * np.pi / 2.
         self.intersection_len = 2 * net_params.additional_params["radius_ring"]
@@ -27,26 +50,13 @@ class Figure8Scenario(Scenario):
             6 * self.ring_edgelen + 2 * self.intersection_len + \
             2 * self.junction_len + 10 * self.inner_space_len
 
-        if "radius_ring" not in net_params.additional_params:
-            raise ValueError("radius of ring not supplied")
         self.radius_ring = net_params.additional_params["radius_ring"]
-
         self.length = net_params.additional_params["length"]
-
-        if "lanes" not in net_params.additional_params:
-            raise ValueError("number of lanes not supplied")
         self.lanes = net_params.additional_params["lanes"]
-
-        if "speed_limit" not in net_params.additional_params:
-            raise ValueError("speed limit not supplied")
-        self.speed_limit = net_params.additional_params["speed_limit"]
-
-        if "resolution" not in net_params.additional_params:
-            raise ValueError("resolution of circular sections not supplied")
         self.resolution = net_params.additional_params["resolution"]
 
         super().__init__(name, generator_class, vehicles, net_params,
-                         initial_config=initial_config)
+                         initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """
