@@ -120,11 +120,9 @@ to install the `rllab-multiagent` library, follow the below instructions
     git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
     conda env create -f environment.yml
-    source activate flow-rllab
     python3 setup.py develop
     echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
-    source activate flow-rllab
 
 Ray/RLlib (optional)
 ====================
@@ -152,7 +150,7 @@ Getting started (rllab-multiagent)
 To run any of the RL examples, make sure to run
 ::
 
-    source activate flow
+    source activate flow-rllab
     
 In order to test run an Flow experiment in rllab-multiagent, try the following
 command:
