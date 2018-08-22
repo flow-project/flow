@@ -27,7 +27,7 @@ before_install:
   - pip install gym==0.10.5
 
   # Copy over local rllib changes (testing branch)
-  - pushd $HOME/build/berkeleyflow
+  - pushd $HOME/build/flow-project
   -     git clone https://github.com/eugenevinitsky/ray.git
   -     pushd ray
   -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
@@ -44,7 +44,7 @@ before_install:
   - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
   - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
   - sudo apt-get install -y libfox-1.6-dev
-  - pushd $HOME/build/berkeleyflow
+  - pushd $HOME/build/flow-project
   -     mkdir -p sumo/bin
   -     pushd sumo/bin
   -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
@@ -52,7 +52,7 @@ before_install:
   -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
   -         chmod u+x netconvert
   -     popd
-  -     export SUMO_HOME="$HOME/build/berkeleyflow/sumo"
+  -     export SUMO_HOME="$HOME/build/flow-project/sumo"
   -     export PATH="$SUMO_HOME/bin:$PATH"
   # -     LD_DEBUG=libs sumo  # debug sumo library dependencies
   # -     LD_DEBUG=libs netconvert  # debug netconvert library dependencies
