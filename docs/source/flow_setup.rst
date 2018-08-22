@@ -77,7 +77,7 @@ Ray/RLlib for more).
 ::
 
     cd ~
-    git clone https://github.com/berkeleyflow/flow.git
+    git clone https://github.com/flow-project/flow.git
     cd flow
     python3 setup.py develop
     echo 'export PYTHONPATH="$HOME/flow:$PYTHONPATH"' >> ~/.bashrc
