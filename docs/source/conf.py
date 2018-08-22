@@ -19,7 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../flow'))
 
 
 # -- General configuration ------------------------------------------------
@@ -37,6 +37,14 @@ napoleon_google_docstring = False
 napoleon_use_param = False
 napoleon_use_ivar = True
 
+# This prevents some errors during the autodoc building process, since
+# errors occur when importing traci and sumolib. A mock import for traci
+# enables some more autodocs to be built, as flow.core.vehicles, but
+# mock imports for sumolib (another module that errors) leads to build failures
+# entirely.
+
+autodoc_mock_imports = ["traci", 'rllab', 'ray', 'sumolib', 'matplotlib']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -51,7 +59,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Flow'
-copyright = '2017, Cathy Wu'
+copyright = '2018, Cathy Wu'
 author = 'Cathy Wu'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -99,7 +107,7 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']  # Since we have no static files
 
 
 # -- Options for HTMLHelp output ------------------------------------------
@@ -157,6 +165,3 @@ texinfo_documents = [
      author, 'flow', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-

@@ -1,7 +1,7 @@
-name: rllab3
+name: flow 
 channels:
     - https://conda.anaconda.org/kne 
-    - https://conda.binstar.org/tlatorre 
+#    - https://conda.anaconda.org/tlatorre 
     - https://conda.anaconda.org/cjs14
     - https://conda.anaconda.org/menpo
     - jjhelmus
@@ -26,12 +26,10 @@ dependencies:
     - pytorch==0.1.9
     - torchvision==0.1.6
     - mpi4py
-    - libxml2=2.9.4
-    - libxslt=1.1.29
+    - pandas
     - pip:
         - Pillow
-        - lxml
-        - atari-py
+        # - atari-py
         - pyprind
         - ipdb
         - boto3
@@ -40,7 +38,7 @@ dependencies:
         - pyzmq
         - tqdm
         - msgpack-python
-        - mujoco_py
+        # - mujoco_py
         - cached_property
         - line_profiler
         - cloudpickle
@@ -51,9 +49,9 @@ dependencies:
         - git+https://github.com/neocxi/Lasagne.git@484866cf8b38d878e92d521be445968531646bb8#egg=Lasagne
         - git+https://github.com/plotly/plotly.py.git@2594076e29584ede2d09f2aa40a8a195b3f3fc66#egg=plotly
         - awscli
-        - git+https://github.com/openai/gym.git@v0.7.4#egg=gym
         - pyglet
         - git+https://github.com/neocxi/prettytensor.git
+        - git+https://github.com/openai/gym.git@8de6b715a7023daeed02602735dafcac5aa25f58
         - jupyter
         - progressbar2
         - chainer==1.18.0
@@ -64,3 +62,4 @@ dependencies:
         - pylru==1.0.9
         - hyperopt
         - polling
+        - lxml
