@@ -1,23 +1,24 @@
+[![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/berkeleyflow/badge)](http://berkeleyflow.readthedocs.org/en/latest/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cathywu/flow/blob/master/LICENSE.md)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
 # Flow
 
-Flow is a computational framework for deep RL and control experiments for traffic microsimulation.
+[Flow](https://berkeleyflow.github.io) is a computational framework for deep RL and control experiments for traffic microsimulation.
 
-See [results and videos](https://sites.google.com/view/ieee-tro-flow/home) of the application of Flow to several mixed-autonomy traffic scenarios.
+See [our website](https://berkeleyflow.github.io) for more information on the application of Flow to several mixed-autonomy traffic scenarios. Other [results and videos](https://sites.google.com/view/ieee-tro-flow/home) are available as well.
 
 # More information
 
 - [Documentation](https://berkeleyflow.readthedocs.org/en/latest/)
 - [Installation instructions](http://berkeleyflow.readthedocs.io/en/latest/flow_setup.html)
-- [Tutorial](http://berkeleyflow.readthedocs.io/en/latest/tutorial.html)
+- [Tutorials](https://github.com/flow-project/flow/tree/master/tutorials)
 
 # Getting involved
 
 - Ask questions on our mailing list: [flow-dev@googlegroups.com](https://groups.google.com/forum/#!forum/flow-dev).
-- Please report bugs by submitting a [GitHub issue](https://github.com/cathywu/flow/issues).
-- Submit contributions using [pull requests](https://github.com/cathywu/flow/pulls).
+- Please report bugs by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
+- Submit contributions using [pull requests](https://github.com/flow-project/flow/pulls).
 
 # Citing Flow
 
@@ -27,7 +28,7 @@ C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and B
 
 # Credits
 
-Flow is created by and actively developed by members of [Professor Alexandre Bayen](http://bayen.eecs.berkeley.edu/)'s lab at UC Berkeley: Cathy Wu, Eugene Vinitsky, Kanaad Parvate, Aboudy Kreidieh, Nishant Kheterpal, Leah Dickstein, Nathan Mandi, Kathy Jang, and Ananth Kuchibhotla. <!-- Development on the framework continues by people at UC Berkeley. -->
+Flow is created by and actively developed by members of the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley: Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Saleh Albeaik, Kathy Jang, and Ananth Kuchibhotla. Alumni contributors include Leah Dickstein and Nathan Mandi.
 
 
 <!-- ## Getting Started
@@ -95,30 +96,6 @@ Lane changing models:
 
 - No lane changing
 - Stochastic lane changer
-
-
-# learning-traffic
-
-Testing
-====
-To run the tests:
-
-    pushd flow-dev; python -m unittest discover; popd
-
-To run only the fast (eg. unit) tests:
-
-    pushd flow-dev; python -m unittest discover tests/fast; popd
-
-To run only the slow (eg. integration) tests:
-
-    pushd flow-dev; python -m unittest discover tests/slow; popd
-
-Development
-====
-* For this project, and any derived from it, please run the following command
-  from the project root directory:
-
-      ln -s ../../pre-commit.sh .git/hooks/pre-commit
 
 Warnings:
 ====
