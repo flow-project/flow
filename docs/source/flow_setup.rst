@@ -15,7 +15,7 @@ Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
 above. **It is highly recommended that users install
-`Anaconda <https://www.anaconda.com/download>`_ or 
+`Anaconda <https://www.anaconda.com/download>`_ or
 `Miniconda <https://conda.io/miniconda.html>`_
 for Python and the setup instructions will assume that you are 
 doing so.**
@@ -41,6 +41,7 @@ sumo
 Next, we install SUMO, an open source traffic microsimulator which will be used
 the update the states of vehicles, traffic lights, and other RL and
 human-driven agents during the simulation process.
+
 ::
 
     cd ~
@@ -50,38 +51,33 @@ human-driven agents during the simulation process.
     make -f Makefile.cvs
 
 If you have OSX, run the following commands
+
 ::
+
     export CPPFLAGS=-I/opt/X11/include
     export LDFLAGS=-L/opt/X11/lib
-
-Now for linux run the following command
-::
-    ./configure
-
-And for OSX run
-::
     ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
-
-Now for both linux and osx run
-::
     make -j$nproc
-
-For linux run
-::
-    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
-    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
-    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
-    source ~/.bashrc
-
-For mac run
-::
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bash_profile
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bash_profile
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bash_profile
     source ~/.bashprofile
 
-Test your sumo install and version by running the following commands
+If you have Ubuntu 14.04+, run the following command
+
 ::
+
+    ./configure
+    make -j$nproc
+    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
+    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
+    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
+    source ~/.bashrc
+
+Finally, test your sumo install and version by running the following commands
+
+::
+
     which sumo
     sumo --version
     sumo-gui
