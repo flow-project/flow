@@ -65,10 +65,20 @@ And for OSX run
 Now for both linux and osx run
 ::
     make -j$nproc
+
+For linux run
+::
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
+
+For mac run
+::
+    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bash_profile
+    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bash_profile
+    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bashprofile
 
 Test your sumo install and version by running the following commands
 ::
@@ -92,9 +102,16 @@ Ray/RLlib for more).
     conda env create -f environment.yml
     source activate flow
     python3 setup.py develop
+
+For linux run
+::
     echo 'export PYTHONPATH="$HOME/flow:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
 
+For mac run
+::
+    echo 'export PYTHONPATH="$HOME/flow:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bash_profile
 
 Testing the Installation
 ========================
@@ -133,8 +150,16 @@ to install the `rllab-multiagent` library, follow the below instructions
     cd rllab-multiagent
     conda env create -f environment.yml
     python3 setup.py develop
+
+For linux run
+::
     echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
+
+For mac run
+::
+    echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bash_profile
 
 Ray/RLlib (optional)
 ====================
