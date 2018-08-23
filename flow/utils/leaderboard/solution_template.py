@@ -6,16 +6,16 @@ A solution should include:
 """
 
 # Specify benchmark scenario below.
-BENCHMARK = "" # Benchmark name goes here...
+BENCHMARK = ""  # Benchmark name goes here...
+
 
 # Specify get_action() method below.
 def get_actions(state):
     # get_actions() code goes here...
-
     return
 
-# Specify get_state() method below.
-def get_states(env,**kwargs):
-    # get_states() code goes here...    
 
+# Specify get_state() method below.
+def get_states(env, **kwargs):
+    # get_states() code goes here...
     return

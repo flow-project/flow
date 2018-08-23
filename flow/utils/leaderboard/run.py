@@ -10,4 +10,3 @@ mean, stdev = evaluate_policy(benchmark=BENCHMARK,
                               _get_states=get_states)
 # Print results
 print(mean, stdev)
-
