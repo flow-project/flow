@@ -109,7 +109,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
                 return _get_states(self)
 
         env_class = _env_class
- 
+
     env = env_class(env_params=env_params,
                     sumo_params=sumo_params,
                     scenario=scenario)
