@@ -10,7 +10,7 @@ dependencies:
     - python==3.5.2
     - numpy==1.14.0
     - scipy==1.1.0
-    - path.py==11.1.0
+    - path.py
     - python-dateutil
     - joblib==0.10.3
     - mako==1.0.7
@@ -45,7 +45,7 @@ dependencies:
         - git+https://github.com/plotly/plotly.py.git@2594076e29584ede2d09f2aa40a8a195b3f3fc66#egg=plotly
         - awscli==1.15.74
         - gym==0.10.5
-        - pyglet==pyglet
+        - pyglet==1.3.2
         - git+https://github.com/neocxi/prettytensor.git
         - jupyter==1.0.0
         - progressbar2==3.38.0
