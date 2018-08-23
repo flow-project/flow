@@ -14,11 +14,11 @@ shell commands below to get started.
 Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
-above. It is highly recommended that users install
+above. **It is highly recommended that users install
 `Anaconda <https://www.anaconda.com/download>`_ or 
 `Miniconda <https://conda.io/miniconda.html>`_
 for Python and the setup instructions will assume that you are 
-doing so.
+doing so.**
 
 For Ubuntu 16.04:
 ::
@@ -54,9 +54,16 @@ If you have OSX, run the following commands
     export CPPFLAGS=-I/opt/X11/include
     export LDFLAGS=-L/opt/X11/lib
 
-Now for both OSX and linux run the following command
+Now for linux run the following command
 ::
     ./configure
+
+And for OSX run
+::
+    ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
+
+Now for both linux and osx run
+::
     make -j$nproc
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
