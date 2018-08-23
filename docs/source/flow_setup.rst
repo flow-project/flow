@@ -14,8 +14,11 @@ shell commands below to get started.
 Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
-above. It will be useful to install `Anaconda <https://www.anaconda.com/download>`_
-for Python.
+above. It is highly recommended that users install
+`Anaconda <https://www.anaconda.com/download>`_ or 
+`Miniconda <https://conda.io/miniconda.html>`_
+for Python and the setup instructions will assume that you are 
+doing so.
 
 For Ubuntu 16.04:
 ::
@@ -79,6 +82,8 @@ Ray/RLlib for more).
     cd ~
     git clone https://github.com/flow-project/flow.git
     cd flow
+    conda env create -f environment.yml
+    source activate flow
     python3 setup.py develop
     echo 'export PYTHONPATH="$HOME/flow:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
@@ -150,7 +155,7 @@ Getting started (rllab-multiagent)
 To run any of the RL examples, make sure to run
 ::
 
-    source activate flow-rllab
+    source activate flow
     
 In order to test run an Flow experiment in rllab-multiagent, try the following
 command:
@@ -166,6 +171,11 @@ Getting started (Ray/RLlib)
 ===========================
 
 See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
+
+To run any of the RL examples, make sure to run
+::
+
+    source activate flow
 
 In order to test run an Flow experiment in RLlib, try the following command:
 ::
