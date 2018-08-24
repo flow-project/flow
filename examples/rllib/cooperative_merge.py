@@ -34,39 +34,37 @@ NUM_MERGE_RL = 1
 # so place the merging vehicles after the vehicles in the ring
 vehicles = Vehicles()
 # Inner ring vehicles
-vehicles.add(veh_id="human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=6,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.0,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    lane_change_controller=(SumoLaneChangeController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    num_vehicles=6,
+    sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+    sumo_lc_params=SumoLaneChangeParams())
 # A single learning agent in the inner ring
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode="no_collide",
-             num_vehicles=1,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.01,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    lane_change_controller=(SumoLaneChangeController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    speed_mode="no_collide",
+    num_vehicles=1,
+    sumo_car_following_params=SumoCarFollowingParams(minGap=0.01, tau=0.5),
+    sumo_lc_params=SumoLaneChangeParams())
 # Outer ring vehicles
-vehicles.add(veh_id="merge-human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=10,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.0,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(
+    veh_id="merge-human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    lane_change_controller=(SumoLaneChangeController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    num_vehicles=10,
+    sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+    sumo_lc_params=SumoLaneChangeParams())
 
 flow_params = dict(
     # name of the experiment
@@ -129,7 +127,6 @@ flow_params = dict(
     ),
 )
 
-
 if __name__ == "__main__":
     ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=False)
 
@@ -146,8 +143,8 @@ if __name__ == "__main__":
     config["horizon"] = HORIZON
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
