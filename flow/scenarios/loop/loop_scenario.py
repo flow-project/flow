@@ -2,7 +2,6 @@ from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
-
 ADDITIONAL_NET_PARAMS = {
     # length of the ring road
     "length": 230,
@@ -16,7 +15,11 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class LoopScenario(Scenario):
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Initializes a loop scenario.
@@ -45,7 +48,7 @@ class LoopScenario(Scenario):
         """
         edgelen = self.length / 4
 
-        edgestarts = [("bottom", 0), ("right", edgelen),
-                      ("top", 2 * edgelen), ("left", 3 * edgelen)]
+        edgestarts = [("bottom", 0), ("right", edgelen), ("top", 2 * edgelen),
+                      ("left", 3 * edgelen)]
 
         return edgestarts

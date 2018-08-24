@@ -33,16 +33,16 @@ DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             speed_mode=9,
-             routing_controller=(ContinuousRouter, {}),
-             lane_change_mode=0,
-             num_vehicles=1 * SCALING)
+vehicles.add(
+    veh_id="human",
+    speed_mode=9,
+    routing_controller=(ContinuousRouter, {}),
+    lane_change_mode=0,
+    num_vehicles=1 * SCALING)
 
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
                        ("4", 2, True), ("5", 1, False)]
-num_observed_segments = [("1", 1), ("2", 3), ("3", 3),
-                         ("4", 3), ("5", 1)]
+num_observed_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 3), ("5", 1)]
 additional_env_params = {
     "target_velocity": 40,
     "disable_tb": True,
@@ -62,9 +62,12 @@ flow_rate = 1900 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
-inflow.add(veh_type="human", edge="1",
-           vehs_per_hour=flow_rate,
-           departLane="random", departSpeed=10)
+inflow.add(
+    veh_type="human",
+    edge="1",
+    vehs_per_hour=flow_rate,
+    departLane="random",
+    departSpeed=10)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -73,9 +76,10 @@ if not DISABLE_RAMP_METER:
     traffic_lights.add(node_id="3")
 
 additional_net_params = {"scaling": SCALING}
-net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False,
-                       additional_params=additional_net_params)
+net_params = NetParams(
+    in_flows=inflow,
+    no_internal_links=False,
+    additional_params=additional_net_params)
 
 sumo_params = SumoParams(
     sim_step=0.5,
@@ -99,12 +103,13 @@ initial_config = InitialConfig(
     edges_distribution=["2", "3", "4", "5"],
 )
 
-scenario = BottleneckScenario(name="bay_bridge_toll",
-                              generator_class=BottleneckGenerator,
-                              vehicles=vehicles,
-                              net_params=net_params,
-                              initial_config=initial_config,
-                              traffic_lights=traffic_lights)
+scenario = BottleneckScenario(
+    name="bay_bridge_toll",
+    generator_class=BottleneckGenerator,
+    vehicles=vehicles,
+    net_params=net_params,
+    initial_config=initial_config,
+    traffic_lights=traffic_lights)
 
 env = DesiredVelocityEnv(env_params, sumo_params, scenario)
 

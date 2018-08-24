@@ -29,13 +29,16 @@ from flow.scenarios.loop_merge.scenario import TwoLoopsOneMergingScenario
 __all__ = ["Scenario"]
 
 # custom generators
-__all__ += ["BayBridgeGenerator", "BayBridgeTollGenerator",
-            "BottleneckGenerator", "Figure8Generator", "SimpleGridGenerator",
-            "HighwayGenerator", "CircleGenerator", "MergeGenerator",
-            "NetFileGenerator", "TwoLoopOneMergingGenerator"]
+__all__ += [
+    "BayBridgeGenerator", "BayBridgeTollGenerator", "BottleneckGenerator",
+    "Figure8Generator", "SimpleGridGenerator", "HighwayGenerator",
+    "CircleGenerator", "MergeGenerator", "NetFileGenerator",
+    "TwoLoopOneMergingGenerator"
+]
 
 # custom scenarios
-__all__ += ["BayBridgeScenario", "BayBridgeTollScenario", "BottleneckScenario",
-            "Figure8Scenario", "SimpleGridScenario", "HighwayScenario",
-            "LoopScenario", "MergeScenario", "NetFileScenario",
-            "TwoLoopsOneMergingScenario"]
+__all__ += [
+    "BayBridgeScenario", "BayBridgeTollScenario", "BottleneckScenario",
+    "Figure8Scenario", "SimpleGridScenario", "HighwayScenario", "LoopScenario",
+    "MergeScenario", "NetFileScenario", "TwoLoopsOneMergingScenario"
+]
