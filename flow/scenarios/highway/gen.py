@@ -17,8 +17,15 @@ class HighwayGenerator(Generator):
         """
         length = net_params.additional_params["length"]
 
-        nodes = [{"id": "begin", "x": repr(0),      "y": repr(0)},
-                 {"id": "end",   "x": repr(length), "y": repr(0)}]
+        nodes = [{
+            "id": "begin",
+            "x": repr(0),
+            "y": repr(0)
+        }, {
+            "id": "end",
+            "x": repr(length),
+            "y": repr(0)
+        }]
 
         return nodes
 
@@ -28,13 +35,13 @@ class HighwayGenerator(Generator):
         """
         length = net_params.additional_params["length"]
 
-        edges = [
-            {"id": "highway",
-             "type": "highwayType",
-             "from": "begin",
-             "to": "end",
-             "length": repr(length)}
-        ]
+        edges = [{
+            "id": "highway",
+            "type": "highwayType",
+            "from": "begin",
+            "to": "end",
+            "length": repr(length)
+        }]
 
         return edges
 
@@ -45,9 +52,11 @@ class HighwayGenerator(Generator):
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
 
-        types = [{"id": "highwayType",
-                  "numLanes": repr(lanes),
-                  "speed": repr(speed_limit)}]
+        types = [{
+            "id": "highwayType",
+            "numLanes": repr(lanes),
+            "speed": repr(speed_limit)
+        }]
 
         return types
 

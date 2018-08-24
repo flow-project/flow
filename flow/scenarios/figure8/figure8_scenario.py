@@ -4,7 +4,6 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
-
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components
     "radius_ring": 30,
@@ -18,7 +17,11 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class Figure8Scenario(Scenario):
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Initializes a figure 8 scenario.
@@ -39,8 +42,7 @@ class Figure8Scenario(Scenario):
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
 
-        self.ring_edgelen = net_params.additional_params[
-                                "radius_ring"] * np.pi / 2.
+        self.ring_edgelen = net_params.additional_params["radius_ring"] * np.pi / 2.
         self.intersection_len = 2 * net_params.additional_params["radius_ring"]
         self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
