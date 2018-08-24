@@ -3,7 +3,6 @@ from flow.utils.flow_warnings import deprecation_warning
 
 
 class SumoParams:
-
     def __init__(self,
                  port=None,
                  sim_step=0.1,
@@ -80,7 +79,6 @@ class SumoParams:
 
 
 class EnvParams:
-
     def __init__(self,
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
@@ -143,7 +141,6 @@ class EnvParams:
 
 
 class NetParams:
-
     def __init__(self,
                  no_internal_links=True,
                  in_flows=None,
@@ -190,7 +187,6 @@ class NetParams:
 
 
 class InitialConfig:
-
     def __init__(self,
                  shuffle=False,
                  spacing="uniform",
@@ -262,19 +258,19 @@ class InitialConfig:
 
 
 class SumoCarFollowingParams:
-
-    def __init__(self,
-                 accel=1.0,
-                 decel=1.5,
-                 sigma=0.5,
-                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
-                 min_gap=2.5,
-                 max_speed=30,
-                 speed_factor=1.0,
-                 speed_dev=0.1,
-                 impatience=0.5,
-                 car_follow_model="IDM",
-                 **kwargs):
+    def __init__(
+            self,
+            accel=1.0,
+            decel=1.5,
+            sigma=0.5,
+            tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
+            min_gap=2.5,
+            max_speed=30,
+            speed_factor=1.0,
+            speed_dev=0.1,
+            impatience=0.5,
+            car_follow_model="IDM",
+            **kwargs):
         """Parameters for sumo-controlled acceleration behavior
 
         Attributes
@@ -349,7 +345,6 @@ class SumoCarFollowingParams:
 
 
 class SumoLaneChangeParams:
-
     def __init__(self,
                  model="LC2013",
                  lc_strategic=1.0,
@@ -434,8 +429,8 @@ class SumoLaneChangeParams:
 
         # check for deprecations (lcSpeedGainRight)
         if "lcSpeedGainRight" in kwargs:
-            deprecation_warning(
-                self, "lcSpeedGainRight", "lc_speed_gain_right")
+            deprecation_warning(self, "lcSpeedGainRight",
+                                "lc_speed_gain_right")
             lc_speed_gain_right = kwargs["lcSpeedGainRight"]
 
         # check for deprecations (lcSublane)
@@ -465,8 +460,8 @@ class SumoLaneChangeParams:
 
         # check for deprecations (lcTimeToImpatience)
         if "lcTimeToImpatience" in kwargs:
-            deprecation_warning(
-                self, "lcTimeToImpatience", "lc_time_to_impatience")
+            deprecation_warning(self, "lcTimeToImpatience",
+                                "lc_time_to_impatience")
             lc_time_to_impatience = kwargs["lcTimeToImpatience"]
 
         # check for deprecations (lcAccelLat)
@@ -509,7 +504,6 @@ class SumoLaneChangeParams:
 
 
 class InFlows:
-
     def __init__(self):
         """
         Used to add inflows to a network. Inflows can be specified for any edge
@@ -567,8 +561,12 @@ class InFlows:
             # delete since all parameters in kwargs are used again later
             del kwargs["vehsPerHour"]
 
-        new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
-                      "route": "route" + edge, "end": end}
+        new_inflow = {
+            "name": "flow_%d" % self.num_flows,
+            "vtype": veh_type,
+            "route": "route" + edge,
+            "end": end
+        }
 
         new_inflow.update(kwargs)
 
