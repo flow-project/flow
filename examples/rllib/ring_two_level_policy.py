@@ -18,7 +18,6 @@ def choose_policy(inputs):
     return tf.cast(inputs[:, 0] > 1e6, tf.int32)
 """
 
-
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = 100
@@ -30,12 +29,13 @@ if __name__ == "__main__":
     config["gamma"] = 0.999
     config["horizon"] = horizon
 
-    config["model"].update(
-        {"fcnet_hiddens": [5, 5]})
+    config["model"].update({"fcnet_hiddens": [5, 5]})
 
-    options = {"num_subpolicies": 2,
-               "fn_choose_subpolicy": fn_choose_subpolicy,
-               "hierarchical_fcnet_hiddens": [[32, 32]] * 2}
+    options = {
+        "num_subpolicies": 2,
+        "fn_choose_subpolicy": fn_choose_subpolicy,
+        "hierarchical_fcnet_hiddens": [[32, 32]] * 2
+    }
     config["model"].update({"custom_options": options})
 
     # config["model"].update(

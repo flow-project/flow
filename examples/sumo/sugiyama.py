@@ -21,10 +21,11 @@ def sugiyama_example(sumo_binary=None):
         sumo_params.sumo_binary = sumo_binary
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="idm",
-                 acceleration_controller=(IDMController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 num_vehicles=22)
+    vehicles.add(
+        veh_id="idm",
+        acceleration_controller=(IDMController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=22)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -33,11 +34,12 @@ def sugiyama_example(sumo_binary=None):
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = LoopScenario(name="sugiyama",
-                            generator_class=CircleGenerator,
-                            vehicles=vehicles,
-                            net_params=net_params,
-                            initial_config=initial_config)
+    scenario = LoopScenario(
+        name="sugiyama",
+        generator_class=CircleGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config)
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
