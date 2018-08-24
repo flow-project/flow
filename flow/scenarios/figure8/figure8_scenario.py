@@ -42,8 +42,9 @@ class Figure8Scenario(Scenario):
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
 
-        self.ring_edgelen = net_params.additional_params["radius_ring"] * np.pi / 2.
-        self.intersection_len = 2 * net_params.additional_params["radius_ring"]
+        ring_radius = net_params.additional_params["radius_ring"]
+        self.ring_edgelen = ring_radius * np.pi / 2.
+        self.intersection_len = 2 * ring_radius
         self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
 
