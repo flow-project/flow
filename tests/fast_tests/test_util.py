@@ -10,7 +10,7 @@ from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows
 from flow.core.util import emission_to_csv
-from flow.utils.warnings import deprecation_warning
+from flow.utils.flow_warnings import deprecation_warning
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder, get_flow_params
 

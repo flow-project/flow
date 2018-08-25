@@ -9,7 +9,7 @@ Welcome to Flow
 `Flow <https://berkeleyflow.github.io>`_ is a computational framework for deep RL and control experiments for traffic microsimulation. Visit `our website <https://berkeleyflow.github.io>`_ for more information. 
 
 Flow is a work in progress - input is welcome. Available documentation is limited for now. 
-`Tutorials <https://github.com/berkeleyflow/flow/tree/master/tutorials/exercises>`_ are available in iPython notebook format.
+`Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/exercises>`_ are available in iPython notebook format.
 
 
 .. toctree::
@@ -18,7 +18,7 @@ Flow is a work in progress - input is welcome. Available documentation is limite
 
    intro
    flow_setup
-   Tutorials <https://github.com/berkeleyflow/flow/tree/master/tutorials/>
+   Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/>
    visualizing
    modules
 

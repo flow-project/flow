@@ -77,6 +77,10 @@ class WaveAttenuationEnv(Env):
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        # in the warmup steps
+        if rl_actions is None:
+            return 0
+
         vel = np.array([self.vehicles.get_speed(veh_id)
                         for veh_id in self.vehicles.get_ids()])
 
@@ -91,7 +95,7 @@ class WaveAttenuationEnv(Env):
         eta = 8  # 0.25
         rl_actions = np.array(rl_actions)
         accel_threshold = 0
-        np.tanh(np.mean(np.abs(rl_actions)))
+
         if np.mean(np.abs(rl_actions)) > accel_threshold:
             reward += eta * (accel_threshold - np.mean(np.abs(rl_actions)))
 

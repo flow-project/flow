@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+# flake8: noqa
 from os.path import dirname, realpath
 from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
 import subprocess
+from flow.version import __version__
+
 
 
 def _read_requirements_file():
@@ -34,7 +37,7 @@ class BinaryDistribution(Distribution):
 
 setup(
     name='flow',
-    version='0.1.0',
+    version=__version__,
     distclass=BinaryDistribution,
     cmdclass={"build_ext": build_ext},
     packages=find_packages(),

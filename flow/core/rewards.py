@@ -14,7 +14,8 @@ def desired_velocity(env, fail=False):
     are set to this desired velocity. Moreover, in order to ensure that the
     reward function naturally punishing the early termination of rollouts due
     to collisions or other failures, the function is formulated as a mapping
-    :math:`r: \\mathcal{S} \\times \\mathcal{A} \\rightarrow \\mathbb{R}_{\\geq 0}`.
+    :math:`r: \\mathcal{S} \\times \\mathcal{A}
+    \\rightarrow \\mathbb{R}_{\\geq 0}`.
     This is done by subtracting the deviation of the system from the
     desired velocity from the peak allowable deviation from the desired
     velocity. Additionally, since the velocity of vehicles are

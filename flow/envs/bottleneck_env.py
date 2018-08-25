@@ -163,7 +163,7 @@ class BottleneckEnv(Env):
                 lane = self.vehicles.get_lane(veh_id)  # integer
                 pos = self.vehicles.get_position(veh_id)
                 self.edge_dict[edge][lane].append((veh_id, pos))
-            except:
+            except Exception:
                 pass
         if not self.disable_tb:
             self.apply_toll_bridge_control()
@@ -574,7 +574,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
                         rl_id, 'route1', typeID=str('rl'),
                         departLane=str(lane_num),
                         departPos="0", departSpeed="max")
-                except:
+                except Exception:
                     pass
 
 
