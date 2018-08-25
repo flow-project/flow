@@ -23,31 +23,41 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
 
     if sumo_binary is None:
         sumo_binary = "sumo"
-    sumo_params = SumoParams(sim_step=0.5, sumo_binary=sumo_binary,
-                             overtake_right=False, restart_instance=True)
+    sumo_params = SumoParams(
+        sim_step=0.5,
+        sumo_binary=sumo_binary,
+        overtake_right=False,
+        restart_instance=True)
 
     vehicles = Vehicles()
 
-    vehicles.add(veh_id="human",
-                 speed_mode=25,
-                 lane_change_controller=(SumoLaneChangeController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=1621,
-                 num_vehicles=1)
+    vehicles.add(
+        veh_id="human",
+        speed_mode=25,
+        lane_change_controller=(SumoLaneChangeController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        lane_change_mode=1621,
+        num_vehicles=1)
 
-    additional_env_params = {"target_velocity": 40,
-                             "max_accel": 1,
-                             "max_decel": 1,
-                             "lane_change_duration": 5,
-                             "add_rl_if_exit": False,
-                             "disable_tb": DISABLE_TB,
-                             "disable_ramp_metering": DISABLE_RAMP_METER}
-    env_params = EnvParams(horizon=horizon,
-                           additional_params=additional_env_params)
+    additional_env_params = {
+        "target_velocity": 40,
+        "max_accel": 1,
+        "max_decel": 1,
+        "lane_change_duration": 5,
+        "add_rl_if_exit": False,
+        "disable_tb": DISABLE_TB,
+        "disable_ramp_metering": DISABLE_RAMP_METER
+    }
+    env_params = EnvParams(
+        horizon=horizon, additional_params=additional_env_params)
 
     inflow = InFlows()
-    inflow.add(veh_type="human", edge="1", vehsPerHour=flow_rate,
-               departLane="random", departSpeed=10)
+    inflow.add(
+        veh_type="human",
+        edge="1",
+        vehsPerHour=flow_rate,
+        departLane="random",
+        departSpeed=10)
 
     traffic_lights = TrafficLights()
     if not DISABLE_TB:
@@ -56,20 +66,24 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
         traffic_lights.add(node_id="3")
 
     additional_net_params = {"scaling": SCALING}
-    net_params = NetParams(in_flows=inflow,
-                           no_internal_links=False,
-                           additional_params=additional_net_params)
+    net_params = NetParams(
+        in_flows=inflow,
+        no_internal_links=False,
+        additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="random", min_gap=5,
-                                   lanes_distribution=float("inf"),
-                                   edges_distribution=["2", "3", "4", "5"])
+    initial_config = InitialConfig(
+        spacing="random",
+        min_gap=5,
+        lanes_distribution=float("inf"),
+        edges_distribution=["2", "3", "4", "5"])
 
-    scenario = BottleneckScenario(name="bay_bridge_toll",
-                                  generator_class=BottleneckGenerator,
-                                  vehicles=vehicles,
-                                  net_params=net_params,
-                                  initial_config=initial_config,
-                                  traffic_lights=traffic_lights)
+    scenario = BottleneckScenario(
+        name="bay_bridge_toll",
+        generator_class=BottleneckGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
 
     env = BottleneckEnv(env_params, sumo_params, scenario)
 

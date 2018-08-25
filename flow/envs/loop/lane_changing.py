@@ -59,8 +59,8 @@ class LaneChangeAccelEnv(Env):
     def __init__(self, env_params, sumo_params, scenario):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
-                raise KeyError('Environment parameter "{}" not supplied'.
-                               format(p))
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
 
         super().__init__(env_params, sumo_params, scenario)
 
@@ -76,12 +76,21 @@ class LaneChangeAccelEnv(Env):
 
     @property
     def observation_space(self):
-        speed = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,),
-                    dtype=np.float32)
-        lane = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,),
-                   dtype=np.float32)
-        pos = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,),
-                  dtype=np.float32)
+        speed = Box(
+            low=0,
+            high=1,
+            shape=(self.vehicles.num_vehicles, ),
+            dtype=np.float32)
+        lane = Box(
+            low=0,
+            high=1,
+            shape=(self.vehicles.num_vehicles, ),
+            dtype=np.float32)
+        pos = Box(
+            low=0.,
+            high=1,
+            shape=(self.vehicles.num_vehicles, ),
+            dtype=np.float32)
         return Tuple((speed, pos, lane))
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -101,21 +110,25 @@ class LaneChangeAccelEnv(Env):
         # normalizers
         max_speed = self.scenario.max_speed
         length = self.scenario.length
-        max_lanes = max(self.scenario.num_lanes(edge)
-                        for edge in self.scenario.get_edge_list())
+        max_lanes = max(
+            self.scenario.num_lanes(edge)
+            for edge in self.scenario.get_edge_list())
 
-        return np.array([[self.vehicles.get_speed(veh_id) / max_speed,
-                          self.get_x_by_id(veh_id) / length,
-                          self.vehicles.get_lane(veh_id) / max_lanes]
-                         for veh_id in self.sorted_ids])
+        return np.array([[
+            self.vehicles.get_speed(veh_id) / max_speed,
+            self.get_x_by_id(veh_id) / length,
+            self.vehicles.get_lane(veh_id) / max_lanes
+        ] for veh_id in self.sorted_ids])
 
     def _apply_rl_actions(self, actions):
         acceleration = actions[::2]
         direction = actions[1::2]
 
         # re-arrange actions according to mapping in observation space
-        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
-                         if veh_id in self.vehicles.get_rl_ids()]
+        sorted_rl_ids = [
+            veh_id for veh_id in self.sorted_ids
+            if veh_id in self.vehicles.get_rl_ids()
+        ]
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
@@ -166,8 +179,8 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
 
     def __init__(self, env_params, sumo_params, scenario):
         # maximum number of lanes on any edge in the network
-        self.num_lanes = max(scenario.num_lanes(edge)
-                             for edge in scenario.get_edge_list())
+        self.num_lanes = max(
+            scenario.num_lanes(edge) for edge in scenario.get_edge_list())
 
         # lists of visible vehicles, used for visualization purposes
         self.visible = []
@@ -176,14 +189,18 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
 
     @property
     def observation_space(self):
-        return Box(low=0, high=1,
-                   shape=(4 * self.vehicles.num_rl_vehicles * self.num_lanes
-                          + self.vehicles.num_rl_vehicles,),
-                   dtype=np.float32)
+        return Box(
+            low=0,
+            high=1,
+            shape=(4 * self.vehicles.num_rl_vehicles * self.num_lanes +
+                   self.vehicles.num_rl_vehicles, ),
+            dtype=np.float32)
 
     def get_state(self):
-        obs = [0 for _ in range(4 * self.vehicles.num_rl_vehicles
-                                * self.num_lanes)]
+        obs = [
+            0
+            for _ in range(4 * self.vehicles.num_rl_vehicles * self.num_lanes)
+        ]
 
         self.visible = []
         for i, rl_id in enumerate(self.vehicles.get_rl_ids()):

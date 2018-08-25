@@ -70,7 +70,7 @@ file_mounts: {
 # path to your repo and the desired branch name
 #"/tmp/path": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
 #"/tmp/ray_autoscaler_key": "<PATH TO RAY_AUTOSCALER_KEY>",
-"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/ars_runner",
+"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/raytesting",
 "/tmp/ray_autoscaler_key": "/Users/eugenevinitsky/.ssh/ray-autoscaler_1_us-west-1.pem",
 }
 

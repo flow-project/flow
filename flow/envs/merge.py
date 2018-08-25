@@ -64,8 +64,8 @@ class WaveAttenuationMergePOEnv(Env):
     def __init__(self, env_params, sumo_params, scenario):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
-                raise KeyError('Environment parameter "{}" not supplied'.
-                               format(p))
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
 
         # maximum number of controlled vehicles
         self.num_rl = env_params.additional_params["num_rl"]
@@ -81,14 +81,15 @@ class WaveAttenuationMergePOEnv(Env):
 
     @property
     def action_space(self):
-        return Box(low=-abs(self.env_params.additional_params["max_decel"]),
-                   high=self.env_params.additional_params["max_accel"],
-                   shape=(self.num_rl,),
-                   dtype=np.float32)
+        return Box(
+            low=-abs(self.env_params.additional_params["max_decel"]),
+            high=self.env_params.additional_params["max_accel"],
+            shape=(self.num_rl, ),
+            dtype=np.float32)
 
     @property
     def observation_space(self):
-        return Box(low=0, high=1, shape=(5 * self.num_rl,), dtype=np.float32)
+        return Box(low=0, high=1, shape=(5 * self.num_rl, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         for i, rl_id in enumerate(self.rl_veh):
@@ -156,14 +157,15 @@ class WaveAttenuationMergePOEnv(Env):
                 lead_id = self.vehicles.get_leader(rl_id)
                 if lead_id not in ["", None] \
                         and self.vehicles.get_speed(rl_id) > 0:
-                    t_headway = max(self.vehicles.get_headway(rl_id)
-                                    / self.vehicles.get_speed(rl_id), 0)
+                    t_headway = max(
+                        self.vehicles.get_headway(rl_id) /
+                        self.vehicles.get_speed(rl_id), 0)
                     cost2 += min((t_headway - t_min) / t_min, 0)
 
             # weights for cost1, cost2, and cost3, respectively
             eta1, eta2 = 1.00, 0.10
 
-            return max(eta1*cost1 + eta2*cost2, 0)
+            return max(eta1 * cost1 + eta2 * cost2, 0)
 
     def sort_by_position(self):
         # vehicles are sorted by their get_x_by_id value

@@ -24,7 +24,7 @@ from flow.envs.merge import WaveAttenuationMergePOEnv
 import numpy as np
 
 # time horizon of a single rollout
-HORIZON = int(750*(0.5/0.2))
+HORIZON = int(750 * (0.5 / 0.2))
 # inflow rate at the highway
 FLOW_RATE = 2000
 # percent of autonomous vehicles
@@ -41,19 +41,27 @@ additional_net_params["pre_merge_length"] = 500
 
 # RL vehicles constitute 5% of the total number of vehicles
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(SumoCarFollowingController, {}),
-             speed_mode="no_collide",
-             num_vehicles=5)
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(SumoCarFollowingController, {}),
+    speed_mode="no_collide",
+    num_vehicles=5)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering
 # from the highway portion as well
 inflow = InFlows()
-inflow.add(veh_type="human", edge="inflow_highway",
-           vehs_per_hour=FLOW_RATE,
-           departLane="free", departSpeed=10)
-inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
-           departLane="free", departSpeed=7.5)
+inflow.add(
+    veh_type="human",
+    edge="inflow_highway",
+    vehs_per_hour=FLOW_RATE,
+    departLane="free",
+    departSpeed=10)
+inflow.add(
+    veh_type="human",
+    edge="inflow_merge",
+    vehs_per_hour=100,
+    departLane="free",
+    departSpeed=7.5)
 
 sumo_params = SumoParams(
     restart_instance=False,
@@ -82,11 +90,12 @@ net_params = NetParams(
     additional_params=additional_net_params,
 )
 
-scenario = MergeScenario(name="merge",
-                         generator_class=MergeGenerator,
-                         vehicles=vehicles,
-                         net_params=net_params,
-                         initial_config=initial_config)
+scenario = MergeScenario(
+    name="merge",
+    generator_class=MergeGenerator,
+    vehicles=vehicles,
+    net_params=net_params,
+    initial_config=initial_config)
 
 env = WaveAttenuationMergePOEnv(env_params, sumo_params, scenario)
 
