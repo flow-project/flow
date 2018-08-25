@@ -2,6 +2,7 @@ import logging
 import random
 import numpy as np
 import time
+import os
 
 try:
     # Import serializable if rllab is installed
@@ -55,7 +56,7 @@ class Scenario(Serializable):
             Serializable.quick_init(self, locals())
 
         self.orig_name = name  # To avoid repeated concatenation upon reset
-        self.name = name + str(time.time())
+        self.name = name + time.strftime("_%Y%m%d-%H%M%S")
 
         self.generator_class = generator_class
         self.vehicles = vehicles
@@ -619,6 +620,30 @@ class Scenario(Serializable):
             return self._connections["prev"][edge][lane]
         except KeyError:
             return []
+
+    def close(self):
+        """Deletes the xml files that were created by the generator class. This
+        is to prevent them from building up in the debug folder."""
+        os.remove(self.generator.net_path + self.generator.nodfn)
+        os.remove(self.generator.net_path + self.generator.edgfn)
+        os.remove(self.generator.net_path + self.generator.cfgfn)
+        os.remove(self.generator.cfg_path + self.generator.addfn)
+        os.remove(self.generator.cfg_path + self.generator.guifn)
+        os.remove(self.generator.cfg_path + self.generator.netfn)
+        os.remove(self.generator.cfg_path + self.generator.roufn)
+        os.remove(self.generator.cfg_path + self.generator.sumfn)
+
+        # the connection file is not always created
+        try:
+            os.remove(self.generator.net_path + self.generator.confn)
+        except OSError:
+            pass
+
+        # neither is the type file
+        try:
+            os.remove(self.generator.net_path + self.generator.typfn)
+        except OSError:
+            pass
 
     def __str__(self):
         return "Scenario " + self.name + " with " + \

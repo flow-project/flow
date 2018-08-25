@@ -49,7 +49,6 @@ class Generator(Serializable):
         self.cfg_path = os.path.dirname(os.path.abspath(__file__)) \
             + "/debug/cfg/"
         self.base = base
-        self.netfn = ""
         self.vehicle_ids = []
 
         ensure_dir("%s" % self.net_path)
@@ -59,6 +58,17 @@ class Generator(Serializable):
         # use the base as the name
         if not hasattr(self, "name"):
             self.name = "%s" % self.base
+
+        self.nodfn = "%s.nod.xml" % self.name
+        self.edgfn = "%s.edg.xml" % self.name
+        self.typfn = "%s.typ.xml" % self.name
+        self.cfgfn = "%s.netccfg" % self.name
+        self.netfn = "%s.net.xml" % self.name
+        self.confn = "%s.con.xml" % self.name
+        self.roufn = "%s.rou.xml" % self.name
+        self.addfn = "%s.add.xml" % self.name
+        self.sumfn = "%s.sumo.cfg" % self.name
+        self.guifn = "%s.gui.cfg" % self.name
 
     def generate_net(self, net_params, traffic_lights):
         """Generates Net files for the transportation network.
@@ -102,12 +112,6 @@ class Generator(Serializable):
                 from the arriving edge/lane pairs
 
         """
-        nodfn = "%s.nod.xml" % self.name
-        edgfn = "%s.edg.xml" % self.name
-        typfn = "%s.typ.xml" % self.name
-        cfgfn = "%s.netccfg" % self.name
-        netfn = "%s.net.xml" % self.name
-        confn = "%s.con.xml" % self.name
         # specify the attributes of the nodes
         nodes = self.specify_nodes(net_params)
 
@@ -121,7 +125,7 @@ class Generator(Serializable):
         x = makexml("nodes", "http://sumo.dlr.de/xsd/nodes_file.xsd")
         for node_attributes in nodes:
             x.append(E("node", **node_attributes))
-        printxml(x, self.net_path + nodfn)
+        printxml(x, self.net_path + self.nodfn)
 
         # collect the attributes of each edge
         edges = self.specify_edges(net_params)
@@ -130,7 +134,7 @@ class Generator(Serializable):
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
         for edge_attributes in edges:
             x.append(E("edge", attrib=edge_attributes))
-        printxml(x, self.net_path + edgfn)
+        printxml(x, self.net_path + self.edgfn)
 
         # specify the types attributes (default is None)
         types = self.specify_types(net_params)
@@ -141,7 +145,7 @@ class Generator(Serializable):
             x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
             for type_attributes in types:
                 x.append(E("type", **type_attributes))
-            printxml(x, self.net_path + typfn)
+            printxml(x, self.net_path + self.typfn)
 
         # specify the connection attributes (default is None)
         connections = self.specify_connections(net_params)
@@ -153,7 +157,7 @@ class Generator(Serializable):
                         "http://sumo.dlr.de/xsd/connections_file.xsd")
             for connection_attributes in connections:
                 x.append(E("connection", **connection_attributes))
-            printxml(x, self.net_path + confn)
+            printxml(x, self.net_path + self.confn)
 
         # check whether the user requested no-internal-links (default="true")
         if net_params.no_internal_links:
@@ -168,29 +172,26 @@ class Generator(Serializable):
         x = makexml("configuration",
                     "http://sumo.dlr.de/xsd/netconvertConfiguration.xsd")
         t = E("input")
-        t.append(E("node-files", value=nodfn))
-        t.append(E("edge-files", value=edgfn))
+        t.append(E("node-files", value=self.nodfn))
+        t.append(E("edge-files", value=self.edgfn))
         if types is not None:
-            t.append(E("type-files", value=typfn))
+            t.append(E("type-files", value=self.typfn))
         if connections is not None:
-            t.append(E("connection-files", value=confn))
+            t.append(E("connection-files", value=self.confn))
         x.append(t)
         t = E("output")
-        t.append(E("output-file", value=netfn))
+        t.append(E("output-file", value=self.netfn))
         x.append(t)
         t = E("processing")
         t.append(E("no-internal-links", value="%s" % no_internal_links))
         t.append(E("no-turnarounds", value="true"))
         x.append(t)
-        printxml(x, self.net_path + cfgfn)
+        printxml(x, self.net_path + self.cfgfn)
 
         subprocess.call(
-            ["netconvert -c " + self.net_path + cfgfn + " --output-file=" +
-             self.cfg_path + netfn + ' --no-internal-links="%s"'
+            ["netconvert -c " + self.net_path + self.cfgfn + " --output-file="
+             + self.cfg_path + self.netfn + ' --no-internal-links="%s"'
              % no_internal_links], shell=True)
-
-        # location of the .net.xml file
-        self.netfn = netfn
 
         # collect data from the generated network configuration file
         error = None
@@ -222,11 +223,6 @@ class Generator(Serializable):
         """
         start_time = 0
         end_time = None
-
-        self.roufn = "%s.rou.xml" % self.name
-        addfn = "%s.add.xml" % self.name
-        cfgfn = "%s.sumo.cfg" % self.name
-        guifn = "%s.gui.cfg" % self.name
 
         # specify routes vehicles can take
         self.rts = self.specify_routes(net_params)
@@ -297,29 +293,29 @@ class Generator(Serializable):
 
                     add.append(e)
 
-        printxml(add, self.cfg_path + addfn)
+        printxml(add, self.cfg_path + self.addfn)
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
         gui.append(E("background", backgroundColor="100,100,100",
                      showGrid="0", gridXSize="100.00", gridYSize="100.00"))
-        printxml(gui, self.cfg_path + guifn)
+        printxml(gui, self.cfg_path + self.guifn)
 
         cfg = makexml("configuration",
                       "http://sumo.dlr.de/xsd/sumoConfiguration.xsd")
 
         logging.debug(self.netfn)
 
-        cfg.append(self._inputs(self.name, net=self.netfn, add=addfn,
-                                rou=self.roufn, gui=guifn))
+        cfg.append(self._inputs(self.name, net=self.netfn, add=self.addfn,
+                                rou=self.roufn, gui=self.guifn))
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
         if end_time:
             t.append(E("end", value=repr(end_time)))
         cfg.append(t)
 
-        printxml(cfg, self.cfg_path + cfgfn)
-        return cfgfn
+        printxml(cfg, self.cfg_path + self.sumfn)
+        return self.sumfn
 
     def make_routes(self, scenario, initial_config):
         """Generates .rou.xml files using net files and netconvert.

@@ -18,7 +18,6 @@ from xml.etree import ElementTree
 
 from gym.envs.registration import register
 
-from flow.controllers import *
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams, \
     InFlows
 

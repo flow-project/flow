@@ -13,7 +13,7 @@ from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
 SPEED_MODES = {"aggressive": 0, "no_collide": 1, "right_of_way": 25,
                "all_checks": 31}
-LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 853}
+LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
 
 
 class Vehicles:
@@ -103,16 +103,15 @@ class Vehicles:
         speed_mode: str or int, optional
             may be one of the following:
 
-             * "no_collide" (default): Human and RL cars are preventing from
-               reaching speeds that may cause crashes (also serves as a
-               failsafe).
-             * "aggressive": Human and RL cars are not limited by sumo with
-               regard to their accelerations, and can crash longitudinally
-             * "all_checks": all sumo safety checks are activated
-             * "right_of_way": respect safe speed, right of way and
+             * "right_of_way" (default): respect safe speed, right of way and
                brake hard at red lights if needed. DOES NOT respect
                max accel and decel which enables emergency stopping.
                Necessary to prevent custom models from crashing
+             * "no_collide": Human and RL cars are preventing from reaching
+               speeds that may cause crashes (also serves as a failsafe).
+             * "aggressive": Human and RL cars are not limited by sumo with
+               regard to their accelerations, and can crash longitudinally
+             * "all_checks": all sumo safety checks are activated
              * int values may be used to define custom speed mode for the given
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
@@ -120,11 +119,11 @@ class Vehicles:
         lane_change_mode: str or int, optional
             may be one of the following:
 
+            * "no_lat_collide" (default): Human cars will not make lane
+              changes, RL cars can lane change into any space, no matter how
+              likely it is to crash
             * "strategic": Human cars make lane changes in accordance with SUMO
               to provide speed boosts
-            * "no_lat_collide": Human cars will not make lane changes, RL cars
-              can lane change into any space, no matter how likely it is to
-              crash (default)
             * "aggressive": RL cars are not limited by sumo with regard to
               their lane-change actions, and can crash longitudinally
             * int values may be used to define custom lane change modes for the

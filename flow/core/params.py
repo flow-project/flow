@@ -1,5 +1,5 @@
 import logging
-from flow.utils.warnings import deprecation_warning
+from flow.utils.flow_warnings import deprecation_warning
 
 
 class SumoParams:

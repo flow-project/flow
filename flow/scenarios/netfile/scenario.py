@@ -45,3 +45,8 @@ class NetFileScenario(Scenario):
         and junctions in large networks.
         """
         return [(":", -1)]
+
+    def close(self):
+        """The close method is overwritten here because we do not want Flow to
+        delete externally designed networks."""
+        pass

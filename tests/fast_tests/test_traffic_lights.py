@@ -208,19 +208,16 @@ class TestItRuns(unittest.TestCase):
                          min_gap=2.5, tau=1.1),
                      num_vehicles=16)
 
-        self.env, self.scenario = grid_mxn_exp_setup(row_num=1, col_num=3,
-                                                     vehicles=vehicles)
+        env, scenario = grid_mxn_exp_setup(row_num=1, col_num=3,
+                                           vehicles=vehicles)
+
+        self.exp = SumoExperiment(env, scenario)
 
     def tearDown(self):
-        # terminate the traci instance
-        self.env.terminate()
-
         # free data used by the class
-        self.env = None
-        self.scenario = None
+        self.exp = None
 
     def test_it_runs(self):
-        self.exp = SumoExperiment(self.env, self.scenario)
         self.exp.run(5, 50)
 
 
@@ -249,8 +246,43 @@ class TestIndividualLights(unittest.TestCase):
                      showDetectors=True,
                      file="testindividuallights.xml", freq=100)
 
-        self.env, self.scenario = grid_mxn_exp_setup(row_num=1, col_num=4,
-                                                     tl_logic=tl_logic)
+        env, scenario = grid_mxn_exp_setup(row_num=1, col_num=4,
+                                           tl_logic=tl_logic)
+
+        self.exp = SumoExperiment(env, scenario)
+
+    def tearDown(self):
+        # free data used by the class
+        self.exp = None
+
+    def test_it_runs(self):
+        self.exp.run(5, 50)
+
+
+class TestCustomization(unittest.TestCase):
+
+    def setUp(self):
+        # add a traffic light to the top node
+        traffic_lights = TrafficLights()
+
+        # Phase durations in seconds
+        self.green = 4
+        self.yellow = 1
+        self.red = 4
+        phases = [{"duration": repr(self.green), "state": "G"},
+                  {"duration": repr(self.yellow), "state": "y"},
+                  {"duration": repr(self.red), "state": "r"}]
+
+        traffic_lights.add("top", phases=phases)
+
+        # create a ring road with two lanes
+        additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30,
+                                 "resolution": 40}
+        net_params = NetParams(additional_params=additional_net_params)
+
+        # create the environment and scenario classes for a ring road
+        self.env, scenario = ring_road_exp_setup(net_params=net_params,
+                                                 traffic_lights=traffic_lights)
 
     def tearDown(self):
         # terminate the traci instance
@@ -258,11 +290,35 @@ class TestIndividualLights(unittest.TestCase):
 
         # free data used by the class
         self.env = None
-        self.scenario = None
 
-    def test_it_runs(self):
-        self.exp = SumoExperiment(self.env, self.scenario)
-        self.exp.run(5, 50)
+    def test_static_phases(self):
+        # Reset the environment
+        self.env.reset()
+
+        # Calculate multiplier, because phases are in seconds
+        sim_multiplier = int(1 / self.env.sumo_params.sim_step)
+
+        # Check that the phases occur for the correct amount of time
+        for i in range(self.green * sim_multiplier - 1):
+            # This is because env.reset() takes 1 step
+            self.assertEqual(self.env.traffic_lights.get_state("top"), "G")
+            self.env.step([])
+        for i in range(self.yellow * sim_multiplier):
+            self.assertEqual(self.env.traffic_lights.get_state("top"), "y")
+            self.env.step([])
+        for i in range(self.red * sim_multiplier):
+            self.assertEqual(self.env.traffic_lights.get_state("top"), "r")
+            self.env.step([])
+        for i in range(3):
+            for _ in range(self.green * sim_multiplier):
+                self.assertEqual(self.env.traffic_lights.get_state("top"), "G")
+                self.env.step([])
+            for _ in range(self.yellow * sim_multiplier):
+                self.assertEqual(self.env.traffic_lights.get_state("top"), "y")
+                self.env.step([])
+            for _ in range(self.red * sim_multiplier):
+                self.assertEqual(self.env.traffic_lights.get_state("top"), "r")
+                self.env.step([])
 
 
 if __name__ == '__main__':
