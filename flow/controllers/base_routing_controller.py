@@ -1,4 +1,3 @@
-
 class BaseRouter:
     def __init__(self, veh_id, router_params):
         """Base class for routing controllers.

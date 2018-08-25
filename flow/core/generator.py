@@ -24,7 +24,6 @@ WAIT_ON_ERROR = 1
 
 
 class Generator(Serializable):
-
     def __init__(self, net_params, base):
         """Base class for generating transportation networks.
 
@@ -189,9 +188,12 @@ class Generator(Serializable):
         printxml(x, self.net_path + self.cfgfn)
 
         subprocess.call(
-            ["netconvert -c " + self.net_path + self.cfgfn + " --output-file="
-             + self.cfg_path + self.netfn + ' --no-internal-links="%s"'
-             % no_internal_links], shell=True)
+            [
+                "netconvert -c " + self.net_path + self.cfgfn +
+                " --output-file=" + self.cfg_path + self.netfn +
+                ' --no-internal-links="%s"' % no_internal_links
+            ],
+            shell=True)
 
         # collect data from the generated network configuration file
         error = None
@@ -256,8 +258,11 @@ class Generator(Serializable):
                 nodes = self.specify_tll(net_params)
                 tll = []
                 for node in nodes:
-                    tll.append({"id": node['id'], "type": tl_type,
-                                "programID": program_id})
+                    tll.append({
+                        "id": node['id'],
+                        "type": tl_type,
+                        "programID": program_id
+                    })
 
                 for elem in tll:
                     e = E("tlLogic", **elem)
@@ -277,8 +282,11 @@ class Generator(Serializable):
                     if node["type"] == "static" and not node.get("phases"):
                         continue
 
-                    elem = {"id": str(node["id"]), "type": str(node["type"]),
-                            "programID": str(node["programID"])}
+                    elem = {
+                        "id": str(node["id"]),
+                        "type": str(node["type"]),
+                        "programID": str(node["programID"])
+                    }
                     if node.get("offset"):
                         elem["offset"] = str(node.get("offset"))
 
@@ -288,8 +296,11 @@ class Generator(Serializable):
                             for phase in node.get("phases"):
                                 e.append(E("phase", **phase))
                         else:
-                            e.append(E("param",
-                                       **{"key": key, "value": str(value)}))
+                            e.append(
+                                E("param", **{
+                                    "key": key,
+                                    "value": str(value)
+                                }))
 
                     add.append(e)
 
@@ -297,8 +308,12 @@ class Generator(Serializable):
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
-        gui.append(E("background", backgroundColor="100,100,100",
-                     showGrid="0", gridXSize="100.00", gridYSize="100.00"))
+        gui.append(
+            E("background",
+              backgroundColor="100,100,100",
+              showGrid="0",
+              gridXSize="100.00",
+              gridYSize="100.00"))
         printxml(gui, self.cfg_path + self.guifn)
 
         cfg = makexml("configuration",
@@ -306,8 +321,13 @@ class Generator(Serializable):
 
         logging.debug(self.netfn)
 
-        cfg.append(self._inputs(self.name, net=self.netfn, add=self.addfn,
-                                rou=self.roufn, gui=self.guifn))
+        cfg.append(
+            self._inputs(
+                self.name,
+                net=self.netfn,
+                add=self.addfn,
+                rou=self.roufn,
+                gui=self.guifn))
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
         if end_time:
@@ -338,8 +358,10 @@ class Generator(Serializable):
 
         # add the types of vehicles to the xml file
         for params in vehicles.types:
-            type_params_str = {key: str(params["type_params"][key])
-                               for key in params["type_params"]}
+            type_params_str = {
+                key: str(params["type_params"][key])
+                for key in params["type_params"]
+            }
             routes.append(E("vType", id=params["veh_id"], **type_params_str))
 
         self.vehicle_ids = vehicles.get_ids()
@@ -355,10 +377,16 @@ class Generator(Serializable):
             edge, pos = positions[i]
             lane = lanes[i]
             type_depart_speed = vehicles.get_initial_speed(veh_id)
-            routes.append(self._vehicle(
-                veh_type, "route" + edge, depart="0", id=veh_id,
-                color="1,1,1", departSpeed=str(type_depart_speed),
-                departPos=str(pos), departLane=str(lane)))
+            routes.append(
+                self._vehicle(
+                    veh_type,
+                    "route" + edge,
+                    depart="0",
+                    id=veh_id,
+                    color="1,1,1",
+                    departSpeed=str(type_depart_speed),
+                    departPos=str(pos),
+                    departLane=str(lane)))
 
         # add the in-flows from various edges to the xml file
         if self.net_params.in_flows is not None:
@@ -502,8 +530,13 @@ class Generator(Serializable):
             raise ValueError("Supply either ID or Number")
         if not id:
             id = type + "_" + str(number)
-        return E("vehicle", type=type, id=id, route=route, departPos=departPos,
-                 **kwargs)
+        return E(
+            "vehicle",
+            type=type,
+            id=id,
+            route=route,
+            departPos=departPos,
+            **kwargs)
 
     def _inputs(self, name, net=None, rou=None, add=None, gui=None):
         inp = E("input")
@@ -550,8 +583,8 @@ class Generator(Serializable):
         """
         # import the .net.xml file containing all edge/type data
         parser = etree.XMLParser(recover=True)
-        tree = ElementTree.parse(os.path.join(self.cfg_path, self.netfn),
-                                 parser=parser)
+        tree = ElementTree.parse(
+            os.path.join(self.cfg_path, self.netfn), parser=parser)
 
         root = tree.getroot()
 
@@ -607,8 +640,8 @@ class Generator(Serializable):
                     net_data[edge_id]["length"] = float(lane.attrib["length"])
                     if net_data[edge_id]["speed"] is None \
                             and "speed" in lane.attrib:
-                        net_data[edge_id]["speed"] = float(lane.
-                                                           attrib["speed"])
+                        net_data[edge_id]["speed"] = float(
+                            lane.attrib["speed"])
 
             # if no speed value is present anywhere, set it to some default
             if net_data[edge_id]["speed"] is None:

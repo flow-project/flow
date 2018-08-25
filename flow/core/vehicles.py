@@ -11,13 +11,16 @@ import traci.constants as tc
 
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 
-SPEED_MODES = {"aggressive": 0, "no_collide": 1, "right_of_way": 25,
-               "all_checks": 31}
+SPEED_MODES = {
+    "aggressive": 0,
+    "no_collide": 1,
+    "right_of_way": 25,
+    "all_checks": 31
+}
 LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
 
 
 class Vehicles:
-
     def __init__(self):
         """Base vehicle class.
 
@@ -182,16 +185,27 @@ class Vehicles:
              "sumo_lc_params": sumo_lc_params}
 
         self.initial.append({
-            "veh_id": veh_id,
-            "acceleration_controller": acceleration_controller,
-            "lane_change_controller": lane_change_controller,
-            "routing_controller": routing_controller,
-            "initial_speed": initial_speed,
-            "num_vehicles": num_vehicles,
-            "speed_mode": speed_mode,
-            "lane_change_mode": lane_change_mode,
-            "sumo_car_following_params": sumo_car_following_params,
-            "sumo_lc_params": sumo_lc_params})
+            "veh_id":
+            veh_id,
+            "acceleration_controller":
+            acceleration_controller,
+            "lane_change_controller":
+            lane_change_controller,
+            "routing_controller":
+            routing_controller,
+            "initial_speed":
+            initial_speed,
+            "num_vehicles":
+            num_vehicles,
+            "speed_mode":
+            speed_mode,
+            "lane_change_mode":
+            lane_change_mode,
+            "sumo_car_following_params":
+            sumo_car_following_params,
+            "sumo_lc_params":
+            sumo_lc_params
+        })
 
         # this is used to return the actual headways from the vehicles class
         self.minGap[veh_id] = type_params["minGap"]
@@ -334,8 +348,7 @@ class Vehicles:
             # updated the list of departed and arrived vehicles
             self._num_departed.append(
                 len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
-            self._num_arrived.append(
-                len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
+            self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -423,14 +436,14 @@ class Vehicles:
                 self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle
-        env.traci_connection.vehicle.subscribe(
-            veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-                     tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
+        env.traci_connection.vehicle.subscribe(veh_id, [
+            tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
+            tc.VAR_SPEED, tc.VAR_EDGES
+        ])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
         # some constant vehicle parameters to the vehicles class
-        self.set_length(
-            veh_id, env.traci_connection.vehicle.getLength(veh_id))
+        self.set_length(veh_id, env.traci_connection.vehicle.getLength(veh_id))
 
         # set the absolute position of the vehicle
         self.set_absolute_position(veh_id, 0)
@@ -611,8 +624,9 @@ class Vehicles:
 
         """
         if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_change_mode(vehID, error)
-                    for vehID in veh_id]
+            return [
+                self.get_lane_change_mode(vehID, error) for vehID in veh_id
+            ]
         return self.__vehicles.get(veh_id, {}).get("lane_change_mode", error)
 
     def get_speed_mode(self, veh_id, error=-1001):
@@ -669,8 +683,9 @@ class Vehicles:
 
         """
         if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_absolute_position(vehID, error)
-                    for vehID in veh_id]
+            return [
+                self.get_absolute_position(vehID, error) for vehID in veh_id
+            ]
         return self.__vehicles.get(veh_id, {}).get("absolute_position", error)
 
     def get_position(self, veh_id, error=-1001):
@@ -788,8 +803,10 @@ class Vehicles:
 
         """
         if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_changing_controller(vehID, error)
-                    for vehID in veh_id]
+            return [
+                self.get_lane_changing_controller(vehID, error)
+                for vehID in veh_id
+            ]
         return self.__vehicles.get(veh_id, {}).get("lane_changer", error)
 
     def get_routing_controller(self, veh_id, error=None):
@@ -808,8 +825,9 @@ class Vehicles:
 
         """
         if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_routing_controller(vehID, error)
-                    for vehID in veh_id]
+            return [
+                self.get_routing_controller(vehID, error) for vehID in veh_id
+            ]
         return self.__vehicles.get(veh_id, {}).get("router", error)
 
     def get_route(self, veh_id, error=list()):
@@ -993,8 +1011,9 @@ class Vehicles:
         specified vehicles at the current time step.
         """
         if isinstance(veh_id, list):
-            return [self.get_state(vehID, state_name, error)
-                    for vehID in veh_id]
+            return [
+                self.get_state(vehID, state_name, error) for vehID in veh_id
+            ]
         return self.__vehicles.get(veh_id, {}).get(state_name, error)
 
     def _multi_lane_headways(self, env):
@@ -1003,12 +1022,12 @@ class Vehicles:
         edge_list = env.scenario.get_edge_list()
         junction_list = env.scenario.get_junction_list()
         tot_list = edge_list + junction_list
-        num_edges = (len(env.scenario.get_edge_list()) +
-                     len(env.scenario.get_junction_list()))
+        num_edges = (len(env.scenario.get_edge_list()) + len(
+            env.scenario.get_junction_list()))
 
         # maximum number of lanes in the network
-        max_lanes = max([env.scenario.num_lanes(edge_id)
-                         for edge_id in tot_list])
+        max_lanes = max(
+            [env.scenario.num_lanes(edge_id) for edge_id in tot_list])
 
         # Key = edge id
         # Element = list, with the ith element containing tuples with the name
