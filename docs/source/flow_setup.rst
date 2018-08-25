@@ -61,7 +61,7 @@ If you have OSX, run the following commands
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bash_profile
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bash_profile
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bash_profile
-    source ~/.bashprofile
+    source ~/.bash_profile
 
 If you have Ubuntu 14.04+, run the following command
 
