@@ -105,12 +105,12 @@ class TrafficLightGridEnv(Env):
     @property
     def action_space(self):
         if self.discrete:
-            return Discrete(2**self.num_traffic_lights)
+            return Discrete(2 ** self.num_traffic_lights)
         else:
             return Box(
                 low=0,
                 high=1,
-                shape=(self.num_traffic_lights, ),
+                shape=(self.num_traffic_lights,),
                 dtype=np.float32)
 
     @property
@@ -118,22 +118,22 @@ class TrafficLightGridEnv(Env):
         speed = Box(
             low=0,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.vehicles.num_vehicles,),
             dtype=np.float32)
         dist_to_intersec = Box(
             low=0.,
             high=np.inf,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.vehicles.num_vehicles,),
             dtype=np.float32)
         edge_num = Box(
             low=0.,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(self.vehicles.num_vehicles,),
             dtype=np.float32)
         traffic_lights = Box(
             low=0.,
             high=1,
-            shape=(3 * self.rows * self.cols, ),
+            shape=(3 * self.rows * self.cols,),
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
@@ -314,8 +314,8 @@ class TrafficLightGridEnv(Env):
         if edge:
             if edge[0] == ":":  # center
                 center_index = int(edge.split("center")[1][0])
-                base = ((self.cols+1) * self.rows * 2) \
-                    + ((self.rows+1) * self.cols * 2)
+                base = ((self.cols + 1) * self.rows * 2) \
+                    + ((self.rows + 1) * self.cols * 2)
                 return base + center_index + 1
             else:
                 pattern = re.compile(r"[a-zA-Z]+")
@@ -392,12 +392,16 @@ class TrafficLightGridEnv(Env):
         if k < 0:
             raise IndexError("k must be greater than 0")
         dists = []
+
+        def sort_lambda(veh_id):
+            return self.get_distance_to_intersection(veh_id)
+
         if isinstance(edges, list):
             for edge in edges:
                 vehicles = self.vehicles.get_ids_by_edge(edge)
                 dist = sorted(
                     vehicles,
-                    key=lambda veh_id: self.get_distance_to_intersection(veh_id)
+                    key=sort_lambda
                 )
                 dists += dist[:k]
         else:
@@ -472,7 +476,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             high=1,
             shape=(12 * self.num_observed * self.num_traffic_lights +
                    2 * len(self.scenario.get_edge_list()) +
-                   3 * self.num_traffic_lights, ),
+                   3 * self.num_traffic_lights,),
             dtype=np.float32)
         return tl_box
 
