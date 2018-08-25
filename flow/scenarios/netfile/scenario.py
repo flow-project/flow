@@ -4,8 +4,11 @@ from flow.scenarios.base_scenario import Scenario
 
 
 class NetFileScenario(Scenario):
-
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Initializes a scenario from a .net.xml file.
@@ -45,3 +48,8 @@ class NetFileScenario(Scenario):
         and junctions in large networks.
         """
         return [(":", -1)]
+
+    def close(self):
+        """The close method is overwritten here because we do not want Flow to
+        delete externally designed networks."""
+        pass

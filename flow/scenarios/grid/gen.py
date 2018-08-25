@@ -66,15 +66,22 @@ class SimpleGridGenerator(Generator):
         vertical_lanes = add_params["vertical_lanes"]
         if isinstance(add_params["speed_limit"], int) or \
                 isinstance(add_params["speed_limit"], float):
-            speed_limit = {"horizontal": add_params["speed_limit"],
-                           "vertical": add_params["speed_limit"]}
+            speed_limit = {
+                "horizontal": add_params["speed_limit"],
+                "vertical": add_params["speed_limit"]
+            }
         else:
             speed_limit = add_params["speed_limit"]
 
-        types = [{"id": "horizontal", "numLanes": repr(horizontal_lanes),
-                  "speed": repr(speed_limit["horizontal"])},
-                 {"id": "vertical", "numLanes": repr(vertical_lanes),
-                  "speed": repr(speed_limit["vertical"])}]
+        types = [{
+            "id": "horizontal",
+            "numLanes": repr(horizontal_lanes),
+            "speed": repr(speed_limit["horizontal"])
+        }, {
+            "id": "vertical",
+            "numLanes": repr(vertical_lanes),
+            "speed": repr(speed_limit["vertical"])
+        }]
 
         return types
 
@@ -109,10 +116,12 @@ class SimpleGridGenerator(Generator):
                 index = i * col_num + j
                 x_center = j * inner_length
                 y_center = i * inner_length
-                nodes.append({"id": "center" + str(index),
-                              "x": repr(x_center),
-                              "y": repr(y_center),
-                              "type": node_type})
+                nodes.append({
+                    "id": "center" + str(index),
+                    "x": repr(x_center),
+                    "y": repr(y_center),
+                    "type": node_type
+                })
         return nodes
 
     def _build_outer_nodes(self):
@@ -137,66 +146,54 @@ class SimpleGridGenerator(Generator):
         nodes = []
         for i in range(col_num):
             # build the bottom nodes
-            nodes += [
-                {
-                    "id": "bot_col_short" + str(i),
-                    "x": repr(i * inner_length),
-                    "y": repr(-short_length),
-                    "type": "priority"
-                },
-                {
-                    "id": "bot_col_long" + str(i),
-                    "x": repr(i * inner_length),
-                    "y": repr(-long_length),
-                    "type": "priority"
-                }
-            ]
+            nodes += [{
+                "id": "bot_col_short" + str(i),
+                "x": repr(i * inner_length),
+                "y": repr(-short_length),
+                "type": "priority"
+            }, {
+                "id": "bot_col_long" + str(i),
+                "x": repr(i * inner_length),
+                "y": repr(-long_length),
+                "type": "priority"
+            }]
             # build the top nodes
-            nodes += [
-                {
-                    "id": "top_col_short" + str(i),
-                    "x": repr(i * inner_length),
-                    "y": repr((row_num - 1) * inner_length + short_length),
-                    "type": "priority"
-                },
-                {
-                    "id": "top_col_long" + str(i),
-                    "x": repr(i * inner_length),
-                    "y": repr((row_num - 1) * inner_length + long_length),
-                    "type": "priority"
-                }
-            ]
+            nodes += [{
+                "id": "top_col_short" + str(i),
+                "x": repr(i * inner_length),
+                "y": repr((row_num - 1) * inner_length + short_length),
+                "type": "priority"
+            }, {
+                "id": "top_col_long" + str(i),
+                "x": repr(i * inner_length),
+                "y": repr((row_num - 1) * inner_length + long_length),
+                "type": "priority"
+            }]
         for i in range(row_num):
             # build the left nodes
-            nodes += [
-                {
-                    "id": "left_row_short" + str(i),
-                    "x": repr(-short_length),
-                    "y": repr(i * inner_length),
-                    "type": "priority"
-                },
-                {
-                    "id": "left_row_long" + str(i),
-                    "x": repr(-long_length),
-                    "y": repr(i * inner_length),
-                    "type": "priority"
-                }
-            ]
+            nodes += [{
+                "id": "left_row_short" + str(i),
+                "x": repr(-short_length),
+                "y": repr(i * inner_length),
+                "type": "priority"
+            }, {
+                "id": "left_row_long" + str(i),
+                "x": repr(-long_length),
+                "y": repr(i * inner_length),
+                "type": "priority"
+            }]
             # build the right nodes
-            nodes += [
-                {
-                    "id": "right_row_short" + str(i),
-                    "x": repr((col_num - 1) * inner_length + short_length),
-                    "y": repr(i * inner_length),
-                    "type": "priority"
-                },
-                {
-                    "id": "right_row_long" + str(i),
-                    "x": repr((col_num - 1) * inner_length + long_length),
-                    "y": repr(i * inner_length),
-                    "type": "priority"
-                }
-            ]
+            nodes += [{
+                "id": "right_row_short" + str(i),
+                "x": repr((col_num - 1) * inner_length + short_length),
+                "y": repr(i * inner_length),
+                "type": "priority"
+            }, {
+                "id": "right_row_long" + str(i),
+                "x": repr((col_num - 1) * inner_length + long_length),
+                "y": repr(i * inner_length),
+                "type": "priority"
+            }]
         return nodes
 
     def _build_inner_edges(self):
@@ -220,30 +217,27 @@ class SimpleGridGenerator(Generator):
         for i in range(row_num):
             for j in range(col_num - 1):
                 node_index = i * col_num + j
-                index = "{}_{}".format(i, j+1)
-                self.node_mapping["center{}".format(node_index+1)].append(
-                    "bot" + index)
-                self.node_mapping["center{}".format(node_index)].append(
-                    "top" + index)
+                index = "{}_{}".format(i, j + 1)
+                self.node_mapping["center{}".format(node_index +
+                                                    1)].append("bot" + index)
+                self.node_mapping["center{}".format(node_index)].append("top" +
+                                                                        index)
 
-                edges += [
-                    {
-                        "id": "top" + index,
-                        "type": "horizontal",
-                        "priority": "78",
-                        "from": "center" + str(node_index + 1),
-                        "to": "center" + str(node_index),
-                        "length": repr(inner_length)
-                    },
-                    {
-                        "id": "bot" + index,
-                        "type": "horizontal",
-                        "priority": "78",
-                        "from": "center" + str(node_index),
-                        "to": "center" + str(node_index + 1),
-                        "length": repr(inner_length)
-                    }
-                ]
+                edges += [{
+                    "id": "top" + index,
+                    "type": "horizontal",
+                    "priority": "78",
+                    "from": "center" + str(node_index + 1),
+                    "to": "center" + str(node_index),
+                    "length": repr(inner_length)
+                }, {
+                    "id": "bot" + index,
+                    "type": "horizontal",
+                    "priority": "78",
+                    "from": "center" + str(node_index),
+                    "to": "center" + str(node_index + 1),
+                    "length": repr(inner_length)
+                }]
 
         # Build the vertical edges
         for i in range(row_num - 1):
@@ -256,24 +250,21 @@ class SimpleGridGenerator(Generator):
                 self.node_mapping["center{}".format(node_index_bot)].append(
                     "left" + index)
 
-                edges += [
-                    {
-                        "id": "right" + index,
-                        "type": "vertical",
-                        "priority": "78",
-                        "from": "center" + str(node_index_bot),
-                        "to": "center" + str(node_index_top),
-                        "length": repr(inner_length)
-                    },
-                    {
-                        "id": "left" + index,
-                        "type": "vertical",
-                        "priority": "78",
-                        "from": "center" + str(node_index_top),
-                        "to": "center" + str(node_index_bot),
-                        "length": repr(inner_length)
-                    }
-                ]
+                edges += [{
+                    "id": "right" + index,
+                    "type": "vertical",
+                    "priority": "78",
+                    "from": "center" + str(node_index_bot),
+                    "to": "center" + str(node_index_top),
+                    "length": repr(inner_length)
+                }, {
+                    "id": "left" + index,
+                    "type": "vertical",
+                    "priority": "78",
+                    "from": "center" + str(node_index_top),
+                    "to": "center" + str(node_index_bot),
+                    "length": repr(inner_length)
+                }]
 
         return edges
 
@@ -299,93 +290,83 @@ class SimpleGridGenerator(Generator):
             index = '0_' + str(i)
             # bottom edges
             self.node_mapping["center" + str(i)].append("right" + index)
-            edges += [
-                {
-                    "id": "right" + index,
-                    "type": "vertical",
-                    "priority": "78",
-                    "from": "bot_col_short" + str(i),
-                    "to": "center" + str(i),
-                    "length": repr(short_length)
-                },
-                {
-                    "id": "left" + index,
-                    "type": "vertical",
-                    "priority": "78",
-                    "from": "center" + str(i),
-                    "to": "bot_col_long" + str(i),
-                    "length": repr(long_length)
-                }
-            ]
+            edges += [{
+                "id": "right" + index,
+                "type": "vertical",
+                "priority": "78",
+                "from": "bot_col_short" + str(i),
+                "to": "center" + str(i),
+                "length": repr(short_length)
+            }, {
+                "id": "left" + index,
+                "type": "vertical",
+                "priority": "78",
+                "from": "center" + str(i),
+                "to": "bot_col_long" + str(i),
+                "length": repr(long_length)
+            }]
             # top edges
             index = str(row_num) + '_' + str(i)
             center_start = (row_num - 1) * col_num
-            self.node_mapping["center" + str(center_start + i)].append(
-                "left" + index)
-            edges += [
-                {
-                    "id": "left" + index,
-                    "type": "vertical",
-                    "priority": "78",
-                    "from": "top_col_short" + str(i),
-                    "to": "center" + str(center_start + i),
-                    "length": repr(short_length)
-                },
-                {
-                    "id": "right" + index,
-                    "type": "vertical",
-                    "priority": "78",
-                    "from": "center" + str(center_start + i),
-                    "to": "top_col_long" + str(i),
-                    "length": repr(long_length)
-                }
-            ]
+            self.node_mapping["center" + str(center_start + i)].append("left" +
+                                                                       index)
+            edges += [{
+                "id": "left" + index,
+                "type": "vertical",
+                "priority": "78",
+                "from": "top_col_short" + str(i),
+                "to": "center" + str(center_start + i),
+                "length": repr(short_length)
+            }, {
+                "id": "right" + index,
+                "type": "vertical",
+                "priority": "78",
+                "from": "center" + str(center_start + i),
+                "to": "top_col_long" + str(i),
+                "length": repr(long_length)
+            }]
 
         # build the left and then the right edges
         for j in range(row_num):
             index = str(j) + '_0'
             # left edges
-            self.node_mapping["center" + str(j*col_num)].append("bot" + index)
-            edges += [
-                {
-                    "id": "bot" + index,
-                    "type": "horizontal",
-                    "priority": "78",
-                    "from": "left_row_short" + str(j),
-                    "to": "center" + str(j * col_num),
-                    "length": repr(short_length)
-                },
-                {
-                    "id": "top" + index,
-                    "type": "horizontal",
-                    "priority": "78",
-                    "from": "center" + str(j * col_num),
-                    "to": "left_row_long" + str(j),
-                    "length": repr(long_length)
-                }
-            ]
+            self.node_mapping["center" + str(j * col_num)].append("bot" +
+                                                                  index)
+            edges += [{
+                "id": "bot" + index,
+                "type": "horizontal",
+                "priority": "78",
+                "from": "left_row_short" + str(j),
+                "to": "center" + str(j * col_num),
+                "length": repr(short_length)
+            }, {
+                "id": "top" + index,
+                "type": "horizontal",
+                "priority": "78",
+                "from": "center" + str(j * col_num),
+                "to": "left_row_long" + str(j),
+                "length": repr(long_length)
+            }]
             # right edges
             index = str(j) + '_' + str(col_num)
             center_index = (j * col_num) + col_num - 1
-            self.node_mapping["center"+str(center_index)].append("top"+index)
-            edges += [
-                {
-                    "id": "top" + index,
-                    "type": "horizontal",
-                    "priority": "78",
-                    "from": "right_row_short" + str(j),
-                    "to": "center" + str(center_index),
-                    "length": repr(short_length)
-                },
-                {
-                    "id": "bot" + index,
-                    "type": "horizontal",
-                    "priority": "78",
-                    "from": "center" + str(center_index),
-                    "to": "right_row_long" + str(j),
-                    "length": repr(long_length)
-                }
-            ]
+            self.node_mapping["center" + str(center_index)].append("top" +
+                                                                   index)
+            edges += [{
+                "id": "top" + index,
+                "type": "horizontal",
+                "priority": "78",
+                "from": "right_row_short" + str(j),
+                "to": "center" + str(center_index),
+                "length": repr(short_length)
+            }, {
+                "id": "bot" + index,
+                "type": "horizontal",
+                "priority": "78",
+                "from": "center" + str(center_index),
+                "to": "right_row_long" + str(j),
+                "length": repr(long_length)
+            }]
 
         return edges
 

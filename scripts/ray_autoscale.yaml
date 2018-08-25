@@ -5,11 +5,11 @@ cluster_name: test #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 2 #<NUM WORKERS IN CLUSTER>
+min_workers: 0 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
-max_workers: 2
+max_workers: 0
 
 # The autoscaler will scale up the cluster to this target fraction of resource
 # usage. For example, if a cluster of 10 nodes is 100% busy and
@@ -39,7 +39,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: m4.16xlarge
+    InstanceType: c4.4xlarge
     ImageId: ami-a2948fc2 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
@@ -54,7 +54,7 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: m4.16xlarge
+    InstanceType: c4.4xlarge
     ImageId: ami-a2948fc2 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
@@ -68,17 +68,17 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
-#"/tmp/foo": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
-#"/tmp/foo2": "<PATH TO RAY_AUTOSCALER_KEY>",
-"/tmp/foo": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/ars_runner",
-"/tmp/foo2": "/Users/eugenevinitsky/.ssh/ray-autoscaler_1_us-west-1.pem",
+#"/tmp/path": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
+#"/tmp/ray_autoscaler_key": "<PATH TO RAY_AUTOSCALER_KEY>",
+"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/raytesting",
+"/tmp/ray_autoscaler_key": "/Users/eugenevinitsky/.ssh/ray-autoscaler_1_us-west-1.pem",
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
     # - cd learning-traffic && GIT_SSH_COMMAND="ssh -i ~/ray_bootstrap_key.pem" git fetch
-    - cd /tmp && cp foo2 ~/ray_autoscaler_key.pem
-    - cd flow-devel && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git fetch  && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git checkout `cat /tmp/foo`
+    - cd /tmp && cp ray_autoscaler_key ~/ray_autoscaler_key.pem
+    - cd flow-devel && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git fetch  && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git checkout `cat /tmp/path`
     - cd ray && git fetch eugene_upstream && git checkout add_ars && git pull
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc

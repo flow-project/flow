@@ -6,7 +6,6 @@ from flow.core.util import emission_to_csv
 
 
 class SumoExperiment:
-
     def __init__(self, env, scenario):
         """
         This class acts as a runner for a scenario and environment.
@@ -24,8 +23,8 @@ class SumoExperiment:
         self.vehicles = scenario.vehicles
         self.cfg = scenario.cfg
 
-        logging.info(" Starting experiment" + str(self.name) + " at "
-                     + str(datetime.datetime.utcnow()))
+        logging.info(" Starting experiment" + str(self.name) + " at " +
+                     str(datetime.datetime.utcnow()))
 
         logging.info("initializing environment.")
 
@@ -39,9 +38,9 @@ class SumoExperiment:
                 number of runs the experiment should perform
             num_steps: int
                 number of steps to be performs in each run of the experiment
-            rl_actions: list or numpy ndarray, optional
-                actions to be performed by rl vehicles in the network (if there
-                are any)
+            rl_actions: method, optional
+                maps states to actions to be performed by the RL agents (if
+                there are any)
             convert_to_csv: bool
                 Specifies whether to convert the emission file created by sumo
                 into a csv file
@@ -51,7 +50,9 @@ class SumoExperiment:
         """
         info_dict = {}
         if rl_actions is None:
-            rl_actions = []
+
+            def rl_actions(*_):
+                return None
 
         rets = []
         mean_rets = []
@@ -65,9 +66,9 @@ class SumoExperiment:
             ret = 0
             ret_list = []
             vehicles = self.env.vehicles
-            self.env.reset()
+            state = self.env.reset()
             for j in range(num_steps):
-                state, reward, done, _ = self.env.step(rl_actions)
+                state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
                 ret += reward
                 ret_list.append(reward)
@@ -86,10 +87,10 @@ class SumoExperiment:
         info_dict["mean_returns"] = mean_rets
         info_dict["per_step_returns"] = ret_lists
 
-        print("Average, std return: {}, {}".format(np.mean(rets),
-                                                   np.std(rets)))
-        print("Average, std speed: {}, {}".format(np.mean(mean_vels),
-                                                  np.std(std_vels)))
+        print("Average, std return: {}, {}".format(
+            np.mean(rets), np.std(rets)))
+        print("Average, std speed: {}, {}".format(
+            np.mean(mean_vels), np.std(std_vels)))
         self.env.terminate()
 
         if convert_to_csv:

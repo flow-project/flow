@@ -14,7 +14,8 @@ def desired_velocity(env, fail=False):
     are set to this desired velocity. Moreover, in order to ensure that the
     reward function naturally punishing the early termination of rollouts due
     to collisions or other failures, the function is formulated as a mapping
-    :math:`r: \\mathcal{S} \\times \\mathcal{A} \\rightarrow \\mathbb{R}_{\\geq 0}`.
+    :math:`r: \\mathcal{S} \\times \\mathcal{A}
+    \\rightarrow \\mathbb{R}_{\\geq 0}`.
     This is done by subtracting the deviation of the system from the
     desired velocity from the peak allowable deviation from the desired
     velocity. Additionally, since the velocity of vehicles are
@@ -35,11 +36,11 @@ def desired_velocity(env, fail=False):
     if any(vel < -100) or fail:
         return 0.
 
-    max_cost = np.array([env.env_params.additional_params["target_velocity"]] *
-                        num_vehicles)
+    target_vel = env.env_params.additional_params["target_velocity"]
+    max_cost = np.array([target_vel] * num_vehicles)
     max_cost = np.linalg.norm(max_cost)
 
-    cost = vel - env.env_params.additional_params["target_velocity"]
+    cost = vel - target_vel
     cost = np.linalg.norm(cost)
 
     return max(max_cost - cost, 0) / max_cost
@@ -69,11 +70,11 @@ def max_edge_velocity(env, edge_list, fail=False):
     if any(vel < -100) or fail:
         return 0.
 
-    max_cost = np.array([env.env_params.additional_params["target_velocity"]] *
-                        num_vehicles)
+    target_vel = env.env_params.additional_params["target_velocity"]
+    max_cost = np.array([target_vel] * num_vehicles)
     max_cost = np.linalg.norm(max_cost)
 
-    cost = vel - env.env_params.additional_params["target_velocity"]
+    cost = vel - target_vel
     cost = np.linalg.norm(cost)
 
     return max(max_cost - cost, 0)
@@ -118,13 +119,14 @@ def min_delay(env):
     vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
 
     vel = vel[vel >= -1e-6]
-    v_top = max(env.scenario.speed_limit(edge)
-                for edge in env.scenario.get_edge_list())
+    v_top = max(
+        env.scenario.speed_limit(edge)
+        for edge in env.scenario.get_edge_list())
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
     cost = time_step * sum((v_top - vel) / v_top)
-    return max((max_cost - cost)/max_cost, 0)
+    return max((max_cost - cost) / max_cost, 0)
 
 
 def min_delay_unscaled(env):
@@ -140,13 +142,16 @@ def min_delay_unscaled(env):
     vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
 
     vel = vel[vel >= -1e-6]
-    v_top = max(env.scenario.speed_limit(edge)
-                for edge in env.scenario.get_edge_list())
+    v_top = max(
+        env.scenario.speed_limit(edge)
+        for edge in env.scenario.get_edge_list())
     time_step = env.sim_step
 
     cost = time_step * sum((v_top - vel) / v_top)
-    return cost/len(env.vehicles.get_ids())
+    return cost / len(env.vehicles.get_ids())
 
+def min_delay_unscaled(env):
+    """The average delay for all vehicles in the system
 
 def penalize_tl_changes(actions, gain=1):
     """
@@ -159,7 +164,10 @@ def penalize_tl_changes(actions, gain=1):
     return -action_penalty
 
 
-def penalize_headway_variance(vehicles, vids, normalization=1, penalty_gain=1,
+def penalize_headway_variance(vehicles,
+                              vids,
+                              normalization=1,
+                              penalty_gain=1,
                               penalty_exponent=1):
     """A reward function used to train rl vehicles to encourage large headways
     among a pre-specified list of vehicles vids.
@@ -178,14 +186,17 @@ def penalize_headway_variance(vehicles, vids, normalization=1, penalty_gain=1,
     penalty_exponent: float, optional
         used to allow exponential punishing of smaller headways
     """
-    headways = penalty_gain * np.power(np.array(
-        [vehicles.get_headway(veh_id) / normalization for veh_id in vids]),
-        penalty_exponent)
+    headways = penalty_gain * np.power(
+        np.array(
+            [vehicles.get_headway(veh_id) / normalization
+             for veh_id in vids]), penalty_exponent)
     return -np.var(headways)
 
 
-def punish_small_rl_headways(env, headway_threshold,
-                             penalty_gain=1, penalty_exponent=1):
+def punish_small_rl_headways(env,
+                             headway_threshold,
+                             penalty_gain=1,
+                             penalty_exponent=1):
     """A reward function used to train rl vehicles to avoid small headways.
 
     A penalty is issued whenever rl vehicles are below a pre-defined desired
@@ -259,10 +270,12 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
         to the queues in the lane in question
     """
     # IDs of all vehicles in passed-in lane
-    lane_ids = [veh_id for veh_id in env.vehicles.get_ids_by_edge(edge)
-                if env.vehicles.get_lane(veh_id) == lane]
+    lane_ids = [
+        veh_id for veh_id in env.vehicles.get_ids_by_edge(edge)
+        if env.vehicles.get_lane(veh_id) == lane
+    ]
 
-    return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
+    return -1 * (len(lane_ids)**penalty_exponent) * penalty_gain
 
 
 def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
@@ -294,7 +307,7 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
             print('rl id:', rl_id)
             print('follower id:', follower_id)
             continue
-        total_reward += follower_headway ** reward_exponent
+        total_reward += follower_headway**reward_exponent
     # print(total_reward)
     if total_reward < 0:
         print('negative total reward of:', total_reward)

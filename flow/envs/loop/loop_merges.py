@@ -22,9 +22,9 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class TwoLoopsMergeEnv(Env):
-    """Environment for training cooperative merging behavior in a closed loop
-    merge scenario.
+class TwoLoopsMergePOEnv(Env):
+    """Environment for training cooperative merging behavior in a partially
+    observable closed loop merge scenario.
 
     WARNING: only supports 1 RL vehicle
 
@@ -65,8 +65,8 @@ class TwoLoopsMergeEnv(Env):
     def __init__(self, env_params, sumo_params, scenario):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
-                raise KeyError('Environment parameter "{}" not supplied'.
-                               format(p))
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
 
         self.n_preceding = env_params.additional_params["n_preceding"]
         self.n_following = env_params.additional_params["n_following"]
@@ -81,25 +81,35 @@ class TwoLoopsMergeEnv(Env):
 
     @property
     def observation_space(self):
-        speed = Box(low=0, high=np.inf, shape=(self.n_obs_vehicles,),
-                    dtype=np.float32)
-        absolute_pos = Box(low=0., high=np.inf, shape=(self.n_obs_vehicles,),
-                           dtype=np.float32)
-        queue_length = Box(low=0, high=np.inf, shape=(1,), dtype=np.float32)
-        vel_stats = Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32)
+        speed = Box(
+            low=0,
+            high=np.inf,
+            shape=(self.n_obs_vehicles, ),
+            dtype=np.float32)
+        absolute_pos = Box(
+            low=0.,
+            high=np.inf,
+            shape=(self.n_obs_vehicles, ),
+            dtype=np.float32)
+        queue_length = Box(low=0, high=np.inf, shape=(1, ), dtype=np.float32)
+        vel_stats = Box(
+            low=-np.inf, high=np.inf, shape=(2, ), dtype=np.float32)
 
         return Tuple((speed, absolute_pos, queue_length, vel_stats))
 
     @property
     def action_space(self):
-        return Box(low=-np.abs(self.env_params.additional_params["max_decel"]),
-                   high=self.env_params.additional_params["max_accel"],
-                   shape=(self.vehicles.num_rl_vehicles,),
-                   dtype=np.float32)
+        return Box(
+            low=-np.abs(self.env_params.additional_params["max_decel"]),
+            high=self.env_params.additional_params["max_accel"],
+            shape=(self.vehicles.num_rl_vehicles, ),
+            dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
-        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
-                         if veh_id in self.vehicles.get_rl_ids()]
+        sorted_rl_ids = [
+            veh_id for veh_id in self.sorted_ids
+            if veh_id in self.vehicles.get_rl_ids()
+        ]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -107,9 +117,9 @@ class TwoLoopsMergeEnv(Env):
 
         # Use a similar weighting of of the headway reward as the velocity
         # reward
-        max_cost = np.array([self.env_params.additional_params[
-                                 "target_velocity"]] *
-                            self.vehicles.num_vehicles)
+        max_cost = np.array(
+            [self.env_params.additional_params["target_velocity"]
+             ] * self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
         normalization = self.scenario.length / self.vehicles.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
@@ -191,8 +201,8 @@ class TwoLoopsMergeEnv(Env):
         vel_stats[1] = np.mean(vel_all[num_inner:])
         vel_stats = np.nan_to_num(vel_stats)
 
-        return np.array([normalized_vel, normalized_pos, queue_length,
-                         vel_stats]).T
+        return np.array(
+            [normalized_vel, normalized_pos, queue_length, vel_stats]).T
 
     def sort_by_position(self):
         """
@@ -206,11 +216,15 @@ class TwoLoopsMergeEnv(Env):
         sorted_indx = np.argsort(pos)
         sorted_ids = np.array(self.vehicles.get_ids())[sorted_indx]
 
-        sorted_human_ids = [veh_id for veh_id in sorted_ids
-                            if veh_id not in self.vehicles.get_rl_ids()]
+        sorted_human_ids = [
+            veh_id for veh_id in sorted_ids
+            if veh_id not in self.vehicles.get_rl_ids()
+        ]
 
-        sorted_rl_ids = [veh_id for veh_id in sorted_ids
-                         if veh_id in self.vehicles.get_rl_ids()]
+        sorted_rl_ids = [
+            veh_id for veh_id in sorted_ids
+            if veh_id in self.vehicles.get_rl_ids()
+        ]
 
         sorted_separated_ids = sorted_human_ids + sorted_rl_ids
 

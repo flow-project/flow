@@ -179,9 +179,9 @@ class BaseController:
 
             if this_vel + action * sim_step > safe_velocity:
                 if safe_velocity > 0:
-                    return (safe_velocity - this_vel)/sim_step
+                    return (safe_velocity - this_vel) / sim_step
                 else:
-                    return -this_vel/sim_step
+                    return -this_vel / sim_step
             else:
                 return action
 

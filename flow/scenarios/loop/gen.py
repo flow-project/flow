@@ -24,10 +24,23 @@ class CircleGenerator(Generator):
         length = net_params.additional_params["length"]
         r = length / (2 * pi)
 
-        nodes = [{"id": "bottom", "x": repr(0),  "y": repr(-r)},
-                 {"id": "right",  "x": repr(r),  "y": repr(0)},
-                 {"id": "top",    "x": repr(0),  "y": repr(r)},
-                 {"id": "left",   "x": repr(-r), "y": repr(0)}]
+        nodes = [{
+            "id": "bottom",
+            "x": repr(0),
+            "y": repr(-r)
+        }, {
+            "id": "right",
+            "x": repr(r),
+            "y": repr(0)
+        }, {
+            "id": "top",
+            "x": repr(0),
+            "y": repr(r)
+        }, {
+            "id": "left",
+            "x": repr(-r),
+            "y": repr(0)
+        }]
 
         return nodes
 
@@ -40,36 +53,71 @@ class CircleGenerator(Generator):
         r = length / (2 * pi)
         edgelen = length / 4.
 
-        edges = [
-            {"id": "bottom",
-             "type": "edgeType",
-             "from": "bottom",
-             "to": "right",
-             "length": repr(edgelen),
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(-pi / 2, 0, resolution)])},
-            {"id": "right",
-             "type": "edgeType",
-             "from": "right",
-             "to": "top",
-             "length": repr(edgelen),
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(0, pi / 2, resolution)])},
-            {"id": "top",
-             "type": "edgeType",
-             "from": "top",
-             "to": "left",
-             "length": repr(edgelen),
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(pi / 2, pi, resolution)])},
-            {"id": "left",
-             "type": "edgeType",
-             "from": "left",
-             "to": "bottom",
-             "length": repr(edgelen),
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(pi, 3 * pi/2, resolution)])}
-        ]
+        edges = [{
+            "id":
+            "bottom",
+            "type":
+            "edgeType",
+            "from":
+            "bottom",
+            "to":
+            "right",
+            "length":
+            repr(edgelen),
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(-pi / 2, 0, resolution)
+            ])
+        }, {
+            "id":
+            "right",
+            "type":
+            "edgeType",
+            "from":
+            "right",
+            "to":
+            "top",
+            "length":
+            repr(edgelen),
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(0, pi / 2, resolution)
+            ])
+        }, {
+            "id":
+            "top",
+            "type":
+            "edgeType",
+            "from":
+            "top",
+            "to":
+            "left",
+            "length":
+            repr(edgelen),
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(pi / 2, pi, resolution)
+            ])
+        }, {
+            "id":
+            "left",
+            "type":
+            "edgeType",
+            "from":
+            "left",
+            "to":
+            "bottom",
+            "length":
+            repr(edgelen),
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(pi, 3 * pi / 2, resolution)
+            ])
+        }]
 
         return edges
 
@@ -80,9 +128,11 @@ class CircleGenerator(Generator):
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
 
-        types = [{"id": "edgeType",
-                  "numLanes": repr(lanes),
-                  "speed": repr(speed_limit)}]
+        types = [{
+            "id": "edgeType",
+            "numLanes": repr(lanes),
+            "speed": repr(speed_limit)
+        }]
 
         return types
 
@@ -90,9 +140,11 @@ class CircleGenerator(Generator):
         """
         See parent class
         """
-        rts = {"top": ["top", "left", "bottom", "right"],
-               "left": ["left", "bottom", "right", "top"],
-               "bottom": ["bottom", "right", "top", "left"],
-               "right": ["right", "top", "left", "bottom"]}
+        rts = {
+            "top": ["top", "left", "bottom", "right"],
+            "left": ["left", "bottom", "right", "top"],
+            "bottom": ["bottom", "right", "top", "left"],
+            "right": ["right", "top", "left", "bottom"]
+        }
 
         return rts

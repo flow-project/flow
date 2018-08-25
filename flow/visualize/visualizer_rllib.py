@@ -37,25 +37,33 @@ PPO - the name of the algorithm the code was run with
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description="[Flow] Evaluates a reinforcement learning agent "
-                "given a checkpoint.", epilog=EXAMPLE_USAGE)
+    "given a checkpoint.",
+    epilog=EXAMPLE_USAGE)
 
 # required input parameters
-parser.add_argument("result_dir", type=str,
-                    help="Directory containing results")
-parser.add_argument("checkpoint_num", type=str,
-                    help="Checkpoint number.")
+parser.add_argument(
+    "result_dir", type=str, help="Directory containing results")
+parser.add_argument("checkpoint_num", type=str, help="Checkpoint number.")
 
 # optional input parameters
-parser.add_argument("--run", type=str, default='PPO',
-                    help="The algorithm or model to train. This may refer to "
-                         "the name of a built-on algorithm (e.g. RLLib's DQN "
-                         "or PPO), or a user-defined trainable function or "
-                         "class registered in the tune registry.")
-parser.add_argument('--num_rollouts', type=int, default=1,
-                    help="The number of rollouts to visualize.")
-parser.add_argument('--emission_to_csv', action='store_true',
-                    help='Specifies whether to convert the emission file '
-                         'created by sumo into a csv file')
+parser.add_argument(
+    "--run",
+    type=str,
+    default='PPO',
+    help="The algorithm or model to train. This may refer to "
+    "the name of a built-on algorithm (e.g. RLLib's DQN "
+    "or PPO), or a user-defined trainable function or "
+    "class registered in the tune registry.")
+parser.add_argument(
+    '--num_rollouts',
+    type=int,
+    default=1,
+    help="The number of rollouts to visualize.")
+parser.add_argument(
+    '--emission_to_csv',
+    action='store_true',
+    help='Specifies whether to convert the emission file '
+    'created by sumo into a csv file')
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -72,9 +80,8 @@ if __name__ == "__main__":
     flow_params = get_flow_params(config)
 
     # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(params=flow_params,
-                                           version=0,
-                                           sumo_binary="sumo")
+    create_env, env_name = make_create_env(
+        params=flow_params, version=0, sumo_binary="sumo")
     register_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
@@ -92,11 +99,12 @@ if __name__ == "__main__":
     module = __import__("flow.scenarios", fromlist=[flow_params["generator"]])
     generator_class = getattr(module, flow_params["generator"])
 
-    scenario = scenario_class(name=exp_tag,
-                              generator_class=generator_class,
-                              vehicles=vehicles,
-                              net_params=net_params,
-                              initial_config=initial_config)
+    scenario = scenario_class(
+        name=exp_tag,
+        generator_class=generator_class,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config)
 
     # Start the environment with the gui turned on and a path for the
     # emission file
@@ -107,9 +115,8 @@ if __name__ == "__main__":
     sumo_params.sumo_binary = "sumo-gui"
     sumo_params.emission_path = "./test_time_rollout/"
 
-    env = env_class(env_params=env_params,
-                    sumo_params=sumo_params,
-                    scenario=scenario)
+    env = env_class(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts

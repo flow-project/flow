@@ -28,11 +28,14 @@ HORIZON = 1500
 
 # We place 1 autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode="no_collide",
-             num_vehicles=14)
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    routing_controller=(ContinuousRouter, {}),
+    speed_mode="no_collide",
+    num_vehicles=14)
 
 sumo_params = SumoParams(
     sim_step=0.1,
@@ -56,11 +59,12 @@ net_params = NetParams(
     additional_params=ADDITIONAL_NET_PARAMS,
 )
 
-scenario = Figure8Scenario(name="figure_eight",
-                           generator_class=Figure8Generator,
-                           vehicles=vehicles,
-                           net_params=net_params,
-                           initial_config=initial_config)
+scenario = Figure8Scenario(
+    name="figure_eight",
+    generator_class=Figure8Generator,
+    vehicles=vehicles,
+    net_params=net_params,
+    initial_config=initial_config)
 
 env = AccelEnv(env_params, sumo_params, scenario)
 

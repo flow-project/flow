@@ -56,30 +56,36 @@ def ring_road_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1,
-                                 sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     if vehicles is None:
         # set default vehicles configuration
         vehicles = Vehicles()
-        vehicles.add(veh_id="idm",
-                     acceleration_controller=(IDMController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     speed_mode="aggressive",
-                     num_vehicles=1)
+        vehicles.add(
+            veh_id="idm",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            speed_mode="aggressive",
+            num_vehicles=1)
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8,
-                                 "max_accel": 1,
-                                 "max_decel": 1,
-                                 "num_steps": 500}
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 1,
+            "max_decel": 1,
+            "num_steps": 500
+        }
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
         # set default net_params configuration
-        additional_net_params = {"length": 230, "lanes": 1, "speed_limit": 30,
-                                 "resolution": 40}
+        additional_net_params = {
+            "length": 230,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
     if initial_config is None:
@@ -91,17 +97,17 @@ def ring_road_exp_setup(sumo_params=None,
         traffic_lights = TrafficLights()
 
     # create the scenario
-    scenario = LoopScenario(name="RingRoadTest",
-                            generator_class=CircleGenerator,
-                            vehicles=vehicles,
-                            net_params=net_params,
-                            initial_config=initial_config,
-                            traffic_lights=traffic_lights)
+    scenario = LoopScenario(
+        name="RingRoadTest",
+        generator_class=CircleGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
 
     # create the environment
-    env = AccelEnv(env_params=env_params,
-                   sumo_params=sumo_params,
-                   scenario=scenario)
+    env = AccelEnv(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     return env, scenario
 
@@ -139,32 +145,38 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1,
-                                 sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     if vehicles is None:
         # set default vehicles configuration
         vehicles = Vehicles()
-        vehicles.add(veh_id="idm",
-                     acceleration_controller=(IDMController, {}),
-                     speed_mode="aggressive",
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=1)
+        vehicles.add(
+            veh_id="idm",
+            acceleration_controller=(IDMController, {}),
+            speed_mode="aggressive",
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=1)
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8,
-                                 "max_accel": 1,
-                                 "max_decel": 1,
-                                 "num_steps": 500}
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 1,
+            "max_decel": 1,
+            "num_steps": 500
+        }
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
         # set default net_params configuration
-        additional_net_params = {"radius_ring": 30, "lanes": 1,
-                                 "speed_limit": 30, "resolution": 40}
-        net_params = NetParams(no_internal_links=False,
-                               additional_params=additional_net_params)
+        additional_net_params = {
+            "radius_ring": 30,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        net_params = NetParams(
+            no_internal_links=False, additional_params=additional_net_params)
 
     if initial_config is None:
         # set default initial_config configuration
@@ -175,17 +187,17 @@ def figure_eight_exp_setup(sumo_params=None,
         traffic_lights = TrafficLights()
 
     # create the scenario
-    scenario = Figure8Scenario(name="RingRoadTest",
-                               generator_class=Figure8Generator,
-                               vehicles=vehicles,
-                               net_params=net_params,
-                               initial_config=initial_config,
-                               traffic_lights=traffic_lights)
+    scenario = Figure8Scenario(
+        name="RingRoadTest",
+        generator_class=Figure8Generator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
 
     # create the environment
-    env = AccelEnv(env_params=env_params,
-                   sumo_params=sumo_params,
-                   scenario=scenario)
+    env = AccelEnv(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     return env, scenario
 
@@ -223,52 +235,62 @@ def highway_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1,
-                                 sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     if vehicles is None:
         # set default vehicles configuration
         vehicles = Vehicles()
-        vehicles.add(veh_id="idm",
-                     acceleration_controller=(IDMController, {}),
-                     speed_mode="aggressive",
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=1)
+        vehicles.add(
+            veh_id="idm",
+            acceleration_controller=(IDMController, {}),
+            speed_mode="aggressive",
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=1)
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8,
-                                 "max_accel": 1,
-                                 "max_decel": 1,
-                                 "num_steps": 500}
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 1,
+            "max_decel": 1,
+            "num_steps": 500
+        }
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
         # set default net_params configuration
-        additional_net_params = {"length": 100, "lanes": 1,
-                                 "speed_limit": 30, "resolution": 40}
+        additional_net_params = {
+            "length": 100,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
     if initial_config is None:
         # set default initial_config configuration
-        initial_config = InitialConfig()
+        initial_config = InitialConfig(lanes_distribution=1)
+
+    if traffic_lights is None:
+        # set default to no traffic lights
+        traffic_lights = TrafficLights()
 
     if traffic_lights is None:
         # set default to no traffic lights
         traffic_lights = TrafficLights()
 
     # create the scenario
-    scenario = HighwayScenario(name="RingRoadTest",
-                               generator_class=HighwayGenerator,
-                               vehicles=vehicles,
-                               net_params=net_params,
-                               initial_config=initial_config,
-                               traffic_lights=traffic_lights)
+    scenario = HighwayScenario(
+        name="RingRoadTest",
+        generator_class=HighwayGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
 
     # create the environment
-    env = AccelEnv(env_params=env_params,
-                   sumo_params=sumo_params,
-                   scenario=scenario)
+    env = AccelEnv(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     return env, scenario
 
@@ -316,65 +338,75 @@ def grid_mxn_exp_setup(row_num=1,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=1,
-                                 sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=1, sumo_binary="sumo")
 
     if vehicles is None:
         total_vehicles = 20
         vehicles = Vehicles()
-        vehicles.add(veh_id="idm",
-                     acceleration_controller=(IDMController, {}),
-                     sumo_car_following_params=SumoCarFollowingParams(
-                        min_gap=2.5,
-                        tau=1.1,
-                        max_speed=30
-                        ),
-                     routing_controller=(GridRouter, {}),
-                     num_vehicles=total_vehicles)
+        vehicles.add(
+            veh_id="idm",
+            acceleration_controller=(IDMController, {}),
+            sumo_car_following_params=SumoCarFollowingParams(
+                min_gap=2.5, tau=1.1, max_speed=30),
+            routing_controller=(GridRouter, {}),
+            num_vehicles=total_vehicles)
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 50, "num_steps": 100,
-                                 "switch_time": 3.0}
+        additional_env_params = {
+            "target_velocity": 50,
+            "num_steps": 100,
+            "switch_time": 3.0
+        }
 
-        env_params = EnvParams(additional_params=additional_env_params,
-                               horizon=100)
+        env_params = EnvParams(
+            additional_params=additional_env_params, horizon=100)
 
     if net_params is None:
         # set default net_params configuration
         total_vehicles = vehicles.num_vehicles
-        grid_array = {"short_length": 100, "inner_length": 300,
-                      "long_length": 3000, "row_num": row_num,
-                      "col_num": col_num,
-                      "cars_left": int(total_vehicles / 4),
-                      "cars_right": int(total_vehicles / 4),
-                      "cars_top": int(total_vehicles / 4),
-                      "cars_bot": int(total_vehicles / 4)}
+        grid_array = {
+            "short_length": 100,
+            "inner_length": 300,
+            "long_length": 3000,
+            "row_num": row_num,
+            "col_num": col_num,
+            "cars_left": int(total_vehicles / 4),
+            "cars_right": int(total_vehicles / 4),
+            "cars_top": int(total_vehicles / 4),
+            "cars_bot": int(total_vehicles / 4)
+        }
 
-        additional_net_params = {"length": 200, "lanes": 2, "speed_limit": 35,
-                                 "resolution": 40, "grid_array": grid_array,
-                                 "horizontal_lanes": 1, "vertical_lanes": 1}
+        additional_net_params = {
+            "length": 200,
+            "lanes": 2,
+            "speed_limit": 35,
+            "resolution": 40,
+            "grid_array": grid_array,
+            "horizontal_lanes": 1,
+            "vertical_lanes": 1
+        }
 
-        net_params = NetParams(no_internal_links=False,
-                               additional_params=additional_net_params)
+        net_params = NetParams(
+            no_internal_links=False, additional_params=additional_net_params)
 
     if initial_config is None:
         # set default initial_config configuration
-        initial_config = InitialConfig(spacing="uniform",
-                                       additional_params={"enter_speed": 30})
+        initial_config = InitialConfig(
+            spacing="uniform", additional_params={"enter_speed": 30})
 
     # create the scenario
-    scenario = SimpleGridScenario(name="Grid1x1Test",
-                                  generator_class=SimpleGridGenerator,
-                                  vehicles=vehicles,
-                                  net_params=net_params,
-                                  initial_config=initial_config,
-                                  traffic_lights=tl_logic)
+    scenario = SimpleGridScenario(
+        name="Grid1x1Test",
+        generator_class=SimpleGridGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=tl_logic)
 
     # create the environment
-    env = GreenWaveTestEnv(env_params=env_params,
-                           sumo_params=sumo_params,
-                           scenario=scenario)
+    env = GreenWaveTestEnv(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     return env, scenario
 
@@ -413,30 +445,36 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1,
-                                 sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     if vehicles is None:
         # set default vehicles configuration
         vehicles = Vehicles()
-        vehicles.add(veh_id="idm",
-                     acceleration_controller=(IDMController, {}),
-                     speed_mode="aggressive",
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=1)
+        vehicles.add(
+            veh_id="idm",
+            acceleration_controller=(IDMController, {}),
+            speed_mode="aggressive",
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=1)
 
     if env_params is None:
         # set default env_params configuration
-        additional_env_params = {"target_velocity": 8,
-                                 "max_accel": 1,
-                                 "max_decel": 1,
-                                 "num_steps": 500}
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 1,
+            "max_decel": 1,
+            "num_steps": 500
+        }
         env_params = EnvParams(additional_params=additional_env_params)
 
     if net_params is None:
         # set default net_params configuration
-        additional_net_params = {"length": 230, "lanes": 1,
-                                 "speed_limit": 30, "resolution": 40}
+        additional_net_params = {
+            "length": 230,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
     if initial_config is None:
@@ -448,17 +486,17 @@ def variable_lanes_exp_setup(sumo_params=None,
         traffic_lights = TrafficLights()
 
     # create the scenario
-    scenario = LoopScenario(name="VariableLaneRingRoadTest",
-                            generator_class=VariableLanesGenerator,
-                            vehicles=vehicles,
-                            net_params=net_params,
-                            initial_config=initial_config,
-                            traffic_lights=traffic_lights)
+    scenario = LoopScenario(
+        name="VariableLaneRingRoadTest",
+        generator_class=VariableLanesGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
 
     # create the environment
-    env = AccelEnv(env_params=env_params,
-                   sumo_params=sumo_params,
-                   scenario=scenario)
+    env = AccelEnv(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     return env, scenario
 
@@ -474,59 +512,68 @@ def setup_bottlenecks(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1,
-                                 sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
 
     if vehicles is None:
         vehicles = Vehicles()
 
-        vehicles.add(veh_id="human",
-                     speed_mode=25,
-                     lane_change_controller=(SumoLaneChangeController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     lane_change_mode=1621,
-                     num_vehicles=1 * scaling)
+        vehicles.add(
+            veh_id="human",
+            speed_mode=25,
+            lane_change_controller=(SumoLaneChangeController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            lane_change_mode=1621,
+            num_vehicles=1 * scaling)
 
     if env_params is None:
-        additional_env_params = {"target_velocity": 40,
-                                 "max_accel": 1,
-                                 "max_decel": 1,
-                                 "lane_change_duration": 5,
-                                 "add_rl_if_exit": False,
-                                 "disable_tb": True,
-                                 "disable_ramp_metering": True}
+        additional_env_params = {
+            "target_velocity": 40,
+            "max_accel": 1,
+            "max_decel": 1,
+            "lane_change_duration": 5,
+            "add_rl_if_exit": False,
+            "disable_tb": True,
+            "disable_ramp_metering": True
+        }
         env_params = EnvParams(additional_params=additional_env_params)
 
     if inflow is None:
         inflow = InFlows()
-        inflow.add(veh_type="human", edge="1", vehsPerHour=1000,
-                   departLane="random", departSpeed=10)
+        inflow.add(
+            veh_type="human",
+            edge="1",
+            vehsPerHour=1000,
+            departLane="random",
+            departSpeed=10)
 
     if traffic_lights is None:
         traffic_lights = TrafficLights()
 
     if net_params is None:
         additional_net_params = {"scaling": scaling}
-        net_params = NetParams(in_flows=inflow,
-                               no_internal_links=False,
-                               additional_params=additional_net_params)
+        net_params = NetParams(
+            in_flows=inflow,
+            no_internal_links=False,
+            additional_params=additional_net_params)
 
     if initial_config is None:
-        initial_config = InitialConfig(spacing="random", min_gap=5,
-                                       lanes_distribution=float("inf"),
-                                       edges_distribution=["2", "3", "4", "5"])
+        initial_config = InitialConfig(
+            spacing="random",
+            min_gap=5,
+            lanes_distribution=float("inf"),
+            edges_distribution=["2", "3", "4", "5"])
 
-    scenario = BottleneckScenario(name="bay_bridge_toll",
-                                  generator_class=BottleneckGenerator,
-                                  vehicles=vehicles,
-                                  net_params=net_params,
-                                  initial_config=initial_config,
-                                  traffic_lights=traffic_lights)
+    scenario = BottleneckScenario(
+        name="bay_bridge_toll",
+        generator_class=BottleneckGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
 
     # create the environment
-    env = AccelEnv(env_params=env_params,
-                   sumo_params=sumo_params,
-                   scenario=scenario)
+    env = AccelEnv(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     return env, scenario
 
@@ -539,23 +586,78 @@ class VariableLanesGenerator(CircleGenerator):
         r = length / (2 * pi)
         edgelen = length / 4.
 
-        edges = [
-            {"id": "bottom", "from": "bottom", "to": "right", "speed": str(v),
-             "length": repr(edgelen), "numLanes": "1",
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(-pi / 2, 0, resolution)])},
-            {"id": "right", "from": "right", "to": "top", "speed": str(v),
-             "length": repr(edgelen), "numLanes": "3",
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(0, pi / 2, resolution)])},
-            {"id": "top", "from": "top", "to": "left", "speed": str(v),
-             "length": repr(edgelen), "numLanes": "2",
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(pi / 2, pi, resolution)])},
-            {"id": "left", "from": "left", "to": "bottom", "speed": str(v),
-             "length": repr(edgelen), "numLanes": "4",
-             "shape": " ".join(["%.2f,%.2f" % (r * cos(t), r * sin(t))
-                                for t in linspace(pi, 3*pi / 2, resolution)])}
-        ]
+        edges = [{
+            "id":
+            "bottom",
+            "from":
+            "bottom",
+            "to":
+            "right",
+            "speed":
+            str(v),
+            "length":
+            repr(edgelen),
+            "numLanes":
+            "1",
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(-pi / 2, 0, resolution)
+            ])
+        }, {
+            "id":
+            "right",
+            "from":
+            "right",
+            "to":
+            "top",
+            "speed":
+            str(v),
+            "length":
+            repr(edgelen),
+            "numLanes":
+            "3",
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(0, pi / 2, resolution)
+            ])
+        }, {
+            "id":
+            "top",
+            "from":
+            "top",
+            "to":
+            "left",
+            "speed":
+            str(v),
+            "length":
+            repr(edgelen),
+            "numLanes":
+            "2",
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(pi / 2, pi, resolution)
+            ])
+        }, {
+            "id":
+            "left",
+            "from":
+            "left",
+            "to":
+            "bottom",
+            "speed":
+            str(v),
+            "length":
+            repr(edgelen),
+            "numLanes":
+            "4",
+            "shape":
+            " ".join([
+                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                for t in linspace(pi, 3 * pi / 2, resolution)
+            ])
+        }]
 
         return edges
