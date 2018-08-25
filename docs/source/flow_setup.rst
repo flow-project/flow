@@ -14,8 +14,11 @@ shell commands below to get started.
 Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
-above. It will be useful to install `Anaconda <https://www.anaconda.com/download>`_
-for Python.
+above. **It is highly recommended that users install
+`Anaconda <https://www.anaconda.com/download>`_ or
+`Miniconda <https://conda.io/miniconda.html>`_
+for Python and the setup instructions will assume that you are 
+doing so.**
 
 For Ubuntu 16.04:
 ::
@@ -38,6 +41,7 @@ sumo
 Next, we install SUMO, an open source traffic microsimulator which will be used
 the update the states of vehicles, traffic lights, and other RL and
 human-driven agents during the simulation process.
+
 ::
 
     cd ~
@@ -45,14 +49,38 @@ human-driven agents during the simulation process.
     cd sumo
     git checkout 1d4338ab80
     make -f Makefile.cvs
+
+If you have OSX, run the following commands
+
+::
+
     export CPPFLAGS=-I/opt/X11/include
     export LDFLAGS=-L/opt/X11/lib
+    ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
+    make -j$nproc
+    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bash_profile
+    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bash_profile
+    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bash_profile
+
+If you have Ubuntu 14.04+, run the following command
+
+::
+
     ./configure
     make -j$nproc
     echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
+
+Finally, test your sumo install and version by running the following commands
+
+::
+
+    which sumo
+    sumo --version
+    sumo-gui
 
 Flow
 ====
@@ -65,12 +93,21 @@ Ray/RLlib for more).
 ::
 
     cd ~
-    git clone https://github.com/berkeleyflow/flow.git
+    git clone https://github.com/flow-project/flow.git
     cd flow
+    conda env create -f environment.yml
+    source activate flow
     python3 setup.py develop
+
+For linux run
+::
     echo 'export PYTHONPATH="$HOME/flow:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
 
+For mac run
+::
+    echo 'export PYTHONPATH="$HOME/flow:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bash_profile
 
 Testing the Installation
 ========================
@@ -108,11 +145,17 @@ to install the `rllab-multiagent` library, follow the below instructions
     git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
     conda env create -f environment.yml
-    source activate flow-rllab
     python3 setup.py develop
+
+For linux run
+::
     echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
-    source activate flow-rllab
+
+For mac run
+::
+    echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bash_profile
 
 Ray/RLlib (optional)
 ====================
@@ -157,10 +200,15 @@ Getting started (Ray/RLlib)
 
 See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
 
+To run any of the RL examples, make sure to run
+::
+
+    source activate flow
+
 In order to test run an Flow experiment in RLlib, try the following command:
 ::
 
-    python examples/rllab/stabilizing_the_ring.py
+    python examples/rllib/stabilizing_the_ring.py
 
 If it does not fail, this means that you have Flow properly configured with
 RLlib.

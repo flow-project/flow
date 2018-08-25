@@ -1,5 +1,4 @@
 class BaseLaneChangeController:
-
     def __init__(self, veh_id, lane_change_params={}):
         """Base class for lane-changing controllers.
 

@@ -15,7 +15,6 @@ from flow.controllers.base_controller import BaseController
 
 
 class CFMController(BaseController):
-
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -53,9 +52,13 @@ class CFMController(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params,
-                                delay=time_delay, fail_safe=fail_safe,
-                                noise=noise)
+        BaseController.__init__(
+            self,
+            veh_id,
+            sumo_cf_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise)
 
         self.veh_id = veh_id
         self.k_d = k_d
@@ -79,7 +82,6 @@ class CFMController(BaseController):
 
 
 class BCMController(BaseController):
-
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -118,9 +120,13 @@ class BCMController(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params,
-                                delay=time_delay, fail_safe=fail_safe,
-                                noise=noise)
+        BaseController.__init__(
+            self,
+            veh_id,
+            sumo_cf_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise)
 
         self.veh_id = veh_id
         self.k_d = k_d
@@ -156,7 +162,6 @@ class BCMController(BaseController):
 
 
 class OVMController(BaseController):
-
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -196,9 +201,13 @@ class OVMController(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params,
-                                delay=time_delay, fail_safe=fail_safe,
-                                noise=noise)
+        BaseController.__init__(
+            self,
+            veh_id,
+            sumo_cf_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise)
         self.veh_id = veh_id
         self.v_max = v_max
         self.alpha = alpha
@@ -229,7 +238,6 @@ class OVMController(BaseController):
 
 
 class LinearOVM(BaseController):
-
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -261,9 +269,13 @@ class LinearOVM(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params,
-                                delay=time_delay, fail_safe=fail_safe,
-                                noise=noise)
+        BaseController.__init__(
+            self,
+            veh_id,
+            sumo_cf_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise)
         self.veh_id = veh_id
         # 4.8*1.85 for case I, 3.8*1.85 for case II, per Nakayama
         self.v_max = v_max
@@ -279,7 +291,7 @@ class LinearOVM(BaseController):
         alpha = 1.689  # the average value from Nakayama paper
         if h < self.h_st:
             v_h = 0
-        elif self.h_st <= h <= self.h_st + self.v_max/alpha:
+        elif self.h_st <= h <= self.h_st + self.v_max / alpha:
             v_h = alpha * (h - self.h_st)
         else:
             v_h = self.v_max
@@ -288,7 +300,6 @@ class LinearOVM(BaseController):
 
 
 class IDMController(BaseController):
-
     def __init__(self,
                  veh_id,
                  v0=30,
@@ -297,7 +308,6 @@ class IDMController(BaseController):
                  b=1.5,
                  delta=4,
                  s0=2,
-                 s1=0,
                  time_delay=0.0,
                  dt=0.1,
                  noise=0,
@@ -321,8 +331,6 @@ class IDMController(BaseController):
             acceleration exponent (default: 4)
         s0: float, optional
             linear jam distance, in m (default: 2)
-        s1: float, optional
-            nonlinear jam distance, in m (default: 0)
         dt: float, optional
             timestep, in s (default: 0.1)
         noise: float, optional
@@ -331,16 +339,19 @@ class IDMController(BaseController):
             type of flow-imposed failsafe the vehicle should posses, defaults
             to no failsafe (None)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params,
-                                delay=time_delay, fail_safe=fail_safe,
-                                noise=noise)
+        BaseController.__init__(
+            self,
+            veh_id,
+            sumo_cf_params,
+            delay=time_delay,
+            fail_safe=fail_safe,
+            noise=noise)
         self.v0 = v0
         self.T = T
         self.a = a
         self.b = b
         self.delta = delta
         self.s0 = s0
-        self.s1 = s1
         self.dt = dt
 
     def get_accel(self, env):
@@ -360,14 +371,13 @@ class IDMController(BaseController):
         else:
             lead_vel = env.vehicles.get_speed(lead_id)
             s_star = self.s0 + max(
-                0,
-                v * self.T + v*(v-lead_vel) / (2*np.sqrt(self.a*self.b)))
+                0, v * self.T + v * (v - lead_vel) /
+                (2 * np.sqrt(self.a * self.b)))
 
-        return self.a * (1 - (v/self.v0)**self.delta - (s_star/h)**2)
+        return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2)
 
 
 class SumoCarFollowingController(BaseController):
-
     def __init__(self, veh_id, sumo_cf_params):
         """Instantiates a car-following controller whose actions are purely
         defined by sumo.

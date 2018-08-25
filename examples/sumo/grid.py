@@ -24,50 +24,75 @@ def grid_example(sumo_binary=None):
     tot_cars = (num_cars_left + num_cars_right) * m \
         + (num_cars_top + num_cars_bot) * n
 
-    grid_array = {"short_length": short_length, "inner_length": inner_length,
-                  "long_length": long_length, "row_num": n, "col_num": m,
-                  "cars_left": num_cars_left, "cars_right": num_cars_right,
-                  "cars_top": num_cars_top, "cars_bot": num_cars_bot}
+    grid_array = {
+        "short_length": short_length,
+        "inner_length": inner_length,
+        "long_length": long_length,
+        "row_num": n,
+        "col_num": m,
+        "cars_left": num_cars_left,
+        "cars_right": num_cars_right,
+        "cars_top": num_cars_top,
+        "cars_bot": num_cars_bot
+    }
 
-    sumo_params = SumoParams(sim_step=0.1,
-                             sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
     if sumo_binary is not None:
         sumo_params.sumo_binary = sumo_binary
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="human",
-                 routing_controller=(GridRouter, {}),
-                 num_vehicles=tot_cars)
+    vehicles.add(
+        veh_id="human",
+        routing_controller=(GridRouter, {}),
+        num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
-               "state": "GGGrrrGGGrrr"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
-               "state": "yyyrrryyyrrr"},
-              {"duration": "31", "minDur": "8", "maxDur": "45",
-               "state": "rrrGGGrrrGGG"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
-               "state": "rrryyyrrryyy"}]
+    phases = [{
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "GGGrrrGGGrrr"
+    }, {
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": "yyyrrryyyrrr"
+    }, {
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "rrrGGGrrrGGG"
+    }, {
+        "duration": "6",
+        "minDur": "3",
+        "maxDur": "6",
+        "state": "rrryyyrrryyy"
+    }]
     tl_logic.add("center0", phases=phases, programID=1)
     tl_logic.add("center1", phases=phases, programID=1)
     tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
 
-    additional_net_params = {"grid_array": grid_array, "speed_limit": 35,
-                             "horizontal_lanes": 1, "vertical_lanes": 1}
-    net_params = NetParams(no_internal_links=False,
-                           additional_params=additional_net_params)
+    additional_net_params = {
+        "grid_array": grid_array,
+        "speed_limit": 35,
+        "horizontal_lanes": 1,
+        "vertical_lanes": 1
+    }
+    net_params = NetParams(
+        no_internal_links=False, additional_params=additional_net_params)
 
     initial_config = InitialConfig()
 
-    scenario = SimpleGridScenario(name="grid-intersection",
-                                  generator_class=SimpleGridGenerator,
-                                  vehicles=vehicles,
-                                  net_params=net_params,
-                                  initial_config=initial_config,
-                                  traffic_lights=tl_logic)
+    scenario = SimpleGridScenario(
+        name="grid-intersection",
+        generator_class=SimpleGridGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=tl_logic)
 
     env = AccelEnv(env_params, sumo_params, scenario)
 

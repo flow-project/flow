@@ -2,6 +2,7 @@ import logging
 import random
 import numpy as np
 import time
+import os
 
 try:
     # Import serializable if rllab is installed
@@ -16,8 +17,11 @@ VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
 class Scenario(Serializable):
-
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Base scenario class.
@@ -55,7 +59,7 @@ class Scenario(Serializable):
             Serializable.quick_init(self, locals())
 
         self.orig_name = name  # To avoid repeated concatenation upon reset
-        self.name = name + str(time.time())
+        self.name = name + time.strftime("_%Y%m%d-%H%M%S")
 
         self.generator_class = generator_class
         self.vehicles = vehicles
@@ -71,14 +75,15 @@ class Scenario(Serializable):
             self.net_params, self.traffic_lights)
 
         # list of edges and internal links (junctions)
-        self._edge_list = [edge_id for edge_id in self._edges.keys()
-                           if edge_id[0] != ":"]
-        self._junction_list = list(set(self._edges.keys()) -
-                                   set(self._edge_list))
+        self._edge_list = [
+            edge_id for edge_id in self._edges.keys() if edge_id[0] != ":"
+        ]
+        self._junction_list = list(
+            set(self._edges.keys()) - set(self._edge_list))
 
         # maximum achievable speed on any edge in the network
-        self.max_speed = max(self.speed_limit(edge)
-                             for edge in self.get_edge_list())
+        self.max_speed = max(
+            self.speed_limit(edge) for edge in self.get_edge_list())
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -113,8 +118,9 @@ class Scenario(Serializable):
         # which cars are meant to be distributed
         # (may be overridden by subclass __init__())
         if not hasattr(self, "length"):
-            self.length = sum([self.edge_length(edge_id)
-                               for edge_id in self.get_edge_list()])
+            self.length = sum([
+                self.edge_length(edge_id) for edge_id in self.get_edge_list()
+            ])
 
         # generate starting position for vehicles in the network
         if self.initial_config.positions is None:
@@ -317,8 +323,8 @@ class Scenario(Serializable):
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = next(i for i, edge in enumerate(edges)
-                                 if edge == pos[0])
+                indx_edge = next(
+                    i for i, edge in enumerate(edges) if edge == pos[0])
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
@@ -390,7 +396,7 @@ class Scenario(Serializable):
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = self._get_start_pos_util(
-            initial_config, num_vehicles, **kwargs)
+             initial_config, num_vehicles, **kwargs)
 
         # extra space a vehicle needs to cover from the start of an edge to be
         # fully in the edge and not risk having a gap with a vehicle behind it
@@ -420,7 +426,7 @@ class Scenario(Serializable):
         for i in range(num_vehicles):
             edge_i = available_edges[edge_indx]
             pos_i = (init_absolute_pos[i] - decrement) % (
-                    self.edge_length(edge_i) - efs)
+                self.edge_length(edge_i) - efs)
             lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
                          (self.edge_length(edge_i) - efs))
 
@@ -433,7 +439,7 @@ class Scenario(Serializable):
 
                 edge_i = available_edges[edge_indx]
                 pos_i = (init_absolute_pos[i] - decrement) % (
-                        self.edge_length(edge_i) - efs)
+                    self.edge_length(edge_i) - efs)
 
                 lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
                              (self.edge_length(edge_i) - efs))
@@ -524,11 +530,13 @@ class Scenario(Serializable):
 
         # compute the lanes distribution (adjust of edge cases)
         if initial_config.edges_distribution == "all":
-            max_lane = max([self.num_lanes(edge_id)
-                            for edge_id in self.get_edge_list()])
+            max_lane = max(
+                [self.num_lanes(edge_id) for edge_id in self.get_edge_list()])
         else:
-            max_lane = max([self.num_lanes(edge_id)
-                            for edge_id in initial_config.edges_distribution])
+            max_lane = max([
+                self.num_lanes(edge_id)
+                for edge_id in initial_config.edges_distribution
+            ])
 
         if initial_config.lanes_distribution > max_lane:
             lanes_distribution = max_lane
@@ -619,6 +627,30 @@ class Scenario(Serializable):
             return self._connections["prev"][edge][lane]
         except KeyError:
             return []
+
+    def close(self):
+        """Deletes the xml files that were created by the generator class. This
+        is to prevent them from building up in the debug folder."""
+        os.remove(self.generator.net_path + self.generator.nodfn)
+        os.remove(self.generator.net_path + self.generator.edgfn)
+        os.remove(self.generator.net_path + self.generator.cfgfn)
+        os.remove(self.generator.cfg_path + self.generator.addfn)
+        os.remove(self.generator.cfg_path + self.generator.guifn)
+        os.remove(self.generator.cfg_path + self.generator.netfn)
+        os.remove(self.generator.cfg_path + self.generator.roufn)
+        os.remove(self.generator.cfg_path + self.generator.sumfn)
+
+        # the connection file is not always created
+        try:
+            os.remove(self.generator.net_path + self.generator.confn)
+        except OSError:
+            pass
+
+        # neither is the type file
+        try:
+            os.remove(self.generator.net_path + self.generator.typfn)
+        except OSError:
+            pass
 
     def __str__(self):
         return "Scenario " + self.name + " with " + \

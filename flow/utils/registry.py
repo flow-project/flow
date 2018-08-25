@@ -92,8 +92,7 @@ def make_create_env(params, version=0, sumo_binary=None):
                 "env_params": env_params,
                 "sumo_params": sumo_params,
                 "scenario": scenario
-            }
-        )
+            })
         return gym.envs.make(env_name)
 
     return create_env, env_name
