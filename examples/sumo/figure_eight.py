@@ -21,24 +21,26 @@ def figure_eight_example(sumo_binary=None):
         sumo_params.sumo_binary = sumo_binary
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="idm",
-                 acceleration_controller=(IDMController, {}),
-                 lane_change_controller=(StaticLaneChanger, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
-                 initial_speed=0,
-                 num_vehicles=14)
+    vehicles.add(
+        veh_id="idm",
+        acceleration_controller=(IDMController, {}),
+        lane_change_controller=(StaticLaneChanger, {}),
+        routing_controller=(ContinuousRouter, {}),
+        speed_mode="no_collide",
+        initial_speed=0,
+        num_vehicles=14)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-    net_params = NetParams(no_internal_links=False,
-                           additional_params=additional_net_params)
+    net_params = NetParams(
+        no_internal_links=False, additional_params=additional_net_params)
 
-    scenario = Figure8Scenario(name="figure8",
-                               generator_class=Figure8Generator,
-                               vehicles=vehicles,
-                               net_params=net_params)
+    scenario = Figure8Scenario(
+        name="figure8",
+        generator_class=Figure8Generator,
+        vehicles=vehicles,
+        net_params=net_params)
 
     env = AccelEnv(env_params, sumo_params, scenario)
 

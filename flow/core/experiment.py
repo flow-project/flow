@@ -6,7 +6,6 @@ from flow.core.util import emission_to_csv
 
 
 class SumoExperiment:
-
     def __init__(self, env, scenario):
         """
         This class acts as a runner for a scenario and environment.
@@ -24,8 +23,8 @@ class SumoExperiment:
         self.vehicles = scenario.vehicles
         self.cfg = scenario.cfg
 
-        logging.info(" Starting experiment" + str(self.name) + " at "
-                     + str(datetime.datetime.utcnow()))
+        logging.info(" Starting experiment" + str(self.name) + " at " +
+                     str(datetime.datetime.utcnow()))
 
         logging.info("initializing environment.")
 
@@ -51,6 +50,7 @@ class SumoExperiment:
         """
         info_dict = {}
         if rl_actions is None:
+
             def rl_actions(*_):
                 return None
 
@@ -87,10 +87,10 @@ class SumoExperiment:
         info_dict["mean_returns"] = mean_rets
         info_dict["per_step_returns"] = ret_lists
 
-        print("Average, std return: {}, {}".format(np.mean(rets),
-                                                   np.std(rets)))
-        print("Average, std speed: {}, {}".format(np.mean(mean_vels),
-                                                  np.std(std_vels)))
+        print("Average, std return: {}, {}".format(
+            np.mean(rets), np.std(rets)))
+        print("Average, std speed: {}, {}".format(
+            np.mean(mean_vels), np.std(std_vels)))
         self.env.terminate()
 
         if convert_to_csv:

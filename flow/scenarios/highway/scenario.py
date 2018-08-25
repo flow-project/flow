@@ -2,7 +2,6 @@ from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
-
 ADDITIONAL_NET_PARAMS = {
     # length of the highway
     "length": 1000,
@@ -14,8 +13,11 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class HighwayScenario(Scenario):
-
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Initializes a highway scenario.

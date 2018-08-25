@@ -9,8 +9,11 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class BottleneckScenario(Scenario):
-
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Scenario class for Bay Bridge toll simulations.
@@ -34,11 +37,7 @@ class BottleneckScenario(Scenario):
         """
         See parent class
         """
-        return [("1", 0),
-                ("2", 100),
-                ("3", 405),
-                ("4", 425),
-                ("5", 580)]
+        return [("1", 0), ("2", 100), ("3", 405), ("4", 425), ("5", 580)]
 
     def get_bottleneck_lanes(self, lane):
-        return [int(lane/2), int(lane/4)]
+        return [int(lane / 2), int(lane / 4)]

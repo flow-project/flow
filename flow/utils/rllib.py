@@ -65,8 +65,7 @@ def get_flow_params(config):
     for veh_params in flow_params["veh"]:
         module = __import__(
             "flow.controllers",
-            fromlist=[veh_params['acceleration_controller'][0]]
-        )
+            fromlist=[veh_params['acceleration_controller'][0]])
         acc_class = getattr(module, veh_params['acceleration_controller'][0])
         lc_class = getattr(module, veh_params['lane_change_controller'][0])
 
@@ -90,12 +89,13 @@ def get_flow_params(config):
             veh_params["lane_change_controller"], \
             veh_params["routing_controller"]
 
-        veh.add(acceleration_controller=acc_controller,
-                lane_change_controller=lc_controller,
-                routing_controller=rt_controller,
-                sumo_car_following_params=sumo_cf_params,
-                sumo_lc_params=sumo_lc_params,
-                **veh_params)
+        veh.add(
+            acceleration_controller=acc_controller,
+            lane_change_controller=lc_controller,
+            routing_controller=rt_controller,
+            sumo_car_following_params=sumo_cf_params,
+            sumo_lc_params=sumo_lc_params,
+            **veh_params)
 
     # convert all parameters from dict to their object form
     sumo = SumoParams()

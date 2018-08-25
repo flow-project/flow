@@ -23,7 +23,6 @@ N_ROLLOUTS = 25
 # number of parallel workers
 PARALLEL_ROLLOUTS = 25
 
-
 if __name__ == "__main__":
     # get the env name and a creator for the environment
     create_env, env_name = make_create_env(params=flow_params, version=0)
@@ -42,8 +41,8 @@ if __name__ == "__main__":
     config['eval_rollouts'] = PARALLEL_ROLLOUTS
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     # Register as rllib env
@@ -58,7 +57,9 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 5,
             "max_failures": 999,
-            "stop": {"training_iteration": 500},
+            "stop": {
+                "training_iteration": 500
+            },
             "repeat": 3,
             "trial_resources": {
                 "cpu": 1,
