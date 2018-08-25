@@ -30,12 +30,19 @@ ADDITIONAL_NET_PARAMS = {
     "vertical_lanes": 1,
     # speed limit for all edges, may be represented as a float value, or a
     # dictionary with separate values for vertical and horizontal lanes
-    "speed_limit": {"vertical": 35, "horizontal": 35},
+    "speed_limit": {
+        "vertical": 35,
+        "horizontal": 35
+    },
 }
 
 
 class SimpleGridScenario(Scenario):
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Initializes an nxm grid scenario.
@@ -75,8 +82,8 @@ class SimpleGridScenario(Scenario):
 
         for p in ADDITIONAL_NET_PARAMS["grid_array"].keys():
             if p not in net_params.additional_params["grid_array"]:
-                raise KeyError('Grid array parameter "{}" not supplied'.
-                               format(p))
+                raise KeyError(
+                    'Grid array parameter "{}" not supplied'.format(p))
 
         # this is a (mx1)x(nx1)x2 array
         # the third dimension is vertical length, horizontal length
@@ -106,10 +113,10 @@ class SimpleGridScenario(Scenario):
         for i in range(self.col_num + 1):
             for j in range(self.row_num + 1):
                 index = str(j) + '_' + str(i)
-                edgestarts += [("left" + index, 0+i*50 + j*5000),
-                               ("right" + index, 10+i*50 + j*5000),
-                               ("top" + index, 15+i*50 + j*5000),
-                               ("bot" + index, 20+i*50 + j*5000)]
+                edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
+                               ("right" + index, 10 + i * 50 + j * 5000),
+                               ("top" + index, 15 + i * 50 + j * 5000),
+                               ("bot" + index, 20 + i * 50 + j * 5000)]
 
         return edgestarts
 
@@ -123,7 +130,7 @@ class SimpleGridScenario(Scenario):
     def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
         row_num = self.grid_array["row_num"]
         col_num = self.grid_array["col_num"]
-        per_edge = int(num_vehicles/(2 * (row_num+col_num)))
+        per_edge = int(num_vehicles / (2 * (row_num + col_num)))
         start_positions = []
         d_inc = 10
         for i in range(self.col_num):

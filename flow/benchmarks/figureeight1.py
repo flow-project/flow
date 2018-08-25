@@ -21,16 +21,20 @@ HORIZON = 1500
 # We place 8 autonomous vehicle and 8 human-driven vehicles in the network
 vehicles = Vehicles()
 for i in range(7):
-    vehicles.add(veh_id="human{}".format(i),
-                 acceleration_controller=(IDMController, {"noise": 0.2}),
-                 routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
-                 num_vehicles=1)
-    vehicles.add(veh_id="rl{}".format(i),
-                 acceleration_controller=(RLController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
-                 num_vehicles=1)
+    vehicles.add(
+        veh_id="human{}".format(i),
+        acceleration_controller=(IDMController, {
+            "noise": 0.2
+        }),
+        routing_controller=(ContinuousRouter, {}),
+        speed_mode="no_collide",
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="rl{}".format(i),
+        acceleration_controller=(RLController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        speed_mode="no_collide",
+        num_vehicles=1)
 
 flow_params = dict(
     # name of the experiment

@@ -8,7 +8,6 @@ SHOW_DETECTORS = True
 
 
 class TrafficLights:
-
     def __init__(self, baseline=False):
         """Base traffic light.
 
@@ -200,18 +199,33 @@ class TrafficLights:
         max_gap = 3.0
         detector_gap = 0.8
         show_detectors = True
-        phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
-                   "state": "GGGrrrGGGrrr"},
-                  {"duration": "6", "minDur": "3", "maxDur": "6",
-                   "state": "yyyrrryyyrrr"},
-                  {"duration": "31", "minDur": "8", "maxDur": "45",
-                   "state": "rrrGGGrrrGGG"},
-                  {"duration": "6", "minDur": "3", "maxDur": "6",
-                   "state": "rrryyyrrryyy"}]
+        phases = [{
+            "duration": "31",
+            "minDur": "8",
+            "maxDur": "45",
+            "state": "GGGrrrGGGrrr"
+        }, {
+            "duration": "6",
+            "minDur": "3",
+            "maxDur": "6",
+            "state": "yyyrrryyyrrr"
+        }, {
+            "duration": "31",
+            "minDur": "8",
+            "maxDur": "45",
+            "state": "rrrGGGrrrGGG"
+        }, {
+            "duration": "6",
+            "minDur": "3",
+            "maxDur": "6",
+            "state": "rrryyyrrryyy"
+        }]
 
-        return {"tl_type": str(tl_type),
-                "program_id": str(program_id),
-                "max_gap": str(max_gap),
-                "detector_gap": str(detector_gap),
-                "show_detectors": show_detectors,
-                "phases": phases}
+        return {
+            "tl_type": str(tl_type),
+            "program_id": str(program_id),
+            "max_gap": str(max_gap),
+            "detector_gap": str(detector_gap),
+            "show_detectors": show_detectors,
+            "phases": phases
+        }

@@ -48,8 +48,7 @@ def run_task(*_):
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
-        traffic_lights=traffic_lights
-    )
+        traffic_lights=traffic_lights)
 
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
@@ -57,10 +56,7 @@ def run_task(*_):
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     env = normalize(env)
 
-    policy = GaussianMLPPolicy(
-        env_spec=env.spec,
-        hidden_sizes=(100, 50, 25)
-    )
+    policy = GaussianMLPPolicy(env_spec=env.spec, hidden_sizes=(100, 50, 25))
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
     horizon = flow_params["env"].horizon
