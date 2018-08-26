@@ -21,7 +21,6 @@ LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
 
 
 class Vehicles:
-
     def __init__(self):
         """Base vehicle class.
 
