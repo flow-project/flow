@@ -7,7 +7,6 @@ import subprocess
 from flow.version import __version__
 
 
-
 def _read_requirements_file():
     req_file_path = '%s/requirements.txt' % dirname(realpath(__file__))
     with open(req_file_path) as f:
