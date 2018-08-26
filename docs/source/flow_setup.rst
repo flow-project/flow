@@ -15,7 +15,7 @@ Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
 above. **It is highly recommended that users install**
-`Anaconda <https://www.anaconda.com/download>`_ or
+`Anaconda <https://www.anaconda.com/download>`_ **or**
 `Miniconda <https://conda.io/miniconda.html>`_
 **for Python and the setup instructions will assume that you are
 doing so.**
