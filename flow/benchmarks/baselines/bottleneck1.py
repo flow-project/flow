@@ -1,16 +1,6 @@
-"""
-This script is used to quickly evaluate a baseline for bottleneck1.
+"""Evaluates the baseline performance of bottleneck1 without RL control.
+
 Baseline is no AVs.
-
-Bottleneck in which the actions are specifying a desired velocity in a segment
-of space. The autonomous penetration rate in this example is 25%.
-Humans are allowed to lane change
-
-Action Dimension: (?, )
-
-Observation Dimension: (?, )
-
-Horizon: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -35,6 +25,21 @@ AV_FRAC = 0.25
 
 
 def bottleneck1_baseline(num_runs, sumo_binary="sumo-gui"):
+    """Run script for the bottleneck1 baseline.
+
+    Parameters
+    ----------
+        num_runs : int
+            number of rollouts the performance of the environment is evaluated
+            over
+        sumo_binary: str, optional
+            specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+        SumoExperiment
+            class needed to run simulations
+    """
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
                  speed_mode=9,

@@ -1,16 +1,6 @@
-"""
-Script to evaluate the baseline performance of figureeight without RL control
-Baseline is human intersection behavior
+"""Evaluates the baseline performance of figureeight without RL control.
 
-Trains a fraction of vehicles in a ring road structure to regulate the flow of
-vehicles through an intersection. In this example, the last vehicle in the
-network is an autonomous vehicle.
-
-Action Dimension: (1, )
-
-Observation Dimension: (28, )
-
-Horizon: 1500 steps
+Baseline is human acceleration and intersection behavior.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -28,6 +18,21 @@ HORIZON = 1500
 
 
 def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
+    """Run script for all figure eight baselines.
+
+    Parameters
+    ----------
+        num_runs : int
+            number of rollouts the performance of the environment is evaluated
+            over
+        sumo_binary: str, optional
+            specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+        SumoExperiment
+            class needed to run simulations
+    """
     # We place 1 autonomous vehicle and 13 human-driven vehicles in the network
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
