@@ -1,15 +1,6 @@
-"""
-Script to evaluate the baseline performance of the merge scenario without AVs
+"""Evaluates the baseline performance of merge without RL control.
 
-Trains a small percentage of autonomous vehicles to dissipate shockwaves caused
-by merges in an open network. The autonomous penetration rate in this example
-is 10%.
-
-Action Dimension: (5, )
-
-Observation Dimension: (25, )
-
-Horizon: 750 steps
+Baseline is no AVs.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \

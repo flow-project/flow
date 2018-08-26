@@ -1,5 +1,4 @@
-"""
-Grid/green wave example
+"""Benchmark for grid1.
 
 Action Dimension: (25, )
 
