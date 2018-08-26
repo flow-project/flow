@@ -1,4 +1,5 @@
-"""
+"""Benchmark for figureeight2.
+
 Trains a fraction of vehicles in a ring road structure to regulate the flow of
 vehicles through an intersection. In this example, every vehicle in the
 network is an autonomous vehicle.
