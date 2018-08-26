@@ -1,5 +1,4 @@
-"""
-Runner script for environments located in flow/benchmarks.
+"""Runs the environments located in flow/benchmarks.
 
 The environment file can be modified in the imports to change the environment
 this runner script is executed on. This script than handles running the rllab
@@ -26,6 +25,11 @@ PARALLEL_ROLLOUTS = 8
 
 
 def run_task(*_):
+    """Implement the ``run_task`` method needed to run experiments with rllab.
+
+    Note that the flow-specific parameters are imported at the start of this
+    script and unzipped and processed here.
+    """
     env_name = flow_params["env_name"]
     exp_tag = flow_params["exp_tag"]
     sumo_params = flow_params["sumo"]
