@@ -79,7 +79,6 @@ class SumoParams:
 
 
 class EnvParams:
-
     def __init__(self,
                  vehicle_arrangement_shuffle=False,
                  starting_position_shuffle=False,
@@ -142,7 +141,6 @@ class EnvParams:
 
 
 class NetParams:
-
     def __init__(self,
                  no_internal_links=True,
                  in_flows=None,

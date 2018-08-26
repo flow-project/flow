@@ -890,12 +890,6 @@ class Env(gym.Env, Serializable):
         except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
 
-    def teardown_sumo(self):
-        try:
-            os.killpg(self.sumo_proc.pid, signal.SIGTERM)
-        except Exception:
-            print("Error during teardown: {}".format(traceback.format_exc()))
-
     def _seed(self, seed=None):
         return []
 

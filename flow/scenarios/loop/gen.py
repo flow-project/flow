@@ -7,6 +7,7 @@ class CircleGenerator(Generator):
     """
     Generator for loop circle used in MIT traffic simulation.
     """
+    
     def __init__(self, net_params, base):
         """
         See parent class
