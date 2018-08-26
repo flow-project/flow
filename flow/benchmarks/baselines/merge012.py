@@ -34,6 +34,21 @@ NUM_RL = 5
 
 
 def merge_baseline(num_runs, sumo_binary="sumo-gui"):
+    """Run script for all merge baselines.
+
+    Parameters
+    ----------
+        num_runs : int
+            number of rollouts the performance of the environment is evaluated
+            over
+        sumo_binary: str, optional
+            specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+        SumoExperiment
+            class needed to run simulations
+    """
     # We consider a highway network with an upstream merging lane producing
     # shockwaves
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()

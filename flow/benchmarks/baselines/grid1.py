@@ -1,14 +1,6 @@
-"""
-Script to evaluate the baseline performance of grid1 without RL control
-Baseline is an actuated traffic light provided by SUMO
+"""Evaluates the baseline performance of grid1 without RL control.
 
-Grid/green wave example
-
-Action Dimension: (25, )
-
-Observation Dimension: (915, )
-
-Horizon: 400 steps
+Baseline is an actuated traffic light provided by SUMO.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -43,6 +35,21 @@ N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 
 
 def grid1_baseline(num_runs, sumo_binary="sumo-gui"):
+    """Run script for the grid1 baseline.
+
+    Parameters
+    ----------
+        num_runs : int
+            number of rollouts the performance of the environment is evaluated
+            over
+        sumo_binary: str, optional
+            specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+        SumoExperiment
+            class needed to run simulations
+    """
     # we place a sufficient number of vehicles to ensure they confirm with the
     # total number specified above. We also use a "right_of_way" speed mode to
     # support traffic light compliance
