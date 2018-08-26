@@ -33,9 +33,9 @@ class Generator(Serializable):
 
         Attributes
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
-        base: str
+        base : str
             base name for the transportation network. If not specified in the
             child class, this is also the complete name for the network.
         """
@@ -217,7 +217,7 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
         traffic_lights : flow.core.traffic_lights.TrafficLights type
             traffic light information, used to determine which nodes are
@@ -337,7 +337,7 @@ class Generator(Serializable):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, scenario, initial_config):
+    def make_routes(self, scenario, positions, lanes, shuffle):
         """Generates .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
@@ -347,11 +347,16 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        scenario: Scenario type
+        scenario : Scenario type
             scenario class calling this method. This contains information on
             the properties and initial states of vehicles in the network.
-        initial_config: InitialConfig type
-            see flow/core/params.py
+        positions : list of tuple (float, float)
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        lanes : list of float
+            list of start lanes
+        shuffle : bool
+            specifies whether the vehicle IDs should be shuffled before the
+            vehicles are assigned starting positions
         """
         vehicles = scenario.vehicles
         routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
@@ -366,12 +371,10 @@ class Generator(Serializable):
 
         self.vehicle_ids = vehicles.get_ids()
 
-        if initial_config.shuffle:
+        if shuffle:
             random.shuffle(self.vehicle_ids)
 
         # add the initial positions of vehicles to the xml file
-        positions = initial_config.positions
-        lanes = initial_config.lanes
         for i, veh_id in enumerate(self.vehicle_ids):
             veh_type = vehicles.get_state(veh_id, "type")
             edge, pos = positions[i]
@@ -404,12 +407,12 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
 
         Returns
         -------
-        nodes: list of dict
+        nodes : list of dict
 
             A list of node attributes (a separate dict for each node). Nodes
             attributes must include:
@@ -429,12 +432,12 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
 
         Returns
         -------
-        edges: list of dict
+        edges : list of dict
 
             A list of edges attributes (a separate dict for each edge). Edge
             attributes must include:
@@ -490,7 +493,7 @@ class Generator(Serializable):
 
         Returns
         -------
-        connections: list of dict
+        connections : list of dict
             A list of connection attributes. If none are specified, no .con.xml
             file is created.
 
@@ -510,12 +513,12 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
 
         Returns
         -------
-        routes: dict
+        routes : dict
             Key = name of the starting edge
             Element = list of edges a vehicle starting from this edge must
             traverse.

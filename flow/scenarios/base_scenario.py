@@ -40,18 +40,18 @@ class Scenario(Serializable):
 
         Attributes
         ----------
-        name: str
+        name : str
             A tag associated with the scenario
-        generator_class: Generator type
+        generator_class : Generator type
             Class for generating configuration and net files with placed
             vehicles, e.g. CircleGenerator
-        vehicles: Vehicles type
+        vehicles : Vehicles type
             see flow/core/vehicles.py
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        traffic_lights: flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.traffic_lights.TrafficLights type
             see flow/core/traffic_lights.py
         """
         # Invoke serializable if using rllab
@@ -123,15 +123,14 @@ class Scenario(Serializable):
             ])
 
         # generate starting position for vehicles in the network
-        if self.initial_config.positions is None:
-            self.initial_config.positions, self.initial_config.lanes = \
-                self.generate_starting_positions()
+        positions, lanes = self.generate_starting_positions()
 
         # create the sumo configuration files using the generator class
         cfg_name = self.generator.generate_cfg(self.net_params,
                                                self.traffic_lights)
 
-        self.generator.make_routes(self, self.initial_config)
+        shuffle = initial_config.shuffle
+        self.generator.make_routes(self, positions, lanes, shuffle)
 
         # specify the location of the sumo configuration file
         self.cfg = self.generator.cfg_path + cfg_name
@@ -144,7 +143,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        edgestarts: list
+        edgestarts : list
             list of edge names and starting positions,
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
@@ -160,7 +159,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        intersection_edgestarts: list
+        intersection_edgestarts : list
             list of intersection names and starting positions,
             ex: [(intersection0, pos0), (intersection1, pos1), ...]
         """
@@ -175,7 +174,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        internal_edgestarts: list
+        internal_edgestarts : list
             list of internal junction names and starting positions,
             ex: [(internal0, pos0), (internal1, pos1), ...]
         """
@@ -187,12 +186,12 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        x: float
+        x : float
             absolute position in network
 
         Returns
         -------
-        edge position: tup
+        edge position : tup
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
@@ -206,14 +205,14 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        edge: str
+        edge : str
             name of the edge
-        position: float
+        position : float
             relative position on the edge
 
         Returns
         -------
-        absolute_position: float
+        absolute_position : float
             position with respect to some global reference
         """
         # if there was a collision which caused the vehicle to disappear,
@@ -239,18 +238,18 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        num_vehicles: int, optional
+        num_vehicles : int, optional
             number of vehicles to be placed on the network. If no value is
             specified, the value is collected from the vehicles class
-        kwargs: dict
+        kwargs : dict
             additional arguments that may be updated beyond initial
             configurations, such as modifying the starting position
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         num_vehicles = num_vehicles or self.vehicles.num_vehicles
@@ -281,19 +280,19 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
@@ -379,19 +378,19 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
@@ -456,19 +455,19 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         raise NotImplementedError
@@ -482,28 +481,28 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        x0: float
+        x0 : float
             starting position of the first vehicle, in meters
-        min_gap: float
+        min_gap : float
             minimum gap between vehicles
-        bunching: float
+        bunching : float
             the amount of space freed up in the network (per lane)
-        lanes_distribution: int
+        lanes_distribution : int
             number of lanes the vehicles are supposed to be distributed over
-        available_length: float
+        available_length : float
             total available free space for vehicle to be placed, over all lanes
             within the distributable lanes, in meters
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             modified version of the initial_config parameter
 
         Raises
