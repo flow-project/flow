@@ -1,3 +1,5 @@
+"""Environment for training the acceleration behavior of vehicles in a loop."""
+
 from flow.envs.base_env import Env
 from flow.core import rewards
 
@@ -17,7 +19,9 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 class AccelEnv(Env):
-    """Environment used to train autonomous vehicles to improve traffic flows
+    """Fully observed acceleration environment.
+
+    This environment used to train autonomous vehicles to improve traffic flows
     when acceleration actions are permitted by the rl agent.
 
     Required from env_params:
@@ -54,6 +58,7 @@ class AccelEnv(Env):
 
     @property
     def action_space(self):
+        """See class definition."""
         return Box(
             low=-abs(self.env_params.additional_params["max_decel"]),
             high=self.env_params.additional_params["max_accel"],
@@ -62,6 +67,7 @@ class AccelEnv(Env):
 
     @property
     def observation_space(self):
+        """See class definition."""
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
         speed = Box(
             low=0,
@@ -76,6 +82,7 @@ class AccelEnv(Env):
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
             if veh_id in self.vehicles.get_rl_ids()
@@ -83,12 +90,14 @@ class AccelEnv(Env):
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         if self.env_params.evaluate:
             return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
         else:
             return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
+        """See class definition."""
         # speed normalizer
         max_speed = self.scenario.max_speed
 
@@ -98,6 +107,7 @@ class AccelEnv(Env):
         ] for veh_id in self.sorted_ids])
 
     def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
