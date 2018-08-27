@@ -24,7 +24,7 @@ class TestEmissionToCSV(unittest.TestCase):
     the components are correct.
     """
 
-    def runTest(self):
+    def test_emission_to_csv(self):
         # current path
         current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
 
