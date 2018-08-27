@@ -252,7 +252,7 @@ class TestIdsByEdge(unittest.TestCase):
         self.env.terminate()
         self.env = None
 
-    def runTest(self):
+    def test_ids_by_edge(self):
         self.env.reset()
         ids = self.env.vehicles.get_ids_by_edge("bottom")
         expected_ids = ["test_0", "test_1", "test_2", "test_3", "test_4"]
@@ -262,7 +262,7 @@ class TestIdsByEdge(unittest.TestCase):
 class TestObservedIDs(unittest.TestCase):
     """Tests the observed_ids methods, which are used for visualization."""
 
-    def run_test(self):
+    def test_obs_ids(self):
         vehicles = Vehicles()
         vehicles.add(veh_id="test", num_vehicles=10)
 
