@@ -3,20 +3,19 @@ import numpy as np
 
 
 class FollowerStopper(BaseController):
-    """Inspired by Dan Work's... work:
-
-    Dissipation of stop-and-go waves via control of autonomous vehicles:
-    Field experiments https://arxiv.org/abs/1705.01693
-
-    Parameters
-    ----------
-    veh_id: str
-        unique vehicle identifier
-    v_des: float, optional
-        desired speed of the vehicles (m/s)
-    """
-
     def __init__(self, veh_id, sumo_cf_params, v_des=15, danger_edges=None):
+        """Inspired by Dan Work's... work:
+
+        Dissipation of stop-and-go waves via control of autonomous vehicles:
+        Field experiments https://arxiv.org/abs/1705.01693
+
+        Parameters
+        ----------
+        veh_id: str
+            unique vehicle identifier
+        v_des: float, optional
+            desired speed of the vehicles (m/s)
+        """
         BaseController.__init__(
             self, veh_id, sumo_cf_params, delay=1.0, fail_safe='safe_velocity')
 
@@ -105,20 +104,19 @@ class FollowerStopper(BaseController):
 
 
 class PISaturation(BaseController):
-    """Inspired by Dan Work's... work:
-
-    Dissipation of stop-and-go waves via control of autonomous vehicles:
-    Field experiments https://arxiv.org/abs/1705.01693
-
-    Parameters
-    ----------
-    veh_id : str
-        unique vehicle identifier
-    sumo_cf_params : SumoCarFollowingParams
-        object defining sumo-specific car-following parameters
-    """
-
     def __init__(self, veh_id, sumo_cf_params):
+        """Inspired by Dan Work's... work:
+
+        Dissipation of stop-and-go waves via control of autonomous vehicles:
+        Field experiments https://arxiv.org/abs/1705.01693
+
+        Parameters
+        ----------
+        veh_id : str
+            unique vehicle identifier
+        sumo_cf_params : SumoCarFollowingParams
+            object defining sumo-specific car-following parameters
+        """
         BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
         # maximum achievable acceleration by the vehicle

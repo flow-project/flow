@@ -8,18 +8,20 @@ class BaseLaneChangeController:
     lane_changing duration to the controller. Provides the method
     get_safe_lane_change_action to ensure that lane-changes do
     not cause crashes.
-
-    Attributes
-    ----------
-    veh_id: string
-        ID of the vehicle this controller is used for
-    lane_change_params: dict
-        Dictionary of lane changes params that may optional contain
-        "min_gap", which denotes the minimize safe gap (in meters) a car
-        is willing to lane-change into.
     """
 
     def __init__(self, veh_id, lane_change_params=None):
+        """Instantiate the base class for lane-changing controllers.
+
+        Attributes
+        ----------
+        veh_id: string
+            ID of the vehicle this controller is used for
+        lane_change_params: dict
+            Dictionary of lane changes params that may optional contain
+            "min_gap", which denotes the minimize safe gap (in meters) a car
+            is willing to lane-change into.
+        """
         if lane_change_params is None:
             lane_change_params = {}
 

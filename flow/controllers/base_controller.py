@@ -10,23 +10,6 @@ class BaseController:
     maximum acceleration to the controller. Provides the method
     safe_action to ensure that controls are never made that could
     cause the system to crash.
-
-    Attributes
-    ----------
-    veh_id: string
-        ID of the vehicle this controller is used for
-    sumo_cf_params: SumoCarFollowingParams
-        The underlying sumo model for car that will be overwritten. A Flow
-        controller will override the behavior this sumo car following
-        model; however, if control is ceded back to sumo, the vehicle will
-        use these params. Ensure that accel / decel parameters that are
-        specified to in this model are as desired.
-    delay: int
-        delay in applying the action (time)
-    fail_safe: string
-        Should be either "instantaneous" or "safe_velocity"
-    noise: double
-        variance of the gaussian from which to sample a noisy acceleration
     """
 
     def __init__(self,
@@ -35,6 +18,25 @@ class BaseController:
                  delay=0,
                  fail_safe=None,
                  noise=0):
+        """Instantiate the base class for acceleration behavior.
+
+        Attributes
+        ----------
+        veh_id: string
+            ID of the vehicle this controller is used for
+        sumo_cf_params: SumoCarFollowingParams
+            The underlying sumo model for car that will be overwritten. A Flow
+            controller will override the behavior this sumo car following
+            model; however, if control is ceded back to sumo, the vehicle will
+            use these params. Ensure that accel / decel parameters that are
+            specified to in this model are as desired.
+        delay: int
+            delay in applying the action (time)
+        fail_safe: string
+            Should be either "instantaneous" or "safe_velocity"
+        noise: double
+            variance of the gaussian from which to sample a noisy acceleration
+        """
         self.veh_id = veh_id
         self.sumo_controller = False
 
