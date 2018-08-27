@@ -1,3 +1,5 @@
+"""Contains the figure eight scenario class."""
+
 import numpy as np
 
 from flow.core.params import InitialConfig
@@ -17,6 +19,8 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class Figure8Scenario(Scenario):
+    """Figure eight scenario class."""
+
     def __init__(self,
                  name,
                  generator_class,
@@ -24,7 +28,7 @@ class Figure8Scenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a figure 8 scenario.
+        """Initialize a figure 8 scenario.
 
         Requires from net_params:
         - ring_radius: radius of the circular portions of the network. Also
@@ -36,7 +40,7 @@ class Figure8Scenario(Scenario):
         In order for right-of-way dynamics to take place at the intersection,
         set "no_internal_links" in net_params to False.
 
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
@@ -62,9 +66,7 @@ class Figure8Scenario(Scenario):
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
-        """
-        See base class
-        """
+        """See base class."""
         edgestarts = \
             [("bottom_lower_ring",
               0 + self.inner_space_len),
@@ -98,9 +100,7 @@ class Figure8Scenario(Scenario):
         return edgestarts
 
     def specify_intersection_edge_starts(self):
-        """
-        See base class
-        """
+        """See base class."""
         intersection_edgestarts = \
             [(":center_intersection_%s" % (1 + self.lanes),
               self.ring_edgelen + self.intersection_len / 2 +
@@ -112,9 +112,7 @@ class Figure8Scenario(Scenario):
         return intersection_edgestarts
 
     def specify_internal_edge_starts(self):
-        """
-        See base class
-        """
+        """See base class."""
         internal_edgestarts = \
             [(":bottom_lower_ring",
               0),
