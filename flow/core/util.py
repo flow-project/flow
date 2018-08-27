@@ -11,9 +11,7 @@ import errno
 import importlib
 import json
 import os
-import tempfile
 from lxml import etree
-from datetime import datetime
 from xml.etree import ElementTree
 
 from gym.envs.registration import register
