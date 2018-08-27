@@ -1,5 +1,6 @@
-"""
-Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
+"""Trains cooperative merging behavior in an open merge network.
+
+Trains a small percentage of rl vehicles to dissipate shockwaves caused by
 merges in an open network.
 """
 
@@ -39,6 +40,7 @@ NUM_RL = [5, 13, 17][EXP_NUM]
 
 
 def run_task(_):
+    """Implement the run_task method needed to run experiments with rllab."""
     sumo_params = SumoParams(
         sumo_binary="sumo-gui", sim_step=0.2, restart_instance=True)
 

@@ -1,4 +1,5 @@
-"""
+"""Ring road example.
+
 Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
 vehicles in a variable length ring road.
 """

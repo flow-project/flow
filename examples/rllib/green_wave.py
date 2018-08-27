@@ -1,6 +1,4 @@
-"""
-Grid/green wave example
-"""
+"""Grid/green wave example."""
 
 import json
 

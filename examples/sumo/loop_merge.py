@@ -1,6 +1,4 @@
-"""
-Example of ring road with larger merging ring.
-"""
+"""Example of ring road with larger merging ring."""
 
 from flow.controllers import IDMController, SumoLaneChangeController, \
     ContinuousRouter
@@ -15,6 +13,20 @@ from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
 
 
 def loop_merge_example(sumo_binary=None):
+    """
+    Perform a simulation of vehicles on a loop merge.
+
+    Parameters
+    ----------
+    sumo_binary: bool, optional
+        specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+    exp: flow.core.SumoExperiment type
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles on a loop merge.
+    """
     sumo_params = SumoParams(
         sim_step=0.1, emission_path="./data/", sumo_binary="sumo-gui")
 
