@@ -196,8 +196,6 @@ class InitialConfig:
                  bunching=0,
                  lanes_distribution=float("inf"),
                  edges_distribution="all",
-                 positions=None,
-                 lanes=None,
                  additional_params=None):
         """Initial configuration parameters.
 
@@ -232,12 +230,6 @@ class InitialConfig:
         edges_distribution: list <str>, optional
             list of edges vehicles may be placed on initialization, default is
             all lanes (stated as "all")
-        positions: list, optional
-            used if the user would like to specify user-generated initial
-            positions.
-        lanes: list, optional
-            used if the user would like to specify user-generated initial
-            positions.
         additional_params: dict, optional
             some other network-specific params
         """
@@ -249,8 +241,6 @@ class InitialConfig:
         self.bunching = bunching
         self.lanes_distribution = lanes_distribution
         self.edges_distribution = edges_distribution
-        self.positions = positions
-        self.lanes = lanes
         self.additional_params = additional_params or dict()
 
     def get_additional_params(self, key):

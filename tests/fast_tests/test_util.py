@@ -145,11 +145,6 @@ class TestRegistry(unittest.TestCase):
         # that this feature is in fact needed to avoid race conditions
         flow_params["sumo"].port = env.env.sumo_params.port
 
-        # TODO(ak): deal with this hack
-        flow_params["initial"].positions = \
-            env.env.scenario.initial_config.positions
-        flow_params["initial"].lanes = env.env.scenario.initial_config.lanes
-
         # check that each of the parameter match
         self.assertEqual(env.env.env_params.__dict__,
                          flow_params["env"].__dict__)
@@ -275,10 +270,6 @@ class TestRllib(unittest.TestCase):
 
         # delete the created file
         os.remove(os.path.expanduser('params.json'))
-
-        # TODO(ak): deal with this hack
-        imported_flow_params["initial"].positions = None
-        imported_flow_params["initial"].lanes = None
 
         # test that this inflows are correct
         self.assertTrue(imported_flow_params["net"].in_flows.__dict__ ==
