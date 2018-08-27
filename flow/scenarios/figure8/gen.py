@@ -1,3 +1,5 @@
+"""Contains the figure eight generator class."""
+
 from flow.core.generator import Generator
 
 from numpy import pi, sin, cos, linspace
@@ -7,10 +9,10 @@ E = etree.Element
 
 
 class Figure8Generator(Generator):
+    """Generator for figure 8 lanes."""
+
     def __init__(self, net_params, base):
-        """
-        Generator for figure 8 lanes.
-        """
+        """Instantiate the generator class."""
         super().__init__(net_params, base)
 
         r = net_params.additional_params["radius_ring"]
@@ -21,9 +23,7 @@ class Figure8Generator(Generator):
             base, 2 * intersection_edgelen + 6 * ring_edgelen, lanes)
 
     def specify_nodes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         r = net_params.additional_params["radius_ring"]
 
         nodes = [{
@@ -76,9 +76,7 @@ class Figure8Generator(Generator):
         return nodes
 
     def specify_edges(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         r = net_params.additional_params["radius_ring"]
         resolution = net_params.additional_params["resolution"]
         ring_edgelen = r * pi / 2.
@@ -217,9 +215,7 @@ class Figure8Generator(Generator):
         return edges
 
     def specify_types(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
         types = [{
@@ -231,9 +227,7 @@ class Figure8Generator(Generator):
         return types
 
     def specify_routes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         rts = {
             "bottom_lower_ring": [
                 "bottom_lower_ring", "right_lower_ring_in",
