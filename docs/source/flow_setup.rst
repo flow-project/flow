@@ -144,7 +144,6 @@ to install the `rllab-multiagent` library, follow the below instructions
     cd ~
     git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
-    conda env create -f environment.yml
     python3 setup.py develop
 
 For linux run
