@@ -406,13 +406,6 @@ class SumoCarFollowingController(BaseController):
     Note that methods for implementing noise and failsafes through
     BaseController, are not available here. However, similar methods are
     available through sumo when initializing the parameters of the vehicle.
-
-    Attributes
-    ----------
-    veh_id: str
-        name of the vehicle
-    sumo_cf_params: SumoCarFollowingParams
-        see parent class
     """
 
     def __init__(self, veh_id, sumo_cf_params):
