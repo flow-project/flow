@@ -258,7 +258,7 @@ Go into your browser ( Firefox, Chrome, Safari)
     5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
     
 ====================
-Use that docker container to run jupyter Notebook
+Notebooks and tutorial
 ====================
 
 In the docker desktop
