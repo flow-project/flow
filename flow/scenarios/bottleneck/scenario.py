@@ -11,7 +11,7 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class BottleneckScenario(Scenario):
-    """Scenario class for Bay Bridge toll simulations."""
+    """Scenario class for bottleneck simulations."""
 
     def __init__(self,
                  name,

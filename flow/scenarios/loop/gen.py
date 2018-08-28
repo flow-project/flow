@@ -6,7 +6,7 @@ from numpy import pi, sin, cos, linspace
 
 
 class CircleGenerator(Generator):
-    """Generator for loop circle used in MIT traffic simulation."""
+    """Generator for loop circle used in traffic simulation."""
 
     def __init__(self, net_params, base):
         """See parent class."""
