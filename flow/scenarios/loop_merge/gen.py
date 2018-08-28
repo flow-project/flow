@@ -8,7 +8,7 @@ from numpy import pi, sin, cos, linspace
 class TwoLoopOneMergingGenerator(Generator):
     """Generator for a two loop merge network.
 
-    This network conssits of two loops that both merge into a common lane.
+    This network consists of two loops that both merge into a common lane.
     """
 
     def __init__(self, net_params, base):

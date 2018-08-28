@@ -5,7 +5,7 @@ import numpy as np
 
 
 class BottleneckGenerator(Generator):
-    """Generator class for simulating the Bay Bridge toll.
+    """Generator class for simulating a bottleneck.
 
     No parameters are needed from net_params (the network is not parametrized).
     """
