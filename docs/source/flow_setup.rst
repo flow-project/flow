@@ -242,11 +242,13 @@ You may define user-specific config parameters as follows
 VNC desktop using Docker for simple utilisation
 ====================
 Installation of a vnc desktop to get access to flow quickly
+
+First install docker on https://www.docker.com/
+
+In terminal
 ::
-    In terminal
-    1° Install docker https://www.docker.com/
-    2° docker pull lucasfischerberkeley/flow_desktop
-    3° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flow_desktop
+    1° docker pull lucasfischerberkeley/flow_desktop
+    2° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flow_desktop
     
 Go into your browser ( Firefox, Chrome, Safari)
 ::
@@ -256,8 +258,10 @@ Go into your browser ( Firefox, Chrome, Safari)
     4° For rllib : Write python flow/examples/rllib/stabilizing_the_ring.py and run it
     5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
     
-Use it to run jupyter notebook in your browser
+====================
+Use that docker container to run jupyter Notebook
+====================
 ::
     1° Go into Terminal Emulator
-    2° Run jupyter notebook --NotebookApp.token=admin --ip 0.0.0.0 --allow-rot
-    3° Go into your browser and go to localhost:8888/tree, the password is admin and you can run your notebook
+    2° Run jupyter notebook --NotebookApp.token=admin --ip 0.0.0.0 --allow-root
+    3° Go into your browser and go to localhost:8888/tree, the password is 'admin' and you can run all your notebook
