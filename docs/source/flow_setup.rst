@@ -1,25 +1,3 @@
-Summary :
-
-1 - Local Installation
-    a. Setup Instructions
-    b. Dependencies
-    c. Sumo
-    d. Flow
-    e. Testing the Installation
-    f. Rllab-multiagent (optional)
-    g. Ray/RLlib (optional)
-    h. Getting started (rllab-multiagent)
-    i. Getting started (Ray/RLlib)
-    j. Custom configuration
-
-2- Remote desktop using Docker
-
-
-====================
-1 - Local Installation
-====================
-
-
 a. Setup Instructions
 ******************
 
