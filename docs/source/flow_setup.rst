@@ -247,8 +247,9 @@ Installation of a vnc desktop to get access to flow quickly
     1° Install docker https://www.docker.com/
     2° docker pull lucasfischerberkeley/flow_desktop
     3° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flow_desktop
+    
+Go into your browser ( Firefox, Chrome, Safari)
 ::
-    Go into your browser ( Firefox, Chrome, Safari)
     1° Go to http://localhost:6901/?password=vncpassword
     2° Go to Applications and open Terminal Emulator
     3° For sumo: Write python flow/examples/sumo/sugiyama.py and run it
