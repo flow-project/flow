@@ -238,9 +238,9 @@ You may define user-specific config parameters as follows
 
 
 ====================
-VNC desktop using Docker for simple utilisation
+Remot desktop using Docker for simple utilisation of flow
 ====================
-Installation of a vnc desktop to get access to flow quickly
+Installation of a remot desktop and docker to get access to flow quickly
 
 First install docker on https://www.docker.com/
 
