@@ -1,17 +1,17 @@
+"""Contains the bottleneck generator class."""
+
 from flow.core.generator import Generator
 import numpy as np
 
 
 class BottleneckGenerator(Generator):
-    """
-    Generator class for simulating the Bay Bridge toll. No parameters needed
-    from net_params (the network is not parametrized)
+    """Generator class for simulating a bottleneck.
+
+    No parameters are needed from net_params (the network is not parametrized).
     """
 
     def specify_nodes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         nodes = [
             {
                 "id": "1",
@@ -51,9 +51,7 @@ class BottleneckGenerator(Generator):
         return nodes
 
     def specify_edges(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         scaling = net_params.additional_params.get("scaling", 1)
         assert (isinstance(scaling, int)), "Scaling must be an int"
 
@@ -108,9 +106,7 @@ class BottleneckGenerator(Generator):
         return edges
 
     def specify_connections(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         scaling = net_params.additional_params.get("scaling", 1)
         conn = []
         for i in range(4 * scaling):
@@ -130,9 +126,7 @@ class BottleneckGenerator(Generator):
         return conn
 
     def specify_routes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         rts = {
             "1": ["1", "2", "3", "4", "5"],
             "2": ["2", "3", "4", "5"],

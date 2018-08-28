@@ -1,3 +1,5 @@
+"""Contains the grid generator class."""
+
 from flow.core.generator import Generator
 from collections import defaultdict
 
@@ -20,15 +22,18 @@ class SimpleGridGenerator(Generator):
         self.name = "BobLoblawsLawBlog"  # DO NOT CHANGE
 
     def specify_nodes(self, net_params):
+        """See parent class."""
         nodes = []
         nodes += self._build_inner_nodes()
         nodes += self._build_outer_nodes()
         return nodes
 
     def specify_tll(self, net_params):
+        """See parent class."""
         return self._build_inner_nodes()
 
     def specify_edges(self, net_params):
+        """See parent class."""
         edges = []
         edges += self._build_inner_edges()
         edges += self._build_outer_edges()
@@ -37,6 +42,7 @@ class SimpleGridGenerator(Generator):
         return edges
 
     def specify_routes(self, net_params):
+        """See parent class."""
         rts = {}
         row_num = self.grid_array["row_num"]
         col_num = self.grid_array["col_num"]
@@ -61,6 +67,7 @@ class SimpleGridGenerator(Generator):
         return rts
 
     def specify_types(self, net_params):
+        """See parent class."""
         add_params = net_params.additional_params
         horizontal_lanes = add_params["horizontal_lanes"]
         vertical_lanes = add_params["vertical_lanes"]
@@ -125,7 +132,7 @@ class SimpleGridGenerator(Generator):
         return nodes
 
     def _build_outer_nodes(self):
-        """Builds out the column nodes.
+        """Build out the column nodes.
 
         There are two in each column below the bottom row, and two in each
         column above the top row. They are numbered with regards to the column
@@ -197,7 +204,7 @@ class SimpleGridGenerator(Generator):
         return nodes
 
     def _build_inner_edges(self):
-        """Builds the inner edges.
+        """Build the inner edges.
 
         First we build all of the column edges. For the upper edge, it would be
         called right_i_j or left_i_j where i is the row number and j is the
@@ -269,7 +276,7 @@ class SimpleGridGenerator(Generator):
         return edges
 
     def _build_outer_edges(self):
-        """Builds the outer edges.
+        """Build the outer edges.
 
         Starts with the bottom edges, then the top edges, then the left edges,
         then the right.

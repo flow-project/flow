@@ -1,9 +1,16 @@
+"""Contains the scenario class for OpenStreetMap files."""
+
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
 
 class OpenStreetMapScenario(Scenario):
+    """Class that creates a scenario from a .osm file.
+
+    Required net_params: osm_path
+    """
+
     def __init__(self,
                  name,
                  generator_class,
@@ -11,10 +18,9 @@ class OpenStreetMapScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a scenario from a .osm file.
+        """Initialize a scenario from a .osm file.
 
-        Required net_params: osm_path
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         if net_params.osm_path is None:
             raise ValueError("Path to the OpenStreetMap file must be specified"
