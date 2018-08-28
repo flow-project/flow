@@ -1,4 +1,26 @@
-Setup Instructions
+Summary :
+
+1 - Local Installation
+    a. Setup Instructions
+    b. Dependencies
+    c. Sumo
+    d. Flow
+    e. Testing the Installation
+    f. Rllab-multiagent (optional)
+    g. Ray/RLlib (optional)
+    h. Getting started (rllab-multiagent)
+    i. Getting started (Ray/RLlib)
+    j. Custom configuration
+
+2- Remote desktop using Docker
+
+
+====================
+1 - Local Installation
+====================
+
+
+a. Setup Instructions
 ******************
 
 To get Flow running, you need three things: Flow,
@@ -11,7 +33,7 @@ module bugs from Python. Just install the missing module using
 your OS-specific package manager / installation tool. Follow the 
 shell commands below to get started.
 
-Dependencies
+b. Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
 above. **It is highly recommended that users install**
@@ -36,7 +58,7 @@ install it):
     # sumo dependencies
     brew install Caskroom/cask/xquartz autoconf automake pkg-config libtool gdal proj xerces-c fox
 
-sumo
+c. Sumo
 ====
 Next, we install SUMO, an open source traffic microsimulator which will be used
 the update the states of vehicles, traffic lights, and other RL and
@@ -82,7 +104,7 @@ Finally, test your sumo install and version by running the following commands
     sumo --version
     sumo-gui
 
-Flow
+d. Flow
 ====
 Once sumo and the various dependencies are in place, we are ready to install a
 functional version of Flow. With this, we can begin to simulate traffic within
@@ -109,7 +131,7 @@ For mac run
     echo 'export PYTHONPATH="$HOME/flow:$PYTHONPATH"' >> ~/.bash_profile
     source ~/.bash_profile
 
-Testing the Installation
+e. Testing the Installation
 ========================
 
 Once the above modules have been successfully installed, we can test the
@@ -133,7 +155,7 @@ Optionally, run the unit tests:
 Congratulations, you now have successfully set up Flow!
 
 
-rllab-multiagent (optional)
+f. Rllab-multiagent (optional)
 ===========================
 Flow has been tested on a variety of RL libraries, the installation of which is
 optional but may be of use when trying to execute some of the examples files
@@ -157,7 +179,7 @@ For mac run
     echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bash_profile
     source ~/.bash_profile
 
-Ray/RLlib (optional)
+g. Ray/RLlib (optional)
 ====================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
@@ -177,7 +199,7 @@ required libraries as specified at
 <http://ray.readthedocs.io/en/latest/installation.html> and
 then follow the setup instructions.
 
-Getting started (rllab-multiagent)
+h. Getting started (rllab-multiagent)
 ==================================
 
 To run any of the RL examples, make sure to run
@@ -195,7 +217,7 @@ If it does not fail, this means that you have Flow properly configured with
 rllab-multiagent.
 
 
-Getting started (Ray/RLlib)
+i. Getting started (Ray/RLlib)
 ===========================
 
 See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
@@ -228,7 +250,7 @@ jobs from there.
     ray teardown scripts/ray_autoscale.yaml
 
 
-Custom configuration
+j. Custom configuration
 ====================
 
 You may define user-specific config parameters as follows
@@ -238,8 +260,10 @@ You may define user-specific config parameters as follows
 
 
 ====================
-Remot desktop using Docker for simple utilisation of flow
+Remote desktop using Docker for simple utilisation of flow
 ====================
+
+
 Installation of a remot desktop and docker to get access to flow quickly
 
 First install docker on https://www.docker.com/
@@ -257,7 +281,7 @@ Go into your browser ( Firefox, Chrome, Safari)
     4° For rllib : Write python flow/examples/rllib/stabilizing_the_ring.py and run it
     5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
     
-====================
+
 Notebooks and tutorial
 ====================
 
