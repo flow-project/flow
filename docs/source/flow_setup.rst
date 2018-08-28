@@ -261,7 +261,13 @@ Go into your browser ( Firefox, Chrome, Safari)
 ====================
 Use that docker container to run jupyter Notebook
 ====================
+
+In the docker desktop
 ::
     1° Go into Terminal Emulator
     2° Run jupyter notebook --NotebookApp.token=admin --ip 0.0.0.0 --allow-root
-    3° Go into your browser and go to localhost:8888/tree, the password is 'admin' and you can run all your notebook
+
+Go into your browser ( Firefox, Chrome, Safari)
+::
+    1° go to localhost:8888/tree
+    2° the password is 'admin' and you can run all your notebook and tutorial
