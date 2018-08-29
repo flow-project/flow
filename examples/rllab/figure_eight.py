@@ -1,4 +1,4 @@
-"""Trains a subset of vehicles to increase traveling speeds in a figure 8."""
+"""Trains a percentage of AVs to increase traveling speeds in a figure 8."""
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite

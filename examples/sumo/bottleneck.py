@@ -23,6 +23,10 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
 
     Parameters
     ----------
+    flow_rate : float
+        total inflow rate of vehicles into the bottlneck
+    horizon : int
+        time horizon
     sumo_binary: bool, optional
         specifies whether to use sumo's gui during execution
 

@@ -1,4 +1,4 @@
-"""Used as example of sugiyama experiment.
+"""Used as an example of sugiyama experiment.
 
 This example consists of 22 IDM cars on a ring creating shockwaves.
 """
