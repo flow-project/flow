@@ -1,4 +1,5 @@
-"""
+"""Hierarchical ring road example.
+
 Example script for use of two-level fully connected network policy,
 using the single-lane ring road setting.
 """
@@ -10,6 +11,7 @@ from .stabilizing_the_ring import make_create_env
 
 
 def to_subpolicy_state(inputs):
+    """Break state down for different portions of the policy."""
     return inputs
 
 

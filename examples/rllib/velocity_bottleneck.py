@@ -1,4 +1,5 @@
-"""
+"""Bottleneck example.
+
 Bottleneck in which the actions are specifying a desired velocity
 in a segment of space
 """

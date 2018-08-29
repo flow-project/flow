@@ -1,6 +1,5 @@
-"""
-(description)
-"""
+"""Trains a percentage of AVs to increase traveling speeds in a figure 8."""
+
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
@@ -18,6 +17,7 @@ HORIZON = 1500
 
 
 def run_task(*_):
+    """Implement the run_task method needed to run experiments with rllab."""
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
 
     vehicles = Vehicles()
