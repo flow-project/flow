@@ -1,6 +1,4 @@
-SUMMARY
-____
-
+.. contents:: Table of contents
 
 1 - Local Installation
     A. Dependencies
