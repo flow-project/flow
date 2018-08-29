@@ -1,7 +1,7 @@
-"""
-Cooperative merging example, consisting of 1 learning agent and 6 additional
-vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
-merge into the inner ring. rllab version.
+"""Trains vehicles to facilitate cooperative merging in a loop merge.
+
+This example consists of 1 learning agent and 6 additional vehicles in an inner
+ring, and 10 vehicles in an outer ring attempting to merge into the inner ring.
 """
 
 from rllab.algos.trpo import TRPO
@@ -24,6 +24,7 @@ HORIZON = 300
 
 
 def run_task(*_):
+    """Implement the run_task method needed to run experiments with rllab."""
     sumo_params = SumoParams(sim_step=0.2, sumo_binary="sumo-gui")
 
     # note that the vehicles are added sequentially by the generator,

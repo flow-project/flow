@@ -1,6 +1,8 @@
-"""
-Cooperative merging example, consisting of 1 learning agent and 6 additional
-vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
+"""Trains vehicles to facilitate cooperative merging in a loop merge.
+
+
+This examples consists of 1 learning agent and 6 additional vehicles in an
+inner ring, and 10 vehicles in an outer ring attempting to
 merge into the inner ring.
 """
 
