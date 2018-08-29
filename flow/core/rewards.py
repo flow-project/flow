@@ -1,13 +1,10 @@
-"""
-This script contains of series of reward functions that can
-be used to train autonomous vehicles
-"""
+"""This script contains of series of reward functions."""
 
 import numpy as np
 
 
 def desired_velocity(env, fail=False):
-    """A reward function used to encourage high system-level velocity.
+    """Encourage proximity to a desired velocity.
 
     This function measures the deviation of a system of vehicles from a
     user-specified desired velocity peaking when all vehicles in the ring
@@ -51,7 +48,7 @@ def reward_density(env):
 
 
 def max_edge_velocity(env, edge_list, fail=False):
-    """The desired velocity rewarded but restricted to a set of edges.
+    """Reward desired velocity on a restricted set of edges.
 
     Parameters
     ----------
@@ -224,9 +221,10 @@ def punish_small_rl_headways(env,
 
 
 def punish_rl_lane_changes(env, penalty=1):
-    """
-    A reward function that minimizes lane changes by producing a penalty
-    every time an rl vehicle performs one.
+    """Penalize an RL vehicle performing lane changes.
+
+    This reward function is meant to minimize the number of lane changes and RL
+    vehicle performs.
 
     Parameters
     ----------
@@ -245,8 +243,9 @@ def punish_rl_lane_changes(env, penalty=1):
 
 
 def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
-    """
-    Reward function punishing queues in certain lanes of edge '3'
+    """Punish queues in certain lanes of edge '3'.
+
+    TODO: specify what scenario this is used by
 
     Parameters
     ----------
@@ -277,8 +276,7 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
 
 
 def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
-    """
-    Reward function that rewards RL vehicles opening large headways.
+    """Reward RL vehicles opening large headways.
 
     Parameters
     ----------

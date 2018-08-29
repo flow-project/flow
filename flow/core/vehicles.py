@@ -1,3 +1,5 @@
+"""Contains the vehicles class."""
+
 from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
@@ -21,13 +23,15 @@ LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
 
 
 class Vehicles:
-    def __init__(self):
-        """Base vehicle class.
+    """Base vehicle class.
 
-        This is used to describe the state of all vehicles in the network.
-        State information on the vehicles for a given time step can be set or
-        retrieved from this class.
-        """
+    This is used to describe the state of all vehicles in the network.
+    State information on the vehicles for a given time step can be set or
+    retrieved from this class.
+    """
+
+    def __init__(self):
+        """Instantiate the base vehicle class."""
         self.__ids = []  # ids of all vehicles
         self.__human_ids = []  # ids of human-driven vehicles
         self.__controlled_ids = []  # ids of flow-controlled vehicles
@@ -81,29 +85,29 @@ class Vehicles:
             lane_change_mode="no_lat_collide",
             sumo_car_following_params=None,
             sumo_lc_params=None):
-        """Adds a sequence of vehicles to the list of vehicles in the network.
+        """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
         ----------
-        veh_id: str
+        veh_id : str
             base vehicle ID for the vehicles (will be appended by a number)
-        acceleration_controller: tup, optional
+        acceleration_controller : tup, optional
             1st element: flow-specified acceleration controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
-        lane_change_controller: tup, optional
+        lane_change_controller : tup, optional
             1st element: flow-specified lane-changer controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
-        routing_controller: tup, optional
+        routing_controller : tup, optional
             1st element: flow-specified routing controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
-        initial_speed: float, optional
+        initial_speed : float, optional
             initial speed of the vehicles being added (in m/s)
-        num_vehicles: int, optional
+        num_vehicles : int, optional
             number of vehicles of this type to be added to the network
-        speed_mode: str or int, optional
+        speed_mode : str or int, optional
             may be one of the following:
 
              * "right_of_way" (default): respect safe speed, right of way and
@@ -119,7 +123,7 @@ class Vehicles:
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
 
-        lane_change_mode: str or int, optional
+        lane_change_mode : str or int, optional
             may be one of the following:
 
             * "no_lat_collide" (default): Human cars will not make lane
@@ -133,9 +137,9 @@ class Vehicles:
               given vehicles, specified at:
               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
 
-        sumo_car_following_params: flow.core.params.SumoCarFollowingParams type
+        sumo_car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
-        sumo_lc_params: flow.core.params.SumoLaneChangeParams type
+        sumo_lc_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
         if sumo_car_following_params is None:
@@ -271,8 +275,7 @@ class Vehicles:
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 
     def update(self, vehicle_obs, sim_obs, env):
-        """Updates the vehicle class with data pertaining to the vehicles at
-        the current time step.
+        """Update the vehicle class with data from the current time step.
 
         The following actions are performed:
 
@@ -284,14 +287,13 @@ class Vehicles:
 
         Parameters
         ----------
-        vehicle_obs: dict
+        vehicle_obs : dict
             vehicle observations provided from sumo via subscriptions
-        sim_obs: dict
+        sim_obs : dict
             simulation observations provided from sumo via subscriptions
-        env: Environment type
+        env : Environment type
             state of the environment at the current time step
         """
-
         # remove exiting vehicles from the vehicles class
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
@@ -378,7 +380,7 @@ class Vehicles:
         self.__rl_ids.sort()
 
     def _add_departed(self, veh_id, veh_type, env):
-        """Adds a vehicle that entered the network from an inflow or reset.
+        """Add a vehicle that entered the network from an inflow or reset.
 
         Parameters
         ----------
@@ -469,7 +471,7 @@ class Vehicles:
         self.__rl_ids.sort()
 
     def remove(self, veh_id):
-        """Removes a vehicle.
+        """Remove a vehicle.
 
         Removes all traces of the vehicle from the vehicles class and all valid
         ID lists, and decrements the total number of vehicles in this class.
@@ -498,99 +500,115 @@ class Vehicles:
         self.__rl_ids.sort()
 
     def test_set_speed(self, veh_id, speed):
+        """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
 
     def set_absolute_position(self, veh_id, absolute_position):
+        """Set the absolute position of the specified vehicle."""
         self.__vehicles[veh_id]["absolute_position"] = absolute_position
 
     def test_set_position(self, veh_id, position):
+        """Set the relative position of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = position
 
     def test_set_edge(self, veh_id, edge):
+        """Set the edge of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
 
     def test_set_lane(self, veh_id, lane):
+        """Set the lane index of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = lane
 
     def set_leader(self, veh_id, leader):
+        """Set the leader of the specified vehicle."""
         self.__vehicles[veh_id]["leader"] = leader
 
     def set_follower(self, veh_id, follower):
+        """Set the follower of the specified vehicle."""
         self.__vehicles[veh_id]["follower"] = follower
 
     def set_headway(self, veh_id, headway):
+        """Set the headway of the specified vehicle."""
         self.__vehicles[veh_id]["headway"] = headway
 
     def get_ids(self):
-        """Returns the names of all vehicles currently in the network."""
+        """Return the names of all vehicles currently in the network."""
         return self.__ids
 
     def get_human_ids(self):
-        """Returns the names of all non-rl vehicles currently in the
-        network."""
+        """Return the names of all non-rl vehicles currently in the network."""
         return self.__human_ids
 
     def get_controlled_ids(self):
-        """Returns the names of all flow acceleration-controlled vehicles
-        currently in the network."""
+        """Return the names of all flow acceleration-controlled vehicles.
+
+        This only include vehicles that are currently in the network.
+        """
         return self.__controlled_ids
 
     def get_controlled_lc_ids(self):
-        """Returns the names of all flow lane change-controlled vehicles
-        currently in the network."""
+        """Return the names of all flow lane change-controlled vehicles.
+
+        This only include vehicles that are currently in the network.
+        """
         return self.__controlled_lc_ids
 
     def get_rl_ids(self):
-        """Returns the names of all rl-controlled vehicles in the network."""
+        """Return the names of all rl-controlled vehicles in the network."""
         return self.__rl_ids
 
     def set_observed(self, veh_id):
-        """Adds a vehicle to the list of observed vehicles."""
+        """Add a vehicle to the list of observed vehicles."""
         if veh_id not in self.__observed_ids:
             self.__observed_ids.append(veh_id)
 
     def remove_observed(self, veh_id):
-        """Removes a vehicle from the list of observed vehicles."""
+        """Remove a vehicle from the list of observed vehicles."""
         if veh_id in self.__observed_ids:
             self.__observed_ids.remove(veh_id)
 
     def get_observed_ids(self):
-        """Returns the list of observed vehicles."""
+        """Return the list of observed vehicles."""
         return self.__observed_ids
 
     def get_ids_by_edge(self, edges):
-        """Returns the names of all vehicles in the specified edge. If no
-        vehicles are currently in the edge, then returns an empty list."""
+        """Return the names of all vehicles in the specified edge.
+
+        If no vehicles are currently in the edge, then returns an empty list.
+        """
         if isinstance(edges, (list, np.ndarray)):
             return sum([self.get_ids_by_edge(edge) for edge in edges], [])
         return self._ids_by_edge.get(edges, []) or []
 
     def get_inflow_rate(self, time_span):
-        """Returns the inflow rate (in veh/hr) of vehicles from the network for
-        the last **time_span** seconds."""
+        """Return the inflow rate (in veh/hr) of vehicles from the network.
+
+        This value is computed over the specified **time_span** seconds.
+        """
         if len(self._num_departed) == 0:
             return 0
         num_inflow = self._num_departed[-int(time_span / self.sim_step):]
         return 3600 * sum(num_inflow) / (len(num_inflow) * self.sim_step)
 
     def get_outflow_rate(self, time_span):
-        """Returns the outflow rate (in veh/hr) of vehicles from the network
-        for the last **time_span** seconds."""
+        """Return the outflow rate (in veh/hr) of vehicles from the network.
+
+        This value is computed over the specified **time_span** seconds.
+        """
         if len(self._num_arrived) == 0:
             return 0
         num_outflow = self._num_arrived[-int(time_span / self.sim_step):]
         return 3600 * sum(num_outflow) / (len(num_outflow) * self.sim_step)
 
     def get_num_arrived(self):
-        """Returns the number of vehicles that arrived in the last
-        time step"""
+        """Return the number of vehicles that arrived in the last time step."""
         if len(self._num_arrived) > 0:
             return self._num_arrived[-1]
         else:
             return 0
 
     def get_initial_speed(self, veh_id, error=-1001):
-        """Returns the initial speed upon reset of the specified vehicle.
+        """Return the initial speed upon reset of the specified vehicle.
 
         Parameters
         ----------
@@ -609,7 +627,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("initial_speed", error)
 
     def get_lane_change_mode(self, veh_id, error=-1001):
-        """Returns the lane change mode value of the specified vehicle.
+        """Return the lane change mode value of the specified vehicle.
 
         Parameters
         ----------
@@ -630,7 +648,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("lane_change_mode", error)
 
     def get_speed_mode(self, veh_id, error=-1001):
-        """Returns the speed mode value of the specified vehicle.
+        """Return the speed mode value of the specified vehicle.
 
         Parameters
         ----------
@@ -649,7 +667,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("speed_mode", error)
 
     def get_speed(self, veh_id, error=-1001):
-        """Returns the speed of the specified vehicle.
+        """Return the speed of the specified vehicle.
 
         Parameters
         ----------
@@ -668,7 +686,7 @@ class Vehicles:
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 
     def get_absolute_position(self, veh_id, error=-1001):
-        """Returns the absolute position of the specified vehicle.
+        """Return the absolute position of the specified vehicle.
 
         Parameters
         ----------
@@ -689,7 +707,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("absolute_position", error)
 
     def get_position(self, veh_id, error=-1001):
-        """Returns the position of the vehicle relative to its current edge.
+        """Return the position of the vehicle relative to its current edge.
 
         Parameters
         ----------
@@ -708,8 +726,7 @@ class Vehicles:
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANEPOSITION, error)
 
     def get_edge(self, veh_id, error=""):
-        """Returns the position of the specified vehicle (relative to the
-        current edge).
+        """Return the edge the specified vehicle is currently on.
 
         Parameters
         ----------
@@ -728,7 +745,7 @@ class Vehicles:
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, error)
 
     def get_lane(self, veh_id, error=-1001):
-        """Returns the lane index of the specified vehicle.
+        """Return the lane index of the specified vehicle.
 
         Parameters
         ----------
@@ -747,10 +764,11 @@ class Vehicles:
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_LANE_INDEX, error)
 
     def set_length(self, veh_id, length):
+        """Set the length of the specified vehicle."""
         self.__vehicles[veh_id]["length"] = length
 
     def get_length(self, veh_id, error=-1001):
-        """Returns the length of the specified vehicle.
+        """Return the length of the specified vehicle.
 
         Parameters
         ----------
@@ -769,7 +787,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("length", error)
 
     def get_acc_controller(self, veh_id, error=None):
-        """Returns the acceleration controller of the specified vehicle.
+        """Return the acceleration controller of the specified vehicle.
 
         Parameters
         ----------
@@ -788,7 +806,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("acc_controller", error)
 
     def get_lane_changing_controller(self, veh_id, error=None):
-        """Returns the lane changing controller of the specified vehicle.
+        """Return the lane changing controller of the specified vehicle.
 
         Parameters
         ----------
@@ -810,7 +828,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("lane_changer", error)
 
     def get_routing_controller(self, veh_id, error=None):
-        """Returns the routing controller of the specified vehicle.
+        """Return the routing controller of the specified vehicle.
 
         Parameters
         ----------
@@ -831,7 +849,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("router", error)
 
     def get_route(self, veh_id, error=list()):
-        """Returns the route of the specified vehicle.
+        """Return the route of the specified vehicle.
 
         Parameters
         ----------
@@ -850,7 +868,7 @@ class Vehicles:
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_EDGES, error)
 
     def get_leader(self, veh_id, error=""):
-        """Returns the leader of the specified vehicle.
+        """Return the leader of the specified vehicle.
 
         Parameters
         ----------
@@ -869,7 +887,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("leader", error)
 
     def get_follower(self, veh_id, error=""):
-        """Returns the follower of the specified vehicle.
+        """Return the follower of the specified vehicle.
 
         Parameters
         ----------
@@ -888,7 +906,7 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("follower", error)
 
     def get_headway(self, veh_id, error=-1001):
-        """Returns the headway of the specified vehicle(s).
+        """Return the headway of the specified vehicle(s).
 
         Parameters
         ----------
@@ -907,11 +925,14 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("headway", error)
 
     def set_lane_headways(self, veh_id, lane_headways):
+        """Set the lane headways of the specified vehicle."""
         self.__vehicles[veh_id]["lane_headways"] = lane_headways
 
     def get_lane_headways(self, veh_id, error=list()):
-        """Returns the headways between the specified vehicle and the vehicle
-        ahead of it in all lanes.
+        """Return the lane headways of the specified vehicles.
+
+        This includes the headways between the specified vehicle and the
+        vehicle immediately ahead of it in all lanes.
 
         Parameters
         ----------
@@ -930,10 +951,11 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("lane_headways", error)
 
     def set_lane_leaders(self, veh_id, lane_leaders):
+        """Set the lane leaders of the specified vehicle."""
         self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
 
     def get_lane_leaders(self, veh_id, error=list()):
-        """Returns the leaders for the specified vehicle in all lanes.
+        """Return the leaders for the specified vehicle in all lanes.
 
         Parameters
         ----------
@@ -952,11 +974,14 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("lane_leaders", error)
 
     def set_lane_tailways(self, veh_id, lane_tailways):
+        """Set the lane tailways of the specified vehicle."""
         self.__vehicles[veh_id]["lane_tailways"] = lane_tailways
 
     def get_lane_tailways(self, veh_id, error=list()):
-        """Returns the tailways between the specified vehicle and the vehicle
-        behind it in all lanes.
+        """Return the lane tailways of the specified vehicle.
+
+        This includes the headways between the specified vehicle and the
+        vehicle immediately behind it in all lanes.
 
         Parameters
         ----------
@@ -975,10 +1000,11 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get("lane_tailways", error)
 
     def set_lane_followers(self, veh_id, lane_followers):
+        """Set the lane followers of the specified vehicle."""
         self.__vehicles[veh_id]["lane_followers"] = lane_followers
 
     def get_lane_followers(self, veh_id, error=list()):
-        """Returns the followers for the specified vehicle in all lanes.
+        """Return the followers for the specified vehicle in all lanes.
 
         Parameters
         ----------
@@ -998,7 +1024,7 @@ class Vehicles:
 
     # TODO(ak): setting sumo observations?
     def set_state(self, veh_id, state_name, state):
-        """Generic set function.
+        """Set generic state for the specified vehicle.
 
         Updates the state *state_name* of the vehicle with id *veh_id* with the
         value *state*.
@@ -1007,8 +1033,10 @@ class Vehicles:
 
     # TODO(ak): getting sumo observations?
     def get_state(self, veh_id, state_name, error=None):
-        """Generic get function. Returns the value of *state_name* of the
-        specified vehicles at the current time step.
+        """Get generic state for the specified vehicle.
+
+        Returns the value of *state_name* of the specified vehicles at the
+        current time step.
         """
         if isinstance(veh_id, list):
             return [
@@ -1017,8 +1045,11 @@ class Vehicles:
         return self.__vehicles.get(veh_id, {}).get(state_name, error)
 
     def _multi_lane_headways(self, env):
-        """Computes the lane leaders/followers/headways/tailways for all
-        vehicles in the network."""
+        """Compute multi-lane data for all vehicles.
+
+        This includes the lane leaders/followers/headways/tailways for all
+        vehicles in the network.
+        """
         edge_list = env.scenario.get_edge_list()
         junction_list = env.scenario.get_junction_list()
         tot_list = edge_list + junction_list
@@ -1079,10 +1110,7 @@ class Vehicles:
                 self._ids_by_edge[edge_id] = []
 
     def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges, env):
-        """Utility function for _multi_lane_headways()
-
-        Computes the lane headways, tailways, leaders, and followers for the
-        specified vehicle.
+        """Compute multi-lane data for the specified vehicle.
 
         Parameters
         ----------
@@ -1160,9 +1188,11 @@ class Vehicles:
         return headway, tailway, leader, follower
 
     def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges, env):
-        """Looks to the edges/junctions in front of the vehicle's current edge
+        """Search for leaders in the next edge.
+
+        Looks to the edges/junctions in front of the vehicle's current edge
         for potential leaders. This is currently done by only looking one
-        edge/junction backwards.
+        edge/junction forwards.
 
         Returns
         -------
@@ -1202,7 +1232,9 @@ class Vehicles:
         return headway, leader
 
     def _prev_edge_followers(self, veh_id, edge_dict, lane, num_edges, env):
-        """Looks to the edges/junctions behind the vehicle's current edge for
+        """Search for followers in the previous edge.
+
+        Looks to the edges/junctions behind the vehicle's current edge for
         potential followers. This is currently done by only looking one
         edge/junction backwards.
 
