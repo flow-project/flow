@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
-[![Docs](https://readthedocs.org/projects/berkeleyflow/badge)](http://berkeleyflow.readthedocs.org/en/latest/)
+[![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
 # Flow
@@ -10,8 +10,8 @@ See [our website](https://berkeleyflow.github.io) for more information on the ap
 
 # More information
 
-- [Documentation](https://berkeleyflow.readthedocs.org/en/latest/)
-- [Installation instructions](http://berkeleyflow.readthedocs.io/en/latest/flow_setup.html)
+- [Documentation](https://flow.readthedocs.org/en/latest/)
+- [Installation instructions](http://flow.readthedocs.io/en/latest/flow_setup.html)
 - [Tutorials](https://github.com/flow-project/flow/tree/master/tutorials)
 
 # Getting involved
