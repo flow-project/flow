@@ -11,7 +11,7 @@ Welcome to Flow
 Flow is a work in progress - input is welcome. Available documentation is limited for now. 
 `Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/exercises>`_ are available in iPython notebook format.
 
-*If you are looking for Akvo FLOW, their documentation can be found at* http://flowsupport.akvo.org.
+*If you are looking for Akvo Flow, their documentation can be found at* http://flowsupport.akvo.org.
 
 .. toctree::
    :maxdepth: 1
