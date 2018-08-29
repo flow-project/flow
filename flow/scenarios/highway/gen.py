@@ -1,3 +1,5 @@
+"""Contains the highway scenario class."""
+
 from flow.core.generator import Generator
 
 
@@ -5,6 +7,10 @@ class HighwayGenerator(Generator):
     """Generator for multi-lane highways."""
 
     def __init__(self, net_params, base):
+        """Instantiate a generator class for highways.
+
+        See parent class for description of parameters.
+        """
         length = net_params.additional_params["length"]
         lanes = net_params.additional_params["lanes"]
         self.name = "%s-%dm%dl" % (base, length, lanes)
@@ -12,9 +18,7 @@ class HighwayGenerator(Generator):
         super().__init__(net_params, base)
 
     def specify_nodes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         length = net_params.additional_params["length"]
 
         nodes = [{
@@ -30,9 +34,7 @@ class HighwayGenerator(Generator):
         return nodes
 
     def specify_edges(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         length = net_params.additional_params["length"]
 
         edges = [{
@@ -46,9 +48,7 @@ class HighwayGenerator(Generator):
         return edges
 
     def specify_types(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
 
@@ -61,9 +61,7 @@ class HighwayGenerator(Generator):
         return types
 
     def specify_routes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         rts = {"highway": ["highway"]}
 
         return rts

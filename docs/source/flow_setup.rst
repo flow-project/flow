@@ -14,10 +14,10 @@ shell commands below to get started.
 Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
-above. **It is highly recommended that users install
-`Anaconda <https://www.anaconda.com/download>`_ or
+above. **It is highly recommended that users install**
+`Anaconda <https://www.anaconda.com/download>`_ **or**
 `Miniconda <https://conda.io/miniconda.html>`_
-for Python and the setup instructions will assume that you are 
+**for Python and the setup instructions will assume that you are
 doing so.**
 
 For Ubuntu 16.04:
@@ -144,7 +144,6 @@ to install the `rllab-multiagent` library, follow the below instructions
     cd ~
     git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
-    conda env create -f environment.yml
     python3 setup.py develop
 
 For linux run
