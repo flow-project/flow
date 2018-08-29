@@ -10,8 +10,8 @@ See [our website](https://berkeleyflow.github.io) for more information on the ap
 
 # More information
 
-- [Documentation](https://berkeleyflow.readthedocs.org/en/latest/)
-- [Installation instructions](http://berkeleyflow.readthedocs.io/en/latest/flow_setup.html)
+- [Documentation](https://flow.readthedocs.org/en/latest/)
+- [Installation instructions](http://flow.readthedocs.io/en/latest/flow_setup.html)
 - [Tutorials](https://github.com/flow-project/flow/tree/master/tutorials)
 
 # Getting involved
