@@ -82,6 +82,9 @@ Finally, test your sumo install and version by running the following commands
     sumo --version
     sumo-gui
 
+If you are a mac user and the above command gives you the error ``FXApp:openDisplay: unable to open display :0.0``
+make sure to open the application XQuartz.
+
 Flow
 ====
 Once sumo and the various dependencies are in place, we are ready to install a
