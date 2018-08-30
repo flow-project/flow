@@ -10,6 +10,7 @@ model to return a vehicle acceleration.
 """
 import math
 import numpy as np
+import sys, termios, tty, os, time, select
 
 from flow.controllers.base_controller import BaseController
 
@@ -398,3 +399,64 @@ class SumoCarFollowingController(BaseController):
 
     def get_accel(self, env):
         return None
+
+class KeyboardController(BaseController):
+    def __init__(self, veh_id, sumo_cf_params):
+        """Instantiates a car-following controller whose actions are purely
+        defined by sumo.
+
+        Note that methods for implementing noise and failsafes through
+        BaseController, are not available here. However, similar methods are
+        available through sumo when initializing the parameters of the vehicle.
+
+        Attributes
+        ----------
+        veh_id: str
+            name of the vehicle
+        sumo_cf_params: SumoCarFollowingParams
+            see parent class
+        """
+        super().__init__(veh_id, sumo_cf_params)
+        self.sumo_controller = True
+
+    def getch(self):
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        # try:
+        tty.setraw(sys.stdin.fileno())
+        ch = sys.stdin.read(1)
+
+        # finally:
+        #     termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+        # import ipdb; ipdb.set_trace()
+        # while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+        #     line = sys.stdin.readline()
+        #     import ipdb; ipdb.set_trace()
+        #     if line:
+        #         return line[0]
+        #     else:  # an empty line means stdin has been closed
+        #         return "0"
+
+    def get_accel(self, env):
+        button_delay = 0.1
+
+        char = self.getch()
+
+        if (char == "a"):
+            print("Accelerate!")
+            #time.sleep(button_delay)
+            return 1.0
+
+        elif (char == "d"):
+            print("Decelerate")
+            #time.sleep(button_delay)
+            return -1.0
+
+        elif (char =="s"):
+            print("Coast")
+            return 0.0
+
+        else:
+            return 0.0

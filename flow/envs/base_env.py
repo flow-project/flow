@@ -783,11 +783,14 @@ class Env(gym.Env, Serializable):
         if self.sumo_params.sumo_binary != "sumo-gui":
             return
 
+        self.traci_connection.vehicle.setColor(
+            vehID='keyboard_0', color=(255, 0, 0, 255))
+
         for veh_id in self.vehicles.get_rl_ids():
             try:
                 # color rl vehicles red
                 self.traci_connection.vehicle.setColor(
-                    vehID=veh_id, color=(255, 0, 0, 255))
+                    vehID='keyboard_0', color=(255, 0, 0, 255))
             except (FatalTraCIError, TraCIException):
                 pass
 
