@@ -1,20 +1,5 @@
 .. contents:: Table of contents
 
-1 - Local Installation
-    A. Dependencies
-    B. Sumo
-    C. Flow
-    D. Testing the Installation
-    E. Rllab-multiagent (optional)
-    F. Ray/RLlib (optional)
-    G. Getting started (rllab-multiagent)
-    H. Getting started (Ray/RLlib)
-    I. Custom configuration
-
-2- Remote desktop using Docker (recommended for testing purpose)
-    a. Installation
-    b. Notebooks and tutorial
-
 
 1.  Local Installation 
 ******************
@@ -255,7 +240,7 @@ You may define user-specific config parameters as follows
     cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
 
 
-Remote desktop using Docker for simple utilisation of flow (recommended for testing purpose)
+2. Remote desktop using Docker for simple utilisation of flow (recommended for testing purpose)
 ******************
 
 1. Installation
