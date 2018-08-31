@@ -4,7 +4,7 @@ The environment file can be modified in the imports to change the environment
 this runner script is executed on. This file runs the PPO algorithm in rllib
 and utilizes the hyper-parameters specified in:
 
-TODO: add paper reference
+Proximal Policy Optimization Algorithms by Schulman et. al.
 """
 import json
 
