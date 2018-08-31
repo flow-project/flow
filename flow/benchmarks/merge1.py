@@ -1,4 +1,5 @@
-"""
+"""Benchmark for merge1.
+
 Trains a small percentage of autonomous vehicles to dissipate shockwaves caused
 by merges in an open network. The autonomous penetration rate in this example
 is 25%.

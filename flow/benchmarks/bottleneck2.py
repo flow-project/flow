@@ -1,4 +1,5 @@
-"""
+"""Benchmark for bottleneck2.
+
 Bottleneck in which the actions are specifying a desired velocity in a segment
 of space for a large bottleneck.
 The autonomous penetration rate in this example is 10%.
