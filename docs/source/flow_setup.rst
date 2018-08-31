@@ -14,10 +14,10 @@ shell commands below to get started.
 Dependencies
 ============
 We begin by installing dependencies needed by the four repositories mentioned
-above. **It is highly recommended that users install
-`Anaconda <https://www.anaconda.com/download>`_ or
+above. **It is highly recommended that users install**
+`Anaconda <https://www.anaconda.com/download>`_ **or**
 `Miniconda <https://conda.io/miniconda.html>`_
-for Python and the setup instructions will assume that you are 
+**for Python and the setup instructions will assume that you are
 doing so.**
 
 For Ubuntu 16.04:
@@ -82,6 +82,9 @@ Finally, test your sumo install and version by running the following commands
     sumo --version
     sumo-gui
 
+If you are a mac user and the above command gives you the error ``FXApp:openDisplay: unable to open display :0.0``
+make sure to open the application XQuartz.
+
 Flow
 ====
 Once sumo and the various dependencies are in place, we are ready to install a
@@ -144,7 +147,6 @@ to install the `rllab-multiagent` library, follow the below instructions
     cd ~
     git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
-    conda env create -f environment.yml
     python3 setup.py develop
 
 For linux run
@@ -161,16 +163,14 @@ Ray/RLlib (optional)
 ====================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
-First visit <http://ray.readthedocs.io/en/latest/installation.html> and
-install the required packages. 
+First visit <https://ray.readthedocs.io/en/latest/installation.html#building-ray-from-source> and
+install the required packages in the "Dependencies" section. Do NOT `pip install ray`.
 The installation process for this library is as follows:
 ::
 
     cd ~
     git clone https://github.com/eugenevinitsky/ray.git
-    pushd ray/python
-    sudo python3 setup.py develop
-    popd
+    sudo python3 ray/python/setup.py develop
 
 If missing libraries cause errors, please also install additional 
 required libraries as specified at 

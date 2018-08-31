@@ -1,3 +1,5 @@
+"""Contains the grid scenario class."""
+
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
@@ -38,6 +40,8 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class SimpleGridScenario(Scenario):
+    """Grid scenario class."""
+
     def __init__(self,
                  name,
                  generator_class,
@@ -45,7 +49,7 @@ class SimpleGridScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes an nxm grid scenario.
+        """Initialize an nxm grid scenario.
 
         The grid scenario consists of m vertical lanes and n horizontal lanes,
         with a total of nxm intersections where the vertical and horizontal
@@ -73,7 +77,7 @@ class SimpleGridScenario(Scenario):
         In order for right-of-way dynamics to take place at the intersections,
         set "no_internal_links" in net_params to False.
 
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         optional = ["tl_logic"]
         for p in ADDITIONAL_NET_PARAMS.keys():
@@ -107,8 +111,11 @@ class SimpleGridScenario(Scenario):
 
     # TODO, make this make any sense at all
     def specify_edge_starts(self):
-        """Edges go in the following order: vert_right, vert_left, horz_right,
-        horz_left"""
+        """See parent class.
+
+        Edges go in the following order: vert_right, vert_left, horz_right,
+        horz_left.
+        """
         edgestarts = []
         for i in range(self.col_num + 1):
             for j in range(self.row_num + 1):
@@ -123,11 +130,13 @@ class SimpleGridScenario(Scenario):
     # TODO actually define the intersection edge starts
     # used for get distance to intersections
     def specify_intersection_edge_starts(self):
+        """See parent class."""
         intersection_edgestarts = \
             [(":center", 0)]
         return intersection_edgestarts
 
     def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
+        """See parent class."""
         row_num = self.grid_array["row_num"]
         col_num = self.grid_array["col_num"]
         per_edge = int(num_vehicles / (2 * (row_num + col_num)))
@@ -151,12 +160,14 @@ class SimpleGridScenario(Scenario):
         return start_positions, start_lanes
 
     def get_edge_names(self):
-        """Given a list of edge objects, returns a list of the edges' id
-        attribute."""
+        """Return a the edge IDs attribute for a list of edge objects."""
         return [edge['id'] for edge in self.edges]
 
     def get_node_mapping(self):
-        """Return a list of a dictionary of nodes mapped to a list of edges
+        """Map nodes to edges.
+
+        Returns a list of a dictionary of nodes mapped to a list of edges
         that head toward the node. Nodes are listed in alphabetical order
-        and within that, edges are listed in order: [bot, right, top, left]"""
+        and within that, edges are listed in order: [bot, right, top, left].
+        """
         return sorted(self.generator.node_mapping.items(), key=lambda k: k[1])

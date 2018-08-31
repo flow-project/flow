@@ -20,6 +20,20 @@ FLOW_RATE = 2000
 
 
 def merge_example(sumo_binary=None):
+    """
+    Perform a simulation of vehicles on a merge.
+
+    Parameters
+    ----------
+    sumo_binary: bool, optional
+        specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+    exp: flow.core.SumoExperiment type
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles on a merge.
+    """
     sumo_params = SumoParams(
         sumo_binary="sumo-gui",
         emission_path="./data/",

@@ -1,14 +1,6 @@
-"""
-Script to evaluate the baseline performance of grid1 without RL control
-Baseline is an actuated traffic light provided by SUMO
+"""Evaluates the baseline performance of grid0 without RL control.
 
-Grid/green wave example
-
-Action Dimension: (9, )
-
-Observation Dimension: (339, )
-
-Horizon: 400 steps
+Baseline is an actuated traffic light provided by SUMO.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
@@ -41,117 +33,124 @@ SHORT_LENGTH = 300
 # number of vehicles originating in the left, right, top, and bottom edges
 N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 
-# we place a sufficient number of vehicles to ensure they confirm with the
-# total number specified above. We also use a "right_of_way" speed mode to
-# support traffic light compliance
-vehicles = Vehicles()
-vehicles.add(
-    veh_id="human",
-    acceleration_controller=(SumoCarFollowingController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
-        min_gap=2.5,
-        max_speed=V_ENTER,
-    ),
-    routing_controller=(GridRouter, {}),
-    num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS,
-    speed_mode="right_of_way")
 
-# inflows of vehicles are place on all outer edges (listed here)
-outer_edges = []
-outer_edges += ["left{}_{}".format(N_ROWS, i) for i in range(N_COLUMNS)]
-outer_edges += ["right0_{}".format(i) for i in range(N_ROWS)]
-outer_edges += ["bot{}_0".format(i) for i in range(N_ROWS)]
-outer_edges += ["top{}_{}".format(i, N_COLUMNS) for i in range(N_ROWS)]
+def grid0_baseline(num_runs, sumo_binary="sumo-gui"):
+    """Run script for the grid0 baseline.
 
-# equal inflows for each edge (as dictate by the EDGE_INFLOW constant)
-inflow = InFlows()
-for edge in outer_edges:
-    inflow.add(
-        veh_type="human",
-        edge=edge,
-        vehs_per_hour=EDGE_INFLOW,
-        departLane="free",
-        departSpeed="max")
+    Parameters
+    ----------
+        num_runs : int
+            number of rollouts the performance of the environment is evaluated
+            over
+        sumo_binary: str, optional
+            specifies whether to use sumo's gui during execution
 
-# define the traffic light logic
-tl_logic = TrafficLights(baseline=False)
-phases = [{
-    "duration": "31",
-    "minDur": "8",
-    "maxDur": "45",
-    "state": "GGGrrrGGGrrr"
-}, {
-    "duration": "6",
-    "minDur": "3",
-    "maxDur": "6",
-    "state": "yyyrrryyyrrr"
-}, {
-    "duration": "31",
-    "minDur": "8",
-    "maxDur": "45",
-    "state": "rrrGGGrrrGGG"
-}, {
-    "duration": "6",
-    "minDur": "3",
-    "maxDur": "6",
-    "state": "rrryyyrrryyy"
-}]
-for i in range(N_ROWS * N_COLUMNS):
-    tl_logic.add(
-        "center" + str(i), tls_type="actuated", phases=phases, programID=1)
+    Returns
+    -------
+        SumoExperiment
+            class needed to run simulations
+    """
+    # we place a sufficient number of vehicles to ensure they confirm with the
+    # total number specified above. We also use a "right_of_way" speed mode to
+    # support traffic light compliance
+    vehicles = Vehicles()
+    vehicles.add(veh_id="human",
+                 acceleration_controller=(SumoCarFollowingController, {}),
+                 sumo_car_following_params=SumoCarFollowingParams(
+                     min_gap=2.5,
+                     max_speed=V_ENTER,
+                 ),
+                 routing_controller=(GridRouter, {}),
+                 num_vehicles=(N_LEFT+N_RIGHT)*N_COLUMNS +
+                              (N_BOTTOM+N_TOP)*N_ROWS,
+                 speed_mode="right_of_way")
 
-net_params = NetParams(
-    in_flows=inflow,
-    no_internal_links=False,
-    additional_params={
-        "speed_limit": V_ENTER + 5,
-        "grid_array": {
-            "short_length": SHORT_LENGTH,
-            "inner_length": INNER_LENGTH,
-            "long_length": LONG_LENGTH,
-            "row_num": N_ROWS,
-            "col_num": N_COLUMNS,
-            "cars_left": N_LEFT,
-            "cars_right": N_RIGHT,
-            "cars_top": N_TOP,
-            "cars_bot": N_BOTTOM,
-        },
-        "horizontal_lanes": 1,
-        "vertical_lanes": 1,
-    },
-)
+    # inflows of vehicles are place on all outer edges (listed here)
+    outer_edges = []
+    outer_edges += ["left{}_{}".format(N_ROWS, i) for i in range(N_COLUMNS)]
+    outer_edges += ["right0_{}".format(i) for i in range(N_ROWS)]
+    outer_edges += ["bot{}_0".format(i) for i in range(N_ROWS)]
+    outer_edges += ["top{}_{}".format(i, N_COLUMNS) for i in range(N_ROWS)]
 
-sumo_params = SumoParams(
-    restart_instance=False,
-    sim_step=1,
-    sumo_binary="sumo-gui",
-)
+    # equal inflows for each edge (as dictate by the EDGE_INFLOW constant)
+    inflow = InFlows()
+    for edge in outer_edges:
+        inflow.add(veh_type="human", edge=edge, vehs_per_hour=EDGE_INFLOW,
+                   departLane="free", departSpeed="max")
 
-env_params = EnvParams(
-    evaluate=True,  # Set to True to evaluate traffic metrics
-    horizon=HORIZON,
-    additional_params={
-        "switch_time": 2.0,
-        "num_observed": 2,
-        "tl_type": "actuated",
-    },
-)
+    # define the traffic light logic
+    tl_logic = TrafficLights(baseline=False)
+    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
+               "state": "GGGrrrGGGrrr"},
+              {"duration": "6", "minDur": "3", "maxDur": "6",
+               "state": "yyyrrryyyrrr"},
+              {"duration": "31", "minDur": "8", "maxDur": "45",
+               "state": "rrrGGGrrrGGG"},
+              {"duration": "6", "minDur": "3", "maxDur": "6",
+               "state": "rrryyyrrryyy"}]
+    for i in range(N_ROWS*N_COLUMNS):
+        tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
+                     programID=1)
 
-initial_config = InitialConfig(shuffle=True)
+    net_params = NetParams(
+            in_flows=inflow,
+            no_internal_links=False,
+            additional_params={
+                "speed_limit": V_ENTER + 5,
+                "grid_array": {
+                    "short_length": SHORT_LENGTH,
+                    "inner_length": INNER_LENGTH,
+                    "long_length": LONG_LENGTH,
+                    "row_num": N_ROWS,
+                    "col_num": N_COLUMNS,
+                    "cars_left": N_LEFT,
+                    "cars_right": N_RIGHT,
+                    "cars_top": N_TOP,
+                    "cars_bot": N_BOTTOM,
+                },
+                "horizontal_lanes": 1,
+                "vertical_lanes": 1,
+            },
+        )
 
-scenario = SimpleGridScenario(
-    name="grid",
-    generator_class=SimpleGridGenerator,
-    vehicles=vehicles,
-    net_params=net_params,
-    initial_config=initial_config,
-    traffic_lights=tl_logic)
+    sumo_params = SumoParams(
+            restart_instance=False,
+            sim_step=1,
+            sumo_binary=sumo_binary,
+        )
 
-env = PO_TrafficLightGridEnv(env_params, sumo_params, scenario)
+    env_params = EnvParams(
+            evaluate=True,  # Set to True to evaluate traffic metrics
+            horizon=HORIZON,
+            additional_params={
+                "switch_time": 2.0,
+                "num_observed": 2,
+                "tl_type": "actuated",
+            },
+        )
 
-exp = SumoExperiment(env, scenario)
+    initial_config = InitialConfig(shuffle=True)
 
-num_runs = 2
-results = exp.run(num_runs, HORIZON)
-total_delay = np.mean(results["returns"])
-print('The total delay across {} runs is {}'.format(num_runs, total_delay))
+    scenario = SimpleGridScenario(name="grid",
+                                  generator_class=SimpleGridGenerator,
+                                  vehicles=vehicles,
+                                  net_params=net_params,
+                                  initial_config=initial_config,
+                                  traffic_lights=tl_logic)
+
+    env = PO_TrafficLightGridEnv(env_params, sumo_params, scenario)
+
+    exp = SumoExperiment(env, scenario)
+
+    results = exp.run(num_runs, HORIZON)
+    total_delay = np.mean(results["returns"])
+
+    return total_delay
+
+
+if __name__ == "__main__":
+    runs = 2  # number of simulations to average over
+    res = grid0_baseline(num_runs=runs)
+
+    print('---------')
+    print('The total delay across {} runs is {}'.format(runs, res))

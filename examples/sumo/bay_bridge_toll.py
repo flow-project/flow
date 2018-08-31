@@ -1,3 +1,5 @@
+"""Bay Bridge toll example."""
+
 import os
 import urllib.request
 
@@ -16,10 +18,9 @@ NETFILE = os.path.join(
 
 
 def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
-    """
-    Performs a non-RL simulation of the bottleneck portion of the Oakland-San
-    Francisco Bay Bridge. This consists of the toll booth and sections of the
-    road leading up to it.
+    """Perform a simulation of the toll portion of the Bay Bridge.
+
+    This consists of the toll booth and sections of the road leading up to it.
 
     Parameters
     ----------

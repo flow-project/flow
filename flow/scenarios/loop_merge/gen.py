@@ -1,18 +1,18 @@
+"""Contains the loop merge generator class."""
+
 from flow.core.generator import Generator
 
 from numpy import pi, sin, cos, linspace
 
 
 class TwoLoopOneMergingGenerator(Generator):
-    """
-    Generator for a two-loop network in which both loops merge into a common
-    lane.
+    """Generator for a two loop merge network.
+
+    This network consists of two loops that both merge into a common lane.
     """
 
     def __init__(self, net_params, base):
-        """
-        See parent class
-        """
+        """See parent class."""
         radius = net_params.additional_params["ring_radius"]
         self.inner_lanes = net_params.additional_params["inner_lanes"]
         self.outer_lanes = net_params.additional_params["outer_lanes"]
@@ -23,9 +23,7 @@ class TwoLoopOneMergingGenerator(Generator):
                                    self.inner_lanes + self.outer_lanes)
 
     def specify_nodes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         r = net_params.additional_params["ring_radius"]
         x = net_params.additional_params["lane_length"]
 
@@ -54,9 +52,7 @@ class TwoLoopOneMergingGenerator(Generator):
         return nodes
 
     def specify_edges(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         r = net_params.additional_params["ring_radius"]
         x = net_params.additional_params["lane_length"]
 
@@ -139,18 +135,14 @@ class TwoLoopOneMergingGenerator(Generator):
         return edges
 
     def specify_types(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         speed_limit = net_params.additional_params["speed_limit"]
 
         types = [{"id": "edgeType", "speed": repr(speed_limit)}]
         return types
 
     def specify_routes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         rts = {
             "top": ["top", "left", "bottom", "right", "top"],
             "bottom": ["bottom", "right", "top", "left", "bottom"],

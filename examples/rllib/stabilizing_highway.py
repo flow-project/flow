@@ -1,6 +1,7 @@
-"""Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
-merges in an open network.
+"""Open merge example.
 
+Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
+merges in an open network.
 """
 import json
 

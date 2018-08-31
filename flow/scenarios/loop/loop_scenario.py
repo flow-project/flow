@@ -1,3 +1,5 @@
+"""Contains the ring road scenario class."""
+
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
@@ -15,6 +17,8 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class LoopScenario(Scenario):
+    """Ring road scenario."""
+
     def __init__(self,
                  name,
                  generator_class,
@@ -22,7 +26,7 @@ class LoopScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a loop scenario.
+        """Initialize a loop scenario.
 
         Requires from net_params:
         - length: length of the circle
@@ -30,7 +34,7 @@ class LoopScenario(Scenario):
         - speed_limit: max speed limit of the circle
         - resolution: number of nodes resolution
 
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
@@ -43,9 +47,7 @@ class LoopScenario(Scenario):
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
-        """
-        See parent class
-        """
+        """See parent class."""
         edgelen = self.length / 4
 
         edgestarts = [("bottom", 0), ("right", edgelen), ("top", 2 * edgelen),

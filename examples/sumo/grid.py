@@ -1,6 +1,4 @@
-"""
-(description)
-"""
+"""Grid example."""
 from flow.controllers.routing_controllers import GridRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
@@ -12,6 +10,20 @@ from flow.scenarios.grid.grid_scenario import SimpleGridScenario
 
 
 def grid_example(sumo_binary=None):
+    """
+    Perform a simulation of vehicles on a grid.
+
+    Parameters
+    ----------
+    sumo_binary: bool, optional
+        specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+    exp: flow.core.SumoExperiment type
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles and balanced traffic lights on a grid.
+    """
     inner_length = 300
     long_length = 500
     short_length = 300

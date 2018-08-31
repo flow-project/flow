@@ -428,7 +428,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         # free data used by the class
         self.env = None
 
-    def runTest(self):
+    def test_static_lane_changer(self):
         self.env.reset()
         ids = self.env.vehicles.get_ids()
 
