@@ -21,7 +21,7 @@ class TestVehiclesClass(unittest.TestCase):
 
     def runSpeedLaneChangeModes(self):
         """
-        Checks to make sure vehicle class correctly specifies lane change and
+        Check to make sure vehicle class correctly specifies lane change and
         speed modes
         """
         vehicles = Vehicles()
@@ -53,7 +53,7 @@ class TestVehiclesClass(unittest.TestCase):
 
     def test_controlled_id_params(self):
         """
-        Ensures that, if a vehicle is not a sumo vehicle, then minGap is set to
+        Ensure that, if a vehicle is not a sumo vehicle, then minGap is set to
         zero so that all headway values are correct.
         """
         # check that, if the vehicle is not a SumoCarFollowingController
@@ -80,7 +80,7 @@ class TestVehiclesClass(unittest.TestCase):
 
     def test_add_vehicles_human(self):
         """
-        Ensures that added human vehicles are placed in the current vehicle
+        Ensure that added human vehicles are placed in the current vehicle
         IDs, and that the number of vehicles is correct.
         """
         # generate a vehicles class
@@ -110,7 +110,7 @@ class TestVehiclesClass(unittest.TestCase):
 
     def test_add_vehicles_rl(self):
         """
-        Ensures that added rl vehicles are placed in the current vehicle IDs,
+        Ensure that added rl vehicles are placed in the current vehicle IDs,
         and that the number of vehicles is correct.
         """
         vehicles = Vehicles()
@@ -128,7 +128,7 @@ class TestVehiclesClass(unittest.TestCase):
 
     def test_remove(self):
         """
-        Checks that there is no trace of the vehicle ID of the vehicle meant to
+        Check that there is no trace of the vehicle ID of the vehicle meant to
         be removed in the vehicles class.
         """
         # generate a vehicles class
@@ -179,7 +179,7 @@ class TestMultiLaneData(unittest.TestCase):
 
     def test_no_junctions(self):
         """
-        Tests the above mentioned methods in the absence of junctions.
+        Test the above mentioned methods in the absence of junctions.
         """
         # setup a network with no junctions and several vehicles
         # also, setup with a deterministic starting position to ensure that the
@@ -229,7 +229,7 @@ class TestMultiLaneData(unittest.TestCase):
 
     def test_junctions(self):
         """
-        Tests the above mentioned methods in the presence of junctions.
+        Test the above mentioned methods in the presence of junctions.
         """
         # TODO(ak): add test
         pass

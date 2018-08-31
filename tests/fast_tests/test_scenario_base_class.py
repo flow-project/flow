@@ -537,7 +537,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
 
     def test_even_start_pos_coverage(self):
         """
-        Ensures that enough vehicles are placed in the network, and they cover
+        Ensure that enough vehicles are placed in the network, and they cover
         all possible lanes.
         """
         expected_num_vehicles = self.env.vehicles.num_vehicles
