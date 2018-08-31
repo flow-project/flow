@@ -27,7 +27,7 @@ class TestNumSteps(unittest.TestCase):
         # free up used memory
         self.exp = None
 
-    def runTest(self):
+    def test_steps(self):
         self.exp.run(num_runs=1, num_steps=10)
 
         self.assertEqual(self.exp.env.time_counter, 10)
@@ -39,7 +39,7 @@ class TestNumRuns(unittest.TestCase):
     after the correct number of iterations.
     """
 
-    def runTest(self):
+    def test_num_runs(self):
         # run the experiment for 1 run and collect the last position of all
         # vehicles
         env, scenario = ring_road_exp_setup()
@@ -66,8 +66,8 @@ class TestRLActions(unittest.TestCase):
     and does not break the simulation when it is left blank.
     """
 
-    def runTest(self):
-        def test_rl_actions(*_):
+    def test_rl_actions(self):
+        def rl_actions(*_):
             return [1]  # actions are always an acceleration of 1 for one veh
 
         # create an environment using AccelEnv with 1 RL vehicle
@@ -83,7 +83,7 @@ class TestRLActions(unittest.TestCase):
 
         exp = SumoExperiment(env=env, scenario=scenario)
 
-        exp.run(1, 10, rl_actions=test_rl_actions)
+        exp.run(1, 10, rl_actions=rl_actions)
 
         # check that the acceleration of the RL vehicle was that specified by
         # the rl_actions method

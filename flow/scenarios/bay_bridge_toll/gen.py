@@ -1,13 +1,14 @@
+"""Contains the Bay Bridge toll generator class."""
+
 from flow.scenarios.netfile.gen import NetFileGenerator
 
 
 class BayBridgeTollGenerator(NetFileGenerator):
-    """
-    Bay Bridge bottleneck generator.
-    """
+    """Bay Bridge bottleneck generator."""
 
     def specify_routes(self, net_params):
-        """
+        """See parent class.
+
         Routes for vehicles moving through the bay bridge from Oakland to San
         Francisco.
         """

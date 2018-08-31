@@ -15,6 +15,20 @@ from flow.scenarios.figure8.gen import Figure8Generator
 
 
 def figure_eight_example(sumo_binary=None):
+    """
+    Perform a simulation of vehicles on a figure eight.
+
+    Parameters
+    ----------
+    sumo_binary: bool, optional
+        specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+    exp: flow.core.SumoExperiment type
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles on a figure eight.
+    """
     sumo_params = SumoParams(sumo_binary="sumo-gui")
 
     if sumo_binary is not None:

@@ -1,6 +1,4 @@
-"""
-(blank)
-"""
+"""Figure eight example."""
 
 import json
 
