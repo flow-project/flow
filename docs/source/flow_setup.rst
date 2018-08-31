@@ -163,16 +163,14 @@ Ray/RLlib (optional)
 ====================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
-First visit <http://ray.readthedocs.io/en/latest/installation.html> and
-install the required packages. 
+First visit <https://ray.readthedocs.io/en/latest/installation.html#building-ray-from-source> and
+install the required packages in the "Dependencies" section. Do NOT `pip install ray`.
 The installation process for this library is as follows:
 ::
 
     cd ~
     git clone https://github.com/eugenevinitsky/ray.git
-    pushd ray/python
-    sudo python3 setup.py develop
-    popd
+    sudo python3 ray/python/setup.py develop
 
 If missing libraries cause errors, please also install additional 
 required libraries as specified at 
