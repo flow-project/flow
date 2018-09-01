@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 # flake8: noqa
+import os
 from os.path import dirname, realpath
 from setuptools import find_packages, setup, Distribution
+import shutil
 import setuptools.command.build_ext as _build_ext
 import subprocess
 from flow.version import __version__
+
+
+flow_files = [
+    "flow/bin/sumo",
+    "flow/bin/sumo-gui"
+]
 
 
 def _read_requirements_file():
@@ -27,6 +35,19 @@ class build_ext(_build_ext.build_ext):
                 ['pip', 'install',
                  'git+https://github.com/openai/gym.git@'
                  '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
+
+        for filename in flow_files:
+            self.move_file(filename)
+
+    def move_file(self, filename):
+        source = filename
+        destination = os.path.join(self.build_lib, filename)
+        # Create the target directory if it doesn't already exist.
+        parent_directory = os.path.dirname(destination)
+        if not os.path.exists(parent_directory):
+            os.makedirs(parent_directory)
+        print("Copying {} to {}.".format(source, destination))
+        shutil.copy(source, destination)
 
 
 class BinaryDistribution(Distribution):

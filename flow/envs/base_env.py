@@ -178,9 +178,12 @@ class Env(gym.Env, Serializable):
                         time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
+                script_dir = os.path.dirname(os.path.realpath(__file__))
+                sumo_binary = os.path.join(script_dir, "..", "bin", self.sumo_params.sumo_binary)
+
                 # command used to start sumo
                 sumo_call = [
-                    self.sumo_params.sumo_binary, "-c", self.scenario.cfg,
+                    sumo_binary, "-c", self.scenario.cfg,
                     "--remote-port",
                     str(port), "--step-length",
                     str(self.sim_step)
