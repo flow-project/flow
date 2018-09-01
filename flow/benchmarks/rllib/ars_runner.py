@@ -35,10 +35,9 @@ if __name__ == "__main__":
     config["num_workers"] = PARALLEL_ROLLOUTS
     config["num_deltas"] = N_ROLLOUTS
     config["deltas_used"] = N_ROLLOUTS#
-    config["sgd_stepsize"] = .01
+    config["stepsize"] = .01
     config["delta_std"] = .01#
-    config['policy'] = 'Linear'
-    config["observation_filter"] = "NoFilter"
+    config['policy'] = 'LinearPolicy'
     config['eval_rollouts'] = PARALLEL_ROLLOUTS
 
     # save the flow params for replay
@@ -59,5 +58,6 @@ if __name__ == "__main__":
             "checkpoint_freq": 5,
             "max_failures": 999,
             "stop": {"training_iteration": 500},
+            # "upload_dir": "s3://bucket"
         },
     })
