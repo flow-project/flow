@@ -47,7 +47,7 @@ human-driven agents during the simulation process.
     cd ~
     git clone https://github.com/eclipse/sumo.git
     cd sumo
-    git checkout 1d4338ab80
+    git checkout b6f37dd
     make -f Makefile.cvs
 
 If you have OSX, run the following commands
