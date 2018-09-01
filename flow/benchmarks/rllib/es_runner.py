@@ -19,9 +19,9 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.benchmarks.figureeight2 import flow_params
 
 # number of rollouts per training iteration
-N_ROLLOUTS = 12
+N_ROLLOUTS = 36
 # number of parallel workers
-PARALLEL_ROLLOUTS = 12
+PARALLEL_ROLLOUTS = 36
 
 
 if __name__ == "__main__":
