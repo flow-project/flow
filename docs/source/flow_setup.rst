@@ -252,8 +252,8 @@ First install docker on https://www.docker.com/
 
 In terminal
 ::
-    1° docker pull lucasfischerberkeley/flow_desktop
-    2° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flow_desktop
+    1° docker pull lucasfischerberkeley/flowdesktop
+    2° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flowdesktop
     
 Go into your browser ( Firefox, Chrome, Safari)
 ::
