@@ -59,6 +59,5 @@ if __name__ == "__main__":
             "checkpoint_freq": 5,
             "max_failures": 999,
             "stop": {"training_iteration": 500},
-            "repeat": 3,
         },
     })
