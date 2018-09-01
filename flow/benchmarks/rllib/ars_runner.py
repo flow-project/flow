@@ -19,9 +19,9 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.benchmarks.figureeight2 import flow_params
 
 # number of rollouts per training iteration
-N_ROLLOUTS = 25
+N_ROLLOUTS = 36
 # number of parallel workers
-PARALLEL_ROLLOUTS = 25
+PARALLEL_ROLLOUTS =36
 
 
 if __name__ == "__main__":
@@ -34,9 +34,9 @@ if __name__ == "__main__":
     config = ars.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
     config["num_deltas"] = N_ROLLOUTS
-    config["deltas_used"] = grid_search([25, 50])
+    config["deltas_used"] = N_ROLLOUTS#
     config["sgd_stepsize"] = .01
-    config["delta_std"] = grid_search([.01, .02])
+    config["delta_std"] = .01#
     config['policy'] = 'Linear'
     config["observation_filter"] = "NoFilter"
     config['eval_rollouts'] = PARALLEL_ROLLOUTS
