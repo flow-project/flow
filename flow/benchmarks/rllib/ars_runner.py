@@ -36,7 +36,7 @@ if __name__ == "__main__":
     config["num_deltas"] = N_ROLLOUTS
     config["deltas_used"] = N_ROLLOUTS#
     config["stepsize"] = .01
-    config["delta_std"] = .01#
+    config["noise_stdev"] = .01#
     config['policy'] = 'LinearPolicy'
     config['eval_rollouts'] = PARALLEL_ROLLOUTS
 
