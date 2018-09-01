@@ -437,7 +437,7 @@ class Vehicles:
             if lc_controller[0] != SumoLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
-        # subscribe the new vehicle
+        # subscribe the new vehicle (if it is not already there)
         env.traci_connection.vehicle.subscribe(veh_id, [
             tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
             tc.VAR_SPEED, tc.VAR_EDGES
