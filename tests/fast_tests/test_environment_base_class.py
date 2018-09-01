@@ -216,7 +216,9 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
         # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
+        veh_obs = dict((veh_id, self.env.traci_connection.vehicle.
+                        getSubscriptionResults(veh_id))
+                       for veh_id in self.env.vehicles.get_ids())
 
         # get vehicle ids for the entering, exiting, and colliding vehicles
         id_list = self.env.traci_connection.simulation.getSubscriptionResults()
@@ -285,7 +287,9 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
         # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
+        veh_obs = dict((veh_id, self.env.traci_connection.vehicle.
+                        getSubscriptionResults(veh_id))
+                       for veh_id in self.env.vehicles.get_ids())
 
         # get vehicle ids for the entering, exiting, and colliding vehicles
         id_list = self.env.traci_connection.simulation.getSubscriptionResults()
