@@ -246,7 +246,7 @@ You may define user-specific config parameters as follows
 1. Installation
 ====================
 
-Installation of a remot desktop and docker to get access to flow quickly
+Installation of a remote desktop and docker to get access to flow quickly
 
 First install docker on https://www.docker.com/
 
