@@ -47,9 +47,9 @@ before_install:
   - pushd $HOME/build/flow-project
   -     mkdir -p sumo/bin
   -     pushd sumo/bin
-  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
+  -         wget https://akreidieh.s3.amazonaws.com/sumo/Ubuntu1404/sumo
   -         chmod u+x sumo
-  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
+  -         wget https://akreidieh.s3.amazonaws.com/sumo/Ubuntu1404/netconvert
   -         chmod u+x netconvert
   -     popd
   -     export SUMO_HOME="$HOME/build/flow-project/sumo"
@@ -58,15 +58,15 @@ before_install:
   # -     LD_DEBUG=libs netconvert  # debug netconvert library dependencies
   #     [sumo] Add data directory
   -     pushd sumo
-  -         wget https://s3.amazonaws.com/cathywu/sumo/data.tar.gz
+  -         wget https://akreidieh.s3.amazonaws.com/sumo/data.tar.gz
   -         tar xzf data.tar.gz
   -     popd
   #     [sumo] Add python tools traci and sumolib
   -     mkdir -p sumo/tools
   -     pushd sumo/tools
-  -         wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
+  -         wget https://akreidieh.s3.amazonaws.com/sumo/traci.tar.gz
   -         tar xzf traci.tar.gz
-  -         wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
+  -         wget https://akreidieh.s3.amazonaws.com/sumo/sumolib.tar.gz
   -         tar xzf sumolib.tar.gz
   -         export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
   -     popd
