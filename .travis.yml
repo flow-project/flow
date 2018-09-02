@@ -39,7 +39,6 @@ before_install:
 
   # [sumo] dependencies and binaries
   - sudo apt-get update
-  # - sudo apt-get upgrade -y
   - sudo apt-get install -y subversion autoconf build-essential libtool
   - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
   - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
