@@ -609,9 +609,9 @@ class TestEdgeLength(unittest.TestCase):
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_0"), 5.00)
+            scenario.edge_length(":center_intersection_0"), 9.03)
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_1"), 6.20)
+            scenario.edge_length(":center_intersection_1"), 11.20)
 
 
 class TestSpeedLimit(unittest.TestCase):
