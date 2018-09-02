@@ -52,15 +52,11 @@ class Figure8Scenario(Scenario):
         self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
 
-        # instantiate "length" in net params
-        net_params.additional_params["length"] = \
+        # instantiate "length" attribute
+        self.length = \
             6 * self.ring_edgelen + 2 * self.intersection_len + \
             2 * self.junction_len + 10 * self.inner_space_len
-
-        self.radius_ring = net_params.additional_params["radius_ring"]
-        self.length = net_params.additional_params["length"]
         self.lanes = net_params.additional_params["lanes"]
-        self.resolution = net_params.additional_params["resolution"]
 
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
