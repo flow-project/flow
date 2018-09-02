@@ -175,6 +175,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 accel=1000, decel=1000),
+            lane_change_mode=0,
             num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
