@@ -568,10 +568,6 @@ class Env(gym.Env, Serializable):
                     departLane=str(lane_index),
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
-                self.traci_connection.vehicle.subscribe(
-                    veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-                             tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
-                self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
@@ -583,17 +579,19 @@ class Env(gym.Env, Serializable):
                     departLane=str(lane_index),
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
-                self.traci_connection.vehicle.subscribe(
-                    veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-                             tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
-                self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
+            # subscribe the new vehicle
+            self.traci_connection.vehicle.subscribe(
+                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                         tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
         self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
         vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
                             getSubscriptionResults(veh_id))
-                           for veh_id in self.vehicles.get_ids())
+                           for veh_id in self.initial_ids)
         tls_obs = dict((tl_id, self.traci_connection.trafficlight.
                         getSubscriptionResults(tl_id))
                        for tl_id in self.traffic_lights.get_ids())
