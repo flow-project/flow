@@ -1,7 +1,8 @@
 """Grid example."""
 from flow.controllers.routing_controllers import GridRouter
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
@@ -57,6 +58,10 @@ def grid_example(sumo_binary=None):
     vehicles.add(
         veh_id="human",
         routing_controller=(GridRouter, {}),
+        sumo_car_following_params=SumoCarFollowingParams(
+            min_gap=2.5,
+            decel=7.5,  # avoid collisions at emergency stops
+        ),
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)

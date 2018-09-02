@@ -58,6 +58,7 @@ def grid0_baseline(num_runs, sumo_binary="sumo-gui"):
                  acceleration_controller=(SumoCarFollowingController, {}),
                  sumo_car_following_params=SumoCarFollowingParams(
                      min_gap=2.5,
+                     decel=7.5,  # avoid collisions at emergency stops
                      max_speed=V_ENTER,
                  ),
                  routing_controller=(GridRouter, {}),
