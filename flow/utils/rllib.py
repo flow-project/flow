@@ -20,7 +20,7 @@ class FlowParamsEncoder(json.JSONEncoder):
     """
 
     def default(self, obj):
-        """See parnet class.
+        """See parent class.
 
         Extended to support the Vehicles object in flow/core/vehicles.py.
         """

@@ -4,7 +4,7 @@
 class BaseRouter:
     """Base class for routing controllers.
 
-    These controllers are used to dynamical change the routes of vehicles
+    These controllers are used to dynamically change the routes of vehicles
     after initialization.
     """
 
