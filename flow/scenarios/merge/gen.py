@@ -1,3 +1,5 @@
+"""Contains the merge generator class."""
+
 from flow.core.generator import Generator
 
 from numpy import pi, sin, cos
@@ -20,6 +22,7 @@ class MergeGenerator(Generator):
         super().__init__(net_params, base)
 
     def specify_nodes(self, net_params):
+        """See parent class."""
         angle = pi / 4
         merge = net_params.additional_params["merge_length"]
         premerge = net_params.additional_params["pre_merge_length"]
@@ -61,6 +64,7 @@ class MergeGenerator(Generator):
         return nodes
 
     def specify_edges(self, net_params):
+        """See parent class."""
         merge = net_params.additional_params["merge_length"]
         premerge = net_params.additional_params["pre_merge_length"]
         postmerge = net_params.additional_params["post_merge_length"]
@@ -100,6 +104,7 @@ class MergeGenerator(Generator):
         return edges
 
     def specify_types(self, net_params):
+        """See parent class."""
         h_lanes = net_params.additional_params["highway_lanes"]
         m_lanes = net_params.additional_params["merge_lanes"]
         speed = net_params.additional_params["speed_limit"]
@@ -117,6 +122,7 @@ class MergeGenerator(Generator):
         return types
 
     def specify_routes(self, net_params):
+        """See parent class."""
         rts = {
             "inflow_highway": ["inflow_highway", "left", "center"],
             "left": ["left", "center"],

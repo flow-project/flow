@@ -1,3 +1,5 @@
+"""Contains the generator class for .net.xml files."""
+
 from flow.core.generator import Generator
 from lxml import etree
 
@@ -5,11 +7,12 @@ E = etree.Element
 
 
 class NetFileGenerator(Generator):
-    """
-    A class used to generate network configuration files from an OpenStreetMap
-    (.osm) file.
+    """Class used to generate network files from a .net.xml file.
 
-    The .osm file is specified in the net_params.osm_path file.
+    The .net.xml file is specified in the NetParams object. For example:
+
+        >>> from flow.core.params import NetParams
+        >>> net_params = NetParams(netfile="/path/to/netfile.net.xml")
 
     No "specify_nodes" and "specify_edges" routes are needed. However, a
     "specify_routes" file is still needed to specify the appropriate routes
@@ -17,8 +20,8 @@ class NetFileGenerator(Generator):
     """
 
     def generate_net(self, net_params, traffic_lights):
-        """
-        See parent class.
+        """See parent class.
+
         The network file is generated from the .osm file specified in
         net_params.osm_path
         """
@@ -31,7 +34,9 @@ class NetFileGenerator(Generator):
         return edges_dict, conn_dict
 
     def specify_nodes(self, net_params):
+        """See class definition."""
         pass
 
     def specify_edges(self, net_params):
+        """See class definition."""
         pass

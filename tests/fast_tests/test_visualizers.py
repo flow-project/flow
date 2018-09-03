@@ -17,7 +17,7 @@ class TestVisualizerFlow(unittest.TestCase):
 
     # TODO fix this test
     @unittest.skipUnless(BROKEN_TESTS, "broken test (known issue)")
-    def runTest(self):
+    def test_visualizer(self):
         # current path
         current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
 

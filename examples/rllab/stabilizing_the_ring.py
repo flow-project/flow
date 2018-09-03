@@ -1,6 +1,4 @@
-"""Script used to train a single autonomous vehicle to stabilize a variable
-density ring road.
-"""
+"""Train a single AV to stabilize a variable density ring road."""
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
@@ -19,6 +17,7 @@ HORIZON = 1500
 
 
 def run_task(*_):
+    """Implement the run_task method needed to run experiments with rllab."""
     sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo", seed=0)
 
     vehicles = Vehicles()

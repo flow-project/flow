@@ -102,7 +102,7 @@ Ray/RLlib for more).
     cd flow
     conda env create -f environment.yml
     source activate flow
-    python3 setup.py develop
+    python setup.py develop
 
 For linux run
 ::
@@ -149,8 +149,7 @@ to install the `rllab-multiagent` library, follow the below instructions
     cd ~
     git clone https://github.com/cathywu/rllab-multiagent.git
     cd rllab-multiagent
-    conda env create -f environment.yml
-    python3 setup.py develop
+    python setup.py develop
 
 For linux run
 ::
@@ -166,14 +165,14 @@ For mac run
 ====================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
-First visit <http://ray.readthedocs.io/en/latest/installation.html> and
-install the required packages. 
+First visit <https://ray.readthedocs.io/en/latest/installation.html#building-ray-from-source> and
+install the required packages in the "Dependencies" section. Do NOT `pip install ray`.
 The installation process for this library is as follows:
 ::
 
     cd ~
     git clone https://github.com/eugenevinitsky/ray.git
-    sudo python3 ray/python/setup.py develop
+    python ray/python/setup.py develop
 
 If missing libraries cause errors, please also install additional 
 required libraries as specified at 

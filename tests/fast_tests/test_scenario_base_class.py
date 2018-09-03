@@ -30,7 +30,7 @@ class TestGetX(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_getx(self):
         # test for an edge in the lanes
         edge_1 = "bottom_lower_ring"
         pos_1 = 4.72
@@ -57,7 +57,7 @@ class TestGetEdge(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_get_edge(self):
         # test for a position in the lanes
         x1 = 5
         self.assertTupleEqual(
@@ -405,7 +405,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
         # free data used by the class
         self.env = None
 
-    def runTest(self):
+    def test_even_start_pos_internal(self):
         # get the positions of all vehicles
         ids = self.env.vehicles.get_ids()
         veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
@@ -535,9 +535,9 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
         # free data used by the class
         self.env = None
 
-    def runTest(self):
+    def test_even_start_pos_coverage(self):
         """
-        Ensures that enough vehicles are placed in the network, and they cover
+        Ensure that enough vehicles are placed in the network, and they cover
         all possible lanes.
         """
         expected_num_vehicles = self.env.vehicles.num_vehicles
@@ -711,7 +711,7 @@ class TestGetEdgeList(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_get_edge_list(self):
         edge_list = self.scenario.get_edge_list()
         expected_edge_list = [
             "bottom_lower_ring", "right_lower_ring_in", "right_lower_ring_out",
@@ -737,7 +737,7 @@ class TestGetJunctionList(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_get_junction_list(self):
         junction_list = self.scenario.get_junction_list()
         expected_junction_list = \
             [':right_upper_ring_0', ':right_lower_ring_in_0',
