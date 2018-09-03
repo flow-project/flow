@@ -1,3 +1,5 @@
+"""Environments that can train both lane change and acceleration behaviors."""
+
 from flow.envs.base_env import Env
 from flow.core import rewards
 
@@ -20,8 +22,11 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 class LaneChangeAccelEnv(Env):
-    """Environment used to train autonomous vehicles to improve traffic flows
-    when lane-change and acceleration actions are permitted by the rl agent.
+    """Fully observable lane change and acceleration environment.
+
+    This environment is used to train autonomous vehicles to improve traffic
+    flows when lane-change and acceleration actions are permitted by the rl
+    agent.
 
     Required from env_params:
 
@@ -66,6 +71,7 @@ class LaneChangeAccelEnv(Env):
 
     @property
     def action_space(self):
+        """See class definition."""
         max_decel = self.env_params.additional_params["max_decel"]
         max_accel = self.env_params.additional_params["max_accel"]
 
@@ -76,6 +82,7 @@ class LaneChangeAccelEnv(Env):
 
     @property
     def observation_space(self):
+        """See class definition."""
         speed = Box(
             low=0,
             high=1,
@@ -94,6 +101,7 @@ class LaneChangeAccelEnv(Env):
         return Tuple((speed, pos, lane))
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         # compute the system-level performance of vehicles from a velocity
         # perspective
         reward = rewards.desired_velocity(self, fail=kwargs["fail"])
@@ -107,6 +115,7 @@ class LaneChangeAccelEnv(Env):
         return reward
 
     def get_state(self):
+        """See class definition."""
         # normalizers
         max_speed = self.scenario.max_speed
         length = self.scenario.length
@@ -121,6 +130,7 @@ class LaneChangeAccelEnv(Env):
         ] for veh_id in self.sorted_ids])
 
     def _apply_rl_actions(self, actions):
+        """See class definition."""
         acceleration = actions[::2]
         direction = actions[1::2]
 
@@ -144,6 +154,7 @@ class LaneChangeAccelEnv(Env):
         self.apply_lane_change(sorted_rl_ids, direction=direction)
 
     def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
@@ -189,6 +200,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
 
     @property
     def observation_space(self):
+        """See class definition."""
         return Box(
             low=0,
             high=1,
@@ -197,6 +209,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
             dtype=np.float32)
 
     def get_state(self):
+        """See class definition."""
         obs = [
             0
             for _ in range(4 * self.vehicles.num_rl_vehicles * self.num_lanes)
@@ -247,6 +260,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
             return np.array(obs)
 
     def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         for veh_id in self.visible:
             self.vehicles.set_observed(veh_id)
