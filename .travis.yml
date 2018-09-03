@@ -52,7 +52,7 @@ before_install:
   -         rm binaries-ubuntu1404.tar.xz
   -         chmod +x *
   -         export HOME="$HOME:$(pwd)"
-  -         export HOME="$SUMO_HOME:$(pwd)"
+  -         export SUMO_HOME="$(pwd)"
   -     popd
   - popd
   # [sumo] add sumo tools
