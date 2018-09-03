@@ -1,3 +1,5 @@
+"""Contains the generator class for OpenStreetMap files."""
+
 from flow.core.generator import Generator
 
 import sys
@@ -5,11 +7,12 @@ import subprocess
 
 
 class OpenStreetMapGenerator(Generator):
-    """
-    A class used to generate network configuration files from an OpenStreetMap
-    (.osm) file.
+    """Class used to generate network files from an OpenStreetMap (.osm) file.
 
-    The .osm file is specified in the net_params.osm_path file.
+    The .osm file is specified in the NetParams object. For example:
+
+        >>> from flow.core.params import NetParams
+        >>> net_params = NetParams(osm_path="/path/to/osm_file.osm")
 
     No "specify_nodes" and "specify_edges" routes are needed. However, a
     "specify_routes" file is still needed to specify the appropriate routes
@@ -17,8 +20,8 @@ class OpenStreetMapGenerator(Generator):
     """
 
     def generate_net(self, net_params, traffic_lights):
-        """
-        See parent class.
+        """See parent class.
+
         The network file is generated from the .osm file specified in
         net_params.osm_path
         """
@@ -57,7 +60,9 @@ class OpenStreetMapGenerator(Generator):
         return edges_dict, conn_dict
 
     def specify_nodes(self, net_params):
+        """See class definition."""
         pass
 
     def specify_edges(self, net_params):
+        """See class definition."""
         pass

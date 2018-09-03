@@ -1,6 +1,4 @@
-"""
-File demonstrating formation of congestion in bottleneck
-"""
+"""File demonstrating formation of congestion in bottleneck."""
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows
 from flow.core.vehicles import Vehicles
@@ -20,7 +18,24 @@ INFLOW = 1800
 
 
 def bottleneck_example(flow_rate, horizon, sumo_binary=None):
+    """
+    Perform a simulation of vehicles on a bottleneck.
 
+    Parameters
+    ----------
+    flow_rate : float
+        total inflow rate of vehicles into the bottlneck
+    horizon : int
+        time horizon
+    sumo_binary: bool, optional
+        specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+    exp: flow.core.SumoExperiment type
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles on a bottleneck.
+    """
     if sumo_binary is None:
         sumo_binary = "sumo"
     sumo_params = SumoParams(

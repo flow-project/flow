@@ -1,10 +1,10 @@
+"""Contains the Bay Bridge scenario class."""
+
 from flow.scenarios.netfile.scenario import NetFileScenario
 
 
 class BayBridgeScenario(NetFileScenario):
-    """
-    A scenario used to simulate the bottleneck portion of the Bay Bridge.
-    """
+    """A scenario used to simulate the bottleneck portion of the Bay Bridge."""
 
     def generate_starting_positions(self, **kwargs):
         """
