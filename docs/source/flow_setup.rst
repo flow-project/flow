@@ -171,9 +171,7 @@ The installation process for this library is as follows:
 
     cd ~
     git clone https://github.com/eugenevinitsky/ray.git
-    pushd ray/python
-    sudo python3 setup.py develop
-    popd
+    sudo python3 ray/python/setup.py develop
 
 If missing libraries cause errors, please also install additional 
 required libraries as specified at 
