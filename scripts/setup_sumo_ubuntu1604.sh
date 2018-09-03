@@ -13,8 +13,6 @@ wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/binaries-ubuntu1604.tar.
 tar -xf binaries-ubuntu1404.tar.xz
 rm binaries-ubuntu1404.tar.xz
 chmod +x *
-export PATH="$PATH:$(pwd)"
-export SUMO_HOME="$(pwd)"
 popd
-echo 'PYTHONPATH=$PYTHONPATH:'$(pwd)'/bin' >> ~/.bashrc
-echo 'SUMO_HOME='$(pwd)'/bin' >> ~/.bashrc
+echo 'export PYTHONPATH=$PYTHONPATH:'$(pwd)'/bin' >> ~/.bashrc
+echo 'export SUMO_HOME='$(pwd)'/bin' >> ~/.bashrc
