@@ -19,9 +19,9 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.benchmarks.figureeight0 import flow_params
 
 # number of rollouts per training iteration
-N_ROLLOUTS = 36
+N_ROLLOUTS = 2
 # number of parallel workers
-PARALLEL_ROLLOUTS =36
+PARALLEL_ROLLOUTS =2
 
 
 if __name__ == "__main__":
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # initialize a ray instance
-    ray.init(redis_address="localhost:6379", redirect_output=True)
+    ray.init(redirect_output=True)
 
     config = ars.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
@@ -37,8 +37,8 @@ if __name__ == "__main__":
     config["deltas_used"] = N_ROLLOUTS#
     config["stepsize"] = .01
     config["noise_stdev"] = .01#
-    config['policy'] = 'LinearPolicy'
-    config['eval_rollouts'] = PARALLEL_ROLLOUTS
+    config['policy_type'] = 'LinearPolicy'
+    config['eval_prob'] = 0.05
 
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
