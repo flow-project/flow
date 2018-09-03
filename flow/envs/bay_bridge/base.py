@@ -215,9 +215,9 @@ class BayBridgeEnv(Env):
     """ The below methods need to be updated by child classes. """
 
     def _apply_rl_actions(self, rl_actions):
-        """Update by child classes."""
+        """Implemented by child classes."""
         pass
 
     def get_state(self):
-        """Update by child classes."""
+        """Implemented by child classes."""
         return []

@@ -473,7 +473,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
     @property
     def observation_space(self):
         """
-        Partial observed state space.
+        Partially observed state space.
 
         Velocities, distance to intersections, edge number (for nearby
         vehicles), and traffic light state.
