@@ -130,7 +130,7 @@ Ray/RLlib (optional)
 ====================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
-First visit <http://ray.readthedocs.io/en/latest/installation.html> and
+First visit <https://github.com/eugenevinitsky/ray/blob/master/doc/source/installation.rst> and
 install the required packages. 
 The installation process for this library is as follows:
 ::
