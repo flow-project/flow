@@ -23,7 +23,7 @@ from flow.benchmarks.figureeight0 import flow_params
 # number of rollouts per training iteration
 N_ROLLOUTS = 2
 # number of parallel workers
-PARALLEL_ROLLOUTS =2
+PARALLEL_ROLLOUTS = 2
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
@@ -35,9 +35,9 @@ if __name__ == "__main__":
     config = ars.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
     config["num_deltas"] = N_ROLLOUTS
-    config["deltas_used"] = N_ROLLOUTS#
-    config["stepsize"] = .01
-    config["noise_stdev"] = .01#
+    config["deltas_used"] = N_ROLLOUTS
+    config["stepsize"] = grid_search([.01, .02])
+    config["noise_stdev"] = grid_search([.01, .02])
     config['policy_type'] = 'LinearPolicy'
     config['eval_prob'] = 0.05
 

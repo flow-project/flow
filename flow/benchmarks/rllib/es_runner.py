@@ -9,7 +9,7 @@ import json
 
 import ray
 import ray.rllib.agents.es as es
-from ray.tune import run_experiments, grid_search
+from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
@@ -22,7 +22,6 @@ from flow.benchmarks.figureeight0 import flow_params
 N_ROLLOUTS = 2
 # number of parallel workers
 PARALLEL_ROLLOUTS = 2
-
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
