@@ -24,7 +24,7 @@ DISABLE_RAMP_METER = True
 AV_FRAC = .10
 
 
-def bottleneck2_baseline(num_runs, sumo_binary="sumo-gui"):
+def bottleneck2_baseline(num_runs, render=True):
     """Run script for the bottleneck2 baseline.
 
     Parameters
@@ -32,7 +32,7 @@ def bottleneck2_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render : bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -87,7 +87,7 @@ def bottleneck2_baseline(num_runs, sumo_binary="sumo-gui"):
 
     sumo_params = SumoParams(
         sim_step=0.5,
-        sumo_binary=sumo_binary,
+        render=render,
         print_warnings=False,
         restart_instance=False,
     )

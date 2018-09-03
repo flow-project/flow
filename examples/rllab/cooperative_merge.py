@@ -25,7 +25,7 @@ HORIZON = 300
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(sim_step=0.2, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.2, render=True)
 
     # note that the vehicles are added sequentially by the generator,
     # so place the merging vehicles after the vehicles in the ring

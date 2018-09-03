@@ -17,7 +17,7 @@ import numpy as np
 HORIZON = 1500
 
 
-def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
+def figure_eight_baseline(num_runs, render=True):
     """Run script for all figure eight baselines.
 
     Parameters
@@ -25,7 +25,7 @@ def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render : bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -43,7 +43,7 @@ def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
 
     sumo_params = SumoParams(
         sim_step=0.1,
-        sumo_binary=sumo_binary,
+        render=render,
     )
 
     env_params = EnvParams(

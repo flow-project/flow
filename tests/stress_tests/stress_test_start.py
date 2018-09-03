@@ -14,9 +14,7 @@ import ray
 
 @ray.remote
 def start():
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
-
-    sumo_params.sumo_binary = 'sumo'
+    sumo_params = SumoParams(sim_step=0.1, render=False)
 
     vehicles = Vehicles()
     vehicles.add(

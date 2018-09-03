@@ -18,7 +18,7 @@ NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bay_bridge.net.xml")
 
 
-def bay_bridge_example(sumo_binary=None,
+def bay_bridge_example(render=None,
                        use_inflows=False,
                        use_traffic_lights=False):
     """
@@ -26,7 +26,7 @@ def bay_bridge_example(sumo_binary=None,
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render: bool, optional
         specifies whether to use sumo's gui during execution
     use_inflows: bool, optional
         whether to activate inflows from the peripheries of the network
@@ -41,8 +41,8 @@ def bay_bridge_example(sumo_binary=None,
     """
     sumo_params = SumoParams(sim_step=0.6, overtake_right=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     sumo_car_following_params = SumoCarFollowingParams(speedDev=0.2)
     sumo_lc_params = SumoLaneChangeParams(
@@ -195,7 +195,7 @@ def bay_bridge_example(sumo_binary=None,
 if __name__ == "__main__":
     # import the experiment variable
     exp = bay_bridge_example(
-        sumo_binary="sumo-gui", use_inflows=False, use_traffic_lights=False)
+        render=True, use_inflows=False, use_traffic_lights=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

@@ -90,7 +90,7 @@ def run_task(*_):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=1, render=True)
 
     vehicles = Vehicles()
     vehicles.add(

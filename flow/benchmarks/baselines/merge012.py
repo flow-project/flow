@@ -24,7 +24,7 @@ RL_PENETRATION = 0.1
 NUM_RL = 5
 
 
-def merge_baseline(num_runs, sumo_binary="sumo-gui"):
+def merge_baseline(num_runs, render=True):
     """Run script for all merge baselines.
 
     Parameters
@@ -32,7 +32,7 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render: bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -66,7 +66,7 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
     sumo_params = SumoParams(
         restart_instance=False,
         sim_step=0.2,  # time step decreased to prevent occasional crashes
-        sumo_binary=sumo_binary,
+        render=render,
     )
 
     env_params = EnvParams(

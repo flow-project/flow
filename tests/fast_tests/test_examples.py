@@ -24,7 +24,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/bottleneck.py is working
         """
         # import the experiment variable from the example
-        exp = bottleneck_example(1000, 5, sumo_binary="sumo")
+        exp = bottleneck_example(1000, 5, render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -34,7 +34,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/figure_eight.py is working
         """
         # import the experiment variable from the example
-        exp = figure_eight_example(sumo_binary="sumo")
+        exp = figure_eight_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -44,7 +44,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/grid.py is working
         """
         # import the experiment variable from the example
-        exp = grid_example(sumo_binary="sumo")
+        exp = grid_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -54,7 +54,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/highway.py is working
         """
         # import the experiment variable from the example
-        exp = highway_example(sumo_binary="sumo")
+        exp = highway_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -64,7 +64,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/merge.py is working
         """
         # import the experiment variable from the example
-        exp = merge_example(sumo_binary="sumo")
+        exp = merge_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -74,7 +74,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/sugiyama.py is working
         """
         # import the experiment variable from the example
-        exp = sugiyama_example(sumo_binary="sumo")
+        exp = sugiyama_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -84,7 +84,7 @@ class TestSumoExamples(unittest.TestCase):
         Verifies that examples/sumo/two_loops_merge_straight.py is working
         """
         # import the experiment variable from the example
-        exp = loop_merge_example(sumo_binary="sumo")
+        exp = loop_merge_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

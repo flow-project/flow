@@ -42,7 +42,7 @@ NUM_RL = [5, 13, 17][EXP_NUM]
 def run_task(_):
     """Implement the run_task method needed to run experiments with rllab."""
     sumo_params = SumoParams(
-        sumo_binary="sumo-gui", sim_step=0.2, restart_instance=True)
+        render=True, sim_step=0.2, restart_instance=True)
 
     # RL vehicles constitute 5% of the total number of vehicles
     vehicles = Vehicles()

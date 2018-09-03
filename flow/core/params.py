@@ -19,7 +19,7 @@ class SumoParams:
                  emission_path=None,
                  lateral_resolution=None,
                  no_step_log=True,
-                 sumo_binary="sumo",
+                 render=False,
                  overtake_right=False,
                  ballistic=False,
                  seed=None,
@@ -44,10 +44,8 @@ class SumoParams:
         no_step_log: bool, optional
             specifies whether to add sumo's step logs to the log file, and
             print them into the terminal during runtime, defaults to True
-        sumo_binary: str, optional
-            specifies whether to visualize the rollout(s). May be:
-                - 'sumo-gui' to run the experiment with the gui
-                - 'sumo' to run without the gui (default)
+        render: bool, optional
+            specifies whether to visualize the rollout(s)
         overtake_right: bool, optional
             whether vehicles are allowed to overtake on the right as well as
             the left
@@ -61,7 +59,7 @@ class SumoParams:
             specifies whether to restart a sumo instance upon reset. Restarting
             the instance helps avoid slowdowns cause by excessive inflows over
             large experiment runtimes, but also require the gui to be started
-            after every reset if "sumo_binary" is set to True.
+            after every reset if "render" is set to True.
         print_warnings: bool, optional
             If set to false, this will silence sumo warnings on the stdout
         teleport_time: int, optional
@@ -74,7 +72,7 @@ class SumoParams:
         self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
-        self.sumo_binary = sumo_binary
+        self.render = render
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
