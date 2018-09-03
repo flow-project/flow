@@ -43,33 +43,20 @@ before_install:
   - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
   - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
   - sudo apt-get install -y libfox-1.6-dev
-  - pushd $HOME/build/flow-project
-  -     mkdir -p sumo/bin
-  -     pushd sumo/bin
-  -         wget https://akreidieh.s3.amazonaws.com/sumo/Ubuntu1404/sumo
-  -         chmod u+x sumo
-  -         wget https://akreidieh.s3.amazonaws.com/sumo/Ubuntu1404/netconvert
-  -         chmod u+x netconvert
-  -     popd
-  -     export SUMO_HOME="$HOME/build/flow-project/sumo"
-  -     export PATH="$SUMO_HOME/bin:$PATH"
-  # -     LD_DEBUG=libs sumo  # debug sumo library dependencies
-  # -     LD_DEBUG=libs netconvert  # debug netconvert library dependencies
-  #     [sumo] Add data directory
-  -     pushd sumo
-  -         wget https://akreidieh.s3.amazonaws.com/sumo/data.tar.gz
-  -         tar xzf data.tar.gz
-  -     popd
-  #     [sumo] Add python tools traci and sumolib
-  -     mkdir -p sumo/tools
-  -     pushd sumo/tools
-  -         wget https://akreidieh.s3.amazonaws.com/sumo/traci.tar.gz
-  -         tar xzf traci.tar.gz
-  -         wget https://akreidieh.s3.amazonaws.com/sumo/sumolib.tar.gz
-  -         tar xzf sumolib.tar.gz
-  -         export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
+  # [sumo] Add sumo binaries
+  - pushd $HOME/build/flow-project/flow
+  -     mkdir bin
+  -     pushd bin
+  -         wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.3.0/binaries-ubuntu1404.tar.xz
+  -         tar -xf binaries-ubuntu1404.tar.xz
+  -         rm binaries-ubuntu1404.tar.xz
+  -         chmod +x *
+  -         export PATH="$PATH:$(pwd)"
+  -         export SUMO_HOME="$(pwd)"
   -     popd
   - popd
+  # [sumo] add sumo tools
+  - pip install https://akreidieh.s3.amazonaws.com/sumo/flow-0.3.0/sumotools-0.1.0-py3-none-any.whl
 
   - ls ../
 
