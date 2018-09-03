@@ -235,3 +235,39 @@ You may define user-specific config parameters as follows
 ::
 
     cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
+
+
+
+====================
+VNC desktop using Docker for simple utilisation
+====================
+Installation of a vnc desktop to get access to flow quickly
+
+First install docker on https://www.docker.com/
+
+In terminal
+::
+    1° docker pull lucasfischerberkeley/flow_desktop
+    2° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flow_desktop
+    
+Go into your browser ( Firefox, Chrome, Safari)
+::
+    1° Go to http://localhost:6901/?password=vncpassword
+    2° Go to Applications and open Terminal Emulator
+    3° For sumo: Write python flow/examples/sumo/sugiyama.py and run it
+    4° For rllib : Write python flow/examples/rllib/stabilizing_the_ring.py and run it
+    5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
+    
+====================
+Use that docker container to run jupyter Notebook
+====================
+
+In the docker desktop
+::
+    1° Go into Terminal Emulator
+    2° Run jupyter notebook --NotebookApp.token=admin --ip 0.0.0.0 --allow-root
+
+Go into your browser ( Firefox, Chrome, Safari)
+::
+    1° go to localhost:8888/tree
+    2° the password is 'admin' and you can run all your notebook and tutorial
