@@ -34,7 +34,8 @@ class build_ext(_build_ext.build_ext):
         # sumo binaries
         dist = sys.platform
         if dist == "linux":
-            if float(platform.dist()) >= 16.04:
+            release = platform.release()
+            if int(release[0]) >= 4:
                 subprocess.check_call(['scripts/setup_sumo_ubuntu1604.sh'])
             else:
                 subprocess.check_call(['scripts/setup_sumo_ubuntu1404.sh'])
@@ -50,7 +51,7 @@ class build_ext(_build_ext.build_ext):
         except ImportError:
             subprocess.check_call(
                 ['pip', 'install',
-                 'pip install https://akreidieh.s3.amazonaws.com/sumo/'
+                 'https://akreidieh.s3.amazonaws.com/sumo/'
                  'flow-0.2.0/sumotools-0.1.0-py3-none-any.whl']
             )
 
