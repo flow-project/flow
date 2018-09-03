@@ -51,7 +51,7 @@ before_install:
   -         tar -xf binaries-ubuntu1404.tar.xz
   -         rm binaries-ubuntu1404.tar.xz
   -         chmod +x *
-  -         export HOME="$HOME:$(pwd)"
+  -         export PATH="$PATH:$(pwd)"
   -         export SUMO_HOME="$(pwd)"
   -     popd
   - popd
