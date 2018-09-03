@@ -13,7 +13,6 @@ os.environ["TEST_FLAG"] = "True"
 
 
 class TestBaselines(unittest.TestCase):
-
     """
     Tests that the baselines in the benchmarks folder are running and
     returning expected values (i.e. values that match those in the CoRL paper

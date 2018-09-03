@@ -23,10 +23,10 @@ class build_ext(_build_ext.build_ext):
         try:
             import gym
         except ImportError:
-            subprocess.check_call(
-                ['pip', 'install',
-                 'git+https://github.com/openai/gym.git@'
-                 '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
+            subprocess.check_call([
+                'pip', 'install', 'git+https://github.com/openai/gym.git@'
+                '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'
+            ])
 
 
 class BinaryDistribution(Distribution):

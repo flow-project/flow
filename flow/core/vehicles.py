@@ -29,6 +29,7 @@ class Vehicles:
     State information on the vehicles for a given time step can be set or
     retrieved from this class.
     """
+
     def __init__(self):
         """Instantiate the base vehicle class."""
         self.__ids = []  # ids of all vehicles
