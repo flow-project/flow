@@ -105,7 +105,7 @@ class TestRegistry(unittest.TestCase):
             generator="Figure8Generator",
             sumo=SumoParams(
                 sim_step=0.1,
-                sumo_binary="sumo",
+                render=False,
             ),
             env=EnvParams(
                 horizon=1500,
@@ -217,7 +217,7 @@ class TestRllib(unittest.TestCase):
             sumo=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
-                sumo_binary="sumo",
+                render=False,
             ),
             env=EnvParams(
                 horizon=750,

@@ -17,7 +17,7 @@ DISABLE_RAMP_METER = True
 INFLOW = 1800
 
 
-def bottleneck_example(flow_rate, horizon, sumo_binary=None):
+def bottleneck_example(flow_rate, horizon, render=None):
     """
     Perform a simulation of vehicles on a bottleneck.
 
@@ -27,7 +27,7 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
         total inflow rate of vehicles into the bottlneck
     horizon : int
         time horizon
-    sumo_binary: bool, optional
+    render: bool, optional
         specifies whether to use sumo's gui during execution
 
     Returns
@@ -36,11 +36,12 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a bottleneck.
     """
-    if sumo_binary is None:
-        sumo_binary = "sumo"
+    if render is None:
+        render = False
+
     sumo_params = SumoParams(
         sim_step=0.5,
-        sumo_binary=sumo_binary,
+        render=render,
         overtake_right=False,
         restart_instance=True)
 
@@ -108,5 +109,5 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
 if __name__ == "__main__":
     # import the experiment variable
     # inflow, number of steps, binary
-    exp = bottleneck_example(INFLOW, 1000, sumo_binary="sumo-gui")
+    exp = bottleneck_example(INFLOW, 1000, render=True)
     exp.run(5, 1000)

@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(
-        params=flow_params, version=0, sumo_binary="sumo")
+        params=flow_params, version=0, render=False)
     register_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     env_class = getattr(module, flow_params["env_name"])
     env_params = flow_params['env']
     sumo_params = flow_params['sumo']
-    sumo_params.sumo_binary = "sumo-gui"
+    sumo_params.render = True
     sumo_params.emission_path = "./test_time_rollout/"
 
     env = env_class(

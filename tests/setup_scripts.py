@@ -56,7 +56,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -145,7 +145,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -235,7 +235,7 @@ def highway_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -334,7 +334,7 @@ def grid_mxn_exp_setup(row_num=1,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=1, render=False)
 
     if vehicles is None:
         total_vehicles = 20
@@ -441,7 +441,7 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -508,7 +508,7 @@ def setup_bottlenecks(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         vehicles = Vehicles()
