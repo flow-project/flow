@@ -1,6 +1,4 @@
-"""
-Repeatedly runs one step of an environment to test for possible race conditions
-"""
+"""Repeatedly runs one step of an env to test for possible race conditions."""
 
 import argparse
 import json
