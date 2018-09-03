@@ -1,8 +1,10 @@
+"""Warnings that may be printed by Flow (e.g. deprecation warnings)."""
+
 import warnings
 
 
 def deprecation_warning(obj, dep_from, dep_to):
-    """Prints a deprecation warning.
+    """Print a deprecation warning.
 
     Parameters
     ----------

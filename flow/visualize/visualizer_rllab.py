@@ -1,3 +1,5 @@
+"""Visualizer for rllab-trained experiments."""
+
 import os
 from rllab.sampler.utils import rollout
 import argparse

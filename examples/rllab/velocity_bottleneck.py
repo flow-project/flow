@@ -1,4 +1,5 @@
-"""
+"""Bottleneck decongestion example.
+
 Bottleneck in which the actions are specifying a desired velocity
 in a segment of space
 """
@@ -121,6 +122,7 @@ scenario = BottleneckScenario(
 
 
 def run_task(*_):
+    """Implement the run_task method needed to run experiments with rllab."""
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 

@@ -1,3 +1,5 @@
+"""Utility method for registering environments with OpenAI gym."""
+
 import gym
 from gym.envs.registration import register
 
@@ -8,7 +10,7 @@ from flow.core.traffic_lights import TrafficLights
 
 
 def make_create_env(params, version=0, sumo_binary=None):
-    """Creates a parametrized flow environment compatible with OpenAI gym.
+    """Create a parametrized flow environment compatible with OpenAI gym.
 
     This environment creation method allows for the specification of several
     key parameters when creating any flow environment, including the requested

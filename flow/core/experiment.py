@@ -1,3 +1,5 @@
+"""Contains an experiment class for running simulations."""
+
 import logging
 import datetime
 import numpy as np
@@ -6,9 +8,47 @@ from flow.core.util import emission_to_csv
 
 
 class SumoExperiment:
+    """
+    Class for systematically running simulations in sumo.
+
+    This class acts as a runner for a scenario and environment. In order to use
+    it to run an scenario and environment in the absence of a method specifying
+    the actions of RL agents in the network, type the following:
+
+        >>> exp = SumoExperiment(env, scenario)  # for some env and scenario
+        >>> exp.run(num_runs=1, num_steps=1000)
+
+    If you wish to specify the actions of RL agents in the network, this may be
+    done as follows:
+
+        >>> rl_actions = lambda state: 0  # replace with something appropriate
+        >>> exp.run(num_runs=1, num_steps=1000, rl_actions=rl_actions)
+
+    Finally, if you would like to like to plot and visualize your results, this
+    class can generate csv files from emission files produced by sumo. These
+    files will contain the speeds, possitions, edges, etc... of every vehicle
+    in the network at every time step.
+
+    In order to ensure that sumo constructs an emission file, set the
+    ``emission_path`` attribute in ``SumoParams`` to some path.
+
+        >>> from flow.core.params import SumoParams
+        >>> sumo_params = SumoParams(emission_path="./data")
+
+    Once you have included this in your environment, run your SumoExperiment
+    object as follows:
+
+        >>> exp.run(num_runs=1, num_steps=1000, convert_to_csv=True)
+
+    After the experiment is complete, look at the "./data" directory. There
+    will be two files, one with the suffix .xml and another with the suffix
+    .csv. The latter should be easily interpretable from any csv reader (e.g.
+    Excel), and can be parsed using tools such as numpy and pandas.
+    """
+
     def __init__(self, env, scenario):
         """
-        This class acts as a runner for a scenario and environment.
+        Instantiate SumoExperiment.
 
         Attributes
         ----------
@@ -30,10 +70,10 @@ class SumoExperiment:
 
     def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
         """
-        Runs the given scenario for a set number of runs and a set number of
-        steps per run.
+        Run the given scenario for a set number of runs and steps per run.
 
         Parameters
+        ----------
             num_runs: int
                 number of runs the experiment should perform
             num_steps: int
@@ -45,6 +85,7 @@ class SumoExperiment:
                 Specifies whether to convert the emission file created by sumo
                 into a csv file
         Returns
+        -------
             info_dict: dict
                 contains returns, average speed per step
         """

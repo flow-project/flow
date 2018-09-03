@@ -1,17 +1,15 @@
+"""Contains the ring road generator class."""
+
 from flow.core.generator import Generator
 
 from numpy import pi, sin, cos, linspace
 
 
 class CircleGenerator(Generator):
-    """
-    Generator for loop circle used in MIT traffic simulation.
-    """
+    """Generator for loop circle used in traffic simulation."""
 
     def __init__(self, net_params, base):
-        """
-        See parent class
-        """
+        """See parent class."""
         length = net_params.additional_params["length"]
         lanes = net_params.additional_params["lanes"]
         self.name = "%s-%dm%dl" % (base, length, lanes)
@@ -19,9 +17,7 @@ class CircleGenerator(Generator):
         super().__init__(net_params, base)
 
     def specify_nodes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         length = net_params.additional_params["length"]
         r = length / (2 * pi)
 
@@ -46,9 +42,7 @@ class CircleGenerator(Generator):
         return nodes
 
     def specify_edges(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         length = net_params.additional_params["length"]
         resolution = net_params.additional_params["resolution"]
         r = length / (2 * pi)
@@ -123,9 +117,7 @@ class CircleGenerator(Generator):
         return edges
 
     def specify_types(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         lanes = net_params.additional_params["lanes"]
         speed_limit = net_params.additional_params["speed_limit"]
 
@@ -138,9 +130,7 @@ class CircleGenerator(Generator):
         return types
 
     def specify_routes(self, net_params):
-        """
-        See parent class
-        """
+        """See parent class."""
         rts = {
             "top": ["top", "left", "bottom", "right"],
             "left": ["left", "bottom", "right", "top"],

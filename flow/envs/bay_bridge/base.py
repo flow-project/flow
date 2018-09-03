@@ -209,12 +209,15 @@ class BayBridgeEnv(Env):
 
     # TODO: decide on a good reward function
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
 
     """ The below methods need to be updated by child classes. """
 
     def _apply_rl_actions(self, rl_actions):
+        """Implemented by child classes."""
         pass
 
     def get_state(self):
+        """Implemented by child classes."""
         return []

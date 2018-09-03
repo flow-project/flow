@@ -20,7 +20,7 @@ dependencies:
     - pybox2d==2.3.1post2
     - pygame==1.9.2a0
     - h5py==2.8.0
-    - matplotlib==2.2.2
+    - matplotlib==2.0.2
     - opencv3=3.1.0
     - scikit-learn==0.19.1
     - mpi4py==2.0.0

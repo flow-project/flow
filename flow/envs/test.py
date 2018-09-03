@@ -1,3 +1,5 @@
+"""Test environment used to run simulations in the absence of autonomy."""
+
 from flow.envs.base_env import Env
 from gym.spaces.box import Box
 import numpy as np
@@ -29,17 +31,22 @@ class TestEnv(Env):
 
     @property
     def action_space(self):
+        """See class definition."""
         return Box(low=0, high=0, shape=0, dtype=np.float32)
 
     @property
     def observation_space(self):
+        """See class definition."""
         return Box(low=0, high=0, shape=0, dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
         return
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         return 0
 
     def get_state(self, **kwargs):
+        """See class definition."""
         return np.array([])

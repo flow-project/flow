@@ -1,6 +1,5 @@
-"""
-(description)
-"""
+"""Hierarchical loop merge example."""
+
 import os
 
 import ray
