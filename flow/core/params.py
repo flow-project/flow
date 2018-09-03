@@ -85,7 +85,7 @@ class SumoParams:
         self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
-        self.num_client = num_clients
+        self.num_clients = num_clients
 
 
 class EnvParams:
