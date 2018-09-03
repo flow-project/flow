@@ -1,9 +1,10 @@
+"""Contains the figure eight scenario class."""
+
 import numpy as np
 
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
-
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the circular components
@@ -18,10 +19,16 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class Figure8Scenario(Scenario):
-    def __init__(self, name, generator_class, vehicles, net_params,
+    """Figure eight scenario class."""
+
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a figure 8 scenario.
+        """Initialize a figure 8 scenario.
 
         Requires from net_params:
         - ring_radius: radius of the circular portions of the network. Also
@@ -33,15 +40,15 @@ class Figure8Scenario(Scenario):
         In order for right-of-way dynamics to take place at the intersection,
         set "no_internal_links" in net_params to False.
 
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
 
-        self.ring_edgelen = net_params.additional_params[
-                                "radius_ring"] * np.pi / 2.
-        self.intersection_len = 2 * net_params.additional_params["radius_ring"]
+        ring_radius = net_params.additional_params["radius_ring"]
+        self.ring_edgelen = ring_radius * np.pi / 2.
+        self.intersection_len = 2 * ring_radius
         self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
 
@@ -59,9 +66,7 @@ class Figure8Scenario(Scenario):
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
-        """
-        See base class
-        """
+        """See base class."""
         edgestarts = \
             [("bottom_lower_ring",
               0 + self.inner_space_len),
@@ -95,9 +100,7 @@ class Figure8Scenario(Scenario):
         return edgestarts
 
     def specify_intersection_edge_starts(self):
-        """
-        See base class
-        """
+        """See base class."""
         intersection_edgestarts = \
             [(":center_intersection_%s" % (1 + self.lanes),
               self.ring_edgelen + self.intersection_len / 2 +
@@ -109,9 +112,7 @@ class Figure8Scenario(Scenario):
         return intersection_edgestarts
 
     def specify_internal_edge_starts(self):
-        """
-        See base class
-        """
+        """See base class."""
         internal_edgestarts = \
             [(":bottom_lower_ring",
               0),

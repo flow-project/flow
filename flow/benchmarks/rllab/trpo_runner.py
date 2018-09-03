@@ -1,5 +1,4 @@
-"""
-Runner script for environments located in flow/benchmarks.
+"""Runs the environments located in flow/benchmarks.
 
 The environment file can be modified in the imports to change the environment
 this runner script is executed on. This script than handles running the rllab
@@ -26,6 +25,11 @@ PARALLEL_ROLLOUTS = 8
 
 
 def run_task(*_):
+    """Implement the ``run_task`` method needed to run experiments with rllab.
+
+    Note that the flow-specific parameters are imported at the start of this
+    script and unzipped and processed here.
+    """
     env_name = flow_params["env_name"]
     exp_tag = flow_params["exp_tag"]
     sumo_params = flow_params["sumo"]
@@ -48,8 +52,7 @@ def run_task(*_):
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
-        traffic_lights=traffic_lights
-    )
+        traffic_lights=traffic_lights)
 
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
                    initial_config, scenario)
@@ -57,10 +60,7 @@ def run_task(*_):
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
     env = normalize(env)
 
-    policy = GaussianMLPPolicy(
-        env_spec=env.spec,
-        hidden_sizes=(100, 50, 25)
-    )
+    policy = GaussianMLPPolicy(env_spec=env.spec, hidden_sizes=(100, 50, 25))
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
     horizon = flow_params["env"].horizon

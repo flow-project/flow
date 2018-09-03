@@ -1,6 +1,4 @@
-"""
-(blank)
-"""
+"""Figure eight example."""
 
 import json
 
@@ -25,16 +23,20 @@ PARALLEL_ROLLOUTS = 20
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode="no_collide",
-             num_vehicles=13)
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode="no_collide",
-             num_vehicles=1)
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    routing_controller=(ContinuousRouter, {}),
+    speed_mode="no_collide",
+    num_vehicles=13)
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    speed_mode="no_collide",
+    num_vehicles=1)
 
 flow_params = dict(
     # name of the experiment
@@ -81,7 +83,6 @@ flow_params = dict(
     initial=InitialConfig(),
 )
 
-
 if __name__ == "__main__":
     ray.init(num_cpus=PARALLEL_ROLLOUTS+1, redirect_output=False)
 
@@ -99,8 +100,8 @@ if __name__ == "__main__":
     config["observation_filter"] = "NoFilter"
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     create_env, env_name = make_create_env(params=flow_params, version=0)

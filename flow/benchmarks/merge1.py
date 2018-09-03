@@ -1,4 +1,5 @@
-"""
+"""Benchmark for merge1.
+
 Trains a small percentage of autonomous vehicles to dissipate shockwaves caused
 by merges in an open network. The autonomous penetration rate in this example
 is 25%.
@@ -34,26 +35,38 @@ additional_net_params["pre_merge_length"] = 500
 
 # RL vehicles constitute 5% of the total number of vehicles
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(SumoCarFollowingController, {}),
-             speed_mode="no_collide",
-             num_vehicles=5)
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             speed_mode="no_collide",
-             num_vehicles=0)
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(SumoCarFollowingController, {}),
+    speed_mode="no_collide",
+    num_vehicles=5)
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    speed_mode="no_collide",
+    num_vehicles=0)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering
 # from the highway portion as well
 inflow = InFlows()
-inflow.add(veh_type="human", edge="inflow_highway",
-           vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
-           departLane="free", departSpeed=10)
-inflow.add(veh_type="rl", edge="inflow_highway",
-           vehs_per_hour=RL_PENETRATION * FLOW_RATE,
-           departLane="free", departSpeed=10)
-inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
-           departLane="free", departSpeed=7.5)
+inflow.add(
+    veh_type="human",
+    edge="inflow_highway",
+    vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
+    departLane="free",
+    departSpeed=10)
+inflow.add(
+    veh_type="rl",
+    edge="inflow_highway",
+    vehs_per_hour=RL_PENETRATION * FLOW_RATE,
+    departLane="free",
+    departSpeed=10)
+inflow.add(
+    veh_type="human",
+    edge="inflow_merge",
+    vehs_per_hour=100,
+    departLane="free",
+    departSpeed=7.5)
 
 flow_params = dict(
     # name of the experiment

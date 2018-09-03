@@ -1,9 +1,10 @@
-"""
-Runner script for environments located in flow/benchmarks.
+"""Runs the environments located in flow/benchmarks.
 
 The environment file can be modified in the imports to change the environment
-this runner script is executed on. Furthermore, the rllib specific algorithm/
-parameters can be specified here once and used on multiple environments.
+this runner script is executed on. This file runs the PPO algorithm in rllib
+and utilizes the hyper-parameters specified in:
+
+Proximal Policy Optimization Algorithms by Schulman et. al.
 """
 import json
 
@@ -23,7 +24,6 @@ N_ROLLOUTS = 3
 # number of parallel workers
 PARALLEL_ROLLOUTS = 3
 
-
 if __name__ == "__main__":
     # get the env name and a creator for the environment
     create_env, env_name = make_create_env(params=flow_params, version=0)
@@ -42,8 +42,8 @@ if __name__ == "__main__":
     config["clip_param"] = 0.2
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     # Register as rllib env
@@ -58,7 +58,9 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 5,
             "max_failures": 999,
-            "stop": {"training_iteration": 5},
+            "stop": {
+                "training_iteration": 5
+            },
             "repeat": 1,
         },
     })

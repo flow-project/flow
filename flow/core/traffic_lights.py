@@ -1,3 +1,5 @@
+"""Contains the traffic light class."""
+
 import traci.constants as tc
 
 # DEFAULTS
@@ -8,13 +10,15 @@ SHOW_DETECTORS = True
 
 
 class TrafficLights:
+    """Base traffic light.
+
+    This class is used to place traffic lights in the network and describe
+    the state of these traffic lights. In addition, this class supports
+    modifying the states of certain lights via TraCI.
+    """
 
     def __init__(self, baseline=False):
-        """Base traffic light.
-
-        This class is used to place traffic lights in the network and describe
-        the state of these traffic lights. In addition, this class supports
-        modifying the states of certain lights via TraCI.
+        """Instantiate base traffic light.
 
         Parameters
         ----------
@@ -39,7 +43,7 @@ class TrafficLights:
             showDetectors=None,
             file=None,
             freq=None):
-        """Adds a traffic light component to the network.
+        """Add a traffic light component to the network.
 
         When generating networks using xml files, using this method to add a
         traffic light will explicitly place the traffic light in the requested
@@ -89,7 +93,6 @@ class TrafficLights:
         For information on defining traffic light properties, see:
         http://sumo.dlr.de/wiki/Simulation/Traffic_Lights#Defining_New_TLS-Programs
         """
-
         # increment the number of traffic lights
         self.num_traffic_lights += 1
 
@@ -127,8 +130,10 @@ class TrafficLights:
                 self.__tls_properties[node_id]["freq"] = freq
 
     def update(self, tls_subscriptions):
-        """Updates the states and phases of the traffic lights to match current
-        traffic light data.
+        """Update the states and phases of the traffic lights.
+
+        This is called by the environment class, and ensures that the traffic
+        light variables match current traffic light data.
 
         Parameters
         ----------
@@ -138,16 +143,19 @@ class TrafficLights:
         self.__tls = tls_subscriptions.copy()
 
     def get_ids(self):
-        """Returns the names of all nodes with traffic lights."""
+        """Return the names of all nodes with traffic lights."""
         return self.__ids
 
     def get_properties(self):
-        """Returns traffic light properties. This is meant to be used by the
-        generator to import traffic light data to the .net.xml file"""
+        """Return traffic light properties.
+
+        This is meant to be used by the generator to import traffic light data
+        to the .net.xml file
+        """
         return self.__tls_properties
 
     def set_state(self, node_id, state, env, link_index="all"):
-        """Sets the state of the traffic lights on a specific node.
+        """Set the state of the traffic lights on a specific node.
 
         Parameters
         ----------
@@ -171,7 +179,7 @@ class TrafficLights:
                 tlsID=node_id, tlsLinkIndex=link_index, state=state)
 
     def get_state(self, node_id):
-        """Returns the state of the traffic light(s) at the specified node
+        """Return the state of the traffic light(s) at the specified node.
 
         Parameters
         ----------
@@ -188,11 +196,11 @@ class TrafficLights:
 
     def actuated_default(self):
         """
-        Returns the default values to be used for the generator
+        Return the default values to be used for the generator
         for a system where all junctions are actuated traffic lights.
 
         Returns
-        _______
+        -------
         tl_logic: dict
         """
         tl_type = "actuated"
@@ -200,18 +208,33 @@ class TrafficLights:
         max_gap = 3.0
         detector_gap = 0.8
         show_detectors = True
-        phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
-                   "state": "GGGrrrGGGrrr"},
-                  {"duration": "6", "minDur": "3", "maxDur": "6",
-                   "state": "yyyrrryyyrrr"},
-                  {"duration": "31", "minDur": "8", "maxDur": "45",
-                   "state": "rrrGGGrrrGGG"},
-                  {"duration": "6", "minDur": "3", "maxDur": "6",
-                   "state": "rrryyyrrryyy"}]
+        phases = [{
+            "duration": "31",
+            "minDur": "8",
+            "maxDur": "45",
+            "state": "GGGrrrGGGrrr"
+        }, {
+            "duration": "6",
+            "minDur": "3",
+            "maxDur": "6",
+            "state": "yyyrrryyyrrr"
+        }, {
+            "duration": "31",
+            "minDur": "8",
+            "maxDur": "45",
+            "state": "rrrGGGrrrGGG"
+        }, {
+            "duration": "6",
+            "minDur": "3",
+            "maxDur": "6",
+            "state": "rrryyyrrryyy"
+        }]
 
-        return {"tl_type": str(tl_type),
-                "program_id": str(program_id),
-                "max_gap": str(max_gap),
-                "detector_gap": str(detector_gap),
-                "show_detectors": show_detectors,
-                "phases": phases}
+        return {
+            "tl_type": str(tl_type),
+            "program_id": str(program_id),
+            "max_gap": str(max_gap),
+            "detector_gap": str(detector_gap),
+            "show_detectors": show_detectors,
+            "phases": phases
+        }

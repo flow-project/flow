@@ -1,3 +1,5 @@
+"""Contains the merge scenario class."""
+
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
@@ -20,11 +22,16 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class MergeScenario(Scenario):
+    """Scenario class for highways with a single in-merge."""
 
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a merge scenario.
+        """Initialize a merge scenario.
 
         Requires from net_params:
         - merge_length: length of the merge edge
@@ -34,7 +41,7 @@ class MergeScenario(Scenario):
         - highway_lanes: number of lanes in the highway
         - speed_limit: max speed limit of the network
 
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
@@ -44,27 +51,28 @@ class MergeScenario(Scenario):
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
+        """See parent class."""
         premerge = self.net_params.additional_params["pre_merge_length"]
         postmerge = self.net_params.additional_params["post_merge_length"]
 
-        edgestarts = [
-            ("inflow_highway", 0),
-            ("left", INFLOW_EDGE_LEN + 0.1),
-            ("center", INFLOW_EDGE_LEN + premerge + 8.1),
-            ("inflow_merge", INFLOW_EDGE_LEN + premerge + postmerge + 8.1),
-            ("bottom", 2*INFLOW_EDGE_LEN + premerge + postmerge + 8.2)
-        ]
+        edgestarts = [("inflow_highway", 0), ("left", INFLOW_EDGE_LEN + 0.1),
+                      ("center", INFLOW_EDGE_LEN + premerge + 8.1),
+                      ("inflow_merge",
+                       INFLOW_EDGE_LEN + premerge + postmerge + 8.1),
+                      ("bottom",
+                       2 * INFLOW_EDGE_LEN + premerge + postmerge + 8.2)]
 
         return edgestarts
 
     def specify_internal_edge_starts(self):
+        """See parent class."""
         premerge = self.net_params.additional_params["pre_merge_length"]
         postmerge = self.net_params.additional_params["post_merge_length"]
 
         internal_edgestarts = [
-            (":left", INFLOW_EDGE_LEN),
-            (":center", INFLOW_EDGE_LEN + premerge + 0.1),
-            (":bottom", 2*INFLOW_EDGE_LEN + premerge + postmerge + 8.1)
+            (":left", INFLOW_EDGE_LEN), (":center",
+                                         INFLOW_EDGE_LEN + premerge + 0.1),
+            (":bottom", 2 * INFLOW_EDGE_LEN + premerge + postmerge + 8.1)
         ]
 
         return internal_edgestarts
