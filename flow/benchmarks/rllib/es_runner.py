@@ -10,9 +10,8 @@ import json
 import ray
 import ray.rllib.agents.es as es
 from ray.tune import run_experiments
-from ray.tune.registry import register_env
-
 from flow.utils.registry import make_create_env
+from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run

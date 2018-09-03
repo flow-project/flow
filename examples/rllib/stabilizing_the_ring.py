@@ -89,7 +89,7 @@ flow_params = dict(
 )
 
 if __name__ == "__main__":
-    ray.init(redis_address="localhost:6379", num_cpus=PARALLEL_ROLLOUTS+1, redirect_output=True)
+    ray.init(num_cpus=PARALLEL_ROLLOUTS + 1, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = PARALLEL_ROLLOUTS
@@ -123,7 +123,7 @@ if __name__ == "__main__":
             "checkpoint_freq": 20,
             "max_failures": 999,
             "stop": {
-                "training_iteration":1,
+                "training_iteration": 500,
             },
         },
     })
