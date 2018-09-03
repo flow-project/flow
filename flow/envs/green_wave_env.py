@@ -104,6 +104,7 @@ class TrafficLightGridEnv(Env):
 
     @property
     def action_space(self):
+        """See class definition."""
         if self.discrete:
             return Discrete(2 ** self.num_traffic_lights)
         else:
@@ -115,6 +116,7 @@ class TrafficLightGridEnv(Env):
 
     @property
     def observation_space(self):
+        """See class definition."""
         speed = Box(
             low=0,
             high=1,
@@ -138,6 +140,7 @@ class TrafficLightGridEnv(Env):
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
     def get_state(self):
+        """See class definition."""
         # compute the normalizers
         max_dist = max(self.scenario.short_length, self.scenario.long_length,
                        self.scenario.inner_length)
@@ -164,6 +167,7 @@ class TrafficLightGridEnv(Env):
         return np.array(state)
 
     def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
         # check if the action space is discrete
         if self.discrete:
             # convert single value to list of 0's and 1's
@@ -208,6 +212,7 @@ class TrafficLightGridEnv(Env):
                     self.last_change[i, 2] = 0
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
 
     # ===============================
@@ -468,8 +473,10 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
     @property
     def observation_space(self):
         """
-        Partial observed state space. Velocities, distance to intersections,
-        edge number (for nearby vehicles) traffic light state
+        Partially observed state space.
+
+        Velocities, distance to intersections, edge number (for nearby
+        vehicles), and traffic light state.
         """
         tl_box = Box(
             low=0.,
@@ -547,12 +554,14 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             ]))
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         if self.env_params.evaluate:
             return rewards.min_delay_unscaled(self)
         else:
             return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def additional_command(self):
+        """See class definition."""
         # specify observed vehicles
         [self.vehicles.set_observed(veh_id) for veh_id in self.observed_ids]
 
@@ -564,7 +573,9 @@ class GreenWaveTestEnv(TrafficLightGridEnv):
     """
 
     def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
         pass
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """No return, for testing purposes."""
         return 0

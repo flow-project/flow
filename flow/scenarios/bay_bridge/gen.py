@@ -1,13 +1,14 @@
+"""Contains the Bay Bridge generator class."""
+
 from flow.scenarios.netfile.gen import NetFileGenerator
 
 
 class BayBridgeGenerator(NetFileGenerator):
-    """
-    Bay Bridge generator.
-    """
+    """Bay Bridge generator."""
 
     def specify_routes(self, net_params):
-        """
+        """See parent class.
+
         Routes for vehicles moving through the bay bridge from Oakland to San
         Francisco.
         """

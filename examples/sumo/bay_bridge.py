@@ -1,3 +1,5 @@
+"""Bay Bridge simulation."""
+
 import os
 import urllib.request
 
@@ -20,8 +22,7 @@ def bay_bridge_example(sumo_binary=None,
                        use_inflows=False,
                        use_traffic_lights=False):
     """
-    Performs a simulation of human-driven vehicle on the Oakland-San Francisco
-    Bay Bridge.
+    Perform a simulation of vehicles on the Oakland-San Francisco Bay Bridge.
 
     Parameters
     ----------

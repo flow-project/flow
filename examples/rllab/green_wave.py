@@ -64,6 +64,7 @@ def get_non_flow_params(enter_speed, additional_net_params):
 
 
 def run_task(*_):
+    """Implement the run_task method needed to run experiments with rllab."""
     v_enter = 10
     inner_length = 300
     long_length = 100

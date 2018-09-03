@@ -1,3 +1,5 @@
+"""Contains the loop merge scenario class."""
+
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
@@ -22,6 +24,8 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class TwoLoopsOneMergingScenario(Scenario):
+    """Two loop merge scenario."""
+
     def __init__(self,
                  name,
                  generator_class,
@@ -29,8 +33,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a two loop scenario where one loop merging in and out of
-        the other.
+        """Initialize a two loop scenario.
 
         Requires from net_params:
         - ring_radius: radius of the loops
@@ -41,7 +44,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         - speed_limit: max speed limit in the network
         - resolution: resolution of the curved portions
 
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
@@ -71,9 +74,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
-        """
-        See parent class
-        """
+        """See parent class."""
         r = self.net_params.additional_params["ring_radius"]
         lane_length = self.net_params.additional_params["lane_length"]
 
@@ -92,9 +93,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         return edgestarts
 
     def specify_internal_edge_starts(self):
-        """
-        See parent class
-        """
+        """See parent class."""
         r = self.net_params.additional_params["ring_radius"]
         lane_length = self.net_params.additional_params["lane_length"]
 
@@ -112,8 +111,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         return internal_edgestarts
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """
-        See parent class
+        """See parent class.
 
         Vehicles with the prefix "merge" are placed in the merge ring,
         while all other vehicles are placed in the ring.
