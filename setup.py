@@ -5,6 +5,9 @@ from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
 import subprocess
 from flow.version import __version__
+import sys
+import platform
+import warnings
 
 
 def _read_requirements_file():
@@ -27,6 +30,29 @@ class build_ext(_build_ext.build_ext):
                 ['pip', 'install',
                  'git+https://github.com/openai/gym.git@'
                  '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
+
+        # sumo binaries
+        dist = sys.platform
+        if dist == "linux":
+            if float(platform.dist()) >= 16.04:
+                subprocess.check_call(['scripts/setup_sumo_ubuntu1604.sh'])
+            else:
+                subprocess.check_call(['scripts/setup_sumo_ubuntu1404.sh'])
+        elif dist == 'darwin':
+            subprocess.check_call(['scripts/setup_sumo_osx.sh'])
+        else:
+            warnings.warn("Unable to install sumo binaries. Operating system "
+                          "is not supported.")
+
+        # sumo tools
+        try:
+            import traci
+        except ImportError:
+            subprocess.check_call(
+                ['pip', 'install',
+                 'pip install https://akreidieh.s3.amazonaws.com/sumo/'
+                 'flow-0.2.0/sumotools-0.1.0-py3-none-any.whl']
+            )
 
 
 class BinaryDistribution(Distribution):
