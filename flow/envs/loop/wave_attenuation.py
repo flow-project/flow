@@ -1,3 +1,13 @@
+"""
+Environment used to train a stop-and-go dissipating controller.
+
+This is the environment that was used in:
+
+C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and
+Benchmarking for Reinforcement Learning in Traffic Control," CoRR, vol.
+abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
+"""
+
 from flow.envs.base_env import Env
 from flow.core.params import InitialConfig, NetParams
 
@@ -20,8 +30,10 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 class WaveAttenuationEnv(Env):
-    """Environment used to train autonomous vehicles to attenuate the formation
-    and propagation of waves in a variable density ring road.
+    """Fully observable wave attenuation environment.
+
+    This environment is used to train autonomous vehicles to attenuate the
+    formation and propagation of waves in a variable density ring road.
 
     Required from env_params:
 
@@ -57,6 +69,7 @@ class WaveAttenuationEnv(Env):
 
     @property
     def action_space(self):
+        """See class definition."""
         return Box(
             low=-np.abs(self.env_params.additional_params["max_decel"]),
             high=self.env_params.additional_params["max_accel"],
@@ -65,6 +78,7 @@ class WaveAttenuationEnv(Env):
 
     @property
     def observation_space(self):
+        """See class definition."""
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
         speed = Box(
             low=0,
@@ -79,6 +93,7 @@ class WaveAttenuationEnv(Env):
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
             if veh_id in self.vehicles.get_rl_ids()
@@ -86,6 +101,7 @@ class WaveAttenuationEnv(Env):
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         # in the warmup steps
         if rl_actions is None:
             return 0
@@ -113,20 +129,25 @@ class WaveAttenuationEnv(Env):
         return float(reward)
 
     def get_state(self, **kwargs):
+        """See class definition."""
         return np.array([[
             self.vehicles.get_speed(veh_id) / self.scenario.max_speed,
             self.get_x_by_id(veh_id) / self.scenario.length
         ] for veh_id in self.sorted_ids])
 
     def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
                 self.vehicles.set_observed(veh_id)
 
     def reset(self):
-        """The sumo instance is reset with a new ring length, and a number of
-        steps are performed with the rl vehicle acting as a human vehicle."""
+        """See parent class.
+
+        The sumo instance is reset with a new ring length, and a number of
+        steps are performed with the rl vehicle acting as a human vehicle.
+        """
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {
@@ -216,9 +237,11 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
     @property
     def observation_space(self):
+        """See class definition."""
         return Box(low=0, high=1, shape=(3, ), dtype=np.float32)
 
     def get_state(self, **kwargs):
+        """See class definition."""
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
 
@@ -236,6 +259,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         return observation
 
     def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
