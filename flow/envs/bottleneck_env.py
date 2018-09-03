@@ -1,3 +1,10 @@
+"""
+Environments for training vehicles to reduce capacity drops in a bottleneck.
+
+This environment was used in:
+TODO(ak): add paper after it has been published.
+"""
+
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
@@ -347,6 +354,7 @@ class BottleneckEnv(Env):
     # Dummy action and observation spaces
     @property
     def action_space(self):
+        """See class definition."""
         return Box(
             low=-float("inf"),
             high=float("inf"),
@@ -355,6 +363,7 @@ class BottleneckEnv(Env):
 
     @property
     def observation_space(self):
+        """See class definition."""
         return Box(
             low=-float("inf"),
             high=float("inf"),
@@ -369,6 +378,7 @@ class BottleneckEnv(Env):
         return reward
 
     def get_state(self):
+        """See class definition."""
         return np.asarray([1])
 
 
@@ -411,6 +421,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
     @property
     def observation_space(self):
+        """See class definition."""
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
         num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
@@ -419,6 +430,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
         return Box(low=0, high=1, shape=(num_obs, ), dtype=np.float32)
 
     def get_state(self):
+        """See class definition."""
         headway_scale = 1000
 
         rl_ids = self.vehicles.get_rl_ids()
@@ -521,6 +533,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
         return np.concatenate((rl_obs, relative_obs, edge_obs))
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         num_rl = self.vehicles.num_rl_vehicles
         lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
         return (rewards.desired_velocity(self) + rewards.rl_forward_progress(
@@ -536,7 +549,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
     def _apply_rl_actions(self, actions):
         """
-        See parent class
+        See parent class.
 
         Takes a tuple and applies a lane change or acceleration. if a lane
         change is applied, don't issue any commands
@@ -711,6 +724,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
     @property
     def observation_space(self):
+        """See class definition."""
         num_obs = 0
         # density and velocity for rl and non-rl vehicles per segment
         # Last element is the outflow
@@ -721,6 +735,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
     @property
     def action_space(self):
+        """See class definition."""
         if self.symmetric:
             action_size = self.total_controlled_segments
         else:
@@ -733,6 +748,7 @@ class DesiredVelocityEnv(BottleneckEnv):
             low=-1.5, high=1.0, shape=(int(action_size), ), dtype=np.float32)
 
     def get_state(self):
+        """See class definition."""
         # action space is number of vehicles in each segment in each lane,
         # number of rl vehicles in each segment in each lane
         # mean speed in each segment, and mean rl speed in each
@@ -829,7 +845,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """ Outflow rate over last ten seconds normalized to max of 1 """
+        """Outflow rate over last ten seconds normalized to max of 1."""
 
         if self.env_params.evaluate:
             reward = self.vehicles.get_outflow_rate(500)
