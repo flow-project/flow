@@ -35,8 +35,19 @@ class FollowerStopper(BaseController):
         self.danger_edges = danger_edges if danger_edges else {}
 
     def find_intersection_dist(self, env):
-        """Return distance from the vehicle's current position to the position
-        of the node it is heading toward."""
+        """Find distance to intersection.
+
+        Parameters
+        ----------
+        env: Environment type
+            see flow/envs/base_env.py
+
+        Returns
+        -------
+        float
+            distance from the vehicle's current position to the position of the
+            node it is heading toward.
+        """
         edge_id = env.vehicles.get_edge(self.veh_id)
         # FIXME this might not be the best way of handling this
         if edge_id == "":
@@ -49,6 +60,7 @@ class FollowerStopper(BaseController):
         return dist
 
     def get_accel(self, env):
+        """See parent class."""
         lead_id = env.vehicles.get_leader(self.veh_id)
         this_vel = env.vehicles.get_speed(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
@@ -100,8 +112,10 @@ class PISaturation(BaseController):
 
         Parameters
         ----------
-        veh_id: str
+        veh_id : str
             unique vehicle identifier
+        sumo_cf_params : SumoCarFollowingParams
+            object defining sumo-specific car-following parameters
         """
         BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
@@ -125,6 +139,7 @@ class PISaturation(BaseController):
         self.v_cmd = 0
 
     def get_accel(self, env):
+        """See parent class."""
         lead_id = env.vehicles.get_leader(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
         this_vel = env.vehicles.get_speed(self.veh_id)
@@ -192,6 +207,7 @@ class FeedbackController(FollowerStopper):
         self.desired_density = desired_bottleneck_density
 
     def get_accel(self, env):
+        """See parent class."""
         current_lane = env.vehicles.get_lane(veh_id=self.veh_id)
         future_lanes = env.scenario.get_bottleneck_lanes(current_lane)
         future_edge_lanes = [
