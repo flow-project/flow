@@ -1,3 +1,5 @@
+"""Environment for training cooperative merging behaviors in a loop merge."""
+
 from flow.envs.base_env import Env
 from flow.core import rewards
 
@@ -23,8 +25,7 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 class TwoLoopsMergePOEnv(Env):
-    """Environment for training cooperative merging behavior in a partially
-    observable closed loop merge scenario.
+    """Environment for training cooperative merging behaviors in a loop merge.
 
     WARNING: only supports 1 RL vehicle
 
@@ -81,6 +82,7 @@ class TwoLoopsMergePOEnv(Env):
 
     @property
     def observation_space(self):
+        """See class definition."""
         speed = Box(
             low=0,
             high=np.inf,
@@ -99,6 +101,7 @@ class TwoLoopsMergePOEnv(Env):
 
     @property
     def action_space(self):
+        """See class definition."""
         return Box(
             low=-np.abs(self.env_params.additional_params["max_decel"]),
             high=self.env_params.additional_params["max_accel"],
@@ -106,6 +109,7 @@ class TwoLoopsMergePOEnv(Env):
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
             if veh_id in self.vehicles.get_rl_ids()
@@ -113,6 +117,7 @@ class TwoLoopsMergePOEnv(Env):
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         vel_reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
         # Use a similar weighting of of the headway reward as the velocity
@@ -127,6 +132,7 @@ class TwoLoopsMergePOEnv(Env):
         return vel_reward + headway_reward
 
     def get_state(self, **kwargs):
+        """See class definition."""
         vel = np.zeros(self.n_obs_vehicles)
         pos = np.zeros(self.n_obs_vehicles)
 
@@ -206,7 +212,7 @@ class TwoLoopsMergePOEnv(Env):
 
     def sort_by_position(self):
         """
-        See parent class
+        See parent class.
 
         Instead of being sorted by a global reference, vehicles in this
         environment are sorted with regards to which ring this currently
