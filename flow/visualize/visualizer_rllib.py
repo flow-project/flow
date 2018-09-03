@@ -17,8 +17,8 @@ import numpy as np
 import os
 
 import ray
-from ray.rllib.agent import get_agent_class
-from ray.tune.registry import get_registry, register_env
+from ray.rllib.agents.agent import get_agent_class
+from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
-    agent = agent_cls(env=env_name, registry=get_registry(), config=config)
+    agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
 
@@ -114,6 +114,7 @@ if __name__ == "__main__":
     sumo_params = flow_params['sumo']
     sumo_params.sumo_binary = "sumo-gui"
     sumo_params.emission_path = "./test_time_rollout/"
+    sumo_params.num_clients = 2
 
     env = env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)

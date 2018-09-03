@@ -25,7 +25,8 @@ class SumoParams:
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
-                 teleport_time=-1):
+                 teleport_time=-1,
+                 num_clients=1):
         """Instantiate SumoParams.
 
         Attributes
@@ -66,7 +67,10 @@ class SumoParams:
             If set to false, this will silence sumo warnings on the stdout
         teleport_time: int, optional
             If negative, vehicles don't teleport in gridlock. If positive,
-            they teleport after teleport_time seconds
+            they teleport after teleport_time seconds.
+        num_clients: int, optional
+            Number of clients SUMO expects to connect. Should be different from
+            one only in very rare situations.
 
         """
         self.port = port
@@ -81,6 +85,7 @@ class SumoParams:
         self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
+        self.num_client = num_clients
 
 
 class EnvParams:
