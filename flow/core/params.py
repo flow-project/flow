@@ -1,8 +1,17 @@
+"""Objects that define the various meta-parameters of an experiment."""
+
 import logging
 from flow.utils.flow_warnings import deprecation_warning
 
 
 class SumoParams:
+    """Sumo-specific parameters.
+
+    These parameters are used to customize a sumo simulation instance upon
+    initialization. This includes passing the simulation step length,
+    specifying whether to use sumo's gui during a run, and other features
+    described in the Attributes below.
+    """
 
     def __init__(self,
                  port=None,
@@ -17,12 +26,7 @@ class SumoParams:
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1):
-        """Sumo-specific parameters
-
-        These parameters are used to customize a sumo simulation instance upon
-        initialization. This includes passing the simulation step length,
-        specifying whether to use sumo's gui during a run, and other features
-        described in the Attributes below.
+        """Instantiate SumoParams.
 
         Attributes
         ----------
@@ -80,6 +84,12 @@ class SumoParams:
 
 
 class EnvParams:
+    """Environment and experiment-specific parameters.
+
+    This includes specifying the bounds of the action space and relevant
+    coefficients to the reward function, as well as specifying how the
+    positions of vehicles are modified in between rollouts.
+    """
 
     def __init__(self,
                  vehicle_arrangement_shuffle=False,
@@ -90,13 +100,10 @@ class EnvParams:
                  warmup_steps=0,
                  sims_per_step=1,
                  evaluate=False):
-        """Environment and experiment-specific parameters.
-
-        This includes specifying the bounds of the action space and relevant
-        coefficients to the reward function, as well as specifying how the
-        positions of vehicles are modified in between rollouts.
+        """Instantiate EnvParams.
 
         Attributes
+        ----------
             vehicle_arrangement_shuffle: bool, optional
                 determines if initial conditions of vehicles are shuffled at
                 reset; False by default
@@ -139,10 +146,22 @@ class EnvParams:
         self.evaluate = evaluate
 
     def get_additional_param(self, key):
+        """Return a variable from additional_params."""
         return self.additional_params[key]
 
 
 class NetParams:
+    """Network configuration parameters.
+
+    Unlike most other parameters, NetParams may vary drastically dependent
+    on the specific network configuration. For example, for the ring road
+    the network parameters will include a characteristic length, number of
+    lanes, and speed limit.
+
+    In order to determine which additional_params variable may be needed
+    for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
+    located in the scenario file.
+    """
 
     def __init__(self,
                  no_internal_links=True,
@@ -150,16 +169,7 @@ class NetParams:
                  osm_path=None,
                  netfile=None,
                  additional_params=None):
-        """Network configuration parameters
-
-        Unlike most other parameters, NetParams may vary drastically dependent
-        on the specific network configuration. For example, for the ring road
-        the network parameters will include a characteristic length, number of
-        lanes, and speed limit.
-
-        In order to determine which additional_params variable may be needed
-        for a specific scenario, refer to the ADDITIONAL_NET_PARAMS variable
-        located in the scenario file.
+        """Instantiate NetParams.
 
         Parameters
         ----------
@@ -190,6 +200,12 @@ class NetParams:
 
 
 class InitialConfig:
+    """Initial configuration parameters.
+
+    These parameters that affect the positioning of vehicle in the
+    network at the start of a rollout. By default, vehicles are uniformly
+    distributed in the network.
+    """
 
     def __init__(self,
                  shuffle=False,
@@ -200,10 +216,8 @@ class InitialConfig:
                  bunching=0,
                  lanes_distribution=float("inf"),
                  edges_distribution="all",
-                 positions=None,
-                 lanes=None,
                  additional_params=None):
-        """Initial configuration parameters.
+        """Instantiate InitialConfig.
 
         These parameters that affect the positioning of vehicle in the
         network at the start of a rollout. By default, vehicles are uniformly
@@ -236,12 +250,6 @@ class InitialConfig:
         edges_distribution: list <str>, optional
             list of edges vehicles may be placed on initialization, default is
             all lanes (stated as "all")
-        positions: list, optional
-            used if the user would like to specify user-generated initial
-            positions.
-        lanes: list, optional
-            used if the user would like to specify user-generated initial
-            positions.
         additional_params: dict, optional
             some other network-specific params
         """
@@ -253,29 +261,30 @@ class InitialConfig:
         self.bunching = bunching
         self.lanes_distribution = lanes_distribution
         self.edges_distribution = edges_distribution
-        self.positions = positions
-        self.lanes = lanes
         self.additional_params = additional_params or dict()
 
     def get_additional_params(self, key):
+        """Return a variable from additional_params."""
         return self.additional_params[key]
 
 
 class SumoCarFollowingParams:
+    """Parameters for sumo-controlled acceleration behavior."""
 
-    def __init__(self,
-                 accel=1.0,
-                 decel=1.5,
-                 sigma=0.5,
-                 tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
-                 min_gap=2.5,
-                 max_speed=30,
-                 speed_factor=1.0,
-                 speed_dev=0.1,
-                 impatience=0.5,
-                 car_follow_model="IDM",
-                 **kwargs):
-        """Parameters for sumo-controlled acceleration behavior
+    def __init__(
+            self,
+            accel=1.0,
+            decel=1.5,
+            sigma=0.5,
+            tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
+            min_gap=2.5,
+            max_speed=30,
+            speed_factor=1.0,
+            speed_dev=0.1,
+            impatience=0.5,
+            car_follow_model="IDM",
+            **kwargs):
+        """Instantiate SumoCarFollowingParams.
 
         Attributes
         ----------
@@ -349,6 +358,7 @@ class SumoCarFollowingParams:
 
 
 class SumoLaneChangeParams:
+    """Parameters for sumo-controlled lane change behavior."""
 
     def __init__(self,
                  model="LC2013",
@@ -366,7 +376,7 @@ class SumoLaneChangeParams:
                  lc_time_to_impatience=float("inf"),
                  lc_accel_lat=1.0,
                  **kwargs):
-        """Parameters for sumo-controlled lane change behavior
+        """Instantiate SumoLaneChangeParams.
 
         Attributes
         ----------
@@ -434,8 +444,8 @@ class SumoLaneChangeParams:
 
         # check for deprecations (lcSpeedGainRight)
         if "lcSpeedGainRight" in kwargs:
-            deprecation_warning(
-                self, "lcSpeedGainRight", "lc_speed_gain_right")
+            deprecation_warning(self, "lcSpeedGainRight",
+                                "lc_speed_gain_right")
             lc_speed_gain_right = kwargs["lcSpeedGainRight"]
 
         # check for deprecations (lcSublane)
@@ -465,8 +475,8 @@ class SumoLaneChangeParams:
 
         # check for deprecations (lcTimeToImpatience)
         if "lcTimeToImpatience" in kwargs:
-            deprecation_warning(
-                self, "lcTimeToImpatience", "lc_time_to_impatience")
+            deprecation_warning(self, "lcTimeToImpatience",
+                                "lc_time_to_impatience")
             lc_time_to_impatience = kwargs["lcTimeToImpatience"]
 
         # check for deprecations (lcAccelLat)
@@ -509,12 +519,13 @@ class SumoLaneChangeParams:
 
 
 class InFlows:
+    """Used to add inflows to a network.
+
+    Inflows can be specified for any edge that has a specified route or routes.
+    """
 
     def __init__(self):
-        """
-        Used to add inflows to a network. Inflows can be specified for any edge
-        that has a specified route or routes.
-        """
+        """Instantiate Inflows."""
         self.num_flows = 0
         self.__flows = []
 
@@ -528,7 +539,7 @@ class InFlows:
             probability=None,
             number=None,
             **kwargs):
-        """Specifies a new inflow for a given type of vehicles and edge.
+        r"""Specify a new inflow for a given type of vehicles and edge.
 
         Parameters
         ----------
@@ -567,8 +578,12 @@ class InFlows:
             # delete since all parameters in kwargs are used again later
             del kwargs["vehsPerHour"]
 
-        new_inflow = {"name": "flow_%d" % self.num_flows, "vtype": veh_type,
-                      "route": "route" + edge, "end": end}
+        new_inflow = {
+            "name": "flow_%d" % self.num_flows,
+            "vtype": veh_type,
+            "route": "route" + edge,
+            "end": end
+        }
 
         new_inflow.update(kwargs)
 
@@ -588,4 +603,5 @@ class InFlows:
         self.num_flows += 1
 
     def get(self):
+        """Return the inflows of each edge."""
         return self.__flows

@@ -35,7 +35,6 @@ RETRIES_ON_ERROR = 10
 
 
 class Env(gym.Env, Serializable):
-
     def __init__(self, env_params, sumo_params, scenario):
         """Base environment class.
 
@@ -180,10 +179,12 @@ class Env(gym.Env, Serializable):
                         port = sumolib.miscutils.getFreeSocketPort()
 
                 # command used to start sumo
-                sumo_call = [self.sumo_params.sumo_binary,
-                             "-c", self.scenario.cfg,
-                             "--remote-port", str(port),
-                             "--step-length", str(self.sim_step)]
+                sumo_call = [
+                    self.sumo_params.sumo_binary, "-c", self.scenario.cfg,
+                    "--remote-port",
+                    str(port), "--step-length",
+                    str(self.sim_step)
+                ]
 
                 # add step logs (if requested)
                 if self.sumo_params.no_step_log:
@@ -232,8 +233,8 @@ class Env(gym.Env, Serializable):
                 logging.debug(" Step length: " + str(self.sim_step))
 
                 # Opening the I/O thread to SUMO
-                self.sumo_proc = subprocess.Popen(sumo_call,
-                                                  preexec_fn=os.setsid)
+                self.sumo_proc = subprocess.Popen(
+                    sumo_call, preexec_fn=os.setsid)
 
                 # wait a small period of time for the subprocess to activate
                 # before trying to connect with traci
@@ -283,16 +284,18 @@ class Env(gym.Env, Serializable):
 
         # subscribe the requested states for traci-related speedups
         for veh_id in self.vehicles.get_ids():
-            self.traci_connection.vehicle.subscribe(
-                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-                         tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
+            self.traci_connection.vehicle.subscribe(veh_id, [
+                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
+                tc.VAR_SPEED, tc.VAR_EDGES
+            ])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
         # subscribe some simulation parameters needed to check for entering,
         # exiting, and colliding vehicles
-        self.traci_connection.simulation.subscribe(
-            [tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS])
+        self.traci_connection.simulation.subscribe([
+            tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
+            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS
+        ])
 
         # subscribe the traffic light
         for node_id in self.traffic_lights.get_ids():
@@ -331,9 +334,11 @@ class Env(gym.Env, Serializable):
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
-        id_lists = {tc.VAR_DEPARTED_VEHICLES_IDS: [],
-                    tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
-                    tc.VAR_ARRIVED_VEHICLES_IDS: []}
+        id_lists = {
+            tc.VAR_DEPARTED_VEHICLES_IDS: [],
+            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
+            tc.VAR_ARRIVED_VEHICLES_IDS: []
+        }
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -394,8 +399,8 @@ class Env(gym.Env, Serializable):
                         veh_id)
                     target_lane = lc_contr.get_action(self)
                     direction.append(target_lane)
-                self.apply_lane_change(self.vehicles.get_controlled_lc_ids(),
-                                       direction=direction)
+                self.apply_lane_change(
+                    self.vehicles.get_controlled_lc_ids(), direction=direction)
 
             # perform (optionally) routing actions for all vehicle in the
             # network, including rl and sumo-controlled vehicles
@@ -551,17 +556,23 @@ class Env(gym.Env, Serializable):
 
             try:
                 self.traci_connection.vehicle.addFull(
-                    veh_id, route_id, typeID=str(type_id),
+                    veh_id,
+                    route_id,
+                    typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos), departSpeed=str(speed))
+                    departPos=str(lane_pos),
+                    departSpeed=str(speed))
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.addFull(
-                    veh_id, route_id, typeID=str(type_id),
+                    veh_id,
+                    route_id,
+                    typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos), departSpeed=str(speed))
+                    departPos=str(lane_pos),
+                    departSpeed=str(speed))
 
         self.traci_connection.simulationStep()
 
@@ -624,9 +635,10 @@ class Env(gym.Env, Serializable):
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
-            rl_actions = np.clip(rl_actions,
-                                 a_min=self.action_space.low,
-                                 a_max=self.action_space.high)
+            rl_actions = np.clip(
+                rl_actions,
+                a_min=self.action_space.low,
+                a_max=self.action_space.high)
 
         self._apply_rl_actions(rl_actions)
 
@@ -650,7 +662,7 @@ class Env(gym.Env, Serializable):
         for i, vid in enumerate(veh_ids):
             if acc[i] is not None:
                 this_vel = self.vehicles.get_speed(vid)
-                next_vel = max([this_vel + acc[i]*self.sim_step, 0])
+                next_vel = max([this_vel + acc[i] * self.sim_step, 0])
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
     def apply_lane_change(self, veh_ids, direction):
@@ -685,8 +697,9 @@ class Env(gym.Env, Serializable):
             # change out of range
             this_lane = self.vehicles.get_lane(veh_id)
             this_edge = self.vehicles.get_edge(veh_id)
-            target_lane = min(max(this_lane + direction[i], 0),
-                              self.scenario.num_lanes(this_edge) - 1)
+            target_lane = min(
+                max(this_lane + direction[i], 0),
+                self.scenario.num_lanes(this_edge) - 1)
 
             # perform the requested lane action action in TraCI
             if target_lane != this_lane:
@@ -731,8 +744,8 @@ class Env(gym.Env, Serializable):
         if self.vehicles.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
-        return self.scenario.get_x(self.vehicles.get_edge(veh_id),
-                                   self.vehicles.get_position(veh_id))
+        return self.scenario.get_x(
+            self.vehicles.get_edge(veh_id), self.vehicles.get_position(veh_id))
 
     def sort_by_position(self):
         """Sorts the vehicle ids of vehicles in the network by position.
@@ -750,8 +763,9 @@ class Env(gym.Env, Serializable):
             of None should be returned
         """
         if self.env_params.sort_vehicles:
-            sorted_ids = sorted(self.vehicles.get_ids(),
-                                key=self.vehicles.get_absolute_position)
+            sorted_ids = sorted(
+                self.vehicles.get_ids(),
+                key=self.vehicles.get_absolute_position)
             return sorted_ids, None
         else:
             return self.vehicles.get_ids(), None
@@ -772,8 +786,8 @@ class Env(gym.Env, Serializable):
         for veh_id in self.vehicles.get_rl_ids():
             try:
                 # color rl vehicles red
-                self.traci_connection.vehicle.setColor(vehID=veh_id,
-                                                       color=(255, 0, 0, 255))
+                self.traci_connection.vehicle.setColor(
+                    vehID=veh_id, color=(255, 0, 0, 255))
             except (FatalTraCIError, TraCIException):
                 pass
 
@@ -785,8 +799,8 @@ class Env(gym.Env, Serializable):
                 else:
                     # color unobserved human-driven vehicles white
                     color = (255, 255, 255, 255)
-                self.traci_connection.vehicle.setColor(vehID=veh_id,
-                                                       color=color)
+                self.traci_connection.vehicle.setColor(
+                    vehID=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
                 pass
 

@@ -1,4 +1,5 @@
-"""
+"""Benchmark for figureeight2.
+
 Trains a fraction of vehicles in a ring road structure to regulate the flow of
 vehicles through an intersection. In this example, every vehicle in the
 network is an autonomous vehicle.
@@ -20,11 +21,12 @@ HORIZON = 1500
 
 # We place 16 autonomous vehicle and 0 human-driven vehicles in the network
 vehicles = Vehicles()
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode="no_collide",
-             num_vehicles=14)
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    speed_mode="no_collide",
+    num_vehicles=14)
 
 flow_params = dict(
     # name of the experiment
