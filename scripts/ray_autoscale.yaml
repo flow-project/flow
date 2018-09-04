@@ -69,7 +69,6 @@ worker_nodes:
 file_mounts: {
 # path to your repo and the desired branch name
 #"/tmp/path": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
-"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/update_rllib_version",
 }
 
 setup_commands:

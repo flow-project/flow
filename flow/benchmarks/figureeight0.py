@@ -17,7 +17,7 @@ from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
-HORIZON = 300
+HORIZON = 1500
 
 # We place 1 autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -51,7 +51,7 @@ flow_params = dict(
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
-        sim_step=0.5,
+        sim_step=0.1,
         sumo_binary="sumo",
     ),
 

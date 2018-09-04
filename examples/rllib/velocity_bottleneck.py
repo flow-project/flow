@@ -22,9 +22,9 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 1000
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+N_CPUS = 2
 # number of rollouts per training iteration
-N_ROLLOUTS = PARALLEL_ROLLOUTS * 4
+N_ROLLOUTS = N_CPUS * 4
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -152,10 +152,10 @@ flow_params = dict(
 )
 
 if __name__ == '__main__':
-    ray.init(num_cpus=PARALLEL_ROLLOUTS+1, redirect_output=True)
+    ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS  # number of parallel rollouts
+    config["num_workers"] = N_CPUS  # number of parallel rollouts
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [64, 64]})
