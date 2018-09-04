@@ -14,5 +14,5 @@ tar -xf binaries-ubuntu1404.tar.xz
 rm binaries-ubuntu1404.tar.xz
 chmod +x *
 popd
-echo 'export PYTHONPATH=$PYTHONPATH:'$(pwd)'/bin' >> ~/.bashrc
+echo 'export PATH=$PATH:'$(pwd)'/bin' >> ~/.bashrc
 echo 'export SUMO_HOME='$(pwd)'/bin' >> ~/.bashrc
