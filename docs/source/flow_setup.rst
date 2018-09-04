@@ -138,8 +138,9 @@ For mac run
 =======================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
-First visit <https://ray.readthedocs.io/en/latest/installation.html#building-ray-from-source> and
-install the required packages in the "Dependencies" section. Do NOT `pip install ray`.
+First visit <https://github.com/eugenevinitsky/ray/blob/master/doc/source/installation.rst> and
+install the required packages. Do NOT `pip install ray`.
+
 The installation process for this library is as follows:
 
 ::
