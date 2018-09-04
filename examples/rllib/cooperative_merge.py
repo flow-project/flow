@@ -9,7 +9,7 @@ merge into the inner ring.
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -26,7 +26,7 @@ HORIZON = 100
 # number of rollouts per training iteration
 N_ROLLOUTS = 10
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+N_CPUS = 2
 
 RING_RADIUS = 100
 NUM_MERGE_HUMANS = 9
@@ -130,10 +130,10 @@ flow_params = dict(
 )
 
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=False)
+    ray.init(num_cpus=N_CPUS+1, redirect_output=False)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS
+    config["num_workers"] = N_CPUS
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
@@ -165,11 +165,6 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {
                 "training_iteration": 200,
-            },
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
             },
         }
     })
