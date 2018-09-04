@@ -6,7 +6,7 @@ import os
 import unittest
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 import ray.tune.registry as registry
 
 from examples.rllib.stabilizing_the_ring import make_create_env
