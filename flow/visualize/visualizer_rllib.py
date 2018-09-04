@@ -112,7 +112,7 @@ if __name__ == "__main__":
     env_class = getattr(module, flow_params["env_name"])
     env_params = flow_params['env']
     sumo_params = flow_params['sumo']
-    sumo_params.sumo_binary = "sumo-gui"
+    sumo_params.sumo_binary = "sumo"
     sumo_params.emission_path = "./test_time_rollout/"
     sumo_params.num_clients = 2
 
