@@ -1,10 +1,12 @@
 #!/bin/bash
 echo "Installing system dependencies for SUMO"
 sudo apt-get update
-sudo apt-get install -y subversion autoconf build-essential libtool
-sudo apt-get install -y libtool-bin libxerces-c3.1 libxerces-c3-dev
-sudo apt-get install -y libproj-dev proj-bin proj-data libgdal1-dev
-sudo apt-get install -y libfox-1.6-0 libfox-1.6-dev
+sudo apt-get install -y cmake swig libgtest-dev python-pygame python-scipy
+sudo apt-get install -y autoconf libtool pkg-config libgdal-dev libxerces-c-dev
+sudo apt-get install -y libproj-dev libfox-1.6-dev libxml2-dev libxslt1-dev
+sudo apt-get install -y build-essential curl unzip flex bison python python-dev
+sudo apt-get install -y python3-dev
+sudo pip3 install cmake cython
 
 echo "Installing sumo binaries"
 mkdir bin
