@@ -23,10 +23,44 @@ doing so.**
 1. Installing Flow and SUMO
 ===========================
 
-The simplest way to install Flow, as well as the binaries and packages needed
+In this section we install Flow as well as the binaries and packages needed
 to support the traffic simulator used in modeling the dynamics of traffic
-networks (SUMO), run the below command from the Flow directory:
+networks: SUMO.
 
+In order to install the binary files need to run SUMO, run one of the below
+scripts from the Flow main directory. Choose the script that matches the
+operating system you are running.
+
+For Ubuntu 14.04:
+
+::
+
+    scripts/setup_sumo_ubuntu1404.sh
+
+For Ubuntu 16.04:
+
+::
+
+    scripts/setup_sumo_ubuntu1604.sh
+
+For Ubuntu 18.04:
+
+::
+
+    scripts/setup_sumo_ubuntu1804.sh
+
+For Mac:
+
+::
+
+    scripts/setup_sumo_osx.sh
+
+If you are using an unsupported operating system (e.g. Arch Linux), you will
+have to personally build the SUMO binary files. For more, please refer to
+SUMO's documentation `here <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
+
+Next, create a conda environment and install Flow and SUMO's python tools
+within the environment. This can be done by running the below script.
 
 ::
 
