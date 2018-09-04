@@ -13,8 +13,8 @@ echo "Installing sumo binaries"
 mkdir bin
 pushd bin
 wget https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/binaries-ubuntu1804.tar.xz
-tar -xf binaries-ubuntu1604.tar.xz
-rm binaries-ubuntu1604.tar.xz
+tar -xf binaries-ubuntu1804.tar.xz
+rm binaries-ubuntu1804.tar.xz
 chmod +x *
 popd
 echo 'export PATH=$PATH:'$(pwd)'/bin' >> ~/.bashrc
