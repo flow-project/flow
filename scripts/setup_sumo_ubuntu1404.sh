@@ -16,3 +16,5 @@ chmod +x *
 popd
 echo 'export PATH=$PATH:'$(pwd)'/bin' >> ~/.bashrc
 echo 'export SUMO_HOME='$(pwd)'/bin' >> ~/.bashrc
+
+source ~/.bashrc
