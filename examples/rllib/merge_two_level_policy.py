@@ -3,7 +3,7 @@
 import os
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 
 from .cooperative_merge import flow_params, HORIZON, make_create_env

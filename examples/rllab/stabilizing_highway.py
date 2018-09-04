@@ -29,7 +29,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 1
+N_CPUS = 1
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -145,7 +145,7 @@ for seed in [5]:  # , 20, 68, 72, 125]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=PARALLEL_ROLLOUTS,
+        n_parallel=N_CPUS,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
