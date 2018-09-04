@@ -31,20 +31,6 @@ class build_ext(_build_ext.build_ext):
                  'git+https://github.com/openai/gym.git@'
                  '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
 
-        # # sumo binaries
-        # dist = sys.platform
-        # if dist == "linux":
-        #     release = platform.release()
-        #     if int(release[0]) >= 4:
-        #         subprocess.check_call(['scripts/setup_sumo_ubuntu1604.sh'])
-        #     else:
-        #         subprocess.check_call(['scripts/setup_sumo_ubuntu1404.sh'])
-        # elif dist == 'darwin':
-        #     subprocess.check_call(['scripts/setup_sumo_osx.sh'])
-        # else:
-        #     warnings.warn("Unable to install sumo binaries. Operating system "
-        #                   "is not supported.")
-
         # sumo tools
         try:
             import traci
