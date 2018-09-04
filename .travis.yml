@@ -22,13 +22,14 @@ before_install:
   - pip install tensorflow
 
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/22c7c87e1450a06bd0fdcfa7b6c1b15565b2f336/ray-0.3.0-cp36-cp36m-manylinux1_x86_64.whl
+  - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.0-cp36-cp36m-manylinux1_x86_64.whl
   # - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
   - pip install gym==0.10.5
 
   # Copy over local rllib changes (testing branch)
   - pushd $HOME/build/flow-project
   -     git clone https://github.com/eugenevinitsky/ray.git
+  -     cd ray && git fetch && git checkout master && cd ..
   -     pushd ray
   -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
   -         rm -rf $RAY_SITE_DIR/rllib
