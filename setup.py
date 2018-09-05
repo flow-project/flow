@@ -5,9 +5,6 @@ from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
 import subprocess
 from flow.version import __version__
-import sys
-import platform
-import warnings
 
 
 def _read_requirements_file():
