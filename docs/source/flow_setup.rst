@@ -20,7 +20,7 @@ shell commands below to get started.
 **for Python and the setup instructions will assume that you are
 doing so.**
 
-1. Installing Flow and SUMO
+a. Installing Flow and SUMO
 ===========================
 
 In this section we install Flow as well as the binaries and packages needed
@@ -55,9 +55,11 @@ For Mac:
 
     scripts/setup_sumo_osx.sh
 
-If you are using an unsupported operating system (e.g. Arch Linux), you will
-have to personally build the SUMO binary files. For more, please refer to
-SUMO's documentation `here <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
+If you are using an unsupported operating system (e.g. Arch Linux), or the
+binaries provided by the above scripts are no compatible with your machine, you
+will have to personally build the SUMO binary files. For more, please see
+section 1.c or refer to SUMO's
+`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
 
 Next, create a conda environment and install Flow and SUMO's python tools
 within the environment. This can be done by running the below script.
@@ -70,12 +72,8 @@ within the environment. This can be done by running the below script.
     # install flow within the environment
     python setup.py develop
 
-This is recommended for all users, unless you have an unsupported operating
-systems (e.g. Arch Linux), in which case you will have to personally build the
-SUMO binary files. For more, please refer to SUMO's documentation
-`here <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
 
-2. Testing the Installation
+b. Testing the Installation
 ===========================
 
 Once the above modules have been successfully installed, we can test the
@@ -105,8 +103,62 @@ Optionally, run the unit tests:
 
 Congratulations, you now have successfully set up Flow!
 
+c. Installing SUMO (optional)
+=============================
 
-3. Rllab-multiagent (optional)
+If you were unable to install SUMO via the commands provided in section 1.a,
+the below commands walk you through installing and building SUMO locally. Note
+if this does not work, you are recommended to point an issue on the flow-dev
+message board or refer to SUMO's
+`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_ regarding
+installing their software.
+
+We begin by downloading's sumo's github directory:
+
+::
+
+    cd ~
+    git clone https://github.com/eclipse/sumo.git
+    cd sumo
+    git checkout 1d4338ab80
+    make -f Makefile.cvs
+
+If you have OSX, run the following commands
+
+::
+
+    export CPPFLAGS=-I/opt/X11/include
+    export LDFLAGS=-L/opt/X11/lib
+    ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
+    make -j$nproc
+    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bash_profile
+    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bash_profile
+    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bash_profile
+
+If you have Ubuntu 14.04+, run the following command
+
+::
+
+    ./configure
+    make -j$nproc
+    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
+    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
+    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
+    source ~/.bashrc
+
+Finally, test your sumo install and version by running the following commands
+
+::
+
+    which sumo
+    sumo --version
+    sumo-gui
+
+If you are a mac user and the above command gives you the error FXApp:openDisplay: unable to open display :0.0 make sure to open the application XQuartz.
+
+
+d. Rllab-multiagent (optional)
 ==============================
 Flow has been tested on a variety of RL libraries, the installation of which is
 optional but may be of use when trying to execute some of the examples files
@@ -134,7 +186,7 @@ For mac run
     echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bash_profile
     source ~/.bash_profile
 
-4. Ray/RLlib (optional)
+e. Ray/RLlib (optional)
 =======================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
@@ -154,7 +206,7 @@ required libraries as specified at
 <http://ray.readthedocs.io/en/latest/installation.html> and
 then follow the setup instructions.
 
-5. Getting started (rllab-multiagent)
+f. Getting started (rllab-multiagent)
 =====================================
 
 To run any of the RL examples, make sure to run
@@ -174,7 +226,7 @@ If it does not fail, this means that you have Flow properly configured with
 rllab-multiagent.
 
 
-6. Getting started (Ray/RLlib)
+g. Getting started (Ray/RLlib)
 ==============================
 
 See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
@@ -210,7 +262,7 @@ jobs from there.
     ray teardown scripts/ray_autoscale.yaml
 
 
-7. Custom configuration
+h. Custom configuration
 =======================
 
 You may define user-specific config parameters as follows
@@ -223,7 +275,7 @@ You may define user-specific config parameters as follows
 2. Remote desktop using Docker for simple utilisation of flow (recommended for testing purpose)
 ***********************************************************************************************
 
-1. Installation
+a. Installation
 ===============
 
 Installation of a remote desktop and docker to get access to flow quickly
@@ -248,7 +300,7 @@ Go into your browser ( Firefox, Chrome, Safari)
     5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
     
 
-2. Notebooks and tutorial
+b. Notebooks and tutorial
 =========================
 
 In the docker desktop
