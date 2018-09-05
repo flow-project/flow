@@ -93,15 +93,7 @@ Let’s see some traffic action:
 Running the following should result in the loading of the SUMO GUI.
 Click the run button and you should see unstable traffic form after a
 few seconds, a la (Sugiyama et al, 2008). This means that you have Flow
-properly configured with SUMO.
-
-Optionally, run the unit tests:
-
-::
-
-    nose2 -s tests/fast_tests
-
-Congratulations, you now have successfully set up Flow!
+properly configured with SUMO and Flow!
 
 c. Installing SUMO (optional)
 =============================
