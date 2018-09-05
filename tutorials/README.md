@@ -26,14 +26,14 @@ exercises, you may find the [Flow documentation](
 https://berkeleyflow.readthedocs.io/en/latest/) helpful. The content of each 
 exercise is as follows:
 
-**Tutorial 1:** Running sumo simulations in Flow.
+**Tutorial 1:** Running SUMO simulations in Flow.
 
 **Tutorial 2:** Running RLlib experiments for mixed-autonomy traffic.
 
 **Tutorial 3:** Running rllab experiments for mixed-autonomy traffic.
 
 **Tutorial 4:** Saving and visualizing resuls from non-RL simulations and 
-testing simulations in the presence of an rllib/rllab agent.
+testing simulations in the presence of an RLlib/rllab agent.
 
 **Tutorial 5:** Creating custom scenarios.
 
