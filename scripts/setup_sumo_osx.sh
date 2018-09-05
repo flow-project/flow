@@ -13,8 +13,8 @@ tar -xf binaries-mac.tar.xz
 rm binaries-mac.tar.xz
 chmod +x *
 popd
-echo 'export PATH=$PATH:$HOME/sumo_binaries/bin' >> ~/.bashrc
-echo 'export SUMO_HOME=$HOME/sumo_binaries/bin' >> ~/.bashrc
+echo 'export PATH=$PATH:$HOME/sumo_binaries/bin' >> ~/.bash_profile
+echo 'export SUMO_HOME=$HOME/sumo_binaries/bin' >> ~/.bash_profile
 
 source ~/.bash_profile
 
