@@ -21,3 +21,6 @@ echo 'export PATH=$PATH:$HOME/sumo_binaries/bin' >> ~/.bashrc
 echo 'export SUMO_HOME=$HOME/sumo_binaries/bin' >> ~/.bashrc
 
 source ~/.bashrc
+
+echo "Installing sumo tools"
+pip install https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/sumotools-0.1.0-py3-none-any.whl

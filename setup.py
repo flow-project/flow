@@ -28,16 +28,6 @@ class build_ext(_build_ext.build_ext):
                 '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'
             ])
 
-        # sumo tools
-        try:
-            import traci
-        except ImportError:
-            subprocess.check_call(
-                ['pip', 'install',
-                 'https://akreidieh.s3.amazonaws.com/sumo/'
-                 'flow-0.2.0/sumotools-0.1.0-py3-none-any.whl']
-            )
-
 
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):

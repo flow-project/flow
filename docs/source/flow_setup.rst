@@ -27,42 +27,9 @@ In this section we install Flow as well as the binaries and packages needed
 to support the traffic simulator used in modeling the dynamics of traffic
 networks: SUMO.
 
-In order to install the binary files need to run SUMO, run one of the below
-scripts from the Flow main directory. Choose the script that matches the
-operating system you are running.
-
-For Ubuntu 14.04:
-
-::
-
-    scripts/setup_sumo_ubuntu1404.sh
-
-For Ubuntu 16.04:
-
-::
-
-    scripts/setup_sumo_ubuntu1604.sh
-
-For Ubuntu 18.04:
-
-::
-
-    scripts/setup_sumo_ubuntu1804.sh
-
-For Mac:
-
-::
-
-    scripts/setup_sumo_osx.sh
-
-If you are using an unsupported operating system (e.g. Arch Linux), or the
-binaries provided by the above scripts are no compatible with your machine, you
-will have to personally build the SUMO binary files. For more, please see
-section 1.c or refer to SUMO's
-`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
-
-Next, create a conda environment and install Flow and SUMO's python tools
-within the environment. This can be done by running the below script.
+We begin by creating a conda environment and installing Flow and its
+dependencies within the environment. This can be done by running the below
+script.
 
 ::
 
@@ -72,38 +39,14 @@ within the environment. This can be done by running the below script.
     # install flow within the environment
     python setup.py develop
 
-
-b. Testing the Installation
-===========================
-
-Once the above modules have been successfully installed, we can test the
-installation by running a few examples. Before trying to run any examples, be
-sure to enter your conda environment by typing:
-
-::
-
-    source activate flow
-
-Let’s see some traffic action:
-
-::
-
-    python examples/sumo/sugiyama.py
-
-Running the following should result in the loading of the SUMO GUI.
-Click the run button and you should see unstable traffic form after a
-few seconds, a la (Sugiyama et al, 2008). This means that you have Flow
-properly configured with SUMO and Flow!
-
-c. Installing SUMO (optional)
-=============================
-
-If you were unable to install SUMO via the commands provided in section 1.a,
-the below commands walk you through installing and building SUMO locally. Note
+Next, we install the necessary SUMO binaries and python tools. The below
+commands walk you through installing and building SUMO locally. Note that
 if this does not work, you are recommended to point an issue on the flow-dev
 message board or refer to SUMO's
 `documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_ regarding
-installing their software.
+installing their software. In additional, if you are interested in trying a
+simpler and faster set of experimental setup instructions involving installing
+pre-compiled binaries, we refer you to section 1.c.
 
 We begin by downloading's sumo's github directory:
 
@@ -148,6 +91,69 @@ Finally, test your sumo install and version by running the following commands
     sumo-gui
 
 If you are a mac user and the above command gives you the error FXApp:openDisplay: unable to open display :0.0 make sure to open the application XQuartz.
+
+b. Testing the Installation
+===========================
+
+Once the above modules have been successfully installed, we can test the
+installation by running a few examples. Before trying to run any examples, be
+sure to enter your conda environment by typing:
+
+::
+
+    source activate flow
+
+Let’s see some traffic action:
+
+::
+
+    python examples/sumo/sugiyama.py
+
+Running the following should result in the loading of the SUMO GUI.
+Click the run button and you should see unstable traffic form after a
+few seconds, a la (Sugiyama et al, 2008). This means that you have Flow
+properly configured with SUMO and Flow!
+
+c. Easy Install SUMO (optional)
+===============================
+
+In this section, we present and faster and simpler method of installing the
+necessary SUMO binaries and python tools. These setup instructions are still
+experimental, so any and all feedback is greatly appreciated!
+
+In order to install everything you will need from SUMO, run one of the below
+scripts from the Flow main directory. Choose the script that matches the
+operating system you are running.
+
+For Ubuntu 14.04:
+
+::
+
+    scripts/setup_sumo_ubuntu1404.sh
+
+For Ubuntu 16.04:
+
+::
+
+    scripts/setup_sumo_ubuntu1604.sh
+
+For Ubuntu 18.04:
+
+::
+
+    scripts/setup_sumo_ubuntu1804.sh
+
+For Mac:
+
+::
+
+    scripts/setup_sumo_osx.sh
+
+If you are using an unsupported operating system (e.g. Arch Linux), or the
+binaries provided by the above scripts are no compatible with your machine, you
+will have to personally build the SUMO binary files. For more, please see
+section 1.a or refer to SUMO's
+`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
 
 
 d. Rllab-multiagent (optional)
