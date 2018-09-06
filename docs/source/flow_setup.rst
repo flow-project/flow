@@ -5,7 +5,8 @@
 **********************
 
 To get Flow running, you need three things: Flow,
-SUMO, and (optionally) a reinforcement learning library (RLlib/rllab).
+SUMO, and (recommended to explore the full suite of Flow's capabilities) 
+a reinforcement learning library (RLlib/rllab).
 If you choose not to install a reinforcement learning library, you will 
 still be able to build and run SUMO-only traffic tasks, but will not be
 able to run experiments which require learning agents. Once
@@ -48,7 +49,7 @@ installing their software. In additional, if you are interested in trying a
 simpler and faster set of experimental setup instructions involving installing
 pre-compiled binaries, we refer you to section 1.c.
 
-We begin by downloading's sumo's github directory:
+We begin by downloading SUMO's github directory:
 
 ::
 
@@ -82,7 +83,7 @@ If you have Ubuntu 14.04+, run the following command
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
 
-Finally, test your sumo install and version by running the following commands
+Finally, test your SUMO install and version by running the following commands
 
 ::
 
@@ -90,7 +91,7 @@ Finally, test your sumo install and version by running the following commands
     sumo --version
     sumo-gui
 
-If you are a mac user and the above command gives you the error FXApp:openDisplay: unable to open display :0.0 make sure to open the application XQuartz.
+If you are a mac user and the above command gives you the error `FXApp:openDisplay`: unable to open display :0.0 make sure to open the application XQuartz.
 
 b. Testing the Installation
 ===========================
@@ -114,7 +115,64 @@ Click the run button and you should see unstable traffic form after a
 few seconds, a la (Sugiyama et al, 2008). This means that you have Flow
 properly configured with SUMO and Flow!
 
-c. Easy Install SUMO (optional)
+
+c. Testing your installation (Ray RLlib)
+==============================
+
+See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
+
+To run any of the RL examples, make sure to run
+
+::
+
+    source activate flow
+
+In order to test run an Flow experiment in RLlib, try the following command:
+
+::
+
+    python examples/rllib/stabilizing_the_ring.py
+
+If it does not fail, this means that you have Flow properly configured with
+RLlib.
+
+To visualize the training progress:
+
+::
+
+    tensorboard --logdir=~/ray_results
+
+For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
+The basic workflow is running the following locally, ssh-ing into the host machine, and starting
+jobs from there.
+
+::
+
+    ray create_or_update scripts/ray_autoscale.yaml
+    ray teardown scripts/ray_autoscale.yaml
+
+
+d. Testing your installation (rllab-multiagent)
+=====================================
+
+To run any of the RL examples, make sure to run
+
+::
+
+    source activate flow
+    
+In order to test run an Flow experiment in rllab-multiagent, try the following
+command:
+
+::
+
+    python examples/rllab/stabilizing_the_ring.py
+
+If it does not fail, this means that you have Flow properly configured with
+rllab-multiagent.
+
+
+e. Easy Install SUMO (optional)
 ===============================
 
 In this section, we present and faster and simpler method of installing the
@@ -156,7 +214,7 @@ section 1.a or refer to SUMO's
 `documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
 
 
-d. Rllab-multiagent (optional)
+f. Rllab-multiagent (optional)
 ==============================
 Flow has been tested on a variety of RL libraries, the installation of which is
 optional but may be of use when trying to execute some of the examples files
@@ -184,7 +242,7 @@ For mac run
     echo 'export PYTHONPATH="$HOME/rllab-multiagent:$PYTHONPATH"' >> ~/.bash_profile
     source ~/.bash_profile
 
-e. Ray/RLlib (optional)
+g. Ray/RLlib (optional)
 =======================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
@@ -203,61 +261,6 @@ If missing libraries cause errors, please also install additional
 required libraries as specified at 
 <http://ray.readthedocs.io/en/latest/installation.html> and
 then follow the setup instructions.
-
-f. Getting started (rllab-multiagent)
-=====================================
-
-To run any of the RL examples, make sure to run
-
-::
-
-    source activate flow
-    
-In order to test run an Flow experiment in rllab-multiagent, try the following
-command:
-
-::
-
-    python examples/rllab/stabilizing_the_ring.py
-
-If it does not fail, this means that you have Flow properly configured with
-rllab-multiagent.
-
-
-g. Getting started (Ray/RLlib)
-==============================
-
-See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
-
-To run any of the RL examples, make sure to run
-
-::
-
-    source activate flow
-
-In order to test run an Flow experiment in RLlib, try the following command:
-
-::
-
-    python examples/rllib/stabilizing_the_ring.py
-
-If it does not fail, this means that you have Flow properly configured with
-RLlib.
-
-To visualize the training progress:
-
-::
-
-    tensorboard --logdir=~/ray_results
-
-For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
-The basic workflow is running the following locally, ssh-ing into the host machine, and starting
-jobs from there.
-
-::
-
-    ray create_or_update scripts/ray_autoscale.yaml
-    ray teardown scripts/ray_autoscale.yaml
 
 
 h. Custom configuration
@@ -293,7 +296,7 @@ Go into your browser ( Firefox, Chrome, Safari)
 
     1° Go to http://localhost:6901/?password=vncpassword
     2° Go to Applications and open Terminal Emulator
-    3° For sumo: Write python flow/examples/sumo/sugiyama.py and run it
+    3° For SUMO: Write python flow/examples/sumo/sugiyama.py and run it
     4° For rllib : Write python flow/examples/rllib/stabilizing_the_ring.py and run it
     5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
     
