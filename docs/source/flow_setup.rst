@@ -270,15 +270,15 @@ You may define user-specific config parameters as follows
     cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
 
 
-2. Remote desktop using Docker for simple utilisation of flow (recommended for testing purpose)
-***********************************************************************************************
+2. Remote installation using docker
+***********************************
 
 a. Installation
 ===============
 
 Installation of a remote desktop and docker to get access to flow quickly
 
-First install docker on https://www.docker.com/
+First install docker: https://www.docker.com/
 
 In terminal
 
@@ -313,4 +313,4 @@ Go into your browser ( Firefox, Chrome, Safari)
 ::
 
     1° go to localhost:8888/tree
-    2° the password is 'admin' and you can run all your notebook and tutorial
+    2° the password is 'admin' and you can run all your notebooks and tutorials
