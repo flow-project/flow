@@ -8,7 +8,7 @@ channels:
     - soumith
 dependencies:
     - python==3.5.2
-    - numpy==1.14.0
+    - numpy==1.13.3
     - scipy==1.1.0
     - path.py
     - python-dateutil
@@ -50,7 +50,7 @@ dependencies:
         - jupyter==1.0.0
         - progressbar2==3.38.0
         - chainer==1.18.0
-        - tensorflow==1.10.0
+        - tensorflow==1.7.0
         - numpy-stl==2.2.0
         - nibabel==2.1.0
         - pylru==1.0.9
