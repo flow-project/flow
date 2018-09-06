@@ -91,7 +91,7 @@ Finally, test your SUMO install and version by running the following commands
     sumo --version
     sumo-gui
 
-If you are a mac user and the above command gives you the error `FXApp:openDisplay`: unable to open display :0.0 make sure to open the application XQuartz.
+If you are a mac user and the above command gives you the error ``FXApp:openDisplay``: unable to open display :0.0 make sure to open the application XQuartz.
 
 b. Testing the Installation
 ===========================
@@ -117,7 +117,7 @@ properly configured with SUMO and Flow!
 
 
 c. Testing your installation (Ray RLlib)
-==============================
+========================================
 
 See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
 
@@ -153,7 +153,7 @@ jobs from there.
 
 
 d. Testing your installation (rllab-multiagent)
-=====================================
+===============================================
 
 To run any of the RL examples, make sure to run
 
