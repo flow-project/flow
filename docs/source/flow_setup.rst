@@ -1,7 +1,6 @@
 .. contents:: Table of contents
 
-
-1.  Local Installation 
+Local Installation 
 **********************
 
 To get Flow running, you need three things: Flow,
@@ -273,7 +272,7 @@ You may define user-specific config parameters as follows
     cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
 
 
-2. Remote installation using docker
+Remote installation using docker
 ***********************************
 
 a. Installation
