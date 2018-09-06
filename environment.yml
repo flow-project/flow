@@ -59,4 +59,4 @@ dependencies:
         # RLLIB installs
         - six==1.11.0
         - redis==2.10.6
-        - numpy=1.14.0
+        - numpy==1.14.0
