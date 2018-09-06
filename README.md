@@ -16,6 +16,8 @@ See [our website](https://flow-project.github.io/) for more information on the a
 
 # Getting involved
 
+We welcome your contributions.
+
 - Ask questions on our mailing list: [flow-dev@googlegroups.com](https://groups.google.com/forum/#!forum/flow-dev).
 - Please report bugs by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
 - Submit contributions using [pull requests](https://github.com/flow-project/flow/pulls).
@@ -26,9 +28,9 @@ If you use Flow for academic research, you are highly encouraged to cite our pap
 
 C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and Benchmarking for Reinforcement Learning in Traffic Control," CoRR, vol. abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
-# Credits
+# Contributors
 
-Flow is created by and actively developed by members of the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley: Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Saleh Albeaik, Kathy Jang, and Ananth Kuchibhotla. Alumni contributors include Leah Dickstein and Nathan Mandi.
+Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Saleh Albeaik, Kathy Jang, Ananth Kuchibhotla. Alumni contributors include Leah Dickstein and Nathan Mandi. Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants.
 
 
 <!-- ## Getting Started
