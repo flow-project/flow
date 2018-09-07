@@ -532,6 +532,7 @@ class InFlows:
     def add(self,
             veh_type,
             edge,
+            name="flow",
             begin=1,
             end=2e6,
             vehs_per_hour=None,
@@ -579,7 +580,7 @@ class InFlows:
             del kwargs["vehsPerHour"]
 
         new_inflow = {
-            "name": "flow_%d" % self.num_flows,
+            "name": "%s_%d" % (name, self.num_flows),
             "vtype": veh_type,
             "route": "route" + edge,
             "end": end
