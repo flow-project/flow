@@ -48,37 +48,37 @@ matrix:
 
         - ls ../
 
-    - os: osx
-      osx_image: xcode7.3  # TODO: decide on image, or use multiple
-      install:
-        # add to silence PATH issue
-        rvm get stable --auto-dotfiles
-
-        # dependency for md5sum
-        brew install md5sha1sum
-
-        # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-        - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.0-cp36-cp36m-macos_x86_64.whl
-
-        # Copy over local rllib changes (testing branch)
-        - pushd $HOME/build/flow-project
-        -     git clone https://github.com/eugenevinitsky/ray.git
-        -     cd ray && git fetch && git checkout master && cd ..
-        -     pushd ray
-        -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
-        -         rm -rf $RAY_SITE_DIR/rllib
-        -         ls $RAY_SITE_DIR
-        -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
-        -     popd
-        - popd
-
-        #  Add sumo python tools and binaries
-        - pushd $HOME/build/flow-project/flow
-        -     scripts/setup_sumo_osx.sh
-        - popd
-        - source ~/.bash_profile
-
-        - ls ../
+#    - os: osx
+#      osx_image: xcode7.3  # TODO: decide on image, or use multiple
+#      install:
+#        # add to silence PATH issue
+#        rvm get stable --auto-dotfiles
+#
+#        # dependency for md5sum
+#        brew install md5sha1sum
+#
+#        # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
+#        - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.0-cp36-cp36m-macos_x86_64.whl
+#
+#        # Copy over local rllib changes (testing branch)
+#        - pushd $HOME/build/flow-project
+#        -     git clone https://github.com/eugenevinitsky/ray.git
+#        -     cd ray && git fetch && git checkout master && cd ..
+#        -     pushd ray
+#        -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
+#        -         rm -rf $RAY_SITE_DIR/rllib
+#        -         ls $RAY_SITE_DIR
+#        -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
+#        -     popd
+#        - popd
+#
+#        #  Add sumo python tools and binaries
+#        - pushd $HOME/build/flow-project/flow
+#        -     scripts/setup_sumo_osx.sh
+#        - popd
+#        - source ~/.bash_profile
+#
+#        - ls ../
 
 before_script:
   - flake8 --show-source
