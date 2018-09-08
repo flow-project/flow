@@ -13,23 +13,15 @@ def _read_requirements_file():
         return [line.strip() for line in f]
 
 
-class build_ext(_build_ext.build_ext):
-    def run(self):
-        pass
-
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
-
 
 setup(
     name='flow',
     version=__version__,
     distclass=BinaryDistribution,
-    cmdclass={"build_ext": build_ext},
     packages=find_packages(),
     install_requires=_read_requirements_file(),
-    # install_requires=['tensorflow'],
-    # dependency_links = ['git+ssh://github.com/openai/gym.git'],
     zip_safe=False,
 )
