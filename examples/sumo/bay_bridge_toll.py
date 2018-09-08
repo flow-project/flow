@@ -85,7 +85,7 @@ def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
         departSpeed=10)
 
     net_params = NetParams(
-        in_flows=inflow, no_internal_links=False, netfile=NETFILE)
+        inflows=inflow, no_internal_links=False, netfile=NETFILE)
 
     # download the netfile from AWS
     if use_traffic_lights:
