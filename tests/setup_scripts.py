@@ -1,3 +1,9 @@
+"""Specifies several methods for creating scenarios and environments.
+
+This allows us to reduce the number of times these features are specified when
+creating new tests, as all tests follow approximately the same format.
+"""
+
 import logging
 
 from numpy import pi, sin, cos, linspace
@@ -30,7 +36,7 @@ def ring_road_exp_setup(sumo_params=None,
                         initial_config=None,
                         traffic_lights=None):
     """
-    Creates an environment and scenario pair for ring road test experiments.
+    Create an environment and scenario pair for ring road test experiments.
 
     Parameters
     ----------
@@ -119,7 +125,7 @@ def figure_eight_exp_setup(sumo_params=None,
                            initial_config=None,
                            traffic_lights=None):
     """
-    Creates an environment and scenario pair for figure eight test experiments.
+    Create an environment and scenario pair for figure eight test experiments.
 
     Parameters
     ----------
@@ -209,7 +215,7 @@ def highway_exp_setup(sumo_params=None,
                       initial_config=None,
                       traffic_lights=None):
     """
-    Creates an environment and scenario pair for highway test experiments.
+    Create an environment and scenario pair for highway test experiments.
 
     Parameters
     ----------
@@ -300,9 +306,7 @@ def grid_mxn_exp_setup(row_num=1,
                        initial_config=None,
                        tl_logic=None):
     """
-    Creates an environment and scenario pair for grid 1x1 test experiments.
-    sumo-related configuration parameters, defaults to a time step of 1s
-    and no sumo-imposed failsafe on human or rl vehicles
+    Create an environment and scenario pair for grid 1x1 test experiments.
 
     Parameters
     ----------
@@ -311,6 +315,8 @@ def grid_mxn_exp_setup(row_num=1,
     col_num: int, optional
         number of vertical columns of edges in the grid network
     sumo_params: SumoParams type
+        sumo-related configuration parameters, defaults to a time step of 1s
+        and no sumo-imposed failsafe on human or rl vehicles
     vehicles: Vehicles type
         vehicles to be placed in the network, default is 5 vehicles per edge
         for a total of 20 vehicles with an IDM acceleration controller and
@@ -414,8 +420,10 @@ def variable_lanes_exp_setup(sumo_params=None,
                              initial_config=None,
                              traffic_lights=None):
     """
-    Creates an environment and scenario pair for a ring road network with
-    different number of lanes in each edge. Used for test purposes.
+    Create an environment and scenario variable-lane ring road.
+
+    Each edge in this scenario can have a different number of lanes. Used for
+    test purposes.
 
     Parameters
     ----------
@@ -505,7 +513,33 @@ def setup_bottlenecks(sumo_params=None,
                       traffic_lights=None,
                       inflow=None,
                       scaling=1):
+    """
+    Create an environment and scenario pair for grid 1x1 test experiments.
 
+    Sumo-related configuration parameters, defaults to a time step of 1s
+    and no sumo-imposed failsafe on human or rl vehicles
+
+    Parameters
+    ----------
+    sumo_params: SumoParams type
+        sumo-related configuration parameters, defaults to a time step of 0.1s
+        and no sumo-imposed failsafe on human or rl vehicles
+    vehicles: Vehicles type
+        vehicles to be placed in the network, default is 5 vehicles per edge
+        for a total of 20 vehicles with an IDM acceleration controller and
+        GridRouter routing controller.
+    env_params: EnvParams type
+        environment-specific parameters, defaults to a environment with
+        failsafes, where other parameters do not matter for non-rl runs
+    net_params: NetParams type
+        network-specific configuration parameters, defaults to a 1x1 grid
+        which traffic lights on and "no_internal_links" set to False
+    initial_config: InitialConfig type
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
+    traffic_lights: TrafficLights type
+        specifies logic of any traffic lights added to the system
+    """
     if sumo_params is None:
         # set default sumo_params configuration
         sumo_params = SumoParams(sim_step=0.1, render=False)
@@ -575,7 +609,13 @@ def setup_bottlenecks(sumo_params=None,
 
 
 class VariableLanesGenerator(CircleGenerator):
+    """Instantiate a ring road with variable number of lanes per edge."""
+
     def specify_edges(self, net_params):
+        """See parent class.
+
+        Each edge can be provided with a separate number of lanes.
+        """
         length = net_params.additional_params["length"]
         resolution = net_params.additional_params["resolution"]
         v = net_params.additional_params["speed_limit"]

@@ -1,6 +1,7 @@
 """
-Utility functions for Flow compatibility with RLlib, including: environment
-generation, serialization, and visualization.
+Utility functions for Flow compatibility with RLlib.
+
+This includes: environment generation, serialization, and visualization.
 """
 import json
 from copy import deepcopy
@@ -13,11 +14,16 @@ from flow.core.vehicles import Vehicles
 
 class FlowParamsEncoder(json.JSONEncoder):
     """
-    Custom encoder used to generate ``flow_params.json``
+    Custom encoder used to generate ``flow_params.json``.
+
     Extends ``json.JSONEncoder``.
     """
 
     def default(self, obj):
+        """See parent class.
+
+        Extended to support the Vehicles object in flow/core/vehicles.py.
+        """
         allowed_types = [dict, list, tuple, str, int, float, bool, type(None)]
 
         if obj not in allowed_types:
@@ -44,7 +50,7 @@ class FlowParamsEncoder(json.JSONEncoder):
 
 
 def get_flow_params(config):
-    """Returns Flow experiment parameters, given an experiment result folder
+    """Return Flow experiment parameters, given an experiment result folder.
 
     Parameters
     ----------

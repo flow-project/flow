@@ -64,7 +64,7 @@ class Scenario(Serializable):
             Serializable.quick_init(self, locals())
 
         self.orig_name = name  # To avoid repeated concatenation upon reset
-        self.name = name + time.strftime("_%Y%m%d-%H%M%S")
+        self.name = name + time.strftime("_%Y%m%d-%H%M%S") + str(time.time())
 
         self.generator_class = generator_class
         self.vehicles = vehicles
