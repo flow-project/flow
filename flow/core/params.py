@@ -193,7 +193,10 @@ class NetParams:
             what is needed
         """
         self.no_internal_links = no_internal_links
-        self.in_flows = in_flows
+        if in_flows is None:
+            self.in_flows = InFlows()
+        else:
+            self.in_flows = in_flows
         self.osm_path = osm_path
         self.netfile = netfile
         self.additional_params = additional_params or {}
