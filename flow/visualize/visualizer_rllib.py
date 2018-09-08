@@ -17,8 +17,8 @@ import numpy as np
 import os
 
 import ray
-from ray.rllib.agent import get_agent_class
-from ray.tune.registry import get_registry, register_env
+from ray.rllib.agents.agent import get_agent_class
+from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     agent_cls = get_agent_class(args.run)
-    agent = agent_cls(env=env_name, registry=get_registry(), config=config)
+    agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
 

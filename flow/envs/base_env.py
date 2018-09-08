@@ -1,3 +1,5 @@
+"""Base environment class. This is the parent of all other environments."""
+
 import logging
 import os
 import signal
@@ -35,35 +37,36 @@ RETRIES_ON_ERROR = 10
 
 
 class Env(gym.Env, Serializable):
+    """Base environment class.
+
+    Provides the interface for controlling a SUMO simulation. Using this
+    class, you can start sumo, provide a scenario to specify a
+    configuration and controllers, perform simulation steps, and reset the
+    simulation to an initial configuration.
+
+    Env is Serializable to allow for pickling and replaying of the policy.
+
+    This class cannot be used as is: you must extend it to implement an
+    action applicator method, and properties to define the MDP if you
+    choose to use it with an rl library (e.g. RLlib). This can be done by
+    overloading the following functions in a child class:
+     - action_space
+     - observation_space
+     - apply_rl_action
+     - get_state
+     - compute_reward
+
+    Attributes
+    ----------
+    env_params: EnvParams type:
+       see flow/core/params.py
+    sumo_params: SumoParams type
+       see flow/core/params.py
+    scenario: Scenario type
+        see flow/scenarios/base_scenario.py
+    """
+
     def __init__(self, env_params, sumo_params, scenario):
-        """Base environment class.
-
-        Provides the interface for controlling a SUMO simulation. Using this
-        class, you can start sumo, provide a scenario to specify a
-        configuration and controllers, perform simulation steps, and reset the
-        simulation to an initial configuration.
-
-        Env is Serializable to allow for pickling and replaying of the policy.
-
-        This class cannot be used as is: you must extend it to implement an
-        action applicator method, and properties to define the MDP if you
-        choose to use it with an rl library (e.g. RLlib). This can be done by
-        overloading the following functions in a child class:
-         - action_space
-         - observation_space
-         - apply_rl_action
-         - get_state
-         - compute_reward
-
-        Attributes
-        ----------
-        env_params: EnvParams type:
-           see flow/core/params.py
-        sumo_params: SumoParams type
-           see flow/core/params.py
-        scenario: Scenario type
-            see flow/scenarios/base_scenario.py
-        """
         # Invoke serializable if using rllab
         if Serializable is not object:
             Serializable.quick_init(self, locals())
@@ -128,7 +131,7 @@ class Env(gym.Env, Serializable):
         self.setup_initial_state()
 
     def restart_sumo(self, sumo_params, render=None):
-        """Restarts an already initialized sumo instance.
+        """Restart an already initialized sumo instance.
 
         This is used when visualizing a rollout, in order to update the
         rendering with potentially a gui and export emission data from sumo.
@@ -157,7 +160,7 @@ class Env(gym.Env, Serializable):
         self.setup_initial_state()
 
     def start_sumo(self):
-        """Starts a sumo instance.
+        """Start a sumo instance.
 
         Uses the configuration files created by the generator class to
         initialize a sumo instance. Also initializes a traci connection to
@@ -178,7 +181,7 @@ class Env(gym.Env, Serializable):
                         time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
-                sumo_binary = "sumo" if self.sumo_params.render else "sumo-gui"
+                sumo_binary = "sumo-gui" if self.sumo_params.render else "sumo"
 
                 # command used to start sumo
                 sumo_call = [
@@ -256,11 +259,11 @@ class Env(gym.Env, Serializable):
         raise error
 
     def setup_initial_state(self):
-        """Returns information on the initial state of the vehicles in the
-        network, to be used upon reset.
+        """Return information on the initial state of vehicles in the network.
 
-        Also adds initial state information to the self.vehicles class and
-        starts a subscription with sumo to collect state information each step.
+        This information is to be used upon reset. This method also adds this
+        information to the self.vehicles class and starts a subscription with
+        sumo to collect state information each step.
 
         Returns
         -------
@@ -350,7 +353,7 @@ class Env(gym.Env, Serializable):
         self.vehicles.update(vehicle_obs, id_lists, self)
 
     def step(self, rl_actions):
-        """Advances the environment by one step.
+        """Advance the environment by one step.
 
         Assigns actions to autonomous and human-driven agents (i.e. vehicles,
         traffic lights, etc...). Actions that are not assigned are left to the
@@ -462,7 +465,7 @@ class Env(gym.Env, Serializable):
         return next_observation, reward, crash, {}
 
     def reset(self):
-        """Resets the environment.
+        """Reset the environment.
 
         This method is performed in between rollouts. It resets the state of
         the environment, and re-initializes the vehicles in their starting
@@ -621,7 +624,7 @@ class Env(gym.Env, Serializable):
         pass
 
     def apply_rl_actions(self, rl_actions=None):
-        """Specifies the actions to be performed by the rl agent(s).
+        """Specify the actions to be performed by the rl agent(s).
 
         If no actions are provided at any given step, the rl agents default to
         performing actions specified by sumo.
@@ -648,7 +651,7 @@ class Env(gym.Env, Serializable):
         raise NotImplementedError
 
     def apply_acceleration(self, veh_ids, acc):
-        """Applies the acceleration requested by a vehicle in sumo.
+        """Apply the acceleration requested by a vehicle in sumo.
 
         Note that, if the sumo-specified speed mode of the vehicle is not
         "aggressive", the acceleration may be clipped by some safety velocity
@@ -668,8 +671,12 @@ class Env(gym.Env, Serializable):
                 self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
     def apply_lane_change(self, veh_ids, direction):
-        """Applies an instantaneous lane-change to a set of vehicles, while
-        preventing vehicles from moving to lanes that do not exist.
+        """Apply an instantaneous lane-change to a set of vehicles.
+
+        This method also prevents vehicles from moving to lanes that do not
+        exist, and set the "last_lc" variable for RL vehicles that lane changed
+        to match the current time step, in order to assist in maintaining a
+        lane change duration for these vehicles.
 
         Parameters
         ----------
@@ -713,7 +720,7 @@ class Env(gym.Env, Serializable):
                         self.vehicles.get_state(veh_id, "last_lc")
 
     def choose_routes(self, veh_ids, route_choices):
-        """Updates the route choice of vehicles in the network.
+        """Update the route choice of vehicles in the network.
 
         Parameters
         ----------
@@ -730,8 +737,11 @@ class Env(gym.Env, Serializable):
                     vehID=veh_id, edgeList=route_choices[i])
 
     def get_x_by_id(self, veh_id):
-        """Provides a 1-dimensional representation of the position of a vehicle
-        in the network.
+        """Provide a 1-D representation of the position of a vehicle.
+
+        Note: These values are only meaningful if the specify_edge_starts
+        method in the scenario is set appropriately; otherwise, a value of 0 is
+        returned for all vehicles.
 
         Parameters
         ----------
@@ -750,7 +760,7 @@ class Env(gym.Env, Serializable):
             self.vehicles.get_edge(veh_id), self.vehicles.get_position(veh_id))
 
     def sort_by_position(self):
-        """Sorts the vehicle ids of vehicles in the network by position.
+        """Sort the vehicle ids of vehicles in the network by position.
 
         The base environment does this by sorting vehicles by their absolute
         position.
@@ -773,7 +783,7 @@ class Env(gym.Env, Serializable):
             return self.vehicles.get_ids(), None
 
     def update_vehicle_colors(self):
-        """Modifies the color of vehicles if rendering is active.
+        """Modify the color of vehicles if rendering is active.
 
         The colors of all vehicles are updated as follows:
         - red: autonomous (rl) vehicles
@@ -811,7 +821,7 @@ class Env(gym.Env, Serializable):
             self.vehicles.remove_observed(veh_id)
 
     def get_state(self):
-        """Returns the state of the simulation as perceived by the RL agent.
+        """Return the state of the simulation as perceived by the RL agent.
 
         MUST BE implemented in new environments.
 
@@ -825,8 +835,7 @@ class Env(gym.Env, Serializable):
 
     @property
     def action_space(self):
-        """Identifies the dimensions and bounds of the action space (needed for
-        gym environments).
+        """Identify the dimensions and bounds of the action space.
 
         MUST BE implemented in new environments.
 
@@ -839,8 +848,7 @@ class Env(gym.Env, Serializable):
 
     @property
     def observation_space(self):
-        """Identifies the dimensions and bounds of the observation space
-        (needed for gym environments).
+        """Identify the dimensions and bounds of the observation space.
 
         MUST BE implemented in new environments.
 
@@ -875,7 +883,7 @@ class Env(gym.Env, Serializable):
         return 0
 
     def terminate(self):
-        """Closes the TraCI I/O connection.
+        """Close the TraCI I/O connection.
 
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
@@ -887,6 +895,7 @@ class Env(gym.Env, Serializable):
         self.scenario.close()
 
     def teardown_sumo(self):
+        """Kill the sumo subprocess instance."""
         try:
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
         except Exception:
@@ -896,4 +905,5 @@ class Env(gym.Env, Serializable):
         return []
 
     def render(self, mode='human'):
+        """See parent class (gym.Env)."""
         pass

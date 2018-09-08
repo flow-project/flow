@@ -26,7 +26,7 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = .1
-PARALLEL_ROLLOUTS = 32
+N_CPUS = 32
 i = 0
 
 sumo_params = SumoParams(
