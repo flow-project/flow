@@ -1,12 +1,12 @@
 """
-This script contains several car-following control models for
-flow-controlled vehicles.
+Contains several custom car-following control models.
 
-Controllers can have their output delayed by some duration. Each controller
-includes the function ``get_accel(self, env) -> acc`` which, using the
-current state of the world and existing parameters, uses the control
+These controllers can be used to modify the acceleration behavior of vehicles
+in Flow to match various prominent car-following models that can be calibrated.
+
+Each controller includes the function ``get_accel(self, env) -> acc`` which,
+using the current state of the world and existing parameters, uses the control
 model to return a vehicle acceleration.
-
 """
 import math
 import numpy as np
@@ -15,6 +15,8 @@ from flow.controllers.base_controller import BaseController
 
 
 class CFMController(BaseController):
+    """CFM controller."""
+
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -26,7 +28,7 @@ class CFMController(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None):
-        """Instantiates a CFM controller
+        """Instantiate a CFM controller.
 
         Attributes
         ----------
@@ -68,6 +70,7 @@ class CFMController(BaseController):
         self.v_des = v_des
 
     def get_accel(self, env):
+        """See parent class."""
         lead_id = env.vehicles.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.max_accel
@@ -82,6 +85,11 @@ class CFMController(BaseController):
 
 
 class BCMController(BaseController):
+    """Bilateral car-following model controller.
+
+    This model looks ahead and behind when computing its acceleration.
+    """
+
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -93,8 +101,7 @@ class BCMController(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None):
-        """Instantiates a Bilateral car-following model controller. Looks ahead
-        and behind.
+        """Instantiate a Bilateral car-following model controller.
 
         Attributes
         ----------
@@ -136,7 +143,8 @@ class BCMController(BaseController):
         self.v_des = v_des
 
     def get_accel(self, env):
-        """
+        """See parent class.
+
         From the paper:
         There would also be additional control rules that take
         into account minimum safe separation, relative speeds,
@@ -162,6 +170,8 @@ class BCMController(BaseController):
 
 
 class OVMController(BaseController):
+    """Optimal Vehicle Model controller."""
+
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -173,7 +183,7 @@ class OVMController(BaseController):
                  time_delay=0,
                  noise=0,
                  fail_safe=None):
-        """Instantiates an Optimal Vehicle Model controller.
+        """Instantiate an Optimal Vehicle Model controller.
 
         Attributes
         ----------
@@ -216,6 +226,7 @@ class OVMController(BaseController):
         self.h_go = h_go
 
     def get_accel(self, env):
+        """See parent class."""
         lead_id = env.vehicles.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.max_accel
@@ -238,6 +249,8 @@ class OVMController(BaseController):
 
 
 class LinearOVM(BaseController):
+    """Linear OVM controller."""
+
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
@@ -247,7 +260,7 @@ class LinearOVM(BaseController):
                  time_delay=0.0,
                  noise=0,
                  fail_safe=None):
-        """Instantiates a Linear OVM controller
+        """Instantiate a Linear OVM controller.
 
         Attributes
         ----------
@@ -284,6 +297,7 @@ class LinearOVM(BaseController):
         self.h_st = h_st
 
     def get_accel(self, env):
+        """See parent class."""
         this_vel = env.vehicles.get_speed(self.veh_id)
         h = env.vehicles.get_headway(self.veh_id)
 
@@ -300,6 +314,14 @@ class LinearOVM(BaseController):
 
 
 class IDMController(BaseController):
+    """Intelligent Driver Model (IDM) controller.
+
+    For more information on this controller, see:
+    Treiber, Martin, Ansgar Hennecke, and Dirk Helbing. "Congested traffic
+    states in empirical observations and microscopic simulations." Physical
+    review E 62.2 (2000): 1805.
+    """
+
     def __init__(self,
                  veh_id,
                  v0=30,
@@ -313,7 +335,7 @@ class IDMController(BaseController):
                  noise=0,
                  fail_safe=None,
                  sumo_cf_params=None):
-        """Instantiates an Intelligent Driver Model (IDM) controller
+        """Instantiate an IDM controller.
 
         Attributes
         ----------
@@ -355,6 +377,7 @@ class IDMController(BaseController):
         self.dt = dt
 
     def get_accel(self, env):
+        """See parent class."""
         v = env.vehicles.get_speed(self.veh_id)
         lead_id = env.vehicles.get_leader(self.veh_id)
         h = env.vehicles.get_headway(self.veh_id)
@@ -378,13 +401,15 @@ class IDMController(BaseController):
 
 
 class SumoCarFollowingController(BaseController):
-    def __init__(self, veh_id, sumo_cf_params):
-        """Instantiates a car-following controller whose actions are purely
-        defined by sumo.
+    """Controller whose actions are purely defined by sumo.
 
-        Note that methods for implementing noise and failsafes through
-        BaseController, are not available here. However, similar methods are
-        available through sumo when initializing the parameters of the vehicle.
+    Note that methods for implementing noise and failsafes through
+    BaseController, are not available here. However, similar methods are
+    available through sumo when initializing the parameters of the vehicle.
+    """
+
+    def __init__(self, veh_id, sumo_cf_params):
+        """Instantiate a sumo controller.
 
         Attributes
         ----------
@@ -397,4 +422,5 @@ class SumoCarFollowingController(BaseController):
         self.sumo_controller = True
 
     def get_accel(self, env):
+        """See parent class."""
         return None
