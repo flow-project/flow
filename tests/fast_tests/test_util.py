@@ -231,7 +231,7 @@ class TestRllib(unittest.TestCase):
                 },
             ),
             net=NetParams(
-                in_flows=inflow,
+                inflows=inflow,
                 no_internal_links=False,
                 additional_params={
                     "merge_length": 100,
@@ -272,11 +272,11 @@ class TestRllib(unittest.TestCase):
         os.remove(os.path.expanduser('params.json'))
 
         # test that this inflows are correct
-        self.assertTrue(imported_flow_params["net"].in_flows.__dict__ ==
-                        flow_params["net"].in_flows.__dict__)
+        self.assertTrue(imported_flow_params["net"].inflows.__dict__ ==
+                        flow_params["net"].inflows.__dict__)
 
-        imported_flow_params["net"].in_flows = None
-        flow_params["net"].in_flows = None
+        imported_flow_params["net"].inflows = None
+        flow_params["net"].inflows = None
 
         # make sure the rest of the imported flow_params match the originals
         self.assertTrue(imported_flow_params["env"].__dict__ == flow_params[

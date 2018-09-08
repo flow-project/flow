@@ -84,7 +84,7 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(
-    in_flows=inflow,
+    inflows=inflow,
     no_internal_links=False,
     additional_params=additional_net_params)
 
@@ -120,7 +120,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     ),

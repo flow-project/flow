@@ -106,7 +106,7 @@ class TestCollisions(unittest.TestCase):
 
         net_params = NetParams(
             no_internal_links=False,
-            in_flows=inflows,
+            inflows=inflows,
             additional_params=additional_net_params)
 
         self.env, self.scenario = grid_mxn_exp_setup(

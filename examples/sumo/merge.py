@@ -76,7 +76,7 @@ def merge_example(sumo_binary=None):
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 

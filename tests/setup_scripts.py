@@ -582,7 +582,7 @@ def setup_bottlenecks(sumo_params=None,
     if net_params is None:
         additional_net_params = {"scaling": scaling}
         net_params = NetParams(
-            in_flows=inflow,
+            inflows=inflow,
             no_internal_links=False,
             additional_params=additional_net_params)
 

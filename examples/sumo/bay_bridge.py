@@ -159,7 +159,7 @@ def bay_bridge_example(sumo_binary=None,
             departLane="0",
             departSpeed=20)  # no data for this
 
-    net_params = NetParams(in_flows=inflow, no_internal_links=False)
+    net_params = NetParams(inflows=inflow, no_internal_links=False)
     net_params.netfile = NETFILE
 
     # download the netfile from AWS
