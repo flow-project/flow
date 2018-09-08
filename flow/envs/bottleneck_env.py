@@ -878,7 +878,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     additional_net_params = {"scaling": self.scaling}
                     net_params = NetParams(
-                        in_flows=inflow,
+                        inflows=inflow,
                         no_internal_links=False,
                         additional_params=additional_net_params)
 

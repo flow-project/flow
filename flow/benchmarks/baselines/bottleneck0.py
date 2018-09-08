@@ -81,7 +81,7 @@ def bottleneck0_baseline(num_runs, sumo_binary="sumo-gui"):
         traffic_lights.add(node_id="3")
 
     additional_net_params = {"scaling": SCALING}
-    net_params = NetParams(in_flows=inflow,
+    net_params = NetParams(inflows=inflow,
                            no_internal_links=False,
                            additional_params=additional_net_params)
 

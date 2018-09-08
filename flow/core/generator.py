@@ -397,8 +397,8 @@ class Generator(Serializable):
                     departLane=str(lane)))
 
         # add the in-flows from various edges to the xml file
-        if self.net_params.in_flows is not None:
-            total_inflows = self.net_params.in_flows.get()
+        if self.net_params.inflows is not None:
+            total_inflows = self.net_params.inflows.get()
             for inflow in total_inflows:
                 for key in inflow:
                     if not isinstance(inflow[key], str):

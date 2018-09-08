@@ -47,7 +47,7 @@ def get_flow_params(v_enter, vehs_per_hour, col_num, row_num,
             departSpeed=v_enter)
 
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 

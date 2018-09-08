@@ -59,7 +59,7 @@ def highway_example(sumo_binary=None):
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(
-        in_flows=inflow, additional_params=additional_net_params)
+        inflows=inflow, additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform", shuffle=True)
 

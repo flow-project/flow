@@ -93,7 +93,7 @@ def grid0_baseline(num_runs, sumo_binary="sumo-gui"):
                      programID=1)
 
     net_params = NetParams(
-            in_flows=inflow,
+            inflows=inflow,
             no_internal_links=False,
             additional_params={
                 "speed_limit": V_ENTER + 5,

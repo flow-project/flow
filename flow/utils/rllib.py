@@ -109,9 +109,9 @@ def get_flow_params(config):
 
     net = NetParams()
     net.__dict__ = flow_params["net"].copy()
-    net.in_flows = InFlows()
-    if flow_params["net"]["in_flows"]:
-        net.in_flows.__dict__ = flow_params["net"]["in_flows"].copy()
+    net.inflows = InFlows()
+    if flow_params["net"]["inflows"]:
+        net.inflows.__dict__ = flow_params["net"]["inflows"].copy()
 
     env = EnvParams()
     env.__dict__ = flow_params["env"].copy()

@@ -82,7 +82,7 @@ def bottleneck_example(flow_rate, horizon, sumo_binary=None):
 
     additional_net_params = {"scaling": SCALING}
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 
