@@ -52,13 +52,16 @@ matrix:
     - os: osx
       osx_image: xcode9  # TODO: decide on image, or use multiple
       install:
+        # add to silence PATH issue
+        rvm get stable --auto-dotfiles
+
         # dependency for md5sum
         brew install md5sha1sum
 
         # Setup conda (needed for opencv, ray dependency)
         - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
         - bash miniconda.sh -b -p $HOME/miniconda
-        - export PATH="$HOME/miniconda/bin:$PATH"
+        - export PATH="$PATH:$HOME/miniconda/bin"
         - export TEST_FLAG="True"
         - hash -r
         - conda config --set always_yes yes --set changeps1 no
