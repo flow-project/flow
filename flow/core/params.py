@@ -2,6 +2,7 @@
 
 import logging
 from flow.utils.flow_warnings import deprecation_warning
+import warnings
 
 
 class SumoParams:
@@ -25,7 +26,8 @@ class SumoParams:
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
-                 teleport_time=-1):
+                 teleport_time=-1,
+                 sumo_binary=None):
         """Instantiate SumoParams.
 
         Attributes
@@ -79,6 +81,14 @@ class SumoParams:
         self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
+        if sumo_binary is not None:
+            warnings.simplefilter("always", PendingDeprecationWarning)
+            warnings.warn(
+                "sumo_params will be deprecated in a future release, use "
+                "render instead.",
+                PendingDeprecationWarning
+            )
+            self.render = sumo_binary == "sumo-gui"
 
 
 class EnvParams:
