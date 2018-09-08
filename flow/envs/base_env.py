@@ -9,7 +9,6 @@ import time
 import traceback
 import numpy as np
 import random
-import warnings
 
 import traci
 from traci import constants as tc
