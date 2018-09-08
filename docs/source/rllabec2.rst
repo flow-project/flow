@@ -15,8 +15,8 @@ reference the most current Flow Docker image.
 
 Navigate to your ``flow`` directory and modify ``Makefile.template`` per
 the instructions in that file. The variable ``RLLABDIR`` should be the
-relative path from your ``flow`` directory to ``rllab`` and should not
-have a backslash at the end.
+relative path from your ``flow`` directory to ``rllab`` and **should not
+have a backslash at the end**.
 
 Running an experiment
 ---------------------
@@ -32,10 +32,10 @@ reason for the ``RLLABDIR`` variable above).
 -  Ensure you have committed or otherwise tracked the state of your
    ``flow`` directory, because that instance is what will be used to run
    your experiment. Upon visualization, the same files will need to be
-   used—for example, changes to environment's state-space would break
+   used—for example, changes to your environment's state-space would break
    the ability to run a trained policy using a different state space.
-   Check out an old commit of your ``flow`` directory and run
-   ``make prepare`` to use visualization tools included with rllab.
+   Check out an old commit of your ``flow`` directory before visualizing
+   your experiment results.
 
 ``make clean`` removes the debug directory and also all XML files in
 rllab root directory to reduce the size of the data to upload to AWS. If
