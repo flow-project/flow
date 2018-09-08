@@ -51,7 +51,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
             departSpeed=20)
 
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 

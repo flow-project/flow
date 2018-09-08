@@ -85,7 +85,7 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
     initial_config = InitialConfig()
 
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     )
