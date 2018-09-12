@@ -2,7 +2,11 @@
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
-# Flow
+# Flow [Hieracrhical Transfer Learning Team]
+## Roundabout: Lucas
+## Grid: Umang
+## Merge: Xiao
+## Bottleneck: Kaila
 
 [Flow](https://berkeleyflow.github.io) is a computational framework for deep RL and control experiments for traffic microsimulation.
 
