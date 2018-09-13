@@ -58,7 +58,9 @@ We begin by downloading SUMO's github directory:
     git checkout 1d4338ab80
     make -f Makefile.cvs
 
-If you have OSX, run the following commands
+If you have OSX, run the following commands. If you don't have brew
+you can find installation instructions at 
+<https://docs.brew.sh/Installation>
 
 ::
     brew update
