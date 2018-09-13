@@ -2,6 +2,7 @@
 
 import logging
 from flow.utils.flow_warnings import deprecation_warning
+import warnings
 
 
 class SumoParams:
@@ -166,6 +167,7 @@ class NetParams:
     def __init__(self,
                  no_internal_links=True,
                  inflows=None,
+                 in_flows=None,
                  osm_path=None,
                  netfile=None,
                  additional_params=None):
@@ -200,6 +202,14 @@ class NetParams:
         self.osm_path = osm_path
         self.netfile = netfile
         self.additional_params = additional_params or {}
+        if in_flows is not None:
+            warnings.simplefilter("always", PendingDeprecationWarning)
+            warnings.warn(
+                "in_flows will be deprecated in a future release, use "
+                "inflows instead.",
+                PendingDeprecationWarning
+            )
+            self.inflows = in_flows
 
 
 class InitialConfig:
