@@ -1,6 +1,7 @@
 """Contains the highway scenario class."""
 
 from flow.core.generator import Generator
+import numpy as np
 
 
 class HighwayGenerator(Generator):
@@ -20,30 +21,38 @@ class HighwayGenerator(Generator):
     def specify_nodes(self, net_params):
         """See parent class."""
         length = net_params.additional_params["length"]
+        num_edges = net_params.additional_params.get("length", 1)
+        segment_lengths = np.linspace(0, length, num_edges+1)[1:]
 
-        nodes = [{
-            "id": "begin",
-            "x": repr(0),
-            "y": repr(0)
-        }, {
-            "id": "end",
-            "x": repr(length),
-            "y": repr(0)
-        }]
+        nodes = []
+        for i in range(num_edges):
+            nodes += [{
+                "id": "begin_{}".format(i),
+                "x": repr(segment_lengths[i]),
+                "y": repr(segment_lengths[i])
+            }, {
+                "id": "end_{}".format(i),
+                "x": repr(segment_lengths[i+1]),
+                "y": repr(segment_lengths[i+1])
+            }]
 
         return nodes
 
     def specify_edges(self, net_params):
         """See parent class."""
         length = net_params.additional_params["length"]
+        num_edges = net_params.additional_params.get("length", 1)
+        segment_length = length/float(num_edges)
 
-        edges = [{
-            "id": "highway",
-            "type": "highwayType",
-            "from": "begin",
-            "to": "end",
-            "length": repr(length)
-        }]
+        edges = []
+        for i in range(num_edges):
+            edges += [{
+                "id": "highway",
+                "type": "highwayType",
+                "from": "begin_{}".format(i),
+                "to": "end_{}".format(i),
+                "length": repr(segment_length)
+            }]
 
         return edges
 
