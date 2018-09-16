@@ -1119,7 +1119,7 @@ class Vehicles:
         edge_dict : dict < list<tuple> >
             Key = Edge name
                 Index = lane index
-                Element = sorted list of (vehicle id, position)
+                Element = list sorted by position of (vehicle id, position)
 
         Returns
         -------
@@ -1147,7 +1147,7 @@ class Vehicles:
         follower = [""] * num_lanes
 
         for lane in range(num_lanes):
-            # check the vehicle's current  edge for lane leaders and followers
+            # check the vehicle's current edge for lane leaders and followers
             if len(edge_dict[this_edge][lane]) > 0:
                 ids, positions = zip(*edge_dict[this_edge][lane])
                 ids = list(ids)
@@ -1168,8 +1168,7 @@ class Vehicles:
                         headway[lane] = positions[index] - this_pos \
                             - self.get_length(leader[lane])
 
-                # you are in the back of the queue, the lane follower is in the
-                # edges behind you
+                # if you are not in the back of the queue, look behind you
                 if index > 0:
                     follower[lane] = ids[index - 1]
                     tailway[lane] = this_pos - positions[index - 1] \
