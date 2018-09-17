@@ -1167,14 +1167,14 @@ class Vehicles:
                                          self.get_length(leader[lane]))
                     else:
                         leader[lane] = ids[index]
-                        headway[lane] = (positions[index] - this_pos \
+                        headway[lane] = (positions[index] - this_pos
                                         - self.get_length(leader[lane]))
 
                 # you are in the back of the queue, the lane follower is in the
                 # edges behind you
                 if index > 0:
                     follower[lane] = ids[index - 1]
-                    tailway[lane] = (this_pos - positions[index - 1] \
+                    tailway[lane] = (this_pos - positions[index - 1]
                                     - self.get_length(veh_id))
 
             # if lane leader not found, check next edges
