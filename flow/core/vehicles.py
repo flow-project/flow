@@ -1171,17 +1171,17 @@ class Vehicles:
                         else:
                             leader[lane] = ids[index]
                             headway[lane] = positions[index] - this_pos \
-                                            - self.get_length(leader[lane])
+                                - self.get_length(leader[lane])
                     elif index < len(positions):
                         leader[lane] = ids[index]
                         headway[lane] = positions[index] - this_pos \
-                                        - self.get_length(leader[lane])
+                            - self.get_length(leader[lane])
 
                     # if you are not in the back of the queue, look behind you
                     if index > 0:
                         follower[lane] = ids[index - 1]
                         tailway[lane] = this_pos - positions[index - 1] \
-                                        - self.get_length(veh_id)
+                            - self.get_length(veh_id)
 
                 elif len(positions) == 1 and ids[0] != veh_id:
                     # the vehicle is the leader
@@ -1192,7 +1192,7 @@ class Vehicles:
                     else:
                         follower[lane] = ids[0]
                         tailway[lane] = this_pos - positions[0] \
-                                        - self.get_length(veh_id)
+                            - self.get_length(veh_id)
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
@@ -1239,7 +1239,7 @@ class Vehicles:
                 if len(edge_dict[edge][lane]) > 0:
                     leader = edge_dict[edge][lane][0][0]
                     headway = edge_dict[edge][lane][0][1] - pos + add_length \
-                              - self.get_length(leader)
+                        - self.get_length(leader)
             except KeyError:
                 # current edge has no vehicles, so move on
                 continue
