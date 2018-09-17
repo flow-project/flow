@@ -1138,6 +1138,7 @@ class Vehicles:
         """
         this_pos = self.get_position(veh_id)
         this_edge = self.get_edge(veh_id)
+        this_lane = self.get_lane(veh_id)
         num_lanes = env.scenario.num_lanes(this_edge)
 
         # set default values for all output values
@@ -1156,7 +1157,8 @@ class Vehicles:
 
                 # if you are at the end or the front of the edge, the lane
                 # leader is in the edges in front of you
-                if index < len(positions):
+                if (lane == this_lane and index < len(positions)-1) \
+                        or (lane != this_lane and index < len(positions)):
                     # check if the index does not correspond to the current
                     # vehicle
                     if ids[index] == veh_id:
