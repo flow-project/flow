@@ -21,8 +21,8 @@ class HighwayGenerator(Generator):
     def specify_nodes(self, net_params):
         """See parent class."""
         length = net_params.additional_params["length"]
-        num_edges = net_params.additional_params.get("length", 1)
-        segment_lengths = np.linspace(0, length, num_edges+1)[1:]
+        num_edges = net_params.additional_params.get("num_edges", 1)
+        segment_lengths = np.linspace(0, length, num_edges+1)
 
         nodes = []
         for i in range(num_edges):
@@ -41,13 +41,13 @@ class HighwayGenerator(Generator):
     def specify_edges(self, net_params):
         """See parent class."""
         length = net_params.additional_params["length"]
-        num_edges = net_params.additional_params.get("length", 1)
+        num_edges = net_params.additional_params.get("num_edges", 1)
         segment_length = length/float(num_edges)
 
         edges = []
         for i in range(num_edges):
             edges += [{
-                "id": "highway",
+                "id": "highway_{}".format(i),
                 "type": "highwayType",
                 "from": "begin_{}".format(i),
                 "to": "end_{}".format(i),
@@ -71,6 +71,32 @@ class HighwayGenerator(Generator):
 
     def specify_routes(self, net_params):
         """See parent class."""
-        rts = {"highway": ["highway"]}
+        num_edges = net_params.additional_params.get("length", 1)
+        rts = {}
+        for i in range(num_edges):
+            rts["highway_{}".format(i)] = ["highway_{}".format(j) for j in range(i, num_edges)]
 
         return rts
+
+    # def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+    #     """Generate a user defined set of starting positions.
+    #     This method is just used for testing.
+    #
+    #     Parameters
+    #     ----------
+    #     initial_config : InitialConfig type
+    #         see flow/core/params.py
+    #     num_vehicles : int
+    #         number of vehicles to be placed on the network
+    #     kwargs : dict
+    #         extra components, usually defined during reset to overwrite initial
+    #         config parameters
+    #
+    #     Returns
+    #     -------
+    #     startpositions : list of tuple (float, float)
+    #         list of start positions [(edge0, pos0), (edge1, pos1), ...]
+    #     startlanes : list of int
+    #         list of start lanes
+    #     """
+    #     return kwargs["start_"]

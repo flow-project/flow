@@ -11,6 +11,8 @@ ADDITIONAL_NET_PARAMS = {
     "lanes": 4,
     # speed limit for all edges
     "speed_limit": 30,
+    # number of edges to divide the highway into
+    "num_edges": 1
 }
 
 
@@ -45,5 +47,5 @@ class HighwayScenario(Scenario):
 
     def specify_edge_starts(self):
         """See parent class."""
-        edgestarts = [("highway", 0)]
+        edgestarts = [("highway_0", 0)]
         return edgestarts
