@@ -7,7 +7,9 @@ one in the figure below. Click on the play button (highlighted in red) and the
 simulation will begin, with the autonomous vehicles exhibiting the behavior
 trained by the reinforcement learning algorithm.
 
-![alt text](https://github.com/flow-project/flow/tree/master/docs/img/visualizing.png)
+.. image:: ../img/visualizing.png
+   :width: 400
+   :align: center
 
 rllab
 =====
