@@ -42,7 +42,7 @@ def grid0_baseline(num_runs, render=True):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        render : str, optional
+        render : bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
