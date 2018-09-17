@@ -63,6 +63,7 @@ you can find installation instructions at
 <https://docs.brew.sh/Installation>
 
 ::
+
     brew update
     brew install Caskroom/cask/xquartz
     brew install autoconf
