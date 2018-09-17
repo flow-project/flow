@@ -177,7 +177,7 @@ class TestMultiLaneData(unittest.TestCase):
     get_lane_headways(), and get_lane_footways() in the Vehicles class.
     """
 
-    def test_no_junctions(self):
+    def test_no_junctions_ring(self):
         """
         Test the above mentioned methods in the absence of junctions.
         """
@@ -226,6 +226,30 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_tail = [27.85714285714286] * 3
         np.testing.assert_array_almost_equal(actual_lane_tail,
                                              expected_lane_tail)
+
+    def test_no_junctions_highway(self):
+        additional_net_params = {
+            "length": 100,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40,
+            "num_edges": 3
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+        vehicles = Vehicles()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(RLController, {}),
+            num_vehicles=21)
+
+        initial_config = InitialConfig(lanes_distribution=float("inf"))
+
+        env, scenario = ring_road_exp_setup(
+            net_params=net_params,
+            vehicles=vehicles,
+            initial_config=initial_config)
+        env.reset()
+
 
     def test_junctions(self):
         """

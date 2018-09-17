@@ -270,7 +270,7 @@ def highway_exp_setup(sumo_params=None,
             "lanes": 1,
             "speed_limit": 30,
             "resolution": 40,
-            "num_edges": 3
+            "num_edges": 1
         }
         net_params = NetParams(additional_params=additional_net_params)
 
