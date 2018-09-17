@@ -9,7 +9,7 @@ from flow.controllers.car_following_models import IDMController, \
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
-from tests.setup_scripts import ring_road_exp_setup
+from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -240,11 +240,15 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=21)
+            num_vehicles=12)
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
+        initial_config.spacing = "custom"
+        initial_config.additional_params = initial_pos
 
-        env, scenario = ring_road_exp_setup(
+        # FIXME(ev) we want to place the vehicles in such a way
+        # FIXME(ev) as to maximally generate errors
+        env, scenario = highway_exp_setup(
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
