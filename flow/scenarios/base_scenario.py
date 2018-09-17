@@ -129,8 +129,10 @@ class Scenario(Serializable):
 
         # generate starting position for vehicles in the network
         kwargs = initial_config.additional_params
-        positions, lanes = self.generate_starting_positions(num_vehicles=vehicles.num_vehicles,
-                                                            **kwargs)
+        positions, lanes = self.generate_starting_positions(
+            num_vehicles=vehicles.num_vehicles,
+            **kwargs
+        )
 
         # create the sumo configuration files using the generator class
         cfg_name = self.generator.generate_cfg(self.net_params,
