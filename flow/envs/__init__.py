@@ -1,5 +1,7 @@
+"""Contains all callable environments in Flow."""
+
 from flow.envs.base_env import Env
-from flow.envs.bay_bridge import BayBridgeEnv
+from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.envs.bottleneck_env import BottleNeckAccelEnv, BottleneckEnv, \
     DesiredVelocityEnv
 from flow.envs.green_wave_env import TrafficLightGridEnv, \

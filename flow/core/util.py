@@ -111,8 +111,8 @@ def eval_net_params(flow_params):
     better_params = flow_params.copy()
     inflow = InFlows()
     new_inflow_list = []
-    if 'in_flows' in flow_params['net']:
-        inflow_obj = flow_params['net']['in_flows']['_InFlows__flows']
+    if 'inflows' in flow_params['net']:
+        inflow_obj = flow_params['net']['inflows']['_InFlows__flows']
         for obj in inflow_obj:
             temp = {}
             for key in obj.keys():
@@ -127,7 +127,7 @@ def eval_net_params(flow_params):
                     temp[key] = obj[key]
             new_inflow_list.append(temp)
         [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
-        better_params['net']['in_flows'] = inflow
+        better_params['net']['inflows'] = inflow
 
     return better_params['net']
 

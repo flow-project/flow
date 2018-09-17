@@ -34,7 +34,7 @@ SHORT_LENGTH = 300
 N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 
 
-def grid0_baseline(num_runs, sumo_binary="sumo-gui"):
+def grid0_baseline(num_runs, render=True):
     """Run script for the grid0 baseline.
 
     Parameters
@@ -42,7 +42,7 @@ def grid0_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render : bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -94,7 +94,7 @@ def grid0_baseline(num_runs, sumo_binary="sumo-gui"):
                      programID=1)
 
     net_params = NetParams(
-            in_flows=inflow,
+            inflows=inflow,
             no_internal_links=False,
             additional_params={
                 "speed_limit": V_ENTER + 5,
@@ -117,7 +117,7 @@ def grid0_baseline(num_runs, sumo_binary="sumo-gui"):
     sumo_params = SumoParams(
             restart_instance=False,
             sim_step=1,
-            sumo_binary=sumo_binary,
+            render=render,
         )
 
     env_params = EnvParams(

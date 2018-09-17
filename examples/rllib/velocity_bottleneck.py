@@ -6,7 +6,7 @@ in a segment of space
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -22,9 +22,9 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 1000
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+N_CPUS = 2
 # number of rollouts per training iteration
-N_ROLLOUTS = PARALLEL_ROLLOUTS * 4
+N_ROLLOUTS = N_CPUS * 4
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -92,7 +92,7 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(
-    in_flows=inflow,
+    inflows=inflow,
     no_internal_links=False,
     additional_params=additional_net_params)
 
@@ -112,7 +112,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.5,
-        sumo_binary="sumo",
+        render=False,
         print_warnings=False,
         restart_instance=True,
     ),
@@ -128,7 +128,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     ),
@@ -152,10 +152,10 @@ flow_params = dict(
 )
 
 if __name__ == '__main__':
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
+    ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS  # number of parallel rollouts
+    config["num_workers"] = N_CPUS  # number of parallel rollouts
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [64, 64]})
@@ -186,11 +186,6 @@ if __name__ == '__main__':
             "max_failures": 999,
             "stop": {
                 "training_iteration": 400,
-            },
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
             },
         }
     })

@@ -19,13 +19,13 @@ from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
 FLOW_RATE = 2000
 
 
-def merge_example(sumo_binary=None):
+def merge_example(render=None):
     """
     Perform a simulation of vehicles on a merge.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render: bool, optional
         specifies whether to use sumo's gui during execution
 
     Returns
@@ -35,13 +35,13 @@ def merge_example(sumo_binary=None):
         vehicles on a merge.
     """
     sumo_params = SumoParams(
-        sumo_binary="sumo-gui",
+        render=True,
         emission_path="./data/",
         sim_step=0.2,
         restart_instance=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     vehicles = Vehicles()
     vehicles.add(
@@ -76,7 +76,7 @@ def merge_example(sumo_binary=None):
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 

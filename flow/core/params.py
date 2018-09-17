@@ -2,6 +2,7 @@
 
 import logging
 from flow.utils.flow_warnings import deprecation_warning
+import warnings
 
 
 class SumoParams:
@@ -19,13 +20,14 @@ class SumoParams:
                  emission_path=None,
                  lateral_resolution=None,
                  no_step_log=True,
-                 sumo_binary="sumo",
+                 render=False,
                  overtake_right=False,
                  ballistic=False,
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
-                 teleport_time=-1):
+                 teleport_time=-1,
+                 sumo_binary=None):
         """Instantiate SumoParams.
 
         Attributes
@@ -44,10 +46,8 @@ class SumoParams:
         no_step_log: bool, optional
             specifies whether to add sumo's step logs to the log file, and
             print them into the terminal during runtime, defaults to True
-        sumo_binary: str, optional
-            specifies whether to visualize the rollout(s). May be:
-                - 'sumo-gui' to run the experiment with the gui
-                - 'sumo' to run without the gui (default)
+        render: bool, optional
+            specifies whether to visualize the rollout(s)
         overtake_right: bool, optional
             whether vehicles are allowed to overtake on the right as well as
             the left
@@ -61,7 +61,7 @@ class SumoParams:
             specifies whether to restart a sumo instance upon reset. Restarting
             the instance helps avoid slowdowns cause by excessive inflows over
             large experiment runtimes, but also require the gui to be started
-            after every reset if "sumo_binary" is set to True.
+            after every reset if "render" is set to True.
         print_warnings: bool, optional
             If set to false, this will silence sumo warnings on the stdout
         teleport_time: int, optional
@@ -74,13 +74,21 @@ class SumoParams:
         self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
-        self.sumo_binary = sumo_binary
+        self.render = render
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
         self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
+        if sumo_binary is not None:
+            warnings.simplefilter("always", PendingDeprecationWarning)
+            warnings.warn(
+                "sumo_params will be deprecated in a future release, use "
+                "render instead.",
+                PendingDeprecationWarning
+            )
+            self.render = sumo_binary == "sumo-gui"
 
 
 class EnvParams:
@@ -165,6 +173,7 @@ class NetParams:
 
     def __init__(self,
                  no_internal_links=True,
+                 inflows=None,
                  in_flows=None,
                  osm_path=None,
                  netfile=None,
@@ -176,7 +185,7 @@ class NetParams:
         no_internal_links : bool, optional
             determines whether the space between edges is finite. Important
             when using networks with intersections; default is False
-        in_flows : InFlows type, optional
+        inflows : InFlows type, optional
             specifies the inflows of specific edges and the types of vehicles
             entering the network from these edges
         osm_path : str, optional
@@ -193,10 +202,21 @@ class NetParams:
             what is needed
         """
         self.no_internal_links = no_internal_links
-        self.in_flows = in_flows
+        if inflows is None:
+            self.inflows = InFlows()
+        else:
+            self.inflows = inflows
         self.osm_path = osm_path
         self.netfile = netfile
         self.additional_params = additional_params or {}
+        if in_flows is not None:
+            warnings.simplefilter("always", PendingDeprecationWarning)
+            warnings.warn(
+                "in_flows will be deprecated in a future release, use "
+                "inflows instead.",
+                PendingDeprecationWarning
+            )
+            self.inflows = in_flows
 
 
 class InitialConfig:
@@ -532,6 +552,7 @@ class InFlows:
     def add(self,
             veh_type,
             edge,
+            name="flow",
             begin=1,
             end=2e6,
             vehs_per_hour=None,
@@ -579,7 +600,7 @@ class InFlows:
             del kwargs["vehsPerHour"]
 
         new_inflow = {
-            "name": "flow_%d" % self.num_flows,
+            "name": "%s_%d" % (name, self.num_flows),
             "vtype": veh_type,
             "route": "route" + edge,
             "end": end

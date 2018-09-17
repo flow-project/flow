@@ -10,13 +10,13 @@ from flow.scenarios.grid.gen import SimpleGridGenerator
 from flow.scenarios.grid.grid_scenario import SimpleGridScenario
 
 
-def grid_example(sumo_binary=None):
+def grid_example(render=None):
     """
     Perform a simulation of vehicles on a grid.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render: bool, optional
         specifies whether to use sumo's gui during execution
 
     Returns
@@ -49,10 +49,10 @@ def grid_example(sumo_binary=None):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, render=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     vehicles = Vehicles()
     vehicles.add(

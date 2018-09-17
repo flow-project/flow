@@ -1,3 +1,11 @@
+"""
+Evaluation utility methods for testing the performance of controllers.
+
+This file contains a method to perform the evaluation on all benchmarks in
+flow/benchmarks, as well as method for importing neural network controllers
+from rllab and rllib.
+"""
+
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
@@ -42,8 +50,7 @@ AVAILABLE_BENCHMARKS = {
 
 
 def evaluate_policy(benchmark, _get_actions, _get_states=None):
-    """Evaluates the performance of a controller on a predefined traffic
-    benchmark.
+    """Evaluate the performance of a controller on a predefined benchmark.
 
     Parameters
     ----------
@@ -132,7 +139,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
 
 
 def get_compute_action_rllab(path_to_pkl):
-    """Collects the compute_action method from rllab's pkl files.
+    """Collect the compute_action method from rllab's pkl files.
 
     Parameters
     ----------
@@ -161,7 +168,7 @@ def get_compute_action_rllab(path_to_pkl):
 
 
 def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
-    """Collects the compute_action method from RLlib's serialized files.
+    """Collect the compute_action method from RLlib's serialized files.
 
     Parameters
     ----------
@@ -190,7 +197,7 @@ def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
     # create and register a gym+rllib env
     flow_params = get_flow_params(config)
     create_env, env_name = make_create_env(
-        params=flow_params, version=9999, sumo_binary="sumo")
+        params=flow_params, version=9999, render=False)
     register_env(env_name, create_env)
 
     # recreate the agent

@@ -1,19 +1,24 @@
+"""Contains the base acceleration controller class."""
+
 import numpy as np
 
 
 class BaseController:
+    """Base class for flow-controlled acceleration behavior.
+
+    Instantiates a controller and forces the user to pass a
+    maximum acceleration to the controller. Provides the method
+    safe_action to ensure that controls are never made that could
+    cause the system to crash.
+    """
+
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
                  delay=0,
                  fail_safe=None,
                  noise=0):
-        """Base class for flow-controlled acceleration behavior.
-
-        Instantiates a controller and forces the user to pass a
-        maximum acceleration to the controller. Provides the method
-        safe_action to ensure that controls are never made that could
-        cause the system to crash.
+        """Instantiate the base class for acceleration behavior.
 
         Attributes
         ----------
@@ -31,7 +36,6 @@ class BaseController:
             Should be either "instantaneous" or "safe_velocity"
         noise: double
             variance of the gaussian from which to sample a noisy acceleration
-
         """
         self.veh_id = veh_id
         self.sumo_controller = False
@@ -52,14 +56,15 @@ class BaseController:
         self.sumo_cf_params = sumo_cf_params
 
     def uses_sumo(self):
+        """Specify whether the controller uses sumo's default accelerations."""
         return self.sumo_controller
 
     def get_accel(self, env):
-        """Returns the acceleration of the controller"""
+        """Return the acceleration of the controller."""
         raise NotImplementedError
 
     def get_action(self, env):
-        """Converts the get_accel() acceleration into an action.
+        """Convert the get_accel() acceleration into an action.
 
         If no acceleration is specified, the action returns a None as well,
         signifying that sumo should control the accelerations for the current
@@ -104,13 +109,14 @@ class BaseController:
         return accel
 
     def get_safe_action_instantaneous(self, env, action):
-        """
+        """Perform the "instantaneous" failsafe action.
+
         Instantaneously stops the car if there is a change of colliding into
         the leading vehicle in the next step
 
         Parameters
         ----------
-        env: Environment type
+        env: flow.envs.Env
             current environment, which contains information of the state of the
             network at the current time step
         action: float
@@ -154,7 +160,7 @@ class BaseController:
             return action
 
     def get_safe_velocity_action(self, env, action):
-        """Performs the "safe_velocity" failsafe action.
+        """Perform the "safe_velocity" failsafe action.
 
         Checks if the computed acceleration would put us above safe velocity.
         If it would, output the acceleration that would put at to safe
@@ -162,7 +168,7 @@ class BaseController:
 
         Parameters
         ----------
-        env: Environment type
+        env: flow.envs.Env
             current environment, which contains information of the state of the
             network at the current time step
         action: float
@@ -191,13 +197,15 @@ class BaseController:
                 return action
 
     def safe_velocity(self, env):
-        """Finds maximum velocity such that if the lead vehicle were to stop
+        """Compute a safe velocity for the vehicles.
+
+        Finds maximum velocity such that if the lead vehicle were to stop
         entirely, we can bring the following vehicle to rest at the point at
         which the headway is zero.
 
         Parameters
         ----------
-        env: Environment type
+        env: flow.envs.Env
             current environment, which contains information of the state of the
             network at the current time step
 
