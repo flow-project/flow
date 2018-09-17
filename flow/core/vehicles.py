@@ -1156,7 +1156,7 @@ class Vehicles:
 
                 # if you are at the end or the front of the edge, the lane
                 # leader is in the edges in front of you
-                if index < len(positions) - 1:
+                if index < len(positions):
                     # check if the index does not correspond to the current
                     # vehicle
                     if ids[index] == veh_id:
