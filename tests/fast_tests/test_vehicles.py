@@ -255,7 +255,7 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo-gui"),
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -266,10 +266,8 @@ class TestMultiLaneData(unittest.TestCase):
         # test_1 should be leading car in lane 2
         # test_2 should be trailing car in lane 0
         actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
-        import ipdb; ipdb.set_trace()
         expected_lane_leaders = ["", "", "test_1"]
-        np.testing.assert_array_almost_equal(actual_lane_leaders,
-                                             expected_lane_leaders)
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
         actual_lane_headways = env.vehicles.get_lane_headways("test_0")
         expected_lane_headways = [1000, 1000, 5.0]
         np.testing.assert_array_almost_equal(actual_lane_headways,
@@ -277,8 +275,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         actual_lane_followers = env.vehicles.get_lane_followers("test_0")
         expected_lane_followers = ["test_2", "", ""]
-        np.testing.assert_array_almost_equal(actual_lane_followers,
-                                             expected_lane_followers)
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
         actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
         expected_lane_tailways = [5.0, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
@@ -311,10 +308,10 @@ class TestMultiLaneData(unittest.TestCase):
         initial_pos["start_positions"] = [('highway_0', 50),
                                           ('highway_0', 60),
                                           ('highway_0', 40),
+                                          ('highway_0', 40),
                                           ('highway_0', 30),
-                                          ('highway_0', 20),
+                                          ('highway_0', 60),
                                           ('highway_0', 70),
-                                          ('highway_0', 80),
                                           ('highway_0', 60),
                                           ('highway_0', 40),
                                           ]
@@ -322,7 +319,7 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo-gui"),
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -330,8 +327,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
         expected_lane_leaders = ["test_1", "", "test_5", "test_7"]
-        np.testing.assert_array_almost_equal(actual_lane_leaders,
-                                             expected_lane_leaders)
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
 
         actual_lane_headways = env.vehicles.get_lane_headways("test_0")
         expected_lane_headways = [5.0, 1000, 5.0, 5.0]
@@ -340,8 +336,7 @@ class TestMultiLaneData(unittest.TestCase):
 
         actual_lane_followers = env.vehicles.get_lane_followers("test_0")
         expected_lane_followers = ["test_2", "test_3", "", "test_8"]
-        np.testing.assert_array_almost_equal(actual_lane_followers,
-                                             expected_lane_followers)
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
 
         actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
         expected_lane_tailways = [5.0, 5.0, 1000, 5.0]
@@ -371,14 +366,14 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
         initial_pos = {}
-        initial_pos["start_positions"] = [('highway_0', 50),
-                                          ('highway_0', 75),
+        initial_pos["start_positions"] = [('highway_1', 50 - (100/3.0)),
+                                          ('highway_2', 75-(2*100/3.0)),
                                           ('highway_0', 25)]
         initial_pos["start_lanes"] = [1, 2, 0]
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo-gui"),
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -388,21 +383,20 @@ class TestMultiLaneData(unittest.TestCase):
         # test_0 is car to test in central lane
         # test_1 should be leading car in lane 2
         # test_2 should be trailing car in lane 0
+
         actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
         expected_lane_leaders = ["", "", "test_1"]
-        np.testing.assert_array_almost_equal(actual_lane_leaders,
-                                             expected_lane_leaders)
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
         actual_lane_headways = env.vehicles.get_lane_headways("test_0")
-        expected_lane_headways = [1000, 1000, 20.0]
+        expected_lane_headways = [1000, 1000, 19.996667]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
         actual_lane_followers = env.vehicles.get_lane_followers("test_0")
         expected_lane_followers = ["test_2", "", ""]
-        np.testing.assert_array_almost_equal(actual_lane_followers,
-                                             expected_lane_followers)
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
         actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
-        expected_lane_tailways = [20.0, 1000, 1000]
+        expected_lane_tailways = [19.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
@@ -428,38 +422,36 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
         initial_pos = {}
-        initial_pos["start_positions"] = [('highway_0', 50),
-                                          ('highway_0', 75),
+        initial_pos["start_positions"] = [('highway_1', 50 - (100/3.0)),
+                                          ('highway_2', 75-(2*100/3.0)),
                                           ('highway_0', 25)]
         initial_pos["start_lanes"] = [0, 0, 0]
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo-gui"),
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
         env.reset()
 
         # test the central car
-        # test_0 is car to test in central lane
-        # test_1 should be leading car in lane 2
+        # test_0 is car to test in lane 0
+        # test_1 should be leading car in lane 0
         # test_2 should be trailing car in lane 0
         actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
-        expected_lane_leaders = ["", "test_1", ""]
-        np.testing.assert_array_almost_equal(actual_lane_leaders,
-                                             expected_lane_leaders)
+        expected_lane_leaders = ["test_1", "", ""]
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
         actual_lane_headways = env.vehicles.get_lane_headways("test_0")
-        expected_lane_headways = [1000, 20.0, 1000]
+        expected_lane_headways = [19.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
         actual_lane_followers = env.vehicles.get_lane_followers("test_0")
-        expected_lane_followers = ["", "test_2", ""]
-        np.testing.assert_array_almost_equal(actual_lane_followers,
-                                             expected_lane_followers)
+        expected_lane_followers = ["test_2", "", ""]
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
         actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
-        expected_lane_tailways = [1000, 20.0, 1000]
+        expected_lane_tailways = [19.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
