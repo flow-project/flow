@@ -41,13 +41,15 @@ class HighwayScenario(Scenario):
 
         self.length = net_params.additional_params["length"]
         self.lanes = net_params.additional_params["lanes"]
+        self.num_edges = net_params.additional_params.get("num_edges", 1)
 
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """See parent class."""
-        edgestarts = [("highway_0", 0)]
+        edgestarts = [("highway_{}".format(i), 0)
+                      for i in range(self.num_edges)]
         return edgestarts
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
