@@ -12,13 +12,13 @@ from flow.scenarios.loop_merge.scenario import \
 from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
 
 
-def loop_merge_example(sumo_binary=None):
+def loop_merge_example(render=None):
     """
     Perform a simulation of vehicles on a loop merge.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render : bool, optional
         specifies whether to use sumo's gui during execution
 
     Returns
@@ -28,10 +28,10 @@ def loop_merge_example(sumo_binary=None):
         vehicles on a loop merge.
     """
     sumo_params = SumoParams(
-        sim_step=0.1, emission_path="./data/", sumo_binary="sumo-gui")
+        sim_step=0.1, emission_path="./data/", render=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     # note that the vehicles are added sequentially by the generator,
     # so place the merging vehicles after the vehicles in the ring

@@ -17,7 +17,7 @@ class TestCollisions(unittest.TestCase):
     def test_collide(self):
         """Tests collisions in the absence of inflows."""
         # create the environment and scenario classes for a ring road
-        sumo_params = SumoParams(sim_step=1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 20
         vehicles = Vehicles()
         vehicles.add(
@@ -70,7 +70,7 @@ class TestCollisions(unittest.TestCase):
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
         # create the environment and scenario classes for a ring road
-        sumo_params = SumoParams(sim_step=1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 12
         vehicles = Vehicles()
         vehicles.add(
