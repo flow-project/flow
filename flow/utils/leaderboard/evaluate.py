@@ -197,7 +197,7 @@ def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
     # create and register a gym+rllib env
     flow_params = get_flow_params(config)
     create_env, env_name = make_create_env(
-        params=flow_params, version=9999, sumo_binary="sumo")
+        params=flow_params, version=9999, render=False)
     register_env(env_name, create_env)
 
     # recreate the agent

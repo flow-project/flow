@@ -58,10 +58,22 @@ We begin by downloading SUMO's github directory:
     git checkout 1d4338ab80
     make -f Makefile.cvs
 
-If you have OSX, run the following commands
+If you have OSX, run the following commands. If you don't have brew
+you can find installation instructions at 
+<https://docs.brew.sh/Installation>
 
 ::
 
+    brew update
+    brew install Caskroom/cask/xquartz
+    brew install autoconf
+    brew install automake
+    brew install pkg-config
+    brew install libtool
+    brew install gdal
+    brew install proj
+    brew install xerces-c
+    brew install fox
     export CPPFLAGS=-I/opt/X11/include
     export LDFLAGS=-L/opt/X11/lib
     ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
