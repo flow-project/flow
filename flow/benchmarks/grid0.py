@@ -81,7 +81,7 @@ flow_params = dict(
     sumo=SumoParams(
         restart_instance=True,
         sim_step=1,
-        sumo_binary="sumo",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -96,7 +96,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params={
             "speed_limit": V_ENTER + 5,

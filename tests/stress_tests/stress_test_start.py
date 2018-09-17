@@ -1,6 +1,4 @@
-"""
-Repeatedly opens up a sumo port to test for race conditions
-"""
+"""Repeatedly opens up a sumo port to test for race conditions."""
 from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
@@ -14,9 +12,8 @@ import ray
 
 @ray.remote
 def start():
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
-
-    sumo_params.sumo_binary = 'sumo'
+    """Start a environment object with ray."""
+    sumo_params = SumoParams(sim_step=0.1, render=False)
 
     vehicles = Vehicles()
     vehicles.add(

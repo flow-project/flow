@@ -47,7 +47,7 @@ def get_flow_params(v_enter, vehs_per_hour, col_num, row_num,
             departSpeed=v_enter)
 
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 
@@ -90,7 +90,7 @@ def run_task(*_):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=1, render=True)
 
     vehicles = Vehicles()
     vehicles.add(

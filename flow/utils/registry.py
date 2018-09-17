@@ -1,3 +1,5 @@
+"""Utility method for registering environments with OpenAI gym."""
+
 import gym
 from gym.envs.registration import register
 
@@ -7,8 +9,8 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
 
-def make_create_env(params, version=0, sumo_binary=None):
-    """Creates a parametrized flow environment compatible with OpenAI gym.
+def make_create_env(params, version=0, render=None):
+    """Create a parametrized flow environment compatible with OpenAI gym.
 
     This environment creation method allows for the specification of several
     key parameters when creating any flow environment, including the requested
@@ -43,9 +45,9 @@ def make_create_env(params, version=0, sumo_binary=None):
            (see flow.core.traffic_lights.TrafficLights)
     version : int, optional
         environment version number
-    sumo_binary : bool, optional
+    render : bool, optional
         specifies whether to use sumo's gui during execution. This overrides
-        the sumo_binary component in SumoParams
+        the render attribute in SumoParams
 
     Returns
     -------
@@ -81,8 +83,8 @@ def make_create_env(params, version=0, sumo_binary=None):
 
         sumo_params = deepcopy(params['sumo'])
 
-        if sumo_binary is not None:
-            sumo_params.sumo_binary = sumo_binary
+        if render is not None:
+            sumo_params.render = render
 
         register(
             id=env_name,

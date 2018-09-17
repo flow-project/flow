@@ -26,11 +26,11 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = .1
-PARALLEL_ROLLOUTS = 32
+N_CPUS = 32
 i = 0
 
 sumo_params = SumoParams(
-    sim_step=0.5, sumo_binary="sumo", restart_instance=True)
+    sim_step=0.5, render=False, restart_instance=True)
 
 vehicles = Vehicles()
 
@@ -103,7 +103,7 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(
-    in_flows=inflow,
+    inflows=inflow,
     no_internal_links=False,
     additional_params=additional_net_params)
 

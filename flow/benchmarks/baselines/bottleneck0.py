@@ -24,7 +24,7 @@ DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 
 
-def bottleneck0_baseline(num_runs, sumo_binary="sumo-gui"):
+def bottleneck0_baseline(num_runs, render=True):
     """Run script for the bottleneck0 baseline.
 
     Parameters
@@ -32,7 +32,7 @@ def bottleneck0_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render : bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -81,13 +81,13 @@ def bottleneck0_baseline(num_runs, sumo_binary="sumo-gui"):
         traffic_lights.add(node_id="3")
 
     additional_net_params = {"scaling": SCALING}
-    net_params = NetParams(in_flows=inflow,
+    net_params = NetParams(inflows=inflow,
                            no_internal_links=False,
                            additional_params=additional_net_params)
 
     sumo_params = SumoParams(
         sim_step=0.5,
-        sumo_binary=sumo_binary,
+        render=render,
         print_warnings=False,
         restart_instance=False,
     )

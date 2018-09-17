@@ -18,7 +18,7 @@ HORIZON = 1500
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, render=True)
 
     vehicles = Vehicles()
     vehicles.add(

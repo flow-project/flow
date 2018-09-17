@@ -10,7 +10,7 @@ by Mania et. al
 import json
 
 import ray
-import ray.rllib.ars as ars
+import ray.rllib.agents.ars as ars
 from ray.tune import run_experiments, grid_search
 from ray.tune.registry import register_env
 
@@ -18,29 +18,28 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.figureeight2 import flow_params
+from flow.benchmarks.figureeight0 import flow_params
 
 # number of rollouts per training iteration
-N_ROLLOUTS = 25
+N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 25
+N_CPUS = 2
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # initialize a ray instance
-    ray.init(redis_address="localhost:6379", redirect_output=True)
+    ray.init(redirect_output=True)
 
     config = ars.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS
+    config["num_workers"] = N_CPUS
     config["num_deltas"] = N_ROLLOUTS
-    config["deltas_used"] = grid_search([25, 50])
-    config["sgd_stepsize"] = .01
-    config["delta_std"] = grid_search([.01, .02])
-    config['policy'] = 'Linear'
-    config["observation_filter"] = "NoFilter"
-    config['eval_rollouts'] = PARALLEL_ROLLOUTS
+    config["deltas_used"] = N_ROLLOUTS
+    config["stepsize"] = grid_search([.01, .02])
+    config["noise_stdev"] = grid_search([.01, .02])
+    config['policy_type'] = 'LinearPolicy'
+    config['eval_prob'] = 0.05
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -59,14 +58,8 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 5,
             "max_failures": 999,
-            "stop": {
-                "training_iteration": 500
-            },
-            "repeat": 3,
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
-            },
+            "stop": {"training_iteration": 500},
+            "num_samples": 3,
+            # "upload_dir": "s3://bucket"
         },
     })
