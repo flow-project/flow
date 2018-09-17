@@ -1,6 +1,7 @@
 """Contains the ring road generator class."""
 
 from flow.core.generator import Generator
+from flow.core.routes import Routes
 
 from numpy import pi, sin, cos, linspace
 
@@ -131,11 +132,16 @@ class CircleGenerator(Generator):
 
     def specify_routes(self, net_params):
         """See parent class."""
-        rts = {
-            "top": ["top", "left", "bottom", "right"],
-            "left": ["left", "bottom", "right", "top"],
-            "bottom": ["bottom", "right", "top", "left"],
-            "right": ["right", "top", "left", "bottom"]
-        }
+        routes = Routes()
+        routes.add("top", ["top", "left", "bottom", "right"])
+        routes.add("left", ["left", "bottom", "right", "top"])
+        routes.add("bottom",["bottom", "right", "top", "left"])
+        routes.add("right", ["right", "top", "left", "bottom"])
+        # rts = {
+        #     "top": ["top", "left", "bottom", "right"],
+        #     "left": ["left", "bottom", "right", "top"],
+        #     "bottom": ["bottom", "right", "top", "left"],
+        #     "right": ["right", "top", "left", "bottom"]
+        # }
 
-        return rts
+        return routes

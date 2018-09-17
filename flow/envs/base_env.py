@@ -102,7 +102,7 @@ class Env(gym.Env, Serializable):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.scenario.generator.rts.get_routes()
+        self.available_routes = self.scenario.generator.rts.generate_routes()
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -746,19 +746,14 @@ class Env(gym.Env, Serializable):
             edge the vehicle is currently on. If a value of None is provided,
             the vehicle does not update its route
         """
-#          for i, veh_id in enumerate(veh_ids):
-#              if route_choices[i] is not None:
-# +                route = route_choices[i]
-# +                if isinstance(route, dict):
-# +                    route = list(route.values())[0]
-#                  self.traci_connection.vehicle.setRoute(
-# -                    vehID=veh_id, edgeList=route_choices[i])
-# +                    vehID=veh_id, edgeList=route)
         for i, veh_id in enumerate(veh_ids):
             if route_choices[i] is not None:
-                import ipdb; ipdb.set_trace()
+                # TODO: for now, just choose the first route
+                route = route_choices[i][0]
+                if isinstance(route, dict):
+                    route = route['route']
                 self.traci_connection.vehicle.setRoute(
-                    vehID=veh_id, edgeList=route_choices[i])
+                    vehID=veh_id, edgeList=route)
 
     def get_x_by_id(self, veh_id):
         """Provide a 1-D representation of the position of a vehicle.
