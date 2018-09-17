@@ -6,7 +6,7 @@ repository is migrating to a new SUMO version.
 
 1. Clone the SUMO github repository:
         
-        git clone https://github.com/eclipse/sumo.git 
+        git clone https://github.com/eclipse/sumo.git
 
 2. Checkout the version of SUMO you with to create wheels and binaries of:
 
@@ -21,8 +21,7 @@ repository is migrating to a new SUMO version.
         sudo apt-get install autoconf libtool pkg-config libgdal-dev libxerces-c-dev
         sudo apt-get install libproj-dev libfox-1.6-dev libxml2-dev libxslt1-dev
         sudo apt-get install build-essential curl unzip flex bison python python-dev
-        sudo apt-get install python3-dev
-        sudo pip3 install cmake cython
+        sudo apt-get install python3-dev python3-pip
 
         # install sumo
         make -f Makefile.cvs
