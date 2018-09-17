@@ -3,7 +3,8 @@ import os
 import numpy as np
 
 from flow.core.vehicles import Vehicles
-from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig, SumoParams
+from flow.core.params import SumoCarFollowingParams, NetParams, \
+    InitialConfig, SumoParams
 from flow.controllers.car_following_models import IDMController, \
     SumoCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
