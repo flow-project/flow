@@ -190,25 +190,25 @@ class Vehicles:
 
         self.initial.append({
             "veh_id":
-            veh_id,
+                veh_id,
             "acceleration_controller":
-            acceleration_controller,
+                acceleration_controller,
             "lane_change_controller":
-            lane_change_controller,
+                lane_change_controller,
             "routing_controller":
-            routing_controller,
+                routing_controller,
             "initial_speed":
-            initial_speed,
+                initial_speed,
             "num_vehicles":
-            num_vehicles,
+                num_vehicles,
             "speed_mode":
-            speed_mode,
+                speed_mode,
             "lane_change_mode":
-            lane_change_mode,
+                lane_change_mode,
             "sumo_car_following_params":
-            sumo_car_following_params,
+                sumo_car_following_params,
             "sumo_lc_params":
-            sumo_lc_params
+                sumo_lc_params
         })
 
         # this is used to return the actual headways from the vehicles class
