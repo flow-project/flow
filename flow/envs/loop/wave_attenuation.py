@@ -195,7 +195,7 @@ class WaveAttenuationEnv(Env):
         # restart the sumo instance
         self.restart_sumo(
             sumo_params=self.sumo_params,
-            sumo_binary=self.sumo_params.sumo_binary)
+            render=self.sumo_params.render)
 
         # perform the generic reset function
         observation = super().reset()

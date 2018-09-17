@@ -130,11 +130,11 @@ class Env(gym.Env, Serializable):
         self.start_sumo()
         self.setup_initial_state()
 
-    def restart_sumo(self, sumo_params, sumo_binary=None):
+    def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
 
         This is used when visualizing a rollout, in order to update the
-        sumo_binary with potentially a gui and export emission data from sumo.
+        rendering with potentially a gui and export emission data from sumo.
 
         This is also used to handle cases when the runtime of an experiment is
         too long, causing the sumo instance
@@ -143,14 +143,14 @@ class Env(gym.Env, Serializable):
         ----------
         sumo_params: SumoParams type
             sumo-specific parameters
-        sumo_binary: str, optional
+        render: bool, optional
             specifies whether to use sumo's gui
         """
         self.traci_connection.close(False)
         self.sumo_proc.kill()
 
-        if sumo_binary is not None:
-            self.sumo_params.sumo_binary = sumo_binary
+        if render is not None:
+            self.sumo_params.render = render
 
         if sumo_params.emission_path is not None:
             ensure_dir(sumo_params.emission_path)
@@ -181,9 +181,11 @@ class Env(gym.Env, Serializable):
                         time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
+                sumo_binary = "sumo-gui" if self.sumo_params.render else "sumo"
+
                 # command used to start sumo
                 sumo_call = [
-                    self.sumo_params.sumo_binary, "-c", self.scenario.cfg,
+                    sumo_binary, "-c", self.scenario.cfg,
                     "--remote-port",
                     str(port), "--step-length",
                     str(self.sim_step)
@@ -805,7 +807,7 @@ class Env(gym.Env, Serializable):
         """
         # do not change the colors of vehicles if the sumo-gui is not active
         # (in order to avoid slow downs)
-        if self.sumo_params.sumo_binary != "sumo-gui":
+        if not self.sumo_params.render:
             return
 
         for veh_id in self.vehicles.get_rl_ids():
