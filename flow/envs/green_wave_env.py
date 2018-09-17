@@ -556,7 +556,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
     def compute_reward(self, state, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
-            return rewards.min_delay_unscaled(self)
+            return - rewards.min_delay_unscaled(self)
         else:
             return rewards.desired_velocity(self, fail=kwargs["fail"])
 
