@@ -592,7 +592,6 @@ class Scenario(Serializable):
         try:
             return self._edges[edge_id]["length"]
         except KeyError:
-            import ipdb; ipdb.set_trace()
             print('Error in edge length with key', edge_id)
             return -1001
 

@@ -343,7 +343,6 @@ class TestMultiLaneData(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
-
         # Now test if all the vehicles are on different edges and
         # different lanes
         additional_net_params = {
@@ -366,8 +365,8 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
         initial_pos = {}
-        initial_pos["start_positions"] = [('highway_1', 50 - (100/3.0)),
-                                          ('highway_2', 75-(2*100/3.0)),
+        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
+                                          ('highway_2', 75 - (2 * 100 / 3.0)),
                                           ('highway_0', 25)]
         initial_pos["start_lanes"] = [1, 2, 0]
         initial_config.additional_params = initial_pos
@@ -422,8 +421,8 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
         initial_pos = {}
-        initial_pos["start_positions"] = [('highway_1', 50 - (100/3.0)),
-                                          ('highway_2', 75-(2*100/3.0)),
+        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
+                                          ('highway_2', 75 - (2 * 100 / 3.0)),
                                           ('highway_0', 25)]
         initial_pos["start_lanes"] = [0, 0, 0]
         initial_config.additional_params = initial_pos
