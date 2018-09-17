@@ -1148,51 +1148,34 @@ class Vehicles:
         follower = [""] * num_lanes
 
         for lane in range(num_lanes):
-            # check the vehicle's current edge for lane leaders and followers
-            if len(edge_dict[this_edge][lane]) >= 1:
+            # check the vehicle's current  edge for lane leaders and followers
+            if len(edge_dict[this_edge][lane]) > 0:
                 ids, positions = zip(*edge_dict[this_edge][lane])
                 ids = list(ids)
                 positions = list(positions)
                 index = bisect_left(positions, this_pos)
 
-                # there are multiple vehicles in the lane
-                # so bisect_left
-                if len(positions) > 1:
-                    # if you are at the end or the front of the edge, the lane
-                    # leader is in the edges in front of you
-                    # FIXME (this does not capture the second to last car)
-                    if index < len(positions) - 1 and lane == this_lane:
-                        # check if the index does not correspond to the current
-                        # vehicle
-                        if ids[index] == veh_id:
-                            leader[lane] = ids[index + 1]
-                            headway[lane] = (positions[index + 1] - this_pos -
-                                             self.get_length(leader[lane]))
-                        else:
-                            leader[lane] = ids[index]
-                            headway[lane] = positions[index] - this_pos \
-                                - self.get_length(leader[lane])
-                    elif index < len(positions):
-                        leader[lane] = ids[index]
-                        headway[lane] = positions[index] - this_pos \
-                            - self.get_length(leader[lane])
-
-                    # if you are not in the back of the queue, look behind you
-                    if index > 0:
-                        follower[lane] = ids[index - 1]
-                        tailway[lane] = this_pos - positions[index - 1] \
-                            - self.get_length(veh_id)
-
-                elif len(positions) == 1 and ids[0] != veh_id:
-                    # the vehicle is the leader
-                    if positions[0] > this_pos:
-                        leader[lane] = ids[0]
-                        headway[lane] = (positions[0] - this_pos -
+                # if you are at the end or the front of the edge, the lane
+                # leader is in the edges in front of you
+                if (lane == this_lane and index < len(positions) - 1) \
+                        or (lane != this_lane and index < len(positions)):
+                    # check if the index does not correspond to the current
+                    # vehicle
+                    if ids[index] == veh_id:
+                        leader[lane] = ids[index + 1]
+                        headway[lane] = (positions[index + 1] - this_pos -
                                          self.get_length(leader[lane]))
                     else:
-                        follower[lane] = ids[0]
-                        tailway[lane] = this_pos - positions[0] \
-                            - self.get_length(veh_id)
+                        leader[lane] = ids[index]
+                        headway[lane] = positions[index] - this_pos \
+                                        - self.get_length(leader[lane])
+
+                # you are in the back of the queue, the lane follower is in the
+                # edges behind you
+                if index > 0:
+                    follower[lane] = ids[index - 1]
+                    tailway[lane] = this_pos - positions[index - 1] \
+                                    - self.get_length(veh_id)
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
