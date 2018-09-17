@@ -14,7 +14,7 @@ os.environ["TEST_FLAG"] = "True"
 
 
 def two_loops_one_merging_exp_setup(vehicles=None):
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+    sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         vehicles = Vehicles()

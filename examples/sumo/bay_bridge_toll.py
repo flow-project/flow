@@ -17,14 +17,14 @@ NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bottleneck.net.xml")
 
 
-def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
+def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
     """Perform a simulation of the toll portion of the Bay Bridge.
 
     This consists of the toll booth and sections of the road leading up to it.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render : bool, optional
         specifies whether to use sumo's gui during execution
     use_traffic_lights: bool, optional
         whether to activate the traffic lights in the scenario
@@ -35,8 +35,8 @@ def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
     """
     sumo_params = SumoParams(sim_step=0.4, overtake_right=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     sumo_car_following_params = SumoCarFollowingParams(speedDev=0.2)
     sumo_lc_params = SumoLaneChangeParams(
@@ -121,7 +121,7 @@ def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
 if __name__ == "__main__":
     # import the experiment variable
     exp = bay_bridge_bottleneck_example(
-        sumo_binary="sumo-gui", use_traffic_lights=False)
+        render=True, use_traffic_lights=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

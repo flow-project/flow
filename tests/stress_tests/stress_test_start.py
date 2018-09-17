@@ -13,9 +13,7 @@ import ray
 @ray.remote
 def start():
     """Start a environment object with ray."""
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
-
-    sumo_params.sumo_binary = 'sumo'
+    sumo_params = SumoParams(sim_step=0.1, render=False)
 
     vehicles = Vehicles()
     vehicles.add(
