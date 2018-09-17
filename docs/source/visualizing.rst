@@ -8,7 +8,7 @@ simulation will begin, with the autonomous vehicles exhibiting the behavior
 trained by the reinforcement learning algorithm.
 
 .. image:: ../img/visualizing.png
-   :width: 600
+   :width: 400
    :align: center
 
 rllab
