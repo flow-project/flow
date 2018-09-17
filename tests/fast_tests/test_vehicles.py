@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from flow.core.vehicles import Vehicles
-from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig
+from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig, SumoParams
 from flow.controllers.car_following_models import IDMController, \
     SumoCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
@@ -230,29 +230,36 @@ class TestMultiLaneData(unittest.TestCase):
     def test_no_junctions_highway(self):
         additional_net_params = {
             "length": 100,
-            "lanes": 1,
+            "lanes": 3,
             "speed_limit": 30,
             "resolution": 40,
-            "num_edges": 3
+            "num_edges": 2
         }
         net_params = NetParams(additional_params=additional_net_params)
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=12)
+            num_vehicles=2)
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
+        initial_pos = {}
+        initial_pos["start_positions"] = [('highway_0', 10), ('highway_0', 20)]
+        initial_pos["start_lanes"] = [1, 0]
         initial_config.additional_params = initial_pos
 
         # FIXME(ev) we want to place the vehicles in such a way
         # FIXME(ev) as to maximally generate errors
         env, scenario = highway_exp_setup(
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo-gui"),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
         env.reset()
+
+        actual_lane_head = env.vehicles.get_lane_headways("test_0")
+
 
 
     def test_junctions(self):

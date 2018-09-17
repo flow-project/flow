@@ -25,15 +25,11 @@ class HighwayGenerator(Generator):
         segment_lengths = np.linspace(0, length, num_edges+1)
 
         nodes = []
-        for i in range(num_edges):
+        for i in range(num_edges+1):
             nodes += [{
-                "id": "begin_{}".format(i),
+                "id": "edge_{}".format(i),
                 "x": repr(segment_lengths[i]),
-                "y": repr(segment_lengths[i])
-            }, {
-                "id": "end_{}".format(i),
-                "x": repr(segment_lengths[i+1]),
-                "y": repr(segment_lengths[i+1])
+                "y": repr(0)
             }]
 
         return nodes
@@ -49,8 +45,8 @@ class HighwayGenerator(Generator):
             edges += [{
                 "id": "highway_{}".format(i),
                 "type": "highwayType",
-                "from": "begin_{}".format(i),
-                "to": "end_{}".format(i),
+                "from": "edge_{}".format(i),
+                "to": "edge_{}".format(i+1),
                 "length": repr(segment_length)
             }]
 
@@ -77,26 +73,3 @@ class HighwayGenerator(Generator):
             rts["highway_{}".format(i)] = ["highway_{}".format(j) for j in range(i, num_edges)]
 
         return rts
-
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """Generate a user defined set of starting positions.
-        This method is just used for testing.
-
-        Parameters
-        ----------
-        initial_config : InitialConfig type
-            see flow/core/params.py
-        num_vehicles : int
-            number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
-
-        Returns
-        -------
-        startpositions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
-            list of start lanes
-        """
-        return kwargs["start_positions"], kwargs["start_lanes"]
