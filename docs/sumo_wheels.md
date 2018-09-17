@@ -62,8 +62,8 @@ repository is migrating to a new SUMO version.
    
         cd /path/to/sumo/bin
         mkdir data
-        cp ../data/* data
-        tar -cJf binaries-<dist>.tar.xz !(Makefile*)
+        cp -r ../data/* data
+        tar -cJf binaries-<dist>.tar.xz !(Makefile*|start-command-line.bat)
 
 5. Create a `sumotools` wheel from the python-related packages. This only needs 
    to be done once for all Ubuntu and Mac, as the python tools are distribution 
@@ -80,8 +80,8 @@ repository is migrating to a new SUMO version.
 
     Note that in the final command the optional [3] is needed if your python 
     command defaults to 2 instead of 3. Once the above commands are done 
-    running, you will have a new .whl file in /path/to/sumo/tools. This will 
-    contain all you need to run sumo-related python commands.
+    running, you will have a new .whl file in /path/to/sumo/tools/dist. This 
+    will contain all you need to run sumo-related python commands.
 
 6. Finally, the wheels and binaries need to be placed on AWS so that other 
    individuals can have access to them. For now, send these files you created 
