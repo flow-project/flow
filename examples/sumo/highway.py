@@ -46,13 +46,13 @@ def highway_example(render=None):
     inflow = InFlows()
     inflow.add(
         veh_type="human",
-        edge="highway",
+        edge="highway_0",
         probability=0.25,
         departLane="free",
         departSpeed=20)
     inflow.add(
         veh_type="human2",
-        edge="highway",
+        edge="highway_0",
         probability=0.25,
         departLane="free",
         departSpeed=20)

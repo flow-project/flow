@@ -128,7 +128,11 @@ class Scenario(Serializable):
             ])
 
         # generate starting position for vehicles in the network
-        positions, lanes = self.generate_starting_positions()
+        kwargs = initial_config.additional_params
+        positions, lanes = self.generate_starting_positions(
+            num_vehicles=vehicles.num_vehicles,
+            **kwargs
+        )
 
         # create the sumo configuration files using the generator class
         cfg_name = self.generator.generate_cfg(self.net_params,
@@ -403,7 +407,7 @@ class Scenario(Serializable):
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = self._get_start_pos_util(
-             initial_config, num_vehicles, **kwargs)
+            initial_config, num_vehicles, **kwargs)
 
         # extra space a vehicle needs to cover from the start of an edge to be
         # fully in the edge and not risk having a gap with a vehicle behind it
@@ -433,7 +437,7 @@ class Scenario(Serializable):
         for i in range(num_vehicles):
             edge_i = available_edges[edge_indx]
             pos_i = (init_absolute_pos[i] - decrement) % (
-                self.edge_length(edge_i) - efs)
+                    self.edge_length(edge_i) - efs)
             lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
                          (self.edge_length(edge_i) - efs))
 
@@ -446,7 +450,7 @@ class Scenario(Serializable):
 
                 edge_i = available_edges[edge_indx]
                 pos_i = (init_absolute_pos[i] - decrement) % (
-                    self.edge_length(edge_i) - efs)
+                        self.edge_length(edge_i) - efs)
 
                 lane_i = int(((init_absolute_pos[i] - decrement) - pos_i) /
                              (self.edge_length(edge_i) - efs))
