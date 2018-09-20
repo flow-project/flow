@@ -190,25 +190,25 @@ class Vehicles:
 
         self.initial.append({
             "veh_id":
-            veh_id,
+                veh_id,
             "acceleration_controller":
-            acceleration_controller,
+                acceleration_controller,
             "lane_change_controller":
-            lane_change_controller,
+                lane_change_controller,
             "routing_controller":
-            routing_controller,
+                routing_controller,
             "initial_speed":
-            initial_speed,
+                initial_speed,
             "num_vehicles":
-            num_vehicles,
+                num_vehicles,
             "speed_mode":
-            speed_mode,
+                speed_mode,
             "lane_change_mode":
-            lane_change_mode,
+                lane_change_mode,
             "sumo_car_following_params":
-            sumo_car_following_params,
+                sumo_car_following_params,
             "sumo_lc_params":
-            sumo_lc_params
+                sumo_lc_params
         })
 
         # this is used to return the actual headways from the vehicles class
@@ -1119,7 +1119,7 @@ class Vehicles:
         edge_dict : dict < list<tuple> >
             Key = Edge name
                 Index = lane index
-                Element = sorted list of (vehicle id, position)
+                Element = list sorted by position of (vehicle id, position)
 
         Returns
         -------
@@ -1138,6 +1138,7 @@ class Vehicles:
         """
         this_pos = self.get_position(veh_id)
         this_edge = self.get_edge(veh_id)
+        this_lane = self.get_lane(veh_id)
         num_lanes = env.scenario.num_lanes(this_edge)
 
         # set default values for all output values
@@ -1156,7 +1157,8 @@ class Vehicles:
 
                 # if you are at the end or the front of the edge, the lane
                 # leader is in the edges in front of you
-                if index < len(positions) - 1:
+                if (lane == this_lane and index < len(positions) - 1) \
+                        or (lane != this_lane and index < len(positions)):
                     # check if the index does not correspond to the current
                     # vehicle
                     if ids[index] == veh_id:
@@ -1165,15 +1167,15 @@ class Vehicles:
                                          self.get_length(leader[lane]))
                     else:
                         leader[lane] = ids[index]
-                        headway[lane] = positions[index] - this_pos \
-                            - self.get_length(leader[lane])
+                        headway[lane] = (positions[index] - this_pos
+                                         - self.get_length(leader[lane]))
 
                 # you are in the back of the queue, the lane follower is in the
                 # edges behind you
                 if index > 0:
                     follower[lane] = ids[index - 1]
-                    tailway[lane] = this_pos - positions[index - 1] \
-                        - self.get_length(veh_id)
+                    tailway[lane] = (this_pos - positions[index - 1]
+                                     - self.get_length(veh_id))
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
