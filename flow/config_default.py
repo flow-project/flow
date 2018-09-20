@@ -10,6 +10,8 @@ PROJECT_PATH = osp.abspath(osp.join(osp.dirname(__file__), '..'))
 
 LOG_DIR = PROJECT_PATH + "/data"
 
+# users set both of these in their bash_rc or bash_profile
+# and also should run aws configure after installing awscli
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY", None)
 
 AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET", None)
