@@ -19,7 +19,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 ADDITIONAL_PO_ENV_PARAMS = {
-    # num of vehicles the agent can observe on each incoming edge 
+    # num of vehicles the agent can observe on each incoming edge
     "num_observed": 2,
     # velocity to use in reward functions
     "target_velocity": 30,
