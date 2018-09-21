@@ -11,6 +11,8 @@ ADDITIONAL_NET_PARAMS = {
     "lanes": 4,
     # speed limit for all edges
     "speed_limit": 30,
+    # number of edges to divide the highway into
+    "num_edges": 1
 }
 
 
@@ -39,11 +41,36 @@ class HighwayScenario(Scenario):
 
         self.length = net_params.additional_params["length"]
         self.lanes = net_params.additional_params["lanes"]
+        self.num_edges = net_params.additional_params.get("num_edges", 1)
 
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """See parent class."""
-        edgestarts = [("highway", 0)]
+        edgestarts = [("highway_{}".format(i), 0)
+                      for i in range(self.num_edges)]
         return edgestarts
+
+    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+        """Generate a user defined set of starting positions.
+        This method is just used for testing.
+
+        Parameters
+        ----------
+        initial_config : InitialConfig type
+            see flow/core/params.py
+        num_vehicles : int
+            number of vehicles to be placed on the network
+        kwargs : dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+
+        Returns
+        -------
+        startpositions : list of tuple (float, float)
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes : list of int
+            list of start lanes
+        """
+        return kwargs["start_positions"], kwargs["start_lanes"]

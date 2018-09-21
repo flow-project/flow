@@ -123,9 +123,11 @@ def grid1_baseline(num_runs, render=True):
             evaluate=True,  # Set to True to evaluate traffic metrics
             horizon=HORIZON,
             additional_params={
-                "switch_time": 2.0,
+                "target_velocity": 50,
+                "switch_time": 2,
                 "num_observed": 2,
-                "tl_type": "actuated",
+                "discrete": False,
+                "tl_type": "controlled"
             },
         )
 

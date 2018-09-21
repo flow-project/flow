@@ -13,14 +13,27 @@ def _read_requirements_file():
         return [line.strip() for line in f]
 
 
+class build_ext(_build_ext.build_ext):
+    def run(self):
+        try:
+            import traci
+        except ImportError:
+            subprocess.check_call(
+                ['pip', 'install',
+                 'https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/'
+                 'sumotools-0.1.0-py3-none-any.whl'])
+
+
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
+
 
 setup(
     name='flow',
     version=__version__,
     distclass=BinaryDistribution,
+    cmdclass={"build_ext": build_ext},
     packages=find_packages(),
     install_requires=_read_requirements_file(),
     zip_safe=False,

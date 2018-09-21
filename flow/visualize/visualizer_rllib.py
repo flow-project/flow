@@ -49,7 +49,6 @@ parser.add_argument("checkpoint_num", type=str, help="Checkpoint number.")
 parser.add_argument(
     "--run",
     type=str,
-    default='PPO',
     help="The algorithm or model to train. This may refer to "
     "the name of a built-on algorithm (e.g. RLLib's DQN "
     "or PPO), or a user-defined trainable function or "

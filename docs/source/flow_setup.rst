@@ -27,9 +27,16 @@ In this section we install Flow as well as the binaries and packages needed
 to support the traffic simulator used in modeling the dynamics of traffic
 networks: SUMO.
 
+If you have not done so already, download the Flow github repository.
+
+::
+
+    git clone https://github.com/flow-project/flow.git
+    cd flow
+
 We begin by creating a conda environment and installing Flow and its
 dependencies within the environment. This can be done by running the below
-script.
+script. Be sure to run the below commands from ``/path/to/flow``.
 
 ::
 
@@ -152,6 +159,12 @@ To visualize the training progress:
 ::
 
     tensorboard --logdir=~/ray_results
+
+If tensorboard is not installed, you can install with pip: 
+
+::
+
+    pip install tensorboard
 
 For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
 The basic workflow is running the following locally, ssh-ing into the host machine, and starting

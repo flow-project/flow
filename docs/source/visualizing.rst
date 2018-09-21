@@ -1,7 +1,15 @@
 Visualization
 *******************
 
-Flow supports visualization of both rllab and RLlib experiments. 
+Flow supports visualization of both rllab and RLlib computational experiments.
+When using one of the below visualizers, a window will appear similar to the
+one in the figure below. Click on the play button (highlighted in red) and the
+simulation will begin, with the autonomous vehicles exhibiting the behavior
+trained by the reinforcement learning algorithm.
+
+.. image:: ../img/visualizing.png
+   :width: 400
+   :align: center
 
 rllab
 =====
