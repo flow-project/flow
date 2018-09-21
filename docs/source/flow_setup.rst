@@ -62,7 +62,7 @@ We begin by downloading SUMO's github directory:
     cd ~
     git clone https://github.com/eclipse/sumo.git
     cd sumo
-    git checkout 87fa8a63dd
+    git checkout 016c09d306
     make -f Makefile.cvs
 
 If you have OSX, run the following commands. If you don't have brew
@@ -159,6 +159,12 @@ To visualize the training progress:
 ::
 
     tensorboard --logdir=~/ray_results
+
+If tensorboard is not installed, you can install with pip: 
+
+::
+
+    pip install tensorboard
 
 For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
 The basic workflow is running the following locally, ssh-ing into the host machine, and starting
