@@ -18,6 +18,13 @@ ADDITIONAL_ENV_PARAMS = {
     "discrete": False,
 }
 
+ADDITIONAL_PO_ENV_PARAMS = {
+    # num of vehicles the agent can observe on each incoming edge
+    "num_observed": 2,
+    # velocity to use in reward functions
+    "target_velocity": 30,
+}
+
 
 class TrafficLightGridEnv(Env):
     """Environment used to train traffic lights to regulate traffic flow
@@ -57,6 +64,12 @@ class TrafficLightGridEnv(Env):
     """
 
     def __init__(self, env_params, sumo_params, scenario):
+
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
+
         self.grid_array = scenario.net_params.additional_params["grid_array"]
         self.rows = self.grid_array["row_num"]
         self.cols = self.grid_array["col_num"]
@@ -458,14 +471,14 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
     def __init__(self, env_params, sumo_params, scenario):
         super().__init__(env_params, sumo_params, scenario)
 
+        for p in ADDITIONAL_PO_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
+
         # number of vehicles nearest each intersection that is observed in the
         # state space; defaults to 2
         self.num_observed = env_params.additional_params.get("num_observed", 2)
-
-        # used while computing the reward
-        self.env_params.additional_params["target_velocity"] = \
-            max(self.scenario.speed_limit(edge)
-                for edge in self.scenario.get_edge_list())
 
         # used during visualization
         self.observed_ids = []
