@@ -160,6 +160,12 @@ To visualize the training progress:
 
     tensorboard --logdir=~/ray_results
 
+If tensorboard is not installed, you can install with pip: 
+
+::
+
+    pip install tensorboard
+
 For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
 The basic workflow is running the following locally, ssh-ing into the host machine, and starting
 jobs from there.
