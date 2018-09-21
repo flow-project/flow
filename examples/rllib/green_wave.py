@@ -95,7 +95,13 @@ grid_array = {
     "rl_veh": rl_veh
 }
 
-additional_env_params = {"target_velocity": 50, "switch_time": 3.0}
+additional_env_params = {
+        "target_velocity": 50,
+        "switch_time": 3.0,
+        "num_observed": 2,
+        "discrete": False,
+        "tl_type": "controlled"
+    }
 
 additional_net_params = {
     "speed_limit": 35,

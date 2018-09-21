@@ -110,8 +110,10 @@ def run_task(*_):
 
     additional_env_params = {
         "target_velocity": 50,
-        "num_steps": 500,
-        "switch_time": 3.0
+        "switch_time": 3.0,
+        "num_observed": 2,
+        "discrete": False,
+        "tl_type": "controlled"
     }
     env_params = EnvParams(additional_params=additional_env_params)
 
