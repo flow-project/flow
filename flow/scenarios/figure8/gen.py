@@ -292,3 +292,18 @@ class Figure8Generator(Generator):
         }
 
         return rts
+
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes = net_params.additional_params["lanes"]
+        conn = []
+        for i in range(lanes):
+            conn += [{"from": "right_lower_ring_in",
+                      "to": "right_lower_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+            conn += [{"from": "bottom_upper_ring_in",
+                      "to": "bottom_upper_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+        return conn
