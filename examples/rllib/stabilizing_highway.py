@@ -99,6 +99,7 @@ flow_params = dict(
     sumo=SumoParams(
         sim_step=0.2,
         render=False,
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -168,6 +169,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200,
             },
-            "repeat": 3,
+            "num_samples": 3,
         },
     })
