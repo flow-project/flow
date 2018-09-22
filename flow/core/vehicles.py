@@ -318,7 +318,10 @@ class Vehicles:
                 # updated
                 pass
             else:
-                self._add_departed(veh_id, veh_type, env)
+                obs = self._add_departed(veh_id, veh_type, env)
+
+                # add the subscription information of the new vehicle
+                vehicle_obs[veh_id] = obs
 
         if env.time_counter == 0:
             # reset all necessary values
@@ -331,11 +334,7 @@ class Vehicles:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
                 prev_lane = self.get_lane(veh_id)
-                if veh_id not in vehicle_obs:
-                    # ignore first step after subscriptions (the vehicle does
-                    # not have data yet)
-                    pass
-                elif vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != prev_lane:
+                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != prev_lane:
                     self.set_state(veh_id, "last_lc", env.time_counter)
 
             # update the "absolute_position" variable
@@ -397,6 +396,11 @@ class Vehicles:
             type of vehicle, as specified to sumo
         env: Env type
             state of the environment at the current time step
+
+        Returns
+        -------
+        dict
+            subscription results from the new vehicle
         """
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
@@ -451,6 +455,9 @@ class Vehicles:
         ])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
+        # get the subscription results from the new vehicle
+        new_obs = env.traci_connection.vehicle.getSubscriptionResults(veh_id)
+
         # some constant vehicle parameters to the vehicles class
         self.set_length(veh_id, env.traci_connection.vehicle.getLength(veh_id))
 
@@ -476,6 +483,8 @@ class Vehicles:
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
+
+        return new_obs
 
     def remove(self, veh_id):
         """Remove a vehicle.
