@@ -8,7 +8,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.bay_bridge import BayBridgeEnv
+from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge_toll.gen import BayBridgeTollGenerator
 from flow.scenarios.bay_bridge_toll.scenario import BayBridgeTollScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter

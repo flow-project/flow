@@ -9,7 +9,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.bay_bridge import BayBridgeEnv
+from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge.gen import BayBridgeGenerator
 from flow.scenarios.bay_bridge.scenario import BayBridgeScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
