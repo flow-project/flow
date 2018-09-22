@@ -381,20 +381,6 @@ class IDMController(BaseController):
         v = env.vehicles.get_speed(self.veh_id)
         lead_id = env.vehicles.get_leader(self.veh_id)
         h = env.vehicles.get_headway(self.veh_id)
-        edge = env.vehicles.get_edge(self.veh_id)
-        lead_edge = env.vehicles.get_edge(lead_id)
-
-        # This covers situations where both vehicles are in a junction from
-        # either direction (e.g. in the figure eight). The vehicle that is
-        # deeper into the junction has its accelerations defined by sumo. This
-        # needed is due to modifications in sumo from 1d4338ab80 to b6f37dd
-        if len(edge) > 0 and len(lead_edge) > 0:
-            if edge[0] == ":" and \
-                    lead_edge[0] == ":" and \
-                    edge != lead_edge and \
-                    h < 0.9 * self.s0 and \
-                    env.vehicles.get_headway(lead_id) > h:
-                return None
 
         # in order to deal with ZeroDivisionError
         if abs(h) < 1e-3:
