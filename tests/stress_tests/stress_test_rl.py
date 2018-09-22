@@ -53,7 +53,7 @@ if __name__ == "__main__":
         config["num_deltas"] = N_CPUS
         config["deltas_used"] = N_CPUS
     elif alg == 'PPO':
-        import ray.rllib.ppo as ppo
+        import ray.rllib.agents.ppo as ppo
         config = ppo.DEFAULT_CONFIG.copy()
         config["num_workers"] = N_CPUS
         config["timesteps_per_batch"] = horizon * N_ROLLOUTS
