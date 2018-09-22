@@ -690,10 +690,7 @@ class Vehicles:
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
-        try:
-            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
-        except:
-            raise EnvironmentError(self.__sumo_obs)
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 
     def get_absolute_position(self, veh_id, error=-1001):
         """Return the absolute position of the specified vehicle.
