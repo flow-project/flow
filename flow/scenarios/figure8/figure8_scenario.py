@@ -98,10 +98,10 @@ class Figure8Scenario(Scenario):
     def specify_intersection_edge_starts(self):
         """See base class."""
         intersection_edgestarts = \
-            [(":center_intersection_%s" % (1 + self.lanes),
+            [(":center_intersection_%s" % self.lanes,
               self.ring_edgelen + self.intersection_len / 2 +
               3 * self.inner_space_len),
-             (":center_intersection_1",
+             (":center_intersection_0",
               4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
               self.junction_len + 8 * self.inner_space_len)]
 
