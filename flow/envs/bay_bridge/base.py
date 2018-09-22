@@ -140,7 +140,7 @@ class BayBridgeEnv(Env):
                         self.traci_connection.vehicle.setLaneChangeMode(
                             veh_id, 512)
                         self.traci_connection.vehicle.setColor(
-                            veh_id, (0, 255, 255, 0))
+                            veh_id, (0, 255, 255, 255))
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
@@ -191,7 +191,7 @@ class BayBridgeEnv(Env):
                         self.traci_connection.vehicle.setLaneChangeMode(
                             veh_id, 512)
                         self.traci_connection.vehicle.setColor(
-                            veh_id, (255, 0, 255, 0))
+                            veh_id, (255, 0, 255, 255))
                     else:
                         if pos > 120:
                             if self.toll_wait_time[lane] < 0:
