@@ -298,6 +298,10 @@ class Vehicles:
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
                 self.remove(veh_id)
+                # remove exiting vehicles from the vehicle subscription if they
+                # haven't been removed already
+                if vehicle_obs[veh_id] is None:
+                    vehicle_obs.pop(veh_id, None)
             else:
                 # this is meant to resolve the KeyError bug when there are
                 # collisions
@@ -327,8 +331,11 @@ class Vehicles:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
                 prev_lane = self.get_lane(veh_id)
-                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
-                        prev_lane and veh_id in self.__rl_ids:
+                if veh_id not in vehicle_obs:
+                    # ignore first step after subscriptions (the vehicle does
+                    # not have data yet)
+                    pass
+                elif vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != prev_lane:
                     self.set_state(veh_id, "last_lc", env.time_counter)
 
             # update the "absolute_position" variable
@@ -683,7 +690,10 @@ class Vehicles:
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
-        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
+        try:
+            return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
+        except:
+            raise EnvironmentError(self.__sumo_obs)
 
     def get_absolute_position(self, veh_id, error=-1001):
         """Return the absolute position of the specified vehicle.
