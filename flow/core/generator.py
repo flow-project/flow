@@ -258,7 +258,6 @@ class Generator(Serializable):
                 detector_gap = str(tl_params["detector_gap"])
                 show_detector = tl_params["show_detectors"]
 
-                import ipdb; ipdb.set_trace()
                 detectors = {"key": "detector-gap", "value": detector_gap}
                 gap = {"key": "max-gap", "value": max_gap}
 
