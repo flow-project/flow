@@ -12,7 +12,6 @@ RUN apt-get update && \
 RUN cd ~ && \
 	git clone https://github.com/flow-project/flow.git && \
     cd flow && \
-    git checkout leaderboard && \
 	python setup.py develop
 
 # SUMO dependencies
@@ -32,8 +31,7 @@ RUN apt-get install -y \
 RUN cd ~ && \
 	git clone --recursive https://github.com/eclipse/sumo.git && \
 	cd sumo && \
-	#git checkout b6f37dd && \
-	git checkout cbe5b73 && \
+	git checkout 016c09d306 && \
     mkdir build/cmake-build && \
 	cd build/cmake-build && \
 	cmake ../.. && \
