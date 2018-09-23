@@ -19,12 +19,20 @@ class TestCFMController(unittest.TestCase):
     """
     Tests that the CFM Controller returning mathematically accurate values.
     """
+
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
 
-        contr_params = {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1,
-                        "d_des": 1, "v_des": 8, "noise": 0}
+        contr_params = {
+            "time_delay": 0,
+            "k_d": 1,
+            "k_v": 1,
+            "k_c": 1,
+            "d_des": 1,
+            "v_des": 8,
+            "noise": 0
+        }
 
         vehicles = Vehicles()
         vehicles.add(
@@ -33,8 +41,7 @@ class TestCFMController(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 accel=20, decel=5),
-            num_vehicles=5
-        )
+            num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -54,8 +61,10 @@ class TestCFMController(unittest.TestCase):
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
 
-        requested_accel = [self.env.vehicles.get_acc_controller(
-            veh_id).get_action(self.env) for veh_id in ids]
+        requested_accel = [
+            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
 
         expected_accel = [12., 17., 22., 27., 32.]
 
@@ -66,6 +75,7 @@ class TestBCMController(unittest.TestCase):
     """
     Tests that the BCM Controller returning mathematically accurate values.
     """
+
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
@@ -80,8 +90,7 @@ class TestBCMController(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
-            num_vehicles=5
-        )
+            num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -101,8 +110,10 @@ class TestBCMController(unittest.TestCase):
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
 
-        requested_accel = [self.env.vehicles.get_acc_controller(
-            veh_id).get_action(self.env) for veh_id in ids]
+        requested_accel = [
+            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
 
         expected_accel = [-12., 13., 13., 13., 13.]
 
@@ -113,11 +124,19 @@ class TestOVMController(unittest.TestCase):
     """
     Tests that the OVM Controller returning mathematically accurate values.
     """
+
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
-        contr_params = {"time_delay": 0, "alpha": 1, "beta": 1, "h_st": 2,
-                        "h_go": 15, "v_max": 30, "noise": 0}
+        contr_params = {
+            "time_delay": 0,
+            "alpha": 1,
+            "beta": 1,
+            "h_st": 2,
+            "h_go": 15,
+            "v_max": 30,
+            "noise": 0
+        }
 
         vehicles = Vehicles()
         vehicles.add(
@@ -126,8 +145,7 @@ class TestOVMController(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
-            num_vehicles=5
-        )
+            num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -147,8 +165,10 @@ class TestOVMController(unittest.TestCase):
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
 
-        requested_accel = [self.env.vehicles.get_acc_controller(
-            veh_id).get_action(self.env) for veh_id in ids]
+        requested_accel = [
+            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
 
         expected_accel = [0., 20.319073, 3.772339, 3.772339, 3.772339]
 
@@ -160,6 +180,7 @@ class TestLinearOVM(unittest.TestCase):
     Tests that the Linear OVM Controller returning mathematically accurate
     values.
     """
+
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
@@ -174,8 +195,7 @@ class TestLinearOVM(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
-            num_vehicles=5
-        )
+            num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -195,8 +215,10 @@ class TestLinearOVM(unittest.TestCase):
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
 
-        requested_accel = [self.env.vehicles.get_acc_controller(
-            veh_id).get_action(self.env) for veh_id in ids]
+        requested_accel = [
+            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
 
         expected_accel = [0., 12.992308, 12.992308, 25.984615, 0.]
 
@@ -207,11 +229,11 @@ class TestIDMController(unittest.TestCase):
     """
     Tests that the IDM Controller returning mathematically accurate values.
     """
+
     def setUp(self):
         # add a few vehicles to the network using the requested model
         # also make sure that the input params are what is expected
-        contr_params = {"v0": 30, "b": 1.5, "delta": 4,
-                        "s0": 2, "noise": 0}
+        contr_params = {"v0": 30, "b": 1.5, "delta": 4, "s0": 2, "noise": 0}
 
         vehicles = Vehicles()
         vehicles.add(
@@ -220,8 +242,7 @@ class TestIDMController(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 tau=1, accel=1, decel=5),
-            num_vehicles=5
-        )
+            num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -241,8 +262,10 @@ class TestIDMController(unittest.TestCase):
         for i, veh_id in enumerate(ids):
             self.env.vehicles.set_headway(veh_id, test_headways[i])
 
-        requested_accel = [self.env.vehicles.get_acc_controller(
-            veh_id).get_action(self.env) for veh_id in ids]
+        requested_accel = [
+            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
 
         expected_accel = [0.96, 0.99, 0.995556, 0.9975, 0.9984]
 
@@ -255,8 +278,10 @@ class TestIDMController(unittest.TestCase):
 
         # make sure the controller doesn't return a ZeroDivisionError when the
         # headway is zero
-        [self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
-         for veh_id in ids]
+        [
+            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            for veh_id in ids
+        ]
 
 
 class TestInstantaneousFailsafe(unittest.TestCase):
@@ -265,22 +290,31 @@ class TestInstantaneousFailsafe(unittest.TestCase):
     does not allow vehicles to crash under situations where they otherwise
     would. This is tested on two crash-prone controllers: OVM and LinearOVM
     """
+
     def setUp_failsafe(self, vehicles):
-        additional_env_params = {"target_velocity": 8, "max_accel": 3,
-                                 "max_decel": 3}
+        additional_env_params = {
+            "target_velocity": 8,
+            "max_accel": 3,
+            "max_decel": 3
+        }
         env_params = EnvParams(additional_params=additional_env_params)
 
-        additional_net_params = {"length": 100, "lanes": 1, "speed_limit": 30,
-                                 "resolution": 40}
+        additional_net_params = {
+            "length": 100,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
         initial_config = InitialConfig(bunching=10)
 
         # create the environment and scenario classes for a ring road
-        env, scenario = ring_road_exp_setup(vehicles=vehicles,
-                                            env_params=env_params,
-                                            net_params=net_params,
-                                            initial_config=initial_config)
+        env, scenario = ring_road_exp_setup(
+            vehicles=vehicles,
+            env_params=env_params,
+            net_params=net_params,
+            initial_config=initial_config)
 
         # instantiate an experiment class
         self.exp = SumoExperiment(env, scenario)
@@ -293,8 +327,9 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
-            acceleration_controller=(OVMController,
-                                     {"fail_safe": "instantaneous"}),
+            acceleration_controller=(OVMController, {
+                "fail_safe": "instantaneous"
+            }),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=10,
         )
@@ -310,11 +345,11 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
-            acceleration_controller=(LinearOVM,
-                                     {"fail_safe": "instantaneous"}),
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": "instantaneous"
+            }),
             routing_controller=(ContinuousRouter, {}),
-            num_vehicles=10
-        )
+            num_vehicles=10)
 
         self.setUp_failsafe(vehicles=vehicles)
 
@@ -329,12 +364,14 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
     Tests that the safe velocity failsafe of the base acceleration controller
     does not fail under extreme conditions.
     """
+
     def test_no_crash_OVM(self):
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
-            acceleration_controller=(OVMController,
-                                     {"fail_safe": "safe_velocity"}),
+            acceleration_controller=(OVMController, {
+                "fail_safe": "safe_velocity"
+            }),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=10,
         )
@@ -350,8 +387,9 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
         vehicles = Vehicles()
         vehicles.add(
             veh_id="test",
-            acceleration_controller=(LinearOVM,
-                                     {"fail_safe": "safe_velocity"}),
+            acceleration_controller=(LinearOVM, {
+                "fail_safe": "safe_velocity"
+            }),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=10,
         )
@@ -369,10 +407,15 @@ class TestStaticLaneChanger(unittest.TestCase):
     Makes sure that vehicles with a static lane-changing controller do not
     change lanes.
     """
+
     def setUp(self):
         # add an extra lane to the ring road network
-        additional_net_params = {"length": 230, "lanes": 2, "speed_limit": 30,
-                                 "resolution": 40}
+        additional_net_params = {
+            "length": 230,
+            "lanes": 2,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and scenario classes for a ring road
@@ -385,7 +428,7 @@ class TestStaticLaneChanger(unittest.TestCase):
         # free data used by the class
         self.env = None
 
-    def runTest(self):
+    def test_static_lane_changer(self):
         self.env.reset()
         ids = self.env.vehicles.get_ids()
 

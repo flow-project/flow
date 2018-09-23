@@ -1,11 +1,9 @@
-"""
-Grid/green wave example
-"""
+"""Grid/green wave example."""
 
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -21,7 +19,7 @@ HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+N_CPUS = 2
 
 
 def gen_edges(row_num, col_num):
@@ -39,19 +37,23 @@ def gen_edges(row_num, col_num):
 
 
 def get_flow_params(col_num, row_num, additional_net_params):
-    initial_config = InitialConfig(spacing="uniform",
-                                   lanes_distribution=float("inf"),
-                                   shuffle=True)
+    initial_config = InitialConfig(
+        spacing="uniform", lanes_distribution=float("inf"), shuffle=True)
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
     for i in range(len(outer_edges)):
-        inflow.add(veh_type="idm", edge=outer_edges[i], probability=0.25,
-                   departLane="free", departSpeed=20)
+        inflow.add(
+            veh_type="idm",
+            edge=outer_edges[i],
+            probability=0.25,
+            departLane="free",
+            departSpeed=20)
 
-    net_params = NetParams(in_flows=inflow,
-                           no_internal_links=False,
-                           additional_params=additional_net_params)
+    net_params = NetParams(
+        inflows=inflow,
+        no_internal_links=False,
+        additional_params=additional_net_params)
 
     return initial_config, net_params
 
@@ -59,8 +61,8 @@ def get_flow_params(col_num, row_num, additional_net_params):
 def get_non_flow_params(enter_speed, additional_net_params):
     additional_init_params = {"enter_speed": enter_speed}
     initial_config = InitialConfig(additional_params=additional_init_params)
-    net_params = NetParams(no_internal_links=False,
-                           additional_params=additional_net_params)
+    net_params = NetParams(
+        no_internal_links=False, additional_params=additional_net_params)
 
     return initial_config, net_params
 
@@ -80,31 +82,48 @@ rl_veh = 0
 tot_cars = (num_cars_left + num_cars_right) * m \
            + (num_cars_bot + num_cars_top) * n
 
-grid_array = {"short_length": short_length, "inner_length": inner_length,
-              "long_length": long_length, "row_num": n, "col_num": m,
-              "cars_left": num_cars_left, "cars_right": num_cars_right,
-              "cars_top": num_cars_top, "cars_bot": num_cars_bot,
-              "rl_veh": rl_veh}
+grid_array = {
+    "short_length": short_length,
+    "inner_length": inner_length,
+    "long_length": long_length,
+    "row_num": n,
+    "col_num": m,
+    "cars_left": num_cars_left,
+    "cars_right": num_cars_right,
+    "cars_top": num_cars_top,
+    "cars_bot": num_cars_bot,
+    "rl_veh": rl_veh
+}
 
-additional_env_params = {"target_velocity": 50, "switch_time": 3.0}
+additional_env_params = {
+        "target_velocity": 50,
+        "switch_time": 3.0,
+        "num_observed": 2,
+        "discrete": False,
+        "tl_type": "controlled"
+    }
 
-additional_net_params = {"speed_limit": 35, "grid_array": grid_array,
-                         "horizontal_lanes": 1, "vertical_lanes": 1}
+additional_net_params = {
+    "speed_limit": 35,
+    "grid_array": grid_array,
+    "horizontal_lanes": 1,
+    "vertical_lanes": 1
+}
 
 vehicles = Vehicles()
-vehicles.add(veh_id="idm",
-             acceleration_controller=(SumoCarFollowingController, {}),
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=2.5,
-                 max_speed=v_enter,
-             ),
-             routing_controller=(GridRouter, {}),
-             num_vehicles=tot_cars,
-             speed_mode="all_checks")
+vehicles.add(
+    veh_id="idm",
+    acceleration_controller=(SumoCarFollowingController, {}),
+    sumo_car_following_params=SumoCarFollowingParams(
+        minGap=2.5,
+        max_speed=v_enter,
+    ),
+    routing_controller=(GridRouter, {}),
+    num_vehicles=tot_cars,
+    speed_mode="all_checks")
 
 initial_config, net_params = \
     get_non_flow_params(v_enter, additional_net_params)
-
 
 flow_params = dict(
     # name of the experiment
@@ -122,7 +141,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=1,
-        sumo_binary="sumo-gui",
+        render=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -144,12 +163,11 @@ flow_params = dict(
     initial=initial_config,
 )
 
-
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
+    ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS
+    config["num_workers"] = N_CPUS
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32]})
@@ -163,8 +181,8 @@ if __name__ == "__main__":
     config["horizon"] = HORIZON
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
@@ -184,10 +202,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200,
             },
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
-            },
+
         }
     })

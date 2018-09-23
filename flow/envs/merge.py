@@ -1,3 +1,10 @@
+"""
+Environments for training vehicles to reduce congestion in a merge.
+
+This environment was used in:
+TODO(ak): add paper after it has been published.
+"""
+
 from flow.envs.base_env import Env
 from flow.core import rewards
 
@@ -19,8 +26,10 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 class WaveAttenuationMergePOEnv(Env):
-    """Environment used to train autonomous vehicles to attenuate the formation
-    and propagation of waves in an open merge network.
+    """Partially observable merge environment.
+
+    This environment is used to train autonomous vehicles to attenuate the
+    formation and propagation of waves in an open merge network.
 
     Required from env_params:
 
@@ -64,8 +73,8 @@ class WaveAttenuationMergePOEnv(Env):
     def __init__(self, env_params, sumo_params, scenario):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
-                raise KeyError('Environment parameter "{}" not supplied'.
-                               format(p))
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
 
         # maximum number of controlled vehicles
         self.num_rl = env_params.additional_params["num_rl"]
@@ -81,16 +90,20 @@ class WaveAttenuationMergePOEnv(Env):
 
     @property
     def action_space(self):
-        return Box(low=-abs(self.env_params.additional_params["max_decel"]),
-                   high=self.env_params.additional_params["max_accel"],
-                   shape=(self.num_rl,),
-                   dtype=np.float32)
+        """See class definition."""
+        return Box(
+            low=-abs(self.env_params.additional_params["max_decel"]),
+            high=self.env_params.additional_params["max_accel"],
+            shape=(self.num_rl, ),
+            dtype=np.float32)
 
     @property
     def observation_space(self):
-        return Box(low=0, high=1, shape=(5 * self.num_rl,), dtype=np.float32)
+        """See class definition."""
+        return Box(low=0, high=1, shape=(5 * self.num_rl, ), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
         for i, rl_id in enumerate(self.rl_veh):
             # ignore rl vehicles outside the network
             if rl_id not in self.vehicles.get_rl_ids():
@@ -98,6 +111,7 @@ class WaveAttenuationMergePOEnv(Env):
             self.apply_acceleration([rl_id], [rl_actions[i]])
 
     def get_state(self, rl_id=None, **kwargs):
+        """See class definition."""
         self.leader = []
         self.follower = []
 
@@ -139,6 +153,7 @@ class WaveAttenuationMergePOEnv(Env):
         return observation
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         if self.env_params.evaluate:
             return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
         else:
@@ -156,21 +171,38 @@ class WaveAttenuationMergePOEnv(Env):
                 lead_id = self.vehicles.get_leader(rl_id)
                 if lead_id not in ["", None] \
                         and self.vehicles.get_speed(rl_id) > 0:
-                    t_headway = max(self.vehicles.get_headway(rl_id)
-                                    / self.vehicles.get_speed(rl_id), 0)
+                    t_headway = max(
+                        self.vehicles.get_headway(rl_id) /
+                        self.vehicles.get_speed(rl_id), 0)
                     cost2 += min((t_headway - t_min) / t_min, 0)
 
             # weights for cost1, cost2, and cost3, respectively
             eta1, eta2 = 1.00, 0.10
 
-            return max(eta1*cost1 + eta2*cost2, 0)
+            return max(eta1 * cost1 + eta2 * cost2, 0)
 
     def sort_by_position(self):
+        """See parent class.
+
+        Sorting occurs by the ``get_x_by_id`` method instead of
+        ``get_absolute_position``.
+        """
         # vehicles are sorted by their get_x_by_id value
         sorted_ids = sorted(self.vehicles.get_ids(), key=self.get_x_by_id)
         return sorted_ids, None
 
     def additional_command(self):
+        """See parent class.
+
+        This method performs to auxiliary tasks:
+
+        * Define which vehicles are observed for visualization purposes.
+        * Maintains the "rl_veh" and "rl_queue" variables to ensure the RL
+          vehicles that are represented in the state space does not change
+          until one of the vehicles in the state space leaves the network.
+          Then, the next vehicle in the queue is added to the state space and
+          provided with actions from the policy.
+        """
         # add rl vehicles that just entered the network into the rl queue
         for veh_id in self.vehicles.get_rl_ids():
             if veh_id not in list(self.rl_queue) + self.rl_veh:
@@ -194,6 +226,11 @@ class WaveAttenuationMergePOEnv(Env):
             self.vehicles.set_observed(veh_id)
 
     def reset(self):
+        """See parent class.
+
+        In addition, a few variables that are specific to this class are
+        emptied before they are used by the new rollout.
+        """
         self.leader = []
         self.follower = []
         return super().reset()

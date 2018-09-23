@@ -1,3 +1,5 @@
+"""Environment for training the acceleration behavior of vehicles in a loop."""
+
 from flow.envs.base_env import Env
 from flow.core import rewards
 
@@ -17,7 +19,9 @@ ADDITIONAL_ENV_PARAMS = {
 
 
 class AccelEnv(Env):
-    """Environment used to train autonomous vehicles to improve traffic flows
+    """Fully observed acceleration environment.
+
+    This environment used to train autonomous vehicles to improve traffic flows
     when acceleration actions are permitted by the rl agent.
 
     Required from env_params:
@@ -47,47 +51,63 @@ class AccelEnv(Env):
     def __init__(self, env_params, sumo_params, scenario):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
-                raise KeyError('Environment parameter "{}" not supplied'.
-                               format(p))
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
 
         super().__init__(env_params, sumo_params, scenario)
 
     @property
     def action_space(self):
-        return Box(low=-abs(self.env_params.additional_params["max_decel"]),
-                   high=self.env_params.additional_params["max_accel"],
-                   shape=(self.vehicles.num_rl_vehicles,),
-                   dtype=np.float32)
+        """See class definition."""
+        return Box(
+            low=-abs(self.env_params.additional_params["max_decel"]),
+            high=self.env_params.additional_params["max_accel"],
+            shape=(self.vehicles.num_rl_vehicles, ),
+            dtype=np.float32)
 
     @property
     def observation_space(self):
+        """See class definition."""
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(low=0, high=1, shape=(self.vehicles.num_vehicles,),
-                    dtype=np.float32)
-        pos = Box(low=0., high=1, shape=(self.vehicles.num_vehicles,),
-                  dtype=np.float32)
+        speed = Box(
+            low=0,
+            high=1,
+            shape=(self.vehicles.num_vehicles, ),
+            dtype=np.float32)
+        pos = Box(
+            low=0.,
+            high=1,
+            shape=(self.vehicles.num_vehicles, ),
+            dtype=np.float32)
         return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
-        sorted_rl_ids = [veh_id for veh_id in self.sorted_ids
-                         if veh_id in self.vehicles.get_rl_ids()]
+        """See class definition."""
+        sorted_rl_ids = [
+            veh_id for veh_id in self.sorted_ids
+            if veh_id in self.vehicles.get_rl_ids()
+        ]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
         if self.env_params.evaluate:
             return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
         else:
             return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def get_state(self, **kwargs):
+        """See class definition."""
         # speed normalizer
         max_speed = self.scenario.max_speed
 
-        return np.array([[self.vehicles.get_speed(veh_id) / max_speed,
-                          self.get_x_by_id(veh_id) / self.scenario.length]
-                         for veh_id in self.sorted_ids])
+        return np.array([[
+            self.vehicles.get_speed(veh_id) / max_speed,
+            self.get_x_by_id(veh_id) / self.scenario.length
+        ] for veh_id in self.sorted_ids])
 
     def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():

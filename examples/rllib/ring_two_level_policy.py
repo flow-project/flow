@@ -1,15 +1,17 @@
-"""
+"""Hierarchical ring road example.
+
 Example script for use of two-level fully connected network policy,
 using the single-lane ring road setting.
 """
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 from .stabilizing_the_ring import make_create_env
 
 
 def to_subpolicy_state(inputs):
+    """Break state down for different portions of the policy."""
     return inputs
 
 
@@ -17,7 +19,6 @@ fn_choose_subpolicy = """
 def choose_policy(inputs):
     return tf.cast(inputs[:, 0] > 1e6, tf.int32)
 """
-
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
@@ -30,12 +31,13 @@ if __name__ == "__main__":
     config["gamma"] = 0.999
     config["horizon"] = horizon
 
-    config["model"].update(
-        {"fcnet_hiddens": [5, 5]})
+    config["model"].update({"fcnet_hiddens": [5, 5]})
 
-    options = {"num_subpolicies": 2,
-               "fn_choose_subpolicy": fn_choose_subpolicy,
-               "hierarchical_fcnet_hiddens": [[32, 32]] * 2}
+    options = {
+        "num_subpolicies": 2,
+        "fn_choose_subpolicy": fn_choose_subpolicy,
+        "hierarchical_fcnet_hiddens": [[32, 32]] * 2
+    }
     config["model"].update({"custom_options": options})
 
     # config["model"].update(

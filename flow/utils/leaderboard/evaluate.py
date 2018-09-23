@@ -1,3 +1,11 @@
+"""
+Evaluation utility methods for testing the performance of controllers.
+
+This file contains a method to perform the evaluation on all benchmarks in
+flow/benchmarks, as well as method for importing neural network controllers
+from rllab and rllib.
+"""
+
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
@@ -27,17 +35,19 @@ import json
 NUM_RUNS = 10
 
 # dictionary containing all available benchmarks and their meta-parameters
-AVAILABLE_BENCHMARKS = {"grid0": grid0,
-                        "grid1": grid1,
-                        "bottleneck0": bottleneck0,
-                        "bottleneck1": bottleneck1,
-                        "bottleneck2": bottleneck2,
-                        "figureeight0": figureeight0,
-                        "figureeight1": figureeight1,
-                        "figureeight2": figureeight2,
-                        "merge0": merge0,
-                        "merge1": merge1,
-                        "merge2": merge2}
+AVAILABLE_BENCHMARKS = {
+    "grid0": grid0,
+    "grid1": grid1,
+    "bottleneck0": bottleneck0,
+    "bottleneck1": bottleneck1,
+    "bottleneck2": bottleneck2,
+    "figureeight0": figureeight0,
+    "figureeight1": figureeight1,
+    "figureeight2": figureeight2,
+    "merge0": merge0,
+    "merge1": merge1,
+    "merge2": merge2
+}
 
 
 def get_rllib_config(path):
@@ -48,8 +58,7 @@ def get_rllib_config(path):
 
 
 def evaluate_policy(benchmark, _get_actions, _get_states=None):
-    """Evaluates the performance of a controller on a predefined traffic
-    benchmark.
+    """Evaluate the performance of a controller on a predefined benchmark.
 
     Parameters
     ----------
@@ -78,8 +87,8 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
             If the specified benchmark is not available.
     """
     if benchmark not in AVAILABLE_BENCHMARKS.keys():
-        raise ValueError("benchmark {} is not available. Check spelling?".
-                         format(benchmark))
+        raise ValueError(
+            "benchmark {} is not available. Check spelling?".format(benchmark))
 
     # get the flow params from the benchmark
     flow_params = AVAILABLE_BENCHMARKS[benchmark]
@@ -102,25 +111,26 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     generator_class = getattr(module, flow_params["generator"])
 
     # recreate the scenario and environment
-    scenario = scenario_class(name=exp_tag,
-                              generator_class=generator_class,
-                              vehicles=vehicles,
-                              net_params=net_params,
-                              initial_config=initial_config,
-                              traffic_lights=traffic_lights)
+    scenario = scenario_class(
+        name=exp_tag,
+        generator_class=generator_class,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights)
 
     # make sure the _get_states method of the environment is the one
     # specified by the user
     if _get_states is not None:
+
         class _env_class(env_class):
             def get_state(self):
                 return _get_states(self)
 
         env_class = _env_class
 
-    env = env_class(env_params=env_params,
-                    sumo_params=sumo_params,
-                    scenario=scenario)
+    env = env_class(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     # create a SumoExperiment object with the "rl_actions" method as
     # described in the inputs. Note that the state may not be that which is
@@ -128,14 +138,16 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     exp = SumoExperiment(env=env, scenario=scenario)
 
     # run the experiment and return the reward
-    res = exp.run(num_runs=NUM_RUNS, num_steps=env.env_params.horizon,
-                  rl_actions=_get_actions)
+    res = exp.run(
+        num_runs=NUM_RUNS,
+        num_steps=env.env_params.horizon,
+        rl_actions=_get_actions)
 
     return np.mean(res["returns"]), np.std(res["returns"])
 
 
 def get_compute_action_rllab(path_to_pkl):
-    """Collects the compute_action method from rllab's pkl files.
+    """Collect the compute_action method from rllab's pkl files.
 
     Parameters
     ----------
@@ -164,7 +176,7 @@ def get_compute_action_rllab(path_to_pkl):
 
 
 def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
-    """Collects the compute_action method from RLlib's serialized files.
+    """Collect the compute_action method from RLlib's serialized files.
 
     Parameters
     ----------
@@ -192,8 +204,8 @@ def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
 
     # create and register a gym+rllib env
     flow_params = get_flow_params(config)
-    create_env, env_name = make_create_env(params=flow_params, version=9999,
-                                           sumo_binary="sumo")
+    create_env, env_name = make_create_env(
+        params=flow_params, version=9999, render=False)
     register_env(env_name, create_env)
 
     # recreate the agent

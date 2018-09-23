@@ -1,5 +1,7 @@
+"""Contains all callable environments in Flow."""
+
 from flow.envs.base_env import Env
-from flow.envs.bay_bridge import BayBridgeEnv
+from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.envs.bottleneck_env import BottleNeckAccelEnv, BottleneckEnv, \
     DesiredVelocityEnv
 from flow.envs.green_wave_env import TrafficLightGridEnv, \
@@ -13,9 +15,10 @@ from flow.envs.loop.wave_attenuation import WaveAttenuationEnv, \
 from flow.envs.merge import WaveAttenuationMergePOEnv
 from flow.envs.test import TestEnv
 
-__all__ = ["Env", "AccelEnv", "LaneChangeAccelEnv", "LaneChangeAccelPOEnv",
-           "GreenWaveTestEnv", "GreenWaveTestEnv", "WaveAttenuationMergePOEnv",
-           "TwoLoopsMergePOEnv", "BottleneckEnv", "BottleNeckAccelEnv",
-           "WaveAttenuationEnv", "WaveAttenuationPOEnv", "TrafficLightGridEnv",
-           "PO_TrafficLightGridEnv", "DesiredVelocityEnv", "TestEnv",
-           "BayBridgeEnv"]
+__all__ = [
+    "Env", "AccelEnv", "LaneChangeAccelEnv", "LaneChangeAccelPOEnv",
+    "GreenWaveTestEnv", "GreenWaveTestEnv", "WaveAttenuationMergePOEnv",
+    "TwoLoopsMergePOEnv", "BottleneckEnv", "BottleNeckAccelEnv",
+    "WaveAttenuationEnv", "WaveAttenuationPOEnv", "TrafficLightGridEnv",
+    "PO_TrafficLightGridEnv", "DesiredVelocityEnv", "TestEnv", "BayBridgeEnv"
+]

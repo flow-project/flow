@@ -1,6 +1,5 @@
-"""
-(description)
-"""
+"""Trains a percentage of AVs to increase traveling speeds in a figure 8."""
+
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
@@ -18,36 +17,51 @@ HORIZON = 1500
 
 
 def run_task(*_):
-    sumo_params = SumoParams(sim_step=0.1,
-                             sumo_binary="sumo-gui")
+    """Implement the run_task method needed to run experiments with rllab."""
+    sumo_params = SumoParams(sim_step=0.1, render=True)
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="rl",
-                 acceleration_controller=(RLController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
-                 num_vehicles=1)
-    vehicles.add(veh_id="idm",
-                 acceleration_controller=(IDMController, {"noise": 0.2}),
-                 routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
-                 num_vehicles=13)
+    vehicles.add(
+        veh_id="rl",
+        acceleration_controller=(RLController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        speed_mode="no_collide",
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="idm",
+        acceleration_controller=(IDMController, {
+            "noise": 0.2
+        }),
+        routing_controller=(ContinuousRouter, {}),
+        speed_mode="no_collide",
+        num_vehicles=13)
 
-    additional_env_params = {"target_velocity": 20,
-                             "max_accel": 3, "max_decel": 3}
-    env_params = EnvParams(horizon=HORIZON,
-                           additional_params=additional_env_params)
+    additional_env_params = {
+        "target_velocity": 20,
+        "max_accel": 3,
+        "max_decel": 3
+    }
+    env_params = EnvParams(
+        horizon=HORIZON, additional_params=additional_env_params)
 
-    additional_net_params = {"radius_ring": 30, "lanes": 1, "speed_limit": 30,
-                             "resolution": 40}
-    net_params = NetParams(no_internal_links=False,
-                           additional_params=additional_net_params)
+    additional_net_params = {
+        "radius_ring": 30,
+        "lanes": 1,
+        "speed_limit": 30,
+        "resolution": 40
+    }
+    net_params = NetParams(
+        no_internal_links=False, additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform")
 
     print("XXX name", exp_tag)
-    scenario = Figure8Scenario(exp_tag, Figure8Generator, vehicles, net_params,
-                               initial_config=initial_config)
+    scenario = Figure8Scenario(
+        exp_tag,
+        Figure8Generator,
+        vehicles,
+        net_params,
+        initial_config=initial_config)
 
     env_name = "AccelEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
@@ -57,10 +71,7 @@ def run_task(*_):
     horizon = env.horizon
     env = normalize(env)
 
-    policy = GaussianMLPPolicy(
-        env_spec=env.spec,
-        hidden_sizes=(16, 16)
-    )
+    policy = GaussianMLPPolicy(env_spec=env.spec, hidden_sizes=(16, 16))
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
 

@@ -16,8 +16,8 @@ class FollowerStopper(BaseController):
         v_des: float, optional
             desired speed of the vehicles (m/s)
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0,
-                                fail_safe='safe_velocity')
+        BaseController.__init__(
+            self, veh_id, sumo_cf_params, delay=1.0, fail_safe='safe_velocity')
 
         # desired speed of the vehicle
         self.v_des = v_des
@@ -35,8 +35,19 @@ class FollowerStopper(BaseController):
         self.danger_edges = danger_edges if danger_edges else {}
 
     def find_intersection_dist(self, env):
-        """Return distance from the vehicle's current position to the position
-        of the node it is heading toward."""
+        """Find distance to intersection.
+
+        Parameters
+        ----------
+        env: Environment type
+            see flow/envs/base_env.py
+
+        Returns
+        -------
+        float
+            distance from the vehicle's current position to the position of the
+            node it is heading toward.
+        """
         edge_id = env.vehicles.get_edge(self.veh_id)
         # FIXME this might not be the best way of handling this
         if edge_id == "":
@@ -49,6 +60,7 @@ class FollowerStopper(BaseController):
         return dist
 
     def get_accel(self, env):
+        """See parent class."""
         lead_id = env.vehicles.get_leader(self.veh_id)
         this_vel = env.vehicles.get_speed(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
@@ -62,9 +74,9 @@ class FollowerStopper(BaseController):
             dx = env.vehicles.get_headway(self.veh_id)
             dv_minus = min(lead_vel - this_vel, 0)
 
-            dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus ** 2
-            dx_2 = self.dx_2_0 + 1 / (2 * self.d_2) * dv_minus ** 2
-            dx_3 = self.dx_3_0 + 1 / (2 * self.d_3) * dv_minus ** 2
+            dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus**2
+            dx_2 = self.dx_2_0 + 1 / (2 * self.d_2) * dv_minus**2
+            dx_3 = self.dx_3_0 + 1 / (2 * self.d_3) * dv_minus**2
 
             # compute the desired velocity
             if dx <= dx_1:
@@ -100,8 +112,10 @@ class PISaturation(BaseController):
 
         Parameters
         ----------
-        veh_id: str
+        veh_id : str
             unique vehicle identifier
+        sumo_cf_params : SumoCarFollowingParams
+            object defining sumo-specific car-following parameters
         """
         BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
 
@@ -125,6 +139,7 @@ class PISaturation(BaseController):
         self.v_cmd = 0
 
     def get_accel(self, env):
+        """See parent class."""
         lead_id = env.vehicles.get_leader(self.veh_id)
         lead_vel = env.vehicles.get_speed(lead_id)
         this_vel = env.vehicles.get_speed(self.veh_id)
@@ -159,10 +174,9 @@ class PISaturation(BaseController):
 
 
 class HandTunedVelocityController(FollowerStopper):
-
     def __init__(self, veh_id, v_regions, sumo_cf_params, danger_edges=None):
-        super().__init__(veh_id, sumo_cf_params, v_regions[0],
-                         danger_edges=danger_edges)
+        super().__init__(
+            veh_id, sumo_cf_params, v_regions[0], danger_edges=danger_edges)
         self.v_regions = v_regions
 
     def get_accel(self, env):
@@ -182,18 +196,24 @@ class HandTunedVelocityController(FollowerStopper):
 
 
 class FeedbackController(FollowerStopper):
-    def __init__(self, veh_id, sumo_cf_params, Kp, desired_bottleneck_density,
+    def __init__(self,
+                 veh_id,
+                 sumo_cf_params,
+                 Kp,
+                 desired_bottleneck_density,
                  danger_edges=None):
         super().__init__(veh_id, sumo_cf_params, danger_edges=danger_edges)
         self.Kp = Kp
         self.desired_density = desired_bottleneck_density
 
     def get_accel(self, env):
+        """See parent class."""
         current_lane = env.vehicles.get_lane(veh_id=self.veh_id)
         future_lanes = env.scenario.get_bottleneck_lanes(current_lane)
-        future_edge_lanes = ["3_"+str(current_lane),
-                             "4_"+str(future_lanes[0]),
-                             "5_"+str(future_lanes[1])]
+        future_edge_lanes = [
+            "3_" + str(current_lane), "4_" + str(future_lanes[0]),
+            "5_" + str(future_lanes[1])
+        ]
 
         current_density = env.get_bottleneck_density(future_edge_lanes)
         edge = env.vehicles.get_edge(self.veh_id)
@@ -203,8 +223,10 @@ class FeedbackController(FollowerStopper):
                     self.v_des = None
                 else:
                     self.v_des = max(
-                        min(self.v_des + self.Kp * (self.desired_density
-                                                    - current_density), 23), 0)
+                        min(
+                            self.v_des +
+                            self.Kp * (self.desired_density - current_density),
+                            23), 0)
 
         # print(current_density, self.v_des)
         return super().get_accel(env)

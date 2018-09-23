@@ -19,49 +19,75 @@ from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
 FLOW_RATE = 2000
 
 
-def merge_example(sumo_binary=None):
-    sumo_params = SumoParams(sumo_binary="sumo-gui",
-                             emission_path="./data/",
-                             sim_step=0.2,
-                             restart_instance=True)
+def merge_example(render=None):
+    """
+    Perform a simulation of vehicles on a merge.
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    Parameters
+    ----------
+    render: bool, optional
+        specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+    exp: flow.core.SumoExperiment type
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles on a merge.
+    """
+    sumo_params = SumoParams(
+        render=True,
+        emission_path="./data/",
+        sim_step=0.2,
+        restart_instance=True)
+
+    if render is not None:
+        sumo_params.render = render
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="human",
-                 acceleration_controller=(IDMController, {"noise": 0.2}),
-                 speed_mode="no_collide",
-                 num_vehicles=5)
+    vehicles.add(
+        veh_id="human",
+        acceleration_controller=(IDMController, {
+            "noise": 0.2
+        }),
+        speed_mode="no_collide",
+        num_vehicles=5)
 
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS,
-                           sims_per_step=5,
-                           warmup_steps=0)
+    env_params = EnvParams(
+        additional_params=ADDITIONAL_ENV_PARAMS,
+        sims_per_step=5,
+        warmup_steps=0)
 
     inflow = InFlows()
-    inflow.add(veh_type="human", edge="inflow_highway",
-               vehs_per_hour=FLOW_RATE,
-               departLane="free", departSpeed=10)
-    inflow.add(veh_type="human", edge="inflow_merge",
-               vehs_per_hour=100,
-               departLane="free", departSpeed=7.5)
+    inflow.add(
+        veh_type="human",
+        edge="inflow_highway",
+        vehs_per_hour=FLOW_RATE,
+        departLane="free",
+        departSpeed=10)
+    inflow.add(
+        veh_type="human",
+        edge="inflow_merge",
+        vehs_per_hour=100,
+        departLane="free",
+        departSpeed=7.5)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     additional_net_params["merge_lanes"] = 1
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500
-    net_params = NetParams(in_flows=inflow,
-                           no_internal_links=False,
-                           additional_params=additional_net_params)
+    net_params = NetParams(
+        inflows=inflow,
+        no_internal_links=False,
+        additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="uniform",
-                                   perturbation=5.0)
+    initial_config = InitialConfig(spacing="uniform", perturbation=5.0)
 
-    scenario = MergeScenario(name="merge-baseline",
-                             generator_class=MergeGenerator,
-                             vehicles=vehicles,
-                             net_params=net_params,
-                             initial_config=initial_config)
+    scenario = MergeScenario(
+        name="merge-baseline",
+        generator_class=MergeGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config)
 
     env = WaveAttenuationMergePOEnv(env_params, sumo_params, scenario)
 

@@ -1,5 +1,4 @@
-"""
-Grid/green wave example
+"""Benchmark for grid1.
 
 Action Dimension: (25, )
 
@@ -36,15 +35,16 @@ N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 # total number specified above. We also use a "right_of_way" speed mode to
 # support traffic light compliance
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(SumoCarFollowingController, {}),
-             sumo_car_following_params=SumoCarFollowingParams(
-                 min_gap=2.5,
-                 max_speed=V_ENTER,
-             ),
-             routing_controller=(GridRouter, {}),
-             num_vehicles=(N_LEFT+N_RIGHT)*N_COLUMNS + (N_BOTTOM+N_TOP)*N_ROWS,
-             speed_mode="right_of_way")
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(SumoCarFollowingController, {}),
+    sumo_car_following_params=SumoCarFollowingParams(
+        min_gap=2.5,
+        max_speed=V_ENTER,
+    ),
+    routing_controller=(GridRouter, {}),
+    num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS,
+    speed_mode="right_of_way")
 
 # inflows of vehicles are place on all outer edges (listed here)
 outer_edges = []
@@ -56,8 +56,12 @@ outer_edges += ["top{}_{}".format(i, N_COLUMNS) for i in range(N_ROWS)]
 # equal inflows for each edge (as dictate by the EDGE_INFLOW constant)
 inflow = InFlows()
 for edge in outer_edges:
-    inflow.add(veh_type="human", edge=edge, vehs_per_hour=EDGE_INFLOW,
-               departLane="free", departSpeed="max")
+    inflow.add(
+        veh_type="human",
+        edge=edge,
+        vehs_per_hour=EDGE_INFLOW,
+        departLane="free",
+        departSpeed="max")
 
 flow_params = dict(
     # name of the experiment
@@ -76,22 +80,25 @@ flow_params = dict(
     sumo=SumoParams(
         restart_instance=True,
         sim_step=1,
-        sumo_binary="sumo",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         additional_params={
-            "switch_time": 2.0,
+            "target_velocity": 50,
+            "switch_time": 2,
             "num_observed": 2,
+            "discrete": False,
+            "tl_type": "controlled"
         },
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params={
             "speed_limit": V_ENTER + 5,

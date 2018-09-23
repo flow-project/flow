@@ -74,7 +74,7 @@ if __name__ == "__main__":
     # If these are supposed to be run within your algorithm/library, we 
     # recommend referring to the make_create_env source code in 
     # flow/utils/registry.py.
-    env_name, create_env = make_create_env(flow_params, version=0)
+    create_env, env_name = make_create_env(flow_params, version=0)
 
     # create and register the environment with OpenAI Gym
     env = create_env()

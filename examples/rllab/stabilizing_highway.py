@@ -1,5 +1,6 @@
-"""
-Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
+"""Trains cooperative merging behavior in an open merge network.
+
+Trains a small percentage of rl vehicles to dissipate shockwaves caused by
 merges in an open network.
 """
 
@@ -28,7 +29,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 1
+N_CPUS = 1
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -39,56 +40,77 @@ NUM_RL = [5, 13, 17][EXP_NUM]
 
 
 def run_task(_):
-    sumo_params = SumoParams(sumo_binary="sumo-gui",
-                             sim_step=0.2,
-                             restart_instance=True)
+    """Implement the run_task method needed to run experiments with rllab."""
+    sumo_params = SumoParams(
+        render=True, sim_step=0.2, restart_instance=True)
 
     # RL vehicles constitute 5% of the total number of vehicles
     vehicles = Vehicles()
-    vehicles.add(veh_id="human",
-                 acceleration_controller=(IDMController, {"noise": 0.2}),
-                 speed_mode="no_collide",
-                 num_vehicles=5)
-    vehicles.add(veh_id="rl",
-                 acceleration_controller=(RLController, {}),
-                 speed_mode="no_collide",
-                 num_vehicles=0)
+    vehicles.add(
+        veh_id="human",
+        acceleration_controller=(IDMController, {
+            "noise": 0.2
+        }),
+        speed_mode="no_collide",
+        num_vehicles=5)
+    vehicles.add(
+        veh_id="rl",
+        acceleration_controller=(RLController, {}),
+        speed_mode="no_collide",
+        num_vehicles=0)
 
     # Vehicles are introduced from both sides of merge, with RL vehicles
     # entering from the highway portion as well
     inflow = InFlows()
-    inflow.add(veh_type="human", edge="inflow_highway",
-               vehs_per_hour=(1-RL_PENETRATION) * FLOW_RATE,
-               departLane="free", departSpeed=10)
-    inflow.add(veh_type="rl", edge="inflow_highway",
-               vehs_per_hour=RL_PENETRATION * FLOW_RATE,
-               departLane="free", departSpeed=10)
-    inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
-               departLane="free", departSpeed=7.5)
+    inflow.add(
+        veh_type="human",
+        edge="inflow_highway",
+        vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
+        departLane="free",
+        departSpeed=10)
+    inflow.add(
+        veh_type="rl",
+        edge="inflow_highway",
+        vehs_per_hour=RL_PENETRATION * FLOW_RATE,
+        departLane="free",
+        departSpeed=10)
+    inflow.add(
+        veh_type="human",
+        edge="inflow_merge",
+        vehs_per_hour=100,
+        departLane="free",
+        departSpeed=7.5)
 
-    additional_env_params = {"target_velocity": 25, "num_rl": NUM_RL,
-                             "max_accel": 1.5, "max_decel": 1.5}
-    env_params = EnvParams(horizon=HORIZON,
-                           sims_per_step=5,
-                           warmup_steps=0,
-                           additional_params=additional_env_params)
+    additional_env_params = {
+        "target_velocity": 25,
+        "num_rl": NUM_RL,
+        "max_accel": 1.5,
+        "max_decel": 1.5
+    }
+    env_params = EnvParams(
+        horizon=HORIZON,
+        sims_per_step=5,
+        warmup_steps=0,
+        additional_params=additional_env_params)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     additional_net_params["merge_lanes"] = 1
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500
-    net_params = NetParams(in_flows=inflow,
-                           no_internal_links=False,
-                           additional_params=additional_net_params)
+    net_params = NetParams(
+        inflows=inflow,
+        no_internal_links=False,
+        additional_params=additional_net_params)
 
-    initial_config = InitialConfig(spacing="uniform",
-                                   lanes_distribution=float("inf"))
+    initial_config = InitialConfig(
+        spacing="uniform", lanes_distribution=float("inf"))
 
-    scenario = MergeScenario(name="merge-rl",
-                             generator_class=MergeGenerator,
-                             vehicles=vehicles,
-                             net_params=net_params,
-                             initial_config=initial_config)
+    scenario = MergeScenario(
+        name="merge-rl",
+        generator_class=MergeGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config)
 
     env_name = "WaveAttenuationMergePOEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
@@ -108,7 +130,7 @@ def run_task(_):
         env=env,
         policy=policy,
         baseline=baseline,
-        batch_size=HORIZON*N_ROLLOUTS,
+        batch_size=HORIZON * N_ROLLOUTS,
         max_path_length=HORIZON,
         n_itr=1000,
         # whole_paths=True,
@@ -123,7 +145,7 @@ for seed in [5]:  # , 20, 68, 72, 125]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=PARALLEL_ROLLOUTS,
+        n_parallel=N_CPUS,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a

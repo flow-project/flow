@@ -1,6 +1,4 @@
-"""Script used to train a single autonomous vehicle to stabilize a variable
-density ring road.
-"""
+"""Train a single AV to stabilize a variable density ring road."""
 
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
@@ -19,34 +17,49 @@ HORIZON = 1500
 
 
 def run_task(*_):
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui", seed=0)
+    """Implement the run_task method needed to run experiments with rllab."""
+    sumo_params = SumoParams(sim_step=0.1, render=False, seed=0)
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="rl",
-                 acceleration_controller=(RLController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 num_vehicles=1)
-    vehicles.add(veh_id="idm",
-                 acceleration_controller=(IDMController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 num_vehicles=21)
+    vehicles.add(
+        veh_id="rl",
+        acceleration_controller=(RLController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="idm",
+        acceleration_controller=(IDMController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=21)
 
-    additional_env_params = {"target_velocity": 8,
-                             "ring_length": [220, 270],
-                             "max_accel": 1, "max_decel": 1}
-    env_params = EnvParams(horizon=HORIZON,
-                           additional_params=additional_env_params,
-                           warmup_steps=750)
+    additional_env_params = {
+        "target_velocity": 8,
+        "ring_length": [220, 270],
+        "max_accel": 1,
+        "max_decel": 1
+    }
+    env_params = EnvParams(
+        horizon=HORIZON,
+        additional_params=additional_env_params,
+        warmup_steps=750)
 
-    additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
-                             "resolution": 40}
+    additional_net_params = {
+        "length": 260,
+        "lanes": 1,
+        "speed_limit": 30,
+        "resolution": 40
+    }
     net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform", bunching=50)
 
     print("XXX name", exp_tag)
-    scenario = LoopScenario(exp_tag, CircleGenerator, vehicles, net_params,
-                            initial_config=initial_config)
+    scenario = LoopScenario(
+        exp_tag,
+        CircleGenerator,
+        vehicles,
+        net_params,
+        initial_config=initial_config)
 
     env_name = "WaveAttenuationPOEnv"
     pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
@@ -58,7 +71,7 @@ def run_task(*_):
 
     policy = GaussianGRUPolicy(
         env_spec=env.spec,
-        hidden_sizes=(5,),
+        hidden_sizes=(5, ),
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)

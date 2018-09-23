@@ -1,5 +1,5 @@
 """
-A collection of utility functions for Flow
+A collection of utility functions for Flow.
 
 Attributes
 ----------
@@ -11,9 +11,7 @@ import errno
 import importlib
 import json
 import os
-import tempfile
 from lxml import etree
-from datetime import datetime
 from xml.etree import ElementTree
 
 from gym.envs.registration import register
@@ -25,9 +23,9 @@ E = etree.Element
 
 
 class NameEncoder(json.JSONEncoder):
-
     """
-    Custom encoder used to generate ``flow_params.json``
+    Custom encoder used to generate ``flow_params.json``.
+
     Extends ``json.JSONEncoder``.
     """
 
@@ -35,7 +33,7 @@ class NameEncoder(json.JSONEncoder):
 
     def default(self, obj):
         """
-        Default encoder (required to extend ``JSONEncoder``)
+        Encode object (required to extend ``JSONEncoder``).
 
         Parameters
         ----------
@@ -47,7 +45,6 @@ class NameEncoder(json.JSONEncoder):
         Object
             A representation of ``obj`` that can be encoded
         """
-
         if obj not in self.allowed_types:
             if hasattr(obj, '__name__'):
                 return obj.__name__
@@ -56,19 +53,9 @@ class NameEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def rllib_logger_creator(result_dir, env_name, loggerfn):
-    logdir_prefix = env_name + '_' + \
-                    datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
-    if not os.path.exists(result_dir):
-        os.makedirs(result_dir)
-    logdir = tempfile.mkdtemp(prefix=logdir_prefix, dir=result_dir)
-
-    return lambda config: loggerfn(config, logdir, None)
-
-
 def unstring_flow_params(flow_params):
     """
-    Summary
+    Unstring flow params.
 
     Parameters
     ----------
@@ -84,20 +71,20 @@ def unstring_flow_params(flow_params):
         and module names evaluated, so that the new dict
         can be passed directly to ``make_create_env``
     """
-
     better_params = flow_params.copy()
 
     veh_params = flow_params['veh']
-    better_veh_params = [eval_veh_params(veh_param) for
-                         veh_param in veh_params]
+    better_veh_params = [
+        eval_veh_params(veh_param) for veh_param in veh_params
+    ]
     better_net_params = eval_net_params(flow_params)
     better_params['veh'] = better_veh_params
     better_params['net'] = better_net_params
 
     if 'additional_params' in flow_params['env']:
         if 'scenario_type' in flow_params['env']['additional_params']:
-            evaluated_scenario = eval(flow_params['env']['additional_params']
-                                      ['scenario_type'])
+            evaluated_scenario = eval(
+                flow_params['env']['additional_params']['scenario_type'])
             better_params['env']['additional_params']['scenario_type'] = \
                 evaluated_scenario
 
@@ -106,25 +93,26 @@ def unstring_flow_params(flow_params):
 
 def eval_net_params(flow_params):
     """
-        Evaluates net parameters, since params like Inflows can't be
-        serialized and output to JSON.
+    Evaluate net parameters.
 
-        Parameters
-        ----------
-        orig_params : dict
-            Original flow parameters, read in from ``flow_params.json``
+    This is needed since params like Inflows can't be serialized and output to
+    JSON.
 
-        Returns
-        -------
-        dict
-            Evaluated net params with instantiated inflow
-        """
+    Parameters
+    ----------
+    orig_params : dict
+        Original flow parameters, read in from ``flow_params.json``
 
+    Returns
+    -------
+    dict
+        Evaluated net params with instantiated inflow
+    """
     better_params = flow_params.copy()
     inflow = InFlows()
     new_inflow_list = []
-    if 'in_flows' in flow_params['net']:
-        inflow_obj = flow_params['net']['in_flows']['_InFlows__flows']
+    if 'inflows' in flow_params['net']:
+        inflow_obj = flow_params['net']['inflows']['_InFlows__flows']
         for obj in inflow_obj:
             temp = {}
             for key in obj.keys():
@@ -139,14 +127,16 @@ def eval_net_params(flow_params):
                     temp[key] = obj[key]
             new_inflow_list.append(temp)
         [inflow.add(**inflow_i) for inflow_i in new_inflow_list]
-        better_params['net']['in_flows'] = inflow
+        better_params['net']['inflows'] = inflow
 
     return better_params['net']
 
 
 def eval_veh_params(orig_params):
     """
-    Evaluates vehicle parameters, since params like IDMController can't be
+    Evaluate vehicle parameters.
+
+    This is needed since params like IDMController can't be
     serialized and output to JSON. Thus, the JSON file stores those as
     their names, with string 'IDMController' instead of the object
     ``<flow.controllers.car_following_models.IDMController``. ``util.py``
@@ -166,7 +156,6 @@ def eval_veh_params(orig_params):
         Evaluated vehicle parameters, string names of objects
         replaced with actual objects
     """
-
     new_params = orig_params.copy()
 
     if 'acceleration_controller' in new_params:
@@ -183,8 +172,8 @@ def eval_veh_params(orig_params):
         new_params['routing_controller'] = new_route_controller
     if 'sumo_car_following_params' in new_params:
         cf_params = SumoCarFollowingParams()
-        cf_params.controller_params = (orig_params['sumo_car_following_params']
-                                       ['controller_params'])
+        cf_params.controller_params = (
+            orig_params['sumo_car_following_params']['controller_params'])
         new_params['sumo_car_following_params'] = cf_params
 
     if 'sumo_lc_params' in new_params:
@@ -198,7 +187,7 @@ def eval_veh_params(orig_params):
 
 def get_rllib_params(path):
     """
-    Returns rllib experiment parameters, given an experiment result folder
+    Return rllib experiment parameters, given an experiment result folder.
 
     Parameters
     ----------
@@ -211,21 +200,23 @@ def get_rllib_params(path):
         Dictionary of rllib parameters, namely discount factor gamma,
         rollout horizon, and NN hidden layer format
     """
-
     jsonfile = path + '/params.json'
     jsondata = json.loads(open(jsonfile).read())
 
     gamma = jsondata['gamma']
     horizon = jsondata['horizon']
     hidden_layers = jsondata['model']['fcnet_hiddens']
-    rllib_params = {'gamma': gamma,
-                    'horizon': horizon,
-                    'hidden_layers': hidden_layers}
+    rllib_params = {
+        'gamma': gamma,
+        'horizon': horizon,
+        'hidden_layers': hidden_layers
+    }
 
     return rllib_params
 
 
 def get_rllib_config(path):
+    """Return the data from the specified rllib configuration file."""
     jsonfile = path + '/params.json'  # params.json is the config file
     jsondata = json.loads(open(jsonfile).read())
     return jsondata
@@ -233,7 +224,7 @@ def get_rllib_config(path):
 
 def get_flow_params(config):
     """
-    Returns Flow experiment parameters, given an experiment result folder
+    Return Flow experiment parameters, given an experiment result folder.
 
     Parameters
     ----------
@@ -250,7 +241,6 @@ def get_flow_params(config):
         ``make_create_env`` is the higher-order function passed to
         rllib as the environment in which to train
     """
-
     flow_params = json.loads(config['env_config']['flow_params'])
     flow_params = unstring_flow_params(flow_params)
 
@@ -262,8 +252,15 @@ def get_flow_params(config):
     return flow_params, make_create_env
 
 
-def register_env(env_name, sumo_params, type_params, env_params, net_params,
-                 initial_config, scenario, env_version_num=0):
+def register_env(env_name,
+                 sumo_params,
+                 type_params,
+                 env_params,
+                 net_params,
+                 initial_config,
+                 scenario,
+                 env_version_num=0):
+    """Register an environmnet with OpenAI gym."""
     num_steps = env_params.horizon
     register(
         id=env_name + '-v' + str(env_version_num),
@@ -273,11 +270,11 @@ def register_env(env_name, sumo_params, type_params, env_params, net_params,
             "env_params": env_params,
             "sumo_params": sumo_params,
             "scenario": scenario
-        }
-    )
+        })
 
 
 def makexml(name, nsl):
+    """Create an xml file."""
     xsi = "http://www.w3.org/2001/XMLSchema-instance"
     ns = {"xsi": xsi}
     attr = {"{%s}noNamespaceSchemaLocation" % xsi: nsl}
@@ -286,11 +283,13 @@ def makexml(name, nsl):
 
 
 def printxml(t, fn):
-    etree.ElementTree(t).write(fn, pretty_print=True, encoding='UTF-8',
-                               xml_declaration=True)
+    """Print information from a dict into an xml file."""
+    etree.ElementTree(t).write(
+        fn, pretty_print=True, encoding='UTF-8', xml_declaration=True)
 
 
 def ensure_dir(path):
+    """Ensure that the directory specified exists, and if not, create it."""
     try:
         os.makedirs(path)
     except OSError as exception:
@@ -300,8 +299,11 @@ def ensure_dir(path):
 
 
 def emission_to_csv(emission_path, output_path=None):
-    """Converts an emission file generated by sumo during an computational
-    experiment into a csv file.
+    """Convert an emission file generated by sumo into a csv file.
+
+    Note that the emission file contains information generated by sumo, not
+    flow. This means that some data, such as absolute position, is not
+    immediately available from the emission file, but can be recreated.
 
     Parameters
     ----------
@@ -310,16 +312,6 @@ def emission_to_csv(emission_path, output_path=None):
     output_path: str
         path to the csv file that will be generated, default is the same
         directory as the emission file, with the same name
-
-    Yields
-    ------
-    A csv file with all the information from the emission file
-
-    Note
-    ----
-    The emission file contains information generated by sumo, not flow. This
-    means that some data, such as absolute position, is not immediately
-    available from the emission file, but can be recreated.
     """
     parser = etree.XMLParser(recover=True)
     tree = ElementTree.parse(emission_path, parser=parser)

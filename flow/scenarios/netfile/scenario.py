@@ -1,16 +1,23 @@
+"""Contains the scenario class for .net.xml files."""
+
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
 
 class NetFileScenario(Scenario):
+    """Class that creates a scenario from a .net.xml file."""
 
-    def __init__(self, name, generator_class, vehicles, net_params,
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Initializes a scenario from a .net.xml file.
+        """Initialize a scenario from a .net.xml file.
 
-        See Scenario.py for description of params.
+        See flow/scenarios/base_scenario.py for description of params.
         """
         super().__init__(name, generator_class, vehicles, net_params,
                          initial_config, traffic_lights)
@@ -47,6 +54,9 @@ class NetFileScenario(Scenario):
         return [(":", -1)]
 
     def close(self):
-        """The close method is overwritten here because we do not want Flow to
-        delete externally designed networks."""
+        """See parent class.
+
+        The close method is overwritten here because we do not want Flow to
+        delete externally designed networks.
+        """
         pass

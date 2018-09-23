@@ -1,4 +1,5 @@
-"""
+"""Benchmark for merge0.
+
 Trains a small percentage of autonomous vehicles to dissipate shockwaves caused
 by merges in an open network. The autonomous penetration rate in this example
 is 10%.
@@ -34,26 +35,38 @@ additional_net_params["pre_merge_length"] = 500
 
 # RL vehicles constitute 5% of the total number of vehicles
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(SumoCarFollowingController, {}),
-             speed_mode="no_collide",
-             num_vehicles=5)
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             speed_mode="no_collide",
-             num_vehicles=0)
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(SumoCarFollowingController, {}),
+    speed_mode="no_collide",
+    num_vehicles=5)
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    speed_mode="no_collide",
+    num_vehicles=0)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering
 # from the highway portion as well
 inflow = InFlows()
-inflow.add(veh_type="human", edge="inflow_highway",
-           vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
-           departLane="free", departSpeed=10)
-inflow.add(veh_type="rl", edge="inflow_highway",
-           vehs_per_hour=RL_PENETRATION * FLOW_RATE,
-           departLane="free", departSpeed=10)
-inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
-           departLane="free", departSpeed=7.5)
+inflow.add(
+    veh_type="human",
+    edge="inflow_highway",
+    vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
+    departLane="free",
+    departSpeed=10)
+inflow.add(
+    veh_type="rl",
+    edge="inflow_highway",
+    vehs_per_hour=RL_PENETRATION * FLOW_RATE,
+    departLane="free",
+    departSpeed=10)
+inflow.add(
+    veh_type="human",
+    edge="inflow_merge",
+    vehs_per_hour=100,
+    departLane="free",
+    departSpeed=7.5)
 
 flow_params = dict(
     # name of the experiment
@@ -72,7 +85,7 @@ flow_params = dict(
     sumo=SumoParams(
         restart_instance=True,
         sim_step=0.5,
-        sumo_binary="sumo",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -91,7 +104,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     ),

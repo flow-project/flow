@@ -1,12 +1,17 @@
+"""Contains the base lane change controller class."""
+
+
 class BaseLaneChangeController:
+    """Base class for lane-changing controllers.
 
-    def __init__(self, veh_id, lane_change_params={}):
-        """Base class for lane-changing controllers.
+    Instantiates a controller and forces the user to pass a
+    lane_changing duration to the controller. Provides the method
+    get_safe_lane_change_action to ensure that lane-changes do
+    not cause crashes.
+    """
 
-        Instantiates a controller and forces the user to pass a
-        lane_changing duration to the controller. Provides the method
-        get_safe_lane_change_action to ensure that lane-changes do
-        not cause crashes.
+    def __init__(self, veh_id, lane_change_params=None):
+        """Instantiate the base class for lane-changing controllers.
 
         Attributes
         ----------
@@ -17,6 +22,9 @@ class BaseLaneChangeController:
             "min_gap", which denotes the minimize safe gap (in meters) a car
             is willing to lane-change into.
         """
+        if lane_change_params is None:
+            lane_change_params = {}
+
         self.veh_id = veh_id
         self.lane_change_params = lane_change_params
 
@@ -25,16 +33,17 @@ class BaseLaneChangeController:
         self.min_gap = lane_change_params.get("min_gap", 0.1)
 
     def get_lane_change_action(self, env):
-        """Specifies the lane change action to be performed.
+        """Specify the lane change action to be performed.
 
         If discrete lane changes are being performed, the action is a direction
-         -1: lane change right
-         0: no lane change
-         1: lane change left
+
+        * -1: lane change right
+        * 0: no lane change
+        * 1: lane change left
 
         Parameters
         ----------
-        env: Env type
+        env: flow.envs.Env type
             state of the environment at the current time step
 
         Returns
@@ -45,7 +54,7 @@ class BaseLaneChangeController:
         raise NotImplementedError
 
     def get_action(self, env):
-        """Returns the action of the lane change controller
+        """Return the action of the lane change controller.
 
         Modifies the lane change action to ensure safety, if requested.
 
@@ -60,7 +69,9 @@ class BaseLaneChangeController:
         return lc_action
 
     def get_safe_lane_change_action(self, env, target_lane):
-        """Determines whether a collision will occur if a vehicle enters the
+        """Check the lane change action for safety.
+
+        Determines whether a collision will occur if a vehicle enters the
         target lane.
 
         Parameters

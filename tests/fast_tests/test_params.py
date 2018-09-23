@@ -6,23 +6,23 @@ os.environ["TEST_FLAG"] = "True"
 
 
 class TestSumoCarFollowingParams(unittest.TestCase):
-
     """Tests flow.core.params.SumoCarFollowingParams"""
 
-    def runTest(self):
+    def test_params(self):
         """Tests that the various parameters lead to correct assignments in the
         controller_params attribute of the class."""
         # start a SumoCarFollowingParams with some attributes
-        cfm_params = SumoCarFollowingParams(accel=1.0,
-                                            decel=1.5,
-                                            sigma=0.5,
-                                            tau=0.5,
-                                            min_gap=1.0,
-                                            max_speed=30,
-                                            speed_factor=1.0,
-                                            speed_dev=0.1,
-                                            impatience=0.5,
-                                            car_follow_model="IDM")
+        cfm_params = SumoCarFollowingParams(
+            accel=1.0,
+            decel=1.5,
+            sigma=0.5,
+            tau=0.5,
+            min_gap=1.0,
+            max_speed=30,
+            speed_factor=1.0,
+            speed_dev=0.1,
+            impatience=0.5,
+            car_follow_model="IDM")
 
         # ensure that the attributes match their correct element in the
         # "controller_params" dict
@@ -42,16 +42,17 @@ class TestSumoCarFollowingParams(unittest.TestCase):
         values to the correct attributes"""
         # start a SumoCarFollowingParams with some attributes, using the
         # deprecated attributes
-        cfm_params = SumoCarFollowingParams(accel=1.0,
-                                            decel=1.5,
-                                            sigma=0.5,
-                                            tau=0.5,
-                                            minGap=1.0,
-                                            maxSpeed=30,
-                                            speedFactor=1.0,
-                                            speedDev=0.1,
-                                            impatience=0.5,
-                                            carFollowModel="IDM")
+        cfm_params = SumoCarFollowingParams(
+            accel=1.0,
+            decel=1.5,
+            sigma=0.5,
+            tau=0.5,
+            minGap=1.0,
+            maxSpeed=30,
+            speedFactor=1.0,
+            speedDev=0.1,
+            impatience=0.5,
+            carFollowModel="IDM")
 
         # ensure that the attributes match their correct element in the
         # "controller_params" dict
@@ -68,19 +69,20 @@ class TestSumoCarFollowingParams(unittest.TestCase):
 
 
 class TestSumoLaneChangeParams(unittest.TestCase):
-
     """Tests flow.core.params.SumoLaneChangeParams"""
 
-    def runTest(self):
-        """Tests basic usage of the SumoLaneChangeParams object. Ensures that
+    def test_lc_params(self):
+        """Test basic usage of the SumoLaneChangeParams object. Ensures that
         the controller_params attribute contains different elements depending
         on whether LC2103 or SL2015 is being used as the model."""
         # test for LC2013
         lc_params_1 = SumoLaneChangeParams(model="LC2013")
         attributes_1 = list(lc_params_1.controller_params.keys())
         # TODO: modify with all elements once the fix is added to sumo
-        expected_attributes_1 = ["laneChangeModel", "lcStrategic",
-                                 "lcCooperative", "lcSpeedGain", "lcKeepRight"]
+        expected_attributes_1 = [
+            "laneChangeModel", "lcStrategic", "lcCooperative", "lcSpeedGain",
+            "lcKeepRight"
+        ]
         self.assertCountEqual(attributes_1, expected_attributes_1)
 
         # test for SL2015
@@ -105,27 +107,30 @@ class TestSumoLaneChangeParams(unittest.TestCase):
 
         # ensure that the correct parameters are currently present
         attributes = list(lc_params.controller_params.keys())
-        expected_attributes = ["laneChangeModel", "lcStrategic",
-                               "lcCooperative", "lcSpeedGain", "lcKeepRight"]
+        expected_attributes = [
+            "laneChangeModel", "lcStrategic", "lcCooperative", "lcSpeedGain",
+            "lcKeepRight"
+        ]
         self.assertCountEqual(attributes, expected_attributes)
 
     def test_deprecated(self):
         """Ensures that deprecated forms of the attribute still return proper
         values to the correct attributes"""
         # start a SumoLaneChangeParams with some attributes
-        lc_params = SumoLaneChangeParams(model="SL2015",
-                                         lcStrategic=1.0,
-                                         lcCooperative=1.0,
-                                         lcSpeedGain=1.0,
-                                         lcKeepRight=1.0,
-                                         lcLookaheadLeft=2.0,
-                                         lcSpeedGainRight=1.0,
-                                         lcSublane=1.0,
-                                         lcPushy=0,
-                                         lcPushyGap=0.6,
-                                         lcAssertive=1,
-                                         lcImpatience=0,
-                                         lcTimeToImpatience=float("inf"))
+        lc_params = SumoLaneChangeParams(
+            model="SL2015",
+            lcStrategic=1.0,
+            lcCooperative=1.0,
+            lcSpeedGain=1.0,
+            lcKeepRight=1.0,
+            lcLookaheadLeft=2.0,
+            lcSpeedGainRight=1.0,
+            lcSublane=1.0,
+            lcPushy=0,
+            lcPushyGap=0.6,
+            lcAssertive=1,
+            lcImpatience=0,
+            lcTimeToImpatience=float("inf"))
 
         # ensure that the attributes match their correct element in the
         # "controller_params" dict

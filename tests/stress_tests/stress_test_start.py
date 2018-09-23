@@ -1,6 +1,4 @@
-"""
-Repeatedly opens up a sumo port to test for race conditions
-"""
+"""Repeatedly opens up a sumo port to test for race conditions."""
 from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
@@ -14,15 +12,15 @@ import ray
 
 @ray.remote
 def start():
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
-
-    sumo_params.sumo_binary = 'sumo'
+    """Start a environment object with ray."""
+    sumo_params = SumoParams(sim_step=0.1, render=False)
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="idm",
-                 acceleration_controller=(IDMController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 num_vehicles=22)
+    vehicles.add(
+        veh_id="idm",
+        acceleration_controller=(IDMController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=22)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -31,11 +29,12 @@ def start():
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = LoopScenario(name="sugiyama",
-                            generator_class=CircleGenerator,
-                            vehicles=vehicles,
-                            net_params=net_params,
-                            initial_config=initial_config)
+    scenario = LoopScenario(
+        name="sugiyama",
+        generator_class=CircleGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config)
 
     env = AccelEnv(env_params, sumo_params, scenario)
     env._close()

@@ -1,3 +1,5 @@
+"""Contains the base scenario class."""
+
 import logging
 import random
 import numpy as np
@@ -17,38 +19,44 @@ VEHICLE_LENGTH = 5  # length of vehicles in the network, in meters
 
 
 class Scenario(Serializable):
+    """Base scenario class.
 
-    def __init__(self, name, generator_class, vehicles, net_params,
+    Initializes a new scenario. Scenarios are used to specify features of
+    a network, including the positions of nodes, properties of the edges
+    and junctions connecting these nodes, properties of vehicles and
+    traffic lights, and other features as well.
+
+    Several network specific features can be acquired from this class via a
+    plethora of get methods (see documentation).
+
+    This class can be instantiated once and reused in multiple experiments.
+    Note that this function stores all the relevant parameters. The
+    generate() function still needs to be called separately.
+    """
+
+    def __init__(self,
+                 name,
+                 generator_class,
+                 vehicles,
+                 net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
-        """Base scenario class.
-
-        Initializes a new scenario. Scenarios are used to specify features of
-        a network, including the positions of nodes, properties of the edges
-        and junctions connecting these nodes, properties of vehicles and
-        traffic lights, and other features as well.
-
-        Several network specific features can be acquired from this class via a
-        plethora of get methods (see documentation).
-
-        This class can be instantiated once and reused in multiple experiments.
-        Note that this function stores all the relevant parameters. The
-        generate() function still needs to be called separately.
+        """Instantiate the base scenario class.
 
         Attributes
         ----------
-        name: str
+        name : str
             A tag associated with the scenario
-        generator_class: Generator type
+        generator_class : Generator type
             Class for generating configuration and net files with placed
             vehicles, e.g. CircleGenerator
-        vehicles: Vehicles type
+        vehicles : Vehicles type
             see flow/core/vehicles.py
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        traffic_lights: flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.traffic_lights.TrafficLights type
             see flow/core/traffic_lights.py
         """
         # Invoke serializable if using rllab
@@ -56,7 +64,7 @@ class Scenario(Serializable):
             Serializable.quick_init(self, locals())
 
         self.orig_name = name  # To avoid repeated concatenation upon reset
-        self.name = name + time.strftime("_%Y%m%d-%H%M%S")
+        self.name = name + time.strftime("_%Y%m%d-%H%M%S") + str(time.time())
 
         self.generator_class = generator_class
         self.vehicles = vehicles
@@ -72,14 +80,15 @@ class Scenario(Serializable):
             self.net_params, self.traffic_lights)
 
         # list of edges and internal links (junctions)
-        self._edge_list = [edge_id for edge_id in self._edges.keys()
-                           if edge_id[0] != ":"]
-        self._junction_list = list(set(self._edges.keys()) -
-                                   set(self._edge_list))
+        self._edge_list = [
+            edge_id for edge_id in self._edges.keys() if edge_id[0] != ":"
+        ]
+        self._junction_list = list(
+            set(self._edges.keys()) - set(self._edge_list))
 
         # maximum achievable speed on any edge in the network
-        self.max_speed = max(self.speed_limit(edge)
-                             for edge in self.get_edge_list())
+        self.max_speed = max(
+            self.speed_limit(edge) for edge in self.get_edge_list())
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -114,40 +123,48 @@ class Scenario(Serializable):
         # which cars are meant to be distributed
         # (may be overridden by subclass __init__())
         if not hasattr(self, "length"):
-            self.length = sum([self.edge_length(edge_id)
-                               for edge_id in self.get_edge_list()])
+            self.length = sum([
+                self.edge_length(edge_id) for edge_id in self.get_edge_list()
+            ])
 
         # generate starting position for vehicles in the network
-        if self.initial_config.positions is None:
-            self.initial_config.positions, self.initial_config.lanes = \
-                self.generate_starting_positions()
+        kwargs = initial_config.additional_params
+        positions, lanes = self.generate_starting_positions(
+            num_vehicles=vehicles.num_vehicles,
+            **kwargs
+        )
 
         # create the sumo configuration files using the generator class
         cfg_name = self.generator.generate_cfg(self.net_params,
                                                self.traffic_lights)
 
-        self.generator.make_routes(self, self.initial_config)
+        shuffle = initial_config.shuffle
+        self.generator.make_routes(self, positions, lanes, shuffle)
 
         # specify the location of the sumo configuration file
         self.cfg = self.generator.cfg_path + cfg_name
 
     def specify_edge_starts(self):
-        """Defines edge starts for road sections with respect to some global
-        reference frame.
+        """Define edge starts for road sections in the network.
+
+        This is meant to provide some global reference frame for the road
+        edges in the network.
 
         MUST BE implemented in any new scenario subclass.
 
         Returns
         -------
-        edgestarts: list
+        edgestarts : list
             list of edge names and starting positions,
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
         raise NotImplementedError
 
     def specify_intersection_edge_starts(self):
-        """Defines edge starts for intersections with respect to some global
-        reference frame.
+        """Define edge starts for intersections.
+
+        This is meant to provide some global reference frame for the
+        intersections in the network.
 
         This does not need to be specified if no intersections exist. These
         values can be used to determine the distance of some agent from the
@@ -155,14 +172,17 @@ class Scenario(Serializable):
 
         Returns
         -------
-        intersection_edgestarts: list
+        intersection_edgestarts : list
             list of intersection names and starting positions,
             ex: [(intersection0, pos0), (intersection1, pos1), ...]
         """
         return []
 
     def specify_internal_edge_starts(self):
-        """Defines the edge starts for internal edge nodes.
+        """Define the edge starts for internal edge nodes.
+
+        This is meant to provide some global reference frame for the internal
+        edges in the network.
 
         These edges are the result of finite-length connections between road
         sections. This methods does not need to be specified if "no-internal-
@@ -170,24 +190,23 @@ class Scenario(Serializable):
 
         Returns
         -------
-        internal_edgestarts: list
+        internal_edgestarts : list
             list of internal junction names and starting positions,
             ex: [(internal0, pos0), (internal1, pos1), ...]
         """
         return []
 
     def get_edge(self, x):
-        """Given an absolute position x on the track, returns the edge (name)
-        and relative position on that edge.
+        """Compute an edge and relative position from an absolute position.
 
         Parameters
         ----------
-        x: float
+        x : float
             absolute position in network
 
         Returns
         -------
-        edge position: tup
+        edge position : tup
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
@@ -196,19 +215,18 @@ class Scenario(Serializable):
                 return edge, x - start_pos
 
     def get_x(self, edge, position):
-        """Given an edge name and relative position, return the absolute
-        position on the track.
+        """Return the absolute position on the track.
 
         Parameters
         ----------
-        edge: str
+        edge : str
             name of the edge
-        position: float
+        position : float
             relative position on the edge
 
         Returns
         -------
-        absolute_position: float
+        absolute_position : float
             position with respect to some global reference
         """
         # if there was a collision which caused the vehicle to disappear,
@@ -228,24 +246,24 @@ class Scenario(Serializable):
             return self.total_edgestarts_dict[edge] + position
 
     def generate_starting_positions(self, num_vehicles=None, **kwargs):
-        """Generates starting positions for vehicles in the network.
+        """Generate starting positions for vehicles in the network.
 
         Calls all other starting position generating classes.
 
         Parameters
         ----------
-        num_vehicles: int, optional
+        num_vehicles : int, optional
             number of vehicles to be placed on the network. If no value is
             specified, the value is collected from the vehicles class
-        kwargs: dict
+        kwargs : dict
             additional arguments that may be updated beyond initial
             configurations, such as modifying the starting position
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         num_vehicles = num_vehicles or self.vehicles.num_vehicles
@@ -266,8 +284,7 @@ class Scenario(Serializable):
         return startpositions, startlanes
 
     def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """Generates start positions that are uniformly spaced across the
-        network.
+        """Generate uniformly spaced starting positions.
 
         If the perturbation term in initial_config is set to some positive
         value, then the start positions are perturbed from a uniformly spaced
@@ -276,19 +293,19 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
@@ -318,8 +335,8 @@ class Scenario(Serializable):
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
                 edges = [tup[0] for tup in self.total_edgestarts]
-                indx_edge = next(i for i, edge in enumerate(edges)
-                                 if edge == pos[0])
+                indx_edge = next(
+                    i for i, edge in enumerate(edges) if edge == pos[0])
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
@@ -369,24 +386,23 @@ class Scenario(Serializable):
         return startpositions, startlanes
 
     def gen_random_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """Generates random starting positions for vehicles in the allocated
-        lanes and edges.
+        """Generate random starting positions.
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
@@ -447,29 +463,29 @@ class Scenario(Serializable):
         return startpositions, startlanes
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """Generates a user defined set of starting positions.
+        """Generate a user defined set of starting positions.
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        startpositions: list
+        startpositions : list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes: list
+        startlanes : list of int
             list of start lanes
         """
         raise NotImplementedError
 
     def _get_start_pos_util(self, initial_config, num_vehicles, **kwargs):
-        """Utility function for generating starting position.
+        """Prepare initial_config data for starting position methods.
 
         Performs some pre-processing to the initial_config and **kwargs terms,
         and returns the necessary values for all starting position generating
@@ -477,28 +493,28 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             see flow/core/params.py
-        num_vehicles: int
+        num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs: dict
+        kwargs : dict
             extra components, usually defined during reset to overwrite initial
             config parameters
 
         Returns
         -------
-        x0: float
+        x0 : float
             starting position of the first vehicle, in meters
-        min_gap: float
+        min_gap : float
             minimum gap between vehicles
-        bunching: float
+        bunching : float
             the amount of space freed up in the network (per lane)
-        lanes_distribution: int
+        lanes_distribution : int
             number of lanes the vehicles are supposed to be distributed over
-        available_length: float
+        available_length : float
             total available free space for vehicle to be placed, over all lanes
             within the distributable lanes, in meters
-        initial_config: InitialConfig type
+        initial_config : InitialConfig type
             modified version of the initial_config parameter
 
         Raises
@@ -525,11 +541,13 @@ class Scenario(Serializable):
 
         # compute the lanes distribution (adjust of edge cases)
         if initial_config.edges_distribution == "all":
-            max_lane = max([self.num_lanes(edge_id)
-                            for edge_id in self.get_edge_list()])
+            max_lane = max(
+                [self.num_lanes(edge_id) for edge_id in self.get_edge_list()])
         else:
-            max_lane = max([self.num_lanes(edge_id)
-                            for edge_id in initial_config.edges_distribution])
+            max_lane = max([
+                self.num_lanes(edge_id)
+                for edge_id in initial_config.edges_distribution
+            ])
 
         if initial_config.lanes_distribution > max_lane:
             lanes_distribution = max_lane
@@ -569,8 +587,10 @@ class Scenario(Serializable):
                 available_edges, initial_config)
 
     def edge_length(self, edge_id):
-        """Returns the length of a given edge/junction. Returns -1001 if edge
-        not found."""
+        """Return the length of a given edge/junction.
+
+        Return -1001 if edge not found.
+        """
         try:
             return self._edges[edge_id]["length"]
         except KeyError:
@@ -578,8 +598,10 @@ class Scenario(Serializable):
             return -1001
 
     def speed_limit(self, edge_id):
-        """Returns the speed limit of a given edge/junction. Returns -1001 if
-        edge not found."""
+        """Return the speed limit of a given edge/junction.
+
+        Return -1001 if edge not found.
+        """
         try:
             return self._edges[edge_id]["speed"]
         except KeyError:
@@ -587,8 +609,10 @@ class Scenario(Serializable):
             return -1001
 
     def num_lanes(self, edge_id):
-        """Returns the number of lanes of a given edge/junction. Returns -1001
-        if edge not found."""
+        """Return the number of lanes of a given edge/junction.
+
+        Return -1001 if edge not found.
+        """
         try:
             return self._edges[edge_id]["lanes"]
         except KeyError:
@@ -596,34 +620,41 @@ class Scenario(Serializable):
             return -1001
 
     def get_edge_list(self):
-        """Returns the names of all edges in the network."""
+        """Return the names of all edges in the network."""
         return self._edge_list
 
     def get_junction_list(self):
-        """Returns the names of all junctions in the network."""
+        """Return the names of all junctions in the network."""
         return self._junction_list
 
     def next_edge(self, edge, lane):
-        """Returns the next edge/lane pair from the given edge/lane. These
-        edges may also be internal links (junctions). Returns an empty list if
-        there are no edge/lane pairs in front."""
+        """Return the next edge/lane pair from the given edge/lane.
+
+        These edges may also be internal links (junctions). Returns an empty
+        list if there are no edge/lane pairs in front.
+        """
         try:
             return self._connections["next"][edge][lane]
         except KeyError:
             return []
 
     def prev_edge(self, edge, lane):
-        """Returns the edge/lane pair right before this edge/lane. These edges
-        may also be internal links (junctions). Returns an empty list if there
-        are no edge/lane pairs behind."""
+        """Return the edge/lane pair right before this edge/lane.
+
+        These edges may also be internal links (junctions). Returns an empty
+        list if there are no edge/lane pairs behind.
+        """
         try:
             return self._connections["prev"][edge][lane]
         except KeyError:
             return []
 
     def close(self):
-        """Deletes the xml files that were created by the generator class. This
-        is to prevent them from building up in the debug folder."""
+        """Close the scenario class.
+
+        Deletes the xml files that were created by the generator class. This
+        is to prevent them from building up in the debug folder.
+        """
         os.remove(self.generator.net_path + self.generator.nodfn)
         os.remove(self.generator.net_path + self.generator.edgfn)
         os.remove(self.generator.net_path + self.generator.cfgfn)
@@ -646,5 +677,6 @@ class Scenario(Serializable):
             pass
 
     def __str__(self):
+        """Return the name of the scenario and the number of vehicles."""
         return "Scenario " + self.name + " with " + \
                str(self.vehicles.num_vehicles) + " vehicles."
