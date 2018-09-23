@@ -197,13 +197,14 @@ class TrafficLights:
     def actuated_default(self):
         """
         Return the default values to be used for the generator
-        for a system where all junctions are actuated traffic lights.
+        for a system where all junctions are actuated time-gap
+        based traffic lights.
 
         Returns
         -------
         tl_logic: dict
         """
-        tl_type = "actuated"
+        tl_type = "delay_based"
         program_id = 1
         max_gap = 3.0
         detector_gap = 0.8

@@ -116,7 +116,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
 if __name__ == "__main__":
     # import the experiment variable
     # inflow, number of steps, binary
-    if PLOT_CAPACITY_CURVE==False:
+    if not PLOT_CAPACITY_CURVE:
         exp = bottleneck_example(INFLOW, 1000, render=True)
         exp.run(5, 1000)
     else:
@@ -130,4 +130,3 @@ if __name__ == "__main__":
         plt.figure()
         plt.plot(inflow_range, capacity)
         plt.show()
-

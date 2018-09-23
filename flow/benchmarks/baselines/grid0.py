@@ -77,21 +77,10 @@ def grid0_baseline(num_runs, render=True):
     inflow = InFlows()
     for edge in outer_edges:
         inflow.add(veh_type="human", edge=edge, vehs_per_hour=EDGE_INFLOW,
-                   departLane="free", departSpeed="max")
+                   departLane="free", departSpeed=20)
 
     # define the traffic light logic
-    tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
-               "state": "GrGr"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
-               "state": "yryr"},
-              {"duration": "31", "minDur": "8", "maxDur": "45",
-               "state": "rGrG"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
-               "state": "ryry"}]
-    for i in range(N_ROWS*N_COLUMNS):
-        tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
-                     programID=1)
+    tl_logic = TrafficLights(baseline=True)
 
     net_params = NetParams(
             inflows=inflow,
@@ -128,7 +117,7 @@ def grid0_baseline(num_runs, render=True):
                 "switch_time": 2,
                 "num_observed": 2,
                 "discrete": False,
-                "tl_type": "controlled"
+                "tl_type": "actuated"
             },
         )
 

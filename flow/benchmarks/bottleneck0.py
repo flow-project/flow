@@ -43,6 +43,7 @@ vehicles.add(
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
                        ("4", 2, True), ("5", 1, False)]
 num_observed_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 3), ("5", 1)]
+
 additional_env_params = {
     "target_velocity": 40,
     "disable_tb": True,
