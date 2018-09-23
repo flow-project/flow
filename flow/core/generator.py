@@ -49,9 +49,9 @@ class Generator(Serializable):
             Serializable.quick_init(self, locals())
         self.net_params = net_params
         self.net_path = os.path.dirname(os.path.abspath(__file__)) \
-                        + "/debug/net/"
+            + "/debug/net/"
         self.cfg_path = os.path.dirname(os.path.abspath(__file__)) \
-                        + "/debug/cfg/"
+            + "/debug/cfg/"
         self.base = base
         self.vehicle_ids = []
 
