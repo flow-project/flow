@@ -49,9 +49,9 @@ class Generator(Serializable):
             Serializable.quick_init(self, locals())
         self.net_params = net_params
         self.net_path = os.path.dirname(os.path.abspath(__file__)) \
-            + "/debug/net/"
+                        + "/debug/net/"
         self.cfg_path = os.path.dirname(os.path.abspath(__file__)) \
-            + "/debug/cfg/"
+                        + "/debug/cfg/"
         self.base = base
         self.vehicle_ids = []
 
@@ -123,6 +123,12 @@ class Generator(Serializable):
         for n_id in traffic_lights.get_ids():
             indx = next(i for i, nd in enumerate(nodes) if nd["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
+
+        # for nodes that have traffic lights that haven't been added
+        for node in nodes:
+            if node["id"] not in traffic_lights.get_ids() \
+                    and node["type"] == "traffic_light":
+                traffic_lights.add(node["id"])
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
@@ -244,13 +250,15 @@ class Generator(Serializable):
         # add (optionally) the traffic light properties to the .add.xml file
         if traffic_lights.num_traffic_lights > 0:
             if traffic_lights.baseline:
-                tl_type = str(traffic_lights["tl_type"])
-                program_id = str(traffic_lights["program_id"])
-                phases = traffic_lights["phases"]
-                max_gap = str(traffic_lights["max_gap"])
-                detector_gap = str(traffic_lights["detector_gap"])
-                show_detector = traffic_lights["show_detectors"]
+                tl_params = traffic_lights.actuated_default()
+                tl_type = str(tl_params["tl_type"])
+                program_id = str(tl_params["program_id"])
+                phases = tl_params["phases"]
+                max_gap = str(tl_params["max_gap"])
+                detector_gap = str(tl_params["detector_gap"])
+                show_detector = tl_params["show_detectors"]
 
+                import ipdb; ipdb.set_trace()
                 detectors = {"key": "detector-gap", "value": detector_gap}
                 gap = {"key": "max-gap", "value": max_gap}
 
