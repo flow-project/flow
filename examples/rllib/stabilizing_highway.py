@@ -1,11 +1,12 @@
-"""Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
-merges in an open network.
+"""Open merge example.
 
+Trains a a small percentage of rl vehicles to dissipate shockwaves caused by
+merges in an open network.
 """
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -28,7 +29,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 10
+N_CPUS = 2
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -46,26 +47,40 @@ additional_net_params["pre_merge_length"] = 500
 
 # RL vehicles constitute 5% of the total number of vehicles
 vehicles = Vehicles()
-vehicles.add(veh_id="human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             speed_mode="no_collide",
-             num_vehicles=5)
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             speed_mode="no_collide",
-             num_vehicles=0)
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    speed_mode="no_collide",
+    num_vehicles=5)
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    speed_mode="no_collide",
+    num_vehicles=0)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering
 # from the highway portion as well
 inflow = InFlows()
-inflow.add(veh_type="human", edge="inflow_highway",
-           vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
-           departLane="free", departSpeed=10)
-inflow.add(veh_type="rl", edge="inflow_highway",
-           vehs_per_hour=RL_PENETRATION * FLOW_RATE,
-           departLane="free", departSpeed=10)
-inflow.add(veh_type="human", edge="inflow_merge", vehs_per_hour=100,
-           departLane="free", departSpeed=7.5)
+inflow.add(
+    veh_type="human",
+    edge="inflow_highway",
+    vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
+    departLane="free",
+    departSpeed=10)
+inflow.add(
+    veh_type="rl",
+    edge="inflow_highway",
+    vehs_per_hour=RL_PENETRATION * FLOW_RATE,
+    departLane="free",
+    departSpeed=10)
+inflow.add(
+    veh_type="human",
+    edge="inflow_merge",
+    vehs_per_hour=100,
+    departLane="free",
+    departSpeed=7.5)
 
 flow_params = dict(
     # name of the experiment
@@ -83,7 +98,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.2,
-        sumo_binary="sumo",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -102,7 +117,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     ),
@@ -116,12 +131,11 @@ flow_params = dict(
     initial=InitialConfig(),
 )
 
-
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
+    ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS
+    config["num_workers"] = N_CPUS
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32, 32]})
@@ -133,8 +147,8 @@ if __name__ == "__main__":
     config["horizon"] = HORIZON
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
@@ -155,10 +169,5 @@ if __name__ == "__main__":
                 "training_iteration": 200,
             },
             "repeat": 3,
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
-            },
         },
     })

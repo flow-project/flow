@@ -6,7 +6,7 @@ import os
 import unittest
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 import ray.tune.registry as registry
 
 from examples.rllib.stabilizing_the_ring import make_create_env
@@ -50,26 +50,37 @@ class TestRay(unittest.TestCase):
         config["horizon"] = HORIZON
         config["sgd_batchsize"] = 4
 
-        additional_env_params = {"target_velocity": 8,
-                                 "scenario_type": LoopScenario}
-        additional_net_params = {"length": 260, "lanes": 1, "speed_limit": 30,
-                                 "resolution": 40}
-        vehicle_params = [dict(veh_id="rl", num_vehicles=1,
-                               acceleration_controller=(RLController, {}),
-                               routing_controller=(ContinuousRouter, {})),
-                          dict(veh_id="idm", num_vehicles=21,
-                               acceleration_controller=(IDMController, {}),
-                               routing_controller=(ContinuousRouter, {}))
-                          ]
+        additional_env_params = {
+            "target_velocity": 8,
+            "scenario_type": LoopScenario
+        }
+        additional_net_params = {
+            "length": 260,
+            "lanes": 1,
+            "speed_limit": 30,
+            "resolution": 40
+        }
+        vehicle_params = [
+            dict(
+                veh_id="rl",
+                num_vehicles=1,
+                acceleration_controller=(RLController, {}),
+                routing_controller=(ContinuousRouter, {})),
+            dict(
+                veh_id="idm",
+                num_vehicles=21,
+                acceleration_controller=(IDMController, {}),
+                routing_controller=(ContinuousRouter, {}))
+        ]
 
         flow_params = dict(
             sumo=dict(sim_step=0.1, no_step_log=False),
             env=dict(horizon=HORIZON, additional_params=additional_env_params),
-            net=dict(no_internal_links=False,
-                     additional_params=additional_net_params),
+            net=dict(
+                no_internal_links=False,
+                additional_params=additional_net_params),
             veh=vehicle_params,
-            initial=dict(spacing="uniform", bunching=30, min_gap=0)
-        )
+            initial=dict(spacing="uniform", bunching=30, min_gap=0))
 
         flow_env_name = "WaveAttenuationPOEnv"
         create_env, env_name = make_create_env(flow_env_name, flow_params, 0)
@@ -77,8 +88,8 @@ class TestRay(unittest.TestCase):
         # Register as rllib env
         registry.register_env(env_name, create_env)
 
-        alg = ppo.PPOAgent(env=env_name, registry=registry.get_registry(),
-                           config=config)
+        alg = ppo.PPOAgent(
+            env=env_name, registry=registry.get_registry(), config=config)
         for i in range(1):
             alg.train()
             checkpoint_path = alg.save()
@@ -102,11 +113,12 @@ class TestRay(unittest.TestCase):
         config["horizon"] = HORIZON
         config["sgd_batchsize"] = 4
 
-        config["model"].update(
-            {"fcnet_hiddens": [5, 3]}, )
-        options = {"num_subpolicies": 2,
-                   "fn_choose_subpolicy": fn_choose_subpolicy,
-                   "hierarchical_fcnet_hiddens": [[3, 3]] * 2}
+        config["model"].update({"fcnet_hiddens": [5, 3]}, )
+        options = {
+            "num_subpolicies": 2,
+            "fn_choose_subpolicy": fn_choose_subpolicy,
+            "hierarchical_fcnet_hiddens": [[3, 3]] * 2
+        }
         config["model"].update({"custom_options": options})
 
     def tearDown(self):

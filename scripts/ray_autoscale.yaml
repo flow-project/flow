@@ -39,8 +39,8 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c4.4xlarge
-    ImageId: ami-a2948fc2 # Flow AMI (Ubuntu)
+    InstanceType: m4.10xlarge #c4.4xlarge
+    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -54,8 +54,8 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c4.4xlarge
-    ImageId: ami-a2948fc2 # Flow AMI (Ubuntu)
+    InstanceType: m4.10xlarge #c4.4xlarge
+    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -69,17 +69,12 @@ worker_nodes:
 file_mounts: {
 # path to your repo and the desired branch name
 #"/tmp/path": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
-#"/tmp/ray_autoscaler_key": "<PATH TO RAY_AUTOSCALER_KEY>",
-"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/rllab-multiagent/learning-traffic/.git/refs/heads/ars_runner",
-"/tmp/ray_autoscaler_key": "/Users/eugenevinitsky/.ssh/ray-autoscaler_1_us-west-1.pem",
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
-    # - cd learning-traffic && GIT_SSH_COMMAND="ssh -i ~/ray_bootstrap_key.pem" git fetch
-    - cd /tmp && cp ray_autoscaler_key ~/ray_autoscaler_key.pem
-    - cd flow-devel && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git fetch  && GIT_SSH_COMMAND="ssh -i ~/ray_autoscaler_key.pem" git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git checkout add_ars && git pull
+    - cd flow && git fetch && git checkout `cat /tmp/path`
+    - cd ray && git fetch eugene_upstream && git checkout master && git pull
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
@@ -94,9 +89,18 @@ worker_setup_commands: []
 # Command to start ray on the head node. You don't need to change this.
 head_start_ray_commands:
     - ray stop
-    - ray start --head --redis-port=6379 --autoscaling-config=~/ray_bootstrap_config.yaml
-
+    - >-
+      ulimit -n 65536;
+      ray start
+      --head
+      --redis-port=6379
+      --object-manager-port=8076
+      --autoscaling-config=~/ray_bootstrap_config.yaml
 # Command to start ray on worker nodes. You don't need to change this.
 worker_start_ray_commands:
     - ray stop
-    - ray start --redis-address=$RAY_HEAD_IP:6379
+    - >-
+      ulimit -n 65536;
+      ray start
+      --redis-address=$RAY_HEAD_IP:6379
+      --object-manager-port=8076

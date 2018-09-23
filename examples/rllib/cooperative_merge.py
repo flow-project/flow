@@ -1,13 +1,15 @@
-"""
-Cooperative merging example, consisting of 1 learning agent and 6 additional
-vehicles in an inner ring, and 10 vehicles in an outer ring attempting to
+"""Trains vehicles to facilitate cooperative merging in a loop merge.
+
+
+This examples consists of 1 learning agent and 6 additional vehicles in an
+inner ring, and 10 vehicles in an outer ring attempting to
 merge into the inner ring.
 """
 
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -24,7 +26,7 @@ HORIZON = 100
 # number of rollouts per training iteration
 N_ROLLOUTS = 10
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+N_CPUS = 2
 
 RING_RADIUS = 100
 NUM_MERGE_HUMANS = 9
@@ -34,39 +36,37 @@ NUM_MERGE_RL = 1
 # so place the merging vehicles after the vehicles in the ring
 vehicles = Vehicles()
 # Inner ring vehicles
-vehicles.add(veh_id="human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=6,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.0,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(
+    veh_id="human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    lane_change_controller=(SumoLaneChangeController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    num_vehicles=6,
+    sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+    sumo_lc_params=SumoLaneChangeParams())
 # A single learning agent in the inner ring
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode="no_collide",
-             num_vehicles=1,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.01,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    lane_change_controller=(SumoLaneChangeController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    speed_mode="no_collide",
+    num_vehicles=1,
+    sumo_car_following_params=SumoCarFollowingParams(minGap=0.01, tau=0.5),
+    sumo_lc_params=SumoLaneChangeParams())
 # Outer ring vehicles
-vehicles.add(veh_id="merge-human",
-             acceleration_controller=(IDMController, {"noise": 0.2}),
-             lane_change_controller=(SumoLaneChangeController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             num_vehicles=10,
-             sumo_car_following_params=SumoCarFollowingParams(
-                 minGap=0.0,
-                 tau=0.5
-             ),
-             sumo_lc_params=SumoLaneChangeParams())
+vehicles.add(
+    veh_id="merge-human",
+    acceleration_controller=(IDMController, {
+        "noise": 0.2
+    }),
+    lane_change_controller=(SumoLaneChangeController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    num_vehicles=10,
+    sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+    sumo_lc_params=SumoLaneChangeParams())
 
 flow_params = dict(
     # name of the experiment
@@ -84,7 +84,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.1,
-        sumo_binary="sumo",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -129,12 +129,11 @@ flow_params = dict(
     ),
 )
 
-
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=False)
+    ray.init(num_cpus=N_CPUS+1, redirect_output=False)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS
+    config["num_workers"] = N_CPUS
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
@@ -146,8 +145,8 @@ if __name__ == "__main__":
     config["horizon"] = HORIZON
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
@@ -166,11 +165,6 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {
                 "training_iteration": 200,
-            },
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
             },
         }
     })

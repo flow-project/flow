@@ -1,3 +1,5 @@
+"""Contains the base generator class."""
+
 from flow.core.util import makexml, printxml, ensure_dir
 
 import subprocess
@@ -24,19 +26,21 @@ WAIT_ON_ERROR = 1
 
 
 class Generator(Serializable):
+    """Base class for generating transportation networks.
+
+    Uses network specific features to generate the necessary xml files
+    needed to initialize a sumo instance. The methods of this class are
+    called by the base scenario class.
+    """
 
     def __init__(self, net_params, base):
-        """Base class for generating transportation networks.
-
-        Uses network specific features to generate the necessary xml files
-        needed to initialize a sumo instance. The methods of this class are
-        called by the base scenario class.
+        """Instantiate the base generator class.
 
         Attributes
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
-        base: str
+        base : str
             base name for the transportation network. If not specified in the
             child class, this is also the complete name for the network.
         """
@@ -71,7 +75,7 @@ class Generator(Serializable):
         self.guifn = "%s.gui.cfg" % self.name
 
     def generate_net(self, net_params, traffic_lights):
-        """Generates Net files for the transportation network.
+        """Generate Net files for the transportation network.
 
         Creates different network configuration files for:
 
@@ -189,9 +193,12 @@ class Generator(Serializable):
         printxml(x, self.net_path + self.cfgfn)
 
         subprocess.call(
-            ["netconvert -c " + self.net_path + self.cfgfn + " --output-file="
-             + self.cfg_path + self.netfn + ' --no-internal-links="%s"'
-             % no_internal_links], shell=True)
+            [
+                "netconvert -c " + self.net_path + self.cfgfn +
+                " --output-file=" + self.cfg_path + self.netfn +
+                ' --no-internal-links="%s"' % no_internal_links
+            ],
+            shell=True)
 
         # collect data from the generated network configuration file
         error = None
@@ -206,7 +213,7 @@ class Generator(Serializable):
         raise error
 
     def generate_cfg(self, net_params, traffic_lights):
-        """Generates .sumo.cfg files using net files and netconvert.
+        """Generate .sumo.cfg files using net files and netconvert.
 
         This includes files such as the routes vehicles can traverse,
         properties of the traffic lights, and the view settings of the gui
@@ -215,7 +222,7 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
         traffic_lights : flow.core.traffic_lights.TrafficLights type
             traffic light information, used to determine which nodes are
@@ -256,8 +263,11 @@ class Generator(Serializable):
                 nodes = self.specify_tll(net_params)
                 tll = []
                 for node in nodes:
-                    tll.append({"id": node['id'], "type": tl_type,
-                                "programID": program_id})
+                    tll.append({
+                        "id": node['id'],
+                        "type": tl_type,
+                        "programID": program_id
+                    })
 
                 for elem in tll:
                     e = E("tlLogic", **elem)
@@ -277,8 +287,11 @@ class Generator(Serializable):
                     if node["type"] == "static" and not node.get("phases"):
                         continue
 
-                    elem = {"id": str(node["id"]), "type": str(node["type"]),
-                            "programID": str(node["programID"])}
+                    elem = {
+                        "id": str(node["id"]),
+                        "type": str(node["type"]),
+                        "programID": str(node["programID"])
+                    }
                     if node.get("offset"):
                         elem["offset"] = str(node.get("offset"))
 
@@ -288,8 +301,11 @@ class Generator(Serializable):
                             for phase in node.get("phases"):
                                 e.append(E("phase", **phase))
                         else:
-                            e.append(E("param",
-                                       **{"key": key, "value": str(value)}))
+                            e.append(
+                                E("param", **{
+                                    "key": key,
+                                    "value": str(value)
+                                }))
 
                     add.append(e)
 
@@ -297,8 +313,12 @@ class Generator(Serializable):
 
         gui = E("viewsettings")
         gui.append(E("scheme", name="real world"))
-        gui.append(E("background", backgroundColor="100,100,100",
-                     showGrid="0", gridXSize="100.00", gridYSize="100.00"))
+        gui.append(
+            E("background",
+              backgroundColor="100,100,100",
+              showGrid="0",
+              gridXSize="100.00",
+              gridYSize="100.00"))
         printxml(gui, self.cfg_path + self.guifn)
 
         cfg = makexml("configuration",
@@ -306,8 +326,13 @@ class Generator(Serializable):
 
         logging.debug(self.netfn)
 
-        cfg.append(self._inputs(self.name, net=self.netfn, add=self.addfn,
-                                rou=self.roufn, gui=self.guifn))
+        cfg.append(
+            self._inputs(
+                self.name,
+                net=self.netfn,
+                add=self.addfn,
+                rou=self.roufn,
+                gui=self.guifn))
         t = E("time")
         t.append(E("begin", value=repr(start_time)))
         if end_time:
@@ -317,8 +342,8 @@ class Generator(Serializable):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, scenario, initial_config):
-        """Generates .rou.xml files using net files and netconvert.
+    def make_routes(self, scenario, positions, lanes, shuffle):
+        """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
         similar types, and well as the starting positions of vehicles. The
@@ -327,42 +352,53 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        scenario: Scenario type
+        scenario : Scenario type
             scenario class calling this method. This contains information on
             the properties and initial states of vehicles in the network.
-        initial_config: InitialConfig type
-            see flow/core/params.py
+        positions : list of tuple (float, float)
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        lanes : list of float
+            list of start lanes
+        shuffle : bool
+            specifies whether the vehicle IDs should be shuffled before the
+            vehicles are assigned starting positions
         """
         vehicles = scenario.vehicles
         routes = makexml("routes", "http://sumo.dlr.de/xsd/routes_file.xsd")
 
         # add the types of vehicles to the xml file
         for params in vehicles.types:
-            type_params_str = {key: str(params["type_params"][key])
-                               for key in params["type_params"]}
+            type_params_str = {
+                key: str(params["type_params"][key])
+                for key in params["type_params"]
+            }
             routes.append(E("vType", id=params["veh_id"], **type_params_str))
 
         self.vehicle_ids = vehicles.get_ids()
 
-        if initial_config.shuffle:
+        if shuffle:
             random.shuffle(self.vehicle_ids)
 
         # add the initial positions of vehicles to the xml file
-        positions = initial_config.positions
-        lanes = initial_config.lanes
         for i, veh_id in enumerate(self.vehicle_ids):
             veh_type = vehicles.get_state(veh_id, "type")
             edge, pos = positions[i]
             lane = lanes[i]
             type_depart_speed = vehicles.get_initial_speed(veh_id)
-            routes.append(self._vehicle(
-                veh_type, "route" + edge, depart="0", id=veh_id,
-                color="1,1,1", departSpeed=str(type_depart_speed),
-                departPos=str(pos), departLane=str(lane)))
+            routes.append(
+                self._vehicle(
+                    veh_type,
+                    "route" + edge,
+                    depart="0",
+                    id=veh_id,
+                    color="1,1,1",
+                    departSpeed=str(type_depart_speed),
+                    departPos=str(pos),
+                    departLane=str(lane)))
 
         # add the in-flows from various edges to the xml file
-        if self.net_params.in_flows is not None:
-            total_inflows = self.net_params.in_flows.get()
+        if self.net_params.inflows is not None:
+            total_inflows = self.net_params.inflows.get()
             for inflow in total_inflows:
                 for key in inflow:
                     if not isinstance(inflow[key], str):
@@ -372,16 +408,16 @@ class Generator(Serializable):
         printxml(routes, self.cfg_path + self.roufn)
 
     def specify_nodes(self, net_params):
-        """Specifies the attributes of nodes in the network.
+        """Specify the attributes of nodes in the network.
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
 
         Returns
         -------
-        nodes: list of dict
+        nodes : list of dict
 
             A list of node attributes (a separate dict for each node). Nodes
             attributes must include:
@@ -396,17 +432,16 @@ class Generator(Serializable):
         raise NotImplementedError
 
     def specify_edges(self, net_params):
-        """Specifies the attributes of edges containing pairs on nodes in the
-        network.
+        """Specify the attributes of edges connecting pairs on nodes.
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
 
         Returns
         -------
-        edges: list of dict
+        edges : list of dict
 
             A list of edges attributes (a separate dict for each edge). Edge
             attributes must include:
@@ -430,7 +465,7 @@ class Generator(Serializable):
         raise NotImplementedError
 
     def specify_types(self, net_params):
-        """Specifies the attributes of various edge types (if any exist).
+        """Specify the attributes of various edge types (if any exist).
 
         Parameters
         ----------
@@ -449,7 +484,7 @@ class Generator(Serializable):
         return None
 
     def specify_connections(self, net_params):
-        """Specifies the attributes of connections.
+        """Specify the attributes of connections.
 
         These attributes are used to describe how any specific node's incoming
         and outgoing edges/lane pairs are connected. If no connections are
@@ -462,7 +497,7 @@ class Generator(Serializable):
 
         Returns
         -------
-        connections: list of dict
+        connections : list of dict
             A list of connection attributes. If none are specified, no .con.xml
             file is created.
 
@@ -472,7 +507,7 @@ class Generator(Serializable):
         return None
 
     def specify_routes(self, net_params):
-        """Specifies the routes vehicles can take starting from any edge.
+        """Specify the routes vehicles can take starting from any edge.
 
         The routes are specified as lists of edges the vehicle must traverse,
         with the first edge corresponding to the edge the vehicle begins on.
@@ -482,12 +517,12 @@ class Generator(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params : NetParams type
             see flow/core/params.py
 
         Returns
         -------
-        routes: dict
+        routes : dict
             Key = name of the starting edge
             Element = list of edges a vehicle starting from this edge must
             traverse.
@@ -502,8 +537,13 @@ class Generator(Serializable):
             raise ValueError("Supply either ID or Number")
         if not id:
             id = type + "_" + str(number)
-        return E("vehicle", type=type, id=id, route=route, departPos=departPos,
-                 **kwargs)
+        return E(
+            "vehicle",
+            type=type,
+            id=id,
+            route=route,
+            departPos=departPos,
+            **kwargs)
 
     def _inputs(self, name, net=None, rou=None, add=None, gui=None):
         inp = E("input")
@@ -530,10 +570,11 @@ class Generator(Serializable):
         return inp
 
     def _import_edges_from_net(self):
-        """Utility function for computing edge information.
+        """Import edges from a configuration file.
 
-        Imports a network configuration file, and returns the information on
-        the edges and junctions located in the file.
+        This is a utility function for computing edge information. It imports a
+        network configuration file, and returns the information on the edges
+        and junctions located in the file.
 
         Returns
         -------
@@ -550,8 +591,8 @@ class Generator(Serializable):
         """
         # import the .net.xml file containing all edge/type data
         parser = etree.XMLParser(recover=True)
-        tree = ElementTree.parse(os.path.join(self.cfg_path, self.netfn),
-                                 parser=parser)
+        tree = ElementTree.parse(
+            os.path.join(self.cfg_path, self.netfn), parser=parser)
 
         root = tree.getroot()
 
@@ -607,8 +648,8 @@ class Generator(Serializable):
                     net_data[edge_id]["length"] = float(lane.attrib["length"])
                     if net_data[edge_id]["speed"] is None \
                             and "speed" in lane.attrib:
-                        net_data[edge_id]["speed"] = float(lane.
-                                                           attrib["speed"])
+                        net_data[edge_id]["speed"] = float(
+                            lane.attrib["speed"])
 
             # if no speed value is present anywhere, set it to some default
             if net_data[edge_id]["speed"] is None:

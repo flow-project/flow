@@ -1,10 +1,9 @@
-"""
-(description)
-"""
+"""Hierarchical loop merge example."""
+
 import os
 
 import ray
-import ray.rllib.ppo as ppo
+import ray.rllib.agents.ppo as ppo
 from ray.tune.registry import get_registry, register_env as register_rllib_env
 
 from .cooperative_merge import flow_params, HORIZON, make_create_env
@@ -14,7 +13,6 @@ fn_choose_subpolicy = """
 def choose_policy(inputs):
     return tf.cast(inputs[:, 7] > 0.482496, tf.int32)
 """
-
 
 if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
@@ -37,9 +35,11 @@ if __name__ == "__main__":
     # Two-level policy parameters
     config["model"].update({"fcnet_hiddens": [32, 32]})
 
-    options = {"num_subpolicies": 2,
-               "fn_choose_subpolicy": fn_choose_subpolicy,
-               "hierarchical_fcnet_hiddens": [[32, 32]] * 2}
+    options = {
+        "num_subpolicies": 2,
+        "fn_choose_subpolicy": fn_choose_subpolicy,
+        "hierarchical_fcnet_hiddens": [[32, 32]] * 2
+    }
     config["model"].update({"custom_options": options})
 
     flow_env_name = "TwoLoopsMergePOEnv"
@@ -48,11 +48,13 @@ if __name__ == "__main__":
     flow_params["flowenv"] = flow_env_name
     flow_params["exp_tag"] = exp_tag
     flow_params["module"] = os.path.basename(__file__)[:-3]
-    config['model']['custom_options'].update({'flowenv': flow_env_name,
-                                              'exp_tag': exp_tag,
-                                              'module': this_file})
-    create_env, env_name = make_create_env(flow_env_name, flow_params,
-                                           version=0, exp_tag=exp_tag)
+    config['model']['custom_options'].update({
+        'flowenv': flow_env_name,
+        'exp_tag': exp_tag,
+        'module': this_file
+    })
+    create_env, env_name = make_create_env(
+        flow_env_name, flow_params, version=0, exp_tag=exp_tag)
 
     # Register as rllib env
     register_rllib_env(env_name, create_env)

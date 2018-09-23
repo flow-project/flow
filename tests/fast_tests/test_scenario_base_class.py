@@ -30,7 +30,7 @@ class TestGetX(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_getx(self):
         # test for an edge in the lanes
         edge_1 = "bottom_lower_ring"
         pos_1 = 4.72
@@ -57,7 +57,7 @@ class TestGetEdge(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_get_edge(self):
         # test for a position in the lanes
         x1 = 5
         self.assertTupleEqual(
@@ -84,21 +84,27 @@ class TestEvenStartPos(unittest.TestCase):
         contain MORE THAN TWO LANES.
         """
         # create a multi-lane ring road network
-        additional_net_params = {"length": 230, "lanes": 4, "speed_limit": 30,
-                                 "resolution": 40}
+        additional_net_params = {
+            "length": 230,
+            "lanes": 4,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add(veh_id="test",
-                     acceleration_controller=(IDMController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=15)
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(net_params=net_params,
-                                                 initial_config=initial_config,
-                                                 vehicles=vehicles)
+        self.env, scenario = ring_road_exp_setup(
+            net_params=net_params,
+            initial_config=initial_config,
+            vehicles=vehicles)
 
     def tearDown_gen_start_pos(self):
         # terminate the traci instance
@@ -125,8 +131,9 @@ class TestEvenStartPos(unittest.TestCase):
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
+        nth_headway = np.mod(
+            np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
+            self.env.scenario.length)
 
         # check that the position of the first vehicle is at 0
         self.assertEqual(veh_pos[0], 0)
@@ -156,8 +163,9 @@ class TestEvenStartPos(unittest.TestCase):
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
+        nth_headway = np.mod(
+            np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
+            self.env.scenario.length)
 
         # check that the position of the first vehicle is at 0
         self.assertEqual(veh_pos[0], x0 % self.env.scenario.length)
@@ -174,8 +182,7 @@ class TestEvenStartPos(unittest.TestCase):
         """
         # set the initial_config parameters with a modest bunching term
         bunching = 10
-        initial_config = InitialConfig(bunching=bunching,
-                                       lanes_distribution=1)
+        initial_config = InitialConfig(bunching=bunching, lanes_distribution=1)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
@@ -186,8 +193,9 @@ class TestEvenStartPos(unittest.TestCase):
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
+        nth_headway = np.mod(
+            np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
+            self.env.scenario.length)
 
         # check that all vehicles except the last vehicle have the same spacing
         self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
@@ -205,8 +213,7 @@ class TestEvenStartPos(unittest.TestCase):
         """
         # set the initial_config parameters with a negative bunching term
         bunching = -10
-        initial_config = InitialConfig(bunching=bunching,
-                                       lanes_distribution=1)
+        initial_config = InitialConfig(bunching=bunching, lanes_distribution=1)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
@@ -217,8 +224,9 @@ class TestEvenStartPos(unittest.TestCase):
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
+        nth_headway = np.mod(
+            np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
+            self.env.scenario.length)
 
         # check that all vehicles, including the last vehicle, have the same
         # spacing
@@ -245,9 +253,10 @@ class TestEvenStartPos(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
         veh_pos = []
         for i in range(self.env.scenario.lanes):
-            veh_pos.append([self.env.get_x_by_id(veh_id)
-                            for veh_id in ids
-                            if self.env.vehicles.get_lane(veh_id) == i])
+            veh_pos.append([
+                self.env.get_x_by_id(veh_id) for veh_id in ids
+                if self.env.vehicles.get_lane(veh_id) == i
+            ])
 
         # check that the vehicles are uniformly distributed in the number of
         # requested lanes
@@ -304,9 +313,10 @@ class TestEvenStartPos(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
         veh_pos = []
         for i in range(self.env.scenario.lanes):
-            veh_pos.append([self.env.get_x_by_id(veh_id)
-                            for veh_id in ids
-                            if self.env.vehicles.get_lane(veh_id) == i])
+            veh_pos.append([
+                self.env.get_x_by_id(veh_id) for veh_id in ids
+                if self.env.vehicles.get_lane(veh_id) == i
+            ])
 
         # check that the vehicles are uniformly distributed in the number of
         # requested lanes lanes
@@ -353,10 +363,10 @@ class TestEvenStartPos(unittest.TestCase):
 
         # check when "num_vehicles" is not specified
         startpos, startlanes = self.env.scenario.generate_starting_positions()
-        self.assertEqual(len(startpos),
-                         self.env.scenario.vehicles.num_vehicles)
-        self.assertEqual(len(startlanes),
-                         self.env.scenario.vehicles.num_vehicles)
+        self.assertEqual(
+            len(startpos), self.env.scenario.vehicles.num_vehicles)
+        self.assertEqual(
+            len(startlanes), self.env.scenario.vehicles.num_vehicles)
 
         # check when "num_vehicles" is specified
         startpos, startlanes = self.env.scenario.generate_starting_positions(
@@ -376,18 +386,17 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add(veh_id="test",
-                     acceleration_controller=(IDMController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=15)
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=15)
 
         initial_config = InitialConfig(x0=150)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = figure_eight_exp_setup(
-            initial_config=initial_config,
-            vehicles=vehicles
-        )
+            initial_config=initial_config, vehicles=vehicles)
 
     def tearDown(self):
         # terminate the traci instance
@@ -396,15 +405,16 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
         # free data used by the class
         self.env = None
 
-    def runTest(self):
+    def test_even_start_pos_internal(self):
         # get the positions of all vehicles
         ids = self.env.vehicles.get_ids()
         veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
-        nth_headway = np.mod(np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-                             self.env.scenario.length)
+        nth_headway = np.mod(
+            np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
+            self.env.scenario.length)
 
         try:
             # if all element are equal, there should only be one unique value
@@ -417,10 +427,13 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
                 if nth_headway[i] - np.mean(nth_headway) > 0.001:
                     # if not, check that the last or first vehicle is right
                     # after an internal link, on position 0
-                    pos = [self.env.get_x_by_id(veh_id) for veh_id in
-                           [ids[i + 1], ids[i]]]
-                    rel_pos = [self.env.scenario.get_edge(pos_i)[1] for pos_i
-                               in pos]
+                    pos = [
+                        self.env.get_x_by_id(veh_id)
+                        for veh_id in [ids[i + 1], ids[i]]
+                    ]
+                    rel_pos = [
+                        self.env.scenario.get_edge(pos_i)[1] for pos_i in pos
+                    ]
 
                     self.assertTrue(np.any(np.array(rel_pos) == 0))
 
@@ -435,21 +448,27 @@ class TestRandomStartPos(unittest.TestCase):
         initial_config.spacing = "random"
 
         # create a multi-lane ring road network
-        additional_net_params = {"length": 230, "lanes": 4, "speed_limit": 30,
-                                 "resolution": 40}
+        additional_net_params = {
+            "length": 230,
+            "lanes": 4,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
         # place 5 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add(veh_id="test",
-                     acceleration_controller=(IDMController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=5)
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(net_params=net_params,
-                                                 initial_config=initial_config,
-                                                 vehicles=vehicles)
+        self.env, scenario = ring_road_exp_setup(
+            net_params=net_params,
+            initial_config=initial_config,
+            vehicles=vehicles)
 
     def tearDown_gen_start_pos(self):
         # terminate the traci instance
@@ -479,8 +498,8 @@ class TestRandomStartPos(unittest.TestCase):
         # set the initial_config parameters with an edges_distribution term for
         # only a few edges
         edges = ["top", "bottom"]
-        initial_config = InitialConfig(spacing="random",
-                                       edges_distribution=edges)
+        initial_config = InitialConfig(
+            spacing="random", edges_distribution=edges)
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
@@ -496,10 +515,11 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add(veh_id="test",
-                     acceleration_controller=(IDMController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=50)
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=50)
 
         initial_config = InitialConfig(lanes_distribution=5)
 
@@ -515,9 +535,9 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
         # free data used by the class
         self.env = None
 
-    def runTest(self):
+    def test_even_start_pos_coverage(self):
         """
-        Ensures that enough vehicles are placed in the network, and they cover
+        Ensure that enough vehicles are placed in the network, and they cover
         all possible lanes.
         """
         expected_num_vehicles = self.env.vehicles.num_vehicles
@@ -537,10 +557,11 @@ class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
         vehicles = Vehicles()
-        vehicles.add(veh_id="test",
-                     acceleration_controller=(IDMController, {}),
-                     routing_controller=(ContinuousRouter, {}),
-                     num_vehicles=50)
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(IDMController, {}),
+            routing_controller=(ContinuousRouter, {}),
+            num_vehicles=50)
 
         initial_config = InitialConfig(spacing="random", lanes_distribution=5)
 
@@ -559,8 +580,12 @@ class TestEdgeLength(unittest.TestCase):
         """
         Tests the edge_length() method when called on edges
         """
-        additional_net_params = {"length": 1000, "lanes": 2,
-                                 "speed_limit": 60, "resolution": 40}
+        additional_net_params = {
+            "length": 1000,
+            "lanes": 2,
+            "speed_limit": 60,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and scenario classes for a figure eight
@@ -572,10 +597,14 @@ class TestEdgeLength(unittest.TestCase):
         """
         Tests the speed_limit() method when called on junctions
         """
-        additional_net_params = {"radius_ring": 30, "lanes": 1,
-                                 "speed_limit": 60, "resolution": 40}
-        net_params = NetParams(no_internal_links=False,
-                               additional_params=additional_net_params)
+        additional_net_params = {
+            "radius_ring": 30,
+            "lanes": 1,
+            "speed_limit": 60,
+            "resolution": 40
+        }
+        net_params = NetParams(
+            no_internal_links=False, additional_params=additional_net_params)
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
@@ -594,8 +623,12 @@ class TestSpeedLimit(unittest.TestCase):
         """
         Tests the speed_limit() method when called on edges
         """
-        additional_net_params = {"length": 230, "lanes": 2,
-                                 "speed_limit": 60, "resolution": 40}
+        additional_net_params = {
+            "length": 230,
+            "lanes": 2,
+            "speed_limit": 60,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and scenario classes for a figure eight
@@ -607,15 +640,19 @@ class TestSpeedLimit(unittest.TestCase):
         """
         Tests the speed_limit() method when called on junctions
         """
-        additional_net_params = {"radius_ring": 30, "lanes": 1,
-                                 "speed_limit": 60, "resolution": 40}
-        net_params = NetParams(no_internal_links=False,
-                               additional_params=additional_net_params)
+        additional_net_params = {
+            "radius_ring": 30,
+            "lanes": 1,
+            "speed_limit": 60,
+            "resolution": 40
+        }
+        net_params = NetParams(
+            no_internal_links=False, additional_params=additional_net_params)
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
-        self.assertAlmostEqual(scenario.speed_limit("bottom_upper_ring_in"),
-                               60)
+        self.assertAlmostEqual(
+            scenario.speed_limit("bottom_upper_ring_in"), 60)
         self.assertAlmostEqual(scenario.speed_limit(":top_upper_ring_0"), 60)
 
 
@@ -628,8 +665,12 @@ class TestNumLanes(unittest.TestCase):
         """
         Tests the num_lanes() method when called on edges
         """
-        additional_net_params = {"length": 230, "lanes": 2,
-                                 "speed_limit": 30, "resolution": 40}
+        additional_net_params = {
+            "length": 230,
+            "lanes": 2,
+            "speed_limit": 30,
+            "resolution": 40
+        }
         net_params = NetParams(additional_params=additional_net_params)
 
         # create the environment and scenario classes for a figure eight
@@ -641,10 +682,14 @@ class TestNumLanes(unittest.TestCase):
         """
         Tests the num_lanes() method when called on junctions
         """
-        additional_net_params = {"radius_ring": 30, "lanes": 3,
-                                 "speed_limit": 60, "resolution": 40}
-        net_params = NetParams(no_internal_links=False,
-                               additional_params=additional_net_params)
+        additional_net_params = {
+            "radius_ring": 30,
+            "lanes": 3,
+            "speed_limit": 60,
+            "resolution": 40
+        }
+        net_params = NetParams(
+            no_internal_links=False, additional_params=additional_net_params)
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
@@ -666,13 +711,14 @@ class TestGetEdgeList(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_get_edge_list(self):
         edge_list = self.scenario.get_edge_list()
-        expected_edge_list = ["bottom_lower_ring", "right_lower_ring_in",
-                              "right_lower_ring_out", "left_upper_ring",
-                              "top_upper_ring", "right_upper_ring",
-                              "bottom_upper_ring_in", "bottom_upper_ring_out",
-                              "top_lower_ring", "left_lower_ring"]
+        expected_edge_list = [
+            "bottom_lower_ring", "right_lower_ring_in", "right_lower_ring_out",
+            "left_upper_ring", "top_upper_ring", "right_upper_ring",
+            "bottom_upper_ring_in", "bottom_upper_ring_out", "top_lower_ring",
+            "left_lower_ring"
+        ]
 
         self.assertCountEqual(edge_list, expected_edge_list)
 
@@ -691,7 +737,7 @@ class TestGetJunctionList(unittest.TestCase):
         # free data used by the class
         self.scenario = None
 
-    def runTest(self):
+    def test_get_junction_list(self):
         junction_list = self.scenario.get_junction_list()
         expected_junction_list = \
             [':right_upper_ring_0', ':right_lower_ring_in_0',

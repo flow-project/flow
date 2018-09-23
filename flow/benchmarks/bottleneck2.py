@@ -1,4 +1,5 @@
-"""
+"""Benchmark for bottleneck2.
+
 Bottleneck in which the actions are specifying a desired velocity in a segment
 of space for a large bottleneck.
 The autonomous penetration rate in this example is 10%.
@@ -26,22 +27,23 @@ DISABLE_RAMP_METER = True
 AV_FRAC = .10
 
 vehicles = Vehicles()
-vehicles.add(veh_id="rl",
-             acceleration_controller=(RLController, {}),
-             routing_controller=(ContinuousRouter, {}),
-             speed_mode=9,
-             lane_change_mode=0,
-             num_vehicles=1 * SCALING)
-vehicles.add(veh_id="human",
-             speed_mode=9,
-             routing_controller=(ContinuousRouter, {}),
-             lane_change_mode=0,
-             num_vehicles=1 * SCALING)
+vehicles.add(
+    veh_id="rl",
+    acceleration_controller=(RLController, {}),
+    routing_controller=(ContinuousRouter, {}),
+    speed_mode=9,
+    lane_change_mode=0,
+    num_vehicles=1 * SCALING)
+vehicles.add(
+    veh_id="human",
+    speed_mode=9,
+    routing_controller=(ContinuousRouter, {}),
+    lane_change_mode=0,
+    num_vehicles=1 * SCALING)
 
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
                        ("4", 2, True), ("5", 1, False)]
-num_observed_segments = [("1", 1), ("2", 3), ("3", 3),
-                         ("4", 3), ("5", 1)]
+num_observed_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 3), ("5", 1)]
 additional_env_params = {
     "target_velocity": 40,
     "disable_tb": True,
@@ -61,12 +63,18 @@ flow_rate = 1900 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
-inflow.add(veh_type="rl", edge="1",
-           vehs_per_hour=flow_rate * AV_FRAC,
-           departLane="random", departSpeed=10)
-inflow.add(veh_type="human", edge="1",
-           vehs_per_hour=flow_rate * (1 - AV_FRAC),
-           departLane="random", departSpeed=10)
+inflow.add(
+    veh_type="rl",
+    edge="1",
+    vehs_per_hour=flow_rate * AV_FRAC,
+    departLane="random",
+    departSpeed=10)
+inflow.add(
+    veh_type="human",
+    edge="1",
+    vehs_per_hour=flow_rate * (1 - AV_FRAC),
+    departLane="random",
+    departSpeed=10)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
@@ -75,9 +83,10 @@ if not DISABLE_RAMP_METER:
     traffic_lights.add(node_id="3")
 
 additional_net_params = {"scaling": SCALING}
-net_params = NetParams(in_flows=inflow,
-                       no_internal_links=False,
-                       additional_params=additional_net_params)
+net_params = NetParams(
+    inflows=inflow,
+    no_internal_links=False,
+    additional_params=additional_net_params)
 
 flow_params = dict(
     # name of the experiment
@@ -95,7 +104,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.5,
-        sumo_binary="sumo",
+        render=False,
         print_warnings=False,
         restart_instance=True,
     ),
@@ -111,7 +120,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     ),

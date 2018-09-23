@@ -1,6 +1,6 @@
-"""
-Used as example of sugiyama experiment.
-22 IDM cars on a ring create shockwaves.
+"""Used as an example of sugiyama experiment.
+
+This example consists of 22 IDM cars on a ring creating shockwaves.
 """
 
 from flow.controllers import IDMController, ContinuousRouter
@@ -14,17 +14,32 @@ from flow.scenarios.loop.loop_scenario import LoopScenario, \
     ADDITIONAL_NET_PARAMS
 
 
-def sugiyama_example(sumo_binary=None):
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+def sugiyama_example(render=None):
+    """
+    Perform a simulation of vehicles on a ring road.
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    Parameters
+    ----------
+    render : bool, optional
+        specifies whether to use sumo's gui during execution
+
+    Returns
+    -------
+    exp: flow.core.SumoExperiment type
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles on a ring road.
+    """
+    sumo_params = SumoParams(sim_step=0.1, render=True)
+
+    if render is not None:
+        sumo_params.render = render
 
     vehicles = Vehicles()
-    vehicles.add(veh_id="idm",
-                 acceleration_controller=(IDMController, {}),
-                 routing_controller=(ContinuousRouter, {}),
-                 num_vehicles=22)
+    vehicles.add(
+        veh_id="idm",
+        acceleration_controller=(IDMController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        num_vehicles=22)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -33,11 +48,12 @@ def sugiyama_example(sumo_binary=None):
 
     initial_config = InitialConfig(bunching=20)
 
-    scenario = LoopScenario(name="sugiyama",
-                            generator_class=CircleGenerator,
-                            vehicles=vehicles,
-                            net_params=net_params,
-                            initial_config=initial_config)
+    scenario = LoopScenario(
+        name="sugiyama",
+        generator_class=CircleGenerator,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config)
 
     env = AccelEnv(env_params, sumo_params, scenario)
 

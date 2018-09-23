@@ -1,3 +1,12 @@
+"""Contains a list of custom controllers.
+
+These controllers can be used to modify the dynamics behavior of human-driven
+vehicles in the network.
+
+In addition, the RLController class can be used to add vehicles whose actions
+are specified by a learning (RL) agent.
+"""
+
 # RL controller
 from flow.controllers.rlcontroller import RLController
 
@@ -20,9 +29,11 @@ from flow.controllers.base_routing_controller import BaseRouter
 from flow.controllers.routing_controllers import ContinuousRouter, \
     GridRouter, BayBridgeRouter
 
-__all__ = ["RLController", "BaseController", "BaseLaneChangeController",
-           "BaseRouter", "CFMController", "BCMController", "OVMController",
-           "LinearOVM", "IDMController", "SumoCarFollowingController",
-           "FollowerStopper", "PISaturation", "HandTunedVelocityController",
-           "StaticLaneChanger", "SumoLaneChangeController", "ContinuousRouter",
-           "GridRouter", "BayBridgeRouter"]
+__all__ = [
+    "RLController", "BaseController", "BaseLaneChangeController", "BaseRouter",
+    "CFMController", "BCMController", "OVMController", "LinearOVM",
+    "IDMController", "SumoCarFollowingController", "FollowerStopper",
+    "PISaturation", "HandTunedVelocityController", "StaticLaneChanger",
+    "SumoLaneChangeController", "ContinuousRouter", "GridRouter",
+    "BayBridgeRouter"
+]

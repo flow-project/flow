@@ -1,6 +1,4 @@
-"""
-Repeatedly runs one step of an environment to test for possible race conditions
-"""
+"""Repeatedly runs one step of an env to test for possible race conditions."""
 
 import argparse
 import json
@@ -18,7 +16,7 @@ from benchmarks.bottleneck0 import flow_params
 # number of rollouts per training iteration
 N_ROLLOUTS = 50
 # number of parallel workers
-PARALLEL_ROLLOUTS = 50
+N_CPUS = 50
 
 EXAMPLE_USAGE = """
 example usage:
@@ -34,8 +32,7 @@ parser = argparse.ArgumentParser(
     epilog=EXAMPLE_USAGE)
 
 # required input parameters
-parser.add_argument("alg", type=str,
-                    help="RL algorithm")
+parser.add_argument("alg", type=str, help="RL algorithm")
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -52,13 +49,13 @@ if __name__ == "__main__":
     if alg == 'ARS':
         import ray.rllib.ars as ars
         config = ars.DEFAULT_CONFIG.copy()
-        config["num_workers"] = PARALLEL_ROLLOUTS
-        config["num_deltas"] = PARALLEL_ROLLOUTS
-        config["deltas_used"] = PARALLEL_ROLLOUTS
+        config["num_workers"] = N_CPUS
+        config["num_deltas"] = N_CPUS
+        config["deltas_used"] = N_CPUS
     elif alg == 'PPO':
-        import ray.rllib.ppo as ppo
+        import ray.rllib.agents.ppo as ppo
         config = ppo.DEFAULT_CONFIG.copy()
-        config["num_workers"] = PARALLEL_ROLLOUTS
+        config["num_workers"] = N_CPUS
         config["timesteps_per_batch"] = horizon * N_ROLLOUTS
         config["vf_loss_coeff"] = 1.0
         config["kl_target"] = 0.02
@@ -71,13 +68,13 @@ if __name__ == "__main__":
     elif alg == 'ES':
         import ray.rllib.es as es
         config = es.DEFAULT_CONFIG.copy()
-        config["num_workers"] = PARALLEL_ROLLOUTS
-        config["episodes_per_batch"] = PARALLEL_ROLLOUTS
-        config["timesteps_per_batch"] = PARALLEL_ROLLOUTS
+        config["num_workers"] = N_CPUS
+        config["episodes_per_batch"] = N_CPUS
+        config["timesteps_per_batch"] = N_CPUS
 
     # save the flow params for replay
-    flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
-                           indent=4)
+    flow_json = json.dumps(
+        flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
     # Register as rllib env
@@ -91,16 +88,18 @@ if __name__ == "__main__":
                 **config
             },
             "max_failures": 999,
-            "stop": {"training_iteration": 50000},
+            "stop": {
+                "training_iteration": 50000
+            },
             "repeat": 1,
             "trial_resources": {
                 "cpu": 1,
                 "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+                "extra_cpu": N_CPUS - 1,
             },
         },
     })
 
     end = time.time()
 
-    print("Stress test took " + str(end-start))
+    print("Stress test took " + str(end - start))

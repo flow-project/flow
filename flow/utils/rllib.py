@@ -1,6 +1,7 @@
 """
-Utility functions for Flow compatibility with RLlib, including: environment
-generation, serialization, and visualization.
+Utility functions for Flow compatibility with RLlib.
+
+This includes: environment generation, serialization, and visualization.
 """
 import json
 from copy import deepcopy
@@ -13,11 +14,16 @@ from flow.core.vehicles import Vehicles
 
 class FlowParamsEncoder(json.JSONEncoder):
     """
-    Custom encoder used to generate ``flow_params.json``
+    Custom encoder used to generate ``flow_params.json``.
+
     Extends ``json.JSONEncoder``.
     """
 
     def default(self, obj):
+        """See parent class.
+
+        Extended to support the Vehicles object in flow/core/vehicles.py.
+        """
         allowed_types = [dict, list, tuple, str, int, float, bool, type(None)]
 
         if obj not in allowed_types:
@@ -44,7 +50,7 @@ class FlowParamsEncoder(json.JSONEncoder):
 
 
 def get_flow_params(config):
-    """Returns Flow experiment parameters, given an experiment result folder
+    """Return Flow experiment parameters, given an experiment result folder.
 
     Parameters
     ----------
@@ -65,8 +71,7 @@ def get_flow_params(config):
     for veh_params in flow_params["veh"]:
         module = __import__(
             "flow.controllers",
-            fromlist=[veh_params['acceleration_controller'][0]]
-        )
+            fromlist=[veh_params['acceleration_controller'][0]])
         acc_class = getattr(module, veh_params['acceleration_controller'][0])
         lc_class = getattr(module, veh_params['lane_change_controller'][0])
 
@@ -90,12 +95,13 @@ def get_flow_params(config):
             veh_params["lane_change_controller"], \
             veh_params["routing_controller"]
 
-        veh.add(acceleration_controller=acc_controller,
-                lane_change_controller=lc_controller,
-                routing_controller=rt_controller,
-                sumo_car_following_params=sumo_cf_params,
-                sumo_lc_params=sumo_lc_params,
-                **veh_params)
+        veh.add(
+            acceleration_controller=acc_controller,
+            lane_change_controller=lc_controller,
+            routing_controller=rt_controller,
+            sumo_car_following_params=sumo_cf_params,
+            sumo_lc_params=sumo_lc_params,
+            **veh_params)
 
     # convert all parameters from dict to their object form
     sumo = SumoParams()
@@ -103,9 +109,9 @@ def get_flow_params(config):
 
     net = NetParams()
     net.__dict__ = flow_params["net"].copy()
-    net.in_flows = InFlows()
-    if flow_params["net"]["in_flows"]:
-        net.in_flows.__dict__ = flow_params["net"]["in_flows"].copy()
+    net.inflows = InFlows()
+    if flow_params["net"]["inflows"]:
+        net.inflows.__dict__ = flow_params["net"]["inflows"].copy()
 
     env = EnvParams()
     env.__dict__ = flow_params["env"].copy()
