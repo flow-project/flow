@@ -77,7 +77,7 @@ def grid0_baseline(num_runs, render=True):
     inflow = InFlows()
     for edge in outer_edges:
         inflow.add(veh_type="human", edge=edge, vehs_per_hour=EDGE_INFLOW,
-                   departLane="free", departSpeed=20)
+                   departLane="free", departSpeed="max")
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=True)
