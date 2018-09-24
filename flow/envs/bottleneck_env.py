@@ -745,7 +745,8 @@ class DesiredVelocityEnv(BottleneckEnv):
                     num_lanes = self.scenario.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
         return Box(
-            low=-1.5, high=1.5, shape=(int(action_size), ), dtype=np.float32)
+            low=-3.0*self.sim_step, high=3.0*self.sim_step,
+            shape=(int(action_size), ), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
