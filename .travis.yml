@@ -64,6 +64,7 @@ before_install:
 
 install:
   - pip install flake8 .
+  - pip install matplotlib
 
 before_script:
   - flake8 --show-source
