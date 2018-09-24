@@ -127,7 +127,7 @@ class Generator(Serializable):
         # for nodes that have traffic lights that haven't been added
         for node in nodes:
             if node["id"] not in traffic_lights.get_ids() \
-                    and node["type"] == "traffic_light":
+                    and node.get("type", None) == "traffic_light":
                 traffic_lights.add(node["id"])
 
         # xml file for nodes; contains nodes for the boundary points with
