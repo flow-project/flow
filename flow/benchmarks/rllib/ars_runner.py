@@ -33,7 +33,7 @@ if __name__ == "__main__":
     ray.init(redirect_output=True)
 
     config = ars.DEFAULT_CONFIG.copy()
-    config["num_workers"] = N_CPUS
+    config["num_workers"] = N_ROLLOUTS
     config["num_rollouts"] = N_ROLLOUTS
     config["rollouts_used"] = N_ROLLOUTS
     config["sgd_stepsize"] = grid_search([.01, .02])

@@ -41,7 +41,8 @@ vehicles.add(
     sumo_car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
-        decel=7.5,  # avoid collisions at emergency stops
+        decel=4.5,  # avoid collisions at emergency stops
+        accel=2.6
     ),
     routing_controller=(GridRouter, {}),
     num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS,
@@ -89,7 +90,7 @@ flow_params = dict(
         horizon=HORIZON,
         additional_params={
             "target_velocity": 50,
-            "switch_time": 2,
+            "switch_time": 3,
             "num_observed": 2,
             "discrete": False,
             "tl_type": "controlled"
