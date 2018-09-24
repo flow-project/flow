@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     horizon = flow_params["env"].horizon
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = N_CPUS
+    config["num_workers"] = N_ROLLOUTS
     config["timesteps_per_batch"] = horizon * N_ROLLOUTS
     config["vf_loss_coeff"] = 1.0
     config["kl_target"] = 0.02

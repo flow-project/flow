@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     config = es.DEFAULT_CONFIG.copy()
     config["episodes_per_batch"] = N_ROLLOUTS
-    config["num_workers"] = N_CPUS
+    config["num_workers"] = N_ROLLOUTS
     config["eval_prob"] = 0.05
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
