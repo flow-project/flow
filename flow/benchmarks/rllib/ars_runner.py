@@ -36,7 +36,7 @@ if __name__ == "__main__":
     config["num_workers"] = N_CPUS
     config["num_rollouts"] = N_ROLLOUTS
     config["rollouts_used"] = N_ROLLOUTS
-    config["stepsize"] = grid_search([.01, .02])
+    config["sgd_stepsize"] = grid_search([.01, .02])
     config["noise_stdev"] = grid_search([.01, .02])
     config['policy_type'] = 'LinearPolicy'
     config['eval_prob'] = 0.05
