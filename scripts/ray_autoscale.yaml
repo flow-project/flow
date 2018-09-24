@@ -68,13 +68,13 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
-#"/tmp/path": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
+"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/corl_exps2",
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git checkout master && git pull
+    - cd ray && git fetch eugene_upstream && git checkout corl_tests && git pull
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
