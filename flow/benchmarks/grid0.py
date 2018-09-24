@@ -89,7 +89,7 @@ flow_params = dict(
         horizon=HORIZON,
         additional_params={
             "target_velocity": 50,
-            "switch_time": 2,
+            "switch_time": 3,
             "num_observed": 2,
             "discrete": False,
             "tl_type": "controlled"
