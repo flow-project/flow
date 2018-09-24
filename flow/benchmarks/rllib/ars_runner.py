@@ -34,8 +34,8 @@ if __name__ == "__main__":
 
     config = ars.DEFAULT_CONFIG.copy()
     config["num_workers"] = N_CPUS
-    config["num_deltas"] = N_ROLLOUTS
-    config["deltas_used"] = N_ROLLOUTS
+    config["num_rollouts"] = N_ROLLOUTS
+    config["rollouts_used"] = N_ROLLOUTS
     config["stepsize"] = grid_search([.01, .02])
     config["noise_stdev"] = grid_search([.01, .02])
     config['policy_type'] = 'LinearPolicy'
