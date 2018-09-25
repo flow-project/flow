@@ -15,7 +15,7 @@ from flow.scenarios.bottleneck.gen import BottleneckGenerator
 import numpy as np
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 1250
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -66,7 +66,7 @@ def bottleneck1_baseline(num_runs, render=True):
     }
 
     # flow rate
-    flow_rate = 1900 * SCALING
+    flow_rate = 2400 * SCALING
 
     # percentage of flow coming out of each lane
     inflow = InFlows()
