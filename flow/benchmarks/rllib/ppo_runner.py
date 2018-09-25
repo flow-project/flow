@@ -55,12 +55,12 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 5,
+            "checkpoint_freq": 25,
             "max_failures": 999,
             "stop": {
                 "training_iteration": 500
             },
             "num_samples": 3,
-            "upload_dir": "s3://public.flow.results/corl_exps/exp_tests2"
+            "upload_dir": "s3://public.flow.results/corl_exps/exp_tests3"
         },
     })
