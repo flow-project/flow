@@ -16,4 +16,4 @@ AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY", None)
 
 AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET", None)
 
-AWS_S3_PATH = "s3://bucket_name"
+AWS_S3_PATH = "s3://public.flow.results/corl_exps/exp_tests2"
