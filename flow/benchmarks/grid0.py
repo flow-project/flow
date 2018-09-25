@@ -39,10 +39,7 @@ vehicles.add(
     veh_id="human",
     acceleration_controller=(SumoCarFollowingController, {}),
     sumo_car_following_params=SumoCarFollowingParams(
-        min_gap=2.5,
         max_speed=V_ENTER,
-        decel=4.5,  # avoid collisions at emergency stops
-        accel=2.6
     ),
     routing_controller=(GridRouter, {}),
     num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS,
@@ -63,7 +60,7 @@ for edge in outer_edges:
         edge=edge,
         vehs_per_hour=EDGE_INFLOW,
         departLane="free",
-        departSpeed="max")
+        departSpeed=V_ENTER)
 
 flow_params = dict(
     # name of the experiment

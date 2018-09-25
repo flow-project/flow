@@ -57,9 +57,7 @@ def grid1_baseline(num_runs, render=True):
     vehicles.add(veh_id="human",
                  acceleration_controller=(SumoCarFollowingController, {}),
                  sumo_car_following_params=SumoCarFollowingParams(
-                     min_gap=2.5,
                      max_speed=V_ENTER,
-                     decel=7.5,  # avoid collisions at emergency stops
                  ),
                  routing_controller=(GridRouter, {}),
                  num_vehicles=(N_LEFT+N_RIGHT)*N_COLUMNS +
@@ -77,7 +75,7 @@ def grid1_baseline(num_runs, render=True):
     inflow = InFlows()
     for edge in outer_edges:
         inflow.add(veh_type="human", edge=edge, vehs_per_hour=EDGE_INFLOW,
-                   departLane="free", departSpeed="max")
+                   departLane="free", departSpeed=V_ENTER)
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
