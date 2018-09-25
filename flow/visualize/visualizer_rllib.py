@@ -113,6 +113,7 @@ if __name__ == "__main__":
     env_params.evaluate = True
     sumo_params = flow_params['sumo']
     sumo_params.render = True
+    sumo_params.restart_instance = False
     sumo_params.emission_path = "./test_time_rollout/"
 
     env = env_class(
