@@ -744,8 +744,11 @@ class DesiredVelocityEnv(BottleneckEnv):
                 if segment[2]:  # if controlled
                     num_lanes = self.scenario.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
+        add_params = self.env_params.additional_params
+        max_accel = add_params.get("max_accel")
+        max_decel = add_params.get("max_decel")
         return Box(
-            low=-3.0*self.sim_step, high=3.0*self.sim_step,
+            low=-max_decel*self.sim_step, high=max_accel*self.sim_step,
             shape=(int(action_size), ), dtype=np.float32)
 
     def get_state(self):
@@ -838,12 +841,12 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     traci_veh = self.traci_connection.vehicle
                     max_speed_curr = traci_veh.getMaxSpeed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
+                    next_max = np.clip(max_speed_curr + action, 0.01, 30.0)
                     traci_veh.setMaxSpeed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 30.0)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
