@@ -22,7 +22,7 @@ from flow.benchmarks.bottleneck0 import flow_params
 # number of rollouts per training iteration
 N_ROLLOUTS = 30
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 60
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
@@ -35,7 +35,6 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = N_ROLLOUTS
     config["train_batch_size"] = horizon * N_ROLLOUTS
-    config["vf_loss_coeff"] = 1.0
     config["use_gae"] = True
     config["horizon"] = horizon
     config["lambda"] = 0.97
