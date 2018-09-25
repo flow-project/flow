@@ -841,12 +841,12 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     traci_veh = self.traci_connection.vehicle
                     max_speed_curr = traci_veh.getMaxSpeed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
+                    next_max = np.clip(max_speed_curr + action, 0.01, 30.0)
                     traci_veh.setMaxSpeed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 30.0)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
