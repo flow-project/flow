@@ -28,7 +28,7 @@ if __name__ == "__main__":
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # initialize a ray instance
-    ray.init(redirect_output=False) # FIXME CHANGE THIS
+    ray.init(redirect_output=True)
 
     config = es.DEFAULT_CONFIG.copy()
     config["episodes_per_batch"] = N_ROLLOUTS
