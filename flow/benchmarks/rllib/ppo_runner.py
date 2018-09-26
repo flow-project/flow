@@ -12,6 +12,7 @@ import ray
 import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
+from ray.tune import grid_search
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
@@ -37,8 +38,10 @@ if __name__ == "__main__":
     config["train_batch_size"] = horizon * N_ROLLOUTS
     config["use_gae"] = True
     config["horizon"] = horizon
-    config["lambda"] = 0.97
+    config["lambda"] = grid_search([0.97, 1.0])
+    config["lr"] = grid_search([5e-5, 5e-4])
     config["num_sgd_iter"] = 10
+    config["model"]["fcnet_hiddens"] = [100, 50, 25]
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -61,6 +64,6 @@ if __name__ == "__main__":
                 "training_iteration": 500
             },
             "num_samples": 3,
-            "upload_dir": "s3://public.flow.results/corl_exps/exp_tests3"
+            "upload_dir": "s3://public.flow.results/corl_exps/exps_final"
         },
     })
