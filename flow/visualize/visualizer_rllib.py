@@ -122,19 +122,45 @@ if __name__ == "__main__":
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts
     rets = []
+    mean_rets = []
+    ret_lists = []
+    vels = []
+    mean_vels = []
+    std_vels = []
+    outflows = []
+    final_outflow = []
     for i in range(args.num_rollouts):
-        state = env.reset()
-        done = False
+        vel = np.zeros(env.horizon)
         ret = 0
-        for _ in range(env_params.horizon):
+        ret_list = []
+        state = env.reset()
+        for j in range(env.horizon):
+            vehicles = env.vehicles
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
+            vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
             ret += reward
+            ret_list.append(reward)
+
             if done:
                 break
         rets.append(ret)
-        print("Return:", ret)
+        vels.append(vel)
+        mean_rets.append(np.mean(ret_list))
+        ret_lists.append(ret_list)
+        mean_vels.append(np.mean(vel))
+        std_vels.append(np.std(vel))
+        outflows.append(vehicles.get_outflow_rate(env.sim_step))
+        final_outflow.append(vehicles.get_outflow_rate(500))
+        print("Round {0}, return: {1}".format(i, ret))
+
     print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
+    print("Average, std velocity: {}, {}".format(np.mean(mean_vels),
+                                                 np.std(mean_vels)))
+    print("Average, std outflow: {}, {}".format(np.mean(outflows),
+                                                np.std(outflows)))
+    print("Average, std final outflow: {}, {}".format(np.mean(final_outflow),
+                                                np.std(final_outflow)))
 
     # terminate the environment
     env.terminate()
