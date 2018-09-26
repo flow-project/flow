@@ -18,7 +18,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.figureeight2 import flow_params
+from flow.benchmarks.bottleneck0 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 30
