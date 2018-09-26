@@ -119,8 +119,8 @@ def bottleneck1_baseline(num_runs, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, HORIZON)
-    avg_outflow = np.mean([outflow[-1]
-                           for outflow in results["per_step_returns"]])
+    avg_outflow = results["mean_outflow"]
+
 
     return avg_outflow
 
