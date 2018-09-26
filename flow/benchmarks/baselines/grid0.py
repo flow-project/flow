@@ -78,7 +78,7 @@ def grid0_baseline(num_runs, render=True):
                    departLane="free", departSpeed=V_ENTER)
 
     # define the traffic light logic
-    tl_logic = TrafficLights(baseline=True)
+    tl_logic = TrafficLights(baseline=False)
 
     net_params = NetParams(
             inflows=inflow,
