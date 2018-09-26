@@ -123,7 +123,7 @@ class SumoExperiment:
             ret_lists.append(ret_list)
             mean_vels.append(np.mean(vel))
             std_vels.append(np.std(vel))
-            outflows.append(vehicles.get_outflow_rate(int(500/self.env.sim_step)))
+            outflows.append(vehicles.get_outflow_rate(int(500)))
             print("Round {0}, return: {1}".format(i, ret))
 
         info_dict["returns"] = rets

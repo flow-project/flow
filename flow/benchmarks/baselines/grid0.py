@@ -32,6 +32,9 @@ LONG_LENGTH = 100
 SHORT_LENGTH = 300
 # number of vehicles originating in the left, right, top, and bottom edges
 N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
+# how long the yellow phase should last at a minimum
+YELLOW_TIME = 3
+
 
 
 def grid0_baseline(num_runs, render=True):
@@ -79,6 +82,37 @@ def grid0_baseline(num_runs, render=True):
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
+    program_id = 1
+    max_gap = 3.0
+    detector_gap = 0.8
+    show_detectors = True
+    phases = [{
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "GrGr"
+    }, {
+        "duration": "6",
+        "minDur": str(YELLOW_TIME),
+        "maxDur": "6",
+        "state": "yryr"
+    }, {
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "rGrG"
+    }, {
+        "duration": "6",
+        "minDur": str(YELLOW_TIME),
+        "maxDur": "6",
+        "state": "ryry"
+    }]
+
+    for i in range(N_COLUMNS * N_ROWS):
+        tl_logic.add('center'+str(i), tls_type="actuated",
+                     programID=program_id, phases=phases,
+                     maxGap=max_gap, detectorGap=detector_gap,
+                     showDetectors=show_detectors)
 
     net_params = NetParams(
             inflows=inflow,
@@ -112,7 +146,7 @@ def grid0_baseline(num_runs, render=True):
             horizon=HORIZON,
             additional_params={
                 "target_velocity": 50,
-                "switch_time": 2,
+                "switch_time": YELLOW_TIME,
                 "num_observed": 2,
                 "discrete": False,
                 "tl_type": "actuated"

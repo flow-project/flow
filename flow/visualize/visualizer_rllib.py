@@ -24,6 +24,8 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.core.util import get_rllib_config
 from flow.core.util import emission_to_csv
+from ray.rllib.models import ModelCatalog
+import gym
 
 EXAMPLE_USAGE = """
 example usage:
@@ -116,8 +118,9 @@ if __name__ == "__main__":
     sumo_params.restart_instance = False
     sumo_params.emission_path = "./test_time_rollout/"
 
-    env = env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+    # env = ModelCatalog.get_preprocessor_as_wrapper(gym.make(env_class))
+    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
+          env_params=env_params, sumo_params=sumo_params, scenario=scenario))
 
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts
@@ -130,12 +133,12 @@ if __name__ == "__main__":
     outflows = []
     final_outflow = []
     for i in range(args.num_rollouts):
-        vel = np.zeros(env.horizon)
+        vel = np.zeros(env_params.horizon)
         ret = 0
         ret_list = []
         state = env.reset()
-        for j in range(env.horizon):
-            vehicles = env.vehicles
+        for j in range(env_params.horizon):
+            vehicles = env.unwrapped.vehicles
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
@@ -150,7 +153,7 @@ if __name__ == "__main__":
         ret_lists.append(ret_list)
         mean_vels.append(np.mean(vel))
         std_vels.append(np.std(vel))
-        outflows.append(vehicles.get_outflow_rate(env.sim_step))
+        outflows.append(vehicles.get_outflow_rate(sumo_params.sim_step))
         final_outflow.append(vehicles.get_outflow_rate(500))
         print("Round {0}, return: {1}".format(i, ret))
 
