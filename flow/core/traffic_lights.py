@@ -204,7 +204,7 @@ class TrafficLights:
         -------
         tl_logic: dict
         """
-        tl_type = "delay_based"
+        tl_type = "actuated"
         program_id = 1
         max_gap = 3.0
         detector_gap = 0.8

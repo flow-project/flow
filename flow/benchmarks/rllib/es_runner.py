@@ -13,6 +13,7 @@ from ray.tune import run_experiments
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
+from ray.tune import grid_search
 
 # use this to specify the environment to run
 from flow.benchmarks.bottleneck0 import flow_params
@@ -27,12 +28,15 @@ if __name__ == "__main__":
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # initialize a ray instance
-    ray.init(redirect_output=True)
+    ray.init(redirect_output=False) # FIXME CHANGE THIS
 
     config = es.DEFAULT_CONFIG.copy()
     config["episodes_per_batch"] = N_ROLLOUTS
     config["num_workers"] = N_ROLLOUTS
     config["eval_prob"] = 0.05
+    config["noise_stdev"] = grid_search([0.01, 0.02])
+    config["stepsize"] = grid_search([0.01, 0.02])
+    config["fcnet_hiddens"] = [100, 50, 25]
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
                            indent=4)
@@ -52,6 +56,6 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": 500},
             "num_samples": 3,
-            "upload_dir": "s3://public.flow.results/corl_exps/exp_tests3"
+            "upload_dir": "s3://public.flow.results/corl_exps/exps_final" #FIXME UNCOMMENT
         },
     })
