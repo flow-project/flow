@@ -52,7 +52,6 @@ def merge_baseline(num_runs, render=True):
     vehicles.add(veh_id="human",
                  acceleration_controller=(SumoCarFollowingController, {}),
                  speed_mode=9,
-                 #sumo_car_following_params=SumoCarFollowingParams(accel=1.0, decel=1.5),
                  num_vehicles=5)
 
     # Vehicles are introduced from both sides of merge, with RL vehicles
