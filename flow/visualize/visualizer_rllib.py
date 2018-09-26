@@ -112,15 +112,18 @@ if __name__ == "__main__":
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
     env_class = getattr(module, flow_params["env_name"])
     env_params = flow_params['env']
-    env_params.evaluate = True
+    #env_params.evaluate = True
     sumo_params = flow_params['sumo']
     sumo_params.render = True
     sumo_params.restart_instance = False
     sumo_params.emission_path = "./test_time_rollout/"
 
-    # env = ModelCatalog.get_preprocessor_as_wrapper(gym.make(env_class))
-    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-          env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+    if args.run=="PPO":
+        env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
+            env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+    else:
+        env = env_class(
+              env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts
@@ -138,7 +141,10 @@ if __name__ == "__main__":
         ret_list = []
         state = env.reset()
         for j in range(env_params.horizon):
-            vehicles = env.unwrapped.vehicles
+            if args.run=="PPO":
+                vehicles = env.unwrapped.vehicles
+            else:
+                vehicles = env.vehicles
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))

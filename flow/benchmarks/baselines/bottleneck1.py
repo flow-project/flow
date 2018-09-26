@@ -66,7 +66,7 @@ def bottleneck1_baseline(num_runs, render=True):
     }
 
     # flow rate
-    flow_rate = 2200 * SCALING
+    flow_rate = 2000 * SCALING
 
     # percentage of flow coming out of each lane
     inflow = InFlows()
@@ -119,7 +119,7 @@ def bottleneck1_baseline(num_runs, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, HORIZON)
-    avg_outflow = results["mean_outflow"]
+    avg_outflow = results["mean_outflows"]
 
 
     return avg_outflow
