@@ -16,7 +16,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from ray.tune import grid_search
 
 # use this to specify the environment to run
-from flow.benchmarks.grid1 import flow_params
+from flow.benchmarks.merge0 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 15
