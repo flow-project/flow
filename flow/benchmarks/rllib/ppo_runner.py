@@ -18,7 +18,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.bottleneck0 import flow_params
+from flow.benchmarks.figureeight0 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 30
@@ -64,6 +64,6 @@ if __name__ == "__main__":
                 "training_iteration": 500
             },
             "num_samples": 3,
-            "upload_dir": "s3://public.flow.results/corl_exps/exps_final"
+            "upload_dir": "s3://public.flow.results/corl_exps/exps_final/ppo"
         },
     })
