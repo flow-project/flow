@@ -42,6 +42,7 @@ if __name__ == "__main__":
     config["lr"] = grid_search([5e-5, 5e-4])
     config["num_sgd_iter"] = 10
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
+    config["observation_filter"] = "NoFilter"
 
     # save the flow params for replay
     flow_json = json.dumps(
