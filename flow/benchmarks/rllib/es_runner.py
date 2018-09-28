@@ -35,7 +35,7 @@ if __name__ == "__main__":
     config["eval_prob"] = 0.05
     config["noise_stdev"] = grid_search([0.01, 0.02])
     config["stepsize"] = grid_search([0.01])
-    config["fcnet_hiddens"] = [100, 50, 25]
+    config["model"]["fcnet_hiddens"] = [100, 50, 25]
     config["observation_filter"] = "NoFilter"
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
