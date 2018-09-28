@@ -63,6 +63,6 @@ if __name__ == "__main__":
                 "training_iteration": 500
             },
             "num_samples": 1,
-            "upload_dir": "s3://public.flow.results/corl_exps/public_results/ppo"
+            "upload_dir": "s3://public.flow.results/corl_exps/exps_final/ppo"
         },
     })
