@@ -41,8 +41,8 @@ auth:
 head_node:
     InstanceType: m4.16xlarge #c4.4xlarge
     ImageId: ami-08c4971844a3b7184 # Flow AMI (Ubuntu)
-    InstanceMarketOptions:
-        MarketType: spot
+#    InstanceMarketOptions:
+#        MarketType: spot
          #Additional options can be found in the boto docs, e.g.
 #        SpotOptions:
 #            MaxPrice: "1.0"
