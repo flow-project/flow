@@ -16,7 +16,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.merge1 import flow_params
+from flow.benchmarks.merge0 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 50
