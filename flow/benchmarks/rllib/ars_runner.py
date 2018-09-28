@@ -19,9 +19,9 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.benchmarks.merge2 import flow_params
 
 # number of rollouts per training iteration
-N_ROLLOUTS = 50
+N_ROLLOUTS = 46
 # number of parallel workers
-N_CPUS = 60
+N_CPUS = 48
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
