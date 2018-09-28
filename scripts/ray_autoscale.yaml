@@ -23,8 +23,8 @@ idle_timeout_minutes: 5
 # Cloud-provider specific configuration.
 provider:
     type: aws
-    region: ca-central-1
-    availability_zone: ca-central-1a
+    region: us-west-1
+    availability_zone: us-west-1a
 
 # How Ray will authenticate with newly launched nodes.
 auth:
@@ -39,8 +39,8 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: r5d.12xlarge #c4.4xlarge
-    ImageId: ami-0115eacb83e25a421 # Flow AMI (Ubuntu)
+    InstanceType: m4.16xlarge #c4.4xlarge
+    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
 #    InstanceMarketOptions:
 #        MarketType: spot
          #Additional options can be found in the boto docs, e.g.
