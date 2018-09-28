@@ -74,7 +74,7 @@ file_mounts: {
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git checkout eugene_upstream master && git pull
+    - cd ray && git fetch eugene_upstream && git checkout eugene_upstream corl_tests && git pull
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
