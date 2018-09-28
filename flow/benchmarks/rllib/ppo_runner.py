@@ -16,7 +16,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.merge1 import flow_params
+from flow.benchmarks.merge2 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 50
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     config["use_gae"] = True
     config["horizon"] = horizon
     config["lambda"] = grid_search([0.97, 1.0])
-    config["lr"] = grid_search([5e-5])
+    config["lr"] = grid_search([5e-4])
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
