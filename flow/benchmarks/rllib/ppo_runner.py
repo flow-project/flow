@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     horizon = flow_params["env"].horizon
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = N_ROLLOUTS
+    config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
     config["train_batch_size"] = horizon * N_ROLLOUTS
     config["use_gae"] = True
     config["horizon"] = horizon
