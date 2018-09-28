@@ -35,7 +35,7 @@ if __name__ == "__main__":
     config["num_rollouts"] = N_ROLLOUTS
     config["rollouts_used"] = N_ROLLOUTS
     config["sgd_stepsize"] = grid_search([.01, .02])
-    config["noise_stdev"] = grid_search([.01])
+    config["noise_stdev"] = grid_search([.02])
     config['policy_type'] = 'LinearPolicy'
     config['eval_prob'] = 0.05
     config['observation_filter'] = "NoFilter"
