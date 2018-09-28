@@ -16,12 +16,12 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.bottleneck1 import flow_params
+from flow.benchmarks.bottleneck2 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 50
 # number of parallel workers
-N_CPUS = 34
+N_CPUS = 60
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
