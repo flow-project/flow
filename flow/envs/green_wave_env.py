@@ -122,7 +122,7 @@ class TrafficLightGridEnv(Env):
             return Discrete(2 ** self.num_traffic_lights)
         else:
             return Box(
-                low=0,
+                low=-1,
                 high=1,
                 shape=(self.num_traffic_lights,),
                 dtype=np.float32)
@@ -189,7 +189,7 @@ class TrafficLightGridEnv(Env):
         else:
             # convert values less than 0.5 to zero and above to 1. 0's indicate
             # that should not switch the direction
-            rl_mask = rl_actions > 0.5
+            rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
             # check if our timer has exceeded the yellow phase, meaning it

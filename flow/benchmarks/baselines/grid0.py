@@ -120,14 +120,14 @@ def grid0_baseline(num_runs, render=True):
         )
 
     env_params = EnvParams(
-            evaluate=True,  # Set to True to evaluate traffic metrics
+            evaluate=False,  # Set to True to evaluate traffic metrics
             horizon=HORIZON,
             additional_params={
                 "target_velocity": 50,
                 "switch_time": 2,
                 "num_observed": 2,
                 "discrete": False,
-                "tl_type": "controlled"
+                "tl_type": "actuated"
             },
         )
 
