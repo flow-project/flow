@@ -15,7 +15,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from ray.tune import grid_search
 
 # use this to specify the environment to run
-from flow.benchmarks.merge1 import flow_params
+from flow.benchmarks.merge2 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 50
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     config["num_workers"] = N_ROLLOUTS
     config["eval_prob"] = 0.05
     config["noise_stdev"] = grid_search([0.01, 0.02])
-    config["stepsize"] = grid_search([0.02])
+    config["stepsize"] = grid_search([0.01])
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
     config["observation_filter"] = "NoFilter"
     # save the flow params for replay
