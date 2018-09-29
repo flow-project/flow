@@ -34,9 +34,9 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
     config["train_batch_size"] = horizon * N_ROLLOUTS
-    config["use_gae"] = True
+    config["use_gae"] = grid_search([False])
     config["horizon"] = horizon
-    config["lambda"] = grid_search([0.5])
+    #config["lambda"] = grid_search([0.5])
     config["lr"] = grid_search([5e-5, 5e-4])
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
