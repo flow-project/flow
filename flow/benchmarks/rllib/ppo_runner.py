@@ -16,7 +16,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.grid1 import flow_params
+from flow.benchmarks.grid0 import flow_params
 
 # number of rollouts per training iteration
 N_ROLLOUTS = 50
@@ -34,9 +34,9 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
     config["train_batch_size"] = horizon * N_ROLLOUTS
-    config["use_gae"] = grid_search([False])
+    config["use_gae"] = grid_search([True])
     config["horizon"] = horizon
-    #config["lambda"] = grid_search([0.5])
+    config["lambda"] = grid_search([0.5])
     config["lr"] = grid_search([5e-5, 5e-4])
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
@@ -63,7 +63,7 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 500
             },
-            "num_samples": 1,
+            "num_samples": 3,
             "upload_dir": "s3://public.flow.results/corl_exps/exps_final/ppo"
         },
     })
