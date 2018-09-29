@@ -36,7 +36,7 @@ if __name__ == "__main__":
     config["train_batch_size"] = horizon * N_ROLLOUTS
     config["use_gae"] = grid_search([True])
     config["horizon"] = horizon
-    config["lambda"] = grid_search([0.1])
+    config["lambda"] = grid_search([0.3])
     config["lr"] = grid_search([5e-4, 5e-3, 1e-2])
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
