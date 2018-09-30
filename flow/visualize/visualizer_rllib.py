@@ -110,6 +110,7 @@ if __name__ == "__main__":
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
     env_class = getattr(module, flow_params["env_name"])
     env_params = flow_params['env']
+    env_params.evaluate = True
     sumo_params = flow_params['sumo']
     sumo_params.render = True
     sumo_params.emission_path = "./test_time_rollout/"

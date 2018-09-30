@@ -34,10 +34,10 @@ if __name__ == "__main__":
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
     config["train_batch_size"] = horizon * N_ROLLOUTS
-    config["use_gae"] = grid_search([True])
+    config["use_gae"] = True
     config["horizon"] = horizon
-    config["lambda"] = grid_search([0.3])
-    config["lr"] = grid_search([5e-4])
+    config["lambda"] = grid_search([0.97, 1.0])
+    config["lr"] = grid_search([5e-4, 5e-5])
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
@@ -64,6 +64,6 @@ if __name__ == "__main__":
                 "training_iteration": 500
             },
             "num_samples": 3,
-            "upload_dir": "s3://public.flow.results/corl_exps/exps_final/ppo"
+            "upload_dir": "s3://<BUCKET NAME>"
         },
     })
