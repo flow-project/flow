@@ -59,6 +59,6 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": 500},
             "num_samples": 1,
-            "upload_dir": "s3://public.flow.results/corl_exps/exps_final/ars"
+            "upload_dir": "s3://<BUCKET NAME>"
         },
     })

@@ -80,14 +80,16 @@ def grid0_baseline(num_runs, render=True):
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
+
+    phases = [{"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "GGGrrrGGGrrr"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "yyyrrryyyrrr"},
-              {"duration": "31", "minDur": "8", "maxDur": "45",
+              {"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "rrrGGGrrrGGG"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "rrryyyrrryyy"}]
+
     for i in range(N_ROWS*N_COLUMNS):
         tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
                      programID=1)
@@ -114,13 +116,13 @@ def grid0_baseline(num_runs, render=True):
         )
 
     sumo_params = SumoParams(
-            restart_instance=False,
+            restart_instance=True,
             sim_step=1,
             render=render,
         )
 
     env_params = EnvParams(
-            evaluate=False,  # Set to True to evaluate traffic metrics
+            evaluate=True,  # Set to True to evaluate traffic metrics
             horizon=HORIZON,
             additional_params={
                 "target_velocity": 50,
@@ -151,7 +153,7 @@ def grid0_baseline(num_runs, render=True):
 
 
 if __name__ == "__main__":
-    runs = 2  # number of simulations to average over
+    runs = 1  # number of simulations to average over
     res = grid0_baseline(num_runs=runs)
 
     print('---------')
