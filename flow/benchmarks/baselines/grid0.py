@@ -116,7 +116,7 @@ def grid0_baseline(num_runs, render=True):
         )
 
     sumo_params = SumoParams(
-            restart_instance=True,
+            restart_instance=False,
             sim_step=1,
             render=render,
         )
