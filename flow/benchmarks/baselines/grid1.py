@@ -114,7 +114,7 @@ def grid1_baseline(num_runs, render=True):
         )
 
     sumo_params = SumoParams(
-            restart_instance=True,
+            restart_instance=False,
             sim_step=1,
             render=render,
         )
@@ -151,8 +151,8 @@ def grid1_baseline(num_runs, render=True):
 
 
 if __name__ == "__main__":
-    runs = 2  # number of simulations to average over
-    res = grid1_baseline(num_runs=runs)
+    runs = 1  # number of simulations to average over
+    res = grid1_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The total delay across {} runs is {}'.format(runs, res))
