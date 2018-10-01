@@ -63,6 +63,11 @@ parser.add_argument(
     action='store_true',
     help='Specifies whether to convert the emission file '
     'created by sumo into a csv file')
+parser.add_argument(
+    '--evaluate',
+    action='store_true',
+    help='Specifies whether to use the "evaluate" reward for the environment.')
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -110,7 +115,8 @@ if __name__ == "__main__":
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
     env_class = getattr(module, flow_params["env_name"])
     env_params = flow_params['env']
-    env_params.evaluate = True
+    if args.evaluate:
+        env_params.evaluate = True
     sumo_params = flow_params['sumo']
     sumo_params.render = True
     sumo_params.emission_path = "./test_time_rollout/"
