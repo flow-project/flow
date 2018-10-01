@@ -15,7 +15,7 @@ from flow.envs.merge import WaveAttenuationMergePOEnv
 import numpy as np
 
 # time horizon of a single rollout
-HORIZON = int(750*(0.5/0.2))
+HORIZON = 750
 # inflow rate at the highway
 FLOW_RATE = 2000
 # percent of autonomous vehicles
@@ -51,7 +51,7 @@ def merge_baseline(num_runs, render=True):
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
                  acceleration_controller=(SumoCarFollowingController, {}),
-                 speed_mode="no_collide",
+                 speed_mode=9,
                  num_vehicles=5)
 
     # Vehicles are introduced from both sides of merge, with RL vehicles
@@ -64,8 +64,8 @@ def merge_baseline(num_runs, render=True):
                departLane="free", departSpeed=7.5)
 
     sumo_params = SumoParams(
-        restart_instance=False,
-        sim_step=0.2,  # time step decreased to prevent occasional crashes
+        restart_instance=True,
+        sim_step=0.5,  # time step decreased to prevent occasional crashes
         render=render,
     )
 
@@ -108,7 +108,7 @@ def merge_baseline(num_runs, render=True):
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = merge_baseline(num_runs=runs)
+    res = merge_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The average speed across {} runs is {}'.format(runs, res))
