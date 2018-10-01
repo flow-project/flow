@@ -63,6 +63,11 @@ parser.add_argument(
     action='store_true',
     help='Specifies whether to convert the emission file '
     'created by sumo into a csv file')
+parser.add_argument(
+    '--evaluate',
+    action='store_true',
+    help='Specifies whether to use the "evaluate" reward for the environment.')
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -110,6 +115,8 @@ if __name__ == "__main__":
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
     env_class = getattr(module, flow_params["env_name"])
     env_params = flow_params['env']
+    if args.evaluate:
+        env_params.evaluate = True
     sumo_params = flow_params['sumo']
     sumo_params.render = True
     sumo_params.emission_path = "./test_time_rollout/"
@@ -120,19 +127,31 @@ if __name__ == "__main__":
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts
     rets = []
+    final_outflows = []
+    mean_speed = []
     for i in range(args.num_rollouts):
+        vel = []
         state = env.reset()
         done = False
         ret = 0
         for _ in range(env_params.horizon):
+            vehicles = env.vehicles
+            vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             ret += reward
             if done:
                 break
         rets.append(ret)
-        print("Return:", ret)
+        outflow = vehicles.get_outflow_rate(500)
+        final_outflows.append(outflow)
+        mean_speed.append(np.mean(vel))
+        print("Round {}, Return: {}".format(i, ret))
     print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
+    print("Average, std speed: {}, {}".format(np.mean(mean_speed),
+                                              np.std(mean_speed)))
+    print("Average, std outflow: {}, {}".format(np.mean(final_outflows),
+                                                np.std(final_outflows)))
 
     # terminate the environment
     env.terminate()

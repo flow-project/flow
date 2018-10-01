@@ -80,13 +80,13 @@ def grid1_baseline(num_runs, render=True):
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
+    phases = [{"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "GGGrrrGGGrrr"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "yyyrrryyyrrr"},
-              {"duration": "31", "minDur": "8", "maxDur": "45",
+              {"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "rrrGGGrrrGGG"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "rrryyyrrryyy"}]
     for i in range(N_ROWS*N_COLUMNS):
         tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
@@ -127,7 +127,7 @@ def grid1_baseline(num_runs, render=True):
                 "switch_time": 2,
                 "num_observed": 2,
                 "discrete": False,
-                "tl_type": "controlled"
+                "tl_type": "actuated"
             },
         )
 
@@ -151,8 +151,8 @@ def grid1_baseline(num_runs, render=True):
 
 
 if __name__ == "__main__":
-    runs = 2  # number of simulations to average over
-    res = grid1_baseline(num_runs=runs)
+    runs = 1  # number of simulations to average over
+    res = grid1_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The total delay across {} runs is {}'.format(runs, res))
