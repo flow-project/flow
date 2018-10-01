@@ -91,7 +91,7 @@ flow_params = dict(
             "switch_time": 2,
             "num_observed": 2,
             "discrete": False,
-            "tl_type": "controlled"
+            "tl_type": "actuated"
         },
     ),
 

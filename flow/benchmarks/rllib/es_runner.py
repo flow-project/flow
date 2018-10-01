@@ -1,6 +1,5 @@
 """
 Runner script for environments located in flow/benchmarks.
-
 The environment file can be modified in the imports to change the environment
 this runner script is executed on. Furthermore, the rllib specific algorithm/
 parameters can be specified here once and used on multiple environments.
@@ -13,14 +12,15 @@ from ray.tune import run_experiments
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
+from ray.tune import grid_search
 
 # use this to specify the environment to run
-from flow.benchmarks.figureeight0 import flow_params
+from flow.benchmarks.grid1 import flow_params
 
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 50
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 60
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
@@ -31,8 +31,12 @@ if __name__ == "__main__":
 
     config = es.DEFAULT_CONFIG.copy()
     config["episodes_per_batch"] = N_ROLLOUTS
-    config["num_workers"] = N_CPUS
+    config["num_workers"] = N_ROLLOUTS
     config["eval_prob"] = 0.05
+    config["noise_stdev"] = grid_search([0.01, 0.02])
+    config["stepsize"] = grid_search([0.01, 0.02])
+    config["model"]["fcnet_hiddens"] = [100, 50, 25]
+    config["observation_filter"] = "NoFilter"
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
                            indent=4)
@@ -48,10 +52,10 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 5,
+            "checkpoint_freq": 25,
             "max_failures": 999,
             "stop": {"training_iteration": 500},
-            "num_samples": 3,
-            # "upload_dir": "s3://bucket"
+            "num_samples": 1,
+            "upload_dir": "s3://<BUCKET NAME>"
         },
     })
