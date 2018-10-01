@@ -147,7 +147,6 @@ if __name__ == "__main__":
     print("Average, std outflow: {}, {}".format(np.mean(final_outflows),
                                                 np.std(final_outflows)))
 
-
     # terminate the environment
     env.terminate()
 
