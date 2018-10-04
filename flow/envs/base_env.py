@@ -9,6 +9,8 @@ import time
 import traceback
 import numpy as np
 import random
+from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
+#from flow.renderer.glfw_renderer import GLFWRenderer as Renderer
 
 import traci
 from traci import constants as tc
@@ -129,6 +131,8 @@ class Env(gym.Env, Serializable):
 
         self.start_sumo()
         self.setup_initial_state()
+
+        self.renderer = Renderer(self.traci_connection)
 
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
@@ -251,6 +255,7 @@ class Env(gym.Env, Serializable):
                 self.traci_connection = traci.connect(port, numRetries=100)
 
                 self.traci_connection.simulationStep()
+
                 return
             except Exception as e:
                 print("Error during start: {}".format(traceback.format_exc()))
@@ -451,6 +456,8 @@ class Env(gym.Env, Serializable):
             # stop collecting new simulation steps if there is a collision
             if crash:
                 break
+
+            self.renderer.render()
 
         # collect information of the state of the network based on the
         # environment class used
