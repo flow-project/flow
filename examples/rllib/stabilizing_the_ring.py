@@ -7,7 +7,7 @@ vehicles in a variable length ring road.
 import json
 
 import ray
-import ray.rllib.agents.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -86,12 +86,19 @@ flow_params = dict(
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(),
+
+    # The algorithm or model to train. This may refer to "
+    #      "the name of a built-on algorithm (e.g. RLLib's DQN "
+    #      "or PPO), or a user-defined trainable function or "
+    #      "class registered in the tune registry.")
+    run="PPO"
 )
 
 if __name__ == "__main__":
     ray.init(num_cpus=N_CPUS + 1, redirect_output=True)
 
-    config = ppo.DEFAULT_CONFIG.copy()
+    agent_cls = get_agent_class(flow_params["run"])
+    config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
     config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
@@ -115,7 +122,7 @@ if __name__ == "__main__":
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "PPO",
+            "run": flow_params["run"],
             "env": env_name,
             "config": {
                 **config
