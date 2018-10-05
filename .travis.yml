@@ -83,7 +83,7 @@ install:
 
 before_script:
   - flake8 --show-source
-  - pydocstyle --convection numpy
+  - pydocstyle --convention numpy
 
 script:
   - nose2
