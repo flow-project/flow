@@ -65,7 +65,6 @@ class TrafficLightGridEnv(Env):
 
     def __init__(self, env_params, sumo_params, scenario):
         """Instantiate the environment (see parent class)."""
-
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -249,8 +248,7 @@ class TrafficLightGridEnv(Env):
             self.obs_var_labels['positions'][self.time_counter - 1, i] = x
 
     def get_distance_to_intersection(self, veh_ids):
-        """Determine the smallest distance from the current vehicle's position
-        to any of the intersections.
+        """Determine the distance to the nearest intersection for a vehicle.
 
         Parameters
         ----------
@@ -270,8 +268,7 @@ class TrafficLightGridEnv(Env):
             return self.find_intersection_dist(veh_ids)
 
     def find_intersection_dist(self, veh_id):
-        """Return distance from the vehicle's current position to the position
-        of the node it is heading toward."""
+        """Return the vehicle's distnce to the node it is heading toward."""
         edge_id = self.vehicles.get_edge(veh_id)
         # FIXME this might not be the best way of handling this
         if edge_id == "":
@@ -328,7 +325,7 @@ class TrafficLightGridEnv(Env):
             return self._split_edge(edges)
 
     def _split_edge(self, edge):
-        """Utility function for convert_edge"""
+        """Run a utility function for convert_edge."""
         if edge:
             if edge[0] == ":":  # center
                 center_index = int(edge.split("center")[1][0])
@@ -438,8 +435,7 @@ class TrafficLightGridEnv(Env):
 
 
 class PO_TrafficLightGridEnv(TrafficLightGridEnv):
-    """Environment used to train traffic lights to regulate traffic flow
-    through an n x m grid.
+    """Partially observed implementation of TrafficLightGridEnv.
 
     Required from env_params:
 
