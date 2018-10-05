@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # flake8: noqa
+"""Setup script for installing Flow."""
 from os.path import dirname, realpath
 from setuptools import find_packages, setup, Distribution
 import setuptools.command.build_ext as _build_ext
@@ -14,7 +15,10 @@ def _read_requirements_file():
 
 
 class build_ext(_build_ext.build_ext):
+    """See parent class."""
+
     def run(self):
+        """Install dependencies that are not covered by the conda env."""
         try:
             import traci
         except ImportError:
@@ -25,7 +29,10 @@ class build_ext(_build_ext.build_ext):
 
 
 class BinaryDistribution(Distribution):
+    """See parent class."""
+
     def has_ext_modules(self):
+        """See parent class."""
         return True
 
 

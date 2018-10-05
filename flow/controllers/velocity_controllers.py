@@ -1,13 +1,18 @@
+"""Script containing controller for velocity-based control."""
+
 from flow.controllers.base_controller import BaseController
 import numpy as np
 
 
 class FollowerStopper(BaseController):
-    def __init__(self, veh_id, sumo_cf_params, v_des=15, danger_edges=None):
-        """Inspired by Dan Work's... work:
+    """A controller inspired by Dan Work's... work.
 
-        Dissipation of stop-and-go waves via control of autonomous vehicles:
-        Field experiments https://arxiv.org/abs/1705.01693
+    Dissipation of stop-and-go waves via control of autonomous vehicles:
+    Field experiments https://arxiv.org/abs/1705.01693
+    """
+
+    def __init__(self, veh_id, sumo_cf_params, v_des=15, danger_edges=None):
+        """Instantiate the FollowerStopper controller.
 
         Parameters
         ----------
@@ -104,11 +109,14 @@ class FollowerStopper(BaseController):
 
 
 class PISaturation(BaseController):
-    def __init__(self, veh_id, sumo_cf_params):
-        """Inspired by Dan Work's... work:
+    """A controller inspired by Dan Work's... work.
 
-        Dissipation of stop-and-go waves via control of autonomous vehicles:
-        Field experiments https://arxiv.org/abs/1705.01693
+    Dissipation of stop-and-go waves via control of autonomous vehicles:
+    Field experiments https://arxiv.org/abs/1705.01693
+    """
+
+    def __init__(self, veh_id, sumo_cf_params):
+        """Instantiate the PISaturation controller.
 
         Parameters
         ----------
@@ -174,12 +182,20 @@ class PISaturation(BaseController):
 
 
 class HandTunedVelocityController(FollowerStopper):
+    """An implementation of FollowerStopper with no control at junctions.
+
+    Instead, vehicles are the junctions follow the dynamics provided by the
+    simulator.
+    """
+
     def __init__(self, veh_id, v_regions, sumo_cf_params, danger_edges=None):
+        """Instantiate the controller (see parent class)."""
         super().__init__(
             veh_id, sumo_cf_params, v_regions[0], danger_edges=danger_edges)
         self.v_regions = v_regions
 
     def get_accel(self, env):
+        """See parent class."""
         edge = env.vehicles.get_edge(self.veh_id)
         if edge:
             if edge[0] != ':' and edge in env.controlled_edges:
@@ -196,12 +212,18 @@ class HandTunedVelocityController(FollowerStopper):
 
 
 class FeedbackController(FollowerStopper):
+    """An implementation of the FollowerStopper Controller for bottlenecks.
+
+    Extends FollowerStopper.
+    """
+
     def __init__(self,
                  veh_id,
                  sumo_cf_params,
                  Kp,
                  desired_bottleneck_density,
                  danger_edges=None):
+        """Instantiate the controller (see parent class)."""
         super().__init__(veh_id, sumo_cf_params, danger_edges=danger_edges)
         self.Kp = Kp
         self.desired_density = desired_bottleneck_density

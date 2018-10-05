@@ -23,6 +23,7 @@ class GridRouter(BaseRouter):
     """A router used to re-route a vehicle within a grid environment."""
 
     def choose_route(self, env):
+        """See parent class."""
         if env.vehicles.get_edge(self.veh_id) == \
                 env.vehicles.get_route(self.veh_id)[-1]:
             new_route = [env.vehicles.get_edge(self.veh_id)]

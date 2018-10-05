@@ -18,6 +18,20 @@ from flow.scenarios.grid.grid_scenario import SimpleGridScenario
 
 
 def gen_edges(row_num, col_num):
+    """Define the names of all edges in the network.
+
+    Parameters
+    ----------
+    row_num : int
+        number of rows of edges in the grid
+    col_num : int
+        number of columns of edges in the grid
+
+    Returns
+    -------
+    list of str
+        names of every edge to be generated.
+    """
     edges = []
     for i in range(col_num):
         edges += ["left" + str(row_num) + '_' + str(i)]
@@ -32,7 +46,30 @@ def gen_edges(row_num, col_num):
 
 
 def get_flow_params(v_enter, vehs_per_hour, col_num, row_num,
-                    additional_net_params):
+                    add_net_params):
+    """Define the network and initial params in the presence of inflows.
+
+    Parameters
+    ----------
+    v_enter : float
+        entering speed of inflow vehicles
+    vehs_per_hour : float
+        vehicle inflow rate (in veh/hr)
+    col_num : int
+        number of columns of edges in the grid
+    row_num : int
+        number of rows of edges in the grid
+    add_net_params: dict
+        additional network-specific parameters (unique to the grid)
+
+    Returns
+    -------
+    flow.core.params.InitialConfig
+        parameters specifying the initial configuration of vehicles in the
+        network
+    flow.core.params.NetParams
+        network-specific parameters used to generate the scenario
+    """
     initial_config = InitialConfig(
         spacing="uniform", lanes_distribution=float("inf"), shuffle=True)
 
@@ -49,16 +86,37 @@ def get_flow_params(v_enter, vehs_per_hour, col_num, row_num,
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False,
-        additional_params=additional_net_params)
+        additional_params=add_net_params)
 
     return initial_config, net_params
 
 
-def get_non_flow_params(enter_speed, additional_net_params):
+def get_non_flow_params(enter_speed, add_net_params):
+    """Define the network and initial params in the absence of inflows.
+
+    Note that when a vehicle leaves a network in this case, it is immediately
+    returns to the start of the row/column it was traversing, and in the same
+    direction as it was before.
+
+    Parameters
+    ----------
+    enter_speed : float
+        initial speed of vehicles as they enter the network.
+    add_net_params: dict
+        additional network-specific parameters (unique to the grid)
+
+    Returns
+    -------
+    flow.core.params.InitialConfig
+        parameters specifying the initial configuration of vehicles in the
+        network
+    flow.core.params.NetParams
+        network-specific parameters used to generate the scenario
+    """
     additional_init_params = {"enter_speed": enter_speed}
     initial_config = InitialConfig(additional_params=additional_init_params)
     net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+        no_internal_links=False, additional_params=add_net_params)
 
     return initial_config, net_params
 

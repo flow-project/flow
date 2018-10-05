@@ -195,7 +195,8 @@ class TrafficLights:
         return self.__tls[node_id][tc.TL_RED_YELLOW_GREEN_STATE]
 
     def actuated_default(self):
-        """
+        """Assist in generating actuated default traffic lights.
+
         Return the default values to be used for the generator
         for a system where all junctions are actuated traffic lights.
 

@@ -54,6 +54,7 @@ class HighwayScenario(Scenario):
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate a user defined set of starting positions.
+
         This method is just used for testing.
 
         Parameters

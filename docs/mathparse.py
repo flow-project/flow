@@ -1,4 +1,5 @@
-"""
+"""Script used when generating math syntax in documentation.
+
 A preliminary attempt at parsing an RST file's math syntax
 in order to make math render as inline rather than display
 mode. This doesn't work as of yet but might be useful.

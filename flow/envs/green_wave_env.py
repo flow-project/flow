@@ -1,3 +1,4 @@
+"""Contains a series of environments for traffic light control."""
 import numpy as np
 import re
 
@@ -27,8 +28,7 @@ ADDITIONAL_PO_ENV_PARAMS = {
 
 
 class TrafficLightGridEnv(Env):
-    """Environment used to train traffic lights to regulate traffic flow
-    through an n x m grid.
+    """Environment used to train traffic lights in an n x m grid.
 
     Required from env_params:
 
@@ -64,6 +64,7 @@ class TrafficLightGridEnv(Env):
     """
 
     def __init__(self, env_params, sumo_params, scenario):
+        """Instantiate the environment (see parent class)."""
 
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -233,9 +234,9 @@ class TrafficLightGridEnv(Env):
     # ===============================
 
     def record_obs_var(self):
-        """
-        Records velocities and edges in self.obs_var_labels at each time
-        step. This is used for plotting.
+        """Record speeds and edges in self.obs_var_labels at each time step.
+
+        This is used for plotting.
         """
         for i, veh_id in enumerate(self.vehicles.get_ids()):
             self.obs_var_labels['velocities'][
@@ -248,7 +249,7 @@ class TrafficLightGridEnv(Env):
             self.obs_var_labels['positions'][self.time_counter - 1, i] = x
 
     def get_distance_to_intersection(self, veh_ids):
-        """Determines the smallest distance from the current vehicle's position
+        """Determine the smallest distance from the current vehicle's position
         to any of the intersections.
 
         Parameters
@@ -283,8 +284,7 @@ class TrafficLightGridEnv(Env):
         return dist
 
     def sort_by_intersection_dist(self):
-        """Sorts the vehicle ids of vehicles in the network by their distance
-        to the intersection.
+        """Sort the vehicles in the network by their distance to intersection.
 
         Returns
         -------
@@ -301,7 +301,7 @@ class TrafficLightGridEnv(Env):
         return sorted_ids
 
     def _convert_edge(self, edges):
-        """Converts the string edge to a number.
+        """Convert the string edge to a number.
 
         Start at the bottom left vertical edge and going right and then up, so
         the bottom left vertical edge is zero, the right edge beside it  is 1.
@@ -354,14 +354,19 @@ class TrafficLightGridEnv(Env):
             return 0
 
     def additional_command(self):
-        """Used to insert vehicles that are on the exit edge and place them
-        back on their entrance edge."""
+        """See parent class.
+
+        This is used to insert vehicles that are on the exit edge and place
+        them back on their entrance edge.
+        """
         for veh_id in self.vehicles.get_ids():
             self._reroute_if_final_edge(veh_id)
 
     def _reroute_if_final_edge(self, veh_id):
-        """Checks if an edge is the final edge. If it is return the route it
-        should start off at."""
+        """Check if an edge is the final edge.
+
+        If it is return the route it should start off at.
+        """
         edge = self.vehicles.get_edge(veh_id)
         if edge == "":
             return
@@ -402,10 +407,11 @@ class TrafficLightGridEnv(Env):
             self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
     def k_closest_to_intersection(self, edges, k):
-        """
-        Return the veh_id of the k closest vehicles to an intersection for
-        each edge. Performs no check on whether or not edge is going toward an
-        intersection or not. Does no padding
+        """Return the IDs of the k closest vehicles to an intersection.
+
+        This operation is performed for each edge. Note that no check is
+        performed on whether or not edge is going toward an intersection or
+        not. Does no padding
         """
         if k < 0:
             raise IndexError("k must be greater than 0")
@@ -485,8 +491,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
     @property
     def observation_space(self):
-        """
-        Partially observed state space.
+        """Return partially observed state space.
 
         Velocities, distance to intersections, edge number (for nearby
         vehicles), and traffic light state.
@@ -501,7 +506,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         return tl_box
 
     def get_state(self):
-        """
+        """See parent class.
+
         Returns self.num_observed number of vehicles closest to each traffic
         light and for each vehicle its velocity, distance to intersection,
         edge_number traffic light state. This is partially observed
@@ -580,8 +586,9 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
 
 class GreenWaveTestEnv(TrafficLightGridEnv):
-    """
-    Class that overrides RL methods of green wave so we can test
+    """Test class for green wave env.
+
+    This class overrides RL methods of green wave so we can test
     construction without needing to specify RL methods
     """
 
@@ -590,5 +597,5 @@ class GreenWaveTestEnv(TrafficLightGridEnv):
         pass
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """No return, for testing purposes."""
+        """Return zero, for testing purposes."""
         return 0

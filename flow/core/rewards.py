@@ -1,10 +1,10 @@
-"""This script contains of series of reward functions."""
+"""Script containing of series of reward functions."""
 
 import numpy as np
 
 
 def desired_velocity(env, fail=False):
-    """Encourage proximity to a desired velocity.
+    r"""Encourage proximity to a desired velocity.
 
     This function measures the deviation of a system of vehicles from a
     user-specified desired velocity peaking when all vehicles in the ring
@@ -44,6 +44,7 @@ def desired_velocity(env, fail=False):
 
 
 def reward_density(env):
+    """Reward the total number of vehicles that exited the network."""
     return env.vehicles.get_num_arrived() / env.sim_step
 
 
@@ -78,8 +79,9 @@ def max_edge_velocity(env, edge_list, fail=False):
 
 
 def rl_forward_progress(env, gain=0.1):
-    """A reward function used to slightly rewards the RL vehicles travelling
-    forward to help with sparse problems
+    """Slightly reward RL vehicles travelling forward.
+
+    This is used to help with sparse reward problems.
 
     Parameters
     ----------
@@ -95,13 +97,15 @@ def rl_forward_progress(env, gain=0.1):
 
 
 def boolean_action_penalty(discrete_actions, gain=1.0):
-    """ Penalize boolean actions that indicate a switch"""
+    """Penalize boolean actions that indicate a switch."""
     return gain * np.sum(discrete_actions)
 
 
 def min_delay(env):
-    """A reward function used to encourage minimization of total delay in the
-    system. Distance travelled is used as a scaled value of delay.
+    """Penalize delays associated with not traveling at top speeds.
+
+    This reward function is used to encourage minimization of total delay in
+    the system. Distance travelled is used as a scaled value of delay.
 
     This function measures the deviation of a system of vehicles from all the
     vehicles smoothly travelling at a fixed speed to their destinations.
@@ -112,7 +116,6 @@ def min_delay(env):
         the environment variable, which contains information on the current
         state of the system.
     """
-
     vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
 
     vel = vel[vel >= -1e-6]
@@ -127,7 +130,7 @@ def min_delay(env):
 
 
 def min_delay_unscaled(env):
-    """The average delay for all vehicles in the system
+    """Return the average delay for all vehicles in the system.
 
     Parameters
     ----------
@@ -135,7 +138,6 @@ def min_delay_unscaled(env):
         the environment variable, which contains information on the current
         state of the system.
     """
-
     vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
 
     vel = vel[vel >= -1e-6]
@@ -149,11 +151,19 @@ def min_delay_unscaled(env):
 
 
 def penalize_tl_changes(actions, gain=1):
-    """
-    A reward function that penalizes delay and traffic light switches.
-    :param actions: {list of booleans} - indicates whether a switch is desired
-    :param gain: {float} - multiplicative factor on the action penalty
-    :return: a penalty on vehicle delays and traffic light switches
+    """Reward function that penalizes delay and traffic light switches.
+
+    Parameters
+    ----------
+    actions : list of bool
+        indicates whether a switch is desired
+    gain : float
+        multiplicative factor on the action penalty
+
+    Returns
+    -------
+    float
+        a penalty on vehicle delays and traffic light switches
     """
     action_penalty = gain * np.sum(np.round(actions))
     return -action_penalty
@@ -164,8 +174,10 @@ def penalize_headway_variance(vehicles,
                               normalization=1,
                               penalty_gain=1,
                               penalty_exponent=1):
-    """A reward function used to train rl vehicles to encourage large headways
-    among a pre-specified list of vehicles vids.
+    """Add a penalty to variances in headways of some vehicles.
+
+    This reward function is used to train rl vehicles to encourage large
+    headways among a pre-specified list of vehicles vids.
 
     Parameters
     ----------
@@ -192,10 +204,11 @@ def punish_small_rl_headways(env,
                              headway_threshold,
                              penalty_gain=1,
                              penalty_exponent=1):
-    """A reward function used to train rl vehicles to avoid small headways.
+    """Penalize small headways among RL vehicles.
 
-    A penalty is issued whenever rl vehicles are below a pre-defined desired
-    headway.
+    This reward function is used to train rl vehicles to avoid small headways.
+    This is done by issuing a penalty whenever rl vehicles are below a
+    pre-defined desired headway.
 
     Parameters
     ----------

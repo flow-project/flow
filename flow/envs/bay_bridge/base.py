@@ -1,3 +1,5 @@
+"""Base environment for training control policies on the Bay Bridge."""
+
 import numpy as np
 from collections import defaultdict
 
@@ -81,6 +83,17 @@ class BayBridgeEnv(Env):
                 "disable_ramp_metering")
 
     def additional_command(self):
+        """See parent class.
+
+        This method performs three tasks:
+
+        - Creates a dictionary containing the names of all vehicles in a
+          specific edge/lane pair.
+        - Calls the `apply_toll_bridge_control` method if the toll lights are
+          set to be active.
+        - Calls the `ramp_meter_lane_change_control` method if requested during
+          environment instantiation.
+        """
         super().additional_command()
         # build a list of vehicles and their edges and positions
         self.edge_dict = defaultdict(list)
@@ -102,11 +115,18 @@ class BayBridgeEnv(Env):
                 self.apply_lane_change([veh_id], direction=[1])
 
         if not self.disable_tb:
-            self.apply_toll_bridge_control()
+            self._apply_toll_bridge_control()
         if not self.disable_ramp_metering:
             self.ramp_meter_lane_change_control()
 
     def ramp_meter_lane_change_control(self):
+        """Turn off lane changes near the bottleneck.
+
+        This needs to be performed to avoid an issue involved with sumo's
+        "strategic" lane change mode near lane reductions. The default lane
+        change mode is then reintroduced after leaving the bottleneck portion
+        of the network.
+        """
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
             if self.vehicles.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
@@ -142,7 +162,7 @@ class BayBridgeEnv(Env):
                         self.traci_connection.vehicle.setColor(
                             veh_id, (0, 255, 255, 0))
 
-    def apply_toll_bridge_control(self):
+    def _apply_toll_bridge_control(self):
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
             if self.vehicles.get_edge(veh_id) == EDGE_AFTER_TOLL:
@@ -215,9 +235,9 @@ class BayBridgeEnv(Env):
     """ The below methods need to be updated by child classes. """
 
     def _apply_rl_actions(self, rl_actions):
-        """Implemented by child classes."""
+        """Implement in child classes."""
         pass
 
     def get_state(self):
-        """Implemented by child classes."""
+        """Implement in child classes."""
         return []
