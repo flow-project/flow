@@ -91,17 +91,19 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     # Determine agent and checkpoint
-    if (args.run and "run" in flow_params):
-        if (args.run != flow_params["run"]):
-            print("visualizer_rllib.py: error: run argument"
+    config_run = config['env_config']['run'] if 'run' in config['env_config'] \
+        else None
+    if (args.run and config_run):
+        if (args.run != config_run):
+            print("visualizer_rllib.py: error: run argument "
                   + "\"{}\" passed in ".format(args.run)
-                  + "differs from the one stored in params.json"
-                  + "\"{}\"".format(flow_params["run"]))
+                  + "differs from the one stored in params.json "
+                  + "\"{}\"".format(config_run))
             sys.exit(1)
     if (args.run):
         agent_cls = get_agent_class(args.run)
-    elif ("run" in flow_params):
-        agent_cls = get_agent_class(flow_params["run"])
+    elif (config_run):
+        agent_cls = get_agent_class(config_run)
     else:
         print("visualizer_rllib.py: error: could not find flow parameter "
               "\"run\" in params.json, "
