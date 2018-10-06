@@ -53,7 +53,8 @@ parser.add_argument(
     "the name of a built-on algorithm (e.g. RLLib's DQN "
     "or PPO), or a user-defined trainable function or "
     "class registered in the tune registry. "
-    "Required for results trained with flow-0.2.0 and before.") # TODO: finalize version here
+    "Required for results trained with flow-0.2.0 and before.")
+# TODO: finalize version here
 parser.add_argument(
     '--num_rollouts',
     type=int,
@@ -92,17 +93,21 @@ if __name__ == "__main__":
     # Determine agent and checkpoint
     if (args.run and "run" in flow_params):
         if (args.run != flow_params["run"]):
-            print("visualizer_rllib.py: error: run argument \"{}\" passed in ".format(args.run)
-                + "differs from the one stored in params.json \"{}\"".format(flow_params["run"]))
+            print("visualizer_rllib.py: error: run argument"
+                  + "\"{}\" passed in ".format(args.run)
+                  + "differs from the one stored in params.json"
+                  + "\"{}\"".format(flow_params["run"]))
             sys.exit(1)
     if (args.run):
         agent_cls = get_agent_class(args.run)
     elif ("run" in flow_params):
         agent_cls = get_agent_class(flow_params["run"])
     else:
-        print("visualizer_rllib.py: error: could not find flow parameter \"run\" in params.json, "
-              "add argument --run to provide the algorithm or model used to train the results\n"
-              "e.g. python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO")
+        print("visualizer_rllib.py: error: could not find flow parameter "
+              "\"run\" in params.json, "
+              "add argument --run to provide the algorithm or model used "
+              "to train the results\n e.g. "
+              "python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO")
         sys.exit(1)
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
