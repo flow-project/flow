@@ -407,8 +407,7 @@ class SumoCarFollowingParams:
             speed_mode = SPEED_MODES[speed_mode]
         elif not (isinstance(speed_mode, int)
                   or isinstance(speed_mode, float)):
-            logging.error("Setting speed mode of {0} to "
-                          "default.".format(veh_id))
+            logging.error("Setting speed mode of to default.")
             speed_mode = SPEED_MODES["no_collide"]
 
         self.speed_mode = speed_mode
@@ -594,8 +593,7 @@ class SumoLaneChangeParams:
             lane_change_mode = LC_MODES[lane_change_mode]
         elif not (isinstance(lane_change_mode, int)
                   or isinstance(lane_change_mode, float)):
-            logging.error("Setting lane change mode of {0} to "
-                          "default.".format(veh_id))
+            logging.error("Setting lane change mode to default.")
             lane_change_mode = LC_MODES["no_lat_collide"]
 
         self.lane_change_mode = lane_change_mode
