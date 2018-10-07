@@ -129,7 +129,7 @@ class Scenario(Serializable):
 
         # generate starting position for vehicles in the network
         kwargs = initial_config.additional_params
-        positions, lanes = self.generate_starting_positions(
+        positions, lanes, speeds = self.generate_starting_positions(
             num_vehicles=vehicles.num_vehicles,
             **kwargs
         )
@@ -139,7 +139,7 @@ class Scenario(Serializable):
                                                self.traffic_lights)
 
         shuffle = initial_config.shuffle
-        self.generator.make_routes(self, positions, lanes, shuffle)
+        self.generator.make_routes(self, positions, lanes, speeds, shuffle)
 
         # specify the location of the sumo configuration file
         self.cfg = self.generator.cfg_path + cfg_name
@@ -265,23 +265,25 @@ class Scenario(Serializable):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         startlanes : list of int
             list of start lanes
+        startvel : list of float
+            list of start speeds
         """
         num_vehicles = num_vehicles or self.vehicles.num_vehicles
 
         if self.initial_config.spacing == "uniform":
-            startpositions, startlanes = self.gen_even_start_pos(
+            startpositions, startlanes, startvel = self.gen_even_start_pos(
                 self.initial_config, num_vehicles, **kwargs)
         elif self.initial_config.spacing == "random":
-            startpositions, startlanes = self.gen_random_start_pos(
+            startpositions, startlanes, startvel = self.gen_random_start_pos(
                 self.initial_config, num_vehicles, **kwargs)
         elif self.initial_config.spacing == "custom":
-            startpositions, startlanes = self.gen_custom_start_pos(
+            startpositions, startlanes, startvel = self.gen_custom_start_pos(
                 self.initial_config, num_vehicles, **kwargs)
         else:
             raise ValueError('"spacing" argument in initial_config does not '
                              'contain a valid option')
 
-        return startpositions, startlanes
+        return startpositions, startlanes, startvel
 
     def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate uniformly spaced starting positions.
@@ -307,6 +309,8 @@ class Scenario(Serializable):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         startlanes : list of int
             list of start lanes
+        startvel : list of float
+            list of start speeds
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
@@ -383,7 +387,10 @@ class Scenario(Serializable):
                 pos = max(0, min(self.edge_length(edge), pos + perturb))
                 startpositions[i] = (edge, pos)
 
-        return startpositions, startlanes
+        # all vehicles start with an initial speed of 0 m/s
+        startvel = [0 for _ in range(len(startlanes))]
+
+        return startpositions, startlanes, startvel
 
     def gen_random_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate random starting positions.
@@ -404,6 +411,8 @@ class Scenario(Serializable):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         startlanes : list of int
             list of start lanes
+        startvel : list of float
+            list of start speeds
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = self._get_start_pos_util(
@@ -460,7 +469,10 @@ class Scenario(Serializable):
             startpositions.append((edge_i, pos_i))
             startlanes.append(lane_i)
 
-        return startpositions, startlanes
+        # all vehicles start with an initial speed of 0 m/s
+        startvel = [0 for _ in range(len(startlanes))]
+
+        return startpositions, startlanes, startvel
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate a user defined set of starting positions.
@@ -481,6 +493,8 @@ class Scenario(Serializable):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         startlanes : list of int
             list of start lanes
+        startvel : list of float
+            list of start speeds
         """
         raise NotImplementedError
 

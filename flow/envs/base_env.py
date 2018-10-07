@@ -524,7 +524,7 @@ class Env(gym.Env, Serializable):
             if self.vehicle_arrangement_shuffle:
                 random.shuffle(veh_ids)
 
-            initial_positions, initial_lanes = \
+            initial_positions, initial_lanes, initial_speeds = \
                 self.scenario.generate_starting_positions(
                     num_vehicles=len(self.initial_ids), x0=x0)
 
@@ -532,12 +532,13 @@ class Env(gym.Env, Serializable):
             for i, veh_id in enumerate(veh_ids):
                 route_id = "route" + initial_positions[i][0]
 
-                # replace initial routes, lanes, and positions to reflect
-                # new values
+                # replace initial routes, lanes, positions, and speeds to
+                # reflect new values
                 list_initial_state = list(self.initial_state[veh_id])
                 list_initial_state[1] = route_id
                 list_initial_state[2] = initial_lanes[i]
                 list_initial_state[3] = initial_positions[i][1]
+                list_initial_state[4] = initial_speeds[i]
                 initial_state[veh_id] = tuple(list_initial_state)
 
                 # replace initial positions in initial observations

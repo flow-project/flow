@@ -72,5 +72,10 @@ class HighwayScenario(Scenario):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         startlanes : list of int
             list of start lanes
+        startvel : list of float
+            list of start speeds
         """
-        return kwargs["start_positions"], kwargs["start_lanes"]
+        # all vehicles start with an initial speed of 0 m/s
+        startvel = [0 for _ in range(len(kwargs["start_lanes"]))]
+
+        return kwargs["start_positions"], kwargs["start_lanes"], startvel
