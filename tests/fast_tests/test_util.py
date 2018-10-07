@@ -8,7 +8,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows
+    InFlows, SumoCarFollowingParams
 from flow.core.util import emission_to_csv
 from flow.utils.flow_warnings import deprecation_warning
 from flow.utils.registry import make_create_env
@@ -89,13 +89,17 @@ class TestRegistry(unittest.TestCase):
                 "noise": 0.2
             }),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="no_collide",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=13)
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="no_collide",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=1)
 
         flow_params = dict(
@@ -181,12 +185,16 @@ class TestRllib(unittest.TestCase):
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {}),
-            speed_mode="no_collide",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=5)
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
-            speed_mode="no_collide",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=0)
 
         inflow = InFlows()

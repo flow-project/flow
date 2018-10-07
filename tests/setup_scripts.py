@@ -12,7 +12,7 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
@@ -71,7 +71,9 @@ def ring_road_exp_setup(sumo_params=None,
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             num_vehicles=1)
 
     if env_params is None:
@@ -159,7 +161,9 @@ def figure_eight_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -249,7 +253,9 @@ def highway_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -459,7 +465,9 @@ def variable_lanes_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -551,10 +559,14 @@ def setup_bottlenecks(sumo_params=None,
 
         vehicles.add(
             veh_id="human",
-            speed_mode=25,
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode=25,
+            ),
             lane_change_controller=(SumoLaneChangeController, {}),
             routing_controller=(ContinuousRouter, {}),
-            lane_change_mode=1621,
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode=1621,
+            ),
             num_vehicles=1 * scaling)
 
     if env_params is None:

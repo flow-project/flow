@@ -4,7 +4,7 @@ Baseline is no AVs.
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
+    InFlows, SumoCarFollowingParams
 from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
@@ -51,7 +51,9 @@ def merge_baseline(num_runs, render=True):
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
                  acceleration_controller=(SumoCarFollowingController, {}),
-                 speed_mode=9,
+                 sumo_car_following_params=SumoCarFollowingParams(
+                     speed_mode=9,
+                 ),
                  num_vehicles=5)
 
     # Vehicles are introduced from both sides of merge, with RL vehicles

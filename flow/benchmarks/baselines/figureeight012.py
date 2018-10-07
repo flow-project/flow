@@ -3,7 +3,8 @@
 Baseline is human acceleration and intersection behavior.
 """
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter
 from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
@@ -38,7 +39,9 @@ def figure_eight_baseline(num_runs, render=True):
     vehicles.add(veh_id="human",
                  acceleration_controller=(IDMController, {"noise": 0.2}),
                  routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
+                 sumo_car_following_params=SumoCarFollowingParams(
+                     speed_mode="no_collide",
+                 ),
                  num_vehicles=14)
 
     sumo_params = SumoParams(

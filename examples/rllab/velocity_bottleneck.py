@@ -4,7 +4,7 @@ Bottleneck in which the actions are specifying a desired velocity
 in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
@@ -36,10 +36,15 @@ vehicles = Vehicles()
 
 vehicles.add(
     veh_id="human",
-    speed_mode=9,
     lane_change_controller=(SumoLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    lane_change_mode=0,  # 1621,#0b100000101,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=0,  # 1621,#0b100000101,
+
+    ),
     num_vehicles=1 * SCALING)
 vehicles.add(
     veh_id="followerstopper",
@@ -48,8 +53,12 @@ vehicles.add(
     }),
     lane_change_controller=(SumoLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode=9,
-    lane_change_mode=0,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 
 horizon = 1000

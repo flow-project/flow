@@ -13,7 +13,7 @@ from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
+    InFlows, SumoCarFollowingParams
 from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, RLController
@@ -52,12 +52,16 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         "noise": 0.2
     }),
-    speed_mode="no_collide",
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode="no_collide",
+    ),
     num_vehicles=5)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
-    speed_mode="no_collide",
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode="no_collide",
+    ),
     num_vehicles=0)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering

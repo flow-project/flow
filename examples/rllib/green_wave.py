@@ -117,10 +117,10 @@ vehicles.add(
     sumo_car_following_params=SumoCarFollowingParams(
         minGap=2.5,
         max_speed=v_enter,
+        speed_mode="all_checks",
     ),
     routing_controller=(GridRouter, {}),
-    num_vehicles=tot_cars,
-    speed_mode="all_checks")
+    num_vehicles=tot_cars)
 
 initial_config, net_params = \
     get_non_flow_params(v_enter, additional_net_params)

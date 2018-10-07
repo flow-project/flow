@@ -42,8 +42,11 @@ def loop_merge_example(render=None):
         lane_change_controller=(SumoLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=7,
-        speed_mode="no_collide",
-        sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+        sumo_car_following_params=SumoCarFollowingParams(
+            minGap=0.0,
+            tau=0.5,
+            speed_mode="no_collide",
+        ),
         sumo_lc_params=SumoLaneChangeParams())
     vehicles.add(
         veh_id="merge-idm",
@@ -51,8 +54,11 @@ def loop_merge_example(render=None):
         lane_change_controller=(SumoLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=10,
-        speed_mode="no_collide",
-        sumo_car_following_params=SumoCarFollowingParams(minGap=0.01, tau=0.5),
+        sumo_car_following_params=SumoCarFollowingParams(
+            minGap=0.01,
+            tau=0.5,
+            speed_mode="no_collide",
+        ),
         sumo_lc_params=SumoLaneChangeParams())
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)

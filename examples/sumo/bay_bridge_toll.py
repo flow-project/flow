@@ -38,9 +38,16 @@ def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
     if render is not None:
         sumo_params.render = render
 
-    sumo_car_following_params = SumoCarFollowingParams(speedDev=0.2)
+    sumo_car_following_params = SumoCarFollowingParams(
+        speedDev=0.2,
+        speed_mode="all_checks",
+    )
     sumo_lc_params = SumoLaneChangeParams(
-        model="LC2013", lcCooperative=0.2, lcSpeedGain=15)
+        model="LC2013",
+        lcCooperative=0.2,
+        lcSpeedGain=15,
+        lane_change_mode="no_lat_collide",
+    )
 
     vehicles = Vehicles()
 
@@ -48,8 +55,6 @@ def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
         veh_id="human",
         acceleration_controller=(SumoCarFollowingController, {}),
         routing_controller=(BayBridgeRouter, {}),
-        speed_mode="all_checks",
-        lane_change_mode="no_lat_collide",
         sumo_car_following_params=sumo_car_following_params,
         sumo_lc_params=sumo_lc_params,
         num_vehicles=50)

@@ -48,9 +48,12 @@ def run_task(*_):
         acceleration_controller=(RLController, {}),
         lane_change_controller=(SumoLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
-        speed_mode="no_collide",
         num_vehicles=1,
-        sumo_car_following_params=SumoCarFollowingParams(minGap=0.01, tau=0.5),
+        sumo_car_following_params=SumoCarFollowingParams(
+            minGap=0.01,
+            tau=0.5,
+            speed_mode="no_collide"
+        ),
         sumo_lc_params=SumoLaneChangeParams())
 
     # Outer ring vehicles
