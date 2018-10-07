@@ -157,7 +157,9 @@ class SimpleGridScenario(Scenario):
                 x += d_inc
 
         start_lanes = [0] * len(start_positions)
-        return start_positions, start_lanes
+        start_speeds = [0] * len(start_positions)
+
+        return start_positions, start_lanes, start_speeds
 
     def get_edge_names(self):
         """Return a the edge IDs attribute for a list of edge objects."""

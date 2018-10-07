@@ -42,8 +42,6 @@ class Vehicles:
         self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
-        # TODO: remove
-        self.initial_speeds = []  # speed of vehicles at the start of a rollout
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = dict()
@@ -71,7 +69,6 @@ class Vehicles:
             acceleration_controller=(SumoCarFollowingController, {}),
             lane_change_controller=(SumoLaneChangeController, {}),
             routing_controller=None,
-            initial_speed=0,
             num_vehicles=1,
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -93,8 +90,6 @@ class Vehicles:
             1st element: flow-specified routing controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
-        initial_speed : float, optional  # TODO: remove
-            initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
         sumo_car_following_params : flow.core.params.SumoCarFollowingParams
@@ -124,7 +119,6 @@ class Vehicles:
             {"acceleration_controller": acceleration_controller,
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
-             "initial_speed": initial_speed,  # TODO: remove
              "sumo_car_following_params": sumo_car_following_params,
              "sumo_lc_params": sumo_lc_params}
 
@@ -137,8 +131,6 @@ class Vehicles:
                 lane_change_controller,
             "routing_controller":
                 routing_controller,
-            "initial_speed":  # TODO: remove
-                initial_speed,
             "num_vehicles":
                 num_vehicles,
             "sumo_car_following_params":
@@ -180,10 +172,6 @@ class Vehicles:
                                           router_params=routing_controller[1])
             else:
                 self.__vehicles[v_id]["router"] = None
-
-            # TODO: remove
-            # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[v_id]["initial_speed"] = initial_speed
 
             # check if the vehicle is human-driven or autonomous
             if acceleration_controller[0] == RLController:
@@ -386,11 +374,6 @@ class Vehicles:
         # set the "last_lc" parameter of the vehicle
         self.set_state(veh_id, "last_lc", env.time_counter)
 
-        # TODO: remove
-        # specify the initial speed
-        self.__vehicles[veh_id]["initial_speed"] = \
-            self.type_parameters[veh_type]["initial_speed"]
-
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][
             "sumo_car_following_params"].speed_mode
@@ -540,26 +523,6 @@ class Vehicles:
             return self._num_arrived[-1]
         else:
             return 0
-
-    # TODO: remove
-    def get_initial_speed(self, veh_id, error=-1001):
-        """Return the initial speed upon reset of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float
-
-        """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_initial_speed(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("initial_speed", error)
 
     def get_speed(self, veh_id, error=-1001):
         """Return the speed of the specified vehicle.

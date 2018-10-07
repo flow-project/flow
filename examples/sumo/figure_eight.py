@@ -44,7 +44,6 @@ def figure_eight_example(render=None):
         sumo_car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
-        initial_speed=0,
         num_vehicles=14)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
