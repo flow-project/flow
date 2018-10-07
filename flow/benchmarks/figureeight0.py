@@ -11,7 +11,8 @@ Observation Dimension: (28, )
 Horizon: 1500 steps
 """
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
@@ -27,13 +28,17 @@ vehicles.add(
         "noise": 0.2
     }),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode="no_collide",
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode="no_collide",
+    ),
     num_vehicles=13)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode="no_collide",
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode="no_collide",
+    ),
     num_vehicles=1)
 
 flow_params = dict(

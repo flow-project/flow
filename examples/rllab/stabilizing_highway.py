@@ -16,7 +16,7 @@ from flow.scenarios.merge.scenario import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import RLController, IDMController
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, InFlows, EnvParams, NetParams, \
-    InitialConfig
+    InitialConfig, SumoCarFollowingParams
 
 # experiment number
 # - 0: 10% RL penetration,  5 max controllable vehicles
@@ -51,12 +51,16 @@ def run_task(_):
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        speed_mode="no_collide",
+        sumo_car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         num_vehicles=5)
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
-        speed_mode="no_collide",
+        sumo_car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         num_vehicles=0)
 
     # Vehicles are introduced from both sides of merge, with RL vehicles

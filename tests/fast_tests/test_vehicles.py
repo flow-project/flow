@@ -4,7 +4,7 @@ import numpy as np
 
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoCarFollowingParams, NetParams, \
-    InitialConfig, SumoParams
+    InitialConfig, SumoParams, SumoLaneChangeParams
 from flow.controllers.car_following_models import IDMController, \
     SumoCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
@@ -29,6 +29,7 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
+
             speed_mode='no_collide',
             lane_change_mode="no_lat_collide")
 
@@ -63,8 +64,12 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            speed_mode='no_collide',
-            lane_change_mode="no_lat_collide")
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            ))
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
 
         # check that, if the vehicle is a SumoCarFollowingController vehicle,
@@ -73,8 +78,12 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(SumoCarFollowingController, {}),
-            speed_mode='no_collide',
-            lane_change_mode="no_lat_collide")
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            ))
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"],
                          default_mingap)

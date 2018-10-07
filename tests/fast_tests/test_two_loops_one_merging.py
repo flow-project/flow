@@ -3,7 +3,8 @@ import unittest
 
 from flow.controllers import RLController, IDMController, StaticLaneChanger
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_merges import TwoLoopsMergePOEnv, \
     ADDITIONAL_ENV_PARAMS
@@ -22,19 +23,25 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            speed_mode="no_collide",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=1)
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            speed_mode="no_collide",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=5)
         vehicles.add(
             veh_id="merge-idm",
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            speed_mode="no_collide",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=5)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
