@@ -9,7 +9,7 @@ path.py
 joblib==0.10.3
 python-dateutil==2.7.3
 cached_property
-cloudpickle==0.5.3
+cloudpickle==0.4.1
 
 # theano==0.8.2 # for rllab
 # lasagne # for rllab
