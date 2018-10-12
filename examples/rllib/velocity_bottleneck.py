@@ -162,7 +162,7 @@ if __name__ == '__main__':
     config["lambda"] = 0.99
     config["sgd_minibatch_size"] = min(16 * 1024, config["train_batch_size"])
     config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 22:
+    config["num_sgd_iter"] = 2
     config["horizon"] = HORIZON
 
     # save the flow params for replay
