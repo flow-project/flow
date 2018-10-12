@@ -160,7 +160,7 @@ for seed in [2]:  # , 1, 5, 10, 73]:
         # Specifies the seed for the experiment. If this is not provided, a
         # random seed will be used
         seed=seed,
-        mode="local",
+        mode="local_docker",
         exp_prefix=exp_tag,
         # plot=True,
         sync_s3_pkl=True)
