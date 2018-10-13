@@ -2,6 +2,7 @@
 
 from flow.core.generator import Generator
 from lxml import etree
+import xml.etree.ElementTree as ElementTree
 
 E = etree.Element
 
@@ -66,7 +67,7 @@ class NetFileGenerator(Generator):
         # This may be used when specifying some route data.
         routes_data = dict()
 
-        
+
         for vehicle in root.findall('vehicle'):
             for route in vehicle.findall('route'):
                 route_edges = route.attrib["edges"].split(' ')
