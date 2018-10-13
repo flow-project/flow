@@ -98,7 +98,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="DesiredVelocity",
+    exp_tag="VelocityBottleneck",
 
     # name of the flow environment the experiment is running on
     env_name="DesiredVelocityEnv",
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     config["lambda"] = 0.99
     config["sgd_minibatch_size"] = min(16 * 1024, config["train_batch_size"])
     config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 2
+    config["num_sgd_iter"] = 100
     config["horizon"] = HORIZON
 
     # save the flow params for replay
