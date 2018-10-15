@@ -52,7 +52,7 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="figure_eight_intersection_control",
+    exp_tag="multiagent_figure_eight",
 
     # name of the flow environment the experiment is running on
     env_name="MultiAgentAccelEnv",
@@ -72,6 +72,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
+        multiagent=True,
         additional_params={
             "target_velocity": 20,
             "max_accel": 3,
@@ -147,11 +148,12 @@ if __name__ == "__main__":
                 }})
 
     run_experiments({
-        "test": {
+        flow_params["exp_tag"]: {
             "run": "PPO",
             "env": env_name,
+            "checkpoint_freq": 5,
             "stop": {
-                "training_iteration": 20
+                "training_iteration": 5
             },
             "config": config,
             },

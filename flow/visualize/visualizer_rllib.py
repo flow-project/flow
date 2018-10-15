@@ -126,28 +126,60 @@ if __name__ == "__main__":
 
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts
-    rets = []
+    # backwards compatibility
+    if hasattr(env_params, 'multiagent'):
+        multiagent = True
+    else:
+        multiagent = False
+    if multiagent:
+        rets = {}
+        for key in config["policy_graphs"].keys():
+            rets[key] = []
+    else:
+        rets = []
     final_outflows = []
     mean_speed = []
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
         done = False
-        ret = 0
+        if multiagent:
+            ret = {key: [0] for key in rets.keys()}
+        else:
+            ret = 0
+        # FIXME each agent should have its own reward
         for _ in range(env_params.horizon):
             vehicles = env.vehicles
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
-            ret += reward
+            if multiagent:
+                for agent, rew in reward.items():
+                    ret[agent] += rew
+            else:
+                ret += reward
             if done:
                 break
-        rets.append(ret)
+        if multiagent:
+            for key in rets.keys():
+                rets[key].append(ret[key])
+        else:
+            rets.append(ret)
         outflow = vehicles.get_outflow_rate(500)
         final_outflows.append(outflow)
         mean_speed.append(np.mean(vel))
-        print("Round {}, Return: {}".format(i, ret))
-    print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
+        if multiagent:
+            for agent, rew in rets.items():
+                print("Round {}, Return: {} for agent {}".format(i,
+                                                                 ret, agent))
+        else:
+            print("Round {}, Return: {}".format(i, ret))
+    if multiagent:
+        for agent, rew in rets.items():
+            print("Average, std return: {}, {} for agent {}".format(np.mean(rew),
+                                                       np.std(rew), agent))
+    else:
+        print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
     print("Average, std speed: {}, {}".format(np.mean(mean_speed),
                                               np.std(mean_speed)))
     print("Average, std outflow: {}, {}".format(np.mean(final_outflows),
