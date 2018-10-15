@@ -1,10 +1,10 @@
 # Flow 
 
+<img src="https://user-images.githubusercontent.com/38776306/44690767-e13efb80-aa10-11e8-9647-60933b1bc41a.png" align="right" width="400"/> 
+
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
-
-<img src="https://user-images.githubusercontent.com/38776306/44690767-e13efb80-aa10-11e8-9647-60933b1bc41a.png" align="right" width="400"/> 
 
 [Flow](https://flow-project.github.io/) is a computational framework for deep RL and control experiments for traffic microsimulation. It provides a suite of traffic control scenarios (benchmarks), tools for designing custom traffic scenarios, and integration with deep reinforcement learning and traffic microsimulation libraries.
 
@@ -24,9 +24,9 @@ Full documentation is [available online](https://flow.readthedocs.org/en/latest/
 ## Experiments and Results
 
 ### Phantom shockwave dissipation on a ring
-Inspired by the famous [2008 Sugiyama experiment](https://www.youtube.com/watch?v=7wm-pZp_mi0) demonstrating spontaneous formation of traffic shockwaves (reproduced on the left video), and a [2017 field study](https://www.youtube.com/watch?v=2mBjYZTeaTc) demonstrating the ability of AVs to suppress shockwaves, we investigated the ability of reinforcement learning to train an optimal shockwave dissipating controller.
+Inspired by the famous [2008 Sugiyama experiment](https://www.youtube.com/watch?v=7wm-pZp_mi0) demonstrating spontaneous formation of traffic shockwaves (reproduced on the first video), and a [2017 field study](https://www.youtube.com/watch?v=2mBjYZTeaTc) demonstrating the ability of AVs to suppress shockwaves, we investigated the ability of reinforcement learning to train an optimal shockwave dissipating controller.
 
-In the right video, we learn a controller (policy) for one out of 22 vehicles. By training on ring roads of varying lengths, and using a neural network policy with memory, we were able to learn a controller that both was optimal (in terms of average system velocity) and generalized outside of the training distribution.
+In the second video, we learn a controller (policy) for one out of 22 vehicles. By training on ring roads of varying lengths, and using a neural network policy with memory, we were able to learn a controller that both was optimal (in terms of average system velocity) and generalized outside of the training distribution.
 
 [![Sugiyama simulation](https://img.youtube.com/vi/Lggtw9AOH0A/0.jpg)](https://www.youtube.com/watch?v=Lggtw9AOH0A)
 
