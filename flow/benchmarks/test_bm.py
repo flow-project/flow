@@ -55,10 +55,10 @@ parser.add_argument(
     help="The number of rollouts to average over.")
 
 if __name__ == "__main__":
-    # Parse arguments
     args = parser.parse_args()
     solution_dir = args.solution_dir
 
+    # Parse arguments
     args_file = open("%s/args.txt"%solution_dir).read()
     sol_args = args_file.split("\n")
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     # accordingly and initialize Ray.    
     compute_action = None
     if rllib_sol:
-        # Create and register a gym+rllib env
+        # Create and register a gym+rllib env using flow params from named benchmark
         create_env, gym_env_name = make_create_env(
             params=flow_params, version=0, render=False)
         register_env(gym_env_name, create_env)
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             if done:
                 break
         rets.append(round(ret, 2))
-        print("Return:", round(ret, 2))
+        print("Reward:", round(ret, 2))
     print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
 
     # terminate the environment

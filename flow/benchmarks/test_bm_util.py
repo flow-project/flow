@@ -36,7 +36,7 @@ def test_bm(solution_dir, num_rollouts=10):
     try:
         benchmark = __import__("flow.benchmarks.%s"%benchmark_name, fromlist=["flow_params"])
     except:
-        raise ImportError("Benchmark %s does not exist."%benchmark_name)
+        raise ImportError("Benchmark '%s' does not exist."%benchmark_name)
 
     flow_params = benchmark.flow_params
 
@@ -104,7 +104,7 @@ def test_bm(solution_dir, num_rollouts=10):
             if done:
                 break
         rets.append(round(ret, 2))
-        print("Return:", round(ret, 2))
+        print("Reward:", round(ret, 2))
     print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
 
     # terminate the environment
