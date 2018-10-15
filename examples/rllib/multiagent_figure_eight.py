@@ -22,7 +22,7 @@ import gym
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 2
+N_ROLLOUTS = 8
 # number of parallel workers
 N_CPUS = 1
 
