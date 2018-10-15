@@ -21,8 +21,9 @@ import sumolib
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
+    serializable_flag = True
 except ImportError:
-    Serializable = object
+    serializable_flag = False
 
 try:
     # Load user config if exists, else load default config
@@ -32,7 +33,9 @@ except ImportError:
 
 try:
     from ray.rllib.env import MultiAgentEnv
+    multiagent_flag = True and os.environ.get("MULTIAGENT", 0)
 except ImportError:
+    multiagent_flag = False
     MultiAgentEnv = object
 
 from flow.core.util import ensure_dir
@@ -40,8 +43,18 @@ from flow.core.util import ensure_dir
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
+# pick out the correct class definition
+if serializable_flag and multiagent_flag:
+    classdef = (gym.Env, Serializable, MultiAgentEnv)
+elif serializable_flag and not multiagent_flag:
+    classdef = (gym.Env, Serializable)
+elif not serializable_flag and multiagent_flag:
+    classdef = (gym.Env, MultiAgentEnv)
+else:
+    classdef = (gym.Env)
 
-class Env(gym.Env, Serializable, MultiAgentEnv):
+
+class Env(*classdef):
     """Base environment class.
 
     Provides the interface for controlling a SUMO simulation. Using this
@@ -493,6 +506,9 @@ class Env(gym.Env, Serializable, MultiAgentEnv):
 
             # compute the reward
             reward = self.compute_reward(self.state, rl_actions, fail=crash)
+
+            # test if the agent should terminate due to a crash
+            done = crash
 
             # compute the info for each agent
             infos = {}

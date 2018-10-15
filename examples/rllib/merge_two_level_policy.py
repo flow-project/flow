@@ -27,7 +27,7 @@ if __name__ == "__main__":
     config["gamma"] = 0.999  # discount rate
 
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
+    config["sgd_minibatch_size"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.00002
     config["num_sgd_iter"] = 30
     config["horizon"] = horizon

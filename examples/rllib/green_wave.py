@@ -168,10 +168,10 @@ if __name__ == "__main__":
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = N_CPUS
-    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32]})
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
+    config["sgd_minibatch_size"] = min(16 * 1024, config["train_batch_size"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 30
     config["sgd_stepsize"] = 5e-5

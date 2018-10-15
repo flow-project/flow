@@ -96,10 +96,10 @@ class AccelEnv(Env):
         # speed normalizer
         max_speed = self.scenario.max_speed
 
-        return np.array([[
+        return np.ndarray.flatten(np.array([[
             self.vehicles.get_speed(veh_id) / max_speed,
             self.get_x_by_id(veh_id) / self.scenario.length
-        ] for veh_id in self.sorted_ids])
+        ] for veh_id in self.sorted_ids]))
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
@@ -110,28 +110,33 @@ class AccelEnv(Env):
 
 
 class MultiAgentAccelEnv(AccelEnv):
+    """Multi-agent env with an adversarial agent perturbing
+    the accelerations of the autonomous vehicle"""
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
             if veh_id in self.vehicles.get_rl_ids()
         ]
-        av_action = rl_actions[0]
-        adv_action = rl_actions[1]
-        rl_action = av_action + 0.1*adv_action
+        av_action = rl_actions["av"]
+        adv_action = rl_actions["adversary"]
+        perturb_weight = self.env_params.additional_params["perturb_weight"]
+        rl_action = av_action + perturb_weight*adv_action
         self.apply_acceleration(sorted_rl_ids, rl_action)
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """See class definition."""
+        """The agent receives the class definition reward,
+        the adversary recieves the negative of the agent reward"""
         if self.env_params.evaluate:
             reward = np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
-            return {0: reward, 1: -reward}
+            return {"av": reward, "adversary": -reward}
         else:
             reward = rewards.desired_velocity(self, fail=kwargs["fail"])
-            return {0: reward, 1: -reward}
+            return {"av": reward, "adversary": -reward}
 
     def get_state(self, **kwargs):
-        """See class definition."""
+        """See class definition for the state. Both adversary and
+        agent receive the same state"""
         # speed normalizer
         max_speed = self.scenario.max_speed
         state = np.array([[
@@ -140,4 +145,4 @@ class MultiAgentAccelEnv(AccelEnv):
         ] for veh_id in self.sorted_ids])
         state = np.ndarray.flatten(state)
         # FIXME we are returning names we shouldn't return
-        return {0: state, 1: state}
+        return {"av": state, "adversary": state}

@@ -1,7 +1,12 @@
-"""Figure eight example."""
+"""Example of a multi-agent environment containing a figure eight with
+one autonomous vehicle and an adversary that is allowed to perturb
+the accelerations of figure eight."""
+
+# WARNING: Expected total reward is zero as adversary reward is
+# the negative of the AV reward
 
 import json
-import random
+import os
 
 import ray
 import ray.rllib.agents.ppo as ppo
@@ -19,12 +24,14 @@ from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 
 import gym
 
+os.environ["MULTIAGENT"] = "True"
+
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 8
+N_ROLLOUTS = 2
 # number of parallel workers
-N_CPUS = 4
+N_CPUS = 2
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -69,6 +76,7 @@ flow_params = dict(
             "target_velocity": 20,
             "max_accel": 3,
             "max_decel": 3,
+            "perturb_weight": 0.03,
         },
     ),
 
@@ -119,25 +127,18 @@ if __name__ == "__main__":
     obs_space = test_env.observation_space
     act_space = test_env.action_space
 
-    # def gen_policy():
-    #     return (PGPolicyGraph, obs_space, act_space, {})
-    #
-    # policy_graphs = {}
-    # policy_graphs["av"] = gen_policy()
-    # policy_graphs["adversary"] = gen_policy()
-
     def gen_policy():
         return (PPOPolicyGraph, obs_space, act_space, {})
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {
-        "policy_{}".format(i): gen_policy()
-        for i in range(2)
+        "av": gen_policy(),
+        "adversary": gen_policy()
     }
 
 
     def policy_mapping_fn(agent_id):
-        return "policy_{}".format(agent_id)
+        return agent_id
 
     policy_ids = list(policy_graphs.keys())
     config.update({"multiagent": {
