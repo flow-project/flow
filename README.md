@@ -1,20 +1,56 @@
+<img src="https://user-images.githubusercontent.com/38776306/44690767-e13efb80-aa10-11e8-9647-60933b1bc41a.png" align="right" width="400"/> 
+
+# Flow 
+
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
-# Flow
-
-[Flow](https://flow-project.github.io/) is a computational framework for deep RL and control experiments for traffic microsimulation.
+[Flow](https://flow-project.github.io/) is a computational framework for deep RL and control experiments for traffic microsimulation. It provides a suite of traffic control scenarios (benchmarks), tools for designing custom traffic scenarios, and integration with deep reinforcement learning and traffic microsimulation libraries.
 
 See [our website](https://flow-project.github.io/) for more information on the application of Flow to several mixed-autonomy traffic scenarios. Other [results and videos](https://sites.google.com/view/ieee-tro-flow/home) are available as well.
 
-# More information
+## Setup
+1. Make sure you have Python 3 installed (we recommend using the [Anaconda Python distribution](https://www.continuum.io/downloads)).
+2. **Install Jupyter** with `pip install jupyter`. Verify that you can start a Jupyter notebook with the command `jupyter-notebook`.
+3. **Install Flow** by executing the following [installation instructions](https://berkeleyflow.readthedocs.io/en/latest/flow_setup.html).
+  
+## Documentation and Tutorials
+  
+Full documentation is [available online](https://flow.readthedocs.org/en/latest/).
 
-- [Documentation](https://flow.readthedocs.org/en/latest/)
-- [Installation instructions](http://flow.readthedocs.io/en/latest/flow_setup.html)
-- [Tutorials](https://github.com/flow-project/flow/tree/master/tutorials)
+[Tutorials](https://github.com/flow-project/flow/tree/master/tutorials): In addition to our documentation, we have also developed a set of tutorials which outline all the major features of Flow and its integrations with deep RL and traffic simulation libraries.
 
-# Getting involved
+## Experiments and Results
+
+### Phantom shockwave dissipation on a ring
+Inspired by the famous [2008 Sugiyama experiment](https://www.youtube.com/watch?v=7wm-pZp_mi0) demonstrating spontaneous formation of traffic shockwaves (reproduced on the left video), and a [2017 field study](https://www.youtube.com/watch?v=2mBjYZTeaTc) demonstrating the ability of AVs to suppress shockwaves, we investigated the ability of reinforcement learning to train an optimal shockwave dissipating controller.
+
+In the right video, we learn a controller (policy) for one out of 22 vehicles. By training on ring roads of varying lengths, and using a neural network policy with memory, we were able to learn a controller that both was optimal (in terms of average system velocity) and generalized outside of the training distribution.
+
+[![Sugiyama simulation](https://img.youtube.com/vi/Lggtw9AOH0A/0.jpg =300x200)](https://www.youtube.com/watch?v=Lggtw9AOH0A)
+
+[![Flow controller on ring road](https://img.youtube.com/vi/D0lNWWK3s9s/0.jpg =300x200)](https://www.youtube.com/watch?v=D0lNWWK3s9s)
+
+### Intersection control
+We demonstrated also the ability of a single autonomous vehicle to control the relative spacing of vehicles following behind it to create an optimal merge at an intersection.
+
+As can be seen in the videos, without any AVs, the vehicles are stopped at the intersection by vehicles in the other direction; we show that even at low penetration rates, the autonomous vehicle "bunches" all of the other vehicles to avoid the intersection, resulting in a huge speed improvement.
+
+[![Figure 8](https://img.youtube.com/vi/Z6QltFAEDeQ/0.jpg)](https://www.youtube.com/watch?v=Z6QltFAEDeQ)
+
+[![Flow controller on figure 8](https://img.youtube.com/vi/SoA_7fPJEG8/0.jpg)](https://www.youtube.com/watch?v=SoA_7fPJEG8)
+
+### Bottleneck control
+Inspired by the rapid decrease in lanes on the San Francisco-Oakland Bay Bridge, we study a bottleneck that merges from four lanes down to two to one.
+
+We demonstrate that the AVs are able to learn a strategy that increases the effective outflow at high inflows, and performs competitively with ramp metering.
+
+<img src="https://flow-project.github.io/figures/experiments/bottleneck_control.png"/>
+
+<img src="https://flow-project.github.io/figures/experiments/uncontrolVRLBigAxes.png"/>
+
+## Getting Involved
 
 We welcome your contributions.
 
@@ -22,86 +58,28 @@ We welcome your contributions.
 - Please report bugs by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
 - Submit contributions using [pull requests](https://github.com/flow-project/flow/pulls).
 
-# Citing Flow
+## Publications
+
+### Citing Flow
 
 If you use Flow for academic research, you are highly encouraged to cite our paper:
 
 C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and Benchmarking for Reinforcement Learning in Traffic Control," CoRR, vol. abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
-# Contributors
+### Other Publications
 
-Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Saleh Albeaik, Kathy Jang, Ananth Kuchibhotla. Alumni contributors include Leah Dickstein and Nathan Mandi. Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants.
+Below are several other relevant publications based on our work:
 
+- C. Wu, A. Kreidieh, E. Vinitsky, A. Bayen, "Emergent behaviors in mixed-autonomy traffic," Proceedings of the 1st Annual Conference on Robot Learning, PMLR 78:398-407, 2017. [Online]. Available: http://proceedings.mlr.press/v78/wu17a.html
+- C. Wu, K. Parvate, N. Kheterpal, L. Dickstein, A. Mehta, E. Vinitsky, A. Bayen, "Framework for Control and Deep Reinforcement Learning in Traffic," IEEE Intelligent Transportation Systems Conference (ITSC), 2017. [Online]. Available: https://ieeexplore.ieee.org/document/8317694/
+- E. Vinitsky, K. Parvate, A. Kreidieh, C. Wu, Z. Hu, A. Bayen, "Lagrangian Control through Deep-RL: Applications to Bottleneck Decongestion," IEEE Intelligent Transportation Systems Conference (ITSC), 2018.
+- N. Kheterpal, K. Parvate, C. Wu, A. Kreidieh, E. Vinitsky, A. Bayen, "Flow: Deep Reinforcement for Control in SUMO," SUMO User Conference, 2018. [Online]. Available: https://easychair.org/publications/paper/FBQq
+- A. Kreidieh, A. Bayen, "Dissipating stop-and-go waves in closed and open networks via deep reinforcement learning," IEEE Intelligent Transportation Systems Conference (ITSC), 2018.
 
-<!-- ## Getting Started
+## Contributors
 
-- TODO: Tutorial for visualization / plot generating scripts
+Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Marsalis Gibson, Fangyu Wu, Lucas Fischer, Crystal Yan, Kaila Cappello, Umah Sharaf, Xiao Zhao, Kathy Jang, Kanaad Parvate, Nishant Kheterpal, Ethan Hu, Kevin Chien, Jonathan Lin, Mahesh Murag. Alumni contributors include Saleh Albeaik, Ananth Kuchibhotla, Leah Dickstein and Nathan Mandi. 
 
-Sumo Params:
+Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley (advised by Professor Alexandre Bayen) and Amazon AWS Machine Learning research grants.
 
-- Port required, recommended set to 8873
-- Timestep, recommended is 0.01, default is 1.0
-- TODO: Same flags as SUMO Popen, make it more robust
-
-Env Params:
-
-- These will change based on the scenario
-- Target Velocity
-
-Net Params:
-
-- For each environment, you should determine which net params are relevant.
-- Used in Generator files that are specific to each scenario?
-- "length" : length of the track
-- "lanes" : number of lanes
-- "speed_limit"
-- "resolution" : number of nodes per edge, affects how 'circular' the track appears when visualized but doesn't affect performance [sic] (e.g. if you have 4 edges for a circle and resolution=2 it will display as 12 lines in the gui)
-- "net_path" : path for the folder where the net XML files will be saved: edg.xml, .netccfg, nod.xml, typ.xml
-- Suggestion: Direct control of naming of XML files
-
-Configuration (Cfg) Params:
-
-- "start_time" : 0
-- "end_time" : When the simulation ends, so pick a reasonably large number
-- TODO(cathywu) what are the units of start/end time?
-- "cfg_path" : path for the folder where the cfg XML files will be saved: add.xml, gui.cfg, net.xml, rou.xml, sumo.cfg
-
-Vehicle Params:
-
-- Dictionary of car type tag -> (count, car following controller, lane changing controller) assignments, where controller is a method.
-- Specifies number of cars for each type
-- "Type" : (Number of cars, Car Following Model, Lane Changing Model)
-- "rl": No car following model, action determined by RL algorithm
-- All other types can have arbitrary names because their actions/updates are determined by the models (other functions in the tuple)
-- Suggestion: instead of having "rl" be specific, we could have it such that None or a RL HOF are recognized as "rl vehicles"; Other suggestion: specifying controlled_vehicle_params and rl_params
-- TODO(cathywu) include an example here
-
-### Vehicle Params
-
-Implemented car following models:
-
-- Basic Car Following Model
-	- per [Horn 2013](http://ieeexplore.ieee.org/abstract/document/6728204/)
-	- Only considers vehicle ahead.
-	- Terms for desired velocity and headway gap
-- Bilateral Control Model
-	- per [Horn 2013](http://ieeexplore.ieee.org/abstract/document/6728204/)
-	- Considers vehicle ahead and vehicle behind.
-	- Term for desired velocity. Another term to place self halfway between car ahead and car behind.
-- Optimal Vehicle Model
-	- per [Jin & Gabor 2014](http://www-personal.umich.edu/~orosz/articles/CDC_2014_Jin.pdf)
-	- Only considers vehicle ahead.
-	- Desired velocity term is a function of headway. Also seeks to match velocity of car ahead.
-
-
-Lane changing models:
-
-- No lane changing
-- Stochastic lane changer
-
-Warnings:
-====
-All car controllers come equipped with a fail-safe rule wherein cars are not allowed to
-move at a speed that would cause them to crash if the car in front of them suddenly started
-breaking with max acceleration. If they attempt to do so, they will be reset to move at $$v_safe$$
-where $$v_safe$$ is the speed such that the cars will come to rest at the same point.  -->
+Learn more about the team [here](https://flow-project.github.io/team.html).
