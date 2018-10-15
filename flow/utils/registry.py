@@ -89,7 +89,7 @@ def make_create_env(params, version=0, render=None):
         register(
             id=env_name,
             entry_point='flow.envs:' + params["env_name"],
-            max_episode_steps=env_params.horizon,
+            #max_episode_steps=env_params.horizon,
             kwargs={
                 "env_params": env_params,
                 "sumo_params": sumo_params,

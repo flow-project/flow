@@ -30,13 +30,18 @@ try:
 except ImportError:
     import flow.config_default as config
 
+try:
+    from ray.rllib.env import MultiAgentEnv
+except ImportError:
+    MultiAgentEnv = object
+
 from flow.core.util import ensure_dir
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
 
-class Env(gym.Env, Serializable):
+class Env(gym.Env, Serializable, MultiAgentEnv):
     """Base environment class.
 
     Provides the interface for controlling a SUMO simulation. Using this
@@ -452,17 +457,44 @@ class Env(gym.Env, Serializable):
             if crash:
                 break
 
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(self.get_state()).T
+        if isinstance(self.get_state(), dict):
+            self.state = {}
+            next_observation = {}
+            crash = {}
+            infos = {}
+            temp_state = self.get_state()
+            for key, state in temp_state.items():
+                # collect information of the state of the network based on the
+                # environment class used
+                self.state[key] = np.asarray(state).T
 
-        # collect observation new state associated with action
-        next_observation = np.copy(self.state)
+                # collect observation new state associated with action
+                next_observation[key] = np.copy(self.state[key])
 
-        # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=crash)
+                # test if a crash has occurred
+                crash[key] = crash
+                # check if an agent is done
+                if crash:
+                    crash["__all__"] = True
+                infos[key] = {}
 
-        return next_observation, reward, crash, {}
+            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+
+        else:
+            # collect information of the state of the network based on the
+            # environment class used
+            self.state = np.asarray(self.get_state()).T
+
+            # collect observation new state associated with action
+            next_observation = np.copy(self.state)
+
+            # compute the reward
+            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+
+            # compute the info for each agent
+            infos = {}
+
+        return next_observation, reward, crash, infos
 
     def reset(self):
         """Reset the environment.
@@ -621,12 +653,25 @@ class Env(gym.Env, Serializable):
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(self.get_state()).T
 
-        # observation associated with the reset (no warm-up steps)
-        observation = np.copy(self.state)
+        if isinstance(self.get_state(), dict):
+            self.state = {}
+            observation = {}
+            for key, state in self.get_state().items():
+                # collect information of the state of the network based on the
+                # environment class used
+                self.state[key] = np.asarray(state).T
+
+                # collect observation new state associated with action
+                observation[key] = np.copy(self.state[key]).tolist()
+
+        else:
+            # collect information of the state of the network based on the
+            # environment class used
+            self.state = np.asarray(self.get_state()).T
+
+            # observation associated with the reset (no warm-up steps)
+            observation = np.copy(self.state)
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
@@ -654,11 +699,19 @@ class Env(gym.Env, Serializable):
             return
 
         # clip according to the action space requirements
+
         if isinstance(self.action_space, Box):
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
+            if isinstance(rl_actions, dict):
+                for key, action in rl_actions.items():
+                    rl_actions[key] = np.clip(
+                        action,
+                        a_min=self.action_space.low,
+                        a_max=self.action_space.high)
+            else:
+                rl_actions = np.clip(
+                    rl_actions,
+                    a_min=self.action_space.low,
+                    a_max=self.action_space.high)
 
         self._apply_rl_actions(rl_actions)
 

@@ -69,17 +69,12 @@ class AccelEnv(Env):
     def observation_space(self):
         """See class definition."""
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(
+        state = Box(
             low=0,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(2*self.vehicles.num_vehicles, ),
             dtype=np.float32)
-        pos = Box(
-            low=0.,
-            high=1,
-            shape=(self.vehicles.num_vehicles, ),
-            dtype=np.float32)
-        return Tuple((speed, pos))
+        return state
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -112,3 +107,37 @@ class AccelEnv(Env):
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
                 self.vehicles.set_observed(veh_id)
+
+
+class MultiAgentAccelEnv(AccelEnv):
+    def _apply_rl_actions(self, rl_actions):
+        """See class definition."""
+        sorted_rl_ids = [
+            veh_id for veh_id in self.sorted_ids
+            if veh_id in self.vehicles.get_rl_ids()
+        ]
+        av_action = rl_actions[0]
+        adv_action = rl_actions[1]
+        rl_action = av_action + 0.1*adv_action
+        self.apply_acceleration(sorted_rl_ids, rl_action)
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
+        if self.env_params.evaluate:
+            reward = np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
+            return {0: reward, 1: -reward}
+        else:
+            reward = rewards.desired_velocity(self, fail=kwargs["fail"])
+            return {0: reward, 1: -reward}
+
+    def get_state(self, **kwargs):
+        """See class definition."""
+        # speed normalizer
+        max_speed = self.scenario.max_speed
+        state = np.array([[
+            self.vehicles.get_speed(veh_id) / max_speed,
+            self.get_x_by_id(veh_id) / self.scenario.length
+        ] for veh_id in self.sorted_ids])
+        state = np.ndarray.flatten(state)
+        # FIXME we are returning names we shouldn't return
+        return {0: state, 1: state}

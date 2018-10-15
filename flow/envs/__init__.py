@@ -9,6 +9,7 @@ from flow.envs.green_wave_env import TrafficLightGridEnv, \
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
     LaneChangeAccelPOEnv
 from flow.envs.loop.loop_accel import AccelEnv
+from flow.envs.loop.loop_accel import MultiAgentAccelEnv
 from flow.envs.loop.loop_merges import TwoLoopsMergePOEnv
 from flow.envs.loop.wave_attenuation import WaveAttenuationEnv, \
     WaveAttenuationPOEnv
@@ -20,5 +21,6 @@ __all__ = [
     "GreenWaveTestEnv", "GreenWaveTestEnv", "WaveAttenuationMergePOEnv",
     "TwoLoopsMergePOEnv", "BottleneckEnv", "BottleNeckAccelEnv",
     "WaveAttenuationEnv", "WaveAttenuationPOEnv", "TrafficLightGridEnv",
-    "PO_TrafficLightGridEnv", "DesiredVelocityEnv", "TestEnv", "BayBridgeEnv"
+    "PO_TrafficLightGridEnv", "DesiredVelocityEnv", "TestEnv", "BayBridgeEnv",
+    "MultiAgentAccelEnv"
 ]
