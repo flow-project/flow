@@ -455,12 +455,13 @@ class Env(gym.Env, Serializable, MultiAgentEnv):
 
             # stop collecting new simulation steps if there is a collision
             if crash:
+                done = True
                 break
 
         if isinstance(self.get_state(), dict):
             self.state = {}
             next_observation = {}
-            crash = {}
+            done = {}
             infos = {}
             temp_state = self.get_state()
             for key, state in temp_state.items():
@@ -472,10 +473,12 @@ class Env(gym.Env, Serializable, MultiAgentEnv):
                 next_observation[key] = np.copy(self.state[key])
 
                 # test if a crash has occurred
-                crash[key] = crash
+                done[key] = crash
                 # check if an agent is done
                 if crash:
-                    crash["__all__"] = True
+                    done["__all__"] = True
+                else:
+                    done["__all__"] = False
                 infos[key] = {}
 
             reward = self.compute_reward(self.state, rl_actions, fail=crash)
@@ -494,7 +497,7 @@ class Env(gym.Env, Serializable, MultiAgentEnv):
             # compute the info for each agent
             infos = {}
 
-        return next_observation, reward, crash, infos
+        return next_observation, reward, done, infos
 
     def reset(self):
         """Reset the environment.

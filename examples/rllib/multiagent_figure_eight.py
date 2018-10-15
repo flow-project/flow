@@ -102,7 +102,7 @@ if __name__ == "__main__":
     # config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     # config["kl_target"] = 0.02
     # config["num_sgd_iter"] = 10
-    # config["horizon"] = HORIZON
+    config["horizon"] = HORIZON
     config["observation_filter"] = "NoFilter"
 
     # save the flow params for replay
@@ -137,18 +137,12 @@ if __name__ == "__main__":
 
 
     def policy_mapping_fn(agent_id):
-        import ipdb; ipdb.set_trace()
-        # if agent_id % 2 == 0:
-        #     return "av"
-        # else:
-        #     return "adversary"
-        return agent_id
+        return "policy_{}".format(agent_id)
 
     policy_ids = list(policy_graphs.keys())
     config.update({"multiagent": {
                     "policy_graphs": policy_graphs,
-                    "policy_mapping_fn": tune.function(
-                        lambda agent_id: random.choice(policy_ids))
+                    "policy_mapping_fn": tune.function(policy_mapping_fn)
                 }})
 
     run_experiments({
@@ -156,7 +150,7 @@ if __name__ == "__main__":
             "run": "PPO",
             "env": env_name,
             "stop": {
-                "training_iteration": 1
+                "training_iteration": 2
             },
             "config": config,
             },
