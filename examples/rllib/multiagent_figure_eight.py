@@ -24,7 +24,7 @@ HORIZON = 1500
 # number of rollouts per training iteration
 N_ROLLOUTS = 8
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 4
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -89,7 +89,7 @@ flow_params = dict(
 )
 
 if __name__ == "__main__":
-    ray.init(num_cpus=4, redirect_output=False)
+    ray.init()
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["num_workers"] = N_CPUS
@@ -150,7 +150,7 @@ if __name__ == "__main__":
             "run": "PPO",
             "env": env_name,
             "stop": {
-                "training_iteration": 2
+                "training_iteration": 20
             },
             "config": config,
             },
