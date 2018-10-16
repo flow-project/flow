@@ -29,9 +29,9 @@ os.environ["MULTIAGENT"] = "True"
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 2
+N_ROLLOUTS = 8
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 4
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -72,12 +72,11 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        multiagent=True,
         additional_params={
             "target_velocity": 20,
             "max_accel": 3,
             "max_decel": 3,
-            "perturb_weight": 0.03,
+            "perturb_weight": 0.03
         },
     ),
 
@@ -153,7 +152,7 @@ if __name__ == "__main__":
             "env": env_name,
             "checkpoint_freq": 5,
             "stop": {
-                "training_iteration": 5
+                "training_iteration": 20
             },
             "config": config,
             },

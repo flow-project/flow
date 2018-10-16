@@ -15,8 +15,12 @@ parser : ArgumentParser
 import argparse
 import numpy as np
 import os
+import importlib
+from gym.spaces import Box
+from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
 
 import ray
+from ray import tune
 from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 
@@ -76,6 +80,42 @@ if __name__ == "__main__":
         else args.result_dir[:-1]
 
     config = get_rllib_config(result_dir)
+    agent_module = 'ray.rllib.agents.' + args.run.lower()
+    importlib.import_module(agent_module)
+    if 'multiagent' in config.keys():
+        multiagent = True
+        # for key, items in config['multiagent']['policy_graphs'].items():
+        #     temp = []
+        #     for item in items:
+        #         import ipdb; ipdb.set_trace()
+        #         temp.append(eval(item))
+        #         import ipdb; ipdb.set_trace()
+        #     config['multiagent']['policy_graphs'][key] = tuple(temp)
+        del config['multiagent']
+
+        # FIXME temporarily copied over the graph
+        obs_space = Box(low = -1, high = 1, shape=(28,))
+        act_space = Box(low = -1, high = 1, shape=(1,))
+
+
+        def policy_mapping_fn(agent_id):
+            return agent_id
+
+        def gen_policy():
+            return (PPOPolicyGraph, obs_space, act_space, {})
+
+
+        # Setup PG with an ensemble of `num_policies` different policy graphs
+        policy_graphs = {
+            "av": gen_policy(),
+            "adversary": gen_policy()
+        }
+        config.update({"multiagent": {
+            "policy_graphs": policy_graphs,
+            "policy_mapping_fn": tune.function(policy_mapping_fn)
+        }})
+    else:
+        multiagent = False
 
     # Run on only one cpu for rendering purposes
     ray.init(num_cpus=1)
@@ -124,16 +164,10 @@ if __name__ == "__main__":
     env = env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
-    # Run the environment in the presence of the pre-trained RL agent for the
-    # requested number of time steps / rollouts
-    # backwards compatibility
-    if hasattr(env_params, 'multiagent'):
-        multiagent = True
-    else:
-        multiagent = False
     if multiagent:
         rets = {}
-        for key in config["policy_graphs"].keys():
+        ids = config["multiagent"]["policy_graphs"].keys()
+        for key in config["multiagent"]["policy_graphs"].keys():
             rets[key] = []
     else:
         rets = []
@@ -151,15 +185,24 @@ if __name__ == "__main__":
         for _ in range(env_params.horizon):
             vehicles = env.vehicles
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
-            action = agent.compute_action(state)
+            if multiagent:
+                action = {}
+                for id in ids:
+                    action[id] = agent.compute_action(state[id], policy_id=id)
+            else:
+                action = agent.compute_action(state)
+            print(action)
             state, reward, done, _ = env.step(action)
             if multiagent:
-                for agent, rew in reward.items():
-                    ret[agent] += rew
+                for actor, rew in reward.items():
+                    ret[actor] += rew
             else:
                 ret += reward
-            if done:
+            if multiagent and done['__all__']:
                 break
+            if not multiagent and done:
+                break
+
         if multiagent:
             for key in rets.keys():
                 rets[key].append(ret[key])

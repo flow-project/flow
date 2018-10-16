@@ -107,8 +107,7 @@ class EnvParams:
                  sort_vehicles=False,
                  warmup_steps=0,
                  sims_per_step=1,
-                 evaluate=False,
-                 multiagent=False):
+                 evaluate=False):
         """Instantiate EnvParams.
 
         Attributes
@@ -142,10 +141,6 @@ class EnvParams:
                 flag indicating that the evaluation reward should be used
                 so the evaluation reward should be used rather than the
                 normal reward
-            multiagent: bool, option
-                flag indicating that we should be treating things as a
-                multiagent env
-
         """
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
@@ -156,7 +151,6 @@ class EnvParams:
         self.warmup_steps = warmup_steps
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate
-        self.multiagent = multiagent
 
     def get_additional_param(self, key):
         """Return a variable from additional_params."""

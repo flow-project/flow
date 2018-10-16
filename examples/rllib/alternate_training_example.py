@@ -72,7 +72,6 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        multiagent=True,
         additional_params={
             "target_velocity": 20,
             "max_accel": 3,
