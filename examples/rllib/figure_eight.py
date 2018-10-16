@@ -4,15 +4,20 @@ import json
 
 import ray
 import ray.rllib.agents.ppo as ppo
-from ray.tune import run_experiments
 from ray.tune.registry import register_env
+from ray.tune import run_experiments
 
+from flow.controllers import ContinuousRouter
+from flow.controllers import IDMController
+from flow.controllers import RLController
+from flow.core.params import EnvParams
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoParams
+from flow.core.vehicles import Vehicles
+from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1500

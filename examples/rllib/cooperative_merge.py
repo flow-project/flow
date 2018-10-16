@@ -13,10 +13,16 @@ import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
-from flow.controllers import RLController, IDMController, ContinuousRouter, \
-    SumoLaneChangeController
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams, \
-    SumoParams, EnvParams, InitialConfig, NetParams
+from flow.controllers import RLController
+from flow.controllers import IDMController
+from flow.controllers import ContinuousRouter
+from flow.controllers import SumoLaneChangeController
+from flow.core.params import SumoCarFollowingParams
+from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoParams
+from flow.core.params import EnvParams
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.vehicles import Vehicles
