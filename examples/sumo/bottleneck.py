@@ -94,7 +94,9 @@ class BottleneckDensityExperiment(SumoExperiment):
         info_dict["velocities"] = vels
         info_dict["mean_returns"] = mean_rets
         info_dict["per_step_returns"] = ret_lists
-        info_dict["average_rollout_outflow"] = np.mean(mean_outflows)
+        info_dict["average_outflow"] = np.mean(mean_outflows)
+        info_dict["per_rollout_outflows"] = mean_outflows
+
         info_dict["average_rollout_density_outflow"] = np.mean(mean_densities)
 
         print("Average, std return: {}, {}".format(
