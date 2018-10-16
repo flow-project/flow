@@ -118,7 +118,7 @@ class BottleneckDensityExperiment(SumoExperiment):
 
 
 
-def bottleneck_example(flow_rate, horizon, render=None):
+def bottleneck_example(flow_rate, horizon, enable_lane_changing=False, render=None):
     """
     Perform a simulation of vehicles on a bottleneck.
 
@@ -148,12 +148,16 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     vehicles = Vehicles()
 
+    lane_change_mode = 512
+    if enable_lane_changing:
+        lane_change_mode = 1621
+
     vehicles.add(
         veh_id="human",
-        speed_mode=25,
+        speed_mode="all_checks",
         lane_change_controller=(SumoLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
-        lane_change_mode=1621,
+        lane_change_mode=lane_change_mode,
         num_vehicles=1)
 
     additional_env_params = {
