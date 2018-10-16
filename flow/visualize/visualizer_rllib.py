@@ -78,8 +78,9 @@ if __name__ == "__main__":
     config = get_rllib_config(result_dir)
     pkl = get_rllib_pkl(result_dir)
 
-    # check if we have a multiagent scenario
-    if config['multiagent']['policies_to_train'] is not None:
+    # check if we have a multiagent scenario but in a
+    # backwards compatible way
+    if config.get('multiagent', {}).get('policy_graphs', {}):
         multiagent = True
         config['multiagent'] = pkl['multiagent']
 
