@@ -78,8 +78,8 @@ if __name__ == "__main__":
     config = get_rllib_config(result_dir)
     pkl = get_rllib_pkl(result_dir)
 
-    # check if we need to fix up the multiagent config
-    if 'multiagent' in config.keys():
+    # check if we have a multiagent scenario
+    if config['multiagent']['policies_to_train'] is not None:
         multiagent = True
         config['multiagent'] = pkl['multiagent']
 
@@ -161,7 +161,6 @@ if __name__ == "__main__":
                                                             policy_id=agent_id)
             else:
                 action = agent.compute_action(state)
-            print(action)
             state, reward, done, _ = env.step(action)
             if multiagent:
                 for actor, rew in reward.items():
