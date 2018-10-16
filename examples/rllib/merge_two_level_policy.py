@@ -14,7 +14,7 @@ def choose_policy(inputs):
     return tf.cast(inputs[:, 7] > 0.482496, tf.int32)
 """
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     config = ppo.DEFAULT_CONFIG.copy()
     horizon = HORIZON
     num_cpus = 2
@@ -22,32 +22,33 @@ if __name__ == "__main__":
 
     ray.init(num_cpus=num_cpus, redirect_output=True)
 
-    config["num_workers"] = num_cpus
-    config["timesteps_per_batch"] = horizon * n_rollouts
-    config["gamma"] = 0.999  # discount rate
+    config['num_workers'] = num_cpus
+    config['timesteps_per_batch'] = horizon * n_rollouts
+    config['gamma'] = 0.999  # discount rate
 
-    config["lambda"] = 0.97
-    config["sgd_minibatch_size"] = min(16 * 1024, config["timesteps_per_batch"])
-    config["kl_target"] = 0.00002
-    config["num_sgd_iter"] = 30
-    config["horizon"] = horizon
+    config['lambda'] = 0.97
+    config['sgd_minibatch_size'] = min(16 * 1024,
+                                       config['timesteps_per_batch'])
+    config['kl_target'] = 0.00002
+    config['num_sgd_iter'] = 30
+    config['horizon'] = horizon
 
     # Two-level policy parameters
-    config["model"].update({"fcnet_hiddens": [32, 32]})
+    config['model'].update({'fcnet_hiddens': [32, 32]})
 
     options = {
-        "num_subpolicies": 2,
-        "fn_choose_subpolicy": fn_choose_subpolicy,
-        "hierarchical_fcnet_hiddens": [[32, 32]] * 2
+        'num_subpolicies': 2,
+        'fn_choose_subpolicy': fn_choose_subpolicy,
+        'hierarchical_fcnet_hiddens': [[32, 32]] * 2
     }
-    config["model"].update({"custom_options": options})
+    config['model'].update({'custom_options': options})
 
-    flow_env_name = "TwoLoopsMergePOEnv"
-    exp_tag = "merge_two_level_policy_example"
+    flow_env_name = 'TwoLoopsMergePOEnv'
+    exp_tag = 'merge_two_level_policy_example'
     this_file = os.path.basename(__file__)[:-3]  # filename without '.py'
-    flow_params["flowenv"] = flow_env_name
-    flow_params["exp_tag"] = exp_tag
-    flow_params["module"] = os.path.basename(__file__)[:-3]
+    flow_params['flowenv'] = flow_env_name
+    flow_params['exp_tag'] = exp_tag
+    flow_params['module'] = os.path.basename(__file__)[:-3]
     config['model']['custom_options'].update({
         'flowenv': flow_env_name,
         'exp_tag': exp_tag,

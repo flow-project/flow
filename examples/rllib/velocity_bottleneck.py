@@ -34,14 +34,14 @@ AV_FRAC = 0.10
 
 vehicles = Vehicles()
 vehicles.add(
-    veh_id="human",
-    speed_mode="all_checks",
+    veh_id='human',
+    speed_mode='all_checks',
     lane_change_controller=(SumoLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     lane_change_mode=0,
     num_vehicles=1 * SCALING)
 vehicles.add(
-    veh_id="followerstopper",
+    veh_id='followerstopper',
     acceleration_controller=(RLController, {}),
     lane_change_controller=(SumoLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
@@ -49,21 +49,21 @@ vehicles.add(
     lane_change_mode=0,
     num_vehicles=1 * SCALING)
 
-controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
-                       ("4", 2, True), ("5", 1, False)]
-num_observed_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 3), ("5", 1)]
+controlled_segments = [('1', 1, False), ('2', 2, True), ('3', 2, True),
+                       ('4', 2, True), ('5', 1, False)]
+num_observed_segments = [('1', 1), ('2', 3), ('3', 3), ('4', 3), ('5', 1)]
 additional_env_params = {
-    "target_velocity": 40,
-    "disable_tb": True,
-    "disable_ramp_metering": True,
-    "controlled_segments": controlled_segments,
-    "symmetric": False,
-    "observed_segments": num_observed_segments,
-    "reset_inflow": False,
-    "lane_change_duration": 5,
-    "max_accel": 3,
-    "max_decel": 3,
-    "inflow_range": [1000, 2000]
+    'target_velocity': 40,
+    'disable_tb': True,
+    'disable_ramp_metering': True,
+    'controlled_segments': controlled_segments,
+    'symmetric': False,
+    'observed_segments': num_observed_segments,
+    'reset_inflow': False,
+    'lane_change_duration': 5,
+    'max_accel': 3,
+    'max_decel': 3,
+    'inflow_range': [1000, 2000]
 }
 
 # flow rate
@@ -72,25 +72,25 @@ flow_rate = 1900 * SCALING
 # percentage of flow coming out of each lane
 inflow = InFlows()
 inflow.add(
-    veh_type="human",
-    edge="1",
+    veh_type='human',
+    edge='1',
     vehs_per_hour=flow_rate * (1 - AV_FRAC),
-    departLane="random",
+    departLane='random',
     departSpeed=10)
 inflow.add(
-    veh_type="followerstopper",
-    edge="1",
+    veh_type='followerstopper',
+    edge='1',
     vehs_per_hour=flow_rate * AV_FRAC,
-    departLane="random",
+    departLane='random',
     departSpeed=10)
 
 traffic_lights = TrafficLights()
 if not DISABLE_TB:
-    traffic_lights.add(node_id="2")
+    traffic_lights.add(node_id='2')
 if not DISABLE_RAMP_METER:
-    traffic_lights.add(node_id="3")
+    traffic_lights.add(node_id='3')
 
-additional_net_params = {"scaling": SCALING}
+additional_net_params = {'scaling': SCALING}
 net_params = NetParams(
     inflows=inflow,
     no_internal_links=False,
@@ -98,16 +98,16 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="DesiredVelocity",
+    exp_tag='DesiredVelocity',
 
     # name of the flow environment the experiment is running on
-    env_name="DesiredVelocityEnv",
+    env_name='DesiredVelocityEnv',
 
     # name of the scenario class the experiment is running on
-    scenario="BottleneckScenario",
+    scenario='BottleneckScenario',
 
     # name of the generator used to create/modify network configuration files
-    generator="BottleneckGenerator",
+    generator='BottleneckGenerator',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -140,10 +140,10 @@ flow_params = dict(
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
     initial=InitialConfig(
-        spacing="uniform",
+        spacing='uniform',
         min_gap=5,
-        lanes_distribution=float("inf"),
-        edges_distribution=["2", "3", "4", "5"],
+        lanes_distribution=float('inf'),
+        edges_distribution=['2', '3', '4', '5'],
     ),
 
     # traffic lights to be introduced to specific nodes (see
@@ -155,15 +155,15 @@ if __name__ == '__main__':
     ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = N_CPUS  # number of parallel rollouts
-    config["train_batch_size"] = HORIZON * N_ROLLOUTS
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [64, 64]})
-    config["lambda"] = 0.99
-    config["sgd_minibatch_size"] = min(16 * 1024, config["train_batch_size"])
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 30
-    config["horizon"] = HORIZON
+    config['num_workers'] = N_CPUS  # number of parallel rollouts
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['gamma'] = 0.999  # discount rate
+    config['model'].update({'fcnet_hiddens': [64, 64]})
+    config['lambda'] = 0.99
+    config['sgd_minibatch_size'] = min(16 * 1024, config['train_batch_size'])
+    config['kl_target'] = 0.02
+    config['num_sgd_iter'] = 30
+    config['horizon'] = HORIZON
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -176,16 +176,16 @@ if __name__ == '__main__':
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        flow_params["exp_tag"]: {
-            "run": "PPO",
-            "env": "DesiredVelocityEnv-v0",
-            "config": {
+        flow_params['exp_tag']: {
+            'run': 'PPO',
+            'env': 'DesiredVelocityEnv-v0',
+            'config': {
                 **config
             },
-            "checkpoint_freq": 20,
-            "max_failures": 999,
-            "stop": {
-                "training_iteration": 400,
+            'checkpoint_freq': 20,
+            'max_failures': 999,
+            'stop': {
+                'training_iteration': 400,
             },
         }
     })

@@ -24,32 +24,32 @@ N_CPUS = 2
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
 vehicles.add(
-    veh_id="human",
+    veh_id='human',
     acceleration_controller=(IDMController, {
-        "noise": 0.2
+        'noise': 0.2
     }),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode="no_collide",
+    speed_mode='no_collide',
     num_vehicles=13)
 vehicles.add(
-    veh_id="rl",
+    veh_id='rl',
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode="no_collide",
+    speed_mode='no_collide',
     num_vehicles=1)
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="figure_eight_intersection_control",
+    exp_tag='figure_eight_intersec_control',
 
     # name of the flow environment the experiment is running on
-    env_name="AccelEnv",
+    env_name='AccelEnv',
 
     # name of the scenario class the experiment is running on
-    scenario="Figure8Scenario",
+    scenario='Figure8Scenario',
 
     # name of the generator used to create/modify network configuration files
-    generator="Figure8Generator",
+    generator='Figure8Generator',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -61,9 +61,9 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         additional_params={
-            "target_velocity": 20,
-            "max_accel": 3,
-            "max_decel": 3,
+            'target_velocity': 20,
+            'max_accel': 3,
+            'max_decel': 3,
         },
     ),
 
@@ -83,21 +83,21 @@ flow_params = dict(
     initial=InitialConfig(),
 )
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     ray.init(num_cpus=N_CPUS+1, redirect_output=False)
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = N_CPUS
-    config["train_batch_size"] = HORIZON * N_ROLLOUTS
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
-    config["use_gae"] = True
-    config["lambda"] = 0.97
-    config["sgd_minibatch_size"] = min(16 * 1024, config["train_batch_size"])
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
-    config["horizon"] = HORIZON
-    config["observation_filter"] = "NoFilter"
+    config['num_workers'] = N_CPUS
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['gamma'] = 0.999  # discount rate
+    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    config['use_gae'] = True
+    config['lambda'] = 0.97
+    config['sgd_minibatch_size'] = min(16 * 1024, config['train_batch_size'])
+    config['kl_target'] = 0.02
+    config['num_sgd_iter'] = 10
+    config['horizon'] = HORIZON
+    config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -110,17 +110,17 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        flow_params["exp_tag"]: {
-            "run": "PPO",
-            "env": env_name,
-            "config": {
+        flow_params['exp_tag']: {
+            'run': 'PPO',
+            'env': env_name,
+            'config': {
                 **config
             },
-            "checkpoint_freq": 1,
-            "max_failures": 999,
-            "stop": {
-                "training_iteration": 200
+            'checkpoint_freq': 1,
+            'max_failures': 999,
+            'stop': {
+                'training_iteration': 200
             },
-            "num_samples": 1,
+            'num_samples': 1,
         },
     })
