@@ -15,18 +15,14 @@ parser : ArgumentParser
 import argparse
 import numpy as np
 import os
-import importlib
-from gym.spaces import Box
-from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
 
 import ray
-from ray import tune
 from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
-from flow.core.util import get_rllib_config
+from flow.core.util import get_rllib_config, get_rllib_pkl
 from flow.core.util import emission_to_csv
 
 EXAMPLE_USAGE = """
@@ -80,40 +76,13 @@ if __name__ == "__main__":
         else args.result_dir[:-1]
 
     config = get_rllib_config(result_dir)
-    agent_module = 'ray.rllib.agents.' + args.run.lower()
-    importlib.import_module(agent_module)
+    pkl = get_rllib_pkl(result_dir)
+
+    # check if we need to fix up the multiagent config
     if 'multiagent' in config.keys():
         multiagent = True
-        # for key, items in config['multiagent']['policy_graphs'].items():
-        #     temp = []
-        #     for item in items:
-        #         import ipdb; ipdb.set_trace()
-        #         temp.append(eval(item))
-        #         import ipdb; ipdb.set_trace()
-        #     config['multiagent']['policy_graphs'][key] = tuple(temp)
-        del config['multiagent']
+        config['multiagent'] = pkl['multiagent']
 
-        # FIXME temporarily copied over the graph
-        obs_space = Box(low = -1, high = 1, shape=(28,))
-        act_space = Box(low = -1, high = 1, shape=(1,))
-
-
-        def policy_mapping_fn(agent_id):
-            return agent_id
-
-        def gen_policy():
-            return (PPOPolicyGraph, obs_space, act_space, {})
-
-
-        # Setup PG with an ensemble of `num_policies` different policy graphs
-        policy_graphs = {
-            "av": gen_policy(),
-            "adversary": gen_policy()
-        }
-        config.update({"multiagent": {
-            "policy_graphs": policy_graphs,
-            "policy_mapping_fn": tune.function(policy_mapping_fn)
-        }})
     else:
         multiagent = False
 
@@ -187,8 +156,9 @@ if __name__ == "__main__":
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             if multiagent:
                 action = {}
-                for id in ids:
-                    action[id] = agent.compute_action(state[id], policy_id=id)
+                for agent_id in ids:
+                    action[agent_id] = agent.compute_action(state[agent_id],
+                                                            policy_id=agent_id)
             else:
                 action = agent.compute_action(state)
             print(action)

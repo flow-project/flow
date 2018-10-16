@@ -22,8 +22,6 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 
-import gym
-
 os.environ["MULTIAGENT"] = "True"
 
 # time horizon of a single rollout
@@ -103,13 +101,13 @@ if __name__ == "__main__":
     config["num_workers"] = N_CPUS
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["simple_optimizer"] = True
-    # config["gamma"] = 0.999  # discount rate
-    # config["model"].update({"fcnet_hiddens": [100, 50, 25]})
-    # config["use_gae"] = True
-    # config["lambda"] = 0.97
-    # config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
-    # config["kl_target"] = 0.02
-    # config["num_sgd_iter"] = 10
+    config["gamma"] = 0.999  # discount rate
+    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
+    config["use_gae"] = True
+    config["lambda"] = 0.97
+    config["sgd_batchsize"] = min(16 * 1024, config["train_batch_size"])
+    config["kl_target"] = 0.02
+    config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
     config["observation_filter"] = "NoFilter"
 
@@ -150,9 +148,9 @@ if __name__ == "__main__":
         flow_params["exp_tag"]: {
             "run": "PPO",
             "env": env_name,
-            "checkpoint_freq": 5,
+            "checkpoint_freq": 1,
             "stop": {
-                "training_iteration": 20
+                "training_iteration": 1
             },
             "config": config,
             },

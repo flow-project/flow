@@ -10,6 +10,7 @@ import csv
 import errno
 import importlib
 import json
+import dill
 import os
 from lxml import etree
 from xml.etree import ElementTree
@@ -220,6 +221,14 @@ def get_rllib_config(path):
     jsonfile = path + '/params.json'  # params.json is the config file
     jsondata = json.loads(open(jsonfile).read())
     return jsondata
+
+
+def get_rllib_pkl(path):
+    """Return the data from the specified rllib configuration file."""
+    pklfile = path + '/params.pkl'  # params.json is the config file
+    with open(pklfile, 'rb') as file:
+        pkldata = dill.load(file)
+    return pkldata
 
 
 def get_flow_params(config):
