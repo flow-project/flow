@@ -131,20 +131,18 @@ if __name__ == "__main__":
         return (PPOPolicyGraph, obs_space, act_space, {})
 
     # Setup PG with an ensemble of `num_policies` different policy graphs
-    policy_graphs = {
-        "av": gen_policy(),
-        "adversary": gen_policy()
-    }
-
+    policy_graphs = {"av": gen_policy(), "adversary": gen_policy()}
 
     def policy_mapping_fn(agent_id):
         return agent_id
 
     policy_ids = list(policy_graphs.keys())
-    config.update({"multiagent": {
-                    "policy_graphs": policy_graphs,
-                    "policy_mapping_fn": tune.function(policy_mapping_fn)
-                }})
+    config.update({
+        "multiagent": {
+            "policy_graphs": policy_graphs,
+            "policy_mapping_fn": tune.function(policy_mapping_fn)
+        }
+    })
 
     run_experiments({
         flow_params["exp_tag"]: {
@@ -155,5 +153,5 @@ if __name__ == "__main__":
                 "training_iteration": 20
             },
             "config": config,
-            },
+        },
     })
