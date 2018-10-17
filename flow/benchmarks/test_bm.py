@@ -5,7 +5,7 @@ Attributes
 EXAMPLE_USAGE : str
     Example call to the function, which is
     ::
-        python test_bm.py bottleneck0 solution_dir/bottleneck_env.py 
+        python test_bm.py bottleneck0 solution_dir/bottleneck_env.py
 
 parser : ArgumentParser
     Command-line argument parser
@@ -64,18 +64,18 @@ if __name__ == "__main__":
         config_path = solution_dir + "/solution_config."
         try:
             solution_config = yaml.load(open(config_path + "yaml"))
-        except:
+        except Exception as e:
             try:
                 solution_config = yaml.load(open(config_path + "yml"))
-            except:
-                raise RuntimeError("Failed to find and load" + \
-                    "solution_config.yaml or solution_config.yml")
+            except Exception as e:
+                raise RuntimeError("Failed to find and load solution_config" +
+                                   ".yaml or solution_config.yml")
 
         benchmark_name = solution_config['benchmark']
         env_file_path = solution_config['env_file_path']
         if env_file_path[-3:] != '.py':
-            raise ValueError("Filepath for env does not point to a " + \
-                "python file.")
+            raise ValueError("Filepath for env does not point to a " +
+                             "python file.")
         split = 0
         if '/' in env_file_path:
             split = env_file_path.rfind('/') + 1
@@ -89,7 +89,8 @@ if __name__ == "__main__":
             checkpoint_name = solution_config['checkpoint_name']
 
         # Import the benchmark and fetch its flow_params
-        benchmark = __import__("flow.benchmarks.%s"%benchmark_name, fromlist=["flow_params"])
+        benchmark = __import__(
+            "flow.benchmarks.%s" % benchmark_name, fromlist=["flow_params"])
         flow_params = benchmark.flow_params
 
         # Recreate the scenario from the named benchmark
@@ -97,9 +98,11 @@ if __name__ == "__main__":
         net_params = flow_params['net']
         vehicles = flow_params['veh']
         initial_config = flow_params['initial']
-        module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
+        module = __import__(
+            "flow.scenarios", fromlist=[flow_params["scenario"]])
         scenario_class = getattr(module, flow_params["scenario"])
-        module = __import__("flow.scenarios", fromlist=[flow_params["generator"]])
+        module = __import__(
+            "flow.scenarios", fromlist=[flow_params["generator"]])
         generator_class = getattr(module, flow_params["generator"])
 
         scenario = scenario_class(
@@ -120,13 +123,15 @@ if __name__ == "__main__":
         spec.loader.exec_module(module)
         env_class = getattr(module, env_name)
 
-        env = env_class(env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env = env_class(
+            env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
         # Determine a compute_action method. If using RLlib, restore an agent
         # accordingly and initialize Ray.
         compute_action = None
         if rllib_sol:
-            # Create and register a gym+rllib env using flow params from named benchmark
+            # Create and register a gym+rllib env using flow params from
+            # the named benchmark
             create_env, gym_env_name = make_create_env(
                 params=flow_params, version=0, render=False)
             register_env(gym_env_name, create_env)
@@ -145,8 +150,8 @@ if __name__ == "__main__":
         reward_env = getattr(flow.envs, flow_params['env_name'])
         env.compute_reward = MethodType(reward_env.compute_reward, env)
 
-        # Run the environment in the presence of the pre-trained RL agent for the
-        # requested number of time steps / rollouts
+        # Run the environment in the presence of the pre-trained RL agent for
+        # the requested number of time steps / rollouts
         rets = []
         for _ in range(args.num_rollouts):
             state = env.reset()
@@ -160,7 +165,8 @@ if __name__ == "__main__":
                     break
             rets.append(round(ret, 2))
             print("Reward:", round(ret, 2))
-        print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
+        print("Average, std return: {}, {}".format(
+            np.mean(rets), np.std(rets)))
 
         # terminate the environment
         env.terminate()
