@@ -9,7 +9,7 @@ from rllab and rllib.
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
-from flow.utils.rllib import get_rllib_config, get_flow_params
+from flow.utils.rllib import get_flow_params
 from flow.utils.registry import make_create_env
 
 from flow.benchmarks.grid0 import flow_params as grid0
@@ -29,6 +29,7 @@ from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env
 import numpy as np
 import joblib
+import json
 
 # number of simulations to execute when computing performance scores
 NUM_RUNS = 10
@@ -47,6 +48,13 @@ AVAILABLE_BENCHMARKS = {
     "merge1": merge1,
     "merge2": merge2
 }
+
+
+def get_rllib_config(path):
+    """Returns the config data from the params.json file created by RLlib."""
+    jsonfile = path + '/params.json'  # params.json is the config file
+    jsondata = json.loads(open(jsonfile).read())
+    return jsondata
 
 
 def evaluate_policy(benchmark, _get_actions, _get_states=None):

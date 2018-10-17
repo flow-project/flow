@@ -13,8 +13,6 @@ parser : ArgumentParser
 
 import argparse
 import numpy as np
-import os
-import sys
 import yaml
 
 from types import MethodType
@@ -25,7 +23,6 @@ from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
-from flow.utils.rllib import get_flow_params
 import flow.envs
 from flow.envs.base_env import Env
 
@@ -34,7 +31,7 @@ example usage:
     python test_bm.py solution_dir
 
 Here the argument is:
-solution_dir - a directory containig an env and (optionally) a TensorFlow checkpoint
+solution_dir - a directory containing the submission env and auxiliary files
 """
 
 parser = argparse.ArgumentParser(
@@ -53,38 +50,40 @@ parser.add_argument(
     default=10,
     help="The number of rollouts to average over.")
 
-
-
 if __name__ == "__main__":
     args = parser.parse_args()
     solution_dir = args.solution_dir
 
     # Automatically create file indicating failure, to be overwritten
     # at the end of the script if everything runs correctly
-    result_file = open("%s/results.txt"%solution_dir, "w")
+    result_file = open(solution_dir + "/results.txt", "w")
     result_file.write('FAILED\n')
-    
+
     try:
         # Parse arguments
+        config_path = solution_dir + "/solution_config."
         try:
-            solution_config = yaml.load(open("%s/solution_config.yaml"%solution_dir))
+            solution_config = yaml.load(open(config_path + "yaml"))
         except:
             try:
-                solution_config = yaml.load(open("%s/solution_config.yml"%solution_dir))
+                solution_config = yaml.load(open(config_path + "yml"))
             except:
-                raise RuntimeError("Failed to find and load solution_config.yaml or solution_config.yml")
-        
+                raise RuntimeError("Failed to find and load" + \
+                    "solution_config.yaml or solution_config.yml")
+
         benchmark_name = solution_config['benchmark']
         env_file_path = solution_config['env_file_path']
         if env_file_path[-3:] != '.py':
-            raise ValueError("Filepath for env %s does not point to a python file."%env_file_path)
+            raise ValueError("Filepath for env does not point to a " + \
+                "python file.")
         split = 0
         if '/' in env_file_path:
             split = env_file_path.rfind('/') + 1
         env_file_name = env_file_path[split:-3]
         env_name = solution_config['env_name']
 
-        rllib_sol = 'rllib_agent_type' in solution_config and 'checkpoint_name' in solution_config
+        rllib_sol = 'rllib_agent_type' in solution_config \
+            and 'checkpoint_name' in solution_config
         if rllib_sol:
             agent_cls_name = solution_config['rllib_agent_type']
             checkpoint_name = solution_config['checkpoint_name']
@@ -110,7 +109,7 @@ if __name__ == "__main__":
             net_params=net_params,
             initial_config=initial_config)
 
-        # Start the environment 
+        # Start the environment
         env_params = flow_params['env']
         sumo_params = flow_params['sumo']
 
@@ -123,8 +122,8 @@ if __name__ == "__main__":
 
         env = env_class(env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
-        # Determine a compute_action method. If using RLlib, restore an agent 
-        # accordingly and initialize Ray.    
+        # Determine a compute_action method. If using RLlib, restore an agent
+        # accordingly and initialize Ray.
         compute_action = None
         if rllib_sol:
             # Create and register a gym+rllib env using flow params from named benchmark
@@ -139,7 +138,7 @@ if __name__ == "__main__":
             agent._restore(checkpoint)
             compute_action = agent.compute_action
         else:
-            compute_action =  env.restore()
+            compute_action = env.restore()
 
         # Ensure the step method and compute_reward method are not redefined
         env.step = MethodType(Env.step, env)
@@ -166,7 +165,7 @@ if __name__ == "__main__":
         # terminate the environment
         env.terminate()
 
-        result_file = open("%s/results.txt"%solution_dir, "w")
+        result_file = open(solution_dir + "/results.txt", "w")
         result_file.write(str(np.mean(rets).round(4)) + '\n')
         result_file.write(','.join([str(s) for s in rets]))
 

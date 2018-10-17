@@ -848,7 +848,10 @@ class DesiredVelocityEnv(BottleneckEnv):
         """Outflow rate over last ten seconds normalized to max of 1."""
 
         if self.env_params.evaluate:
-            reward = self.vehicles.get_outflow_rate(500)
+            if self.time_counter == self.env_params.horizon:
+                reward = self.vehicles.get_outflow_rate(500)
+            else:
+                return 0
         else:
             reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling)
