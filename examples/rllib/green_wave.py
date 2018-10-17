@@ -165,7 +165,7 @@ flow_params = dict(
 
 if __name__ == "__main__":
     ray.init(num_cpus=N_CPUS+1, redirect_output=True)
-    
+
     alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)
