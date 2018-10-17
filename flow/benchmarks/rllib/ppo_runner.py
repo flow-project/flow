@@ -17,12 +17,12 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
 # use this to specify the environment to run
-from flow.benchmarks.bottleneck0 import flow_params
+from flow.benchmarks.grid1 import flow_params
 
 # number of rollouts per training iteration
-N_ROLLOUTS = 3
+N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 2
 
 if __name__ == "__main__":
     # get the env name and a creator for the environment
@@ -56,12 +56,12 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 1,
+            "checkpoint_freq": 5,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 1
+                "training_iteration": 5
             },
-            "num_samples": 1,
+            "num_samples": 3,
             # "upload_dir": "s3://bucket"
         },
     })

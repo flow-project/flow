@@ -66,8 +66,14 @@ if __name__ == "__main__":
     
     try:
         # Parse arguments
-        solution_config = yaml.load(open("%s/solution_config.yaml"%solution_dir))
-
+        try:
+            solution_config = yaml.load(open("%s/solution_config.yaml"%solution_dir))
+        except:
+            try:
+                solution_config = yaml.load(open("%s/solution_config.yml"%solution_dir))
+            except:
+                raise RuntimeError("Failed to find and load solution_config.yaml or solution_config.yml")
+        
         benchmark_name = solution_config['benchmark']
         env_file_path = solution_config['env_file_path']
         if env_file_path[-3:] != '.py':
