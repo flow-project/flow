@@ -90,47 +90,38 @@ class NetFileGenerator(Generator):
         return routes_data
 
 
-        def specify_routes(self, filename):
-            """ Format all the routes from the xml file
-
-            Parameters
-            ----------
-            filename : str type
-                path to the rou.xml file to load
-
-            Returns
-            -------
-            routes_data : dict <dict>
-                Key = name of the first route taken
-                Element = list of all the routes taken by the vehicle starting in that route
-
-            """
-            return _import_routes_from_net(filename)
-
-        def _import_tls_from_net(self,filename):
-            """Import traffic lights from a configuration file.
-             This is a utility function for computing traffic light information. It imports a
-            network configuration file, and returns the information of the traffic lights in the file.
-
-            Parameters
-            ----------
-            filename : str type
-                path to the rou.xml file to load
-
-             Returns
-            -------
-            tl_logic : TrafficLights
-             """
-
-            # import the .net.xml file containing all edge/type data
-            parser = etree.XMLParser(recover=True)
-            tree = ElementTree.parse(filename, parser=parser)
-            root = tree.getroot()
-
-            # create TrafficLights() class object to store traffic lights information from the file
-            tl_logic = TrafficLights()
-            for tl in root.findall('tlLogic'):
-                phases = [phase.attrib for phase in tl.findall('phase')]
-                tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
-
-            return tl_logic
+    def specify_routes(self, filename):
+        """ Format all the routes from the xml file
+        Parameters
+        ----------
+        filename : str type
+            path to the rou.xml file to load
+        Returns
+        -------
+        routes_data : dict <dict>
+            Key = name of the first route taken
+            Element = list of all the routes taken by the vehicle starting in that route
+        """
+        return _import_routes_from_net(filename)
+    def _import_tls_from_net(self,filename):
+        """Import traffic lights from a configuration file.
+         This is a utility function for computing traffic light information. It imports a
+        network configuration file, and returns the information of the traffic lights in the file.
+        Parameters
+        ----------
+        filename : str type
+            path to the rou.xml file to load
+         Returns
+        -------
+        tl_logic : TrafficLights
+         """
+        # import the .net.xml file containing all edge/type data
+        parser = etree.XMLParser(recover=True)
+        tree = ElementTree.parse(filename, parser=parser)
+        root = tree.getroot()
+        # create TrafficLights() class object to store traffic lights information from the file
+        tl_logic = TrafficLights()
+        for tl in root.findall('tlLogic'):
+            phases = [phase.attrib for phase in tl.findall('phase')]
+            tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
+        return tl_logic
