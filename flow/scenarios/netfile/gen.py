@@ -2,7 +2,7 @@
 
 from flow.core.generator import Generator
 from flow.core.traffic_lights import TrafficLights
-from flow
+
 from lxml import etree
 import xml.etree.ElementTree as ElementTree
 
@@ -129,7 +129,7 @@ class NetFileGenerator(Generator):
 
             # create TrafficLights() class object to store traffic lights information from the file
             tl_logic = TrafficLights()
-             for tl in root.findall('tlLogic'):
+            for tl in root.findall('tlLogic'):
                 phases = [phase.attrib for phase in tl.findall('phase')]
                 tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
 
