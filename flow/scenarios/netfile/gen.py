@@ -102,7 +102,10 @@ class NetFileGenerator(Generator):
             Key = name of the first route taken
             Element = list of all the routes taken by the vehicle starting in that route
         """
-        return _import_routes_from_net(filename)
+
+        routes_data = _import_routes_from_net(filename)
+        return routes_data
+
     def _import_tls_from_net(self,filename):
         """Import traffic lights from a configuration file.
          This is a utility function for computing traffic light information. It imports a
@@ -125,3 +128,25 @@ class NetFileGenerator(Generator):
             phases = [phase.attrib for phase in tl.findall('phase')]
             tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
         return tl_logic
+
+
+    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+        """Generate a user defined set of starting positions.
+        This method is just used for testing.
+        Parameters
+        ----------
+        initial_config : InitialConfig type
+            see flow/core/params.py
+        num_vehicles : int
+            number of vehicles to be placed on the network
+        kwargs : dict
+            extra components, usually defined during reset to overwrite initial
+            config parameters
+        Returns
+        -------
+        startpositions : list of tuple (float, float)
+            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        startlanes : list of int
+            list of start lanes
+        """
+        return kwargs["start_positions"], kwargs["start_lanes"]
