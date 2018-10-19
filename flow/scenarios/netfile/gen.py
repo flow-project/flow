@@ -13,9 +13,9 @@ class NetFileGenerator(Generator):
     """Class used to generate network files from a .net.xml file.
 
     The .net.xml file is specified in the NetParams object. For example:
-
-        >>> from flow.core.params import NetParams
-        >>> net_params = NetParams(netfile="/path/to/netfile.net.xml")
+    
+    >>> from flow.core.params import NetParams
+    >>> net_params = NetParams(netfile="/path/to/netfile.net.xml")
 
     No "specify_nodes" and "specify_edges" routes are needed. However, a
     "specify_routes" file is still needed to specify the appropriate routes
@@ -55,13 +55,13 @@ class NetFileGenerator(Generator):
         Parameters
         ----------
         filename : str type
-            path to the xml file to load
+        path to the xml file to load
 
         Returns
         -------
         routes_data : dict <dict>
-            Key = name of the first route taken
-            Element = list of all the routes taken by the vehicle starting in that route
+        Key = name of the first route taken
+        Element = list of all the routes taken by the vehicle starting in that route
 
         """
         # import the .net.xml file containing all edge/type data
@@ -95,12 +95,12 @@ class NetFileGenerator(Generator):
         Parameters
         ----------
         filename : str type
-            path to the rou.xml file to load
+        path to the rou.xml file to load
         Returns
         -------
         routes_data : dict <dict>
-            Key = name of the first route taken
-            Element = list of all the routes taken by the vehicle starting in that route
+        Key = name of the first route taken
+        Element = list of all the routes taken by the vehicle starting in that route
         """
 
         routes_data = _import_routes_from_net(filename)
@@ -108,16 +108,16 @@ class NetFileGenerator(Generator):
 
     def _import_tls_from_net(self,filename):
         """Import traffic lights from a configuration file.
-         This is a utility function for computing traffic light information. It imports a
+        This is a utility function for computing traffic light information. It imports a
         network configuration file, and returns the information of the traffic lights in the file.
         Parameters
         ----------
         filename : str type
-            path to the rou.xml file to load
-         Returns
+        path to the rou.xml file to load
+        Returns
         -------
         tl_logic : TrafficLights
-         """
+        """
         # import the .net.xml file containing all edge/type data
         parser = etree.XMLParser(recover=True)
         tree = ElementTree.parse(filename, parser=parser)
@@ -129,6 +129,39 @@ class NetFileGenerator(Generator):
             tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
         return tl_logic
 
+    def vehicle_type(self,filename):
+        """Import vehicle type from an xml file .
+        This is a utility function for outputting all the type of vehicle . .
+        Parameters
+        ----------
+        filename : str type
+        path to the vtypes.add.xml file to load
+        Returns
+        -------
+        dict: the key is the vehicle_type id and the value is a dict we've type of the vehicle, depart edges , depart Speed, departPos
+        """
+        parser = etree.XMLParser(recover=True)
+        tree = ElementTree.parse(filename, parser=parser)
+
+        root = tree.getroot()
+        vehicle_type={}
+
+        for transport in rootTypeVehicle.findall('vTypeDistribution'):
+            for vtype in transport.findall('vType'):
+                vClass=vtype.attrib['vClass']
+                id_vehicle=vtype.attrib['id']
+                accel=vtype.attrib['accel']
+                decel=vtype.attrib['decel']
+                sigma=vtype.attrib['sigma']
+                length=vtype.attrib['length']
+                minGap=vtype.attrib['minGap']
+                maxSpeed=vtype.attrib['maxSpeed']
+                probability=vtype.attrib['probability']
+                speedDev=vtype.attrib['speedDev']
+                vehicle_type[id_vehicle]={'vClass':vClass,'accel':accel,'decel':decel,'sigma':sigma,'length':length,'minGap':minGap,'maxSpeed':maxSpeed,'probability':probability,'speedDev':speedDev}
+
+        return vehicle_type
+
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate a user defined set of starting positions.
@@ -136,17 +169,17 @@ class NetFileGenerator(Generator):
         Parameters
         ----------
         initial_config : InitialConfig type
-            see flow/core/params.py
+        see flow/core/params.py
         num_vehicles : int
-            number of vehicles to be placed on the network
+        number of vehicles to be placed on the network
         kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
+        extra components, usually defined during reset to overwrite initial
+        config parameters
         Returns
         -------
         startpositions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
+        list of start positions [(edge0, pos0), (edge1, pos1), ...]
         startlanes : list of int
-            list of start lanes
+        list of start lanes
         """
         return kwargs["start_positions"], kwargs["start_lanes"]
