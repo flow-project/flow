@@ -188,6 +188,6 @@ if __name__ == '__main__':
                 "training_iteration": 400,
             },
             "upload_dir" : "s3://kanaad.experiments",
-            "num_samples": 3
+            "num_samples": 1
         }
     })
