@@ -973,9 +973,13 @@ class MultiBottleneckEnv(BottleneckEnv):
         """See class definition."""
         # action space is speed and velocity of leading and following
         # vehicles for all of the avs
-        lead_follow_dict = {agent: np.concatenate((agent.get_lane_headways(),
-                                                   agent.get_lane_tailways()))
-                            for agent in self.vehicles.get_rl_ids()}
+        veh = self.vehicles
+        lead_follow_dict = {rl_id: np.concatenate((veh.get_lane_headways(rl_id),
+                                                   veh.get_lane_tailways(rl_id),
+                                                   veh.get_lane_leaders_speed(rl_id),
+                                                   veh.get_lane_followers_speed(rl_id)))
+                            for rl_id in self.vehicles.get_rl_ids()}
+
         return lead_follow_dict
 
     def _apply_rl_actions(self, rl_actions):
@@ -987,6 +991,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         """
         rl_ids = rl_actions.keys()
         accel = rl_actions.values()
+        self.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
@@ -999,7 +1004,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         else:
             reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling)
-        return reward
+        return {rl_id: reward for rl_id in rl_actions.keys()}
 
     def reset(self):
         add_params = self.env_params.additional_params
