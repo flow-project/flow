@@ -6,14 +6,13 @@ from flow.core.traffic_lights import TrafficLights
 from lxml import etree
 import xml.etree.ElementTree as ElementTree
 
-E = etree.Element
 
 
 class NetFileGenerator(Generator):
     """Class used to generate network files from a .net.xml file.
 
     The .net.xml file is specified in the NetParams object. For example:
-    
+
     >>> from flow.core.params import NetParams
     >>> net_params = NetParams(netfile="/path/to/netfile.net.xml")
 
@@ -159,7 +158,6 @@ class NetFileGenerator(Generator):
                 probability=vtype.attrib['probability']
                 speedDev=vtype.attrib['speedDev']
                 vehicle_type[id_vehicle]={'vClass':vClass,'accel':accel,'decel':decel,'sigma':sigma,'length':length,'minGap':minGap,'maxSpeed':maxSpeed,'probability':probability,'speedDev':speedDev}
-
         return vehicle_type
 
 
