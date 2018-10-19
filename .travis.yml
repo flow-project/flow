@@ -84,7 +84,7 @@ install:
 before_script:
   - flake8 --show-source
 
-script: coverage run --source cookiecutter setup.py test
+script: coverage nose2
 #script:
 #  - nose2
 
