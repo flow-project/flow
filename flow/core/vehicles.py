@@ -1144,7 +1144,7 @@ class Vehicles:
             edge = self.get_edge(veh_id)
             if edge:
                 headways, tailways, lead_speed, follow_speed, \
-                leaders, followers = \
+                    leaders, followers = \
                     self._multi_lane_headways_util(veh_id, edge_dict,
                                                    num_edges, env)
 
