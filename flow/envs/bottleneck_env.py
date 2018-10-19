@@ -71,12 +71,12 @@ ADDITIONAL_VSL_ENV_PARAMS = {
                             ("4", 1, True), ("5", 1, True)],
     # whether lanes in a segment have the same action or not
     "symmetric":
-    False,
+        False,
     # which edges are observed
     "observed_segments": [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)],
     # whether the inflow should be reset on each rollout
     "reset_inflow":
-    False,
+        False,
     # the range of inflows to reset on
     "inflow_range": [1000, 2000]
 }
@@ -237,7 +237,7 @@ class BottleneckEnv(Env):
             # now implement the integral controller update
             # find all the vehicles in an edge
             q_update = self.feedback_coeff * (
-                self.n_crit - np.average(self.smoothed_num))
+                    self.n_crit - np.average(self.smoothed_num))
             self.q = np.clip(
                 self.q + q_update, a_min=self.q_min, a_max=self.q_max)
             # convert q to cycle time
@@ -340,7 +340,7 @@ class BottleneckEnv(Env):
             veh_ids = [
                 veh_id for veh_id in bottleneck_ids
                 if str(self.vehicles.get_edge(veh_id)) + "_" +
-                str(self.vehicles.get_lane(veh_id)) in lanes
+                   str(self.vehicles.get_lane(veh_id)) in lanes
             ]
         else:
             veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
@@ -358,7 +358,7 @@ class BottleneckEnv(Env):
         return Box(
             low=-float("inf"),
             high=float("inf"),
-            shape=(1, ),
+            shape=(1,),
             dtype=np.float32)
 
     @property
@@ -367,14 +367,14 @@ class BottleneckEnv(Env):
         return Box(
             low=-float("inf"),
             high=float("inf"),
-            shape=(1, ),
+            shape=(1,),
             dtype=np.float32)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """ Outflow rate over last ten seconds normalized to max of 1 """
 
         reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
-            (2000.0 * self.scaling)
+                 (2000.0 * self.scaling)
         return reward
 
     def get_state(self):
@@ -425,9 +425,9 @@ class BottleNeckAccelEnv(BottleneckEnv):
         num_edges = len(self.scenario.get_edge_list())
         num_rl_veh = self.num_rl
         num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
-            * num_rl_veh + 4 * num_rl_veh
+                  * num_rl_veh + 4 * num_rl_veh
 
-        return Box(low=0, high=1, shape=(num_obs, ), dtype=np.float32)
+        return Box(low=0, high=1, shape=(num_obs,), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
@@ -497,13 +497,13 @@ class BottleNeckAccelEnv(BottleneckEnv):
             lane_headways = self.vehicles.get_lane_headways(veh_id)
             lane_tailways = self.vehicles.get_lane_tailways(veh_id)
             headway[0:len(lane_headways)] = (
-                np.asarray(lane_headways) / headway_scale)
+                    np.asarray(lane_headways) / headway_scale)
             tailway[0:len(lane_tailways)] = (
-                np.asarray(lane_tailways) / headway_scale)
+                    np.asarray(lane_tailways) / headway_scale)
             for i, lane_leader in enumerate(lane_leaders):
                 if lane_leader != '':
                     vel_in_front[i] = (
-                        self.vehicles.get_speed(lane_leader) / self.max_speed)
+                            self.vehicles.get_speed(lane_leader) / self.max_speed)
             for i, lane_follower in enumerate(lane_followers):
                 if lane_followers != '':
                     vel_behind[i] = (self.vehicles.get_speed(lane_follower) /
@@ -538,7 +538,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
         lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
         return (rewards.desired_velocity(self) + rewards.rl_forward_progress(
             self, gain=0.1) - rewards.boolean_action_penalty(
-                lane_change_acts, gain=1.0))
+            lane_change_acts, gain=1.0))
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
@@ -619,8 +619,7 @@ class DesiredVelocityEnv(BottleneckEnv):
            that region of space
 
        Rewards
-           The reward is the outflow of the bottleneck plus a reward
-           for RL vehicles making forward progress
+           The reward is the outflow of the bottleneck
     """
 
     def __init__(self, env_params, sumo_params, scenario):
@@ -731,7 +730,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         for segment in self.obs_segments:
             num_obs += 4 * segment[1] * self.scenario.num_lanes(segment[0])
         num_obs += 1
-        return Box(low=0.0, high=1.0, shape=(num_obs, ), dtype=np.float32)
+        return Box(low=0.0, high=1.0, shape=(num_obs,), dtype=np.float32)
 
     @property
     def action_space(self):
@@ -745,7 +744,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     num_lanes = self.scenario.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
         return Box(
-            low=-1.5, high=1.0, shape=(int(action_size), ), dtype=np.float32)
+            low=-1.5, high=1.0, shape=(int(action_size),), dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
@@ -789,9 +788,9 @@ class DesiredVelocityEnv(BottleneckEnv):
             rl_speeds_list += rl_vehicle_speeds.flatten().tolist()
 
         unnorm_veh_list = np.asarray(num_vehicles_list) * \
-            NUM_VEHICLE_NORM
+                          NUM_VEHICLE_NORM
         unnorm_rl_list = np.asarray(num_rl_vehicles_list) * \
-            NUM_VEHICLE_NORM
+                         NUM_VEHICLE_NORM
         # compute the mean speed if the speed isn't zero
         num_rl = len(num_rl_vehicles_list)
         num_veh = len(num_vehicles_list)
@@ -843,6 +842,151 @@ class DesiredVelocityEnv(BottleneckEnv):
                 else:
                     # set the desired velocity of the controller to the default
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """Outflow rate over last ten seconds normalized to max of 1."""
+
+        if self.env_params.evaluate:
+            if self.time_counter == self.env_params.horizon:
+                reward = self.vehicles.get_outflow_rate(500)
+            else:
+                return 0
+        else:
+            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+                     (2000.0 * self.scaling)
+        return reward
+
+    def reset(self):
+        add_params = self.env_params.additional_params
+        if add_params.get("reset_inflow"):
+            inflow_range = add_params.get("inflow_range")
+            flow_rate = np.random.uniform(
+                min(inflow_range), max(inflow_range)) * self.scaling
+            for _ in range(100):
+                try:
+                    inflow = InFlows()
+                    inflow.add(
+                        veh_type="followerstopper",
+                        edge="1",
+                        vehs_per_hour=flow_rate * .1,
+                        departLane="random",
+                        departSpeed=10)
+                    inflow.add(
+                        veh_type="human",
+                        edge="1",
+                        vehs_per_hour=flow_rate * .9,
+                        departLane="random",
+                        departSpeed=10)
+
+                    additional_net_params = {"scaling": self.scaling}
+                    net_params = NetParams(
+                        inflows=inflow,
+                        no_internal_links=False,
+                        additional_params=additional_net_params)
+
+                    vehicles = Vehicles()
+                    vehicles.add(
+                        veh_id="human",
+                        speed_mode=9,
+                        lane_change_controller=(SumoLaneChangeController, {}),
+                        routing_controller=(ContinuousRouter, {}),
+                        lane_change_mode=0,  # 1621,#0b100000101,
+                        num_vehicles=1 * self.scaling)
+                    vehicles.add(
+                        veh_id="followerstopper",
+                        acceleration_controller=(RLController, {}),
+                        lane_change_controller=(SumoLaneChangeController, {}),
+                        routing_controller=(ContinuousRouter, {}),
+                        speed_mode=9,
+                        lane_change_mode=0,
+                        num_vehicles=1 * self.scaling)
+                    self.vehicles = vehicles
+
+                    # delete the cfg and net files
+                    net_path = self.scenario.generator.net_path
+                    net_name = net_path + self.scenario.generator.name
+                    cfg_path = self.scenario.generator.cfg_path
+                    cfg_name = cfg_path + self.scenario.generator.name
+                    for f in glob.glob(net_name + '*'):
+                        os.remove(f)
+                    for f in glob.glob(cfg_name + '*'):
+                        os.remove(f)
+
+                    self.scenario = self.scenario.__class__(
+                        name=self.scenario.orig_name,
+                        generator_class=self.scenario.generator_class,
+                        vehicles=vehicles,
+                        net_params=net_params,
+                        initial_config=self.scenario.initial_config,
+                        traffic_lights=self.scenario.traffic_lights)
+                    observation = super().reset()
+
+                    # reset the timer to zero
+                    self.time_counter = 0
+
+                    return observation
+
+                except Exception as e:
+                    print('error on reset ', e)
+                    # perform the generic reset function
+
+        observation = super().reset()
+
+        # reset the timer to zero
+        self.time_counter = 0
+
+        return observation
+
+
+class MultiBottleneckEnv(BottleneckEnv):
+    """Environment used to train decentralized vehicles to effectively pass
+       through a bottleneck by specifying the velocity that RL vehicles
+       should attempt to travel in certain regions of space
+
+       States
+           An observation is the speed and velocity of leading and
+           following vehicles
+
+       Actions
+           The action space consist of a dict of accelerations for each
+           autonomous vehicle
+       Rewards
+           The reward is a dict consisting of the normalized
+           outflow of the bottleneck
+    """
+
+    @property
+    def observation_space(self):
+        """See class definition."""
+
+        # normalized speed and velocity of leading and following vehicles
+        return Box(low=0.0, high=1.0, shape=(4 * MAX_LANES * self.scaling,),
+                   dtype=np.float32)
+
+    @property
+    def action_space(self):
+        """See class definition."""
+        return Box(
+            low=-1.5, high=1.0, shape=(1,), dtype=np.float32)
+
+    def get_state(self):
+        """See class definition."""
+        # action space is speed and velocity of leading and following
+        # vehicles for all of the avs
+        lead_follow_dict = {agent: np.concatenate((agent.get_lane_headways(),
+                                                   agent.get_lane_tailways()))
+                            for agent in self.vehicles.get_rl_ids()}
+        return lead_follow_dict
+
+    def _apply_rl_actions(self, rl_actions):
+        """
+        RL actions are split up into 3 levels.
+        First, they're split into edge actions.
+        Then they're split into segment actions.
+        Then they're split into lane actions.
+        """
+        rl_ids = rl_actions.keys()
+        accel = rl_actions.values()
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
