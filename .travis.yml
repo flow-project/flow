@@ -84,8 +84,8 @@ install:
 before_script:
   - flake8 --show-source
 
-script: coverage nose2
-#script:
-#  - nose2
+#script: coverage nose2
+script:
+  - nose2
 
 after_success: coveralls
