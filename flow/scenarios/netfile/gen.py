@@ -128,6 +128,51 @@ class NetFileGenerator(Generator):
             tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
         return tl_logic
 
+
+    def vehicle_infos(self,filename):
+        """Import of vehicle from a configuration file.
+
+        This is a utility function for computing vehicle information. It imports a
+        network configuration file, and returns the information on the vehicle and add it into the Vehicle object
+
+        Parameters
+        ----------
+        filename : str type
+        path to the xml file to load
+
+        Returns
+        -------
+        Flow Vehicle object
+        vehicle_data : dict <dict>
+        Key = id of the vehicle
+        Element = dict of departure speed, vehicle type, depart Position, depart edges
+
+        """
+        # import the .net.xml file containing all edge/type data
+        parser = etree.XMLParser(recover=True)
+        tree = ElementTree.parse(filename, parser=parser)
+
+        root = tree.getroot()
+
+        vehicle_data = dict()
+        vehicles = Vehicles()
+
+        for vehicle in root.findall('vehicle'):
+
+            id_vehicle=vehicle.attrib['id']
+            departSpeed=vehicle.attrib['departSpeed']
+            type_vehicle=vehicle.attrib['type']
+            departPos=vehicle.attrib['departPos']
+            depart_edges=vehicle.findall('route')[0].attrib["edges"].split(' ')[0]
+
+            vehicle_data[id_vehicle]={'departSpeed':departSpeed,'type_vehicle':type_vehicle,'departPos':departPos,'depart_edges':depart_edges}
+
+            vehicles.add(id_vehicle,
+                     initial_speed=departSpeed)
+
+        return vehicles,vehicle_data
+
+
     def vehicle_type(self,filename):
         """Import vehicle type from an xml file .
         This is a utility function for outputting all the type of vehicle . .
