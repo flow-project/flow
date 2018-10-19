@@ -44,7 +44,7 @@ if __name__ == "__main__":
         outflow, velocity, bottleneckdensity, per_rollout_outflows = output
         for i, x in enumerate(per_rollout_outflows):
             rollout_outflows.append(x)
-            rollout_inflows.append(per_rollout_outflows[i])
+            rollout_inflows.append(densities[i])
         outflows.append(outflow)
         velocities.append(velocity)
         bottleneckdensities.append(bottleneckdensity)

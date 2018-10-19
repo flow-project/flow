@@ -158,11 +158,11 @@ if __name__ == '__main__':
     config["num_workers"] = N_CPUS  # number of parallel rollouts
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [64, 64]})
+    # config["model"].update({"fcnet_hiddens": [64, 64]})
     config["lambda"] = 0.99
-    config["sgd_minibatch_size"] = min(16 * 1024, config["train_batch_size"])
+    config["sgd_minibatch_size"] = 64
     config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 100
+    config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
 
     # save the flow params for replay
@@ -187,6 +187,7 @@ if __name__ == '__main__':
             "stop": {
                 "training_iteration": 400,
             },
-            "upload_dir" : "s3://kanaad.experiments"
+            "upload_dir" : "s3://kanaad.experiments",
+            "num_samples": 3
         }
     })
