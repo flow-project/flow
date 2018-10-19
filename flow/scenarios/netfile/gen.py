@@ -190,7 +190,7 @@ class NetFileGenerator(Generator):
         root = tree.getroot()
         vehicle_type={}
 
-        for transport in rootTypeVehicle.findall('vTypeDistribution'):
+        for transport in root.findall('vTypeDistribution'):
             for vtype in transport.findall('vType'):
                 vClass=vtype.attrib['vClass']
                 id_vehicle=vtype.attrib['id']
