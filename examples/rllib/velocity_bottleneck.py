@@ -158,7 +158,7 @@ if __name__ == '__main__':
     config["num_workers"] = N_CPUS  # number of parallel rollouts
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    # config["model"].update({"fcnet_hiddens": [64, 64]})
+    config["model"].update({"fcnet_hiddens": [300, 300, 300]})
     config["lambda"] = 0.99
     config["sgd_minibatch_size"] = 64
     config["kl_target"] = 0.02
