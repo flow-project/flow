@@ -2,7 +2,7 @@
 
 from flow.core.generator import Generator
 from flow.core.traffic_lights import TrafficLights
-
+from flow.core.vehicles import Vehicles
 from lxml import etree
 import xml.etree.ElementTree as ElementTree
 
@@ -161,12 +161,14 @@ class NetFileGenerator(Generator):
 
             id_vehicle=vehicle.attrib['id']
             departSpeed=vehicle.attrib['departSpeed']
+            depart=vehicle.attrib['depart']
             type_vehicle=vehicle.attrib['type']
             departPos=vehicle.attrib['departPos']
             depart_edges=vehicle.findall('route')[0].attrib["edges"].split(' ')[0]
 
-            vehicle_data[id_vehicle]={'departSpeed':departSpeed,'type_vehicle':type_vehicle,'departPos':departPos,'depart_edges':depart_edges}
+            vehicle_data[id_vehicle]={'departSpeed':departSpeed,'depart':depart,'type_vehicle':type_vehicle,'departPos':departPos,'depart_edges':depart_edges}
 
+            #To be changed
             vehicles.add(id_vehicle,
                      initial_speed=departSpeed)
 
@@ -174,7 +176,7 @@ class NetFileGenerator(Generator):
 
 
     def vehicle_type(self,filename):
-        """Import vehicle type from an xml file .
+        """Import vehicle type from an vtypes.add.xml file .
         This is a utility function for outputting all the type of vehicle . .
         Parameters
         ----------
@@ -193,7 +195,7 @@ class NetFileGenerator(Generator):
         for transport in root.findall('vTypeDistribution'):
             for vtype in transport.findall('vType'):
                 vClass=vtype.attrib['vClass']
-                id_vehicle=vtype.attrib['id']
+                id_type_vehicle=vtype.attrib['id']
                 accel=vtype.attrib['accel']
                 decel=vtype.attrib['decel']
                 sigma=vtype.attrib['sigma']
@@ -202,7 +204,7 @@ class NetFileGenerator(Generator):
                 maxSpeed=vtype.attrib['maxSpeed']
                 probability=vtype.attrib['probability']
                 speedDev=vtype.attrib['speedDev']
-                vehicle_type[id_vehicle]={'vClass':vClass,'accel':accel,'decel':decel,'sigma':sigma,'length':length,'minGap':minGap,'maxSpeed':maxSpeed,'probability':probability,'speedDev':speedDev}
+                vehicle_type[id_type_vehicle]={'vClass':vClass,'accel':accel,'decel':decel,'sigma':sigma,'length':length,'minGap':minGap,'maxSpeed':maxSpeed,'probability':probability,'speedDev':speedDev}
         return vehicle_type
 
 
