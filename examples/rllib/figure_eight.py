@@ -122,5 +122,6 @@ if __name__ == "__main__":
                 "training_iteration": 1
             },
             "num_samples": 1,
+            "upload_dir": "s3://kevin.experiments"
         },
     })
