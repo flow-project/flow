@@ -87,7 +87,7 @@ class Env(*classdef):
 
     def __init__(self, env_params, sumo_params, scenario):
         # Invoke serializable if using rllab
-        if Serializable is not object:
+        if serializable_flag:
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
@@ -487,6 +487,9 @@ class Env(*classdef):
 
                 # test if a crash has occurred
                 done[key] = crash
+                # test if the agent has exited the system
+                if key in self.vehicles.get_arrived_ids():
+                    done[key] = True
                 # check if an agent is done
                 if crash:
                     done['__all__'] = True

@@ -68,17 +68,18 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
-"/tmp/path": "<PATH TO FLOW>.git/refs/heads/<BRANCH NAME>",
+"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/multiagent",
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git checkout eugene_upstream/master && git pull eugene_upstream master
+    - cd ray && git fetch eugene_upstream && git checkout eugene_upstream/master && git reset --hard eugene_upstream/multiagent_rollouts
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     - echo 'export PATH="/home/ubuntu/anaconda3/bin:$PATH"' >> ~/.bashrc
+    - pip install dill
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
     - PATH="/home/ubuntu/anaconda3/bin:$PATH" yes | ~/anaconda3/bin/conda install boto3=1.4.8  # 1.4.8 adds InstanceMarketOptions

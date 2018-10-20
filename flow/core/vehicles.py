@@ -64,9 +64,11 @@ class Vehicles:
 
         # number of vehicles that entered the network for every time-step
         self._num_departed = []
+        self._arrived_ids = []
 
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
+        self._departed_ids = []
 
         # simulation step size
         self.sim_step = 0
@@ -322,6 +324,8 @@ class Vehicles:
                 self.set_state(veh_id, "last_lc", -float("inf"))
             self._num_departed.clear()
             self._num_arrived.clear()
+            self._departed_ids.clear()
+            self._arrived_ids.clear()
             self.sim_step = env.sim_step
         else:
             # update the "last_lc" variable
@@ -351,6 +355,8 @@ class Vehicles:
             self._num_departed.append(
                 len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
             self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
+            self._departed_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+            self._arrived_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -604,6 +610,20 @@ class Vehicles:
         """Return the number of vehicles that arrived in the last time step."""
         if len(self._num_arrived) > 0:
             return self._num_arrived[-1]
+        else:
+            return 0
+
+    def get_arrived_ids(self):
+        """Return the ids of vehicles that arrived in the last time step"""
+        if len(self._arrived_ids) > 0:
+            return self._arrived_ids[-1]
+        else:
+            return 0
+
+    def get_departed_ids(self):
+        """Return the ids of vehicles that departed in the last time step"""
+        if len(self._departed_ids) > 0:
+            return self._departed_ids[-1]
         else:
             return 0
 
