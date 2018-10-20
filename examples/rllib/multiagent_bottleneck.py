@@ -27,7 +27,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 1000
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 15
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS * 4
 
@@ -213,7 +213,7 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 1,
             'stop': {
-                'training_iteration': 10
+                'training_iteration': 400
             },
             'config': config,
         },
