@@ -28,10 +28,16 @@ class NetFileGenerator(Generator):
         net_params.osm_path
         """
         # name of the .net.xml file (located in cfg_path)
-        self.netfn = net_params.netfile
+        self.netfn = "/Users/umang/Downloads/bologna/pasubio/pasubio_buslanes.net.xml"
+        # self.netfn = net_params.netfile
 
         # collect data from the generated network configuration file
         edges_dict, conn_dict = self._import_edges_from_net()
+
+        vehicle_data, type_data = self.vehicle_infos("/Users/umang/Downloads/bologna/pasubio/pasubio.rou.xml")
+
+        for t in type_data:
+            self.vehicle.add(t, num_vehicles=type_data[t])
 
         return edges_dict, conn_dict
 
@@ -43,6 +49,9 @@ class NetFileGenerator(Generator):
         """See class definition."""
         pass
 
+    def specify_types(self, net_params):
+        types = self.vehicle_type("/Users/umang/Downloads/bologna/pasubio/pasubio_vtypes.add.xml")
+        return types
 
     def _import_routes_from_net(self, filename):
         """Import route from a configuration file.
@@ -73,7 +82,6 @@ class NetFileGenerator(Generator):
         # This may be used when specifying some route data.
         routes_data = dict()
 
-
         for vehicle in root.findall('vehicle'):
             for route in vehicle.findall('route'):
                 route_edges = route.attrib["edges"].split(' ')
@@ -88,7 +96,6 @@ class NetFileGenerator(Generator):
                     routes_data[key] = [route_edges]
         return routes_data
 
-
     def specify_routes(self, filename):
         """ Format all the routes from the xml file
         Parameters
@@ -101,7 +108,6 @@ class NetFileGenerator(Generator):
         Key = name of the first route taken
         Element = list of all the routes taken by the vehicle starting in that route
         """
-
         routes_data = self._import_routes_from_net(filename)
         return routes_data
 
@@ -127,7 +133,6 @@ class NetFileGenerator(Generator):
             phases = [phase.attrib for phase in tl.findall('phase')]
             tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
         return tl_logic
-
 
     def vehicle_infos(self,filename):
         """Import of vehicle from a configuration file.
@@ -155,10 +160,9 @@ class NetFileGenerator(Generator):
         root = tree.getroot()
 
         vehicle_data = dict()
-        vehicles = Vehicles()
+        type_data = dict()
 
         for vehicle in root.findall('vehicle'):
-
             id_vehicle=vehicle.attrib['id']
             departSpeed=vehicle.attrib['departSpeed']
             depart=vehicle.attrib['depart']
@@ -166,14 +170,14 @@ class NetFileGenerator(Generator):
             departPos=vehicle.attrib['departPos']
             depart_edges=vehicle.findall('route')[0].attrib["edges"].split(' ')[0]
 
+            if type_vehicle not in type_data:
+                type_data[type_vehicle] = 1
+            else:
+                type_data[type_vehicle] += 1
+
             vehicle_data[id_vehicle]={'departSpeed':departSpeed,'depart':depart,'type_vehicle':type_vehicle,'departPos':departPos,'depart_edges':depart_edges}
 
-            #To be changed
-            vehicles.add(id_vehicle,
-                     initial_speed=departSpeed)
-
-        return vehicles,vehicle_data
-
+        return vehicle_data, type_data
 
     def vehicle_type(self,filename):
         """Import vehicle type from an vtypes.add.xml file .
@@ -190,7 +194,7 @@ class NetFileGenerator(Generator):
         tree = ElementTree.parse(filename, parser=parser)
 
         root = tree.getroot()
-        vehicle_type={}
+        veh_type = {}
 
         for transport in root.findall('vTypeDistribution'):
             for vtype in transport.findall('vType'):
@@ -204,8 +208,8 @@ class NetFileGenerator(Generator):
                 maxSpeed=vtype.attrib['maxSpeed']
                 probability=vtype.attrib['probability']
                 speedDev=vtype.attrib['speedDev']
-                vehicle_type[id_type_vehicle]={'vClass':vClass,'accel':accel,'decel':decel,'sigma':sigma,'length':length,'minGap':minGap,'maxSpeed':maxSpeed,'probability':probability,'speedDev':speedDev}
-        return vehicle_type
+                veh_type[id_type_vehicle]={'vClass':vClass,'accel':accel,'decel':decel,'sigma':sigma,'length':length,'minGap':minGap,'maxSpeed':maxSpeed,'probability':probability,'speedDev':speedDev}
+        return veh_type
 
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
