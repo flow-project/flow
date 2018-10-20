@@ -960,7 +960,14 @@ class MultiBottleneckEnv(BottleneckEnv):
         """See class definition."""
 
         # normalized speed and velocity of leading and following vehicles
-        return Box(low=-1.0, high=1.0, shape=(4 * MAX_LANES * self.scaling,),
+        # additionally, for each lane leader we add if it is
+        # an RL vehicle or not
+        # additionally, we add the time-step (for the baseline)
+        # the outflow over the last 10 seconds
+        # the number of vehicles in the congested section
+        # the average velocity on each edge
+        return Box(low=-1.0, high=1.0,
+                   shape=(6 * MAX_LANES * self.scaling + 7,),
                    dtype=np.float32)
 
     @property
@@ -976,11 +983,15 @@ class MultiBottleneckEnv(BottleneckEnv):
         veh = self.vehicles
         lead_follow_dict = {rl_id: self.state_util(rl_id)
                             for rl_id in self.vehicles.get_rl_ids()}
+        agg_statistics = self.aggregate_statistics()
+        lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
+                             for rl_id, val in lead_follow_dict.items()}
 
-        for key in lead_follow_dict.keys():
-            if len(lead_follow_dict[key]) !=16:
+        for val in lead_follow_final.values():
+            if val.shape[0] != 31:
                 import ipdb; ipdb.set_trace()
-        return lead_follow_dict
+
+        return lead_follow_final
 
     def _apply_rl_actions(self, rl_actions):
         """
@@ -1092,24 +1103,53 @@ class MultiBottleneckEnv(BottleneckEnv):
         return observation
 
     def state_util(self, rl_id):
-        ''' Returns an array of headway, tailway, leader speed follower speed
+        ''' Returns an array of headway, tailway, leader speed, follower speed
+            a 1 if leader is rl 0 otherwise, a 1 if follower is rl 0
+            otherwise
             If there are fewer than self.scaling*MAX_LANES the extra
             entries are filled with -1 to disambiguate from zeros
         '''
+        # FIXME there's a bug here
         veh = self.vehicles
-        lane_headways = veh.get_lane_headways(rl_id)
-        lane_tailways = veh.get_lane_tailways(rl_id)
-        lane_leader_speed = veh.get_lane_leaders_speed(rl_id)
-        lane_follower_speed = veh.get_lane_followers_speed(rl_id)
-        diff = self.scaling*MAX_LANES - len(lane_headways)
+        lane_headways = veh.get_lane_headways(rl_id).copy()
+        lane_tailways = veh.get_lane_tailways(rl_id).copy()
+        lane_leader_speed = veh.get_lane_leaders_speed(rl_id).copy()
+        lane_follower_speed = veh.get_lane_followers_speed(rl_id).copy()
+        leader_ids = veh.get_lane_leaders(rl_id).copy()
+        follower_ids = veh.get_lane_followers(rl_id).copy()
+        rl_ids = self.vehicles.get_rl_ids()
+        is_leader_rl = [1 if l_id in rl_ids else 0 for l_id in leader_ids]
+        is_follow_rl = [1 if f_id in rl_ids else 0 for f_id in follower_ids]
+        diff = self.scaling*MAX_LANES - len(is_leader_rl)
         if diff > 0:
             lane_headways += diff*[-1]
             lane_tailways += diff*[-1]
             lane_leader_speed += diff*[-1]
             lane_follower_speed += diff*[-1]
+            is_leader_rl += diff*[-1]
+            is_follow_rl += diff*[-1]
         lane_headways = np.asarray(lane_headways)/1000
         lane_tailways = np.asarray(lane_tailways)/1000
         lane_leader_speed = np.asarray(lane_leader_speed)/100
         lane_follower_speed = np.asarray(lane_follower_speed)/100
         return np.concatenate((lane_headways, lane_tailways, lane_leader_speed,
-                               lane_follower_speed))
+                               lane_follower_speed, is_leader_rl,
+                               is_follow_rl))
+
+    def aggregate_statistics(self):
+        ''' Returns the time-step, outflow over the last 10 seconds,
+            number of vehicles in the congested area
+            and average velocity of segments 3,4,5,6
+        '''
+        time_step = self.time_counter
+        outflow = self.vehicles.get_outflow_rate(10)/3600
+        valid_edges = ['3', '4', '5', '6']
+        congest_number = len(self.vehicles.get_ids_by_edge('4'))
+        avg_speeds = np.zeros(len(valid_edges))
+        for i, edge in enumerate(valid_edges):
+            edge_veh = self.vehicles.get_ids_by_edge(edge)
+            if len(edge_veh) > 0:
+                avg_speeds[i] = np.mean(self.vehicles.get_speed(edge_veh))
+        return np.concatenate(([time_step], [outflow],
+                               [congest_number], avg_speeds))
+
