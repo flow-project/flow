@@ -1109,7 +1109,6 @@ class MultiBottleneckEnv(BottleneckEnv):
             If there are fewer than self.scaling*MAX_LANES the extra
             entries are filled with -1 to disambiguate from zeros
         '''
-        # FIXME there's a bug here
         veh = self.vehicles
         lane_headways = veh.get_lane_headways(rl_id).copy()
         lane_tailways = veh.get_lane_tailways(rl_id).copy()
@@ -1141,7 +1140,7 @@ class MultiBottleneckEnv(BottleneckEnv):
             number of vehicles in the congested area
             and average velocity of segments 3,4,5,6
         '''
-        time_step = self.time_counter
+        time_step = self.time_counter/self.env_params.horizon
         outflow = self.vehicles.get_outflow_rate(10)/3600
         valid_edges = ['3', '4', '5', '6']
         congest_number = len(self.vehicles.get_ids_by_edge('4'))
