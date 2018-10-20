@@ -100,7 +100,7 @@ class NetFileGenerator(Generator):
 
 
         # Crystal's version of extracting routes
-        # I didn't test this myself and I don't guarantee correctness in this 
+        # I didn't test this myself and I don't guarantee correctness in this
         # (completeness or uniqueness of routes), but here it is.
         # Use for faster performance and be sure to test it.
 
@@ -129,9 +129,9 @@ class NetFileGenerator(Generator):
             for route in distinct_routes:
                 first_edge = route[0]
                 if first_edge in routes_data:
-                    routes_data[first_edge].append(route)
+                    routes_data[first_edge].append(list(route))
                 else:
-                    routes_data[first_edge] = [route]
+                    routes_data[first_edge] = [list(route)]
 
             # Print first item in edge-routes dictionary
             #print(list(routes_data.items())[0])
