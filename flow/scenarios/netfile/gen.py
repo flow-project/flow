@@ -6,6 +6,8 @@ from flow.core.vehicles import Vehicles
 from lxml import etree
 import xml.etree.ElementTree as ElementTree
 
+# Added by Crystal for extracting routes
+import re
 
 
 class NetFileGenerator(Generator):
@@ -72,29 +74,70 @@ class NetFileGenerator(Generator):
         Element = list of all the routes taken by the vehicle starting in that route
 
         """
-        # import the .net.xml file containing all edge/type data
-        parser = etree.XMLParser(recover=True)
-        tree = ElementTree.parse(filename, parser=parser)
+        # # import the .net.xml file containing all edge/type data
+        # parser = etree.XMLParser(recover=True)
+        # tree = ElementTree.parse(filename, parser=parser)
 
-        root = tree.getroot()
+        # root = tree.getroot()
 
-        # Collect information on the available types (if any are available).
-        # This may be used when specifying some route data.
-        routes_data = dict()
+        # # Collect information on the available types (if any are available).
+        # # This may be used when specifying some route data.
+        # routes_data = dict()
 
-        for vehicle in root.findall('vehicle'):
-            for route in vehicle.findall('route'):
-                route_edges = route.attrib["edges"].split(' ')
-                key=route_edges[0]
-                if key in routes_data.keys():
-                    for routes in routes_data[key]:
-                        if routes==route_edges:
-                            pass
-                        else:
-                            routes_data[key].append(route_edges)
+        # for vehicle in root.findall('vehicle'):
+        #     for route in vehicle.findall('route'):
+        #         route_edges = route.attrib["edges"].split(' ')
+        #         key=route_edges[0]
+        #         if key in routes_data.keys():
+        #             for routes in routes_data[key]:
+        #                 if routes==route_edges:
+        #                     pass
+        #                 else:
+        #                     routes_data[key].append(route_edges)
+        #         else:
+        #             routes_data[key] = [route_edges]
+        # return routes_data
+
+
+        # Crystal's version of extracting routes
+        # I didn't test this myself and I don't guarantee correctness in this 
+        # (completeness or uniqueness of routes), but here it is.
+        # Use for faster performance and be sure to test it.
+
+        with open(filename, 'r') as myfile:
+            data = myfile.read()
+
+            # regex to extract routes
+            pattern = '<route edges=".*?"\/>' # Extracts <route edges="..."/>
+            matches = re.findall(pattern, data)
+
+            # Strip <route edges>
+            for i in range(len(matches)):
+                matches[i] = matches[i].split('"')[1]
+
+            # Create each as list and add to set
+            distinct_routes = set()
+            for i in range(len(matches)):
+                curr_route = tuple(matches[i].split(' '))
+                matches[i] = curr_route
+                distinct_routes.add(curr_route)
+
+            # Compare length of all routes (matches) vs length of distinct routes
+            #print(len(matches), len(distinct_routes))
+
+            routes_data = {}
+            for route in distinct_routes:
+                first_edge = route[0]
+                if first_edge in routes_data:
+                    routes_data[first_edge].append(route)
                 else:
-                    routes_data[key] = [route_edges]
-        return routes_data
+                    routes_data[first_edge] = [route]
+
+            # Print first item in edge-routes dictionary
+            #print(list(routes_data.items())[0])
+
+            return routes_data
+
 
     def specify_routes(self, filename):
         """ Format all the routes from the xml file
