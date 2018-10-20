@@ -6,6 +6,7 @@ The agents all share a single model.
 
 """
 import json
+import os
 
 import ray
 import ray.rllib.agents.ppo as ppo
@@ -35,6 +36,8 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
+
+os.environ['MULTIAGENT'] = 'True'
 
 vehicles = Vehicles()
 vehicles.add(
@@ -156,25 +159,28 @@ flow_params = dict(
 )
 
 if __name__ == '__main__':
-    ray.init(num_cpus=N_CPUS+1, redirect_output=True)
+    ray.init()
 
     config = ppo.DEFAULT_CONFIG.copy()
-    config['num_workers'] = N_CPUS  # number of parallel rollouts
+    config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [64, 64]})
-    config['lambda'] = 0.99
-    config['sgd_minibatch_size'] = min(16 * 1024, config['train_batch_size'])
+    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    config['use_gae'] = True
+    config['lambda'] = 0.97
+    config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
-    config['num_sgd_iter'] = 30
+    config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
+    config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
 
-    create_env, env_name = make_create_env(flow_params, version=0)
+    create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
     register_env(env_name, create_env)
@@ -189,28 +195,26 @@ if __name__ == '__main__':
     # Setup PG with an ensemble of `num_policies` different policy graphs
     policy_graphs = {'av': gen_policy()}
 
-    def policy_mapping_fn(_):
+    def policy_mapping_fn(agent_id):
         return 'av'
 
     policy_ids = list(policy_graphs.keys())
     config.update({
         'multiagent': {
             'policy_graphs': policy_graphs,
-            'policy_mapping_fn': tune.function(policy_mapping_fn)
+            'policy_mapping_fn': tune.function(policy_mapping_fn),
+            "policies_to_train": ["av"]
         }
     })
 
-    trials = run_experiments({
+    run_experiments({
         flow_params['exp_tag']: {
             'run': 'PPO',
-            'env': 'DesiredVelocityEnv-v0',
-            'config': {
-                **config
-            },
-            'checkpoint_freq': 20,
-            'max_failures': 999,
+            'env': env_name,
+            'checkpoint_freq': 1,
             'stop': {
-                'training_iteration': 400,
+                'training_iteration': 10
             },
-        }
+            'config': config,
+        },
     })

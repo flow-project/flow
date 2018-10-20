@@ -960,7 +960,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         """See class definition."""
 
         # normalized speed and velocity of leading and following vehicles
-        return Box(low=0.0, high=1.0, shape=(4 * MAX_LANES * self.scaling,),
+        return Box(low=-1.0, high=1.0, shape=(4 * MAX_LANES * self.scaling,),
                    dtype=np.float32)
 
     @property
@@ -974,12 +974,12 @@ class MultiBottleneckEnv(BottleneckEnv):
         # action space is speed and velocity of leading and following
         # vehicles for all of the avs
         veh = self.vehicles
-        lead_follow_dict = {rl_id: np.concatenate((veh.get_lane_headways(rl_id),
-                                                   veh.get_lane_tailways(rl_id),
-                                                   veh.get_lane_leaders_speed(rl_id),
-                                                   veh.get_lane_followers_speed(rl_id)))
+        lead_follow_dict = {rl_id: self.state_util(rl_id)
                             for rl_id in self.vehicles.get_rl_ids()}
 
+        for key in lead_follow_dict.keys():
+            if len(lead_follow_dict[key]) !=16:
+                import ipdb; ipdb.set_trace()
         return lead_follow_dict
 
     def _apply_rl_actions(self, rl_actions):
@@ -989,9 +989,10 @@ class MultiBottleneckEnv(BottleneckEnv):
         Then they're split into segment actions.
         Then they're split into lane actions.
         """
-        rl_ids = rl_actions.keys()
-        accel = rl_actions.values()
-        self.apply_acceleration(rl_ids, accel)
+        if rl_actions:
+            rl_ids = list(rl_actions.keys())
+            accel = list(rl_actions.values())
+            self.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
@@ -1004,7 +1005,10 @@ class MultiBottleneckEnv(BottleneckEnv):
         else:
             reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling)
-        return {rl_id: reward for rl_id in rl_actions.keys()}
+        if rl_actions:
+            return {rl_id: reward for rl_id in rl_actions.keys()}
+        else:
+            return {}
 
     def reset(self):
         add_params = self.env_params.additional_params
@@ -1086,3 +1090,26 @@ class MultiBottleneckEnv(BottleneckEnv):
         self.time_counter = 0
 
         return observation
+
+    def state_util(self, rl_id):
+        ''' Returns an array of headway, tailway, leader speed follower speed
+            If there are fewer than self.scaling*MAX_LANES the extra
+            entries are filled with -1 to disambiguate from zeros
+        '''
+        veh = self.vehicles
+        lane_headways = veh.get_lane_headways(rl_id)
+        lane_tailways = veh.get_lane_tailways(rl_id)
+        lane_leader_speed = veh.get_lane_leaders_speed(rl_id)
+        lane_follower_speed = veh.get_lane_followers_speed(rl_id)
+        diff = self.scaling*MAX_LANES - len(lane_headways)
+        if diff > 0:
+            lane_headways += diff*[-1]
+            lane_tailways += diff*[-1]
+            lane_leader_speed += diff*[-1]
+            lane_follower_speed += diff*[-1]
+        lane_headways = np.asarray(lane_headways)/1000
+        lane_tailways = np.asarray(lane_tailways)/1000
+        lane_leader_speed = np.asarray(lane_leader_speed)/100
+        lane_follower_speed = np.asarray(lane_follower_speed)/100
+        return np.concatenate((lane_headways, lane_tailways, lane_leader_speed,
+                               lane_follower_speed))

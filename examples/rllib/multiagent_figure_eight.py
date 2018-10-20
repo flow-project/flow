@@ -110,7 +110,7 @@ if __name__ == '__main__':
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['use_gae'] = True
     config['lambda'] = 0.97
-    config['sgd_batchsize'] = min(16 * 1024, config['train_batch_size'])
+    config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
