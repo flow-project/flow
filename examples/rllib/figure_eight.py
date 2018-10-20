@@ -17,7 +17,7 @@ from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 2
 # number of parallel workers
 N_CPUS = 2
 
@@ -119,8 +119,8 @@ if __name__ == "__main__":
             "checkpoint_freq": 1,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 200
+                "training_iteration": 1
             },
-            "repeat": 3,
+            "num_samples": 1,
         },
     })
