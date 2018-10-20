@@ -30,17 +30,13 @@ class NetFileGenerator(Generator):
         net_params.osm_path
         """
         # name of the .net.xml file (located in cfg_path)
-        self.netfn = "/Users/umang/Downloads/bologna/pasubio/pasubio_buslanes.net.xml"
+        self.netfn = "/Users/lucasfischer/sumo/LuSTScenario/scenario/lust.net.xml"
         # self.netfn = net_params.netfile
 
         # collect data from the generated network configuration file
         edges_dict, conn_dict = self._import_edges_from_net()
 
-        vehicle_data, type_data = self.vehicle_infos("/Users/umang/Downloads/bologna/pasubio/pasubio.rou.xml")
-
-        for t in type_data:
-            self.vehicle.add(t, num_vehicles=type_data[t])
-
+        self.edge_dict = edges_dict
         return edges_dict, conn_dict
 
     def specify_nodes(self, net_params):
@@ -52,7 +48,7 @@ class NetFileGenerator(Generator):
         pass
 
     def specify_types(self, net_params):
-        types = self.vehicle_type("/Users/umang/Downloads/bologna/pasubio/pasubio_vtypes.add.xml")
+        types = self.vehicle_type("//Users/lucasfischer/sumo/LuSTScenario/scenario/vtypes.add.xml")
         return types
 
     def _import_routes_from_net(self, filename):
@@ -129,9 +125,14 @@ class NetFileGenerator(Generator):
             for route in distinct_routes:
                 first_edge = route[0]
                 if first_edge in routes_data:
-                    routes_data[first_edge].append(list(route))
+
+                    ### We need to figure out that part
+                    pass
+                    #routes_data[first_edge].append(list(route))
                 else:
-                    routes_data[first_edge] = [list(route)]
+
+                    routes_data[first_edge] = list(route)
+                    #routes_data[first_edge] = [list(route)]
 
             # Print first item in edge-routes dictionary
             #print(list(routes_data.items())[0])
@@ -139,7 +140,8 @@ class NetFileGenerator(Generator):
             return routes_data
 
 
-    def specify_routes(self, filename):
+
+    def specify_routes(self, net_params):
         """ Format all the routes from the xml file
         Parameters
         ----------
@@ -151,7 +153,11 @@ class NetFileGenerator(Generator):
         Key = name of the first route taken
         Element = list of all the routes taken by the vehicle starting in that route
         """
-        routes_data = self._import_routes_from_net(filename)
+        routes_data={}
+        for edge in self.edge_dict:
+            if ':' not in edge:
+                routes_data[edge]=[edge]
+        #routes_data = self._import_routes_from_net("/Users/lucasfischer/sumo/LuSTScenario/scenario/DUARoutes/local.1.rou.xml")
         return routes_data
 
     def _import_tls_from_net(self,filename):
@@ -177,50 +183,7 @@ class NetFileGenerator(Generator):
             tl_logic.add(tl.attrib['id'], tl.attrib['type'], tl.attrib['programID'], tl.attrib['offset'], phases)
         return tl_logic
 
-    def vehicle_infos(self,filename):
-        """Import of vehicle from a configuration file.
 
-        This is a utility function for computing vehicle information. It imports a
-        network configuration file, and returns the information on the vehicle and add it into the Vehicle object
-
-        Parameters
-        ----------
-        filename : str type
-        path to the xml file to load
-
-        Returns
-        -------
-        Flow Vehicle object
-        vehicle_data : dict <dict>
-        Key = id of the vehicle
-        Element = dict of departure speed, vehicle type, depart Position, depart edges
-
-        """
-        # import the .net.xml file containing all edge/type data
-        parser = etree.XMLParser(recover=True)
-        tree = ElementTree.parse(filename, parser=parser)
-
-        root = tree.getroot()
-
-        vehicle_data = dict()
-        type_data = dict()
-
-        for vehicle in root.findall('vehicle'):
-            id_vehicle=vehicle.attrib['id']
-            departSpeed=vehicle.attrib['departSpeed']
-            depart=vehicle.attrib['depart']
-            type_vehicle=vehicle.attrib['type']
-            departPos=vehicle.attrib['departPos']
-            depart_edges=vehicle.findall('route')[0].attrib["edges"].split(' ')[0]
-
-            if type_vehicle not in type_data:
-                type_data[type_vehicle] = 1
-            else:
-                type_data[type_vehicle] += 1
-
-            vehicle_data[id_vehicle]={'departSpeed':departSpeed,'depart':depart,'type_vehicle':type_vehicle,'departPos':departPos,'depart_edges':depart_edges}
-
-        return vehicle_data, type_data
 
     def vehicle_type(self,filename):
         """Import vehicle type from an vtypes.add.xml file .
