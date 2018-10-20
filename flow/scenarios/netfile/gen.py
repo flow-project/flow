@@ -102,7 +102,7 @@ class NetFileGenerator(Generator):
         Element = list of all the routes taken by the vehicle starting in that route
         """
 
-        routes_data = _import_routes_from_net(filename)
+        routes_data = self._import_routes_from_net(filename)
         return routes_data
 
     def _import_tls_from_net(self,filename):
