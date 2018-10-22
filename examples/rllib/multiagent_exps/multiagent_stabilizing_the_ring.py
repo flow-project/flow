@@ -106,15 +106,15 @@ if __name__ == '__main__':
     config['sample_batch_size'] = HORIZON
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
-    config['use_gae'] = True
-    config['lambda'] = 0.97
-    config['lr'] = .001
-    config['vf_loss_coeff'] = 100
-    config['vf_clip_param']  = 10000
-    config['sgd_minibatch_size'] = 128
-    config['kl_target'] = 0.02
-    config['num_sgd_iter'] = 30
+    # config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    # config['use_gae'] = True
+    # config['lambda'] = 0.97
+    # config['lr'] = .01
+    # config['vf_loss_coeff'] = 100
+    # config['vf_clip_param']  = 10000
+    # config['sgd_minibatch_size'] = 128
+    # config['kl_target'] = 0.02
+    # config['num_sgd_iter'] = 30
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 

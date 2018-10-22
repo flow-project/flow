@@ -294,10 +294,12 @@ class MultiWaveAttenuationPOEnv(Env):
     @property
     def action_space(self):
         """See class definition."""
+        add_params = self.scenario.net_params.additional_params
+        num_rings = add_params["num_rings"]
         return Box(
             low=-np.abs(self.env_params.additional_params["max_decel"]),
             high=self.env_params.additional_params["max_accel"],
-            shape=(self.vehicles.num_rl_vehicles, ),
+            shape=(int(self.vehicles.num_rl_vehicles/num_rings), ),
             dtype=np.float32)
 
     def get_state(self, **kwargs):
@@ -322,7 +324,17 @@ class MultiWaveAttenuationPOEnv(Env):
         return obs
 
     def _apply_rl_actions(self, rl_actions):
-        pass
+        """
+        RL actions are split up into 3 levels.
+        First, they're split into edge actions.
+        Then they're split into segment actions.
+        Then they're split into lane actions.
+        """
+        if rl_actions:
+            rl_ids = list(rl_actions.keys())
+            accel = list(rl_actions.values())
+            import ipdb; ipdb.set_trace()
+            self.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, state, rl_actions, **kwargs):
         """See class definition."""
