@@ -5,9 +5,12 @@ vehicles in a variable length ring road.
 """
 
 import json
+import os
 
 import ray
 import ray.rllib.agents.ppo as ppo
+from ray import tune
+from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -16,6 +19,8 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, IDMController, ContinuousRouter
+
+os.environ['MULTIAGENT'] = 'True'
 
 # time horizon of a single rollout
 HORIZON = 3000
@@ -47,7 +52,7 @@ flow_params = dict(
     exp_tag='stabilizing_the_ring',
 
     # name of the flow environment the experiment is running on
-    env_name='WaveAttenuationPOEnv',
+    env_name='MultiWaveAttenuationPOEnv',
 
     # name of the scenario class the experiment is running on
     scenario='MultiLoopScenario',
@@ -68,7 +73,7 @@ flow_params = dict(
         additional_params={
             'max_accel': 1,
             'max_decel': 1,
-            'ring_length': [230, 231],
+            'ring_length': [230, 230],
         },
     ),
 
@@ -76,10 +81,11 @@ flow_params = dict(
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         additional_params={
-            'length': 260,
+            'length': 230,
             'lanes': 1,
             'speed_limit': 30,
             'resolution': 40,
+            'num_rings': NUM_RINGS
         }, ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -88,23 +94,26 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(),
+    initial=InitialConfig(bunching = 20.0, spacing='custom'),
 )
 
 if __name__ == '__main__':
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=True)
+    ray.init()
 
     config = ppo.DEFAULT_CONFIG.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['sample_batch_size'] = HORIZON
+    config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [16, 16]})
+    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['use_gae'] = True
     config['lambda'] = 0.97
-    config['sgd_minibatch_size'] = min(16 * 1024, config['train_batch_size'])
+    config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
+    config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -116,17 +125,38 @@ if __name__ == '__main__':
     # Register as rllib env
     register_env(env_name, create_env)
 
-    trials = run_experiments({
+    test_env = create_env()
+    obs_space = test_env.observation_space
+    act_space = test_env.action_space
+
+    def gen_policy():
+        return (PPOPolicyGraph, obs_space, act_space, {})
+
+    # Setup PG with an ensemble of `num_policies` different policy graphs
+    policy_graphs = {'av': gen_policy()}
+
+    def policy_mapping_fn(_):
+        return 'av'
+
+    policy_ids = list(policy_graphs.keys())
+    config.update({
+        'multiagent': {
+            'policy_graphs': policy_graphs,
+            'policy_mapping_fn': tune.function(policy_mapping_fn),
+            "policies_to_train": ["av"]
+        }
+    })
+
+    run_experiments({
         flow_params['exp_tag']: {
             'run': 'PPO',
             'env': env_name,
-            'config': {
-                **config
-            },
-            'checkpoint_freq': 20,
-            'max_failures': 999,
+            'checkpoint_freq': 1,
             'stop': {
-                'training_iteration': 500,
+                'training_iteration': 400
             },
+            'config': config,
+            'upload_dir': "s3://eugene.experiments/shared_multi_test"
         },
     })
+

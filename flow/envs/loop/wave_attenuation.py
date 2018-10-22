@@ -264,3 +264,175 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
         self.vehicles.set_observed(lead_id)
+
+
+class MultiWaveAttenuationPOEnv(Env):
+    """Multiagent shared model verison of WaveAttenuationPOEnv""
+    Note that this environment only works when there is one autonomous vehicle
+    on the network.
+
+    Required from env_params: See parent class
+
+    States
+        See parent class
+    Actions
+        See parent class
+
+    Rewards
+        See parent class
+
+    Termination
+        See parent class
+
+    """
+
+    @property
+    def observation_space(self):
+        """See class definition."""
+        return Box(low=0, high=1, shape=(3,), dtype=np.float32)
+
+    @property
+    def action_space(self):
+        """See class definition."""
+        return Box(
+            low=-np.abs(self.env_params.additional_params["max_decel"]),
+            high=self.env_params.additional_params["max_accel"],
+            shape=(self.vehicles.num_rl_vehicles, ),
+            dtype=np.float32)
+
+    def get_state(self, **kwargs):
+        """See class definition."""
+        obs = {}
+        for rl_id in self.vehicles.get_rl_ids():
+            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+
+            # normalizers
+            max_speed = 15.
+            max_length = self.env_params.additional_params["ring_length"][1]
+
+            observation = np.array([
+                self.vehicles.get_speed(rl_id) / max_speed,
+                (self.vehicles.get_speed(lead_id) -
+                 self.vehicles.get_speed(rl_id))
+                / max_speed,
+                self.vehicles.get_headway(rl_id) / max_length
+            ])
+            obs.update({rl_id: observation})
+
+        return obs
+
+    def _apply_rl_actions(self, rl_actions):
+        pass
+
+    def compute_reward(self, state, rl_actions, **kwargs):
+        """See class definition."""
+        # in the warmup steps
+        if rl_actions is None:
+            return {}
+
+        rew = {}
+        for rl_id in rl_actions.keys():
+            edge_id = rl_id.split('_')[1]
+            edges = self.gen_edges(edge_id)
+            vehs_on_edge = self.vehicles.get_ids_by_edge(edges)
+            vel = np.array([
+                self.vehicles.get_speed(veh_id)
+                for veh_id in vehs_on_edge
+            ])
+
+            if any(vel < -100) or kwargs["fail"]:
+                return 0.
+
+            # reward average velocity
+            eta_2 = 4.
+            reward = eta_2 * np.mean(vel) / 20
+
+            rl_action = rl_actions[rl_id]
+            # punish accelerations (should lead to reduced stop-and-go waves)
+            eta = 8  # 0.25
+            rl_action = np.array(rl_action)
+            accel_threshold = 0
+
+            if np.mean(np.abs(rl_action)) > accel_threshold:
+                reward += eta * (accel_threshold - np.mean(np.abs(rl_action)))
+
+            rew[rl_id] = reward/10.0
+        return rew
+
+    def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
+        # specify observed vehicles
+        for rl_id in self.vehicles.get_rl_ids():
+            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+            self.vehicles.set_observed(lead_id)
+
+    def gen_edges(self, i):
+        """Return the edges corresponding to the rl id"""
+        return ["top_{}".format(i), "left_{}".format(i),
+                "right_{}".format(i), "bottom_{}".format(i)]
+
+    def reset(self):
+        """See parent class.
+
+        The sumo instance is reset with a new ring length, and a number of
+        steps are performed with the rl vehicle acting as a human vehicle.
+        """
+        # update the scenario
+        initial_config = InitialConfig(bunching=20, min_gap=0,
+                                       spacing='custom')
+        add_net_params = self.scenario.net_params.additional_params
+        additional_net_params = {
+            "length":
+                random.randint(
+                    self.env_params.additional_params["ring_length"][0],
+                    self.env_params.additional_params["ring_length"][1]),
+            "lanes":
+                1,
+            "speed_limit":
+                30,
+            "resolution":
+                40,
+            "num_rings":add_net_params["num_rings"]
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+
+        self.scenario = self.scenario.__class__(
+            self.scenario.orig_name, self.scenario.generator_class,
+            self.scenario.vehicles, net_params, initial_config)
+
+        # solve for the velocity upper bound of the ring
+        def v_eq_max_function(v):
+            num_veh = self.vehicles.num_vehicles - 1
+            # maximum gap in the presence of one rl vehicle
+            s_eq_max = (self.scenario.length -
+                        self.vehicles.num_vehicles * 5) / num_veh
+
+            v0 = 30
+            s0 = 2
+            T = 1
+            gamma = 4
+
+            error = s_eq_max - (s0 + v * T) * (1 - (v / v0) ** gamma) ** -0.5
+
+            return error
+
+        v_guess = 4.
+        v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
+
+        print('\n-----------------------')
+        print('ring length:', net_params.additional_params["length"])
+        print("v_max:", v_eq_max)
+        print('-----------------------')
+
+        # restart the sumo instance
+        self.restart_sumo(
+            sumo_params=self.sumo_params,
+            render=self.sumo_params.render)
+
+        # perform the generic reset function
+        observation = super().reset()
+
+        # reset the timer to zero
+        self.time_counter = 0
+
+        return observation
