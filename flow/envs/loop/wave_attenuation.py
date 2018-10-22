@@ -333,7 +333,6 @@ class MultiWaveAttenuationPOEnv(Env):
         if rl_actions:
             rl_ids = list(rl_actions.keys())
             accel = list(rl_actions.values())
-            import ipdb; ipdb.set_trace()
             self.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, state, rl_actions, **kwargs):
