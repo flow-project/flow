@@ -109,12 +109,12 @@ if __name__ == '__main__':
     # config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     # config['use_gae'] = True
     # config['lambda'] = 0.97
-    config['lr'] = tune.grid_search([.001, .0001, .00001])
-    config['vf_loss_coeff'] = tune.grid_search([100, 10, 1])
+    config['lr'] = tune.grid_search([.0001, .00001])
+    config['vf_loss_coeff'] = tune.grid_search([10, 1])
     config['vf_clip_param']  = 10000
     # config['sgd_minibatch_size'] = 128
     # config['kl_target'] = 0.02
-    # config['num_sgd_iter'] = 30
+    config['num_sgd_iter'] = tune.grid_search([30, 100])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
