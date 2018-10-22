@@ -25,11 +25,11 @@ os.environ['MULTIAGENT'] = 'True'
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 2
+N_ROLLOUTS = 8
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 8
 # Number of rings
-NUM_RINGS = 10
+NUM_RINGS = 3
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -109,9 +109,12 @@ if __name__ == '__main__':
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['use_gae'] = True
     config['lambda'] = 0.97
+    config['lr'] = .001
+    config['vf_loss_coeff'] = 100
+    config['vf_clip_param']  = 10000
     config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
-    config['num_sgd_iter'] = 10
+    config['num_sgd_iter'] = 30
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
