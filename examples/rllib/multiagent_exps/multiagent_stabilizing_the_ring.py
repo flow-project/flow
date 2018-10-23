@@ -25,11 +25,11 @@ os.environ['MULTIAGENT'] = 'True'
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 1
+N_ROLLOUTS = 2
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 8
 # Number of rings
-NUM_RINGS = 3
+NUM_RINGS = 2
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -109,12 +109,12 @@ if __name__ == '__main__':
     # config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     # config['use_gae'] = True
     # config['lambda'] = 0.97
-    # config['lr'] = tune.grid_search([.0001, .00001]) # 1e-5 seems like the right thing
+    config['lr'] = tune.grid_search([1e-5, 2e-5]) # 1e-5 seems like the right thing
     # config['vf_loss_coeff'] = tune.grid_search([10, 1]) # it seems really important that this is 1 and not 10
-    config['vf_clip_param']  = tune.grid_search([10000])
+    config['vf_clip_param']  = tune.grid_search([1e3, 1e4, 1e5])
     # config['sgd_minibatch_size'] = 128
     # config['kl_target'] = 0.02
-    # config['num_sgd_iter'] = tune.grid_search([30, 100])
+    config['num_sgd_iter'] = tune.grid_search([30, 100])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
@@ -154,9 +154,9 @@ if __name__ == '__main__':
         flow_params['exp_tag']: {
             'run': 'PPO',
             'env': env_name,
-            'checkpoint_freq': 1,
+            'checkpoint_freq': 50,
             'stop': {
-                'training_iteration': 1
+                'training_iteration': 400
             },
             'config': config,
             'upload_dir': 's3://eugene.experiments/multiagent_tests'

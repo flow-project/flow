@@ -1143,12 +1143,12 @@ class MultiBottleneckEnv(BottleneckEnv):
         time_step = self.time_counter/self.env_params.horizon
         outflow = self.vehicles.get_outflow_rate(10)/3600
         valid_edges = ['3', '4', '5', '6']
-        congest_number = len(self.vehicles.get_ids_by_edge('4'))
+        congest_number = len(self.vehicles.get_ids_by_edge('4'))/50
         avg_speeds = np.zeros(len(valid_edges))
         for i, edge in enumerate(valid_edges):
             edge_veh = self.vehicles.get_ids_by_edge(edge)
             if len(edge_veh) > 0:
-                avg_speeds[i] = np.mean(self.vehicles.get_speed(edge_veh))
+                avg_speeds[i] = np.mean(self.vehicles.get_speed(edge_veh))/100.0
         return np.concatenate(([time_step], [outflow],
                                [congest_number], avg_speeds))
 

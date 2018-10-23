@@ -27,9 +27,9 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 1000
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 4
 # number of rollouts per training iteration
-N_ROLLOUTS = N_CPUS * 4
+N_ROLLOUTS = N_CPUS
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -164,15 +164,16 @@ if __name__ == '__main__':
     config = ppo.DEFAULT_CONFIG.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
-    config['sample_batch_size'] = HORIZON
+    #config['sample_batch_size'] = HORIZON
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    #config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['use_gae'] = True
     config['lambda'] = 0.97
-    config['sgd_minibatch_size'] = 128
+    #config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
-    config['num_sgd_iter'] = 10
+    config['lr'] = tune.grid_search([1e-5, 2e-5, 5e-5, 1e-4])
+    config['num_sgd_iter'] = tune.grid_search([10, 30])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
@@ -212,11 +213,11 @@ if __name__ == '__main__':
         flow_params['exp_tag']: {
             'run': 'PPO',
             'env': env_name,
-            'checkpoint_freq': 1,
+            'checkpoint_freq': 50,
             'stop': {
                 'training_iteration': 400
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/first_bottleneck_test"
+            'upload_dir': "s3://eugene.experiments/multiagent_tests"
         },
     })
