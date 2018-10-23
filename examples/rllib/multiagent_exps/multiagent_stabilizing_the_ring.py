@@ -25,9 +25,9 @@ os.environ['MULTIAGENT'] = 'True'
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 8
+N_ROLLOUTS = 1
 # number of parallel workers
-N_CPUS = 8
+N_CPUS = 1
 # Number of rings
 NUM_RINGS = 3
 
@@ -109,12 +109,12 @@ if __name__ == '__main__':
     # config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     # config['use_gae'] = True
     # config['lambda'] = 0.97
-    config['lr'] = tune.grid_search([.0001, .00001])
-    config['vf_loss_coeff'] = tune.grid_search([10, 1])
+    # config['lr'] = tune.grid_search([.0001, .00001]) # 1e-5 seems like the right thing
+    # config['vf_loss_coeff'] = tune.grid_search([10, 1]) # it seems really important that this is 1 and not 10
     config['vf_clip_param']  = 10000
     # config['sgd_minibatch_size'] = 128
     # config['kl_target'] = 0.02
-    config['num_sgd_iter'] = tune.grid_search([30, 100])
+    # config['num_sgd_iter'] = tune.grid_search([30, 100])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
@@ -156,10 +156,10 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 1,
             'stop': {
-                'training_iteration': 400
+                'training_iteration': 1
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/shared_multi_test"
+            #'upload_dir': "s3://eugene.experiments/shared_multi_test"
         },
     })
 
