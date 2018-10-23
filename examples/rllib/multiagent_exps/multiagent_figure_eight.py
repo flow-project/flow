@@ -32,9 +32,9 @@ os.environ['MULTIAGENT'] = 'True'
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 1
+N_ROLLOUTS = 14
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 14
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -151,9 +151,9 @@ if __name__ == '__main__':
         flow_params['exp_tag']: {
             'run': 'PPO',
             'env': env_name,
-            'checkpoint_freq': 1,
+            'checkpoint_freq': 25,
             'stop': {
-                'training_iteration': 1
+                'training_iteration': 100
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/multiagent_tests"
