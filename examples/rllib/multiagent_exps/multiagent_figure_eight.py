@@ -156,5 +156,6 @@ if __name__ == '__main__':
                 'training_iteration': 1
             },
             'config': config,
+            'upload_dir': "s3://eugene.experiments/multiagent_tests"
         },
     })
