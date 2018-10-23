@@ -111,7 +111,7 @@ if __name__ == '__main__':
     # config['lambda'] = 0.97
     # config['lr'] = tune.grid_search([.0001, .00001]) # 1e-5 seems like the right thing
     # config['vf_loss_coeff'] = tune.grid_search([10, 1]) # it seems really important that this is 1 and not 10
-    config['vf_clip_param']  = 10000
+    config['vf_clip_param']  = tune.grid_search([10000])
     # config['sgd_minibatch_size'] = 128
     # config['kl_target'] = 0.02
     # config['num_sgd_iter'] = tune.grid_search([30, 100])
