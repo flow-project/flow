@@ -172,7 +172,7 @@ if __name__ == '__main__':
     config['lambda'] = 0.97
     #config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
-    config['lr'] = tune.grid_search([1e-5, 2e-5, 5e-5, 1e-4])
+    config['lr'] = tune.grid_search([1e-5, 5e-6, 1e-6])
     config['num_sgd_iter'] = tune.grid_search([10, 30])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
