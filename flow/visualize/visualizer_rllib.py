@@ -84,7 +84,8 @@ if __name__ == '__main__':
     if config.get('multiagent', {}).get('policy_graphs', {}):
         multiagent = True
         config['multiagent'] = pkl['multiagent']
-
+        #config['multiagent']['policies_to_train'] = None
+        os.environ['MULTIAGENT'] = 'True'
     else:
         multiagent = False
 
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     agent_cls = get_agent_class(args.run)
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
-    agent._restore(checkpoint)
+    agent.restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -138,6 +139,8 @@ if __name__ == '__main__':
     if multiagent:
         rets = {}
         ids = config['multiagent']['policy_graphs'].keys()
+        # map the agent id to its policy
+        policy_map_fn = config['multiagent']['policy_mapping_fn'].func
         for key in config['multiagent']['policy_graphs'].keys():
             rets[key] = []
     else:
@@ -158,15 +161,15 @@ if __name__ == '__main__':
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             if multiagent:
                 action = {}
-                for agent_id in ids:
+                for agent_id in state.keys():
                     action[agent_id] = agent.compute_action(
-                        state[agent_id], policy_id=agent_id)
+                        state[agent_id], policy_id=policy_map_fn(agent_id))
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
             if multiagent:
                 for actor, rew in reward.items():
-                    ret[actor] += rew
+                    ret[policy_map_fn(actor)] += rew
             else:
                 ret += reward
             if multiagent and done['__all__']:
