@@ -169,7 +169,7 @@ if __name__ == '__main__':
             state, reward, done, _ = env.step(action)
             if multiagent:
                 for actor, rew in reward.items():
-                    ret[policy_map_fn(actor)] += rew
+                    ret[policy_map_fn(actor)][0] += rew
             else:
                 ret += reward
             if multiagent and done['__all__']:

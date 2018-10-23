@@ -109,7 +109,7 @@ if __name__ == '__main__':
     # config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     # config['use_gae'] = True
     # config['lambda'] = 0.97
-    config['lr'] = tune.grid_search([1e-5, 2e-5]) # 1e-5 seems like the right thing
+    config['lr'] = tune.grid_search([1e-5, 5e-6]) # 1e-5 seems like the right thing
     # config['vf_loss_coeff'] = tune.grid_search([10, 1]) # it seems really important that this is 1 and not 10
     config['vf_clip_param']  = tune.grid_search([1e3, 1e4, 1e5])
     # config['sgd_minibatch_size'] = 128
