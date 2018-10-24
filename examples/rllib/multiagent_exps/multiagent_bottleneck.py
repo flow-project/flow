@@ -37,8 +37,6 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 
-os.environ['MULTIAGENT'] = 'True'
-
 vehicles = Vehicles()
 vehicles.add(
     veh_id='human',

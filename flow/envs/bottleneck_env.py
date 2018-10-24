@@ -962,12 +962,13 @@ class MultiBottleneckEnv(BottleneckEnv):
         # normalized speed and velocity of leading and following vehicles
         # additionally, for each lane leader we add if it is
         # an RL vehicle or not
+        # the position and edge id of the vehicle
         # additionally, we add the time-step (for the baseline)
         # the outflow over the last 10 seconds
         # the number of vehicles in the congested section
         # the average velocity on each edge
         return Box(low=-1.0, high=1.0,
-                   shape=(6 * MAX_LANES * self.scaling + 7,),
+                   shape=(6 * MAX_LANES * self.scaling + 9,),
                    dtype=np.float32)
 
     @property
@@ -981,16 +982,18 @@ class MultiBottleneckEnv(BottleneckEnv):
         # action space is speed and velocity of leading and following
         # vehicles for all of the avs
         veh = self.vehicles
-        lead_follow_dict = {rl_id: self.state_util(rl_id)
+        veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
+                                            self.veh_statistics(rl_id)))
                             for rl_id in self.vehicles.get_rl_ids()}
         agg_statistics = self.aggregate_statistics()
         lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
-                             for rl_id, val in lead_follow_dict.items()}
+                             for rl_id, val in veh_info.items()}
 
         for val in lead_follow_final.values():
-            if val.shape[0] != 31:
+            if val.shape[0] != 33:
                 import ipdb; ipdb.set_trace()
 
+        #import ipdb; ipdb.set_trace()
         return lead_follow_final
 
     def _apply_rl_actions(self, rl_actions):
@@ -1102,6 +1105,17 @@ class MultiBottleneckEnv(BottleneckEnv):
 
         return observation
 
+    def veh_statistics(self, rl_id):
+        '''Returns speed and edge information about the vehicle itself'''
+        speed = self.vehicles.get_speed(rl_id)/100.0
+        edge = self.vehicles.get_edge(rl_id)
+        if edge[0] != ':':
+            edge_id = int(self.vehicles.get_edge(rl_id))/10.0
+        else:
+            edge_id = - 1
+        return np.array([speed, edge_id])
+
+
     def state_util(self, rl_id):
         ''' Returns an array of headway, tailway, leader speed, follower speed
             a 1 if leader is rl 0 otherwise, a 1 if follower is rl 0
@@ -1131,6 +1145,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         lane_tailways = np.asarray(lane_tailways)/1000
         lane_leader_speed = np.asarray(lane_leader_speed)/100
         lane_follower_speed = np.asarray(lane_follower_speed)/100
+        #import ipdb; ipdb.set_trace()
         return np.concatenate((lane_headways, lane_tailways, lane_leader_speed,
                                lane_follower_speed, is_leader_rl,
                                is_follow_rl))

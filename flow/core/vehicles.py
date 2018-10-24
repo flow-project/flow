@@ -1251,12 +1251,11 @@ class Vehicles:
                         leader[lane] = ids[index + 1]
                         headway[lane] = (positions[index + 1] - this_pos -
                                          self.get_length(leader[lane]))
-                        lead_speed[lane] = self.get_speed(leader[lane])
                     else:
                         leader[lane] = ids[index]
                         headway[lane] = (positions[index] - this_pos
                                          - self.get_length(leader[lane]))
-                        follow_speed[lane] = self.get_speed(leader[lane])
+                    lead_speed[lane] = self.get_speed(leader[lane])
 
                 # you are in the back of the queue, the lane follower is in the
                 # edges behind you
