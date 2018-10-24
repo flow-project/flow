@@ -27,8 +27,6 @@ from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
-os.environ['MULTIAGENT'] = 'True'
-
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
