@@ -218,6 +218,6 @@ if __name__ == '__main__':
                 'training_iteration': 400
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/multiagent_tests/vel_reward"
+            'upload_dir': "s3://eugene.experiments/multiagent_tests/vel_reward_long"
         },
     })
