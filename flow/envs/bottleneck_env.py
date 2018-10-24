@@ -989,11 +989,6 @@ class MultiBottleneckEnv(BottleneckEnv):
         lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
                              for rl_id, val in veh_info.items()}
 
-        for val in lead_follow_final.values():
-            if val.shape[0] != 33:
-                import ipdb; ipdb.set_trace()
-
-        #import ipdb; ipdb.set_trace()
         return lead_follow_final
 
     def _apply_rl_actions(self, rl_actions):
@@ -1020,7 +1015,7 @@ class MultiBottleneckEnv(BottleneckEnv):
             reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling)
         if rl_actions:
-            return {rl_id: reward for rl_id in rl_actions.keys()}
+            return {rl_id: reward for rl_id in self.vehicles.get_rl_ids()}
         else:
             return {}
 
