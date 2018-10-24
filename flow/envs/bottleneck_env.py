@@ -412,9 +412,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
            changing that we round
 
        Rewards
-           The reward is the two-norm of the difference between the speed of
-           all vehicles in the network and some desired speed. To this we add
-           a positive reward for moving the vehicles forward
+           The reward is the outflow of the bottleneck plus a reward
+           for RL vehicles making forward progress
 
        Termination
            A rollout is terminated once the time horizon is reached.
@@ -544,12 +543,21 @@ class BottleNeckAccelEnv(BottleneckEnv):
         return np.concatenate((rl_obs, relative_obs, edge_obs))
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """See class definition."""
-        num_rl = self.vehicles.num_rl_vehicles
-        lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
-        return (rewards.desired_velocity(self) + rewards.rl_forward_progress(
-            self, gain=0.1) - rewards.boolean_action_penalty(
-                lane_change_acts, gain=1.0))
+        """Outflow rate over last ten seconds normalized to max of 1."""
+
+        if self.env_params.evaluate:
+            if self.time_counter == self.env_params.horizon:
+                reward = self.vehicles.get_outflow_rate(500)
+            else:
+                return 0
+        else:
+            clogging_penalty = 0
+            for edge in ["3", "4"]:
+                clogging_penalty += max(len(self.vehicles.get_ids_by_edge(edge)) - 15, 0)/60
+            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+                     (2000.0 * self.scaling)
+            reward -= clogging_penalty
+        return reward
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
@@ -628,10 +636,6 @@ class DesiredVelocityEnv(BottleneckEnv):
            The action space consist of a list in which each element
            corresponds to the desired speed that RL vehicles should travel in
            that region of space
-
-       Rewards
-           The reward is the outflow of the bottleneck plus a reward
-           for RL vehicles making forward progress
     """
 
     def __init__(self, env_params, sumo_params, scenario):
@@ -855,19 +859,6 @@ class DesiredVelocityEnv(BottleneckEnv):
                     # set the desired velocity of the controller to the default
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
-        """Outflow rate over last ten seconds normalized to max of 1."""
-
-        if self.env_params.evaluate:
-            if self.time_counter == self.env_params.horizon:
-                reward = self.vehicles.get_outflow_rate(500)
-            else:
-                return 0
-        else:
-            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
-                     (2000.0 * self.scaling)
-        return reward
-
     def reset(self):
         add_params = self.env_params.additional_params
         if add_params.get("reset_inflow"):
@@ -1070,8 +1061,6 @@ class RLRampMeterEnv(BottleneckEnv):
         return observation
 
 
-
-
     def get_state(self):
         num_observed = self.env_params.additional_params['num_observed']
         #Assert that num_observed must be <= number of vehicles on edge
@@ -1107,13 +1096,7 @@ class RLRampMeterEnv(BottleneckEnv):
                 lanes.extend([e/4 for e in self.vehicles.get_lane([veh[0] for veh in veh_positions])] + [0]*diff_buffer)
                 positions.extend(veh_obs_positions)
                 velocities.extend([e/target_velocity for e in [self.vehicles.get_speed(veh[0]) for veh in veh_positions]] + [0]*diff_buffer)
-        #print('obs_space shape is:', self.observation_space.shape)
-        #print('edge_obs length is:', len(edge_obs))
-        #import ipdb; ipdb.set_trace()
         edge_obs = positions + velocities + lanes + avg_speed + density + [self.binarize_state(self.traffic_lights.get_state('3'))]
-        #import ipdb;ipdb.set_trace()
-        #print(self.inflow_rate, self.vehicles.get_outflow_rate(100))
-        #self.log_in_out_flows('./in_out.txt')
         return np.array(edge_obs)
 
     def log_in_out_flows(self, file):
@@ -1123,51 +1106,6 @@ class RLRampMeterEnv(BottleneckEnv):
     def binarize_state(self, tl_state):
         encoder = {'G':'1', 'r':'0'}
         return float(''.join([encoder[e] for e in tl_state]))
-
-    def compute_reward(self, state, rl_actions, **kwargs):
-        '''
-        Reward functions:
-        Question: Does penalizing vs rewarding result in different behavior, generally?s extensively with my parents, we think this is the best decision. I wanted to apologize and sincerely wish the best for Agari - I had a blast speaking with the team and was very much looking forward to working with you guys fo
-        1. Encourage vehicle flow by rewarding average velocity post bottleneck (edge 4)
-            - perhaps use a different metric like the variance in velocity? would capture if there was a subsequent bottleneck that blocked cars
-            - Maybe the l1-norm
-        reward_edges = ['4','5']
-        lambdas_, velocities, variances = [w1, w2], [], []
-        for edge in reward_edges:-
-            veh_ids = self.vehicles.get_ids_by_edge(edge)
-            if len(veh_ids) > 0:
-                velocity_measurements = self.vehicles.get_speed(veh_ids)
-                variances.append(np.var(velocity_measurements))
-                velocities.append(np.mean(velocity_measurements))
-        return sum(velocities) - sum([lambdas_[i]*variances[i] for i in range(len(variances))])
-
-        2. Since we will probably regulate traffic light changes based on a factor o--f sim step, would penalizing tl changes be ineffective/redundant?
-        3. Perhaps a simple metric like number of cars on the bottleneck edge weighted by some normalization factor would be useful?
-        Ideas:
-        1. Find total outflow, i.e. density * avg_speed
-        2. Calculate deviation from optimal flow throughput
-        '''
-        #import ipdb;ipdb.set_trace()
-        reward_edges=['5']
-        velocities, density, avg_speed,velo_var = [], [], [], []
-        for edge in reward_edges:
-            veh_ids = self.vehicles.get_ids_by_edge(edge)
-            density.append(len(veh_ids) / self.scenario.edge_length(edge))
-            if len(veh_ids) > 0:
-                #edge_velo = self.vehicles.get_speed(veh_ids)
-                #velocities.extend(edge_velo)
-                avg_speed.append(sum(self.vehicles.get_speed(veh_ids)) / len(veh_ids))
-                #velo_var.append(np.var(edge_velo))
-            else:
-                avg_speed.append(0)
-                #velo_var.append(1000)
-        #velocity_norm = math.sqrt(sum([e**2 for e in velocities]))
-        #over_queue = max(0, len(self.vehicles.get_ids_by_edge('4'))-10)
-        flow = sum([density[i]*avg_speed[i] for i in range(len(density))])
-        reward = flow + 0.01*np.mean(avg_speed) #- 0.5 * over_queue
-        #import ipdb;ipdb.set_trace()
-        return reward
-
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
@@ -1186,10 +1124,8 @@ class RLRampMeterEnv(BottleneckEnv):
         If result is not of length 4, then pad with zeros
         Maintain invariant that lights are switched from 0-3 and read left to right
         """
-        #import ipdb; ipdb.set_trace()
         state_encoder = {'1': 'G', '0': 'r'}
         if not self.last_change:
-            #import ipdb; ipdb.set_trace()
             binarized_action = bin(action)[2:]
             if len(binarized_action) != 4:
                 binarized_action += '0' * (4 - len(binarized_action))
@@ -1197,7 +1133,6 @@ class RLRampMeterEnv(BottleneckEnv):
             self.traffic_lights.set_state(node_id = '3', state = encoded_action, env=self)
             self.last_change += self.sim_step
         else:
-            #import ipdb; ipdb.set_trace()
             if self.last_change >= 1:
                 self.last_change = 0
             else:
