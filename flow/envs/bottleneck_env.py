@@ -1012,8 +1012,8 @@ class MultiBottleneckEnv(BottleneckEnv):
             else:
                 return 0
         else:
-            # reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
-            #          (2000.0 * self.scaling)
+            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+                     (2000.0 * self.scaling)
             #reward = self.vehicles.get_speed(self.vehicles.get_ids())
             pass
         if rl_actions:
@@ -1021,7 +1021,7 @@ class MultiBottleneckEnv(BottleneckEnv):
             speed_rew = lambda x: self.vehicles.get_speed(x)/40
             num_ids = len(self.vehicles.get_ids_by_edge(edge))
             cong_penalty = max(num_ids - 30, 0)/60
-            return {rl_id: speed_rew(rl_id) - cong_penalty for rl_id
+            return {rl_id: reward - cong_penalty for rl_id
                     in self.vehicles.get_rl_ids()}
         else:
             return {}
