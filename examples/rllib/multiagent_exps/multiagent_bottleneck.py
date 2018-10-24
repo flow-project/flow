@@ -27,7 +27,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 1000
 # number of parallel workers
-N_CPUS = 4
+N_CPUS = 8
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     #config['model'].update({'fcnet_hiddens': [100, 50, 25]})
-    config['model']['use_lstm'] = False
+    config['model']['use_lstm'] = True
     config['use_gae'] = True
     config['lambda'] = 0.97
     #config['sgd_minibatch_size'] = 128
