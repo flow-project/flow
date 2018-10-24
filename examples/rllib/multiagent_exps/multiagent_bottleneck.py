@@ -166,7 +166,7 @@ if __name__ == '__main__':
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     #config['model'].update({'fcnet_hiddens': [100, 50, 25]})
-    config['model']['use_lstm'] = tune.grid_search([True, False])
+    config['model']['use_lstm'] = True
     config['use_gae'] = True
     config['lambda'] = 0.97
     #config['sgd_minibatch_size'] = 128
