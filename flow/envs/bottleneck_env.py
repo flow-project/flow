@@ -1012,10 +1012,12 @@ class MultiBottleneckEnv(BottleneckEnv):
             else:
                 return 0
         else:
-            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
-                     (2000.0 * self.scaling)
+            # reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+            #          (2000.0 * self.scaling)
+            #reward = self.vehicles.get_speed(self.vehicles.get_ids())
+            pass
         if rl_actions:
-            return {rl_id: reward for rl_id in self.vehicles.get_rl_ids()}
+            return {rl_id: self.vehicles.get_speed(rl_id) for rl_id in self.vehicles.get_rl_ids()}
         else:
             return {}
 
