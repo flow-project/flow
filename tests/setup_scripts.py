@@ -358,8 +358,9 @@ def grid_mxn_exp_setup(row_num=1,
         # set default env_params configuration
         additional_env_params = {
             "target_velocity": 50,
-            "num_steps": 100,
-            "switch_time": 3.0
+            "switch_time": 3.0,
+            "tl_type": "controlled",
+            "discrete": False
         }
 
         env_params = EnvParams(

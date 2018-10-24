@@ -119,16 +119,14 @@ def bottleneck1_baseline(num_runs, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, HORIZON)
-    avg_outflow = np.mean([outflow[-1]
-                           for outflow in results["per_step_returns"]])
 
-    return avg_outflow
+    return np.mean(results["returns"]), np.std(results["returns"])
 
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = bottleneck1_baseline(num_runs=runs)
+    mean, std = bottleneck1_baseline(num_runs=runs, render=False)
 
     print('---------')
-    print('The average outflow over 500 seconds '
-          'across {} runs is {}'.format(runs, res))
+    print('The average outflow, std. deviation over 500 seconds '
+          'across {} runs is {}, {}'.format(runs, mean, std))
