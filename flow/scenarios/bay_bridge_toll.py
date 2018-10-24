@@ -1,6 +1,6 @@
 """Contains the Bay Bridge toll scenario class."""
 
-from flow.scenarios.netfile.scenario import NetFileScenario
+from flow.scenarios.netfile import NetFileScenario
 
 
 class BayBridgeTollScenario(NetFileScenario):
