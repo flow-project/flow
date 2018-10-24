@@ -1017,7 +1017,7 @@ class MultiBottleneckEnv(BottleneckEnv):
             #reward = self.vehicles.get_speed(self.vehicles.get_ids())
             pass
         if rl_actions:
-            return {rl_id: self.vehicles.get_speed(rl_id) for rl_id in self.vehicles.get_rl_ids()}
+            return {rl_id: self.vehicles.get_speed(rl_id)/20 for rl_id in self.vehicles.get_rl_ids()}
         else:
             return {}
 

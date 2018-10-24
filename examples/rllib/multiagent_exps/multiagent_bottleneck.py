@@ -25,7 +25,7 @@ from flow.controllers import RLController, ContinuousRouter, \
     SumoLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 2000
 # number of parallel workers
 N_CPUS = 15
 # number of rollouts per training iteration
@@ -165,15 +165,15 @@ if __name__ == '__main__':
     #config['sample_batch_size'] = HORIZON
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
-    #config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    config['model'].update({'fcnet_hiddens': [32, 32]})
     config['model']['use_lstm'] = False
     config['use_gae'] = True
     config['lambda'] = 0.97
     #config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
     config['vf_clip_param'] = 10000
-    config['lr'] = tune.grid_search([1e-5, 1e-6, 1e-7])
-    config['num_sgd_iter'] = tune.grid_search([10, 30])
+    config['lr'] = tune.grid_search([1e-5, 1e-6])
+    config['num_sgd_iter'] = tune.grid_search([30])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
