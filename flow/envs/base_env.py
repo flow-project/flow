@@ -903,6 +903,10 @@ class Env(gym.Env, Serializable):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
+        print(
+            "Closing connection to TraCI and stopping simulation.\n"
+            "Note, this may print an error message when it closes."
+        )
         self._close()
 
     def _close(self):
