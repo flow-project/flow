@@ -91,8 +91,7 @@ if __name__ == "__main__":
     register_env(env_name, create_env)
 
     # Determine agent and checkpoint
-    config_run = config['env_config']['run'] if 'run' in config['env_config'] \
-        else None
+    config_run = config['env_config'].get('run', None)
     if (args.run and config_run):
         if (args.run != config_run):
             print("visualizer_rllib.py: error: run argument "

@@ -287,6 +287,9 @@ required libraries as specified at
 <http://ray.readthedocs.io/en/latest/installation.html> and
 then follow the setup instructions.
 
+Of note is that boost is a dependency not mentioned in the additional libraries.
+Boost 1.6.5 is required, you can download the zip `here <https://dl.bintray.com/boostorg/release/1.65.0/source/boost_1_65_0.zip>`_.
+For Mac: unzip and place the `boost` directory into your `/usr/local/include/` directory.
 
 h. Custom configuration
 =======================
