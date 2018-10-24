@@ -6,7 +6,7 @@ EXAMPLE_USAGE : str
     Example call to the function, which is
     ::
 
-        python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
+        python ./visualizer_rllib.py /tmp/ray/result_dir 1
 
 parser : ArgumentParser
     Command-line argument parser
@@ -15,6 +15,7 @@ parser : ArgumentParser
 import argparse
 import numpy as np
 import os
+import sys
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
@@ -27,11 +28,10 @@ from flow.core.util import emission_to_csv
 
 EXAMPLE_USAGE = """
 example usage:
-    python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO
+    python ./visualizer_rllib.py /tmp/ray/result_dir 1
 
 Here the arguments are:
 1 - the number of the checkpoint
-PPO - the name of the algorithm the code was run with
 """
 
 parser = argparse.ArgumentParser(
@@ -52,7 +52,9 @@ parser.add_argument(
     help="The algorithm or model to train. This may refer to "
     "the name of a built-on algorithm (e.g. RLLib's DQN "
     "or PPO), or a user-defined trainable function or "
-    "class registered in the tune registry.")
+    "class registered in the tune registry. "
+    "Required for results trained with flow-0.2.0 and before.")
+# TODO: finalize version here
 parser.add_argument(
     '--num_rollouts',
     type=int,
@@ -88,7 +90,27 @@ if __name__ == "__main__":
         params=flow_params, version=0, render=False)
     register_env(env_name, create_env)
 
-    agent_cls = get_agent_class(args.run)
+    # Determine agent and checkpoint
+    config_run = config['env_config']['run'] if 'run' in config['env_config'] \
+        else None
+    if (args.run and config_run):
+        if (args.run != config_run):
+            print("visualizer_rllib.py: error: run argument "
+                  + "\"{}\" passed in ".format(args.run)
+                  + "differs from the one stored in params.json "
+                  + "\"{}\"".format(config_run))
+            sys.exit(1)
+    if (args.run):
+        agent_cls = get_agent_class(args.run)
+    elif (config_run):
+        agent_cls = get_agent_class(config_run)
+    else:
+        print("visualizer_rllib.py: error: could not find flow parameter "
+              "\"run\" in params.json, "
+              "add argument --run to provide the algorithm or model used "
+              "to train the results\n e.g. "
+              "python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO")
+        sys.exit(1)
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
