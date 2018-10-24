@@ -102,7 +102,7 @@ class Env(gym.Env, Serializable):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.scenario.generator.rts
+        self.available_routes = self.scenario.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -162,7 +162,7 @@ class Env(gym.Env, Serializable):
     def start_sumo(self):
         """Start a sumo instance.
 
-        Uses the configuration files created by the generator class to
+        Uses the configuration files created by the scenario class to
         initialize a sumo instance. Also initializes a traci connection to
         interface with sumo from Python.
         """

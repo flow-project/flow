@@ -8,9 +8,8 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.bay_bridge import BayBridgeEnv
-from flow.scenarios.bay_bridge_toll.gen import BayBridgeTollGenerator
-from flow.scenarios.bay_bridge_toll.scenario import BayBridgeTollScenario
+from flow.envs.bay_bridge.base import BayBridgeEnv
+from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
 NETFILE = os.path.join(
@@ -108,7 +107,6 @@ def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
 
     scenario = BayBridgeTollScenario(
         name="bay_bridge_toll",
-        generator_class=BayBridgeTollGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)

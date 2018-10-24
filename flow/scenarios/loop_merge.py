@@ -3,8 +3,7 @@
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
-
-from numpy import pi
+from numpy import pi, sin, cos, linspace
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
@@ -51,6 +50,9 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         radius = net_params.additional_params["ring_radius"]
         x = net_params.additional_params["lane_length"]
+
+        self.inner_lanes = net_params.additional_params["inner_lanes"]
+        self.outer_lanes = net_params.additional_params["outer_lanes"]
 
         self.junction_length = 0.3
         self.intersection_length = 25.5  # calibrate when the radius changes
