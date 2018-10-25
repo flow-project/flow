@@ -996,13 +996,18 @@ class MultiBottleneckEnv(BottleneckEnv):
         # action space is speed and velocity of leading and following
         # vehicles for all of the avs
         veh = self.vehicles
-        veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
-                                            self.veh_statistics(rl_id)))
-                            for rl_id in self.vehicles.get_rl_ids()}
+        if self.env_params.additional_params.get('communicate', False):
+            veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
+                                               self.veh_statistics(rl_id),
+                                               self.get_signal(rl_id, rl_actions)))
+                        for rl_id in self.vehicles.get_rl_ids()}
+        else:
+            veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
+                                                self.veh_statistics(rl_id)))
+                                for rl_id in self.vehicles.get_rl_ids()}
         agg_statistics = self.aggregate_statistics()
         lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
                              for rl_id, val in veh_info.items()}
-        import ipdb; ipdb.set_trace()
 
         return lead_follow_final
 
@@ -1183,7 +1188,11 @@ class MultiBottleneckEnv(BottleneckEnv):
         return np.concatenate(([time_step], [outflow],
                                [congest_number], avg_speeds))
 
-    def get_signal(self, rl_actions):
+    def get_signal(self, rl_id, rl_actions):
         ''' Returns the communication signals that should be
             pass to the autonomous vehicles
         '''
+        lead_ids = self.vehicles.get_lane_leaders(rl_id)
+        follow_ids = self.vehicles.get_lane_followers(rl_id)
+        comm_ids = lead_ids + follow_ids
+        return [rl_actions[av_id]/4.0 for av_id in comm_ids]
