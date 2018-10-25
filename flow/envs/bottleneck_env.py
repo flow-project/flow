@@ -16,6 +16,8 @@ from copy import deepcopy
 
 import numpy as np
 from gym.spaces.box import Box
+from gym.spaces.discrete import Discrete
+from gym.spaces.tuple_space import Tuple
 
 from flow.core import rewards
 from flow.envs.base_env import Env
@@ -967,17 +969,29 @@ class MultiBottleneckEnv(BottleneckEnv):
         # the outflow over the last 10 seconds
         # the number of vehicles in the congested section
         # the average velocity on each edge 3,4,5
-        return Box(low=-1.0, high=1.0,
-                   shape=(6 * MAX_LANES * self.scaling + 9,),
-                   dtype=np.float32)
+        if self.env_params.additional_params.get('communicate', False):
+            # eight possible signals if above
+            return Box(low=-1.0, high=1.0,
+                       shape=(6 * MAX_LANES * self.scaling + 17,),
+                       dtype=np.float32)
+        else:
+            return Box(low=-1.0, high=1.0,
+                       shape=(6 * MAX_LANES * self.scaling + 9,),
+                       dtype=np.float32)
 
     @property
     def action_space(self):
         """See class definition."""
-        return Box(
-            low=-1.5, high=1.0, shape=(1,), dtype=np.float32)
+        if self.env_params.additional_params.get('communicate', False):
+            accel = Box(
+                low=-1.5, high=1.0, shape=(1,), dtype=np.float32)
+            communicate = Discrete(4)
+            return Tuple((accel, communicate))
+        else:
+            return Box(
+                low=-1.5, high=1.0, shape=(1,), dtype=np.float32)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # action space is speed and velocity of leading and following
         # vehicles for all of the avs
@@ -988,6 +1002,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         agg_statistics = self.aggregate_statistics()
         lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
                              for rl_id, val in veh_info.items()}
+        import ipdb; ipdb.set_trace()
 
         return lead_follow_final
 
@@ -1110,11 +1125,11 @@ class MultiBottleneckEnv(BottleneckEnv):
         '''Returns speed and edge information about the vehicle itself'''
         speed = self.vehicles.get_speed(rl_id)/100.0
         edge = self.vehicles.get_edge(rl_id)
-        lane = self.vehicles.get_lane(rl_id)/10.0
+        lane = (self.vehicles.get_lane(rl_id)+1)/10.0
         if edge[0] != ':':
             edge_id = int(self.vehicles.get_edge(rl_id))/10.0
         else:
-            edge_id = - 1
+            edge_id = - 1/10.0
         return np.array([speed, edge_id, lane])
 
 
@@ -1168,3 +1183,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         return np.concatenate(([time_step], [outflow],
                                [congest_number], avg_speeds))
 
+    def get_signal(self, rl_actions):
+        ''' Returns the communication signals that should be
+            pass to the autonomous vehicles
+        '''

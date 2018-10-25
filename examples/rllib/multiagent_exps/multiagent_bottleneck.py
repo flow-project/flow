@@ -27,7 +27,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 1
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -69,7 +69,8 @@ additional_env_params = {
     'lane_change_duration': 5,
     'max_accel': 3,
     'max_decel': 3,
-    'inflow_range': [1000, 2000]
+    'inflow_range': [1000, 2000],
+    'communicate': True
 }
 
 # flow rate
@@ -118,14 +119,14 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.5,
-        render=False,
+        render=True,
         print_warnings=False,
         restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        warmup_steps=40,
+        warmup_steps=0, # FIXME set to zero
         sims_per_step=1,
         horizon=HORIZON,
         additional_params=additional_env_params,

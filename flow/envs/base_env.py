@@ -471,12 +471,13 @@ class Env(*classdef):
                 done = True
                 break
 
-        if isinstance(self.get_state(), dict):
+        states = self.get_state(rl_actions)
+        if isinstance(states, dict):
             self.state = {}
             next_observation = {}
             done = {}
             infos = {}
-            temp_state = self.get_state() # FIXME have this take rl_actions
+            temp_state = states # FIXME have this take rl_actions
             for key, state in temp_state.items():
                 # collect information of the state of the network based on the
                 # environment class used
@@ -502,10 +503,10 @@ class Env(*classdef):
         else:
             # collect information of the state of the network based on the
             # environment class used
-            self.state = np.asarray(self.get_state()).T
+            self.state = np.asarray(states).T
 
             # collect observation new state associated with action
-            next_observation = np.copy(self.state)
+            next_observation = np.copy(states)
 
             # compute the reward
             reward = self.compute_reward(self.state, rl_actions, fail=crash)
@@ -674,10 +675,11 @@ class Env(*classdef):
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        if isinstance(self.get_state(), dict):
+        states = self.get_state()
+        if isinstance(states, dict):
             self.state = {}
             observation = {}
-            for key, state in self.get_state().items():
+            for key, state in state.items():
                 # collect information of the state of the network based on the
                 # environment class used
                 self.state[key] = np.asarray(state).T
@@ -688,10 +690,10 @@ class Env(*classdef):
         else:
             # collect information of the state of the network based on the
             # environment class used
-            self.state = np.asarray(self.get_state()).T
+            self.state = np.asarray(states).T
 
             # observation associated with the reset (no warm-up steps)
-            observation = np.copy(self.state)
+            observation = np.copy(states)
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
@@ -908,7 +910,7 @@ class Env(*classdef):
         for veh_id in self.vehicles.get_observed_ids():
             self.vehicles.remove_observed(veh_id)
 
-    def get_state(self):
+    def get_state(self, rl_actions = None):
         """Return the state of the simulation as perceived by the RL agent.
 
         MUST BE implemented in new environments.
@@ -918,6 +920,8 @@ class Env(*classdef):
         state: numpy ndarray
             information on the state of the vehicles, which is provided to the
             agent
+        rl_actions: numpy ndarray or dict
+            actions taken by the rl vehicles
         """
         raise NotImplementedError
 
