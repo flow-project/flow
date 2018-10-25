@@ -167,7 +167,7 @@ if __name__ == '__main__':
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['model']['use_lstm'] = False
+    config['model']['use_lstm'] = True
     config['use_gae'] = True
     config['lambda'] = 0.97
     config['kl_target'] = 0.02
@@ -223,6 +223,6 @@ if __name__ == '__main__':
                 'training_iteration': 400
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/10-24-18/comm_test3"
+            'upload_dir': "s3://eugene.experiments/10-24-18/comm_test4"
         },
     })
