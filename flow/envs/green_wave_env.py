@@ -578,7 +578,6 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         # specify observed vehicles
         [self.vehicles.set_observed(veh_id) for veh_id in self.observed_ids]
 
-
 class GreenWaveTestEnv(TrafficLightGridEnv):
     """
     Class that overrides RL methods of green wave so we can test

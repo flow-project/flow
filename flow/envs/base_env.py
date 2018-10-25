@@ -34,7 +34,7 @@ except ImportError:
 
 try:
     from ray.rllib.env import MultiAgentEnv
-    multiagent_flag = True # and os.environ.get('MULTIAGENT', 0)
+    multiagent_flag = True and os.environ.get('MULTIAGENT', 0)
 except ImportError:
     multiagent_flag = False
     MultiAgentEnv = object

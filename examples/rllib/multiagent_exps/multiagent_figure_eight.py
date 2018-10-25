@@ -33,6 +33,7 @@ HORIZON = 1500
 N_ROLLOUTS = 14
 # number of parallel workers
 N_CPUS = 14
+os.environ['MULTIAGENT'] = 'True'
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
