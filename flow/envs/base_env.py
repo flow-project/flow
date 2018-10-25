@@ -679,7 +679,7 @@ class Env(*classdef):
         if isinstance(states, dict):
             self.state = {}
             observation = {}
-            for key, state in state.items():
+            for key, state in states.items():
                 # collect information of the state of the network based on the
                 # environment class used
                 self.state[key] = np.asarray(state).T

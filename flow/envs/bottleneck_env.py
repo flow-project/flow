@@ -1008,7 +1008,6 @@ class MultiBottleneckEnv(BottleneckEnv):
         agg_statistics = self.aggregate_statistics()
         lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
                              for rl_id, val in veh_info.items()}
-        import ipdb; ipdb.set_trace()
 
         return lead_follow_final
 
@@ -1021,7 +1020,8 @@ class MultiBottleneckEnv(BottleneckEnv):
         """
         if rl_actions:
             rl_ids = list(rl_actions.keys())
-            accel = list(rl_actions.values())
+            actions = list(rl_actions.values())
+            accel = np.concatenate([action[0] for action in actions])
             self.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, state, rl_actions, **kwargs):
@@ -1196,4 +1196,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         lead_ids = self.vehicles.get_lane_leaders(rl_id)
         follow_ids = self.vehicles.get_lane_followers(rl_id)
         comm_ids = lead_ids + follow_ids
-        return [rl_actions[av_id]/4.0 for av_id in comm_ids]
+        if rl_actions:
+            return [rl_actions[av_id][1]/4.0 if av_id in rl_actions.keys() else -1/4.0 for av_id in comm_ids]
+        else:
+            return [-1/4.0 for _ in range(8)]

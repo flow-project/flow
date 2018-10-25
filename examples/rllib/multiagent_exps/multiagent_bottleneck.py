@@ -119,7 +119,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.5,
-        render=True,
+        render=False,
         print_warnings=False,
         restart_instance=True,
     ),
@@ -174,10 +174,11 @@ if __name__ == '__main__':
     #config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
     config['vf_clip_param'] = 10000
-    config['lr'] = tune.grid_search([1e-5, 1e-6])
+    #config['lr'] = tune.grid_search([1e-5, 1e-6])
     config['num_sgd_iter'] = tune.grid_search([30])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
+    config['model']['squash_to_range'] = True
 
     # save the flow params for replay
     flow_json = json.dumps(
