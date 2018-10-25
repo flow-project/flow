@@ -1158,6 +1158,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         is_follow_rl = [1 if f_id in rl_ids else 0 for f_id in follower_ids]
         diff = self.scaling*MAX_LANES - len(is_leader_rl)
         if diff > 0:
+            # the minus 1 disambiguates missing cars from missing lanes
             lane_headways += diff*[-1]
             lane_tailways += diff*[-1]
             lane_leader_speed += diff*[-1]
@@ -1200,6 +1201,7 @@ class MultiBottleneckEnv(BottleneckEnv):
             signals = [rl_actions[av_id][1]/4.0 if av_id in
                         rl_actions.keys() else -1/4.0 for av_id in comm_ids]
             if len(signals) < 8:
+                # the -2 disambiguates missing cars from missing lanes
                 signals += (8-len(signals)) * [-2/4.0]
             return signals
         else:
