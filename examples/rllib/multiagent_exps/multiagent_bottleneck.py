@@ -27,7 +27,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 15
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -126,7 +126,7 @@ flow_params = dict(
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        warmup_steps=0, # FIXME set to zero
+        warmup_steps=40,
         sims_per_step=1,
         horizon=HORIZON,
         additional_params=additional_env_params,
@@ -164,18 +164,17 @@ if __name__ == '__main__':
     config = ppo.DEFAULT_CONFIG.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
-    #config['sample_batch_size'] = HORIZON
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
     config['model']['use_lstm'] = False
     config['use_gae'] = True
     config['lambda'] = 0.97
-    #config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
     config['vf_clip_param'] = 10000
-    #config['lr'] = tune.grid_search([1e-5, 1e-6])
-    config['num_sgd_iter'] = tune.grid_search([30])
+    config['lr'] = tune.grid_search([1e-5, 1e-6])
+    config['vf_loss_coeff'] = tune.grid_search([1, 10, 100])
+    config['num_sgd_iter'] = tune.grid_search([10, 30])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
     config['model']['squash_to_range'] = True
@@ -221,6 +220,6 @@ if __name__ == '__main__':
                 'training_iteration': 400
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/multiagent_tests/cong_penalty"
+            'upload_dir': "s3://eugene.experiments/10-24-18/comm_test1"
         },
     })

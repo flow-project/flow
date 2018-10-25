@@ -1038,7 +1038,7 @@ class MultiBottleneckEnv(BottleneckEnv):
             #reward = self.vehicles.get_speed(self.vehicles.get_ids())
         if rl_actions:
             edge = '4'
-            speed_rew = lambda x: self.vehicles.get_speed(x)/40
+            speed_rew = lambda x: self.vehicles.get_speed(x)/10
             num_ids = len(self.vehicles.get_ids_by_edge(edge))
             cong_penalty = max(num_ids - 30, 0)/60
             return {rl_id: reward - cong_penalty for rl_id
