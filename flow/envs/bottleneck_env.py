@@ -1197,6 +1197,10 @@ class MultiBottleneckEnv(BottleneckEnv):
         follow_ids = self.vehicles.get_lane_followers(rl_id)
         comm_ids = lead_ids + follow_ids
         if rl_actions:
-            return [rl_actions[av_id][1]/4.0 if av_id in rl_actions.keys() else -1/4.0 for av_id in comm_ids]
+            signals = [rl_actions[av_id][1]/4.0 if av_id in
+                        rl_actions.keys() else -1/4.0 for av_id in comm_ids]
+            if len(signals) < 8:
+                signals += (8-len(signals)) * [-2/4.0]
+            return signals
         else:
             return [-1/4.0 for _ in range(8)]
