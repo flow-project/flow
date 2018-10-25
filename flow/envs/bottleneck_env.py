@@ -1008,6 +1008,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         agg_statistics = self.aggregate_statistics()
         lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
                              for rl_id, val in veh_info.items()}
+        import ipdb; ipdb.set_trace()
 
         return lead_follow_final
 
