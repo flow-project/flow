@@ -76,8 +76,10 @@ if __name__ == '__main__':
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
-    config = get_rllib_config(result_dir + '/..')
-    pkl = get_rllib_pkl(result_dir + '/..')
+    # config = get_rllib_config(result_dir + '/..')
+    # pkl = get_rllib_pkl(result_dir + '/..')
+    config = get_rllib_config(result_dir)
+    pkl = get_rllib_pkl(result_dir)
 
     # check if we have a multiagent scenario but in a
     # backwards compatible way
@@ -127,6 +129,7 @@ if __name__ == '__main__':
     module = __import__('flow.envs', fromlist=[flow_params['env_name']])
     env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
+    env_params.restart_instance = False
     if args.evaluate:
         env_params.evaluate = True
     sumo_params = flow_params['sumo']

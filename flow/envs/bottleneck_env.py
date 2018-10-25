@@ -966,9 +966,9 @@ class MultiBottleneckEnv(BottleneckEnv):
         # additionally, we add the time-step (for the baseline)
         # the outflow over the last 10 seconds
         # the number of vehicles in the congested section
-        # the average velocity on each edge
+        # the average velocity on each edge 3,4,5
         return Box(low=-1.0, high=1.0,
-                   shape=(6 * MAX_LANES * self.scaling + 10,),
+                   shape=(6 * MAX_LANES * self.scaling + 9,),
                    dtype=np.float32)
 
     @property
@@ -1015,7 +1015,6 @@ class MultiBottleneckEnv(BottleneckEnv):
             reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling)
             #reward = self.vehicles.get_speed(self.vehicles.get_ids())
-            pass
         if rl_actions:
             edge = '4'
             speed_rew = lambda x: self.vehicles.get_speed(x)/40
@@ -1159,7 +1158,7 @@ class MultiBottleneckEnv(BottleneckEnv):
         '''
         time_step = self.time_counter/self.env_params.horizon
         outflow = self.vehicles.get_outflow_rate(10)/3600
-        valid_edges = ['3', '4', '5', '6']
+        valid_edges = ['3', '4', '5']
         congest_number = len(self.vehicles.get_ids_by_edge('4'))/50
         avg_speeds = np.zeros(len(valid_edges))
         for i, edge in enumerate(valid_edges):

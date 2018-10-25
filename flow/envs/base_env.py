@@ -476,7 +476,7 @@ class Env(*classdef):
             next_observation = {}
             done = {}
             infos = {}
-            temp_state = self.get_state()
+            temp_state = self.get_state() # FIXME have this take rl_actions
             for key, state in temp_state.items():
                 # collect information of the state of the network based on the
                 # environment class used
