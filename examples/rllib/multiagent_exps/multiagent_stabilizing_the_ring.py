@@ -27,7 +27,7 @@ HORIZON = 3000
 # number of rollouts per training iteration
 N_ROLLOUTS = 12
 # number of parallel workers
-N_CPUS = 8
+N_CPUS = 50
 # Number of rings
 NUM_RINGS = 4
 
