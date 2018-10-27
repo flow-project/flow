@@ -27,7 +27,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 50
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -105,7 +105,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiBottleneck',
+    exp_tag='MultiBottleneckCommunicate',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -172,7 +172,7 @@ if __name__ == '__main__':
     config['lambda'] = 0.97
     config['kl_target'] = 0.02
     config['vf_clip_param'] = 10000
-    config['lr'] = tune.grid_search([1e-5, 1e-6])
+    config['lr'] = tune.grid_search([1e-3,1e-4,1e-5, 1e-6])
     config['vf_loss_coeff'] = tune.grid_search([1, 10, 100])
     config['num_sgd_iter'] = tune.grid_search([10, 30])
     config['horizon'] = HORIZON
