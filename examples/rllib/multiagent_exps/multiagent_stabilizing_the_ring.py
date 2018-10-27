@@ -25,11 +25,11 @@ os.environ['MULTIAGENT'] = 'True'
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 2
+N_ROLLOUTS = 60
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 12
 # Number of rings
-NUM_RINGS = 2
+NUM_RINGS = 4
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -108,8 +108,8 @@ if __name__ == '__main__':
     config['gamma'] = 0.999  # discount rate
     # config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     # config['use_gae'] = True
-    # config['lambda'] = 0.97
-    config['lr'] = tune.grid_search([1e-5, 5e-6]) # 1e-5 seems like the right thing
+    # config['lambda'] = 0.97z
+    config['lr'] = tune.grid_search([1e-3, 1e-4, 1e-5, 1e-6]) # 1e-5 seems like the right thing
     # config['vf_loss_coeff'] = tune.grid_search([10, 1]) # it seems really important that this is 1 and not 10
     config['vf_clip_param']  = tune.grid_search([1e3, 1e4, 1e5])
     # config['sgd_minibatch_size'] = 128
@@ -159,7 +159,7 @@ if __name__ == '__main__':
                 'training_iteration': 400
             },
             'config': config,
-            'upload_dir': 's3://eugene.experiments/multiagent_tests'
+            'upload_dir': 's3://kanaad.experiments/multiagent_tests/'
         },
     })
 
