@@ -39,7 +39,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c5d.4xlarge
+    InstanceType: m4.16xlarge
     ImageId: ami-006f44e731fd3f83d # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
@@ -68,7 +68,7 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
-"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/multiagent",
+"/tmp/path": "/Users/kanaad/code/research/learning-traffic/rllab-multiagent/.git/modules/learning-traffic/refs/heads/multiagent",
 }
 
 setup_commands:
@@ -80,6 +80,8 @@ setup_commands:
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     - echo 'export PATH="/home/ubuntu/anaconda3/bin:$PATH"' >> ~/.bashrc
     - pip install tornado==4.5.3
+    - pip install dill
+    - pip install lz4
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
     - PATH="/home/ubuntu/anaconda3/bin:$PATH" yes | ~/anaconda3/bin/conda install boto3=1.4.8  # 1.4.8 adds InstanceMarketOptions
