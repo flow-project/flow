@@ -21,11 +21,11 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 os.environ['MULTIAGENT'] = 'True'
-
+# make sure (sample_batch_size * num_workers ~= train_batch_size)
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 12
+N_ROLLOUTS = 50
 # number of parallel workers
 N_CPUS = 50
 # Number of rings
