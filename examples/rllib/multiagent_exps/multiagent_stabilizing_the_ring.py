@@ -31,7 +31,7 @@ N_CPUS = 12
 # Number of rings
 NUM_RINGS = 4
 
-# We place one autonomous vehicle and 22 human-driven vehicles in the network
+# We place one autonomous vehicle and 21 human-driven vehicles in the network
 vehicles = Vehicles()
 for i in range(NUM_RINGS):
     vehicles.add(
@@ -74,6 +74,7 @@ flow_params = dict(
             'max_accel': 1,
             'max_decel': 1,
             'ring_length': [230, 230],
+            'target_velocity': 4
         },
     ),
 
