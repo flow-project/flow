@@ -460,7 +460,7 @@ class Env(gym.Env, Serializable):
         next_observation = np.copy(self.state)
 
         # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, crash, {}
 
@@ -875,7 +875,7 @@ class Env(gym.Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
 
         MUST BE implemented in new environments.
@@ -883,8 +883,6 @@ class Env(gym.Env, Serializable):
 
         Parameters
         ----------
-        state: numpy ndarray
-            state of all the vehicles in the simulation
         rl_actions: numpy ndarray
             actions performed by rl vehicles
         kwargs: dict
