@@ -26,7 +26,7 @@ except ImportError:
 
 try:
     # Load user config if exists, else load default config
-    import flow.core.config as config
+    import flow.config as config
 except ImportError:
     import flow.config_default as config
 
