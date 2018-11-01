@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ElementTree
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
-except ImportError as e:
+except ImportError:
     Serializable = object
 
 E = etree.Element
@@ -212,7 +212,7 @@ class Generator(Serializable):
             try:
                 edges_dict, conn_dict = self._import_edges_from_net()
                 return edges_dict, conn_dict
-            except Exception as error:
+            except Exception:
                 print("Error during start: {}".format(traceback.format_exc()))
                 print("Retrying in {} seconds...".format(WAIT_ON_ERROR))
                 time.sleep(WAIT_ON_ERROR)
