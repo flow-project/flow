@@ -30,7 +30,7 @@ N_CPUS = 32
 i = 0
 
 sumo_params = SumoParams(
-    sim_step=0.5, render=False, restart_instance=True)
+    sim_step=0.5, render=True, restart_instance=False)
 
 vehicles = Vehicles()
 
@@ -163,4 +163,5 @@ for seed in [2]:  # , 1, 5, 10, 73]:
         mode="local",
         exp_prefix=exp_tag,
         # plot=True,
-        sync_s3_pkl=True)
+        sync_s3_pkl=True
+    )

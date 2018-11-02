@@ -29,7 +29,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 3
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -98,7 +98,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.2,
-        render=False,
+        render=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -172,6 +172,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200,
             },
-            "repeat": 3,
+            "num_samples": 3,
         },
     })

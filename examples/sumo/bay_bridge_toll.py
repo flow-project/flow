@@ -8,7 +8,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.bay_bridge import BayBridgeEnv
+from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge_toll.gen import BayBridgeTollGenerator
 from flow.scenarios.bay_bridge_toll.scenario import BayBridgeTollScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
@@ -17,7 +17,7 @@ NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bottleneck.net.xml")
 
 
-def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
+def bay_bridge_toll_example(render=None, use_traffic_lights=False):
     """Perform a simulation of the toll portion of the Bay Bridge.
 
     This consists of the toll booth and sections of the road leading up to it.
@@ -120,7 +120,7 @@ def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bay_bridge_bottleneck_example(
+    exp = bay_bridge_toll_example(
         render=True, use_traffic_lights=False)
 
     # run for a set number of rollouts / time steps

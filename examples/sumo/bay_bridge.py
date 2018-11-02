@@ -9,7 +9,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.bay_bridge import BayBridgeEnv
+from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge.gen import BayBridgeGenerator
 from flow.scenarios.bay_bridge.scenario import BayBridgeScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
@@ -46,9 +46,9 @@ def bay_bridge_example(render=None,
 
     sumo_car_following_params = SumoCarFollowingParams(speedDev=0.2)
     sumo_lc_params = SumoLaneChangeParams(
-        lcAssertive=20,
-        lcPushy=0.8,
-        lcSpeedGain=4.0,
+        lc_assertive=20,
+        lc_pushy=0.8,
+        lc_speed_gain=4.0,
         model="LC2013",
         # lcKeepRight=0.8
     )
