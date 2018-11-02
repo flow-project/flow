@@ -26,7 +26,7 @@ except ImportError:
 
 try:
     # Load user config if exists, else load default config
-    import flow.core.config as config
+    import flow.config as config
 except ImportError:
     import flow.config_default as config
 
@@ -460,7 +460,7 @@ class Env(gym.Env, Serializable):
         next_observation = np.copy(self.state)
 
         # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, crash, {}
 
@@ -875,7 +875,7 @@ class Env(gym.Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
 
         MUST BE implemented in new environments.
@@ -883,8 +883,6 @@ class Env(gym.Env, Serializable):
 
         Parameters
         ----------
-        state: numpy ndarray
-            state of all the vehicles in the simulation
         rl_actions: numpy ndarray
             actions performed by rl vehicles
         kwargs: dict
@@ -903,6 +901,10 @@ class Env(gym.Env, Serializable):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
+        print(
+            "Closing connection to TraCI and stopping simulation.\n"
+            "Note, this may print an error message when it closes."
+        )
         self._close()
 
     def _close(self):
