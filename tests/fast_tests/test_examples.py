@@ -7,6 +7,8 @@ from examples.sumo.loop_merge import loop_merge_example
 from examples.sumo.grid import grid_example
 from examples.sumo.bottleneck import bottleneck_example
 from examples.sumo.merge import merge_example
+from examples.sumo.bay_bridge import bay_bridge_example
+from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -85,6 +87,27 @@ class TestSumoExamples(unittest.TestCase):
         """
         # import the experiment variable from the example
         exp = loop_merge_example(render=False)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+    def test_bay_bridge(self):
+        """
+        Verifies that examples/sumo/bay_bridge.py is working
+        """
+        # import the experiment variable from the example
+        exp = bay_bridge_example(render=False)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+
+    def test_bay_bridge_toll(self):
+        """
+        Verifies that examples/sumo/bay_bridge_toll.py is working
+        """
+        # import the experiment variable from the example
+        exp = bay_bridge_toll_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)

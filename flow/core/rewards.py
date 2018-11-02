@@ -42,6 +42,25 @@ def desired_velocity(env, fail=False):
 
     return max(max_cost - cost, 0) / max_cost
 
+def average_velocity(env, fail=False):
+    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
+
+    if any(vel < -100) or fail:
+        return 0.
+    if len(vel) == 0:
+        return 0.
+    # return sum(vel) / 3 #just cuz
+
+    return np.mean(vel)
+
+def total_velocity(env, fail=False):
+    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
+
+    if any(vel < -100) or fail:
+        return 0.
+    if len(vel) == 0:
+        return sum(vel)
+
 
 def reward_density(env):
     return env.vehicles.get_num_arrived() / env.sim_step
@@ -122,8 +141,11 @@ def min_delay(env):
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
-    cost = time_step * sum((v_top - vel) / v_top)
-    return max((max_cost - cost) / max_cost, 0)
+    try:
+        cost = time_step * sum((v_top - vel) / v_top)
+        return max((max_cost - cost) / max_cost, 0)
+    except ZeroDivisionError:
+        return 0
 
 
 def min_delay_unscaled(env):
@@ -157,6 +179,39 @@ def penalize_tl_changes(actions, gain=1):
     """
     action_penalty = gain * np.sum(np.round(actions))
     return -action_penalty
+
+def penalize_standstill(env, gain=1):
+    """
+    A reward function that penalizes vehicle standstill
+
+    Is it better for this to be:
+        a) penalize standstill in general? 
+        b) multiplicative based on time that vel=0? 
+
+    Parameters
+    ----------
+    actions: {list of booleans} - indicates whether a switch is desired
+    gain: {float} - multiplicative factor on the action penalty
+    """
+    veh_ids = env.vehicles.get_ids()
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    num_standstill = len(vel[vel==0])
+    penalty = gain * num_standstill
+    return -penalty
+
+def penalize_near_standstill(env, thresh=0.3, gain=1):
+    veh_ids = env.vehicles.get_ids()
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    penalize = len(vel[vel < 0.3])
+    penalty = gain * penalize
+    return -penalty
+
+def penalize_jerkiness(env, gain=1):
+    """
+    A penalty function the penalizes jerky driving 
+    """
+    pass
+
 
 
 def penalize_headway_variance(vehicles,
