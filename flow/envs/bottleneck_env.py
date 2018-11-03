@@ -370,7 +370,7 @@ class BottleneckEnv(Env):
             shape=(1, ),
             dtype=np.float32)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """ Outflow rate over last ten seconds normalized to max of 1 """
 
         reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
@@ -532,7 +532,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         return np.concatenate((rl_obs, relative_obs, edge_obs))
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         num_rl = self.vehicles.num_rl_vehicles
         lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
@@ -844,7 +844,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     # set the desired velocity of the controller to the default
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
 
         if self.env_params.evaluate:

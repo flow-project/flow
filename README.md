@@ -18,8 +18,7 @@ See [our website](https://flow-project.github.io/) for more information on the a
 
 We welcome your contributions.
 
-- Ask questions on our mailing list: [flow-dev@googlegroups.com](https://groups.google.com/forum/#!forum/flow-dev).
-- Please report bugs by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
+- Please report bugs or ask questions by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
 - Submit contributions using [pull requests](https://github.com/flow-project/flow/pulls).
 
 # Citing Flow
