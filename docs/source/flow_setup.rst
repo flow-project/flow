@@ -295,7 +295,7 @@ You may define user-specific config parameters as follows
 
 ::
 
-    cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
+    cp flow/config_default.py flow/config.py  # Create template for users using pycharm
 
 
 Remote installation using docker
