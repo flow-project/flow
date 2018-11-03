@@ -1,12 +1,13 @@
-"""Contains the generator class for OpenStreetMap files."""
+"""Contains the scenario class for OpenStreetMap files."""
 
-from flow.core.generator import Generator
-
+from flow.core.params import InitialConfig
+from flow.core.traffic_lights import TrafficLights
+from flow.scenarios.base_scenario import Scenario
 import sys
 import subprocess
 
 
-class OpenStreetMapGenerator(Generator):
+class OpenStreetMapScenario(Scenario):
     """Class used to generate network files from an OpenStreetMap (.osm) file.
 
     The .osm file is specified in the NetParams object. For example:
@@ -18,6 +19,23 @@ class OpenStreetMapGenerator(Generator):
     "specify_routes" file is still needed to specify the appropriate routes
     vehicles can traverse in the network.
     """
+
+    def __init__(self,
+                 name,
+                 vehicles,
+                 net_params,
+                 initial_config=InitialConfig(),
+                 traffic_lights=TrafficLights()):
+        """Initialize a scenario from a .osm file.
+
+        See flow/scenarios/base_scenario.py for description of params.
+        """
+        if net_params.osm_path is None:
+            raise ValueError("Path to the OpenStreetMap file must be specified"
+                             " in net_params.")
+
+        super().__init__(name, vehicles, net_params, initial_config,
+                         traffic_lights)
 
     def generate_net(self, net_params, traffic_lights):
         """See parent class.
@@ -66,3 +84,33 @@ class OpenStreetMapGenerator(Generator):
     def specify_edges(self, net_params):
         """See class definition."""
         pass
+
+    def specify_edge_starts(self):
+        """See parent class.
+
+        The edge starts are specified from the network configuration file. Note
+        that, the values are arbitrary but do not allow the positions of any
+        two edges to overlap, thereby making them compatible with all starting
+        position methods for vehicles.
+        """
+        # the total length of the network is defined within this function
+        self.length = 0
+
+        edgestarts = []
+        for edge_id in self._edge_list:
+            # the current edge starts where the last edge ended
+            edgestarts.append((edge_id, self.length))
+            # increment the total length of the network with the length of the
+            # current edge
+            self.length += self._edges[edge_id]["length"]
+
+        return edgestarts
+
+    def specify_internal_edge_starts(self):
+        """See parent class.
+
+        All internal edge starts are given a position of -1. This may be
+        overridden; however, in general we do not worry about internal edges
+        and junctions in large networks.
+        """
+        return [(":", -1)]

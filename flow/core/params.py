@@ -191,10 +191,10 @@ class NetParams:
         osm_path : str, optional
             path to the .osm file that should be used to generate the network
             configuration files. This parameter is only needed / used if the
-            OpenStreetMapGenerator generator class is used.
+            OpenStreetMapScenario class is used.
         netfile : str, optional
             path to the .net.xml file that should be passed to SUMO. This is
-            only needed / used if the NetFileGenerator class is used, such as
+            only needed / used if the NetFileScenario class is used, such as
             in the case of Bay Bridge experiments (which use a custom net.xml
             file)
         additional_params : dict, optional
