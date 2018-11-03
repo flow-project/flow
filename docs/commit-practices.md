@@ -1,2 +1,0 @@
-- Turn on the commit hook
-- If you want some of your code to not break, write a unit test. 
