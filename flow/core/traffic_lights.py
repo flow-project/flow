@@ -149,7 +149,7 @@ class TrafficLights:
     def get_properties(self):
         """Return traffic light properties.
 
-        This is meant to be used by the generator to import traffic light data
+        This is meant to be used by the scenario to import traffic light data
         to the .net.xml file
         """
         return self.__tls_properties
@@ -196,7 +196,7 @@ class TrafficLights:
 
     def actuated_default(self):
         """
-        Return the default values to be used for the generator
+        Return the default values to be used for the scenario
         for a system where all junctions are actuated traffic lights.
 
         Returns

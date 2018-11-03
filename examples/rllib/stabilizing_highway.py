@@ -14,7 +14,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
-from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, RLController
 
@@ -29,7 +29,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 3
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -91,9 +91,6 @@ flow_params = dict(
 
     # name of the scenario class the experiment is running on
     scenario="MergeScenario",
-
-    # name of the generator used to create/modify network configuration files
-    generator="MergeGenerator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -172,6 +169,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200,
             },
-            "repeat": 3,
+            "num_samples": 3,
         },
     })
