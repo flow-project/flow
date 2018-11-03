@@ -161,4 +161,5 @@ for seed in [2]:  # , 1, 5, 10, 73]:
         mode="local",
         exp_prefix=exp_tag,
         # plot=True,
-        sync_s3_pkl=True)
+        sync_s3_pkl=True
+    )

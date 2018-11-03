@@ -16,7 +16,7 @@ NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bottleneck.net.xml")
 
 
-def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
+def bay_bridge_toll_example(render=None, use_traffic_lights=False):
     """Perform a simulation of the toll portion of the Bay Bridge.
 
     This consists of the toll booth and sections of the road leading up to it.
@@ -118,7 +118,7 @@ def bay_bridge_bottleneck_example(render=None, use_traffic_lights=False):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bay_bridge_bottleneck_example(
+    exp = bay_bridge_toll_example(
         render=True, use_traffic_lights=False)
 
     # run for a set number of rollouts / time steps
