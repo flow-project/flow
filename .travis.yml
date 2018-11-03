@@ -1,5 +1,7 @@
 language: python
 
+cache: pip
+
 python:
   - "3.5"
 
@@ -22,6 +24,9 @@ before_install:
   # Requirements for ray
   - pip install tensorflow
   - pip install opencv-python
+  - pip install nose2
+  - pip install lxml
+  - pip install scipy
 
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.0-cp36-cp36m-manylinux1_x86_64.whl
@@ -78,9 +83,10 @@ before_install:
   - ls ../
 
 install:
-  - pip install flake8 .
+  - conda install flake8
 
 before_script:
+  - flake8 --version
   - flake8 --show-source
 
 script:
