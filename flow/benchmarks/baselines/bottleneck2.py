@@ -10,8 +10,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import ContinuousRouter
 from flow.envs.bottleneck_env import DesiredVelocityEnv
 from flow.core.experiment import SumoExperiment
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
+from flow.scenarios.bottleneck import BottleneckScenario
 import numpy as np
 
 # time horizon of a single rollout
@@ -108,7 +107,6 @@ def bottleneck2_baseline(num_runs, render=True):
     )
 
     scenario = BottleneckScenario(name="bay_bridge_toll",
-                                  generator_class=BottleneckGenerator,
                                   vehicles=vehicles,
                                   net_params=net_params,
                                   initial_config=initial_config,
@@ -119,16 +117,14 @@ def bottleneck2_baseline(num_runs, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, HORIZON)
-    avg_outflow = np.mean([outflow[-1]
-                           for outflow in results["per_step_returns"]])
 
-    return avg_outflow
+    return np.mean(results["returns"]), np.std(results["returns"])
 
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = bottleneck2_baseline(num_runs=runs)
+    mean, std = bottleneck2_baseline(num_runs=runs, render=False)
 
     print('---------')
-    print('The average outflow over 500 seconds '
-          'across {} runs is {}'.format(runs, res))
+    print('The average outflow, std. deviation over 500 seconds '
+          'across {} runs is {}, {}'.format(runs, mean, std))

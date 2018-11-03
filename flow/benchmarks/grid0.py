@@ -65,16 +65,13 @@ for edge in outer_edges:
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="grid_1",
+    exp_tag="grid_0",
 
     # name of the flow environment the experiment is running on
     env_name="PO_TrafficLightGridEnv",
 
     # name of the scenario class the experiment is running on
     scenario="SimpleGridScenario",
-
-    # name of the generator used to create/modify network configuration files
-    generator="SimpleGridGenerator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -87,8 +84,11 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         additional_params={
-            "switch_time": 2.0,
+            "target_velocity": 50,
+            "switch_time": 2,
             "num_observed": 2,
+            "discrete": False,
+            "tl_type": "actuated"
         },
     ),
 

@@ -43,7 +43,7 @@ class TestEnv(Env):
         """See class definition."""
         return
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         return 0
 

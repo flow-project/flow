@@ -8,8 +8,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
+from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
@@ -114,7 +113,6 @@ initial_config = InitialConfig(
     edges_distribution=["2", "3", "4", "5"])
 scenario = BottleneckScenario(
     name="bay_bridge_toll",
-    generator_class=BottleneckGenerator,
     vehicles=vehicles,
     net_params=net_params,
     initial_config=initial_config,
