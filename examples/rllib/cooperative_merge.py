@@ -32,7 +32,7 @@ RING_RADIUS = 100
 NUM_MERGE_HUMANS = 9
 NUM_MERGE_RL = 1
 
-# note that the vehicles are added sequentially by the generator,
+# note that the vehicles are added sequentially by the scenario,
 # so place the merging vehicles after the vehicles in the ring
 vehicles = Vehicles()
 # Inner ring vehicles
@@ -77,9 +77,6 @@ flow_params = dict(
 
     # name of the scenario class the experiment is running on
     scenario="TwoLoopsOneMergingScenario",
-
-    # name of the generator used to create/modify network configuration files
-    generator="TwoLoopOneMergingGenerator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
