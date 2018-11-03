@@ -107,6 +107,8 @@ class NetFileScenario(Scenario):
         """
         return [(":", -1)]
 
+    def gen_custom_start_pos():
+
     def close(self):
         """See parent class.
 
