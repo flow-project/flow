@@ -11,7 +11,7 @@ import ray.tune.registry as registry
 
 from examples.rllib.stabilizing_the_ring import make_create_env
 
-from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.loop import LoopScenario
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter

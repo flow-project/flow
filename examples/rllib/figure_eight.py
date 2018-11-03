@@ -12,7 +12,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1500
@@ -47,9 +47,6 @@ flow_params = dict(
 
     # name of the scenario class the experiment is running on
     scenario="Figure8Scenario",
-
-    # name of the generator used to create/modify network configuration files
-    generator="Figure8Generator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(

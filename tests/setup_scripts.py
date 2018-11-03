@@ -17,16 +17,11 @@ from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
-from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
-from flow.scenarios.figure8.gen import Figure8Generator
-from flow.scenarios.grid.gen import SimpleGridGenerator
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
-from flow.scenarios.highway.gen import HighwayGenerator
-from flow.scenarios.highway.scenario import HighwayScenario
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.bottleneck import BottleneckScenario
+from flow.scenarios.figure_eight import Figure8Scenario
+from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.highway import HighwayScenario
+from flow.scenarios.loop import LoopScenario
 
 
 def ring_road_exp_setup(sumo_params=None,
@@ -105,7 +100,6 @@ def ring_road_exp_setup(sumo_params=None,
     # create the scenario
     scenario = LoopScenario(
         name="RingRoadTest",
-        generator_class=CircleGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -195,7 +189,6 @@ def figure_eight_exp_setup(sumo_params=None,
     # create the scenario
     scenario = Figure8Scenario(
         name="RingRoadTest",
-        generator_class=Figure8Generator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -285,7 +278,6 @@ def highway_exp_setup(sumo_params=None,
     # create the scenario
     scenario = HighwayScenario(
         name="RingRoadTest",
-        generator_class=HighwayGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -402,7 +394,6 @@ def grid_mxn_exp_setup(row_num=1,
     # create the scenario
     scenario = SimpleGridScenario(
         name="Grid1x1Test",
-        generator_class=SimpleGridGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -492,9 +483,8 @@ def variable_lanes_exp_setup(sumo_params=None,
         traffic_lights = TrafficLights()
 
     # create the scenario
-    scenario = LoopScenario(
+    scenario = VariableLanesScenario(
         name="VariableLaneRingRoadTest",
-        generator_class=VariableLanesGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -597,7 +587,6 @@ def setup_bottlenecks(sumo_params=None,
 
     scenario = BottleneckScenario(
         name="bay_bridge_toll",
-        generator_class=BottleneckGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -610,7 +599,7 @@ def setup_bottlenecks(sumo_params=None,
     return env, scenario
 
 
-class VariableLanesGenerator(CircleGenerator):
+class VariableLanesScenario(LoopScenario):
     """Instantiate a ring road with variable number of lanes per edge."""
 
     def specify_edges(self, net_params):

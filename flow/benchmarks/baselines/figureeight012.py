@@ -6,9 +6,7 @@ Baseline is human acceleration and intersection behavior.
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter
-from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
-from flow.scenarios.figure8.gen import Figure8Generator
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
 from flow.envs.loop.loop_accel import AccelEnv
 from flow.core.experiment import SumoExperiment
 import numpy as np
@@ -64,7 +62,6 @@ def figure_eight_baseline(num_runs, render=True):
     )
 
     scenario = Figure8Scenario(name="figure_eight",
-                               generator_class=Figure8Generator,
                                vehicles=vehicles,
                                net_params=net_params,
                                initial_config=initial_config)
