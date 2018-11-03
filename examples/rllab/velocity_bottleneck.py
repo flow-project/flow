@@ -30,7 +30,7 @@ N_CPUS = 32
 i = 0
 
 sumo_params = SumoParams(
-    sim_step=0.5, render=True, restart_instance=False)
+    sim_step=0.5, render=False, restart_instance=True)
 
 vehicles = Vehicles()
 
