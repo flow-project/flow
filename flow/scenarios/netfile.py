@@ -6,6 +6,7 @@ from flow.scenarios.base_scenario import Scenario
 
 from lxml import etree
 import xml.etree.ElementTree as ElementTree
+import re
 
 
 class NetFileScenario(Scenario):
@@ -31,15 +32,17 @@ class NetFileScenario(Scenario):
 
         See flow/scenarios/base_scenario.py for description of params.
         """
-        vehicle_data, type_data = self.vehicle_infos("/Users/lucasfischer/sumo/LuSTScenario/scenario/DUARoutes/local.1.rou.xml")
+        self.vehicle_data, self.type_data = self.vehicle_infos(["/Users/umang/Downloads/LuSTScenario/scenario/DUARoutes/local.0.rou.xml",
+                                                                "/Users/umang/Downloads/LuSTScenario/scenario/DUARoutes/local.1.rou.xml",
+                                                                "/Users/umang/Downloads/LuSTScenario/scenario/DUARoutes/local.2.rou.xml"])
 
-        for t in type_data:
-            vehicles.add(t, num_vehicles=type_data[t])
+        for t in self.type_data:
+            vehicles.add(t, num_vehicles=0, lane_change_mode=1621)
 
-        super().__init__(name, generator_class, vehicles, net_params,
+        super().__init__(name, vehicles, net_params,
                          initial_config, traffic_lights)
 
-    def vehicle_infos(self,filename):
+    def vehicle_infos(self,filenames):
         """Import of vehicle from a configuration file.
 
         This is a utility function for computing vehicle information. It imports a
@@ -58,30 +61,44 @@ class NetFileScenario(Scenario):
         Element = dict of departure speed, vehicle type, depart Position, depart edges
 
         """
-        # import the .net.xml file containing all edge/type data
-        parser = etree.XMLParser(recover=True)
-        tree = ElementTree.parse(filename, parser=parser)
-
-        root = tree.getroot()
 
         vehicle_data = dict()
         type_data = dict()
 
-        for vehicle in root.findall('vehicle'):
+        for filename in filenames:
+            # import the .net.xml file containing all edge/type data
+            parser = etree.XMLParser(recover=True)
+            tree = ElementTree.parse(filename, parser=parser)
 
-            id_vehicle=vehicle.attrib['id']
-            departSpeed=vehicle.attrib['departSpeed']
-            depart=vehicle.attrib['depart']
-            type_vehicle=vehicle.attrib['type']
-            departPos=vehicle.attrib['departPos']
-            depart_edges=vehicle.findall('route')[0].attrib["edges"].split(' ')[0]
+            root = tree.getroot()
+            for vehicle in root.findall('vehicle'):
 
-            if type_vehicle not in type_data:
-                type_data[type_vehicle] = 1
-            else:
-                type_data[type_vehicle] += 1
+                id_vehicle=vehicle.attrib['id']
+                departSpeed=vehicle.attrib['departSpeed']
+                depart=vehicle.attrib['depart']
+                type_vehicle=vehicle.attrib['type']
+                departPos=vehicle.attrib['departPos']
+                depart_edges=vehicle.findall('route')[0].attrib["edges"].split(' ')[0]
 
-            vehicle_data[id_vehicle]={'departSpeed':departSpeed,'depart':depart,'type_vehicle':type_vehicle,'departPos':departPos,'depart_edges':depart_edges}
+                routes_data = dict()
+                for route in vehicle.findall('route'):
+                    route_edges = route.attrib["edges"].split(' ')
+                    #key=route_edges[0]
+                    # if key in routes_data.keys():
+                    #     for routes in routes_data[key]:
+                    #         if routes==route_edges:
+                    #             pass
+                    #         else:   
+                    #             routes_data[key].append(route_edges)
+                    # else:
+                    #routes_data[key] = [route_edges]
+
+                if type_vehicle not in type_data:
+                    type_data[type_vehicle] = 1
+                else:
+                    type_data[type_vehicle] += 1
+
+                vehicle_data[id_vehicle]={'departSpeed':departSpeed,'route_edges': route_edges, 'depart':depart,'typeID':type_vehicle,'departPos':departPos, "vehID": id_vehicle}
 
         return vehicle_data, type_data
 
@@ -116,8 +133,6 @@ class NetFileScenario(Scenario):
         """
         return [(":", -1)]
 
-    def gen_custom_start_pos():
-
     def close(self):
         """See parent class.
 
@@ -133,7 +148,7 @@ class NetFileScenario(Scenario):
         net_params.osm_path
         """
         # name of the .net.xml file (located in cfg_path)
-        self.netfn = "/Users/lucasfischer/sumo/LuSTScenario/scenario/lust.net.xml"
+        self.netfn = "/Users/umang/Downloads/LuSTScenario/scenario/lust.net.xml"
         # self.netfn = net_params.netfile
 
         # collect data from the generated network configuration file
@@ -151,7 +166,7 @@ class NetFileScenario(Scenario):
         pass
 
     def specify_types(self, net_params):
-        types = self.vehicle_type("//Users/lucasfischer/sumo/LuSTScenario/scenario/vtypes.add.xml")
+        types = self.vehicle_type("/Users/umang/Downloads/LuSTScenario/scenario/vtypes.add.xml")
         return types
 
     def _import_routes_from_net(self, filename):
@@ -253,11 +268,16 @@ class NetFileScenario(Scenario):
         Key = name of the first route taken
         Element = list of all the routes taken by the vehicle starting in that route
         """
-        routes_data={}
-        for edge in self.edge_dict:
-            if ':' not in edge:
-                routes_data[edge]=[edge]
+        # routes_data={}
+        # for edge in self.edge_dict:
+        #     if ':' not in edge:
+        #         routes_data[edge]=[edge]
         #routes_data = self._import_routes_from_net("/Users/lucasfischer/sumo/LuSTScenario/scenario/DUARoutes/local.1.rou.xml")
+
+        routes_data = {}
+        for t in self.vehicle_data:
+            routes_data[t] = self.vehicle_data[t]["route_edges"]
+
         return routes_data
 
     def _import_tls_from_net(self,filename):

@@ -340,6 +340,9 @@ class Scenario(Serializable):
          available_edges, initial_config) = \
             self._get_start_pos_util(initial_config, num_vehicles, **kwargs)
 
+        if num_vehicles == 0:
+            return [], []
+
         increment = available_length / num_vehicles
 
         # if not all lanes are equal, then we must ensure that vehicles are in

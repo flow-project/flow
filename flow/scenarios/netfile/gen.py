@@ -71,28 +71,28 @@ class NetFileGenerator(Generator):
 
         """
         # # import the .net.xml file containing all edge/type data
-        # parser = etree.XMLParser(recover=True)
-        # tree = ElementTree.parse(filename, parser=parser)
+        parser = etree.XMLParser(recover=True)
+        tree = ElementTree.parse(filename, parser=parser)
 
-        # root = tree.getroot()
+        root = tree.getroot()
 
-        # # Collect information on the available types (if any are available).
-        # # This may be used when specifying some route data.
-        # routes_data = dict()
+        # Collect information on the available types (if any are available).
+        # This may be used when specifying some route data.
+        routes_data = dict()
 
-        # for vehicle in root.findall('vehicle'):
-        #     for route in vehicle.findall('route'):
-        #         route_edges = route.attrib["edges"].split(' ')
-        #         key=route_edges[0]
-        #         if key in routes_data.keys():
-        #             for routes in routes_data[key]:
-        #                 if routes==route_edges:
-        #                     pass
-        #                 else:
-        #                     routes_data[key].append(route_edges)
-        #         else:
-        #             routes_data[key] = [route_edges]
-        # return routes_data
+        for vehicle in root.findall('vehicle'):
+            for route in vehicle.findall('route'):
+                route_edges = route.attrib["edges"].split(' ')
+                key=route_edges[0]
+                if key in routes_data.keys():
+                    for routes in routes_data[key]:
+                        if routes==route_edges:
+                            pass
+                        else:
+                            routes_data[key].append(route_edges)
+                else:
+                    routes_data[key] = [route_edges]
+        return routes_data
 
 
         # Crystal's version of extracting routes

@@ -9,8 +9,7 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.netfile.gen import NetFileGenerator
-from flow.scenarios.netfile.scenario import NetFileScenario
+from flow.scenarios.netfile import NetFileScenario
 
 
 def figure_eight_example(render=None):
@@ -28,29 +27,21 @@ def figure_eight_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
-    sumo_params = SumoParams(render=True)
+    sumo_params = SumoParams(render=True, sim_step=1)
 
     if render is not None:
         sumo_params.render = render
 
     vehicles = Vehicles()
-#    vehicles.add(
-#        veh_id="idm",
-#        acceleration_controller=(IDMController, {}),
-#        lane_change_controller=(StaticLaneChanger, {}),
-#        routing_controller=(ContinuousRouter, {}),
-#        speed_mode="no_collide",
-#        initial_speed=0,
-#        num_vehicles=14)
-#
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
+
+    env_params = EnvParams(
+        additional_params=ADDITIONAL_ENV_PARAMS)
 
     net_params = NetParams(
         no_internal_links=False)
 
     scenario = NetFileScenario(
         name="figure8",
-        generator_class=NetFileGenerator,
         vehicles=vehicles,
         net_params=net_params)
 
@@ -64,4 +55,4 @@ if __name__ == "__main__":
     exp = figure_eight_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 3600*24)
