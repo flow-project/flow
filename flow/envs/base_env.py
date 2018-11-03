@@ -287,13 +287,13 @@ class Env(gym.Env, Serializable):
         for tl_id in list(set(tls_ids) - set(self.traffic_lights.get_ids())):
             self.traffic_lights.add(tl_id)
 
-        # subscribe the requested states for traci-related speedups
-        for veh_id in self.vehicles.get_ids():
-            self.traci_connection.vehicle.subscribe(veh_id, [
-                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-                tc.VAR_SPEED, tc.VAR_EDGES
-            ])
-            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+        # # subscribe the requested states for traci-related speedups
+        # for veh_id in self.vehicles.get_ids():
+        #     self.traci_connection.vehicle.subscribe(veh_id, [
+        #         tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
+        #         tc.VAR_SPEED, tc.VAR_EDGES
+        #     ])
+        #     self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
         # subscribe some simulation parameters needed to check for entering,
         # exiting, and colliding vehicles
@@ -593,6 +593,11 @@ class Env(gym.Env, Serializable):
                     departLane=str(lane_index),
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
+
+        for veh_id in self.scenario.vehicle_data.keys():
+            veh_info = deepcopy(self.scenario.vehicle_data[veh_id])
+            del veh_info["route_edges"]
+            self.traci_connection.vehicle.addFull(routeID="route"+veh_id, **veh_info)
 
         self.traci_connection.simulationStep()
 
