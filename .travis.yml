@@ -83,11 +83,17 @@ before_install:
   - ls ../
 
 install:
-  - conda install flake8
+  - pip install flake8 .
+  - pip install coveralls
+  - pip install nose
 
 before_script:
   - flake8 --version
   - flake8 --show-source
 
 script:
-  - nose2
+  - python setup.py install
+  - nose2 --with-coverage
+
+after_success:
+  - coveralls

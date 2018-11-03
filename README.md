@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
+[![Coverage Status](https://coveralls.io/repos/github/flow-project/flow/badge.svg?branch=coverage)](https://coveralls.io/github/flow-project/flow?branch=coverage)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
 # Flow
