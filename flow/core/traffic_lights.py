@@ -5,7 +5,7 @@ import traci.constants as tc
 # DEFAULTS
 PROGRAM_ID = 1
 MAX_GAP = 3.0
-DETECTOR_GAP = 0.8
+DETECTOR_GAP = 0.6
 SHOW_DETECTORS = True
 
 
