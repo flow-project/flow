@@ -42,7 +42,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
         sim_step=0.5,
         render=render,
         overtake_right=False,
-        restart_instance=True)
+        restart_instance=False)
 
     vehicles = Vehicles()
 
