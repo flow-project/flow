@@ -119,8 +119,6 @@ if __name__ == "__main__":
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
 
-    print(error)
-
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params["exp_tag"]
     net_params = flow_params['net']
