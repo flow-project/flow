@@ -32,12 +32,12 @@ class TestEnv(Env):
     @property
     def action_space(self):
         """See class definition."""
-        return Box(low=0, high=0, shape=0, dtype=np.float32)
+        return Box(low=0, high=0, shape=(1,), dtype=np.float32)
 
     @property
     def observation_space(self):
         """See class definition."""
-        return Box(low=0, high=0, shape=0, dtype=np.float32)
+        return Box(low=0, high=0, shape=(1,), dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -49,4 +49,4 @@ class TestEnv(Env):
 
     def get_state(self, **kwargs):
         """See class definition."""
-        return np.array([])
+        return np.array([0])
