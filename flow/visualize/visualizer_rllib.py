@@ -66,6 +66,10 @@ parser.add_argument(
     help='Specifies whether to convert the emission file '
     'created by sumo into a csv file')
 parser.add_argument(
+    '--no_render',
+    action='store_true',
+    help='Specifies whether to visualize the results')
+parser.add_argument(
     '--evaluate',
     action='store_true',
     help='Specifies whether to use the "evaluate" reward for the environment.')
@@ -137,7 +141,10 @@ if __name__ == "__main__":
     if args.evaluate:
         env_params.evaluate = True
     sumo_params = flow_params['sumo']
-    sumo_params.render = True
+    if args.no_render:
+        sumo_params.render = False
+    else:
+        sumo_params.render = True
     sumo_params.emission_path = "./test_time_rollout/"
 
     env = env_class(
