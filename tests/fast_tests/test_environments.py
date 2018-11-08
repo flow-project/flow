@@ -84,12 +84,12 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
                   "target_velocity": 10,
                   "lane_change_duration": 5}
         env_params = EnvParams(additional_params=params)
-        _ = LaneChangeAccelEnv(
+        env = LaneChangeAccelEnv(
             sumo_params=self.sumo_params,
             scenario=self.scenario,
             env_params=env_params
         )
-        self.assert_(True)
+        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
@@ -171,12 +171,12 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
                   "target_velocity": 10,
                   "lane_change_duration": 5}
         env_params = EnvParams(additional_params=params)
-        _ = LaneChangeAccelPOEnv(
+        env = LaneChangeAccelPOEnv(
             sumo_params=self.sumo_params,
             scenario=self.scenario,
             env_params=env_params
         )
-        self.assert_(True)
+        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
@@ -242,12 +242,12 @@ class TestAccelEnv(unittest.TestCase):
                   "max_decel": 3,
                   "target_velocity": 10}
         env_params = EnvParams(additional_params=params)
-        _ = AccelEnv(
+        env = AccelEnv(
             sumo_params=self.sumo_params,
             scenario=self.scenario,
             env_params=env_params
         )
-        self.assert_(True)
+        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
@@ -334,12 +334,12 @@ class TestWaveAttenuationEnv(unittest.TestCase):
                   "max_decel": 1,
                   "ring_length": [220, 270]}
         env_params = EnvParams(additional_params=params)
-        _ = WaveAttenuationEnv(
+        env = WaveAttenuationEnv(
             sumo_params=self.sumo_params,
             scenario=self.scenario,
             env_params=env_params
         )
-        self.assert_(True)
+        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
@@ -405,12 +405,12 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
                   "max_decel": 1,
                   "ring_length": [220, 270]}
         env_params = EnvParams(additional_params=params)
-        _ = WaveAttenuationPOEnv(
+        env = WaveAttenuationPOEnv(
             sumo_params=self.sumo_params,
             scenario=self.scenario,
             env_params=env_params
         )
-        self.assert_(True)
+        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
@@ -492,12 +492,12 @@ class TestWaveAttenuationMergeEnv(unittest.TestCase):
                   "target_velocity": 25,
                   "num_rl": 5}
         env_params = EnvParams(additional_params=params)
-        _ = WaveAttenuationMergePOEnv(
+        env = WaveAttenuationMergePOEnv(
             sumo_params=self.sumo_params,
             scenario=self.scenario,
             env_params=env_params
         )
-        self.assert_(True)
+        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
