@@ -1,16 +1,11 @@
 import unittest
-
-from flow.core.params import SumoParams, EnvParams, InitialConfig, \
-    NetParams, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
-
-from flow.controllers.routing_controllers import ContinuousRouter
-from flow.controllers.car_following_models import IDMController
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-
-from tests.setup_scripts import ring_road_exp_setup
 import os
-import numpy as np
+from flow.core.vehicles import Vehicles
+from flow.core.params import NetParams, EnvParams, SumoParams
+from flow.scenarios import LoopScenario
+from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
+from flow.envs import TestEnv
+
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -164,20 +159,47 @@ class TestWaveAttenuationMergeEnv(unittest.TestCase):
 
 class TestTestEnv(unittest.TestCase):
 
+    """Tests the TestEnv environment in flow/envs/test.py"""
+
     def setUp(self):
-        pass
+        vehicles = Vehicles()
+        vehicles.add("test")
+        net_params = NetParams(additional_params=LOOP_PARAMS)
+        env_params = EnvParams()
+        sumo_params = SumoParams()
+        scenario = LoopScenario("test_loop",
+                                vehicles=vehicles,
+                                net_params=net_params)
+        self.env = TestEnv(env_params, sumo_params, scenario)
 
     def tearDown(self):
-        pass
+        self.env.terminate()
+        self.env = None
 
-    def test_additional_env_params(self):
-        """Ensures that not returning the correct params leads to an error."""
-        pass
+    def test_obs_space(self):
+        self.assertEqual(self.env.observation_space.shape[0], 0)
+        self.assertEqual(len(self.env.observation_space.high), 0)
+        self.assertEqual(len(self.env.observation_space.low), 0)
 
-    def test_observation_action_space(self):
-        """Tests the observation and action spaces upon initialization."""
-        pass
+    def test_action_space(self):
+        self.assertEqual(self.env.action_space.shape[0], 0)
+        self.assertEqual(len(self.env.action_space.high), 0)
+        self.assertEqual(len(self.env.action_space.low), 0)
 
-    def test_observed(self):
-        """Ensures that the observed ids are returning the correct vehicles."""
-        pass
+    def test_get_state(self):
+        self.assertEqual(len(self.env.get_state()), 0)
+
+    def test_compute_reward(self):
+        # test the default
+        self.assertEqual(self.env.compute_reward([]), 0)
+
+        # test if the "reward_fn" parameter is defined
+        def reward_fn(*_):
+            return 1
+
+        self.env.env_params.additional_params["reward_fn"] = reward_fn
+        self.assertEqual(self.env.compute_reward([]), 1)
+
+
+if __name__ == '__main__':
+    unittest.main()
