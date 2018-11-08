@@ -26,6 +26,7 @@ ADDITIONAL_ENV_PARAMS = {
     # bounds on the ranges of ring road lengths the autonomous vehicle is
     # trained on
     "ring_length": [220, 270],
+    "num_lanes": 1,
 }
 
 
@@ -41,6 +42,7 @@ class WaveAttenuationEnv(Env):
     * max_decel: maximum deceleration of autonomous vehicles
     * ring_length: bounds on the ranges of ring road lengths the autonomous
       vehicle is trained on
+    * num_lanes: number of lanes
 
     States
         The state consists of the velocities and absolute position of all
@@ -156,7 +158,7 @@ class WaveAttenuationEnv(Env):
                 self.env_params.additional_params["ring_length"][0],
                 self.env_params.additional_params["ring_length"][1]),
             "lanes":
-            1,
+                self.env_params.additional_params["num_lanes"],
             "speed_limit":
             30,
             "resolution":
@@ -191,11 +193,6 @@ class WaveAttenuationEnv(Env):
         print('ring length:', net_params.additional_params["length"])
         print("v_max:", v_eq_max)
         print('-----------------------')
-
-        # restart the sumo instance
-        self.restart_sumo(
-            sumo_params=self.sumo_params,
-            render=self.sumo_params.render)
 
         # perform the generic reset function
         observation = super().reset()
@@ -264,3 +261,66 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
         self.vehicles.set_observed(lead_id)
+
+
+class MultiRLWaveAttenuationPOEnv(WaveAttenuationEnv):
+    """WaveAttenuationEnv designed for multiple RL agents (NOTE NOT A MULITAGENT ENV)
+
+    Required from env_params:
+
+    * max_accel: maximum acceleration of autonomous vehicles
+    * max_decel: maximum deceleration of autonomous vehicles
+    * ring_length: bounds on the ranges of ring road lengths the autonomous
+      vehicle is trained on
+
+    States
+        The state consists of the speed and headway of the ego vehicle, as well
+        as the difference in speed between the ego vehicle and its leader.
+        There is no assumption on the number of vehicles in the network.
+
+    Actions
+        See parent class
+
+    Rewards
+        See parent class
+
+    Termination
+        See parent class
+
+    """
+
+    @property
+    def observation_space(self):
+        """See class definition."""
+        return Box(low=0, high=1, shape=(4*self.vehicles.num_rl_vehicles, ), dtype=np.float32)
+
+    def get_state(self, **kwargs):
+        """See class definition."""
+        total_obs = []
+        for rl_id in self.vehicles.get_rl_ids():
+            rl_id = self.vehicles.get_rl_ids()[0]
+            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+
+            # normalizers
+            max_speed = 15.
+            max_length = self.env_params.additional_params["ring_length"][1]
+
+            leader_is_rl = lead_id in self.vehicles.get_rl_ids()
+
+            total_obs.extend([
+                self.vehicles.get_speed(rl_id) / max_speed,
+                (self.vehicles.get_speed(lead_id) - self.vehicles.get_speed(rl_id))
+                / max_speed,
+                self.vehicles.get_headway(rl_id) / max_length,
+                leader_is_rl
+            ])
+
+        return np.array(total_obs)
+
+    def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
+        # specify observed vehicles
+        for rl_id in self.vehicles.get_rl_ids():
+            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+            if lead_id not in self.vehicles.get_rl_ids():
+                self.vehicles.set_observed(lead_id)

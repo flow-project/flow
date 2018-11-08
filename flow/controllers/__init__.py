@@ -22,7 +22,7 @@ from flow.controllers.velocity_controllers import FollowerStopper, \
 from flow.controllers.base_lane_changing_controller import \
     BaseLaneChangeController
 from flow.controllers.lane_change_controllers import StaticLaneChanger, \
-    SumoLaneChangeController
+    SumoLaneChangeController, SafeAggressiveLaneChanger
 
 # routing controllers
 from flow.controllers.base_routing_controller import BaseRouter
@@ -35,5 +35,5 @@ __all__ = [
     "IDMController", "SumoCarFollowingController", "FollowerStopper",
     "PISaturation", "HandTunedVelocityController", "StaticLaneChanger",
     "SumoLaneChangeController", "ContinuousRouter", "GridRouter",
-    "BayBridgeRouter"
+    "BayBridgeRouter", "SafeAggressiveLaneChanger"
 ]
