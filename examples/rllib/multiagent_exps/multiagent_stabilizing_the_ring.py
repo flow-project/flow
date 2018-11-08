@@ -29,7 +29,7 @@ N_ROLLOUTS = 15
 # number of parallel workers
 N_CPUS = 15
 # Number of rings
-NUM_RINGS = 1
+NUM_RINGS = 3
 
 # We place one autonomous vehicle and 21 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -49,7 +49,7 @@ for i in range(NUM_RINGS):
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='single_ring_stabilize',
+    exp_tag='three_ring_stabilize',
 
     # name of the flow environment the experiment is running on
     env_name='MultiWaveAttenuationPOEnv',

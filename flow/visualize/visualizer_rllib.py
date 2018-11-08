@@ -104,7 +104,8 @@ if __name__ == '__main__':
 
     agent_cls = get_agent_class(args.run)
     agent = agent_cls(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
+    checkpoint = result_dir + args.checkpoint_num
+    # checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters
