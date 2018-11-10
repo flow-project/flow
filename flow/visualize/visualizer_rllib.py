@@ -34,50 +34,8 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    description="[Flow] Evaluates a reinforcement learning agent "
-    "given a checkpoint.",
-    epilog=EXAMPLE_USAGE)
 
-# required input parameters
-parser.add_argument(
-    "result_dir", type=str, help="Directory containing results")
-parser.add_argument("checkpoint_num", type=str, help="Checkpoint number.")
-
-# optional input parameters
-parser.add_argument(
-    "--run",
-    type=str,
-    help="The algorithm or model to train. This may refer to "
-    "the name of a built-on algorithm (e.g. RLLib's DQN "
-    "or PPO), or a user-defined trainable function or "
-    "class registered in the tune registry. "
-    "Required for results trained with flow-0.2.0 and before.")
-# TODO: finalize version here
-parser.add_argument(
-    '--num_rollouts',
-    type=int,
-    default=1,
-    help="The number of rollouts to visualize.")
-parser.add_argument(
-    '--emission_to_csv',
-    action='store_true',
-    help='Specifies whether to convert the emission file '
-    'created by sumo into a csv file')
-parser.add_argument(
-    '--no_render',
-    action='store_true',
-    help='Specifies whether to visualize the results')
-parser.add_argument(
-    '--evaluate',
-    action='store_true',
-    help='Specifies whether to use the "evaluate" reward for the environment.')
-
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-
+def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
@@ -191,3 +149,47 @@ if __name__ == "__main__":
             "{0}/test_time_rollout/{1}".format(dir_path, emission_filename)
 
         emission_to_csv(emission_path)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="[Flow] Evaluates a reinforcement learning agent "
+                    "given a checkpoint.",
+        epilog=EXAMPLE_USAGE)
+
+    # required input parameters
+    parser.add_argument(
+        "result_dir", type=str, help="Directory containing results")
+    parser.add_argument("checkpoint_num", type=str, help="Checkpoint number.")
+
+    # optional input parameters
+    parser.add_argument(
+        "--run",
+        type=str,
+        help="The algorithm or model to train. This may refer to "
+             "the name of a built-on algorithm (e.g. RLLib's DQN "
+             "or PPO), or a user-defined trainable function or "
+             "class registered in the tune registry. "
+             "Required for results trained with flow-0.2.0 and before.")
+    # TODO: finalize version here
+    parser.add_argument(
+        '--num_rollouts',
+        type=int,
+        default=1,
+        help="The number of rollouts to visualize.")
+    parser.add_argument(
+        '--emission_to_csv',
+        action='store_true',
+        help='Specifies whether to convert the emission file '
+             'created by sumo into a csv file')
+    parser.add_argument(
+        '--no_render',
+        action='store_true',
+        help='Specifies whether to visualize the results')
+    parser.add_argument(
+        '--evaluate',
+        action='store_true',
+        help='Specifies whether to use the "evaluate" reward for the environment.')
+    args = parser.parse_args()
+    visualizer_rllib(args)

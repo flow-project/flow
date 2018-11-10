@@ -2,37 +2,55 @@ import unittest
 import os
 import pickle
 import numpy as np
+from flow.visualize.visualizer_rllab import visualizer_rllab
+from flow.visualize.visualizer_rllib import visualizer_rllib
 
 os.environ["TEST_FLAG"] = "True"
-BROKEN_TESTS = os.environ.get('BROKEN_TESTS', False)
 
 
-class TestVisualizerFlow(unittest.TestCase):
+class TestVisualizerRLlib(unittest.TestCase):
     """
     Tests visualizer_flow:
     - ensures that it runs
-    - ensures that crashes in the visualizer does not cause the visualizer to
-      crash, and that observations are still being stored
     """
 
     # TODO fix this test
-    @unittest.skipUnless(BROKEN_TESTS, "broken test (known issue)")
     def test_visualizer(self):
         # current path
         current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
 
         # run the experiment and check it doesn't crash
-        os.system("python %s/../flow/visualizer_flow.py "
-                  "tests/test_files/params-collide.pkl --num_rollouts 1" %
-                  current_path)
+        # FIXME(ev) it's not actually catching errors
+        # convert os into a method
 
-        self.assert_(True)
+        os.system("python %s/../../flow/visualize/visualizer_rllib.py "
+                  "%s/../data/rllib_data/ 1 --num_rollouts 1 "
+                  "--no_render" %
+                  (current_path, current_path))
 
-        # open the generated observations file, and check it isn't all zeros
-        observations = pickle.load(
-            open(current_path + "/observations.pkl", "rb"))
 
-        self.assertNotEqual(np.sum(np.sum(observations)), 0)
+
+
+class TestVisualizerRLlab(unittest.TestCase):
+    """
+    Tests visualizer_flow:
+    - ensures that it runs
+    """
+
+    # TODO fix this test
+    def test_visualizer(self):
+        # current path
+        current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
+
+        # run the experiment and check it doesn't crash
+        # FIXME(ev) it's not actually catching errors
+        try:
+            os.system("python %s/../../flow/visualize/visualizer_rllab.py "
+                      "%s/../data/rllab_data/itr_0.pkl --num_rollouts 1 "
+                      "--no_render" %
+                      (current_path, current_path))
+        except Exception as e:
+            self.assert_(False)
 
 
 if __name__ == '__main__':

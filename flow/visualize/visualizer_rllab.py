@@ -8,31 +8,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from flow.core.util import emission_to_csv
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=str, help='path to the snapshot file')
-    parser.add_argument(
-        '--num_rollouts',
-        type=int,
-        default=100,
-        help='Number of rollouts we will average over')
-    parser.add_argument(
-        '--no_render',
-        action="store_true",
-        help='Whether to render the result')
-    parser.add_argument(
-        '--plotname',
-        type=str,
-        default="traffic_plot",
-        help='Prefix for all generated plots')
-    parser.add_argument(
-        '--emission_to_csv',
-        action='store_true',
-        help='Specifies whether to convert the emission file '
-        'created by sumo into a csv file')
 
-    args = parser.parse_args()
-
+def visualizer_rllab(*args):
     # extract the flow environment
     data = joblib.load(args.file)
     policy = data['policy']
@@ -126,7 +103,7 @@ if __name__ == "__main__":
         car_mean = np.mean(
             np.mean(
                 all_obs[:, :, tot_cars * obs_var_idx:tot_cars *
-                        (obs_var_idx + 1)],
+                                                     (obs_var_idx + 1)],
                 axis=0),
             axis=1)
         plt.figure()
@@ -167,3 +144,30 @@ if __name__ == "__main__":
             "{0}/test_time_rollout/{1}".format(dir_path, emission_filename)
 
         emission_to_csv(emission_path)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', type=str, help='path to the snapshot file')
+    parser.add_argument(
+        '--num_rollouts',
+        type=int,
+        default=100,
+        help='Number of rollouts we will average over')
+    parser.add_argument(
+        '--no_render',
+        action="store_true",
+        help='Whether to render the result')
+    parser.add_argument(
+        '--plotname',
+        type=str,
+        default="traffic_plot",
+        help='Prefix for all generated plots')
+    parser.add_argument(
+        '--emission_to_csv',
+        action='store_true',
+        help='Specifies whether to convert the emission file '
+        'created by sumo into a csv file')
+
+    args = parser.parse_args()
+    visualizer_rllab(*args)
