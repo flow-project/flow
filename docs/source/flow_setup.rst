@@ -270,7 +270,7 @@ g. Ray/RLlib (optional)
 =======================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
-First visit <https://github.com/eugenevinitsky/ray/blob/master/doc/source/installation.rst> and
+First visit <https://github.com/flow-project/ray/blob/master/doc/source/installation.rst> and
 install the required packages. Do NOT `pip install ray`.
 
 The installation process for this library is as follows:
@@ -278,7 +278,7 @@ The installation process for this library is as follows:
 ::
 
     cd ~
-    git clone https://github.com/eugenevinitsky/ray.git
+    git clone https://github.com/flow-project/ray.git
     cd ray/python/
     python setup.py develop
 
@@ -295,7 +295,7 @@ You may define user-specific config parameters as follows
 
 ::
 
-    cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
+    cp flow/config_default.py flow/config.py  # Create template for users using pycharm
 
 
 Remote installation using docker

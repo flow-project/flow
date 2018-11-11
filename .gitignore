@@ -98,3 +98,4 @@ Makefile
 data/
 debug/
 flow/core/config.py
+.vs/**

@@ -208,7 +208,7 @@ class BayBridgeEnv(Env):
                 tlsID=TB_TL_ID, state=new_tls_state)
 
     # TODO: decide on a good reward function
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
 

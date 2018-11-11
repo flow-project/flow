@@ -17,6 +17,10 @@ if __name__ == "__main__":
         default=100,
         help='Number of rollouts we will average over')
     parser.add_argument(
+        '--no_render',
+        action="store_true",
+        help='Whether to render the result')
+    parser.add_argument(
         '--plotname',
         type=str,
         default="traffic_plot",
@@ -52,8 +56,12 @@ if __name__ == "__main__":
     # Set sumo to make a video
     sumo_params = unwrapped_env.sumo_params
     sumo_params.emission_path = "./test_time_rollout/"
+    if args.no_render:
+        sumo_params.render = False
+    else:
+        sumo_params.render = True
     unwrapped_env.restart_sumo(
-        sumo_params=sumo_params, render=True)
+        sumo_params=sumo_params, render=sumo_params.render)
 
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))

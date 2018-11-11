@@ -13,7 +13,7 @@ Horizon: 750 steps
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
-from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.controllers import SumoCarFollowingController, RLController
 
@@ -77,9 +77,6 @@ flow_params = dict(
 
     # name of the scenario class the experiment is running on
     scenario="MergeScenario",
-
-    # name of the generator used to create/modify network configuration files
-    generator="MergeGenerator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
