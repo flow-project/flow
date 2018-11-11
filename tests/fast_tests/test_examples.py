@@ -1,4 +1,3 @@
-import json
 import os
 import unittest
 
@@ -20,12 +19,7 @@ from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
 from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
-from ray.tune.registry import register_env
-
-from flow.utils.registry import make_create_env
-from flow.utils.rllib import FlowParamsEncoder
 
 os.environ['TEST_FLAG'] = 'True'
 
@@ -110,6 +104,7 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
+
 class TestRllibExamples(unittest.TestCase):
     """Tests the example scripts in examples/sumo.
 
@@ -148,20 +143,22 @@ class TestRllibExamples(unittest.TestCase):
         config['horizon'] = 50
         config['sample_batch_size'] = 50
 
-        trials = run_experiments({
-            "test": {
-                "run": alg_run,
-                "env": env_name,
-                "config": {
+        run_experiments({
+            'test': {
+                'run': alg_run,
+                'env': env_name,
+                'config': {
                     **config
                 },
-                "checkpoint_freq": 1,
-                "stop": {
-                    "training_iteration": 1,
+                'checkpoint_freq': 1,
+                'stop': {
+                    'training_iteration': 1,
                 },
             }
         })
 
+
 if __name__ == '__main__':
+
     ray.init(num_cpus=3, redirect_output=False)
     unittest.main()
