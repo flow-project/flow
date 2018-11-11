@@ -24,17 +24,17 @@ class TestVisualizerRLlib(unittest.TestCase):
         visualizer_rllib(pass_args)
 
 
-class TestVisualizerRLlab(unittest.TestCase):
-    """Tests visualizer_rllab"""
-
-    def test_visualizer(self):
-        # current path
-        current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
-        arg_str = '{}/../data/rllab_data/itr_0.pkl --num_rollouts 1 ' \
-                  '--no_render'.format(current_path).split()
-        parser = vs_rllab.create_parser()
-        pass_args = parser.parse_args(arg_str)
-        visualizer_rllab(pass_args)
+# class TestVisualizerRLlab(unittest.TestCase):
+#     """Tests visualizer_rllab"""
+#
+#     def test_visualizer(self):
+#         # current path
+#         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
+#         arg_str = '{}/../data/rllab_data/itr_0.pkl --num_rollouts 1 ' \
+#                   '--no_render'.format(current_path).split()
+#         parser = vs_rllab.create_parser()
+#         pass_args = parser.parse_args(arg_str)
+#         visualizer_rllab(pass_args)
 
 
 if __name__ == '__main__':
