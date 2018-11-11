@@ -22,8 +22,7 @@ from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
-from flow.utils.rllib import get_flow_params
-from flow.core.util import get_rllib_config
+from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.core.util import emission_to_csv
 
 EXAMPLE_USAGE = """
