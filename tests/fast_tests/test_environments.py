@@ -2,6 +2,7 @@ import unittest
 import os
 from flow.core.vehicles import Vehicles
 from flow.core.params import NetParams, EnvParams, SumoParams
+from flow.controllers import IDMController, RLController
 from flow.scenarios import LoopScenario, MergeScenario
 from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
@@ -16,20 +17,32 @@ os.environ["TEST_FLAG"] = "True"
 class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def setUp(self):
+        vehicles = Vehicles()
+        vehicles.add("rl", acceleration_controller=(RLController, {}))
+        vehicles.add("human", acceleration_controller=(IDMController, {}))
+
         self.sumo_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
-            vehicles=Vehicles(),
+            vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "target_velocity": 10,
+                "lane_change_duration": 5
+            }
         )
 
     def tearDown(self):
         self.sumo_params = None
         self.scenario = None
+        self.env_params = None
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        # check when any param is missing a KeyError is raised
         params = {"max_decel": 3,
                   "lane_change_duration": 5,
                   "target_velocity": 10}
@@ -78,45 +91,52 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
             env_params=env_params
         )
 
-        # check that when all params are passed no error is raised
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10,
-                  "lane_change_duration": 5}
-        env_params = EnvParams(additional_params=params)
-        env = LaneChangeAccelEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-        env.terminate()
-
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         pass
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        pass
+        env = LaneChangeAccelEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.additional_command()
+        self.assertListEqual(env.vehicles.get_observed_ids(),
+                             env.vehicles.get_human_ids())
+        env.terminate()
 
 
 class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def setUp(self):
+        vehicles = Vehicles()
+        vehicles.add("rl", acceleration_controller=(RLController, {}))
+        vehicles.add("human", acceleration_controller=(IDMController, {}))
+
         self.sumo_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
-            vehicles=Vehicles(),
+            vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "target_velocity": 10,
+                "lane_change_duration": 5
+            }
         )
 
     def tearDown(self):
         self.sumo_params = None
         self.scenario = None
+        self.env_params = None
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        # check when any param is missing a KeyError is raised
         params = {"max_decel": 3,
                   "lane_change_duration": 5,
                   "target_velocity": 10}
@@ -165,45 +185,53 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
             env_params=env_params
         )
 
-        # check that when all params are passed no error is raised
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10,
-                  "lane_change_duration": 5}
-        env_params = EnvParams(additional_params=params)
-        env = LaneChangeAccelPOEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-        env.terminate()
-
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         pass
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        pass
+        env = LaneChangeAccelPOEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.step(None)
+        env.additional_command()
+        self.assertListEqual(env.vehicles.get_observed_ids(),
+                             env.vehicles.get_leader(
+                                 env.vehicles.get_rl_ids()))
+        env.terminate()
 
 
 class TestAccelEnv(unittest.TestCase):
 
     def setUp(self):
+        vehicles = Vehicles()
+        vehicles.add("rl", acceleration_controller=(RLController, {}))
+        vehicles.add("human", acceleration_controller=(IDMController, {}))
+
         self.sumo_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
-            vehicles=Vehicles(),
+            vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "target_velocity": 10
+            }
         )
 
     def tearDown(self):
         self.sumo_params = None
         self.scenario = None
+        self.env_params = None
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        # check when any param is missing a KeyError is raised
         params = {"max_decel": 3,
                   "target_velocity": 10}
         env_params = EnvParams(additional_params=params)
@@ -237,25 +265,42 @@ class TestAccelEnv(unittest.TestCase):
             env_params=env_params
         )
 
-        # check that when all params are passed no error is raised
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
         env = AccelEnv(
             sumo_params=self.sumo_params,
             scenario=self.scenario,
-            env_params=env_params
+            env_params=self.env_params
         )
-        env.terminate()
 
-    def test_observation_action_space(self):
-        """Tests the observation and action spaces upon initialization."""
-        pass
+        # test the observation space
+        self.assertEqual(env.observation_space.shape[0],
+                         2 * env.vehicles.num_vehicles)
+        print(env.observation_space.__dict__)
+        self.assertTrue(all(env.observation_space.high == 1))
+        self.assertTrue(all(env.observation_space.low == 0))
+
+        # test the action space
+        self.assertEqual(env.action_space.shape[0],
+                         env.vehicles.num_rl_vehicles)
+        self.assertEqual(env.action_space.high,
+                         env.env_params.additional_params["max_accel"])
+        self.assertEqual(env.action_space.low,
+                         -env.env_params.additional_params["max_decel"])
+
+        env.terminate()
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        pass
+        env = AccelEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.additional_command()
+        self.assertListEqual(env.vehicles.get_observed_ids(),
+                             env.vehicles.get_human_ids())
+        env.terminate()
 
 
 class TestTwoLoopsMergeEnv(unittest.TestCase):
@@ -295,7 +340,6 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        # check when any param is missing a KeyError is raised
         params = {"max_decel": 1,
                   "ring_length": [220, 270]}
         env_params = EnvParams(additional_params=params)
@@ -328,18 +372,6 @@ class TestWaveAttenuationEnv(unittest.TestCase):
             scenario=self.scenario,
             env_params=env_params
         )
-
-        # check that when all params are passed no error is raised
-        params = {"max_accel": 1,
-                  "max_decel": 1,
-                  "ring_length": [220, 270]}
-        env_params = EnvParams(additional_params=params)
-        env = WaveAttenuationEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
@@ -366,7 +398,6 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        # check when any param is missing a KeyError is raised
         params = {"max_decel": 1,
                   "ring_length": [220, 270]}
         env_params = EnvParams(additional_params=params)
@@ -400,18 +431,6 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
             env_params=env_params
         )
 
-        # check that when all params are passed no error is raised
-        params = {"max_accel": 1,
-                  "max_decel": 1,
-                  "ring_length": [220, 270]}
-        env_params = EnvParams(additional_params=params)
-        env = WaveAttenuationPOEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-        env.terminate()
-
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         pass
@@ -437,7 +456,6 @@ class TestWaveAttenuationMergeEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        # check when any param is missing a KeyError is raised
         params = {"max_decel": 3,
                   "target_velocity": 25,
                   "num_rl": 5}
@@ -485,19 +503,6 @@ class TestWaveAttenuationMergeEnv(unittest.TestCase):
             scenario=self.scenario,
             env_params=env_params
         )
-
-        # check that when all params are passed no error is raised
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 25,
-                  "num_rl": 5}
-        env_params = EnvParams(additional_params=params)
-        env = WaveAttenuationMergePOEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-        env.terminate()
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
