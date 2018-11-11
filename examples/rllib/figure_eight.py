@@ -80,23 +80,21 @@ flow_params = dict(
     initial=InitialConfig(),
 )
 
-if __name__ == "__main__":
-    ray.init(num_cpus=N_CPUS+1, redirect_output=False)
+
+def setup_exps():
 
     alg_run = "PPO"
-
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
+    config["model"].update({"fcnet_hiddens": [32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
-    config["observation_filter"] = "NoFilter"
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -104,23 +102,27 @@ if __name__ == "__main__":
     config['env_config']['flow_params'] = flow_json
     config['env_config']['run'] = alg_run
 
-    create_env, env_name = make_create_env(params=flow_params, version=0)
+    create_env, gym_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
-    register_env(env_name, create_env)
+    register_env(gym_name, create_env)
+    return alg_run, gym_name, config
 
+
+if __name__ == "__main__":
+    alg_run, gym_name, config = setup_exps()
+    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
     trials = run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
-            "env": env_name,
+            "env": gym_name,
             "config": {
                 **config
             },
-            "checkpoint_freq": 1,
+            "checkpoint_freq": 20,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 200
+                "training_iteration": 200,
             },
-            "num_samples": 3,
-        },
+        }
     })

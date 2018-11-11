@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 
@@ -11,6 +12,20 @@ from examples.sumo.loop_merge import loop_merge_example
 from examples.sumo.merge import merge_example
 from examples.sumo.sugiyama import sugiyama_example
 
+from examples.rllib.cooperative_merge import setup_exps as coop_setup
+from examples.rllib.figure_eight import setup_exps as figure_eight_setup
+from examples.rllib.green_wave import setup_exps as green_wave_setup
+from examples.rllib.stabilizing_highway import setup_exps as highway_setup
+from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
+from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
+
+import ray
+from ray.rllib.agents.agent import get_agent_class
+from ray.tune import run_experiments
+from ray.tune.registry import register_env
+
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 
 os.environ['TEST_FLAG'] = 'True'
 
@@ -95,6 +110,58 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
+class TestRllibExamples(unittest.TestCase):
+    """Tests the example scripts in examples/sumo.
+
+    This is done by running each experiment in that folder for five time-steps
+    and confirming that it completes one rollout with two workers.
+    # FIXME(ev) this test adds several minutes to the testing scheme
+    """
+
+    def test_coop_merge(self):
+        alg_run, env_name, config = coop_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_figure_eight(self):
+        alg_run, env_name, config = figure_eight_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_green_wave(self):
+        alg_run, env_name, config = green_wave_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_stabilizing_highway(self):
+        alg_run, env_name, config = highway_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_ring(self):
+        alg_run, env_name, config = ring_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_bottleneck(self):
+        alg_run, env_name, config = bottleneck_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def run_exp(self, alg_run, env_name, config):
+
+        config['train_batch_size'] = 200
+        config['horizon'] = 50
+        config['sample_batch_size'] = 50
+
+        trials = run_experiments({
+            "test": {
+                "run": alg_run,
+                "env": env_name,
+                "config": {
+                    **config
+                },
+                "checkpoint_freq": 1,
+                "stop": {
+                    "training_iteration": 1,
+                },
+            }
+        })
 
 if __name__ == '__main__':
+    ray.init(num_cpus=3, redirect_output=False)
     unittest.main()
