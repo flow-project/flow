@@ -35,7 +35,7 @@ class TestRewards(unittest.TestCase):
         # check the new average speed
         self.assertAlmostEqual(desired_velocity(env, fail=False), 0.05131670)
 
-    def test_avgerage_velocity(self):
+    def test_average_velocity(self):
         """Test the average_velocity method."""
         vehicles = Vehicles()
         vehicles.add("test", num_vehicles=10)
