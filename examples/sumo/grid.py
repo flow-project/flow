@@ -7,8 +7,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.params import InFlows
 from flow.core.traffic_lights import TrafficLights
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.grid.gen import SimpleGridGenerator
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
+from flow.scenarios.grid import SimpleGridScenario
 
 
 def grid_example(render=None):
@@ -102,7 +101,6 @@ def grid_example(render=None):
 
     scenario = SimpleGridScenario(
         name="grid-intersection",
-        generator_class=SimpleGridGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,

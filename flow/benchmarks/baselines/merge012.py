@@ -5,17 +5,16 @@ Baseline is no AVs.
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
-from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.controllers import SumoCarFollowingController
-from flow.scenarios.merge.scenario import MergeScenario
-from flow.scenarios.merge.gen import MergeGenerator
+from flow.scenarios.merge import MergeScenario
 from flow.envs.merge import WaveAttenuationMergePOEnv
 import numpy as np
 
 # time horizon of a single rollout
-HORIZON = int(750*(0.5/0.2))
+HORIZON = 750
 # inflow rate at the highway
 FLOW_RATE = 2000
 # percent of autonomous vehicles
@@ -64,8 +63,8 @@ def merge_baseline(num_runs, render=True):
                departLane="free", departSpeed=7.5)
 
     sumo_params = SumoParams(
-        restart_instance=False,
-        sim_step=0.2,  # time step decreased to prevent occasional crashes
+        restart_instance=True,
+        sim_step=0.5,  # time step decreased to prevent occasional crashes
         render=render,
     )
 
@@ -91,7 +90,6 @@ def merge_baseline(num_runs, render=True):
     )
 
     scenario = MergeScenario(name="merge",
-                             generator_class=MergeGenerator,
                              vehicles=vehicles,
                              net_params=net_params,
                              initial_config=initial_config)
@@ -108,7 +106,7 @@ def merge_baseline(num_runs, render=True):
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = merge_baseline(num_runs=runs)
+    res = merge_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The average speed across {} runs is {}'.format(runs, res))

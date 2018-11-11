@@ -5,7 +5,7 @@ import traci.constants as tc
 # DEFAULTS
 PROGRAM_ID = 1
 MAX_GAP = 3.0
-DETECTOR_GAP = 0.8
+DETECTOR_GAP = 0.6
 SHOW_DETECTORS = True
 
 
@@ -149,7 +149,7 @@ class TrafficLights:
     def get_properties(self):
         """Return traffic light properties.
 
-        This is meant to be used by the generator to import traffic light data
+        This is meant to be used by the scenario to import traffic light data
         to the .net.xml file
         """
         return self.__tls_properties

@@ -23,4 +23,4 @@ as the desired velocity,
 with open('/Users/nishant/Downloads/tutorialtest.rst', 'r') as myfile:
     s = myfile.read()
 
-print([elem[11:-2] for elem in re.findall('\n.. math:: *\S*\n\n', s)])
+print([elem[11:-2] for elem in re.findall('\n.. math:: *\S*\n\n', s)])  # noqa

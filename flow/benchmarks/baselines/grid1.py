@@ -10,8 +10,7 @@ from flow.core.traffic_lights import TrafficLights
 from flow.controllers import SumoCarFollowingController, GridRouter
 from flow.envs.green_wave_env import PO_TrafficLightGridEnv
 from flow.core.experiment import SumoExperiment
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
-from flow.scenarios.grid.gen import SimpleGridGenerator
+from flow.scenarios.grid import SimpleGridScenario
 import numpy as np
 
 # time horizon of a single rollout
@@ -79,6 +78,17 @@ def grid1_baseline(num_runs, render=True):
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
+    phases = [{"duration": "31", "minDur": "5", "maxDur": "45",
+               "state": "GGGrrrGGGrrr"},
+              {"duration": "2", "minDur": "2", "maxDur": "2",
+               "state": "yyyrrryyyrrr"},
+              {"duration": "31", "minDur": "5", "maxDur": "45",
+               "state": "rrrGGGrrrGGG"},
+              {"duration": "2", "minDur": "2", "maxDur": "2",
+               "state": "rrryyyrrryyy"}]
+    for i in range(N_ROWS*N_COLUMNS):
+        tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
+                     programID=1)
 
     net_params = NetParams(
             inflows=inflow,
@@ -122,7 +132,6 @@ def grid1_baseline(num_runs, render=True):
     initial_config = InitialConfig(shuffle=True)
 
     scenario = SimpleGridScenario(name="grid",
-                                  generator_class=SimpleGridGenerator,
                                   vehicles=vehicles,
                                   net_params=net_params,
                                   initial_config=initial_config,
@@ -139,8 +148,8 @@ def grid1_baseline(num_runs, render=True):
 
 
 if __name__ == "__main__":
-    runs = 2  # number of simulations to average over
-    res = grid1_baseline(num_runs=runs)
+    runs = 1  # number of simulations to average over
+    res = grid1_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The total delay across {} runs is {}'.format(runs, res))
