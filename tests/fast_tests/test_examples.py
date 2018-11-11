@@ -142,6 +142,7 @@ class TestRllibExamples(unittest.TestCase):
         config['train_batch_size'] = 200
         config['horizon'] = 50
         config['sample_batch_size'] = 50
+        config['num_workers'] = 1
 
         run_experiments({
             'test': {
