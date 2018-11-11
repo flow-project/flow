@@ -21,10 +21,11 @@ import ray
 from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 
+from flow.core.util import emission_to_csv
+from flow.core.util import get_rllib_config
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
-from flow.core.util import get_rllib_config
-from flow.core.util import emission_to_csv
+
 
 EXAMPLE_USAGE = """
 example usage:
@@ -43,7 +44,7 @@ def visualizer_rllib(args):
 
     # Run on only one cpu for rendering purposes
     ray.init(num_cpus=1)
-    config["num_workers"] = 1
+    config['num_workers'] = 1
 
     flow_params = get_flow_params(config)
 
@@ -57,33 +58,33 @@ def visualizer_rllib(args):
         else None
     if (args.run and config_run):
         if (args.run != config_run):
-            print("visualizer_rllib.py: error: run argument "
-                  + "\"{}\" passed in ".format(args.run)
-                  + "differs from the one stored in params.json "
-                  + "\"{}\"".format(config_run))
+            print('visualizer_rllib.py: error: run argument '
+                  + '\'{}\' passed in '.format(args.run)
+                  + 'differs from the one stored in params.json '
+                  + '\'{}\''.format(config_run))
             sys.exit(1)
     if (args.run):
         agent_cls = get_agent_class(args.run)
     elif (config_run):
         agent_cls = get_agent_class(config_run)
     else:
-        print("visualizer_rllib.py: error: could not find flow parameter "
-              "\"run\" in params.json, "
-              "add argument --run to provide the algorithm or model used "
-              "to train the results\n e.g. "
-              "python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO")
+        print('visualizer_rllib.py: error: could not find flow parameter '
+              '\'run\' in params.json, '
+              'add argument --run to provide the algorithm or model used '
+              'to train the results\n e.g. '
+              'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent._restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters
-    exp_tag = flow_params["exp_tag"]
+    exp_tag = flow_params['exp_tag']
     net_params = flow_params['net']
     vehicles = flow_params['veh']
     initial_config = flow_params['initial']
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
-    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    scenario_class = getattr(module, flow_params['scenario'])
 
     scenario = scenario_class(
         name=exp_tag,
@@ -93,8 +94,8 @@ def visualizer_rllib(args):
 
     # Start the environment with the gui turned on and a path for the
     # emission file
-    module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
-    env_class = getattr(module, flow_params["env_name"])
+    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
+    env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
     if args.evaluate:
         env_params.evaluate = True
@@ -103,7 +104,7 @@ def visualizer_rllib(args):
         sumo_params.render = False
     else:
         sumo_params.render = True
-    sumo_params.emission_path = "./test_time_rollout/"
+    sumo_params.emission_path = './test_time_rollout/'
 
     env = env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)
@@ -130,11 +131,11 @@ def visualizer_rllib(args):
         outflow = vehicles.get_outflow_rate(500)
         final_outflows.append(outflow)
         mean_speed.append(np.mean(vel))
-        print("Round {}, Return: {}".format(i, ret))
-    print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
-    print("Average, std speed: {}, {}".format(np.mean(mean_speed),
+        print('Round {}, Return: {}'.format(i, ret))
+    print('Average, std return: {}, {}'.format(np.mean(rets), np.std(rets)))
+    print('Average, std speed: {}, {}'.format(np.mean(mean_speed),
                                               np.std(mean_speed)))
-    print("Average, std outflow: {}, {}".format(np.mean(final_outflows),
+    print('Average, std outflow: {}, {}'.format(np.mean(final_outflows),
                                                 np.std(final_outflows)))
 
     # terminate the environment
@@ -143,10 +144,10 @@ def visualizer_rllib(args):
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        emission_filename = "{0}-emission.xml".format(scenario.name)
+        emission_filename = '{0}-emission.xml'.format(scenario.name)
 
         emission_path = \
-            "{0}/test_time_rollout/{1}".format(dir_path, emission_filename)
+            '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
 
         emission_to_csv(emission_path)
 
@@ -154,30 +155,29 @@ def visualizer_rllib(args):
 def create_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="[Flow] Evaluates a reinforcement learning agent "
-                    "given a checkpoint.",
+        description='[Flow] Evaluates a reinforcement learning agent '
+                    'given a checkpoint.',
         epilog=EXAMPLE_USAGE)
 
     # required input parameters
     parser.add_argument(
-        "result_dir", type=str, help="Directory containing results")
-    parser.add_argument("checkpoint_num", type=str, help="Checkpoint number.")
+        'result_dir', type=str, help='Directory containing results')
+    parser.add_argument('checkpoint_num', type=str, help='Checkpoint number.')
 
     # optional input parameters
     parser.add_argument(
-        "--run",
+        '--run',
         type=str,
-        help="The algorithm or model to train. This may refer to "
-             "the name of a built-on algorithm (e.g. RLLib's DQN "
-             "or PPO), or a user-defined trainable function or "
-             "class registered in the tune registry. "
-             "Required for results trained with flow-0.2.0 and before.")
-    # TODO: finalize version here
+        help='The algorithm or model to train. This may refer to '
+             'the name of a built-on algorithm (e.g. RLLib\'s DQN '
+             'or PPO), or a user-defined trainable function or '
+             'class registered in the tune registry. '
+             'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
         '--num_rollouts',
         type=int,
         default=1,
-        help="The number of rollouts to visualize.")
+        help='The number of rollouts to visualize.')
     parser.add_argument(
         '--emission_to_csv',
         action='store_true',
@@ -190,11 +190,12 @@ def create_parser():
     parser.add_argument(
         '--evaluate',
         action='store_true',
-        help='Specifies whether to use the "evaluate" reward for the environment.')
+        help='Specifies whether to use the \'evaluate\' reward '
+             'for the environment.')
     return parser
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
     visualizer_rllib(args)
