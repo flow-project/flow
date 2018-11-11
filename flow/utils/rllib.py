@@ -132,3 +132,10 @@ def get_flow_params(config):
     flow_params["tls"] = tls
 
     return flow_params
+
+
+def get_rllib_config(path):
+    """Return the data from the specified rllib configuration file."""
+    jsonfile = path + '/params.json'  # params.json is the config file
+    jsondata = json.loads(open(jsonfile).read())
+    return jsondata
