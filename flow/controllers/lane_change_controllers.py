@@ -15,7 +15,6 @@ class SumoLaneChangeController(BaseLaneChangeController):
         """See parent class."""
         return None
 
-
 class StaticLaneChanger(BaseLaneChangeController):
     """A lane-changing model used to keep a vehicle in the same lane."""
 
