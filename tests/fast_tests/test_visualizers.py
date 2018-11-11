@@ -1,5 +1,5 @@
-from flow.visualize import visualizer_rllab as vs_rllab
-from flow.visualize.visualizer_rllab import visualizer_rllab
+# from flow.visualize import visualizer_rllab as vs_rllab
+# from flow.visualize.visualizer_rllab import visualizer_rllab
 from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 
