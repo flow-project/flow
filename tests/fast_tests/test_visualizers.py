@@ -2,8 +2,11 @@ import unittest
 import os
 import pickle
 import numpy as np
+import argparse
 from flow.visualize.visualizer_rllab import visualizer_rllab
 from flow.visualize.visualizer_rllib import visualizer_rllib
+from flow.visualize import visualizer_rllib as vs_rllib
+from flow.visualize import visualizer_rllab as vs_rllab
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -23,12 +26,11 @@ class TestVisualizerRLlib(unittest.TestCase):
         # FIXME(ev) it's not actually catching errors
         # convert os into a method
 
-        os.system("python %s/../../flow/visualize/visualizer_rllib.py "
-                  "%s/../data/rllib_data/ 1 --num_rollouts 1 "
-                  "--no_render" %
-                  (current_path, current_path))
-
-
+        arg_str = "{}/../data/rllib_data/ 1 --num_rollouts 1 " \
+               "--no_render".format(current_path).split()
+        parser = vs_rllib.create_parser()
+        pass_args = parser.parse_args(arg_str)
+        visualizer_rllib(pass_args)
 
 
 class TestVisualizerRLlab(unittest.TestCase):
@@ -41,16 +43,11 @@ class TestVisualizerRLlab(unittest.TestCase):
     def test_visualizer(self):
         # current path
         current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
-
-        # run the experiment and check it doesn't crash
-        # FIXME(ev) it's not actually catching errors
-        try:
-            os.system("python %s/../../flow/visualize/visualizer_rllab.py "
-                      "%s/../data/rllab_data/itr_0.pkl --num_rollouts 1 "
-                      "--no_render" %
-                      (current_path, current_path))
-        except Exception as e:
-            self.assert_(False)
+        arg_str = "{}/../data/rllab_data/itr_0.pkl --num_rollouts 1 " \
+               "--no_render".format(current_path).split()
+        parser = vs_rllab.create_parser()
+        pass_args = parser.parse_args(arg_str)
+        visualizer_rllab(pass_args)
 
 
 if __name__ == '__main__':

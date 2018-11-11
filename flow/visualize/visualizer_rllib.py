@@ -151,7 +151,7 @@ def visualizer_rllib(args):
         emission_to_csv(emission_path)
 
 
-if __name__ == "__main__":
+def create_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="[Flow] Evaluates a reinforcement learning agent "
@@ -191,5 +191,10 @@ if __name__ == "__main__":
         '--evaluate',
         action='store_true',
         help='Specifies whether to use the "evaluate" reward for the environment.')
+    return parser
+
+
+if __name__ == "__main__":
+    parser = create_parser()
     args = parser.parse_args()
     visualizer_rllib(args)

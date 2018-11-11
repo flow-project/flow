@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from flow.core.util import emission_to_csv
 
 
-def visualizer_rllab(*args):
+def visualizer_rllab(args):
     # extract the flow environment
     data = joblib.load(args.file)
     policy = data['policy']
@@ -63,7 +63,7 @@ def visualizer_rllab(*args):
 
     # ensure that a reward_plots folder exists in the directory, and if not,
     # create one
-    if not os.path.exists("plots"):
+    if not os.path.exists("plots") and not os.environ.get("TEST_FLAG", 1):
         os.makedirs("plots")
 
     # create an array of time
@@ -94,9 +94,10 @@ def visualizer_rllab(*args):
             fontsize=16)
         plt.legend(loc=0)
 
-        # save the plot in the "plots" directory
-        plt.savefig(
-            "plots/{0}_{1}.png".format(args.plotname, obs_var), bbox="tight")
+        # save the plot in the "plots" directory unless we're testing
+        if not os.environ.get("TEST_FLAG", 1):
+            plt.savefig(
+                "plots/{0}_{1}.png".format(args.plotname, obs_var), bbox="tight")
 
         # plot mean values for the observations across all vehicles and all
         # rollouts
@@ -116,9 +117,10 @@ def visualizer_rllab(*args):
             fontsize=16)
 
         # save the plot in the "plots" directory
-        plt.savefig(
-            "plots/{0}_{1}_mean.png".format(args.plotname, obs_var),
-            bbox="tight")
+        if not os.environ.get("TEST_FLAG", 1):
+            plt.savefig(
+                "plots/{0}_{1}_mean.png".format(args.plotname, obs_var),
+                bbox="tight")
 
     # Make a figure for the mean rewards over the course of the rollout
     mean_reward = np.mean(all_rewards, axis=0)
@@ -132,7 +134,8 @@ def visualizer_rllab(*args):
         fontsize=16)
 
     # save the rewards plot in the "reward_plots" directory
-    plt.savefig("plots/{0}_reward.png".format(args.plotname), bbox="tight")
+    if not os.environ.get("TEST_FLAG", 1):
+        plt.savefig("plots/{0}_reward.png".format(args.plotname), bbox="tight")
 
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
@@ -146,7 +149,7 @@ def visualizer_rllab(*args):
         emission_to_csv(emission_path)
 
 
-if __name__ == "__main__":
+def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str, help='path to the snapshot file')
     parser.add_argument(
@@ -167,7 +170,12 @@ if __name__ == "__main__":
         '--emission_to_csv',
         action='store_true',
         help='Specifies whether to convert the emission file '
-        'created by sumo into a csv file')
+             'created by sumo into a csv file')
+    return parser
 
+
+if __name__ == "__main__":
+
+    parser = create_parser()
     args = parser.parse_args()
-    visualizer_rllab(*args)
+    visualizer_rllab(args)
