@@ -22,8 +22,7 @@ from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
-from flow.utils.rllib import get_flow_params
-from flow.core.util import get_rllib_config
+from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.core.util import emission_to_csv
 
 EXAMPLE_USAGE = """
@@ -65,6 +64,10 @@ parser.add_argument(
     action='store_true',
     help='Specifies whether to convert the emission file '
     'created by sumo into a csv file')
+parser.add_argument(
+    '--no_render',
+    action='store_true',
+    help='Specifies whether to visualize the results')
 parser.add_argument(
     '--evaluate',
     action='store_true',
@@ -137,7 +140,10 @@ if __name__ == "__main__":
     if args.evaluate:
         env_params.evaluate = True
     sumo_params = flow_params['sumo']
-    sumo_params.render = True
+    if args.no_render:
+        sumo_params.render = False
+    else:
+        sumo_params.render = True
     sumo_params.emission_path = "./test_time_rollout/"
 
     env = env_class(
