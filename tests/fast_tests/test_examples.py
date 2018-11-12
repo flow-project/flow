@@ -151,7 +151,7 @@ class TestRllibExamples(unittest.TestCase):
                 'config': {
                     **config
                 },
-                'queue_trials' = True,
+                'queue_trials': True,
                 'checkpoint_freq': 1,
                 'stop': {
                     'training_iteration': 1,
