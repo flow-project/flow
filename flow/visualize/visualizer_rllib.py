@@ -13,6 +13,7 @@ parser : ArgumentParser
 """
 
 import argparse
+import gym
 import numpy as np
 import os
 import sys
@@ -20,6 +21,7 @@ import sys
 import ray
 from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
+from ray.rllib.models import ModelCatalog
 
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
@@ -74,8 +76,9 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
     agent = agent_cls(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
-    agent._restore(checkpoint)
+    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
+    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
+    agent.restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -105,8 +108,8 @@ def visualizer_rllib(args):
         sumo_params.render = True
     sumo_params.emission_path = './test_time_rollout/'
 
-    env = env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario))
 
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts
@@ -116,10 +119,9 @@ def visualizer_rllib(args):
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
-        done = False
         ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.vehicles
+            vehicles = env.unwrapped.vehicles
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
@@ -138,7 +140,7 @@ def visualizer_rllib(args):
                                                 np.std(final_outflows)))
 
     # terminate the environment
-    env.terminate()
+    env.unwrapped.terminate()
 
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
