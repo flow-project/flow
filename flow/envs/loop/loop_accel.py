@@ -138,7 +138,7 @@ class MultiAgentAccelEnv(AccelEnv):
             reward = rewards.desired_velocity(self, fail=kwargs['fail'])
             return {'av': reward, 'adversary': -reward}
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition for the state. Both adversary and
         agent receive the same state
         """

@@ -79,7 +79,7 @@ class CommNetEnv(Env):
             shape=(3 * 100,),
             dtype=np.float32)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # compute the normalizers
         state_array = np.zeros((3, 100))

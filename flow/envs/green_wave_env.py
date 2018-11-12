@@ -152,7 +152,7 @@ class TrafficLightGridEnv(Env):
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # compute the normalizers
         max_dist = max(self.scenario.short_length, self.scenario.long_length,
@@ -500,7 +500,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             dtype=np.float32)
         return tl_box
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """
         Returns self.num_observed number of vehicles closest to each traffic
         light and for each vehicle its velocity, distance to intersection,

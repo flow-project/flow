@@ -379,7 +379,7 @@ class BottleneckEnv(Env):
                  (2000.0 * self.scaling)
         return reward
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         return np.asarray([1])
 
@@ -431,7 +431,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         return Box(low=0, high=1, shape=(num_obs,), dtype=np.float32)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         headway_scale = 1000
 
@@ -752,7 +752,7 @@ class DesiredVelocityEnv(BottleneckEnv):
             low=-max_decel*self.sim_step, high=max_accel*self.sim_step,
             shape=(int(action_size), ), dtype=np.float32)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # action space is number of vehicles in each segment in each lane,
         # number of rl vehicles in each segment in each lane

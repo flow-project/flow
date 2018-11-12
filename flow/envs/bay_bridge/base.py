@@ -218,6 +218,6 @@ class BayBridgeEnv(Env):
         """Implemented by child classes."""
         pass
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """Implemented by child classes."""
         return []
