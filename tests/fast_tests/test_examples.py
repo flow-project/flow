@@ -151,13 +151,13 @@ class TestRllibExamples(unittest.TestCase):
                 'config': {
                     **config
                 },
-                'queue_trials': True,
+
                 'checkpoint_freq': 1,
                 'stop': {
                     'training_iteration': 1,
                 },
             }
-        })
+        }, queue_trials=True)
 
 
 if __name__ == '__main__':
