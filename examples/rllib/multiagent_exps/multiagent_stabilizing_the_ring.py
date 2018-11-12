@@ -21,17 +21,17 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 os.environ['MULTIAGENT'] = 'True'
-
+# make sure (sample_batch_size * num_workers ~= train_batch_size)
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 2
+N_ROLLOUTS = 15
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 15
 # Number of rings
-NUM_RINGS = 2
+NUM_RINGS = 1
 
-# We place one autonomous vehicle and 22 human-driven vehicles in the network
+# We place one autonomous vehicle and 21 human-driven vehicles in the network
 vehicles = Vehicles()
 for i in range(NUM_RINGS):
     vehicles.add(
@@ -49,7 +49,7 @@ for i in range(NUM_RINGS):
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='stabilizing_the_ring',
+    exp_tag='single_ring_stabilize',
 
     # name of the flow environment the experiment is running on
     env_name='MultiWaveAttenuationPOEnv',
@@ -74,6 +74,7 @@ flow_params = dict(
             'max_accel': 1,
             'max_decel': 1,
             'ring_length': [230, 230],
+            'target_velocity': 4
         },
     ),
 
@@ -106,12 +107,12 @@ if __name__ == '__main__':
     config['sample_batch_size'] = HORIZON
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
-    # config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    config['model'].update({'fcnet_hiddens': [300, 300, 300]})
     # config['use_gae'] = True
     # config['lambda'] = 0.97
-    config['lr'] = tune.grid_search([1e-5, 5e-6]) # 1e-5 seems like the right thing
+    config['lr'] = tune.grid_search([1e-3, 1e-4, 1e-5, 1e-6]) # 1e-5 seems like the right thing
     # config['vf_loss_coeff'] = tune.grid_search([10, 1]) # it seems really important that this is 1 and not 10
-    config['vf_clip_param']  = tune.grid_search([1e3, 1e4, 1e5])
+    config['vf_clip_param']  = tune.grid_search([1e3, 1e4])
     # config['sgd_minibatch_size'] = 128
     # config['kl_target'] = 0.02
     config['num_sgd_iter'] = tune.grid_search([30, 100])
@@ -156,10 +157,10 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 50,
             'stop': {
-                'training_iteration': 400
+                'training_iteration': 100
             },
             'config': config,
-            'upload_dir': 's3://eugene.experiments/multiagent_tests'
+            'upload_dir': 's3://kanaad.experiments/multiagent_tests/'
         },
     })
 
