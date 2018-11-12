@@ -90,7 +90,7 @@ class AccelEnv(Env):
         else:
             return rewards.desired_velocity(self, fail=kwargs['fail'])
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # speed normalizer
         max_speed = self.scenario.max_speed
