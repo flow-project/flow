@@ -61,9 +61,11 @@ RLlib experiments you will need to visualize
 ::
 
     # Logging out flow_params to ray's experiment result folder
+    from flow.utils.rllib import FlowParamsEncoder
     json_out_file = alg.logdir + '/flow_params.json'
     with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+        json.dump(flow_params, outfile, cls=FlowParamsEncoder,
+                  sort_keys=True, indent=4)
 
 These lines should be placed after initialization of the PPOAgent RL algorithm as 
 it relies on ``alg.logdir``. Store parameters before training, though, so 

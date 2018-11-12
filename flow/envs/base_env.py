@@ -28,7 +28,7 @@ except ImportError:
 
 try:
     # Load user config if exists, else load default config
-    import flow.core.config as config
+    import flow.config as config
 except ImportError:
     import flow.config_default as config
 
@@ -121,7 +121,7 @@ class Env(*classdef):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.scenario.generator.rts
+        self.available_routes = self.scenario.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -181,7 +181,7 @@ class Env(*classdef):
     def start_sumo(self):
         """Start a sumo instance.
 
-        Uses the configuration files created by the generator class to
+        Uses the configuration files created by the scenario class to
         initialize a sumo instance. Also initializes a traci connection to
         interface with sumo from Python.
         """
@@ -468,7 +468,6 @@ class Env(*classdef):
 
             # stop collecting new simulation steps if there is a collision
             if crash:
-                done = True
                 break
 
         states = self.get_state(rl_actions)
@@ -498,7 +497,7 @@ class Env(*classdef):
                     done['__all__'] = False
                 infos[key] = {}
 
-            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+            reward = self.compute_reward(rl_actions, fail=crash)
 
         else:
             # collect information of the state of the network based on the
@@ -509,7 +508,7 @@ class Env(*classdef):
             next_observation = np.copy(states)
 
             # compute the reward
-            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+            reward = self.compute_reward(rl_actions, fail=crash)
 
             # test if the agent should terminate due to a crash
             done = crash
@@ -952,7 +951,7 @@ class Env(*classdef):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
 
         MUST BE implemented in new environments.
@@ -960,8 +959,6 @@ class Env(*classdef):
 
         Parameters
         ----------
-        state: numpy ndarray
-            state of all the vehicles in the simulation
         rl_actions: numpy ndarray
             actions performed by rl vehicles
         kwargs: dict
@@ -980,6 +977,10 @@ class Env(*classdef):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
+        print(
+            "Closing connection to TraCI and stopping simulation.\n"
+            "Note, this may print an error message when it closes."
+        )
         self._close()
 
     def _close(self):

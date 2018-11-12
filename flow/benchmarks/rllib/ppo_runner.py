@@ -7,7 +7,7 @@ Proximal Policy Optimization Algorithms by Schulman et. al.
 import json
 
 import ray
-import ray.rllib.agents.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 from ray.tune import grid_search
@@ -30,8 +30,11 @@ if __name__ == "__main__":
     # initialize a ray instance
     ray.init(redirect_output=True)
 
+    alg_run = "PPO"
+
     horizon = flow_params["env"].horizon
-    config = ppo.DEFAULT_CONFIG.copy()
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
     config["num_workers"] = min(N_CPUS, N_ROLLOUTS)
     config["train_batch_size"] = horizon * N_ROLLOUTS
     config["use_gae"] = True
@@ -47,13 +50,14 @@ if __name__ == "__main__":
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     # Register as rllib env
     register_env(env_name, create_env)
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "PPO",
+            "run": alg_run,
             "env": env_name,
             "config": {
                 **config

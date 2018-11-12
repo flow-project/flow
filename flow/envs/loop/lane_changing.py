@@ -100,7 +100,7 @@ class LaneChangeAccelEnv(Env):
             dtype=np.float32)
         return Tuple((speed, pos, lane))
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         # compute the system-level performance of vehicles from a velocity
         # perspective
