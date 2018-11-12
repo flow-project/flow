@@ -13,7 +13,6 @@ parser : ArgumentParser
 """
 
 import argparse
-import gym
 import numpy as np
 import os
 import sys
