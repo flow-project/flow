@@ -25,6 +25,8 @@ from flow.utils.rllib import get_rllib_pkl
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.core.util import emission_to_csv
+from ray.rllib.models import ModelCatalog
+import gym
 
 EXAMPLE_USAGE = """
 example usage:
@@ -153,6 +155,7 @@ if __name__ == '__main__':
     module = __import__('flow.envs', fromlist=[flow_params['env_name']])
     env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
+<<<<<<< HEAD
     env_params.restart_instance = False
     if args.evaluate:
         env_params.evaluate = True
@@ -162,11 +165,22 @@ if __name__ == '__main__':
         sumo_params.render = False
     else:
         sumo_params.render = True
+=======
+    #env_params.evaluate = True
+    sumo_params = flow_params['sumo']
+    sumo_params.render = True
+    sumo_params.restart_instance = False
+>>>>>>> new_sumo
     sumo_params.emission_path = "./test_time_rollout/"
 
-    env = env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+    if args.run=="PPO":
+        env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
+            env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+    else:
+        env = env_class(
+              env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
+<<<<<<< HEAD
     if multiagent:
         rets = {}
         ids = config['multiagent']['policy_graphs'].keys()
@@ -233,6 +247,53 @@ if __name__ == '__main__':
         np.mean(mean_speed), np.std(mean_speed)))
     print('Average, std outflow: {}, {}'.format(
         np.mean(final_outflows), np.std(final_outflows)))
+=======
+    # Run the environment in the presence of the pre-trained RL agent for the
+    # requested number of time steps / rollouts
+    rets = []
+    mean_rets = []
+    ret_lists = []
+    vels = []
+    mean_vels = []
+    std_vels = []
+    outflows = []
+    final_outflow = []
+    for i in range(args.num_rollouts):
+        vel = np.zeros(env_params.horizon)
+        ret = 0
+        ret_list = []
+        state = env.reset()
+        for j in range(env_params.horizon):
+            if args.run=="PPO":
+                vehicles = env.unwrapped.vehicles
+            else:
+                vehicles = env.vehicles
+            action = agent.compute_action(state)
+            state, reward, done, _ = env.step(action)
+            vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
+            ret += reward
+            ret_list.append(reward)
+
+            if done:
+                break
+        rets.append(ret)
+        vels.append(vel)
+        mean_rets.append(np.mean(ret_list))
+        ret_lists.append(ret_list)
+        mean_vels.append(np.mean(vel))
+        std_vels.append(np.std(vel))
+        outflows.append(vehicles.get_outflow_rate(sumo_params.sim_step))
+        final_outflow.append(vehicles.get_outflow_rate(500))
+        print("Round {0}, return: {1}".format(i, ret))
+
+    print("Average, std return: {}, {}".format(np.mean(rets), np.std(rets)))
+    print("Average, std velocity: {}, {}".format(np.mean(mean_vels),
+                                                 np.std(mean_vels)))
+    print("Average, std outflow: {}, {}".format(np.mean(outflows),
+                                                np.std(outflows)))
+    print("Average, std final outflow: {}, {}".format(np.mean(final_outflow),
+                                                np.std(final_outflow)))
+>>>>>>> new_sumo
 
     # terminate the environment
     env.terminate()

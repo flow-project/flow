@@ -336,6 +336,21 @@ class Figure8Scenario(Scenario):
 
         return rts
 
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes = net_params.additional_params["lanes"]
+        conn = []
+        for i in range(lanes):
+            conn += [{"from": "right_lower_ring_in",
+                      "to": "right_lower_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+            conn += [{"from": "bottom_upper_ring_in",
+                      "to": "bottom_upper_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+        return conn
+
     def specify_edge_starts(self):
         """See base class."""
         edgestarts = \
@@ -373,10 +388,10 @@ class Figure8Scenario(Scenario):
     def specify_intersection_edge_starts(self):
         """See base class."""
         intersection_edgestarts = \
-            [(":center_intersection_%s" % (1 + self.lanes),
+            [(":center_intersection_%s" % self.lanes,
               self.ring_edgelen + self.intersection_len / 2 +
               3 * self.inner_space_len),
-             (":center_intersection_1",
+             (":center_intersection_0",
               4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
               self.junction_len + 8 * self.inner_space_len)]
 

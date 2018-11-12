@@ -39,8 +39,13 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
+<<<<<<< HEAD
     InstanceType: m4.16xlarge
     ImageId: ami-006f44e731fd3f83d # Flow AMI (Ubuntu)
+=======
+    InstanceType: m4.16xlarge #c4.4xlarge
+    ImageId: ami-0ae2f4f410b03e6c3 # Flow AMI (Ubuntu)
+>>>>>>> new_sumo
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -54,8 +59,13 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
+<<<<<<< HEAD
     InstanceType: c4.4xlarge #c4.4xlarge
     ImageId: ami-006f44e731fd3f83d # Flow AMI (Ubuntu)
+=======
+    InstanceType: m4.16xlarge #c4.4xlarge
+    ImageId: ami-0ae2f4f410b03e6c3 # Flow AMI (Ubuntu)
+>>>>>>> new_sumo
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -68,13 +78,22 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
+<<<<<<< HEAD
 "/tmp/path": "/Users/kanaad/code/research/learning-traffic/rllab-multiagent/.git/modules/learning-traffic/refs/heads/multiagent",
+=======
+"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/corl_exps2",
+>>>>>>> new_sumo
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
+<<<<<<< HEAD
     - cd flow && git fetch && git stash && git checkout `cat /tmp/path`
     - cd ray && git fetch eugene_upstream && git stash && git checkout eugene_upstream/master && git reset --hard eugene_upstream/multiagent_rollouts2
+=======
+    - cd flow && git fetch && git checkout `cat /tmp/path`
+    - cd ray && git fetch eugene_upstream && git checkout corl_tests && git pull
+>>>>>>> new_sumo
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc

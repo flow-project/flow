@@ -187,6 +187,37 @@ class SimpleGridScenario(Scenario):
 
         return types
 
+    def specify_connections(self, net_params):
+        """See parent class."""
+        horizontal_lanes = net_params.additional_params["horizontal_lanes"]
+        vertical_lanes = net_params.additional_params["vertical_lanes"]
+        n_row = self.grid_array["row_num"]
+        n_col = self.grid_array["col_num"]
+        conn = []
+        for i in range(n_row):
+            for j in range(n_col):
+                    conn += [{"from": "bot{}_{}".format(i, j),
+                              "to": "bot{}_{}".format(i, j + 1),
+                              "fromLane": str(k),
+                              "toLane": str(k)}
+                             for k in range(horizontal_lanes)]
+                    conn += [{"from": "top{}_{}".format(i, n_col - j),
+                              "to": "top{}_{}".format(i, n_col - j - 1),
+                              "fromLane": str(k),
+                              "toLane": str(k)}
+                             for k in range(horizontal_lanes)]
+                    conn += [{"from": "right{}_{}".format(i, j),
+                              "to": "right{}_{}".format(i + 1, j),
+                              "fromLane": str(k),
+                              "toLane": str(k)}
+                             for k in range(vertical_lanes)]
+                    conn += [{"from": "left{}_{}".format(n_row - i, j),
+                              "to": "left{}_{}".format(n_row - i - 1, j),
+                              "fromLane": str(k),
+                              "toLane": str(k)}
+                             for k in range(vertical_lanes)]
+        return conn
+
     # ===============================
     # ============ UTILS ============
     # ===============================

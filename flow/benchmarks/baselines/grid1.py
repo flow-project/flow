@@ -31,6 +31,8 @@ LONG_LENGTH = 100
 SHORT_LENGTH = 300
 # number of vehicles originating in the left, right, top, and bottom edges
 N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
+# how long the yellow phase should last at a minimum
+YELLOW_TIME = 3
 
 
 def grid1_baseline(num_runs, render=True):
@@ -56,7 +58,6 @@ def grid1_baseline(num_runs, render=True):
     vehicles.add(veh_id="human",
                  acceleration_controller=(SumoCarFollowingController, {}),
                  sumo_car_following_params=SumoCarFollowingParams(
-                     min_gap=2.5,
                      max_speed=V_ENTER,
                  ),
                  routing_controller=(GridRouter, {}),
@@ -75,21 +76,41 @@ def grid1_baseline(num_runs, render=True):
     inflow = InFlows()
     for edge in outer_edges:
         inflow.add(veh_type="human", edge=edge, vehs_per_hour=EDGE_INFLOW,
-                   departLane="free", departSpeed="max")
+                   departLane="free", departSpeed=V_ENTER)
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "5", "maxDur": "45",
-               "state": "GGGrrrGGGrrr"},
-              {"duration": "2", "minDur": "2", "maxDur": "2",
-               "state": "yyyrrryyyrrr"},
-              {"duration": "31", "minDur": "5", "maxDur": "45",
-               "state": "rrrGGGrrrGGG"},
-              {"duration": "2", "minDur": "2", "maxDur": "2",
-               "state": "rrryyyrrryyy"}]
-    for i in range(N_ROWS*N_COLUMNS):
-        tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
-                     programID=1)
+    program_id = 1
+    max_gap = 3.0
+    detector_gap = 0.8
+    show_detectors = True
+    phases = [{
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "GrGr"
+    }, {
+        "duration": "6",
+        "minDur": str(YELLOW_TIME),
+        "maxDur": "6",
+        "state": "yryr"
+    }, {
+        "duration": "31",
+        "minDur": "8",
+        "maxDur": "45",
+        "state": "rGrG"
+    }, {
+        "duration": "6",
+        "minDur": str(YELLOW_TIME),
+        "maxDur": "6",
+        "state": "ryry"
+    }]
+
+    for i in range(N_COLUMNS * N_ROWS):
+        tl_logic.add('center'+str(i), tls_type="actuated",
+                     programID=program_id, phases=phases,
+                     maxGap=max_gap, detectorGap=detector_gap,
+                     showDetectors=show_detectors)
 
     net_params = NetParams(
             inflows=inflow,

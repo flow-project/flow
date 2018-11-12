@@ -9,11 +9,16 @@ from flow.controllers import SumoLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import SumoExperiment
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 SCALING = 1
 DISABLE_TB = True
 # If set to False, ALINEA will control the ramp meter
 DISABLE_RAMP_METER = True
-INFLOW = 1800
+INFLOW = 2000
+# If set to true, will create a inflow-outflow curve for the bottleneck
+PLOT_CAPACITY_CURVE = True
 
 
 def bottleneck_example(flow_rate, horizon, render=None):
@@ -64,13 +69,15 @@ def bottleneck_example(flow_rate, horizon, render=None):
         "disable_ramp_metering": DISABLE_RAMP_METER
     }
     env_params = EnvParams(
-        horizon=horizon, additional_params=additional_env_params)
+        horizon=horizon,
+        evaluate=True,
+        additional_params=additional_env_params)
 
     inflow = InFlows()
     inflow.add(
         veh_type="human",
         edge="1",
-        vehsPerHour=flow_rate,
+        vehs_per_hour=flow_rate,
         departLane="random",
         departSpeed=10)
 
@@ -107,5 +114,17 @@ def bottleneck_example(flow_rate, horizon, render=None):
 if __name__ == "__main__":
     # import the experiment variable
     # inflow, number of steps, binary
-    exp = bottleneck_example(INFLOW, 1000, render=True)
-    exp.run(5, 1000)
+    if not PLOT_CAPACITY_CURVE:
+        exp = bottleneck_example(INFLOW, 1000, render=True)
+        exp.run(5, 1000)
+    else:
+        num_steps = 20
+        inflow_range = np.linspace(1500, 3500, num_steps)
+        capacity = np.zeros(num_steps)
+        for i in range(inflow_range.shape[0]):
+            exp = bottleneck_example(inflow_range[i], 2000, render=False)
+            info_dict = exp.run(5, 2000)
+            capacity[i] = info_dict["mean_outflows"]
+        plt.figure()
+        plt.plot(inflow_range, capacity)
+        plt.show()
