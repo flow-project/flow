@@ -142,7 +142,7 @@ class TestRllibExamples(unittest.TestCase):
         config['train_batch_size'] = 200
         config['horizon'] = 50
         config['sample_batch_size'] = 50
-        config['num_workers'] = 1
+        config['num_workers'] = 0
 
         run_experiments({
             'test': {
@@ -157,10 +157,10 @@ class TestRllibExamples(unittest.TestCase):
                     'training_iteration': 1,
                 },
             }
-        }, queue_trials=True)
+        })
 
 
 if __name__ == '__main__':
 
-    ray.init(num_cpus=2, redirect_output=True)
+    ray.init(num_cpus=1, redirect_output=True)
     unittest.main()
