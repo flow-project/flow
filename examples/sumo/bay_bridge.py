@@ -9,16 +9,15 @@ from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.bay_bridge import BayBridgeEnv
-from flow.scenarios.bay_bridge.gen import BayBridgeGenerator
-from flow.scenarios.bay_bridge.scenario import BayBridgeScenario
+from flow.envs.bay_bridge.base import BayBridgeEnv
+from flow.scenarios.bay_bridge import BayBridgeScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
 NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bay_bridge.net.xml")
 
 
-def bay_bridge_example(sumo_binary=None,
+def bay_bridge_example(render=None,
                        use_inflows=False,
                        use_traffic_lights=False):
     """
@@ -26,7 +25,7 @@ def bay_bridge_example(sumo_binary=None,
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render: bool, optional
         specifies whether to use sumo's gui during execution
     use_inflows: bool, optional
         whether to activate inflows from the peripheries of the network
@@ -41,14 +40,14 @@ def bay_bridge_example(sumo_binary=None,
     """
     sumo_params = SumoParams(sim_step=0.6, overtake_right=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     sumo_car_following_params = SumoCarFollowingParams(speedDev=0.2)
     sumo_lc_params = SumoLaneChangeParams(
-        lcAssertive=20,
-        lcPushy=0.8,
-        lcSpeedGain=4.0,
+        lc_assertive=20,
+        lc_pushy=0.8,
+        lc_speed_gain=4.0,
         model="LC2013",
         # lcKeepRight=0.8
     )
@@ -159,7 +158,7 @@ def bay_bridge_example(sumo_binary=None,
             departLane="0",
             departSpeed=20)  # no data for this
 
-    net_params = NetParams(in_flows=inflow, no_internal_links=False)
+    net_params = NetParams(inflows=inflow, no_internal_links=False)
     net_params.netfile = NETFILE
 
     # download the netfile from AWS
@@ -181,7 +180,6 @@ def bay_bridge_example(sumo_binary=None,
 
     scenario = BayBridgeScenario(
         name="bay_bridge",
-        generator_class=BayBridgeGenerator,
         vehicles=vehicles,
         traffic_lights=traffic_lights,
         net_params=net_params,
@@ -195,7 +193,7 @@ def bay_bridge_example(sumo_binary=None,
 if __name__ == "__main__":
     # import the experiment variable
     exp = bay_bridge_example(
-        sumo_binary="sumo-gui", use_inflows=False, use_traffic_lights=False)
+        render=True, use_inflows=False, use_traffic_lights=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

@@ -73,29 +73,29 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="SimpleGridScenario",
 
-    # name of the generator used to create/modify network configuration files
-    generator="SimpleGridGenerator",
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         restart_instance=True,
         sim_step=1,
-        sumo_binary="sumo",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
         additional_params={
-            "switch_time": 2.0,
+            "target_velocity": 50,
+            "switch_time": 2,
             "num_observed": 2,
+            "discrete": False,
+            "tl_type": "actuated"
         },
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params={
             "speed_limit": V_ENTER + 5,

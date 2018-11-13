@@ -8,8 +8,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
+from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
@@ -26,11 +25,11 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = .1
-PARALLEL_ROLLOUTS = 32
+N_CPUS = 32
 i = 0
 
 sumo_params = SumoParams(
-    sim_step=0.5, sumo_binary="sumo", restart_instance=True)
+    sim_step=0.5, render=False, restart_instance=True)
 
 vehicles = Vehicles()
 
@@ -103,7 +102,7 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(
-    in_flows=inflow,
+    inflows=inflow,
     no_internal_links=False,
     additional_params=additional_net_params)
 
@@ -114,7 +113,6 @@ initial_config = InitialConfig(
     edges_distribution=["2", "3", "4", "5"])
 scenario = BottleneckScenario(
     name="bay_bridge_toll",
-    generator_class=BottleneckGenerator,
     vehicles=vehicles,
     net_params=net_params,
     initial_config=initial_config,
@@ -163,4 +161,5 @@ for seed in [2]:  # , 1, 5, 10, 73]:
         mode="local",
         exp_prefix=exp_tag,
         # plot=True,
-        sync_s3_pkl=True)
+        sync_s3_pkl=True
+    )

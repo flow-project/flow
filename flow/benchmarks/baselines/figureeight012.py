@@ -6,9 +6,7 @@ Baseline is human acceleration and intersection behavior.
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter
-from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
-from flow.scenarios.figure8.gen import Figure8Generator
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
 from flow.envs.loop.loop_accel import AccelEnv
 from flow.core.experiment import SumoExperiment
 import numpy as np
@@ -17,7 +15,7 @@ import numpy as np
 HORIZON = 1500
 
 
-def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
+def figure_eight_baseline(num_runs, render=True):
     """Run script for all figure eight baselines.
 
     Parameters
@@ -25,7 +23,7 @@ def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render : bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -43,7 +41,7 @@ def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
 
     sumo_params = SumoParams(
         sim_step=0.1,
-        sumo_binary=sumo_binary,
+        render=render,
     )
 
     env_params = EnvParams(
@@ -64,7 +62,6 @@ def figure_eight_baseline(num_runs, sumo_binary="sumo-gui"):
     )
 
     scenario = Figure8Scenario(name="figure_eight",
-                               generator_class=Figure8Generator,
                                vehicles=vehicles,
                                net_params=net_params,
                                initial_config=initial_config)

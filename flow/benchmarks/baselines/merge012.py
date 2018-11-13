@@ -5,17 +5,16 @@ Baseline is no AVs.
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
-from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.controllers import SumoCarFollowingController
-from flow.scenarios.merge.scenario import MergeScenario
-from flow.scenarios.merge.gen import MergeGenerator
+from flow.scenarios.merge import MergeScenario
 from flow.envs.merge import WaveAttenuationMergePOEnv
 import numpy as np
 
 # time horizon of a single rollout
-HORIZON = int(750*(0.5/0.2))
+HORIZON = 750
 # inflow rate at the highway
 FLOW_RATE = 2000
 # percent of autonomous vehicles
@@ -24,7 +23,7 @@ RL_PENETRATION = 0.1
 NUM_RL = 5
 
 
-def merge_baseline(num_runs, sumo_binary="sumo-gui"):
+def merge_baseline(num_runs, render=True):
     """Run script for all merge baselines.
 
     Parameters
@@ -32,7 +31,7 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render: bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -51,7 +50,7 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
                  acceleration_controller=(SumoCarFollowingController, {}),
-                 speed_mode="no_collide",
+                 speed_mode=9,
                  num_vehicles=5)
 
     # Vehicles are introduced from both sides of merge, with RL vehicles
@@ -64,9 +63,9 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
                departLane="free", departSpeed=7.5)
 
     sumo_params = SumoParams(
-        restart_instance=False,
-        sim_step=0.2,  # time step decreased to prevent occasional crashes
-        sumo_binary=sumo_binary,
+        restart_instance=True,
+        sim_step=0.5,  # time step decreased to prevent occasional crashes
+        render=render,
     )
 
     env_params = EnvParams(
@@ -85,13 +84,12 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
     initial_config = InitialConfig()
 
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     )
 
     scenario = MergeScenario(name="merge",
-                             generator_class=MergeGenerator,
                              vehicles=vehicles,
                              net_params=net_params,
                              initial_config=initial_config)
@@ -108,7 +106,7 @@ def merge_baseline(num_runs, sumo_binary="sumo-gui"):
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = merge_baseline(num_runs=runs)
+    res = merge_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The average speed across {} runs is {}'.format(runs, res))

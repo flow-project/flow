@@ -16,17 +16,12 @@ def _read_requirements_file():
 class build_ext(_build_ext.build_ext):
     def run(self):
         try:
-            import tensorflow
-        except ImportError:
-            subprocess.check_call(['pip', 'install', 'tensorflow>=0.11.0'])
-
-        try:
-            import gym
+            import traci
         except ImportError:
             subprocess.check_call(
                 ['pip', 'install',
-                 'git+https://github.com/openai/gym.git@'
-                 '93d554bdbb4b2d29ff1a685158dbde93b36e3801#egg=gym'])
+                 'https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/'
+                 'sumotools-0.1.0-py3-none-any.whl'])
 
 
 class BinaryDistribution(Distribution):
@@ -41,7 +36,5 @@ setup(
     cmdclass={"build_ext": build_ext},
     packages=find_packages(),
     install_requires=_read_requirements_file(),
-    # install_requires=['tensorflow'],
-    # dependency_links = ['git+ssh://github.com/openai/gym.git'],
     zip_safe=False,
 )

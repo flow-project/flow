@@ -7,7 +7,7 @@ vehicles in a variable length ring road.
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -22,7 +22,7 @@ HORIZON = 3000
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+N_CPUS = 2
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -49,13 +49,10 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="LoopScenario",
 
-    # name of the generator used to create/modify network configuration files
-    generator="CircleGenerator",
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.1,
-        sumo_binary="sumo",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -89,16 +86,22 @@ flow_params = dict(
 )
 
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
+    ray.init(num_cpus=N_CPUS + 1, redirect_output=True)
 
-    config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS
-    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
+    # The algorithm or model to train. This may refer to "
+    #      "the name of a built-on algorithm (e.g. RLLib's DQN "
+    #      "or PPO), or a user-defined trainable function or "
+    #      "class registered in the tune registry.")
+    alg_run = "PPO"
+
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
+    config["num_workers"] = N_CPUS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16]})
     config["use_gae"] = True
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
@@ -107,6 +110,7 @@ if __name__ == "__main__":
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -115,7 +119,7 @@ if __name__ == "__main__":
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "PPO",
+            "run": alg_run,
             "env": env_name,
             "config": {
                 **config
@@ -123,13 +127,7 @@ if __name__ == "__main__":
             "checkpoint_freq": 20,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 200,
-            },
-            "repeat": 3,
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
+                "training_iteration": 500,
             },
         },
     })

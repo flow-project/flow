@@ -1,7 +1,15 @@
 Visualization
 *******************
 
-Flow supports visualization of both rllab and RLlib experiments. 
+Flow supports visualization of both rllab and RLlib computational experiments.
+When using one of the below visualizers, a window will appear similar to the
+one in the figure below. Click on the play button (highlighted in red) and the
+simulation will begin, with the autonomous vehicles exhibiting the behavior
+trained by the reinforcement learning algorithm.
+
+.. image:: ../img/visualizing.png
+   :width: 400
+   :align: center
 
 rllab
 =====
@@ -53,9 +61,11 @@ RLlib experiments you will need to visualize
 ::
 
     # Logging out flow_params to ray's experiment result folder
+    from flow.utils.rllib import FlowParamsEncoder
     json_out_file = alg.logdir + '/flow_params.json'
     with open(json_out_file, 'w') as outfile:
-        json.dump(flow_params, outfile, cls=NameEncoder, sort_keys=True, indent=4)
+        json.dump(flow_params, outfile, cls=FlowParamsEncoder,
+                  sort_keys=True, indent=4)
 
 These lines should be placed after initialization of the PPOAgent RL algorithm as 
 it relies on ``alg.logdir``. Store parameters before training, though, so 

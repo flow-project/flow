@@ -1,3 +1,5 @@
+"""Utility method for registering environments with OpenAI gym."""
+
 import gym
 from gym.envs.registration import register
 
@@ -7,15 +9,14 @@ from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
 
 
-def make_create_env(params, version=0, sumo_binary=None):
-    """Creates a parametrized flow environment compatible with OpenAI gym.
+def make_create_env(params, version=0, render=None):
+    """Create a parametrized flow environment compatible with OpenAI gym.
 
     This environment creation method allows for the specification of several
     key parameters when creating any flow environment, including the requested
-    environment, scenario, and generator classes, and the inputs needed to make
-    these classes generalizable to networks of varying sizes and shapes, and
-    well as varying forms of control (e.g. AVs, automated traffic lights,
-    etc...).
+    environment and scenario classes, and the inputs needed to make these
+    classes generalizable to networks of varying sizes and shapes, and well as
+    varying forms of control (e.g. AVs, automated traffic lights, etc...).
 
     This method can also be used to recreate the environment a policy was
     trained on and assess it performance, or a modified form of the previous
@@ -29,8 +30,6 @@ def make_create_env(params, version=0, sumo_binary=None):
          - exp_tag: name of the experiment
          - env_name: name of the flow environment the experiment is running on
          - scenario: name of the scenario class the experiment uses
-         - generator: name of the generator used to create/modify the network
-           configuration files
          - sumo: sumo-related parameters (see flow.core.params.SumoParams)
          - env: environment related parameters (see flow.core.params.EnvParams)
          - net: network-related parameters (see flow.core.params.NetParams and
@@ -43,9 +42,9 @@ def make_create_env(params, version=0, sumo_binary=None):
            (see flow.core.traffic_lights.TrafficLights)
     version : int, optional
         environment version number
-    sumo_binary : bool, optional
+    render : bool, optional
         specifies whether to use sumo's gui during execution. This overrides
-        the sumo_binary component in SumoParams
+        the render attribute in SumoParams
 
     Returns
     -------
@@ -60,8 +59,6 @@ def make_create_env(params, version=0, sumo_binary=None):
 
     module = __import__("flow.scenarios", fromlist=[params["scenario"]])
     scenario_class = getattr(module, params["scenario"])
-    module = __import__("flow.scenarios", fromlist=[params["generator"]])
-    generator_class = getattr(module, params["generator"])
 
     env_params = params['env']
     net_params = params['net']
@@ -72,7 +69,6 @@ def make_create_env(params, version=0, sumo_binary=None):
     def create_env(*_):
         scenario = scenario_class(
             name=exp_tag,
-            generator_class=generator_class,
             vehicles=vehicles,
             net_params=net_params,
             initial_config=initial_config,
@@ -81,8 +77,8 @@ def make_create_env(params, version=0, sumo_binary=None):
 
         sumo_params = deepcopy(params['sumo'])
 
-        if sumo_binary is not None:
-            sumo_params.sumo_binary = sumo_binary
+        if render is not None:
+            sumo_params.render = render
 
         register(
             id=env_name,

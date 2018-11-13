@@ -10,8 +10,7 @@ from flow.core.traffic_lights import TrafficLights
 from flow.controllers import SumoCarFollowingController, GridRouter
 from flow.envs.green_wave_env import PO_TrafficLightGridEnv
 from flow.core.experiment import SumoExperiment
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
-from flow.scenarios.grid.gen import SimpleGridGenerator
+from flow.scenarios.grid import SimpleGridScenario
 import numpy as np
 
 # time horizon of a single rollout
@@ -34,7 +33,7 @@ SHORT_LENGTH = 300
 N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 
 
-def grid1_baseline(num_runs, sumo_binary="sumo-gui"):
+def grid1_baseline(num_runs, render=True):
     """Run script for the grid1 baseline.
 
     Parameters
@@ -42,7 +41,7 @@ def grid1_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render: bool, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -80,20 +79,20 @@ def grid1_baseline(num_runs, sumo_binary="sumo-gui"):
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "8", "maxDur": "45",
+    phases = [{"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "GGGrrrGGGrrr"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "yyyrrryyyrrr"},
-              {"duration": "31", "minDur": "8", "maxDur": "45",
+              {"duration": "31", "minDur": "5", "maxDur": "45",
                "state": "rrrGGGrrrGGG"},
-              {"duration": "6", "minDur": "3", "maxDur": "6",
+              {"duration": "2", "minDur": "2", "maxDur": "2",
                "state": "rrryyyrrryyy"}]
     for i in range(N_ROWS*N_COLUMNS):
         tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
                      programID=1)
 
     net_params = NetParams(
-            in_flows=inflow,
+            inflows=inflow,
             no_internal_links=False,
             additional_params={
                 "speed_limit": V_ENTER + 5,
@@ -116,23 +115,24 @@ def grid1_baseline(num_runs, sumo_binary="sumo-gui"):
     sumo_params = SumoParams(
             restart_instance=False,
             sim_step=1,
-            sumo_binary=sumo_binary,
+            render=render,
         )
 
     env_params = EnvParams(
             evaluate=True,  # Set to True to evaluate traffic metrics
             horizon=HORIZON,
             additional_params={
-                "switch_time": 2.0,
+                "target_velocity": 50,
+                "switch_time": 2,
                 "num_observed": 2,
-                "tl_type": "actuated",
+                "discrete": False,
+                "tl_type": "actuated"
             },
         )
 
     initial_config = InitialConfig(shuffle=True)
 
     scenario = SimpleGridScenario(name="grid",
-                                  generator_class=SimpleGridGenerator,
                                   vehicles=vehicles,
                                   net_params=net_params,
                                   initial_config=initial_config,
@@ -149,8 +149,8 @@ def grid1_baseline(num_runs, sumo_binary="sumo-gui"):
 
 
 if __name__ == "__main__":
-    runs = 2  # number of simulations to average over
-    res = grid1_baseline(num_runs=runs)
+    runs = 1  # number of simulations to average over
+    res = grid1_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The total delay across {} runs is {}'.format(runs, res))

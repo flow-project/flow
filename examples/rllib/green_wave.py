@@ -3,7 +3,7 @@
 import json
 
 import ray
-import ray.rllib.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -19,7 +19,7 @@ HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 2
+N_CPUS = 2
 
 
 def gen_edges(row_num, col_num):
@@ -51,7 +51,7 @@ def get_flow_params(col_num, row_num, additional_net_params):
             departSpeed=20)
 
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 
@@ -95,7 +95,13 @@ grid_array = {
     "rl_veh": rl_veh
 }
 
-additional_env_params = {"target_velocity": 50, "switch_time": 3.0}
+additional_env_params = {
+        "target_velocity": 50,
+        "switch_time": 3.0,
+        "num_observed": 2,
+        "discrete": False,
+        "tl_type": "controlled"
+    }
 
 additional_net_params = {
     "speed_limit": 35,
@@ -129,13 +135,10 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="SimpleGridScenario",
 
-    # name of the generator used to create/modify network configuration files
-    generator="SimpleGridGenerator",
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=1,
-        sumo_binary="sumo-gui",
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -158,14 +161,16 @@ flow_params = dict(
 )
 
 if __name__ == "__main__":
-    ray.init(num_cpus=PARALLEL_ROLLOUTS, redirect_output=True)
+    ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
-    config = ppo.DEFAULT_CONFIG.copy()
-    config["num_workers"] = PARALLEL_ROLLOUTS
-    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
+    alg_run = "PPO"
+
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
+    config["num_workers"] = N_CPUS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32]})
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 30
     config["sgd_stepsize"] = 5e-5
@@ -178,6 +183,7 @@ if __name__ == "__main__":
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -186,7 +192,7 @@ if __name__ == "__main__":
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "PPO",
+            "run": alg_run,
             "env": env_name,
             "config": {
                 **config
@@ -196,10 +202,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200,
             },
-            "trial_resources": {
-                "cpu": 1,
-                "gpu": 0,
-                "extra_cpu": PARALLEL_ROLLOUTS - 1,
-            },
+
         }
     })

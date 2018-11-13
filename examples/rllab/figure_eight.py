@@ -6,8 +6,7 @@ from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
-from flow.scenarios.figure8.gen import Figure8Generator
-from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
+from flow.scenarios.figure_eight import Figure8Scenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
@@ -18,7 +17,7 @@ HORIZON = 1500
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, render=True)
 
     vehicles = Vehicles()
     vehicles.add(
@@ -58,7 +57,6 @@ def run_task(*_):
     print("XXX name", exp_tag)
     scenario = Figure8Scenario(
         exp_tag,
-        Figure8Generator,
         vehicles,
         net_params,
         initial_config=initial_config)

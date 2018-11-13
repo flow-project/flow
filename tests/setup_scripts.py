@@ -1,3 +1,9 @@
+"""Specifies several methods for creating scenarios and environments.
+
+This allows us to reduce the number of times these features are specified when
+creating new tests, as all tests follow approximately the same format.
+"""
+
 import logging
 
 from numpy import pi, sin, cos, linspace
@@ -11,16 +17,11 @@ from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
-from flow.scenarios.figure8.figure8_scenario import Figure8Scenario
-from flow.scenarios.figure8.gen import Figure8Generator
-from flow.scenarios.grid.gen import SimpleGridGenerator
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
-from flow.scenarios.highway.gen import HighwayGenerator
-from flow.scenarios.highway.scenario import HighwayScenario
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario
+from flow.scenarios.bottleneck import BottleneckScenario
+from flow.scenarios.figure_eight import Figure8Scenario
+from flow.scenarios.grid import SimpleGridScenario
+from flow.scenarios.highway import HighwayScenario
+from flow.scenarios.loop import LoopScenario
 
 
 def ring_road_exp_setup(sumo_params=None,
@@ -30,7 +31,7 @@ def ring_road_exp_setup(sumo_params=None,
                         initial_config=None,
                         traffic_lights=None):
     """
-    Creates an environment and scenario pair for ring road test experiments.
+    Create an environment and scenario pair for ring road test experiments.
 
     Parameters
     ----------
@@ -56,7 +57,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -99,7 +100,6 @@ def ring_road_exp_setup(sumo_params=None,
     # create the scenario
     scenario = LoopScenario(
         name="RingRoadTest",
-        generator_class=CircleGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -119,7 +119,7 @@ def figure_eight_exp_setup(sumo_params=None,
                            initial_config=None,
                            traffic_lights=None):
     """
-    Creates an environment and scenario pair for figure eight test experiments.
+    Create an environment and scenario pair for figure eight test experiments.
 
     Parameters
     ----------
@@ -145,7 +145,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -189,7 +189,6 @@ def figure_eight_exp_setup(sumo_params=None,
     # create the scenario
     scenario = Figure8Scenario(
         name="RingRoadTest",
-        generator_class=Figure8Generator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -209,7 +208,7 @@ def highway_exp_setup(sumo_params=None,
                       initial_config=None,
                       traffic_lights=None):
     """
-    Creates an environment and scenario pair for highway test experiments.
+    Create an environment and scenario pair for highway test experiments.
 
     Parameters
     ----------
@@ -235,7 +234,7 @@ def highway_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -263,7 +262,8 @@ def highway_exp_setup(sumo_params=None,
             "length": 100,
             "lanes": 1,
             "speed_limit": 30,
-            "resolution": 40
+            "resolution": 40,
+            "num_edges": 1
         }
         net_params = NetParams(additional_params=additional_net_params)
 
@@ -278,7 +278,6 @@ def highway_exp_setup(sumo_params=None,
     # create the scenario
     scenario = HighwayScenario(
         name="RingRoadTest",
-        generator_class=HighwayGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -300,9 +299,7 @@ def grid_mxn_exp_setup(row_num=1,
                        initial_config=None,
                        tl_logic=None):
     """
-    Creates an environment and scenario pair for grid 1x1 test experiments.
-    sumo-related configuration parameters, defaults to a time step of 1s
-    and no sumo-imposed failsafe on human or rl vehicles
+    Create an environment and scenario pair for grid 1x1 test experiments.
 
     Parameters
     ----------
@@ -311,6 +308,8 @@ def grid_mxn_exp_setup(row_num=1,
     col_num: int, optional
         number of vertical columns of edges in the grid network
     sumo_params: SumoParams type
+        sumo-related configuration parameters, defaults to a time step of 1s
+        and no sumo-imposed failsafe on human or rl vehicles
     vehicles: Vehicles type
         vehicles to be placed in the network, default is 5 vehicles per edge
         for a total of 20 vehicles with an IDM acceleration controller and
@@ -334,7 +333,7 @@ def grid_mxn_exp_setup(row_num=1,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=1, render=False)
 
     if vehicles is None:
         total_vehicles = 20
@@ -351,8 +350,9 @@ def grid_mxn_exp_setup(row_num=1,
         # set default env_params configuration
         additional_env_params = {
             "target_velocity": 50,
-            "num_steps": 100,
-            "switch_time": 3.0
+            "switch_time": 3.0,
+            "tl_type": "controlled",
+            "discrete": False
         }
 
         env_params = EnvParams(
@@ -394,7 +394,6 @@ def grid_mxn_exp_setup(row_num=1,
     # create the scenario
     scenario = SimpleGridScenario(
         name="Grid1x1Test",
-        generator_class=SimpleGridGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -414,8 +413,10 @@ def variable_lanes_exp_setup(sumo_params=None,
                              initial_config=None,
                              traffic_lights=None):
     """
-    Creates an environment and scenario pair for a ring road network with
-    different number of lanes in each edge. Used for test purposes.
+    Create an environment and scenario variable-lane ring road.
+
+    Each edge in this scenario can have a different number of lanes. Used for
+    test purposes.
 
     Parameters
     ----------
@@ -441,7 +442,7 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -482,9 +483,8 @@ def variable_lanes_exp_setup(sumo_params=None,
         traffic_lights = TrafficLights()
 
     # create the scenario
-    scenario = LoopScenario(
+    scenario = VariableLanesScenario(
         name="VariableLaneRingRoadTest",
-        generator_class=VariableLanesGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -505,10 +505,36 @@ def setup_bottlenecks(sumo_params=None,
                       traffic_lights=None,
                       inflow=None,
                       scaling=1):
+    """
+    Create an environment and scenario pair for grid 1x1 test experiments.
 
+    Sumo-related configuration parameters, defaults to a time step of 1s
+    and no sumo-imposed failsafe on human or rl vehicles
+
+    Parameters
+    ----------
+    sumo_params: SumoParams type
+        sumo-related configuration parameters, defaults to a time step of 0.1s
+        and no sumo-imposed failsafe on human or rl vehicles
+    vehicles: Vehicles type
+        vehicles to be placed in the network, default is 5 vehicles per edge
+        for a total of 20 vehicles with an IDM acceleration controller and
+        GridRouter routing controller.
+    env_params: EnvParams type
+        environment-specific parameters, defaults to a environment with
+        failsafes, where other parameters do not matter for non-rl runs
+    net_params: NetParams type
+        network-specific configuration parameters, defaults to a 1x1 grid
+        which traffic lights on and "no_internal_links" set to False
+    initial_config: InitialConfig type
+        specifies starting positions of vehicles, defaults to evenly
+        distributed vehicles across the length of the network
+    traffic_lights: TrafficLights type
+        specifies logic of any traffic lights added to the system
+    """
     if sumo_params is None:
         # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+        sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         vehicles = Vehicles()
@@ -548,7 +574,7 @@ def setup_bottlenecks(sumo_params=None,
     if net_params is None:
         additional_net_params = {"scaling": scaling}
         net_params = NetParams(
-            in_flows=inflow,
+            inflows=inflow,
             no_internal_links=False,
             additional_params=additional_net_params)
 
@@ -561,7 +587,6 @@ def setup_bottlenecks(sumo_params=None,
 
     scenario = BottleneckScenario(
         name="bay_bridge_toll",
-        generator_class=BottleneckGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -574,8 +599,14 @@ def setup_bottlenecks(sumo_params=None,
     return env, scenario
 
 
-class VariableLanesGenerator(CircleGenerator):
+class VariableLanesScenario(LoopScenario):
+    """Instantiate a ring road with variable number of lanes per edge."""
+
     def specify_edges(self, net_params):
+        """See parent class.
+
+        Each edge can be provided with a separate number of lanes.
+        """
         length = net_params.additional_params["length"]
         resolution = net_params.additional_params["resolution"]
         v = net_params.additional_params["speed_limit"]

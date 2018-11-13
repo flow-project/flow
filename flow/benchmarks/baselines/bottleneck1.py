@@ -10,8 +10,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import ContinuousRouter
 from flow.envs.bottleneck_env import DesiredVelocityEnv
 from flow.core.experiment import SumoExperiment
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
+from flow.scenarios.bottleneck import BottleneckScenario
 import numpy as np
 
 # time horizon of a single rollout
@@ -24,7 +23,7 @@ DISABLE_RAMP_METER = True
 AV_FRAC = 0.25
 
 
-def bottleneck1_baseline(num_runs, sumo_binary="sumo-gui"):
+def bottleneck1_baseline(num_runs, render=True):
     """Run script for the bottleneck1 baseline.
 
     Parameters
@@ -32,7 +31,7 @@ def bottleneck1_baseline(num_runs, sumo_binary="sumo-gui"):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        sumo_binary: str, optional
+        render: str, optional
             specifies whether to use sumo's gui during execution
 
     Returns
@@ -81,13 +80,13 @@ def bottleneck1_baseline(num_runs, sumo_binary="sumo-gui"):
         traffic_lights.add(node_id="3")
 
     additional_net_params = {"scaling": SCALING}
-    net_params = NetParams(in_flows=inflow,
+    net_params = NetParams(inflows=inflow,
                            no_internal_links=False,
                            additional_params=additional_net_params)
 
     sumo_params = SumoParams(
         sim_step=0.5,
-        sumo_binary=sumo_binary,
+        render=render,
         print_warnings=False,
         restart_instance=False,
     )
@@ -108,7 +107,6 @@ def bottleneck1_baseline(num_runs, sumo_binary="sumo-gui"):
     )
 
     scenario = BottleneckScenario(name="bay_bridge_toll",
-                                  generator_class=BottleneckGenerator,
                                   vehicles=vehicles,
                                   net_params=net_params,
                                   initial_config=initial_config,
@@ -119,16 +117,14 @@ def bottleneck1_baseline(num_runs, sumo_binary="sumo-gui"):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, HORIZON)
-    avg_outflow = np.mean([outflow[-1]
-                           for outflow in results["per_step_returns"]])
 
-    return avg_outflow
+    return np.mean(results["returns"]), np.std(results["returns"])
 
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = bottleneck1_baseline(num_runs=runs)
+    mean, std = bottleneck1_baseline(num_runs=runs, render=False)
 
     print('---------')
-    print('The average outflow over 500 seconds '
-          'across {} runs is {}'.format(runs, res))
+    print('The average outflow, std. deviation over 500 seconds '
+          'across {} runs is {}, {}'.format(runs, mean, std))

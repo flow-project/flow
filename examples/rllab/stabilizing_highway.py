@@ -11,8 +11,7 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from flow.scenarios.merge.gen import MergeGenerator
-from flow.scenarios.merge.scenario import MergeScenario, ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import RLController, IDMController
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, InFlows, EnvParams, NetParams, \
@@ -29,7 +28,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-PARALLEL_ROLLOUTS = 1
+N_CPUS = 1
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -42,7 +41,7 @@ NUM_RL = [5, 13, 17][EXP_NUM]
 def run_task(_):
     """Implement the run_task method needed to run experiments with rllab."""
     sumo_params = SumoParams(
-        sumo_binary="sumo-gui", sim_step=0.2, restart_instance=True)
+        render=True, sim_step=0.2, restart_instance=True)
 
     # RL vehicles constitute 5% of the total number of vehicles
     vehicles = Vehicles()
@@ -98,7 +97,7 @@ def run_task(_):
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 
@@ -107,7 +106,6 @@ def run_task(_):
 
     scenario = MergeScenario(
         name="merge-rl",
-        generator_class=MergeGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
@@ -145,7 +143,7 @@ for seed in [5]:  # , 20, 68, 72, 125]:
     run_experiment_lite(
         run_task,
         # Number of parallel workers for sampling
-        n_parallel=PARALLEL_ROLLOUTS,
+        n_parallel=N_CPUS,
         # Keeps the snapshot parameters for all iterations
         snapshot_mode="all",
         # Specifies the seed for the experiment. If this is not provided, a
