@@ -52,7 +52,7 @@ elif serializable_flag and not multiagent_flag:
 elif not serializable_flag and multiagent_flag:
     classdef = (gym.Env, MultiAgentEnv)
 else:
-    classdef = (gym.Env)
+    classdef = (gym.Env,)
 
 
 class Env(*classdef):
