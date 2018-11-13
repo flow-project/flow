@@ -46,7 +46,7 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='figure_eight_intersec_control',
+    exp_tag='to_visualize',
 
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',
@@ -125,8 +125,8 @@ if __name__ == '__main__':
             'checkpoint_freq': 1,
             'max_failures': 999,
             'stop': {
-                'training_iteration': 200
+                'training_iteration': 1
             },
-            "num_samples": 3,
+            "num_samples": 1,
         },
     })
