@@ -146,7 +146,6 @@ class EnvParams:
                 flag indicating that the evaluation reward should be used
                 so the evaluation reward should be used rather than the
                 normal reward
-
         """
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
@@ -298,8 +297,8 @@ class SumoCarFollowingParams:
 
     def __init__(
             self,
-            accel=1.0,
-            decel=1.5,
+            accel=2.6,
+            decel=4.5,
             sigma=0.5,
             tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
             min_gap=2.5,
@@ -307,7 +306,7 @@ class SumoCarFollowingParams:
             speed_factor=1.0,
             speed_dev=0.1,
             impatience=0.5,
-            car_follow_model="IDM",
+            car_follow_model="Krauss",
             **kwargs):
         """Instantiate SumoCarFollowingParams.
 

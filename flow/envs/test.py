@@ -47,6 +47,6 @@ class TestEnv(Env):
         """See class definition."""
         return 0
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         return np.array([0])

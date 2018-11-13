@@ -3,23 +3,25 @@
 import json
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+import ray.rllib.agents.ppo as ppo
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
+from ray.rllib.models import ModelCatalog
+from flow.models.comm_net import Commnet
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.controllers import RLController, GridRouter
 
 # time horizon of a single rollout
 HORIZON = 200
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 1
 
 
 def gen_edges(row_num, col_num):
@@ -44,9 +46,9 @@ def get_flow_params(col_num, row_num, additional_net_params):
     outer_edges = gen_edges(col_num, row_num)
     for i in range(len(outer_edges)):
         inflow.add(
-            veh_type='idm',
+            veh_type='rl',
             edge=outer_edges[i],
-            probability=0.25,
+            probability=0.1,
             departLane='free',
             departSpeed=20)
 
@@ -69,15 +71,15 @@ def get_non_flow_params(enter_speed, additional_net_params):
 
 v_enter = 30
 
-inner_length = 800
+inner_length = 100
 long_length = 100
-short_length = 800
+short_length = 100
 n = 1
-m = 5
-num_cars_left = 3
-num_cars_right = 3
-num_cars_top = 15
-num_cars_bot = 15
+m = 1
+num_cars_left = 1
+num_cars_right = 1
+num_cars_top = 1
+num_cars_bot = 1
 rl_veh = 0
 tot_cars = (num_cars_left + num_cars_right) * m \
            + (num_cars_bot + num_cars_top) * n
@@ -95,14 +97,6 @@ grid_array = {
     'rl_veh': rl_veh
 }
 
-additional_env_params = {
-        'target_velocity': 50,
-        'switch_time': 3.0,
-        'num_observed': 2,
-        'discrete': False,
-        'tl_type': 'controlled'
-    }
-
 additional_net_params = {
     'speed_limit': 35,
     'grid_array': grid_array,
@@ -112,12 +106,11 @@ additional_net_params = {
 
 vehicles = Vehicles()
 vehicles.add(
-    veh_id='idm',
-    acceleration_controller=(SumoCarFollowingController, {}),
+    veh_id='rl',
+    acceleration_controller=(RLController, {}),
     sumo_car_following_params=SumoCarFollowingParams(
         minGap=2.5,
         max_speed=v_enter,
-        decel=7.5,  # avoid collisions at emergency stops
     ),
     routing_controller=(GridRouter, {}),
     num_vehicles=tot_cars,
@@ -131,21 +124,23 @@ flow_params = dict(
     exp_tag='green_wave',
 
     # name of the flow environment the experiment is running on
-    env_name='PO_TrafficLightGridEnv',
+    env_name='CommNetEnv',
 
     # name of the scenario class the experiment is running on
     scenario='SimpleGridScenario',
 
+    # name of the generator used to create/modify network configuration files
+    generator='SimpleGridGenerator',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=1,
-        render=False,
+        render=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        additional_params=additional_env_params,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -164,38 +159,40 @@ flow_params = dict(
 if __name__ == '__main__':
     ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
-    alg_run = "PPO"
-
-    agent_cls = get_agent_class(alg_run)
-    config = agent_cls._default_config.copy()
-    config["num_workers"] = N_CPUS
-    config["train_batch_size"] = HORIZON * N_ROLLOUTS
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32]})
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 30
-    config["sgd_stepsize"] = 5e-5
-    config["observation_filter"] = "NoFilter"
-    config["use_gae"] = True
-    config["clip_param"] = 0.2
-    config["horizon"] = HORIZON
+    config = ppo.DEFAULT_CONFIG.copy()
+    config['num_workers'] = N_CPUS
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['gamma'] = 0.999  # discount rate
+    config['model'].update({'fcnet_hiddens': [32, 32]})
+    config['sgd_minibatch_size'] = min(16 * 1024, config['train_batch_size'])
+    config['kl_target'] = 0.02
+    config['num_sgd_iter'] = 30
+    config['lr'] = 1e-5
+    config['observation_filter'] = 'NoFilter'
+    config['use_gae'] = True
+    config['clip_param'] = 0.2
+    config['horizon'] = HORIZON
 
     # save the flow params for replay
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
-    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
     register_env(env_name, create_env)
 
+    # register the model
+    ModelCatalog.register_custom_model("my_model", Commnet)
+    config["model"]["custom_options"].update({"custom_name": "test",
+                                     "hidden_vector_len": 20})
+
     trials = run_experiments({
-        flow_params["exp_tag"]: {
-            "run": alg_run,
-            "env": env_name,
-            "config": {
+        flow_params['exp_tag']: {
+            'run': 'PPO',
+            'env': env_name,
+            'config': {
                 **config
             },
             'checkpoint_freq': 20,

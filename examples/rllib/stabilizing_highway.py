@@ -41,61 +41,62 @@ NUM_RL = [5, 13, 17][EXP_NUM]
 # We consider a highway network with an upstream merging lane producing
 # shockwaves
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-additional_net_params["merge_lanes"] = 1
-additional_net_params["highway_lanes"] = 1
-additional_net_params["pre_merge_length"] = 500
+additional_net_params['merge_lanes'] = 1
+additional_net_params['highway_lanes'] = 1
+additional_net_params['pre_merge_length'] = 500
 
 # RL vehicles constitute 5% of the total number of vehicles
 vehicles = Vehicles()
 vehicles.add(
-    veh_id="human",
+    veh_id='human',
     acceleration_controller=(IDMController, {
-        "noise": 0.2
+        'noise': 0.2
     }),
-    speed_mode="no_collide",
+    speed_mode='no_collide',
     num_vehicles=5)
 vehicles.add(
-    veh_id="rl",
+    veh_id='rl',
     acceleration_controller=(RLController, {}),
-    speed_mode="no_collide",
+    speed_mode='no_collide',
     num_vehicles=0)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering
 # from the highway portion as well
 inflow = InFlows()
 inflow.add(
-    veh_type="human",
-    edge="inflow_highway",
+    veh_type='human',
+    edge='inflow_highway',
     vehs_per_hour=(1 - RL_PENETRATION) * FLOW_RATE,
-    departLane="free",
+    departLane='free',
     departSpeed=10)
 inflow.add(
-    veh_type="rl",
-    edge="inflow_highway",
+    veh_type='rl',
+    edge='inflow_highway',
     vehs_per_hour=RL_PENETRATION * FLOW_RATE,
-    departLane="free",
+    departLane='free',
     departSpeed=10)
 inflow.add(
-    veh_type="human",
-    edge="inflow_merge",
+    veh_type='human',
+    edge='inflow_merge',
     vehs_per_hour=100,
-    departLane="free",
+    departLane='free',
     departSpeed=7.5)
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="stabilizing_open_network_merges",
+    exp_tag='stabilizing_open_network_merges',
 
     # name of the flow environment the experiment is running on
-    env_name="WaveAttenuationMergePOEnv",
+    env_name='WaveAttenuationMergePOEnv',
 
     # name of the scenario class the experiment is running on
-    scenario="MergeScenario",
+    scenario='MergeScenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.2,
         render=False,
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -104,10 +105,10 @@ flow_params = dict(
         sims_per_step=5,
         warmup_steps=0,
         additional_params={
-            "max_accel": 1.5,
-            "max_decel": 1.5,
-            "target_velocity": 20,
-            "num_rl": NUM_RL,
+            'max_accel': 1.5,
+            'max_decel': 1.5,
+            'target_velocity': 20,
+            'num_rl': NUM_RL,
         },
     ),
 
@@ -128,7 +129,7 @@ flow_params = dict(
     initial=InitialConfig(),
 )
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
     alg_run = "PPO"
@@ -163,10 +164,10 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 5,
-            "max_failures": 999,
-            "stop": {
-                "training_iteration": 200,
+            'checkpoint_freq': 5,
+            'max_failures': 999,
+            'stop': {
+                'training_iteration': 200,
             },
             "num_samples": 3,
         },

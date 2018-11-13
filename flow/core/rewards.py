@@ -360,3 +360,22 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
     if total_reward < 0:
         print('negative total reward of:', total_reward)
     return total_reward * reward_gain
+
+def penalize_standstill(env, gain=1):
+    """
+    A reward function that penalizes vehicle standstill
+
+    Is it better for this to be:
+        a) penalize standstill in general?
+        b) multiplicative based on time that vel=0?
+
+    Parameters
+    ----------
+    actions: {list of booleans} - indicates whether a switch is desired
+    gain: {float} - multiplicative factor on the action penalty
+    """
+    veh_ids = env.vehicles.get_ids()
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    num_standstill = len(vel[np.isclose(vel, 0.0)])
+    penalty = gain * num_standstill
+    return -penalty/len(env.vehicles.get_ids())

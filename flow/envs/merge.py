@@ -110,7 +110,7 @@ class WaveAttenuationMergePOEnv(Env):
                 continue
             self.apply_acceleration([rl_id], [rl_actions[i]])
 
-    def get_state(self, rl_id=None, **kwargs):
+    def get_state(self, rl_id=None):
         """See class definition."""
         self.leader = []
         self.follower = []

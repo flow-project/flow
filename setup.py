@@ -15,13 +15,10 @@ def _read_requirements_file():
 
 class build_ext(_build_ext.build_ext):
     def run(self):
-        try:
-            import traci
-        except ImportError:
-            subprocess.check_call(
-                ['pip', 'install',
-                 'https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/'
-                 'sumotools-0.1.0-py3-none-any.whl'])
+        subprocess.check_call(
+            ['pip', 'install',
+             'https://akreidieh.s3.amazonaws.com/sumo/flow-0.3.0/'
+             'sumotools-0.2.0-py3-none-any.whl'])
 
 
 class BinaryDistribution(Distribution):

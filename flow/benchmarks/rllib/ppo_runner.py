@@ -33,6 +33,7 @@ if __name__ == "__main__":
     alg_run = "PPO"
 
     horizon = flow_params["env"].horizon
+
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = min(N_CPUS, N_ROLLOUTS)

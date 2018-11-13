@@ -17,7 +17,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 1500
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -43,6 +43,7 @@ vehicles.add(
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
                        ("4", 2, True), ("5", 1, False)]
 num_observed_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 3), ("5", 1)]
+
 additional_env_params = {
     "target_velocity": 40,
     "disable_tb": True,
@@ -54,11 +55,11 @@ additional_env_params = {
     "lane_change_duration": 5,
     "max_accel": 3,
     "max_decel": 3,
-    "inflow_range": [1000, 2000]
+    "inflow_range": [1200, 2500]
 }
 
 # flow rate
-flow_rate = 1900 * SCALING
+flow_rate = 2000 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
