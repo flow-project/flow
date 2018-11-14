@@ -252,6 +252,8 @@ class Env(*classdef):
                 sumo_call.append(str(int(self.sumo_params.teleport_time)))
 
                 logging.info(' Starting SUMO on port ' + str(port))
+                logging.info(' Number of clients ' +
+                             str(self.sumo_params.num_clients))
                 logging.debug(' Cfg file: ' + str(self.scenario.cfg))
                 logging.debug(' Emission file: ' + str(emission_out))
                 logging.debug(' Step length: ' + str(self.sim_step))
