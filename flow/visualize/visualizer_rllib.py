@@ -138,7 +138,8 @@ if __name__ == '__main__':
         sys.exit(1)
 
     agent = agent_cls(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
+    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
+    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters
@@ -174,8 +175,9 @@ if __name__ == '__main__':
 
     sumo_params.emission_path = "./test_time_rollout/"
 
-    if args.web_3d:
+    if args.sumo_web3d:
         sumo_params.num_clients = 2
+        sumo_params.render = False
 
     if args.run=="PPO":
         env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
