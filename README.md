@@ -30,7 +30,7 @@ C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and B
 
 # Contributors
 
-Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Kathy Jang, Mahesh Murag, Kevin Chien, and Jonathan Lin. Alumni contributors include Leah Dickstein, Ananth Kuchibhotla, and Nathan Mandi. Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants.
+Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Kathy Jang, Fangyu Wu, Mahesh Murag, Kevin Chien, and Jonathan Lin. Alumni contributors include Leah Dickstein, Ananth Kuchibhotla, and Nathan Mandi. Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants.
 
 
 <!-- ## Getting Started
