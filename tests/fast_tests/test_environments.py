@@ -1,3 +1,4 @@
+import numpy as np
 import unittest
 import os
 from flow.core.vehicles import Vehicles
@@ -93,7 +94,30 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
-        pass
+        # create the environment
+        env = LaneChangeAccelEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertEqual(env.observation_space.shape[0],
+                         3 * env.vehicles.num_vehicles)
+        self.assertTrue(all(env.observation_space.high == 1))
+        self.assertTrue(all(env.observation_space.low == 0))
+
+        # check the action space
+        self.assertEqual(env.action_space.shape[0],
+                         2 * env.vehicles.num_rl_vehicles)
+        self.assertTrue(
+            (env.action_space.high ==
+             np.array([env.env_params.additional_params["max_accel"],
+                       1])).all())
+        self.assertTrue(
+            (env.action_space.low ==
+             np.array([-env.env_params.additional_params["max_decel"],
+                       -1])).all())
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
@@ -187,7 +211,22 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
-        pass
+        # create the environment
+        env = LaneChangeAccelPOEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertEqual(env.observation_space.shape[0], 5)
+        self.assertTrue(all(env.observation_space.high == 1))
+        self.assertTrue(all(env.observation_space.low == 0))
+
+        # check the action space
+        self.assertEqual(env.action_space.shape[0], 2)
+        self.assertTrue(all(env.action_space.high == np.array([3, 1])))
+        self.assertTrue(all(env.action_space.low == np.array([-3, -1])))
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
@@ -276,7 +315,6 @@ class TestAccelEnv(unittest.TestCase):
         # test the observation space
         self.assertEqual(env.observation_space.shape[0],
                          2 * env.vehicles.num_vehicles)
-        print(env.observation_space.__dict__)
         self.assertTrue(all(env.observation_space.high == 1))
         self.assertTrue(all(env.observation_space.low == 0))
 
@@ -306,37 +344,53 @@ class TestAccelEnv(unittest.TestCase):
 class TestTwoLoopsMergeEnv(unittest.TestCase):
 
     def setUp(self):
+        # TODO
         pass
 
     def tearDown(self):
+        # TODO
         pass
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
+        # TODO
         pass
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
+        # TODO
         pass
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
+        # TODO
         pass
 
 
 class TestWaveAttenuationEnv(unittest.TestCase):
 
     def setUp(self):
+        vehicles = Vehicles()
+        vehicles.add("rl", acceleration_controller=(RLController, {}))
+        vehicles.add("human", acceleration_controller=(IDMController, {}))
+
         self.sumo_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
-            vehicles=Vehicles(),
+            vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
         )
+        params = {
+            "max_accel": 1,
+            "max_decel": 1,
+            "ring_length": [220, 270]
+        }
+        self.env_params = EnvParams(additional_params=params)
 
     def tearDown(self):
         self.sumo_params = None
         self.scenario = None
+        self.env_params = None
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
@@ -375,11 +429,39 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
-        pass
+        env = WaveAttenuationEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+
+        # test the observation space
+        self.assertEqual(env.observation_space.shape[0],
+                         2 * env.vehicles.num_vehicles)
+        self.assertTrue(all(env.observation_space.high == 1))
+        self.assertTrue(all(env.observation_space.low == 0))
+
+        # test the action space
+        self.assertEqual(env.action_space.shape[0],
+                         env.vehicles.num_rl_vehicles)
+        self.assertEqual(env.action_space.high,
+                         env.env_params.additional_params["max_accel"])
+        self.assertEqual(env.action_space.low,
+                         -env.env_params.additional_params["max_decel"])
+
+        env.terminate()
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        pass
+        env = WaveAttenuationEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.additional_command()
+        self.assertListEqual(env.vehicles.get_observed_ids(),
+                             env.vehicles.get_human_ids())
+        env.terminate()
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -433,10 +515,12 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
+        # TODO
         pass
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
+        # TODO
         pass
 
 
@@ -506,10 +590,12 @@ class TestWaveAttenuationMergeEnv(unittest.TestCase):
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
+        # TODO
         pass
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
+        # TODO
         pass
 
 
