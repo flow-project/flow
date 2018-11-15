@@ -12,7 +12,6 @@ from flow.envs.base_env import Env
 from flow.core.params import InitialConfig, NetParams
 
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
 
 import random
 import numpy as np
