@@ -52,6 +52,9 @@ def grid0_baseline(num_runs, render=True):
     # modify the rendering to match what is requested
     sumo_params.render = render
 
+    # set the evaluation flag to True
+    env_params.evaluate = True
+
     # import the scenario class
     module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
     scenario_class = getattr(module, flow_params["scenario"])
