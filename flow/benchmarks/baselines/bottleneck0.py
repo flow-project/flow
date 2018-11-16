@@ -5,7 +5,7 @@ Baseline is no AVs.
 
 import numpy as np
 from flow.core.experiment import SumoExperiment
-from flow.core.params import InitialConfig
+from flow.core.params import InitialConfig, InFlows
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.controllers import ContinuousRouter
@@ -42,6 +42,14 @@ def bottleneck0_baseline(num_runs, render=True):
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0,
                  num_vehicles=1 * SCALING)
+
+    # modify the inflows to only include human vehicles
+    flow_rate = 1900 * SCALING
+    inflow = InFlows()
+    inflow.add(veh_type="human", edge="1",
+               vehs_per_hour=flow_rate,
+               departLane="random", departSpeed=10)
+    net_params.inflows = inflow
 
     # modify the rendering to match what is requested
     sumo_params.render = render
