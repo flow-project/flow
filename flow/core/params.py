@@ -306,7 +306,7 @@ class SumoCarFollowingParams:
             speed_factor=1.0,
             speed_dev=0.1,
             impatience=0.5,
-            car_follow_model="Krauss",
+            car_follow_model="IDM",
             **kwargs):
         """Instantiate SumoCarFollowingParams.
 

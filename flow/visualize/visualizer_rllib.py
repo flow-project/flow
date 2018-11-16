@@ -137,9 +137,11 @@ if __name__ == '__main__':
               "python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO")
         sys.exit(1)
 
+    # create the agent that will be used to compute the actions
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
+    import ipdb; ipdb.set_trace()
     agent.restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters
@@ -185,6 +187,11 @@ if __name__ == '__main__':
     else:
         env = env_class(
               env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+    # if hasattr(agent, "local_evaluator"):
+    #     env = agent.local_evaluator.env
+    # else:
+    #     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
+    #           env_params=env_params, sumo_params=sumo_params, scenario=scenario))
 
     if multiagent:
         rets = {}

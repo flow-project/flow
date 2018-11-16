@@ -251,6 +251,7 @@ class Env(*classdef):
                 sumo_call.append('--time-to-teleport')
                 sumo_call.append(str(int(self.sumo_params.teleport_time)))
 
+                # import ipdb; ipdb.set_trace()
                 logging.info(' Starting SUMO on port ' + str(port))
                 logging.info(' Number of clients ' +
                              str(self.sumo_params.num_clients))
