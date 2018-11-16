@@ -9,7 +9,7 @@ from flow.core.params import InitialConfig, InFlows
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.controllers import ContinuousRouter
-from flow.benchmarks.bottleneck1 import flow_params, SCALING
+from flow.benchmarks.bottleneck2 import flow_params, SCALING
 
 
 def bottleneck2_baseline(num_runs, render=True):
