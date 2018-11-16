@@ -438,21 +438,21 @@ class TestAbstractMethods(unittest.TestCase):
     def test_get_state(self):
         """Checks that get_state raises an error."""
         try:
-            _ = self.env.get_state()
+            self.env.get_state()
             raise AssertionError
         except NotImplementedError:
             return
 
     def test_action_space(self):
         try:
-            _ = self.env.action_space
+            self.env.action_space
             raise AssertionError
         except NotImplementedError:
             return
 
     def test_observation_space(self):
         try:
-            _ = self.env.observation_space
+            self.env.observation_space
             raise AssertionError
         except NotImplementedError:
             return
@@ -463,7 +463,7 @@ class TestAbstractMethods(unittest.TestCase):
 
     def test__apply_rl_actions(self):
         try:
-            _ = self.env._apply_rl_actions(None)
+            self.env._apply_rl_actions(None)
             raise AssertionError
         except NotImplementedError:
             return
