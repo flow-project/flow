@@ -4,6 +4,7 @@ from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 
 import os
+import ray
 import unittest
 
 os.environ['TEST_FLAG'] = 'True'
@@ -38,4 +39,5 @@ class TestVisualizerRLlib(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    ray.init(num_cpus=1, redis_address="localhost:6379")
     unittest.main()
