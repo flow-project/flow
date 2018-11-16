@@ -38,6 +38,9 @@ def figure_eight_baseline(num_runs, render=True):
     # modify the rendering to match what is requested
     sumo_params.render = render
 
+    # set the evaluation flag to True
+    env_params.evaluate = True
+
     # we want no autonomous vehicles in the simulation
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
