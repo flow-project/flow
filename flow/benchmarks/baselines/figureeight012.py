@@ -3,16 +3,13 @@
 Baseline is human acceleration and intersection behavior.
 """
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import IDMController, ContinuousRouter
-from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
-from flow.envs.loop.loop_accel import AccelEnv
-from flow.core.experiment import SumoExperiment
 import numpy as np
-
-# time horizon of a single rollout
-HORIZON = 1500
+from flow.core.experiment import SumoExperiment
+from flow.core.params import InitialConfig
+from flow.core.vehicles import Vehicles
+from flow.core.traffic_lights import TrafficLights
+from flow.controllers import IDMController, ContinuousRouter
+from flow.benchmarks.figureeight0 import flow_params
 
 
 def figure_eight_baseline(num_runs, render=True):
@@ -31,7 +28,17 @@ def figure_eight_baseline(num_runs, render=True):
         SumoExperiment
             class needed to run simulations
     """
-    # We place 1 autonomous vehicle and 13 human-driven vehicles in the network
+    exp_tag = flow_params["exp_tag"]
+    sumo_params = flow_params["sumo"]
+    env_params = flow_params["env"]
+    net_params = flow_params["net"]
+    initial_config = flow_params.get("initial", InitialConfig())
+    traffic_lights = flow_params.get("tls", TrafficLights())
+
+    # modify the rendering to match what is requested
+    sumo_params.render = render
+
+    # we want no autonomous vehicles in the simulation
     vehicles = Vehicles()
     vehicles.add(veh_id="human",
                  acceleration_controller=(IDMController, {"noise": 0.2}),
@@ -39,38 +46,29 @@ def figure_eight_baseline(num_runs, render=True):
                  speed_mode="no_collide",
                  num_vehicles=14)
 
-    sumo_params = SumoParams(
-        sim_step=0.1,
-        render=render,
+    # import the scenario class
+    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
+    scenario_class = getattr(module, flow_params["scenario"])
+
+    # create the scenario object
+    scenario = scenario_class(
+        name=exp_tag,
+        vehicles=vehicles,
+        net_params=net_params,
+        initial_config=initial_config,
+        traffic_lights=traffic_lights
     )
 
-    env_params = EnvParams(
-        horizon=HORIZON,
-        evaluate=True,  # Set to True to evaluate traffic metrics
-        additional_params={
-            "target_velocity": 20,
-            "max_accel": 3,
-            "max_decel": 3,
-        },
-    )
+    # import the environment class
+    module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
+    env_class = getattr(module, flow_params["env_name"])
 
-    initial_config = InitialConfig()
-
-    net_params = NetParams(
-        no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS,
-    )
-
-    scenario = Figure8Scenario(name="figure_eight",
-                               vehicles=vehicles,
-                               net_params=net_params,
-                               initial_config=initial_config)
-
-    env = AccelEnv(env_params, sumo_params, scenario)
+    # create the environment object
+    env = env_class(env_params, sumo_params, scenario)
 
     exp = SumoExperiment(env, scenario)
 
-    results = exp.run(num_runs, HORIZON)
+    results = exp.run(num_runs, env_params.horizon)
     avg_speed = np.mean(results["mean_returns"])
 
     return avg_speed
