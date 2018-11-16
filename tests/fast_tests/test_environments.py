@@ -467,16 +467,28 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def setUp(self):
+        vehicles = Vehicles()
+        vehicles.add("rl", acceleration_controller=(RLController, {}))
+        vehicles.add("human", acceleration_controller=(IDMController, {}))
+
         self.sumo_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
-            vehicles=Vehicles(),
+            vehicles=vehicles,
             net_params=NetParams(additional_params=LOOP_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                "max_accel": 1,
+                "max_decel": 1,
+                "ring_length": [220, 270]
+            }
         )
 
     def tearDown(self):
         self.sumo_params = None
         self.scenario = None
+        self.env_params = None
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
@@ -515,28 +527,63 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
-        # TODO
-        pass
+        # create the environment
+        env = WaveAttenuationPOEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertEqual(env.observation_space.shape[0], 3)
+        self.assertTrue(all(env.observation_space.high == 1))
+        self.assertTrue(all(env.observation_space.low == 0))
+
+        # check the action space
+        self.assertEqual(env.action_space.shape[0], 1)
+        self.assertTrue(all(env.action_space.high == np.array([1])))
+        self.assertTrue(all(env.action_space.low == np.array([-1])))
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        # TODO
-        pass
+        env = WaveAttenuationPOEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.additional_command()
+        self.assertListEqual(env.vehicles.get_observed_ids(),
+                             env.vehicles.get_leader(
+                                 env.vehicles.get_rl_ids()))
+        env.terminate()
 
 
-class TestWaveAttenuationMergeEnv(unittest.TestCase):
+class TestWaveAttenuationMergePOEnv(unittest.TestCase):
 
     def setUp(self):
+        vehicles = Vehicles()
+        vehicles.add("rl", acceleration_controller=(RLController, {}))
+        vehicles.add("human", acceleration_controller=(IDMController, {}))
+
         self.sumo_params = SumoParams()
         self.scenario = MergeScenario(
             name="test_merge",
-            vehicles=Vehicles(),
+            vehicles=vehicles,
             net_params=NetParams(additional_params=MERGE_PARAMS.copy()),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "target_velocity": 25,
+                "num_rl": 5,
+            }
         )
 
     def tearDown(self):
         self.sumo_params = None
         self.scenario = None
+        self.env_params = None
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
@@ -590,13 +637,36 @@ class TestWaveAttenuationMergeEnv(unittest.TestCase):
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
-        # TODO
-        pass
+        # create the environment
+        env = WaveAttenuationMergePOEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+
+        # check the observation space
+        self.assertEqual(env.observation_space.shape[0], 25)
+        self.assertTrue(all(env.observation_space.high == 1))
+        self.assertTrue(all(env.observation_space.low == 0))
+
+        # check the action space
+        self.assertEqual(env.action_space.shape[0], 5)
+        self.assertTrue(all(env.action_space.high == np.array([3])))
+        self.assertTrue(all(env.action_space.low == np.array([-3])))
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        # TODO
-        pass
+        env = WaveAttenuationMergePOEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+        env.step(None)
+        env.additional_command()
+        self.assertListEqual(env.vehicles.get_observed_ids(),
+                             env.vehicles.get_leader(
+                                 env.vehicles.get_rl_ids()))
+        env.terminate()
 
 
 class TestTestEnv(unittest.TestCase):
