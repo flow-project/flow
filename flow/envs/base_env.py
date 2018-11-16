@@ -123,10 +123,6 @@ class Env(gym.Env, Serializable):
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
 
-        # TODO(ak): temporary fix to support old pkl files
-        if not hasattr(self.env_params, "evaluate"):
-            self.env_params.evaluate = False
-
         self.start_sumo()
         self.setup_initial_state()
 
