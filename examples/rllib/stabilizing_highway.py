@@ -6,7 +6,7 @@ merges in an open network.
 import json
 
 import ray
-import ray.rllib.agents.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -14,7 +14,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
-from flow.scenarios.merge.scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, RLController
 
@@ -29,7 +29,7 @@ HORIZON = 600
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 3
 
 # inflow rate at the highway
 FLOW_RATE = 2000
@@ -96,9 +96,6 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="MergeScenario",
 
-    # name of the generator used to create/modify network configuration files
-    generator="MergeGenerator",
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.2,
@@ -138,14 +135,16 @@ flow_params = dict(
 if __name__ == "__main__":
     ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
-    config = ppo.DEFAULT_CONFIG.copy()
+    alg_run = "PPO"
+
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [32, 32, 32]})
     config["use_gae"] = True
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
@@ -154,6 +153,7 @@ if __name__ == "__main__":
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "PPO",
+            "run": alg_run,
             "env": env_name,
             "config": {
                 **config
@@ -172,6 +172,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200,
             },
-            "repeat": 3,
+            "num_samples": 3,
         },
     })

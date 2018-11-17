@@ -1,0 +1,5 @@
+email: kanaad@berkeley.edu
+explanation_link: https://github.com/flow-project/flow/tree/master/flow/benchmarks
+name: Merge - 2
+yt_string: dfe0NNt0cCA # TODO: find video for merge2
+description: "Controlling shockwaves from on-ramp merges: In a mixed-autonomy setting, a percentage of vehicles in the main highway of a merge network are tasked with the objective of dissipating the formation and propagation of stop-and-go waves from locally observable information. <br> 25% CAV penetration rate, S=(65,), A=(13,), T=750."

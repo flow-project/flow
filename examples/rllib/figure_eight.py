@@ -3,7 +3,7 @@
 import json
 
 import ray
-import ray.rllib.agents.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -13,7 +13,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1500
@@ -53,9 +53,6 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="Figure8Scenario",
 
-    # name of the generator used to create/modify network configuration files
-    generator="Figure8Generator",
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.1,
@@ -91,14 +88,16 @@ flow_params = dict(
 if __name__ == "__main__":
     ray.init(num_cpus=N_CPUS+1, redirect_output=False)
 
-    config = ppo.DEFAULT_CONFIG.copy()
+    alg_run = "PPO"
+
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [100, 50, 25]})
     config["use_gae"] = True
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
@@ -108,6 +107,7 @@ if __name__ == "__main__":
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "PPO",
+            "run": alg_run,
             "env": env_name,
             "config": {
                 **config
@@ -126,6 +126,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 200
             },
-            "repeat": 3,
+            "num_samples": 3,
         },
     })
