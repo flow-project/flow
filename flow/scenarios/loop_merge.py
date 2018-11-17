@@ -46,7 +46,8 @@ class TwoLoopsOneMergingScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network parameter \'{}\' not supplied'.format(p))
+                raise KeyError('Network parameter \'{}\' not supplied'
+                               .format(p))
 
         radius = net_params.additional_params['ring_radius']
         x = net_params.additional_params['lane_length']
