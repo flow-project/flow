@@ -24,10 +24,10 @@ before_install:
   # Requirements for ray
   - pip install tensorflow
   - pip install opencv-python
-  - pip install dill
   - pip install nose2
   - pip install lxml
   - pip install scipy
+  - pip install dill
 
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.0-cp36-cp36m-manylinux1_x86_64.whl
@@ -48,6 +48,7 @@ before_install:
 
   # [sumo] dependencies and binaries
   - sudo apt-get update
+  # - sudo apt-get upgrade -y
   - sudo apt-get install -y subversion autoconf build-essential libtool
   - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
   - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
