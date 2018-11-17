@@ -169,17 +169,6 @@ def min_delay_unscaled(env):
     return cost / len(env.vehicles.get_ids())
 
 
-def penalize_tl_changes(actions, gain=1):
-    """A reward function that penalizes delay and traffic light switches.
-
-    :param actions: {list of booleans} - indicates whether a switch is desired
-    :param gain: float} - multiplicative factor on the action penalty
-    :return: a penalty on vehicle delays and traffic light switches
-    """
-    action_penalty = gain * np.sum(np.round(actions))
-    return -action_penalty
-
-
 def penalize_standstill(env, gain=1):
     """A reward function that penalizes vehicle standstill
 
