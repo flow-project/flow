@@ -356,12 +356,8 @@ class Env(*classdef):
                  self.initial_observations[veh_id]['speed'], pos)
 
         # collect subscription information from sumo
-        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
-                            getSubscriptionResults(veh_id))
-                           for veh_id in self.vehicles.get_ids())
-        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
-                        getSubscriptionResults(tl_id))
-                       for tl_id in self.traffic_lights.get_ids())
+        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
@@ -449,14 +445,12 @@ class Env(*classdef):
             self.traci_connection.simulationStep()
 
             # collect subscription information from sumo
-            vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
-                                getSubscriptionResults(veh_id))
-                               for veh_id in self.vehicles.get_ids())
-            tls_obs = dict((tl_id, self.traci_connection.trafficlight.
-                            getSubscriptionResults(tl_id))
-                           for tl_id in self.traffic_lights.get_ids())
+            vehicle_obs = \
+                self.traci_connection.vehicle.getSubscriptionResults()
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
+            tls_obs = \
+                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
