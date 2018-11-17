@@ -1,7 +1,7 @@
 """Environment for training cooperative merging behaviors in a loop merge."""
 
-from flow.envs.base_env import Env
 from flow.core import rewards
+from flow.envs.base_env import Env
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -10,17 +10,17 @@ import numpy as np
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration for autonomous vehicles, in m/s^2
-    "max_accel": 3,
+    'max_accel': 3,
     # maximum deceleration for autonomous vehicles, in m/s^2
-    "max_decel": 3,
+    'max_decel': 3,
     # desired velocity for all vehicles in the network, in m/s
-    "target_velocity": 10,
+    'target_velocity': 10,
     # number of observable vehicles preceding the rl vehicle
-    "n_preceding": 2,
+    'n_preceding': 2,
     # number of observable vehicles following the rl vehicle
-    "n_following": 2,
+    'n_following': 2,
     # number of observable merging-in vehicle from the larger loop
-    "n_merging_in": 2,
+    'n_merging_in': 2,
 }
 
 
@@ -67,16 +67,16 @@ class TwoLoopsMergePOEnv(Env):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
-                    'Environment parameter "{}" not supplied'.format(p))
+                    'Environment parameter \'{}\' not supplied'.format(p))
 
-        self.n_preceding = env_params.additional_params["n_preceding"]
-        self.n_following = env_params.additional_params["n_following"]
-        self.n_merging_in = env_params.additional_params["n_merging_in"]
+        self.n_preceding = env_params.additional_params['n_preceding']
+        self.n_following = env_params.additional_params['n_following']
+        self.n_merging_in = env_params.additional_params['n_merging_in']
         self.n_obs_vehicles = \
             1 + self.n_preceding + self.n_following + self.n_merging_in
 
         self.obs_var_labels = \
-            ["speed", "pos", "queue_length", "velocity_stats"]
+            ['speed', 'pos', 'queue_length', 'velocity_stats']
 
         super().__init__(env_params, sumo_params, scenario)
 
@@ -103,8 +103,8 @@ class TwoLoopsMergePOEnv(Env):
     def action_space(self):
         """See class definition."""
         return Box(
-            low=-np.abs(self.env_params.additional_params["max_decel"]),
-            high=self.env_params.additional_params["max_accel"],
+            low=-np.abs(self.env_params.additional_params['max_decel']),
+            high=self.env_params.additional_params['max_accel'],
             shape=(self.vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
@@ -118,12 +118,12 @@ class TwoLoopsMergePOEnv(Env):
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        vel_reward = rewards.desired_velocity(self, fail=kwargs["fail"])
+        vel_reward = rewards.desired_velocity(self, fail=kwargs['fail'])
 
         # Use a similar weighting of of the headway reward as the velocity
         # reward
         max_cost = np.array(
-            [self.env_params.additional_params["target_velocity"]
+            [self.env_params.additional_params['target_velocity']
              ] * self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
         normalization = self.scenario.length / self.vehicles.num_vehicles
@@ -144,14 +144,14 @@ class TwoLoopsMergePOEnv(Env):
         # the merge are at the end of the list (effectively reverse sorted).
         if self.get_x_by_id(sorted[0]) < merge_len and self.get_x_by_id(
                 sorted[1]) < merge_len:
-            if not sorted[0].startswith("merge") and \
-                    not sorted[1].startswith("merge"):
+            if not sorted[0].startswith('merge') and \
+                    not sorted[1].startswith('merge'):
                 vid1 = sorted[-1]
                 vid2 = sorted[-2]
-            elif not sorted[0].startswith("merge"):
+            elif not sorted[0].startswith('merge'):
                 vid1 = sorted[1]
                 vid2 = sorted[-1]
-            elif not sorted[1].startswith("merge"):
+            elif not sorted[1].startswith('merge'):
                 vid1 = sorted[0]
                 vid2 = sorted[-1]
             else:
@@ -211,8 +211,7 @@ class TwoLoopsMergePOEnv(Env):
             [normalized_vel, normalized_pos, queue_length, vel_stats]).T
 
     def sort_by_position(self):
-        """
-        See parent class.
+        """See parent class.
 
         Instead of being sorted by a global reference, vehicles in this
         environment are sorted with regards to which ring this currently

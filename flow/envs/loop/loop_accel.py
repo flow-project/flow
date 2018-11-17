@@ -128,8 +128,10 @@ class MultiAgentAccelEnv(AccelEnv):
         self.apply_acceleration(sorted_rl_ids, rl_action)
 
     def compute_reward(self, state, rl_actions, **kwargs):
-        """The agent receives the class definition reward,
-        the adversary recieves the negative of the agent reward
+        """The agents receives opposing speed rewards.
+
+        The agent receives the class definition reward,
+        the adversary receives the negative of the agent reward
         """
         if self.env_params.evaluate:
             reward = np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
@@ -139,8 +141,9 @@ class MultiAgentAccelEnv(AccelEnv):
             return {'av': reward, 'adversary': -reward}
 
     def get_state(self, **kwargs):
-        """See class definition for the state. Both adversary and
-        agent receive the same state
+        """See class definition for the state.
+
+        The adversary state and the agent state are identical.
         """
         # speed normalizer
         max_speed = self.scenario.max_speed
@@ -149,5 +152,4 @@ class MultiAgentAccelEnv(AccelEnv):
             self.get_x_by_id(veh_id) / self.scenario.length
         ] for veh_id in self.sorted_ids])
         state = np.ndarray.flatten(state)
-        # FIXME we are returning names we shouldn't return
         return {'av': state, 'adversary': state}

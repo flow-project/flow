@@ -1,7 +1,7 @@
 """Environments that can train both lane change and acceleration behaviors."""
 
-from flow.envs.base_env import Env
 from flow.core import rewards
+from flow.envs.base_env import Env
 
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
@@ -9,15 +9,15 @@ import numpy as np
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration for autonomous vehicles, in m/s^2
-    "max_accel": 3,
+    'max_accel': 3,
     # maximum deceleration for autonomous vehicles, in m/s^2
-    "max_decel": 3,
+    'max_decel': 3,
     # lane change duration for autonomous vehicles, in s. Autonomous vehicles
     # reject new lane changing commands for this duration after successfully
     # changing lanes.
-    "lane_change_duration": 5,
+    'lane_change_duration': 5,
     # desired velocity for all vehicles in the network, in m/s
-    "target_velocity": 10,
+    'target_velocity': 10,
 }
 
 
@@ -65,15 +65,15 @@ class LaneChangeAccelEnv(Env):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
-                    'Environment parameter "{}" not supplied'.format(p))
+                    'Environment parameter \'{}\' not supplied'.format(p))
 
         super().__init__(env_params, sumo_params, scenario)
 
     @property
     def action_space(self):
         """See class definition."""
-        max_decel = self.env_params.additional_params["max_decel"]
-        max_accel = self.env_params.additional_params["max_accel"]
+        max_decel = self.env_params.additional_params['max_decel']
+        max_accel = self.env_params.additional_params['max_accel']
 
         lb = [-abs(max_decel), -1] * self.vehicles.num_rl_vehicles
         ub = [max_accel, 1] * self.vehicles.num_rl_vehicles
@@ -104,12 +104,12 @@ class LaneChangeAccelEnv(Env):
         """See class definition."""
         # compute the system-level performance of vehicles from a velocity
         # perspective
-        reward = rewards.desired_velocity(self, fail=kwargs["fail"])
+        reward = rewards.desired_velocity(self, fail=kwargs['fail'])
 
         # punish excessive lane changes by reducing the reward by a set value
         # every time an rl car changes lanes (10% of max reward)
         for veh_id in self.vehicles.get_rl_ids():
-            if self.vehicles.get_state(veh_id, "last_lc") == self.time_counter:
+            if self.vehicles.get_state(veh_id, 'last_lc') == self.time_counter:
                 reward -= 0.1
 
         return reward
@@ -143,7 +143,7 @@ class LaneChangeAccelEnv(Env):
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
             [self.time_counter <=
-             self.env_params.additional_params["lane_change_duration"]
+             self.env_params.additional_params['lane_change_duration']
              + self.vehicles.get_state(veh_id, 'last_lc')
              for veh_id in sorted_rl_ids]
         # vehicle that are not allowed to change have their directions set to 0
