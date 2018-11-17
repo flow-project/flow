@@ -9,9 +9,7 @@ from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
-from flow.scenarios.merge.gen import MergeGenerator
-from flow.scenarios.merge.scenario import MergeScenario, \
-    ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
 from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
 
@@ -38,7 +36,7 @@ def merge_example(render=None):
         render=True,
         emission_path="./data/",
         sim_step=0.2,
-        restart_instance=True)
+        restart_instance=False)
 
     if render is not None:
         sumo_params.render = render
@@ -86,7 +84,6 @@ def merge_example(render=None):
 
     scenario = MergeScenario(
         name="merge-baseline",
-        generator_class=MergeGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)

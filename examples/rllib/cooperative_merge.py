@@ -9,7 +9,7 @@ merge into the inner ring.
 import json
 
 import ray
-import ray.rllib.agents.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -32,7 +32,7 @@ RING_RADIUS = 100
 NUM_MERGE_HUMANS = 9
 NUM_MERGE_RL = 1
 
-# note that the vehicles are added sequentially by the generator,
+# note that the vehicles are added sequentially by the scenario,
 # so place the merging vehicles after the vehicles in the ring
 vehicles = Vehicles()
 # Inner ring vehicles
@@ -80,9 +80,6 @@ flow_params = dict(
 
     # name of the scenario class the experiment is running on
     scenario="TwoLoopsOneMergingScenario",
-
-    # name of the generator used to create/modify network configuration files
-    generator="TwoLoopOneMergingGenerator",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -135,14 +132,16 @@ flow_params = dict(
 if __name__ == "__main__":
     ray.init(num_cpus=N_CPUS+1, redirect_output=False)
 
-    config = ppo.DEFAULT_CONFIG.copy()
+    alg_run = "PPO"
+
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [16, 16, 16]})
     config["use_gae"] = True
     config["lambda"] = 0.97
-    config["sgd_batchsize"] = min(16 * 1024, config["timesteps_per_batch"])
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
@@ -151,6 +150,7 @@ if __name__ == "__main__":
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "PPO",
+            "run": alg_run,
             "env": env_name,
             "config": {
                 **config

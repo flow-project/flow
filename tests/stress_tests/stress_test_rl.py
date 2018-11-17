@@ -46,15 +46,16 @@ if __name__ == "__main__":
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
+    from ray.rllib.agents.agent import get_agent_class
     if alg == 'ARS':
-        import ray.rllib.ars as ars
-        config = ars.DEFAULT_CONFIG.copy()
+        agent_cls = get_agent_class(alg)
+        config = agent_cls._default_config.copy()
         config["num_workers"] = N_CPUS
         config["num_deltas"] = N_CPUS
         config["deltas_used"] = N_CPUS
     elif alg == 'PPO':
-        import ray.rllib.agents.ppo as ppo
-        config = ppo.DEFAULT_CONFIG.copy()
+        agent_cls = get_agent_class(alg)
+        config = agent_cls._default_config.copy()
         config["num_workers"] = N_CPUS
         config["timesteps_per_batch"] = horizon * N_ROLLOUTS
         config["vf_loss_coeff"] = 1.0
@@ -66,8 +67,7 @@ if __name__ == "__main__":
         config["min_steps_per_task"] = 1
         config["sgd_batchsize"] = horizon * N_ROLLOUTS
     elif alg == 'ES':
-        import ray.rllib.es as es
-        config = es.DEFAULT_CONFIG.copy()
+        agent_cls = get_agent_class(alg)
         config["num_workers"] = N_CPUS
         config["episodes_per_batch"] = N_CPUS
         config["timesteps_per_batch"] = N_CPUS
@@ -76,6 +76,7 @@ if __name__ == "__main__":
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg
 
     # Register as rllib env
     register_env(env_name, create_env)
