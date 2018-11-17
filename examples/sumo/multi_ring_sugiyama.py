@@ -1,24 +1,28 @@
-"""Used as an example of sugiyama experiment running on multiple rings simulatenously.
+"""Sugiyama experiment on many separate rings.
 
-This example consists of 22 IDM cars on a ring creating shockwaves.
+This example consists of 22 IDM cars on a ring creating shockwaves on
+non overlapping rings used to test mult-iagent shared models.
 """
 
-from flow.controllers import IDMController, ContinuousRouter
+from flow.controllers import ContinuousRouter
+from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, \
-    InitialConfig, NetParams
+from flow.core.params import EnvParams
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoParams
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.lord_of_the_rings.gen import MultiCircleGenerator
-from flow.scenarios.lord_of_the_rings.scenario import MultiLoopScenario, \
-    ADDITIONAL_NET_PARAMS
+from flow.envs.loop.loop_accel import AccelEnv
+from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.scenarios.lord_of_the_rings import ADDITIONAL_NET_PARAMS
+from flow.scenarios.lord_of_the_rings import MultiLoopScenario
+
 
 NUM_RINGS = 3
 
 
 def sugiyama_example(render=None):
-    """
-    Perform a simulation of vehicles on a ring road.
+    """Perform a simulation of vehicles on a ring road.
 
     Parameters
     ----------
@@ -39,7 +43,7 @@ def sugiyama_example(render=None):
     vehicles = Vehicles()
     for i in range(NUM_RINGS):
         vehicles.add(
-            veh_id="idm_{}".format(i),
+            veh_id='idm_{}'.format(i),
             routing_controller=(ContinuousRouter, {}),
             acceleration_controller=(IDMController, {}),
             num_vehicles=22)
@@ -47,14 +51,13 @@ def sugiyama_example(render=None):
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
-    additional_net_params["num_rings"] = NUM_RINGS
+    additional_net_params['num_rings'] = NUM_RINGS
     net_params = NetParams(additional_params=additional_net_params)
 
-    initial_config = InitialConfig(bunching=20.0, spacing="custom")
+    initial_config = InitialConfig(bunching=20.0, spacing='custom')
 
     scenario = MultiLoopScenario(
-        name="sugiyama",
-        generator_class=MultiCircleGenerator,
+        name='sugiyama',
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
@@ -64,7 +67,7 @@ def sugiyama_example(render=None):
     return SumoExperiment(env, scenario)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # import the experiment variable
     exp = sugiyama_example()
 

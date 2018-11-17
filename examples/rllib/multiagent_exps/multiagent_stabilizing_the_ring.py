@@ -63,9 +63,6 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario='MultiLoopScenario',
 
-    # name of the generator used to create/modify network configuration files
-    generator='MultiCircleGenerator',
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.1,

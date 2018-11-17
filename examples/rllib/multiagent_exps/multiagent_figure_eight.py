@@ -62,9 +62,6 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario='Figure8Scenario',
 
-    # name of the generator used to create/modify network configuration files
-    generator='Figure8Generator',
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.1,
