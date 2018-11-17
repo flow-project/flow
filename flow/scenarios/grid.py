@@ -7,35 +7,35 @@ from collections import defaultdict
 
 ADDITIONAL_NET_PARAMS = {
     # dictionary of grid array data
-    "grid_array": {
+    'grid_array': {
         # number of horizontal rows of edges
-        "row_num": 3,
+        'row_num': 3,
         # number of vertical columns of edges
-        "col_num": 2,
+        'col_num': 2,
         # length of inner edges in the grid network
-        "inner_length": None,
+        'inner_length': None,
         # length of edges that vehicles start on
-        "short_length": None,
+        'short_length': None,
         # length of final edge in route
-        "long_length": None,
+        'long_length': None,
         # number of cars starting at the edges heading to the top
-        "cars_top": 20,
+        'cars_top': 20,
         # number of cars starting at the edges heading to the bottom
-        "cars_bot": 20,
+        'cars_bot': 20,
         # number of cars starting at the edges heading to the left
-        "cars_left": 20,
+        'cars_left': 20,
         # number of cars starting at the edges heading to the right
-        "cars_right": 20,
+        'cars_right': 20,
     },
     # number of lanes in the horizontal edges
-    "horizontal_lanes": 1,
+    'horizontal_lanes': 1,
     # number of lanes in the vertical edges
-    "vertical_lanes": 1,
+    'vertical_lanes': 1,
     # speed limit for all edges, may be represented as a float value, or a
     # dictionary with separate values for vertical and horizontal lanes
-    "speed_limit": {
-        "vertical": 35,
-        "horizontal": 35
+    'speed_limit': {
+        'vertical': 35,
+        'horizontal': 35
     },
 }
 
@@ -79,39 +79,40 @@ class SimpleGridScenario(Scenario):
 
         See flow/scenarios/base_scenario.py for description of params.
         """
-        optional = ["tl_logic"]
+        optional = ['tl_logic']
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params and p not in optional:
-                raise KeyError('Network parameter "{}" not supplied'.format(p))
+                raise KeyError('Network parameter \'{}\' not supplied'
+                               .format(p))
 
-        for p in ADDITIONAL_NET_PARAMS["grid_array"].keys():
-            if p not in net_params.additional_params["grid_array"]:
+        for p in ADDITIONAL_NET_PARAMS['grid_array'].keys():
+            if p not in net_params.additional_params['grid_array']:
                 raise KeyError(
-                    'Grid array parameter "{}" not supplied'.format(p))
+                    'Grid array parameter \'{}\' not supplied'.format(p))
 
         # this is a (mx1)x(nx1)x2 array
         # the third dimension is vertical length, horizontal length
-        self.grid_array = net_params.additional_params["grid_array"]
+        self.grid_array = net_params.additional_params['grid_array']
 
-        vertical_lanes = net_params.additional_params["vertical_lanes"]
-        horizontal_lanes = net_params.additional_params["horizontal_lanes"]
+        vertical_lanes = net_params.additional_params['vertical_lanes']
+        horizontal_lanes = net_params.additional_params['horizontal_lanes']
 
         self.horizontal_junction_len = 2.9 + 3.3 * vertical_lanes
         self.vertical_junction_len = 2.9 + 3.3 * horizontal_lanes
-        self.row_num = self.grid_array["row_num"]
-        self.col_num = self.grid_array["col_num"]
+        self.row_num = self.grid_array['row_num']
+        self.col_num = self.grid_array['col_num']
         self.num_edges = (self.col_num+1) * self.row_num * 2 \
             + (self.row_num+1) * self.col_num * 2 + self.row_num * self.col_num
-        self.inner_length = self.grid_array["inner_length"]
-        self.short_length = self.grid_array["short_length"]
-        self.long_length = self.grid_array["long_length"]
+        self.inner_length = self.grid_array['inner_length']
+        self.short_length = self.grid_array['short_length']
+        self.long_length = self.grid_array['long_length']
 
         # this is a dictionary containing inner length, long outer length,
         # short outer length, and number of rows and columns
-        self.grid_array = net_params.additional_params["grid_array"]
+        self.grid_array = net_params.additional_params['grid_array']
 
         self.node_mapping = defaultdict(list)
-        self.name = "BobLoblawsLawBlog"  # DO NOT CHANGE
+        self.name = 'BobLoblawsLawBlog'  # DO NOT CHANGE
 
         super().__init__(name, vehicles, net_params, initial_config,
                          traffic_lights)
@@ -139,50 +140,50 @@ class SimpleGridScenario(Scenario):
     def specify_routes(self, net_params):
         """See parent class."""
         rts = {}
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
+        row_num = self.grid_array['row_num']
+        col_num = self.grid_array['col_num']
         for i in range(row_num):
             route_arr_bot = []
             route_arr_top = []
             for j in range(col_num + 1):
-                route_arr_bot += ["bot" + str(i) + '_' + str(j)]
-                route_arr_top += ["top" + str(i) + '_' + str(col_num - j)]
-            rts.update({"bot" + str(i) + '_' + '0': route_arr_bot})
-            rts.update({"top" + str(i) + '_' + str(col_num): route_arr_top})
+                route_arr_bot += ['bot' + str(i) + '_' + str(j)]
+                route_arr_top += ['top' + str(i) + '_' + str(col_num - j)]
+            rts.update({'bot' + str(i) + '_' + '0': route_arr_bot})
+            rts.update({'top' + str(i) + '_' + str(col_num): route_arr_top})
 
         for i in range(col_num):
             route_arr_left = []
             route_arr_right = []
             for j in range(row_num + 1):
-                route_arr_right += ["right" + str(j) + '_' + str(i)]
-                route_arr_left += ["left" + str(row_num - j) + '_' + str(i)]
-            rts.update({"left" + str(row_num) + '_' + str(i): route_arr_left})
-            rts.update({"right" + '0' + '_' + str(i): route_arr_right})
+                route_arr_right += ['right' + str(j) + '_' + str(i)]
+                route_arr_left += ['left' + str(row_num - j) + '_' + str(i)]
+            rts.update({'left' + str(row_num) + '_' + str(i): route_arr_left})
+            rts.update({'right' + '0' + '_' + str(i): route_arr_right})
 
         return rts
 
     def specify_types(self, net_params):
         """See parent class."""
         add_params = net_params.additional_params
-        horizontal_lanes = add_params["horizontal_lanes"]
-        vertical_lanes = add_params["vertical_lanes"]
-        if isinstance(add_params["speed_limit"], int) or \
-                isinstance(add_params["speed_limit"], float):
+        horizontal_lanes = add_params['horizontal_lanes']
+        vertical_lanes = add_params['vertical_lanes']
+        if isinstance(add_params['speed_limit'], int) or \
+                isinstance(add_params['speed_limit'], float):
             speed_limit = {
-                "horizontal": add_params["speed_limit"],
-                "vertical": add_params["speed_limit"]
+                'horizontal': add_params['speed_limit'],
+                'vertical': add_params['speed_limit']
             }
         else:
-            speed_limit = add_params["speed_limit"]
+            speed_limit = add_params['speed_limit']
 
         types = [{
-            "id": "horizontal",
-            "numLanes": repr(horizontal_lanes),
-            "speed": repr(speed_limit["horizontal"])
+            'id': 'horizontal',
+            'numLanes': repr(horizontal_lanes),
+            'speed': repr(speed_limit['horizontal'])
         }, {
-            "id": "vertical",
-            "numLanes": repr(vertical_lanes),
-            "speed": repr(speed_limit["vertical"])
+            'id': 'vertical',
+            'numLanes': repr(vertical_lanes),
+            'speed': repr(speed_limit['vertical'])
         }]
 
         return types
@@ -205,11 +206,11 @@ class SimpleGridScenario(Scenario):
         list <dict>
             List of inner nodes
         """
-        tls = self.net_params.additional_params.get("traffic_lights", True)
-        node_type = "traffic_light" if tls else "priority"
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        inner_length = self.grid_array["inner_length"]
+        tls = self.net_params.additional_params.get('traffic_lights', True)
+        node_type = 'traffic_light' if tls else 'priority'
+        row_num = self.grid_array['row_num']
+        col_num = self.grid_array['col_num']
+        inner_length = self.grid_array['inner_length']
         nodes = []
         # sweep up across columns
         for i in range(row_num):
@@ -219,10 +220,10 @@ class SimpleGridScenario(Scenario):
                 x_center = j * inner_length
                 y_center = i * inner_length
                 nodes.append({
-                    "id": "center" + str(index),
-                    "x": repr(x_center),
-                    "y": repr(y_center),
-                    "type": node_type
+                    'id': 'center' + str(index),
+                    'x': repr(x_center),
+                    'y': repr(y_center),
+                    'type': node_type
                 })
         return nodes
 
@@ -240,61 +241,61 @@ class SimpleGridScenario(Scenario):
         list <dict>
             List of column, row nodes
         """
-        col_num = self.grid_array["col_num"]
-        row_num = self.grid_array["row_num"]
-        inner_length = self.grid_array["inner_length"]
-        short_length = self.grid_array["short_length"]
-        long_length = self.grid_array["long_length"]
+        col_num = self.grid_array['col_num']
+        row_num = self.grid_array['row_num']
+        inner_length = self.grid_array['inner_length']
+        short_length = self.grid_array['short_length']
+        long_length = self.grid_array['long_length']
         nodes = []
         for i in range(col_num):
             # build the bottom nodes
             nodes += [{
-                "id": "bot_col_short" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr(-short_length),
-                "type": "priority"
+                'id': 'bot_col_short' + str(i),
+                'x': repr(i * inner_length),
+                'y': repr(-short_length),
+                'type': 'priority'
             }, {
-                "id": "bot_col_long" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr(-long_length),
-                "type": "priority"
+                'id': 'bot_col_long' + str(i),
+                'x': repr(i * inner_length),
+                'y': repr(-long_length),
+                'type': 'priority'
             }]
             # build the top nodes
             nodes += [{
-                "id": "top_col_short" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr((row_num - 1) * inner_length + short_length),
-                "type": "priority"
+                'id': 'top_col_short' + str(i),
+                'x': repr(i * inner_length),
+                'y': repr((row_num - 1) * inner_length + short_length),
+                'type': 'priority'
             }, {
-                "id": "top_col_long" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr((row_num - 1) * inner_length + long_length),
-                "type": "priority"
+                'id': 'top_col_long' + str(i),
+                'x': repr(i * inner_length),
+                'y': repr((row_num - 1) * inner_length + long_length),
+                'type': 'priority'
             }]
         for i in range(row_num):
             # build the left nodes
             nodes += [{
-                "id": "left_row_short" + str(i),
-                "x": repr(-short_length),
-                "y": repr(i * inner_length),
-                "type": "priority"
+                'id': 'left_row_short' + str(i),
+                'x': repr(-short_length),
+                'y': repr(i * inner_length),
+                'type': 'priority'
             }, {
-                "id": "left_row_long" + str(i),
-                "x": repr(-long_length),
-                "y": repr(i * inner_length),
-                "type": "priority"
+                'id': 'left_row_long' + str(i),
+                'x': repr(-long_length),
+                'y': repr(i * inner_length),
+                'type': 'priority'
             }]
             # build the right nodes
             nodes += [{
-                "id": "right_row_short" + str(i),
-                "x": repr((col_num - 1) * inner_length + short_length),
-                "y": repr(i * inner_length),
-                "type": "priority"
+                'id': 'right_row_short' + str(i),
+                'x': repr((col_num - 1) * inner_length + short_length),
+                'y': repr(i * inner_length),
+                'type': 'priority'
             }, {
-                "id": "right_row_long" + str(i),
-                "x": repr((col_num - 1) * inner_length + long_length),
-                "y": repr(i * inner_length),
-                "type": "priority"
+                'id': 'right_row_long' + str(i),
+                'x': repr((col_num - 1) * inner_length + long_length),
+                'y': repr(i * inner_length),
+                'type': 'priority'
             }]
         return nodes
 
@@ -310,35 +311,35 @@ class SimpleGridScenario(Scenario):
 
         INDEXED FROM ZERO.
         """
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        inner_length = self.grid_array["inner_length"]
+        row_num = self.grid_array['row_num']
+        col_num = self.grid_array['col_num']
+        inner_length = self.grid_array['inner_length']
         edges = []
 
         # Build the horizontal edges
         for i in range(row_num):
             for j in range(col_num - 1):
                 node_index = i * col_num + j
-                index = "{}_{}".format(i, j + 1)
-                self.node_mapping["center{}".format(node_index +
-                                                    1)].append("bot" + index)
-                self.node_mapping["center{}".format(node_index)].append("top" +
+                index = '{}_{}'.format(i, j + 1)
+                self.node_mapping['center{}'.format(node_index +
+                                                    1)].append('bot' + index)
+                self.node_mapping['center{}'.format(node_index)].append('top' +
                                                                         index)
 
                 edges += [{
-                    "id": "top" + index,
-                    "type": "horizontal",
-                    "priority": "78",
-                    "from": "center" + str(node_index + 1),
-                    "to": "center" + str(node_index),
-                    "length": repr(inner_length)
+                    'id': 'top' + index,
+                    'type': 'horizontal',
+                    'priority': '78',
+                    'from': 'center' + str(node_index + 1),
+                    'to': 'center' + str(node_index),
+                    'length': repr(inner_length)
                 }, {
-                    "id": "bot" + index,
-                    "type": "horizontal",
-                    "priority": "78",
-                    "from": "center" + str(node_index),
-                    "to": "center" + str(node_index + 1),
-                    "length": repr(inner_length)
+                    'id': 'bot' + index,
+                    'type': 'horizontal',
+                    'priority': '78',
+                    'from': 'center' + str(node_index),
+                    'to': 'center' + str(node_index + 1),
+                    'length': repr(inner_length)
                 }]
 
         # Build the vertical edges
@@ -347,25 +348,25 @@ class SimpleGridScenario(Scenario):
                 node_index_bot = i * col_num + j
                 node_index_top = (i + 1) * col_num + j
                 index = str(i + 1) + '_' + str(j)
-                self.node_mapping["center{}".format(node_index_top)].append(
-                    "right" + index)
-                self.node_mapping["center{}".format(node_index_bot)].append(
-                    "left" + index)
+                self.node_mapping['center{}'.format(node_index_top)].append(
+                    'right' + index)
+                self.node_mapping['center{}'.format(node_index_bot)].append(
+                    'left' + index)
 
                 edges += [{
-                    "id": "right" + index,
-                    "type": "vertical",
-                    "priority": "78",
-                    "from": "center" + str(node_index_bot),
-                    "to": "center" + str(node_index_top),
-                    "length": repr(inner_length)
+                    'id': 'right' + index,
+                    'type': 'vertical',
+                    'priority': '78',
+                    'from': 'center' + str(node_index_bot),
+                    'to': 'center' + str(node_index_top),
+                    'length': repr(inner_length)
                 }, {
-                    "id": "left" + index,
-                    "type": "vertical",
-                    "priority": "78",
-                    "from": "center" + str(node_index_top),
-                    "to": "center" + str(node_index_bot),
-                    "length": repr(inner_length)
+                    'id': 'left' + index,
+                    'type': 'vertical',
+                    'priority': '78',
+                    'from': 'center' + str(node_index_top),
+                    'to': 'center' + str(node_index_bot),
+                    'length': repr(inner_length)
                 }]
 
         return edges
@@ -381,100 +382,100 @@ class SimpleGridScenario(Scenario):
         list <dict>
             List of outer edges
         """
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        short_length = self.grid_array["short_length"]
-        long_length = self.grid_array["long_length"]
+        row_num = self.grid_array['row_num']
+        col_num = self.grid_array['col_num']
+        short_length = self.grid_array['short_length']
+        long_length = self.grid_array['long_length']
         edges = []
 
         # create dictionary of node to edges that go to it
         for i in range(col_num):
             index = '0_' + str(i)
             # bottom edges
-            self.node_mapping["center" + str(i)].append("right" + index)
+            self.node_mapping['center' + str(i)].append('right' + index)
             edges += [{
-                "id": "right" + index,
-                "type": "vertical",
-                "priority": "78",
-                "from": "bot_col_short" + str(i),
-                "to": "center" + str(i),
-                "length": repr(short_length)
+                'id': 'right' + index,
+                'type': 'vertical',
+                'priority': '78',
+                'from': 'bot_col_short' + str(i),
+                'to': 'center' + str(i),
+                'length': repr(short_length)
             }, {
-                "id": "left" + index,
-                "type": "vertical",
-                "priority": "78",
-                "from": "center" + str(i),
-                "to": "bot_col_long" + str(i),
-                "length": repr(long_length)
+                'id': 'left' + index,
+                'type': 'vertical',
+                'priority': '78',
+                'from': 'center' + str(i),
+                'to': 'bot_col_long' + str(i),
+                'length': repr(long_length)
             }]
             # top edges
             index = str(row_num) + '_' + str(i)
             center_start = (row_num - 1) * col_num
-            self.node_mapping["center" + str(center_start + i)].append("left" +
+            self.node_mapping['center' + str(center_start + i)].append('left' +
                                                                        index)
             edges += [{
-                "id": "left" + index,
-                "type": "vertical",
-                "priority": "78",
-                "from": "top_col_short" + str(i),
-                "to": "center" + str(center_start + i),
-                "length": repr(short_length)
+                'id': 'left' + index,
+                'type': 'vertical',
+                'priority': '78',
+                'from': 'top_col_short' + str(i),
+                'to': 'center' + str(center_start + i),
+                'length': repr(short_length)
             }, {
-                "id": "right" + index,
-                "type": "vertical",
-                "priority": "78",
-                "from": "center" + str(center_start + i),
-                "to": "top_col_long" + str(i),
-                "length": repr(long_length)
+                'id': 'right' + index,
+                'type': 'vertical',
+                'priority': '78',
+                'from': 'center' + str(center_start + i),
+                'to': 'top_col_long' + str(i),
+                'length': repr(long_length)
             }]
 
         # build the left and then the right edges
         for j in range(row_num):
             index = str(j) + '_0'
             # left edges
-            self.node_mapping["center" + str(j * col_num)].append("bot" +
+            self.node_mapping['center' + str(j * col_num)].append('bot' +
                                                                   index)
             edges += [{
-                "id": "bot" + index,
-                "type": "horizontal",
-                "priority": "78",
-                "from": "left_row_short" + str(j),
-                "to": "center" + str(j * col_num),
-                "length": repr(short_length)
+                'id': 'bot' + index,
+                'type': 'horizontal',
+                'priority': '78',
+                'from': 'left_row_short' + str(j),
+                'to': 'center' + str(j * col_num),
+                'length': repr(short_length)
             }, {
-                "id": "top" + index,
-                "type": "horizontal",
-                "priority": "78",
-                "from": "center" + str(j * col_num),
-                "to": "left_row_long" + str(j),
-                "length": repr(long_length)
+                'id': 'top' + index,
+                'type': 'horizontal',
+                'priority': '78',
+                'from': 'center' + str(j * col_num),
+                'to': 'left_row_long' + str(j),
+                'length': repr(long_length)
             }]
             # right edges
             index = str(j) + '_' + str(col_num)
             center_index = (j * col_num) + col_num - 1
-            self.node_mapping["center" + str(center_index)].append("top" +
+            self.node_mapping['center' + str(center_index)].append('top' +
                                                                    index)
             edges += [{
-                "id": "top" + index,
-                "type": "horizontal",
-                "priority": "78",
-                "from": "right_row_short" + str(j),
-                "to": "center" + str(center_index),
-                "length": repr(short_length)
+                'id': 'top' + index,
+                'type': 'horizontal',
+                'priority': '78',
+                'from': 'right_row_short' + str(j),
+                'to': 'center' + str(center_index),
+                'length': repr(short_length)
             }, {
-                "id": "bot" + index,
-                "type": "horizontal",
-                "priority": "78",
-                "from": "center" + str(center_index),
-                "to": "right_row_long" + str(j),
-                "length": repr(long_length)
+                'id': 'bot' + index,
+                'type': 'horizontal',
+                'priority': '78',
+                'from': 'center' + str(center_index),
+                'to': 'right_row_long' + str(j),
+                'length': repr(long_length)
             }]
 
         return edges
 
     def _order_nodes(self):
         for node in self.node_mapping:
-            adj_edges = ["" for _ in range(4)]
+            adj_edges = ['' for _ in range(4)]
             for e in self.node_mapping[node]:
                 if 'bot' in e:
                     adj_edges[0] = e
@@ -497,10 +498,10 @@ class SimpleGridScenario(Scenario):
         for i in range(self.col_num + 1):
             for j in range(self.row_num + 1):
                 index = str(j) + '_' + str(i)
-                edgestarts += [("left" + index, 0 + i * 50 + j * 5000),
-                               ("right" + index, 10 + i * 50 + j * 5000),
-                               ("top" + index, 15 + i * 50 + j * 5000),
-                               ("bot" + index, 20 + i * 50 + j * 5000)]
+                edgestarts += [('left' + index, 0 + i * 50 + j * 5000),
+                               ('right' + index, 10 + i * 50 + j * 5000),
+                               ('top' + index, 15 + i * 50 + j * 5000),
+                               ('bot' + index, 20 + i * 50 + j * 5000)]
 
         return edgestarts
 
@@ -509,28 +510,28 @@ class SimpleGridScenario(Scenario):
     def specify_intersection_edge_starts(self):
         """See parent class."""
         intersection_edgestarts = \
-            [(":center", 0)]
+            [(':center', 0)]
         return intersection_edgestarts
 
     def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
         """See parent class."""
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
+        row_num = self.grid_array['row_num']
+        col_num = self.grid_array['col_num']
         per_edge = int(num_vehicles / (2 * (row_num + col_num)))
         start_positions = []
         d_inc = 10
         for i in range(self.col_num):
             x = 6
             for k in range(per_edge):
-                start_positions.append(("right0_{}".format(i), x))
-                start_positions.append(("left{}_{}".format(row_num, i), x))
+                start_positions.append(('right0_{}'.format(i), x))
+                start_positions.append(('left{}_{}'.format(row_num, i), x))
                 x += d_inc
 
         for i in range(self.row_num):
             x = 6
             for k in range(per_edge):
-                start_positions.append(("bot{}_0".format(i), x))
-                start_positions.append(("top{}_{}".format(i, col_num), x))
+                start_positions.append(('bot{}_0'.format(i), x))
+                start_positions.append(('top{}_{}'.format(i, col_num), x))
                 x += d_inc
 
         start_lanes = [0] * len(start_positions)

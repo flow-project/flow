@@ -268,7 +268,6 @@ class Env(*classdef):
                     time.sleep(config.SUMO_SLEEP)
 
                 self.traci_connection = traci.connect(port, numRetries=100)
-                self.traci_connection.setOrder(0)
 
                 self.traci_connection.simulationStep()
                 return

@@ -8,17 +8,17 @@ import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
     # radius of the loops
-    "ring_radius": 50,
+    'ring_radius': 50,
     # length of the straight edges connected the outer loop to the inner loop
-    "lane_length": 75,
+    'lane_length': 75,
     # number of lanes in the inner loop
-    "inner_lanes": 3,
+    'inner_lanes': 3,
     # number of lanes in the outer loop
-    "outer_lanes": 2,
+    'outer_lanes': 2,
     # max speed limit in the network
-    "speed_limit": 30,
+    'speed_limit': 30,
     # resolution of the curved portions
-    "resolution": 40,
+    'resolution': 40,
 }
 
 
@@ -46,28 +46,28 @@ class TwoLoopsOneMergingScenario(Scenario):
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
-                raise KeyError('Network parameter "{}" not supplied'.format(p))
+                raise KeyError('Network parameter \'{}\' not supplied'.format(p))
 
-        radius = net_params.additional_params["ring_radius"]
-        x = net_params.additional_params["lane_length"]
+        radius = net_params.additional_params['ring_radius']
+        x = net_params.additional_params['lane_length']
 
-        self.inner_lanes = net_params.additional_params["inner_lanes"]
-        self.outer_lanes = net_params.additional_params["outer_lanes"]
+        self.inner_lanes = net_params.additional_params['inner_lanes']
+        self.outer_lanes = net_params.additional_params['outer_lanes']
 
         self.junction_length = 0.3
         self.intersection_length = 25.5  # calibrate when the radius changes
 
-        net_params.additional_params["length"] = \
+        net_params.additional_params['length'] = \
             2 * x + 2 * pi * radius + \
             2 * self.intersection_length + 2 * self.junction_length
 
         num_vehicles = vehicles.num_vehicles
-        num_merge_vehicles = sum("merge" in vehicles.get_state(veh_id, "type")
+        num_merge_vehicles = sum('merge' in vehicles.get_state(veh_id, 'type')
                                  for veh_id in vehicles.get_ids())
         self.n_inner_vehicles = num_merge_vehicles
         self.n_outer_vehicles = num_vehicles - num_merge_vehicles
 
-        radius = net_params.additional_params["ring_radius"]
+        radius = net_params.additional_params['ring_radius']
         length_loop = 2 * pi * radius
         self.length_loop = length_loop
 
@@ -75,112 +75,112 @@ class TwoLoopsOneMergingScenario(Scenario):
                          traffic_lights)
 
     def specify_nodes(self, net_params):
-        """See parent class."""
-        r = net_params.additional_params["ring_radius"]
-        x = net_params.additional_params["lane_length"]
+        """"See parent class."""
+        r = net_params.additional_params['ring_radius']
+        x = net_params.additional_params['lane_length']
 
         nodes = [{
-            "id": "top_left",
-            "x": repr(0),
-            "y": repr(r),
-            "type": "priority"
+            'id': 'top_left',
+            'x': repr(0),
+            'y': repr(r),
+            'type': 'priority'
         }, {
-            "id": "bottom_left",
-            "x": repr(0),
-            "y": repr(-r),
-            "type": "priority"
+            'id': 'bottom_left',
+            'x': repr(0),
+            'y': repr(-r),
+            'type': 'priority'
         }, {
-            "id": "top_right",
-            "x": repr(x),
-            "y": repr(r),
-            "type": "priority"
+            'id': 'top_right',
+            'x': repr(x),
+            'y': repr(r),
+            'type': 'priority'
         }, {
-            "id": "bottom_right",
-            "x": repr(x),
-            "y": repr(-r),
-            "type": "priority"
+            'id': 'bottom_right',
+            'x': repr(x),
+            'y': repr(-r),
+            'type': 'priority'
         }]
 
         return nodes
 
     def specify_edges(self, net_params):
-        """See parent class."""
-        r = net_params.additional_params["ring_radius"]
-        x = net_params.additional_params["lane_length"]
+        """"See parent class."""
+        r = net_params.additional_params['ring_radius']
+        x = net_params.additional_params['lane_length']
 
         ring_edgelen = pi * r
         resolution = 40
 
         edges = [{
-            "id":
-            "center",
-            "from":
-            "bottom_left",
-            "to":
-            "top_left",
-            "type":
-            "edgeType",
-            "length":
+            'id':
+            'center',
+            'from':
+            'bottom_left',
+            'to':
+            'top_left',
+            'type':
+            'edgeType',
+            'length':
             repr(ring_edgelen),
-            "priority":
-            "46",
-            "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            'priority':
+            '46',
+            'shape':
+            ' '.join([
+                '%.2f,%.2f' % (r * cos(t), r * sin(t))
                 for t in linspace(-pi / 2, pi / 2, resolution)
             ]),
-            "numLanes":
+            'numLanes':
             str(self.inner_lanes)
         }, {
-            "id": "top",
-            "from": "top_right",
-            "to": "top_left",
-            "type": "edgeType",
-            "length": repr(x),
-            "priority": "46",
-            "numLanes": str(self.outer_lanes)
+            'id': 'top',
+            'from': 'top_right',
+            'to': 'top_left',
+            'type': 'edgeType',
+            'length': repr(x),
+            'priority': '46',
+            'numLanes': str(self.outer_lanes)
         }, {
-            "id": "bottom",
-            "from": "bottom_left",
-            "to": "bottom_right",
-            "type": "edgeType",
-            "length": repr(x),
-            "numLanes": str(self.outer_lanes)
+            'id': 'bottom',
+            'from': 'bottom_left',
+            'to': 'bottom_right',
+            'type': 'edgeType',
+            'length': repr(x),
+            'numLanes': str(self.outer_lanes)
         }, {
-            "id":
-            "left",
-            "from":
-            "top_left",
-            "to":
-            "bottom_left",
-            "type":
-            "edgeType",
-            "length":
+            'id':
+            'left',
+            'from':
+            'top_left',
+            'to':
+            'bottom_left',
+            'type':
+            'edgeType',
+            'length':
             repr(ring_edgelen),
-            "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            'shape':
+            ' '.join([
+                '%.2f,%.2f' % (r * cos(t), r * sin(t))
                 for t in linspace(pi / 2, 3 * pi / 2, resolution)
             ]),
-            "numLanes":
+            'numLanes':
             str(self.inner_lanes)
         }, {
-            "id":
-            "right",
-            "from":
-            "bottom_right",
-            "to":
-            "top_right",
-            "type":
-            "edgeType",
-            "length":
+            'id':
+            'right',
+            'from':
+            'bottom_right',
+            'to':
+            'top_right',
+            'type':
+            'edgeType',
+            'length':
             repr(ring_edgelen),
-            "shape":
-            " ".join([
-                "%.2f,%.2f" % (x + r * cos(t), r * sin(t))
+            'shape':
+            ' '.join([
+                '%.2f,%.2f' % (x + r * cos(t), r * sin(t))
                 for t in linspace(-pi / 2, pi / 2, resolution)
             ]),
-            "numLanes":
+            'numLanes':
             str(self.outer_lanes)
         }]
 
@@ -188,37 +188,37 @@ class TwoLoopsOneMergingScenario(Scenario):
 
     def specify_types(self, net_params):
         """See parent class."""
-        speed_limit = net_params.additional_params["speed_limit"]
+        speed_limit = net_params.additional_params['speed_limit']
 
-        types = [{"id": "edgeType", "speed": repr(speed_limit)}]
+        types = [{'id': 'edgeType', 'speed': repr(speed_limit)}]
         return types
 
     def specify_routes(self, net_params):
         """See parent class."""
         rts = {
-            "top": ["top", "left", "bottom", "right", "top"],
-            "bottom": ["bottom", "right", "top", "left", "bottom"],
-            "right": ["right", "top", "left", "bottom"],
-            "left": ["left", "center", "left"],
-            "center": ["center", "left", "center"]
+            'top': ['top', 'left', 'bottom', 'right', 'top'],
+            'bottom': ['bottom', 'right', 'top', 'left', 'bottom'],
+            'right': ['right', 'top', 'left', 'bottom'],
+            'left': ['left', 'center', 'left'],
+            'center': ['center', 'left', 'center']
         }
 
         return rts
 
     def specify_edge_starts(self):
         """See parent class."""
-        r = self.net_params.additional_params["ring_radius"]
-        lane_length = self.net_params.additional_params["lane_length"]
+        r = self.net_params.additional_params['ring_radius']
+        lane_length = self.net_params.additional_params['lane_length']
 
         ring_edgelen = pi * r
 
         edgestarts = [
-            ("left", self.intersection_length),
-            ("center", ring_edgelen + 2 * self.intersection_length),
-            ("bottom", 2 * ring_edgelen + 2 * self.intersection_length),
-            ("right", 2 * ring_edgelen + lane_length +
+            ('left', self.intersection_length),
+            ('center', ring_edgelen + 2 * self.intersection_length),
+            ('bottom', 2 * ring_edgelen + 2 * self.intersection_length),
+            ('right', 2 * ring_edgelen + lane_length +
              2 * self.intersection_length + self.junction_length),
-            ("top", 3 * ring_edgelen + lane_length +
+            ('top', 3 * ring_edgelen + lane_length +
              2 * self.intersection_length + 2 * self.junction_length)
         ]
 
@@ -226,17 +226,17 @@ class TwoLoopsOneMergingScenario(Scenario):
 
     def specify_internal_edge_starts(self):
         """See parent class."""
-        r = self.net_params.additional_params["ring_radius"]
-        lane_length = self.net_params.additional_params["lane_length"]
+        r = self.net_params.additional_params['ring_radius']
+        lane_length = self.net_params.additional_params['lane_length']
 
         ring_edgelen = pi * r
 
         internal_edgestarts = [
-            (":top_left", 0), (":bottom_left",
+            (':top_left', 0), (':bottom_left',
                                ring_edgelen + self.intersection_length),
-            (":bottom_right",
+            (':bottom_right',
              2 * ring_edgelen + lane_length + 2 * self.intersection_length),
-            (":top_right", 3 * ring_edgelen + lane_length +
+            (':top_right', 3 * ring_edgelen + lane_length +
              2 * self.intersection_length + self.junction_length)
         ]
 
@@ -251,29 +251,29 @@ class TwoLoopsOneMergingScenario(Scenario):
         x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
+        if 'x0' in kwargs:
+            x0 = kwargs['x0']
 
         random_scale = \
-            self.initial_config.additional_params.get("gaussian_scale", 0)
+            self.initial_config.additional_params.get('gaussian_scale', 0)
 
         bunching = initial_config.bunching
         # changes to bunching in kwargs suggests a switch in between rollouts,
         #  and so overwrites anything in initial_config
-        if "bunching" in kwargs:
-            bunching = kwargs["bunching"]
+        if 'bunching' in kwargs:
+            bunching = kwargs['bunching']
 
         merge_bunching = 0
-        if "merge_bunching" in initial_config.additional_params:
-            merge_bunching = initial_config.additional_params["merge_bunching"]
+        if 'merge_bunching' in initial_config.additional_params:
+            merge_bunching = initial_config.additional_params['merge_bunching']
 
         num_vehicles = self.vehicles.num_vehicles
         num_merge_vehicles = \
-            sum("merge" in self.vehicles.get_state(veh_id, "type")
+            sum('merge' in self.vehicles.get_state(veh_id, 'type')
                 for veh_id in self.vehicles.get_ids())
 
-        radius = self.net_params.additional_params["ring_radius"]
-        lane_length = self.net_params.additional_params["lane_length"]
+        radius = self.net_params.additional_params['ring_radius']
+        lane_length = self.net_params.additional_params['lane_length']
 
         startpositions = []
         startlanes = []
@@ -282,16 +282,16 @@ class TwoLoopsOneMergingScenario(Scenario):
         try:
             increment_loop = \
                 (self.length_loop - bunching) \
-                * self.net_params.additional_params["inner_lanes"] \
+                * self.net_params.additional_params['inner_lanes'] \
                 / (num_vehicles - num_merge_vehicles)
 
             # x = [x0] * initial_config.lanes_distribution
             if self.initial_config.additional_params.get(
-                    "ring_from_right", False):
-                x = [dict(self.edgestarts)["right"]] * \
-                    self.net_params.additional_params["inner_lanes"]
+                    'ring_from_right', False):
+                x = [dict(self.edgestarts)['right']] * \
+                    self.net_params.additional_params['inner_lanes']
             else:
-                x = [x0] * self.net_params.additional_params["inner_lanes"]
+                x = [x0] * self.net_params.additional_params['inner_lanes']
             car_count = 0
             lane_count = 0
             while car_count < num_vehicles - num_merge_vehicles:
@@ -329,7 +329,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 # if the lane num exceeds the number of lanes the vehicles
                 # should be distributed on in the network, reset
                 if lane_count >= \
-                        self.net_params.additional_params["inner_lanes"]:
+                        self.net_params.additional_params['inner_lanes']:
                     lane_count = 0
         except ZeroDivisionError:
             pass
@@ -341,12 +341,12 @@ class TwoLoopsOneMergingScenario(Scenario):
                 initial_config.lanes_distribution / num_merge_vehicles
 
             if self.initial_config.additional_params.get(
-                    "merge_from_top", False):
-                x = [dict(self.edgestarts)["top"] - x0] * \
-                    self.net_params.additional_params["outer_lanes"]
+                    'merge_from_top', False):
+                x = [dict(self.edgestarts)['top'] - x0] * \
+                    self.net_params.additional_params['outer_lanes']
             else:
-                x = [dict(self.edgestarts)["bottom"] - x0] * \
-                    self.net_params.additional_params["outer_lanes"]
+                x = [dict(self.edgestarts)['bottom'] - x0] * \
+                    self.net_params.additional_params['outer_lanes']
             car_count = 0
             lane_count = 0
             while car_count < num_merge_vehicles:
@@ -375,7 +375,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 startlanes.append(lane_count)
 
                 if self.initial_config.additional_params.get(
-                        "merge_from_top", False):
+                        'merge_from_top', False):
                     x[lane_count] = x[lane_count] - increment_merge + \
                         random_scale*np.random.randn()
                 else:
@@ -389,7 +389,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 # should be distributed on in the network, reset
                 # if lane_count >= self.initial_config.lane_distribution
                 if lane_count >= \
-                        self.net_params.additional_params["outer_lanes"]:
+                        self.net_params.additional_params['outer_lanes']:
                     lane_count = 0
 
         except ZeroDivisionError:
