@@ -150,7 +150,7 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 50,
             'stop': {
-                'training_iteration': 200
+                'training_iteration': 500
             },
             'config': config,
             'upload_dir': 's3://eugene.experiments/multiagent_tests/lord_of_the_rings'
