@@ -966,7 +966,7 @@ class Scenario(Serializable):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, scenario, positions, lanes, shuffle):
+    def make_routes(self, scenario, positions, lanes, speeds, shuffle):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
@@ -983,6 +983,8 @@ class Scenario(Serializable):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         lanes : list of float
             list of start lanes
+        speeds : list of float
+            list of start speeds
         shuffle : bool
             specifies whether the vehicle IDs should be shuffled before the
             vehicles are assigned starting positions
@@ -1007,8 +1009,6 @@ class Scenario(Serializable):
         for i, veh_id in enumerate(self.vehicle_ids):
             veh_type = vehicles.get_state(veh_id, "type")
             edge, pos = positions[i]
-            lane = lanes[i]
-            type_depart_speed = vehicles.get_initial_speed(veh_id)
             routes.append(
                 self._vehicle(
                     veh_type,
@@ -1016,9 +1016,9 @@ class Scenario(Serializable):
                     depart="0",
                     id=veh_id,
                     color="1,1,1",
-                    departSpeed=str(type_depart_speed),
+                    departSpeed=str(speeds[i]),
                     departPos=str(pos),
-                    departLane=str(lane)))
+                    departLane=str(lanes[i])))
 
         # add the in-flows from various edges to the xml file
         if self.net_params.inflows is not None:
