@@ -1,6 +1,7 @@
 """Bay Bridge simulation."""
 
 import os
+import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, InFlows
@@ -11,6 +12,9 @@ from flow.core.experiment import SumoExperiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge import BayBridgeScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
+
+NETFILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "bay_bridge.net.xml")
 
 
 def bay_bridge_example(render=None,
@@ -155,13 +159,22 @@ def bay_bridge_example(render=None,
             departSpeed=20)  # no data for this
 
     net_params = NetParams(inflows=inflow, no_internal_links=False)
+    net_params.netfile = NETFILE
 
-    # add the location of the netfile
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    # download the netfile from AWS
     if use_traffic_lights:
-        net_params.netfile = os.path.join(cur_dir, "bay_bridge_tl.net.xml")
+        my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
+                 "bay_bridge_TL_all_green.net.xml"
     else:
-        net_params.netfile = os.path.join(cur_dir, "bay_bridge.net.xml")
+        my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
+                 "bay_bridge_junction_fix.net.xml"
+    my_file = urllib.request.urlopen(my_url)
+    data_to_write = my_file.read()
+
+    with open(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), NETFILE),
+            "wb+") as f:
+        f.write(data_to_write)
 
     initial_config = InitialConfig(spacing="uniform", min_gap=15)
 
