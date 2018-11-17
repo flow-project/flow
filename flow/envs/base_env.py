@@ -87,7 +87,7 @@ class Env(*classdef):
 
     def __init__(self, env_params, sumo_params, scenario):
         # Invoke serializable if using rllab
-        if Serializable is not object:
+        if serializable_flag:
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
