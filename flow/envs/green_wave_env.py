@@ -224,7 +224,7 @@ class TrafficLightGridEnv(Env):
                     self.last_change[i, 1] = not self.last_change[i, 1]
                     self.last_change[i, 2] = 0
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
 
@@ -567,7 +567,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                 self.last_change.flatten().tolist()
             ]))
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
             return - rewards.min_delay_unscaled(self)
@@ -590,6 +590,6 @@ class GreenWaveTestEnv(TrafficLightGridEnv):
         """See class definition."""
         pass
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """No return, for testing purposes."""
         return 0
