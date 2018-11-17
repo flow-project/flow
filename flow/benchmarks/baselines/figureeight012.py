@@ -3,12 +3,17 @@
 Baseline is human acceleration and intersection behavior.
 """
 
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import IDMController, ContinuousRouter
-from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
-from flow.envs.loop.loop_accel import AccelEnv
+from flow.controllers import ContinuousRouter
+from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
+from flow.core.params import EnvParams
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoParams
+from flow.core.vehicles import Vehicles
+from flow.envs.loop.loop_accel import AccelEnv
+from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import Figure8Scenario
 import numpy as np
 
 # time horizon of a single rollout
@@ -33,10 +38,10 @@ def figure_eight_baseline(num_runs, render=True):
     """
     # We place 1 autonomous vehicle and 13 human-driven vehicles in the network
     vehicles = Vehicles()
-    vehicles.add(veh_id="human",
-                 acceleration_controller=(IDMController, {"noise": 0.2}),
+    vehicles.add(veh_id='human',
+                 acceleration_controller=(IDMController, {'noise': 0.2}),
                  routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
+                 speed_mode='no_collide',
                  num_vehicles=14)
 
     sumo_params = SumoParams(
@@ -48,9 +53,9 @@ def figure_eight_baseline(num_runs, render=True):
         horizon=HORIZON,
         evaluate=True,  # Set to True to evaluate traffic metrics
         additional_params={
-            "target_velocity": 20,
-            "max_accel": 3,
-            "max_decel": 3,
+            'target_velocity': 20,
+            'max_accel': 3,
+            'max_decel': 3,
         },
     )
 
@@ -61,7 +66,7 @@ def figure_eight_baseline(num_runs, render=True):
         additional_params=ADDITIONAL_NET_PARAMS,
     )
 
-    scenario = Figure8Scenario(name="figure_eight",
+    scenario = Figure8Scenario(name='figure_eight',
                                vehicles=vehicles,
                                net_params=net_params,
                                initial_config=initial_config)
@@ -71,12 +76,12 @@ def figure_eight_baseline(num_runs, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, HORIZON)
-    avg_speed = np.mean(results["mean_returns"])
+    avg_speed = np.mean(results['mean_returns'])
 
     return avg_speed
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     runs = 2  # number of simulations to average over
     res = figure_eight_baseline(num_runs=runs)
 
