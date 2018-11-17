@@ -4,12 +4,14 @@ import os
 from flow.core.vehicles import Vehicles
 from flow.core.params import NetParams, EnvParams, SumoParams
 from flow.controllers import IDMController, RLController
-from flow.scenarios import LoopScenario, MergeScenario
+from flow.scenarios import LoopScenario, MergeScenario, \
+    TwoLoopsOneMergingScenario
 from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
+from flow.scenarios.loop_merge import ADDITIONAL_NET_PARAMS as LM_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
-    TestEnv
+    TestEnv, TwoLoopsMergePOEnv
 
 
 os.environ["TEST_FLAG"] = "True"
@@ -344,27 +346,143 @@ class TestAccelEnv(unittest.TestCase):
 class TestTwoLoopsMergeEnv(unittest.TestCase):
 
     def setUp(self):
-        # TODO
-        pass
+        vehicles = Vehicles()
+        vehicles.add("rl", acceleration_controller=(RLController, {}))
+        vehicles.add("human", acceleration_controller=(IDMController, {}))
+
+        self.sumo_params = SumoParams()
+        self.scenario = TwoLoopsOneMergingScenario(
+            name="test_merge",
+            vehicles=vehicles,
+            net_params=NetParams(
+                no_internal_links=False,
+                additional_params=LM_PARAMS.copy(),
+            ),
+        )
+        self.env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "target_velocity": 10,
+                "n_preceding": 2,
+                "n_following": 2,
+                "n_merging_in": 2,
+            }
+        )
 
     def tearDown(self):
-        # TODO
-        pass
+        self.sumo_params = None
+        self.scenario = None
+        self.env_params = None
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        # TODO
-        pass
+        params = {"max_decel": 3,
+                  "target_velocity": 10,
+                  "n_preceding": 2,
+                  "n_following": 2,
+                  "n_merging_in": 2}
+        env_params = EnvParams(additional_params=params)
+        self.assertRaises(
+            KeyError,
+            TwoLoopsMergePOEnv,
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        params = {"max_accel": 3,
+                  "target_velocity": 10,
+                  "n_preceding": 2,
+                  "n_following": 2,
+                  "n_merging_in": 2}
+        env_params = EnvParams(additional_params=params)
+        self.assertRaises(
+            KeyError,
+            TwoLoopsMergePOEnv,
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        params = {"max_accel": 3,
+                  "max_decel": 3,
+                  "n_preceding": 2,
+                  "n_following": 2,
+                  "n_merging_in": 2}
+        env_params = EnvParams(additional_params=params)
+        self.assertRaises(
+            KeyError,
+            TwoLoopsMergePOEnv,
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        params = {"max_accel": 3,
+                  "max_decel": 3,
+                  "target_velocity": 10,
+                  "n_following": 2,
+                  "n_merging_in": 2}
+        env_params = EnvParams(additional_params=params)
+        self.assertRaises(
+            KeyError,
+            TwoLoopsMergePOEnv,
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        params = {"max_accel": 3,
+                  "max_decel": 3,
+                  "target_velocity": 10,
+                  "n_preceding": 2,
+                  "n_merging_in": 2}
+        env_params = EnvParams(additional_params=params)
+        self.assertRaises(
+            KeyError,
+            TwoLoopsMergePOEnv,
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        params = {"max_accel": 3,
+                  "max_decel": 3,
+                  "target_velocity": 10,
+                  "n_preceding": 2,
+                  "n_following": 2}
+        env_params = EnvParams(additional_params=params)
+        self.assertRaises(
+            KeyError,
+            TwoLoopsMergePOEnv,
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
 
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
-        # TODO
-        pass
+        env = TwoLoopsMergePOEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
 
-    def test_observed(self):
-        """Ensures that the observed ids are returning the correct vehicles."""
-        # TODO
-        pass
+        # test the observation space
+        self.assertEqual(env.observation_space.shape[0], 17)
+        self.assertTrue(all(env.observation_space.high == float("inf")))
+        self.assertTrue(all(env.observation_space.low == 0))
+
+        # test the action space
+        self.assertEqual(env.action_space.shape[0],
+                         env.vehicles.num_rl_vehicles)
+        self.assertEqual(env.action_space.high,
+                         env.env_params.additional_params["max_accel"])
+        self.assertEqual(env.action_space.low,
+                         -env.env_params.additional_params["max_decel"])
+
+        env.terminate()
 
 
 class TestWaveAttenuationEnv(unittest.TestCase):
