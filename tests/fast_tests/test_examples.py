@@ -162,5 +162,5 @@ class TestRllibExamples(unittest.TestCase):
 
 if __name__ == '__main__':
 
-    ray.init(num_cpus=1, redis_address="localhost:6379")
+    ray.init(num_cpus=1)
     unittest.main()

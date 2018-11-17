@@ -50,45 +50,13 @@ before_install:
   - ray stop
   - >-
       ulimit -n 65536;
-      ray start
-      --head
-      --redis-port=6379
-      --object-manager-port=8076
+      ray start --head --redis-port=6379 --object-manager-port=8076
 
   # [sumo] dependencies and binaries
-  - sudo apt-get update
-  # - sudo apt-get upgrade -y
-  - sudo apt-get install -y subversion autoconf build-essential libtool
-  - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
-  - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
-  - sudo apt-get install -y libfox-1.6-dev
   - pushd $HOME/build/flow-project
-  -     mkdir -p sumo/bin
-  -     pushd sumo/bin
-  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
-  -         chmod u+x sumo
-  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
-  -         chmod u+x netconvert
-  -     popd
-  -     export SUMO_HOME="$HOME/build/flow-project/sumo"
-  -     export PATH="$SUMO_HOME/bin:$PATH"
-  # -     LD_DEBUG=libs sumo  # debug sumo library dependencies
-  # -     LD_DEBUG=libs netconvert  # debug netconvert library dependencies
-  #     [sumo] Add data directory
-  -     pushd sumo
-  -         wget https://s3.amazonaws.com/cathywu/sumo/data.tar.gz
-  -         tar xzf data.tar.gz
-  -     popd
-  #     [sumo] Add python tools traci and sumolib
-  -     mkdir -p sumo/tools
-  -     pushd sumo/tools
-  -         wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
-  -         tar xzf traci.tar.gz
-  -         wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
-  -         tar xzf sumolib.tar.gz
-  -         export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
-  -     popd
+  -     ./flow/scripts/setup_sumo_ubuntu1404.sh
   - popd
+  - source ~/.bashrc
 
   - ls ../
 
