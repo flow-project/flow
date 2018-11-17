@@ -40,7 +40,7 @@ auth:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
     InstanceType: c4.4xlarge
-    ImageId: ami-033464cf66e361916 # Flow AMI (Ubuntu)
+    ImageId: ami-01644d4b7f4ebb13f # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -55,7 +55,7 @@ head_node:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
     InstanceType: c4.4xlarge #c4.4xlarge
-    ImageId: ami-033464cf66e361916 # Flow AMI (Ubuntu)
+    ImageId: ami-01644d4b7f4ebb13f # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -74,7 +74,7 @@ file_mounts: {
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git stash && git checkout `cat /tmp/path`
-    # - cd ray && git fetch eugene_upstream && git stash && git checkout eugene_upstream/master && git reset --hard eugene_upstream/multiagent_rollouts3
+    - cd ray && git fetch flow_upstream && git stash && git checkout flow_upstream/ray_merge
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc

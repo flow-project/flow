@@ -4,7 +4,7 @@
 """
 
 import sys
-from flow import config
+from flow import config_default as config
 import os
 import argparse
 sys.path.append('.')
