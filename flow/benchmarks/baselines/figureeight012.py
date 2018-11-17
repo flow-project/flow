@@ -12,7 +12,7 @@ from flow.controllers import IDMController, ContinuousRouter
 from flow.benchmarks.figureeight0 import flow_params
 
 
-def figure_eight_baseline(num_runs, render=True):
+def figure_eight_baseline(num_runs, flow_params, render=True):
     """Run script for all figure eight baselines.
 
     Parameters
@@ -20,6 +20,9 @@ def figure_eight_baseline(num_runs, render=True):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
+        flow_params : dict
+            the flow meta-parameters describing the structure of a benchmark.
+            Must be one of the figure eight flow_params
         render : bool, optional
             specifies whether to use sumo's gui during execution
 
@@ -79,7 +82,7 @@ def figure_eight_baseline(num_runs, render=True):
 
 if __name__ == "__main__":
     runs = 2  # number of simulations to average over
-    res = figure_eight_baseline(num_runs=runs)
+    res = figure_eight_baseline(num_runs=runs, flow_params=flow_params)
 
     print('---------')
     print('The average speed across {} runs is {}'.format(runs, res))
