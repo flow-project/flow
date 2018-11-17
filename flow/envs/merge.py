@@ -5,23 +5,24 @@ This environment was used in:
 TODO(ak): add paper after it has been published.
 """
 
-from flow.envs.base_env import Env
 from flow.core import rewards
+from flow.envs.base_env import Env
 
 from gym.spaces.box import Box
 
-import numpy as np
 import collections
+import numpy as np
+
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration for autonomous vehicles, in m/s^2
-    "max_accel": 3,
+    'max_accel': 3,
     # maximum deceleration for autonomous vehicles, in m/s^2
-    "max_decel": 3,
+    'max_decel': 3,
     # desired velocity for all vehicles in the network, in m/s
-    "target_velocity": 25,
+    'target_velocity': 25,
     # maximum number of controllable vehicles in the network
-    "num_rl": 5,
+    'num_rl': 5,
 }
 
 
@@ -74,10 +75,10 @@ class WaveAttenuationMergePOEnv(Env):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
-                    'Environment parameter "{}" not supplied'.format(p))
+                    'Environment parameter \'{}\' not supplied'.format(p))
 
         # maximum number of controlled vehicles
-        self.num_rl = env_params.additional_params["num_rl"]
+        self.num_rl = env_params.additional_params['num_rl']
         # queue of rl vehicles waiting to be controlled
         self.rl_queue = collections.deque()
         # names of the rl vehicles controlled at any step
@@ -92,8 +93,8 @@ class WaveAttenuationMergePOEnv(Env):
     def action_space(self):
         """See class definition."""
         return Box(
-            low=-abs(self.env_params.additional_params["max_decel"]),
-            high=self.env_params.additional_params["max_accel"],
+            low=-abs(self.env_params.additional_params['max_decel']),
+            high=self.env_params.additional_params['max_accel'],
             shape=(self.num_rl, ),
             dtype=np.float32)
 
@@ -125,7 +126,7 @@ class WaveAttenuationMergePOEnv(Env):
             lead_id = self.vehicles.get_leader(rl_id)
             follower = self.vehicles.get_follower(rl_id)
 
-            if lead_id in ["", None]:
+            if lead_id in ['', None]:
                 # in case leader is not visible
                 lead_speed = max_speed
                 lead_head = max_length
@@ -135,7 +136,7 @@ class WaveAttenuationMergePOEnv(Env):
                 lead_head = self.get_x_by_id(lead_id) \
                     - self.get_x_by_id(rl_id) - self.vehicles.get_length(rl_id)
 
-            if follower in ["", None]:
+            if follower in ['', None]:
                 # in case follower is not visible
                 follow_speed = 0
                 follow_head = max_length
@@ -158,18 +159,18 @@ class WaveAttenuationMergePOEnv(Env):
             return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
         else:
             # return a reward of 0 if a collision occurred
-            if kwargs["fail"]:
+            if kwargs['fail']:
                 return 0
 
             # reward high system-level velocities
-            cost1 = rewards.desired_velocity(self, fail=kwargs["fail"])
+            cost1 = rewards.desired_velocity(self, fail=kwargs['fail'])
 
             # penalize small time headways
             cost2 = 0
             t_min = 1  # smallest acceptable time headway
             for rl_id in self.rl_veh:
                 lead_id = self.vehicles.get_leader(rl_id)
-                if lead_id not in ["", None] \
+                if lead_id not in ['', None] \
                         and self.vehicles.get_speed(rl_id) > 0:
                     t_headway = max(
                         self.vehicles.get_headway(rl_id) /
