@@ -73,9 +73,6 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="SimpleGridScenario",
 
-    # name of the generator used to create/modify network configuration files
-    generator="SimpleGridGenerator",
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         restart_instance=True,

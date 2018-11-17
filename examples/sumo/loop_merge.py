@@ -7,9 +7,8 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop_merge.scenario import \
-    TwoLoopsOneMergingScenario, ADDITIONAL_NET_PARAMS
-from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
+from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
+    ADDITIONAL_NET_PARAMS
 
 
 def loop_merge_example(render=None):
@@ -33,7 +32,7 @@ def loop_merge_example(render=None):
     if render is not None:
         sumo_params.render = render
 
-    # note that the vehicles are added sequentially by the generator,
+    # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
     vehicles = Vehicles()
     vehicles.add(
@@ -76,7 +75,6 @@ def loop_merge_example(render=None):
 
     scenario = TwoLoopsOneMergingScenario(
         name="two-loop-one-merging",
-        generator_class=TwoLoopOneMergingGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)

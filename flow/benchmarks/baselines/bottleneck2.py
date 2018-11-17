@@ -10,8 +10,7 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import ContinuousRouter
 from flow.envs.bottleneck_env import DesiredVelocityEnv
 from flow.core.experiment import SumoExperiment
-from flow.scenarios.bottleneck.scenario import BottleneckScenario
-from flow.scenarios.bottleneck.gen import BottleneckGenerator
+from flow.scenarios.bottleneck import BottleneckScenario
 import numpy as np
 
 # time horizon of a single rollout
@@ -112,7 +111,6 @@ def bottleneck2_baseline(num_runs, render=True):
     )
 
     scenario = BottleneckScenario(name="bay_bridge_toll",
-                                  generator_class=BottleneckGenerator,
                                   vehicles=vehicles,
                                   net_params=net_params,
                                   initial_config=initial_config,
