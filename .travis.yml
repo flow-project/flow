@@ -52,7 +52,7 @@ before_install:
   - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
   - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
   - sudo apt-get install -y libfox-1.6-dev
- - pushd $HOME/build/flow-project
+  - pushd $HOME/build/flow-project
   -     mkdir -p sumo/bin
   -     pushd sumo/bin
   -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
