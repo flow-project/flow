@@ -6,7 +6,8 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import RLController
 from flow.core.rewards import average_velocity, total_velocity, min_delay, \
     desired_velocity, max_edge_velocity, penalize_standstill, \
-    penalize_near_standstill, punish_small_rl_headways
+    penalize_near_standstill, punish_small_rl_headways, \
+    boolean_action_penalty
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -182,6 +183,7 @@ class TestRewards(unittest.TestCase):
         self.assertEqual(penalize_near_standstill(env, thresh=0.5), -9)
 
     def test_punish_small_rl_headways(self):
+        """Test the punish_small_rl_headways method."""
         vehicles = Vehicles()
         vehicles.add("test", acceleration_controller=(RLController, {}),
                      num_vehicles=10)
@@ -206,6 +208,20 @@ class TestRewards(unittest.TestCase):
                                                   penalty_gain=2,
                                                   penalty_exponent=2),
                          -20)
+
+    def test_boolean_action_penalty(self):
+        """Test the boolean_action_penalty method."""
+        actions = [False, False, False, False, False]
+        self.assertEqual(boolean_action_penalty(actions, gain=1), 0)
+        self.assertEqual(boolean_action_penalty(actions, gain=2), 0)
+
+        actions = [True, False, False, False, False]
+        self.assertEqual(boolean_action_penalty(actions, gain=1), 1)
+        self.assertEqual(boolean_action_penalty(actions, gain=2), 2)
+
+        actions = [True, False, False, True, False]
+        self.assertEqual(boolean_action_penalty(actions, gain=1), 2)
+        self.assertEqual(boolean_action_penalty(actions, gain=2), 4)
 
 
 if __name__ == '__main__':
