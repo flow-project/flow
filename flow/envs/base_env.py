@@ -87,14 +87,14 @@ class Env(*classdef):
 
     def __init__(self, env_params, sumo_params, scenario):
         # Invoke serializable if using rllab
-        if serializable_flag:
+        if Serializable is not object:
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
         self.scenario = scenario
         self.sumo_params = sumo_params
         time_stamp = ''.join(str(time.time()).split('.'))
-        if os.environ.get('TEST_FLAG', 0):
+        if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
             time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
@@ -143,7 +143,7 @@ class Env(*classdef):
         self.sumo_proc = None
 
         # TODO(ak): temporary fix to support old pkl files
-        if not hasattr(self.env_params, 'evaluate'):
+        if not hasattr(self.env_params, "evaluate"):
             self.env_params.evaluate = False
 
         self.start_sumo()
@@ -193,29 +193,30 @@ class Env(*classdef):
                     port = self.sumo_params.port
                 else:
                     # Don't do backoff when testing
-                    if os.environ.get('TEST_FLAG', 0):
+                    if os.environ.get("TEST_FLAG", 0):
                         # backoff to decrease likelihood of race condition
                         time_stamp = ''.join(str(time.time()).split('.'))
                         # 1.0 for consistency w/ above
                         time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
-                sumo_binary = 'sumo-gui' if self.sumo_params.render else 'sumo'
+                sumo_binary = "sumo-gui" if self.sumo_params.render else "sumo"
 
                 # command used to start sumo
                 sumo_call = [
-                    sumo_binary, '-c', self.scenario.cfg,
-                    '--remote-port', str(port),
-                    '--step-length', str(self.sim_step)
+                    sumo_binary, "-c", self.scenario.cfg,
+                    "--remote-port",
+                    str(port), "--step-length",
+                    str(self.sim_step)
                 ]
 
                 # add step logs (if requested)
                 if self.sumo_params.no_step_log:
-                    sumo_call.append('--no-step-log')
+                    sumo_call.append("--no-step-log")
 
                 # add the lateral resolution of the sublanes (if requested)
                 if self.sumo_params.lateral_resolution is not None:
-                    sumo_call.append('--lateral-resolution')
+                    sumo_call.append("--lateral-resolution")
                     sumo_call.append(str(self.sumo_params.lateral_resolution))
 
                 # add the emission path to the sumo command (if requested)
@@ -223,38 +224,37 @@ class Env(*classdef):
                     ensure_dir(self.sumo_params.emission_path)
                     emission_out = \
                         self.sumo_params.emission_path + \
-                        '{0}-emission.xml'.format(self.scenario.name)
-                    sumo_call.append('--emission-output')
+                        "{0}-emission.xml".format(self.scenario.name)
+                    sumo_call.append("--emission-output")
                     sumo_call.append(emission_out)
                 else:
                     emission_out = None
 
                 if self.sumo_params.overtake_right:
-                    sumo_call.append('--lanechange.overtake-right')
-                    sumo_call.append('true')
+                    sumo_call.append("--lanechange.overtake-right")
+                    sumo_call.append("true")
 
                 if self.sumo_params.ballistic:
-                    sumo_call.append('--step-method.ballistic')
-                    sumo_call.append('true')
+                    sumo_call.append("--step-method.ballistic")
+                    sumo_call.append("true")
 
                 # specify a simulation seed (if requested)
                 if self.sumo_params.seed is not None:
-                    sumo_call.append('--seed')
+                    sumo_call.append("--seed")
                     sumo_call.append(str(self.sumo_params.seed))
 
                 if not self.sumo_params.print_warnings:
-                    sumo_call.append('--no-warnings')
-                    sumo_call.append('true')
+                    sumo_call.append("--no-warnings")
+                    sumo_call.append("true")
 
                 # set the time it takes for a gridlock teleport to occur
-                sumo_call.append('--time-to-teleport')
+                sumo_call.append("--time-to-teleport")
                 sumo_call.append(str(int(self.sumo_params.teleport_time)))
 
-                # import ipdb; ipdb.set_trace()
-                logging.info(' Starting SUMO on port ' + str(port))
-                logging.debug(' Cfg file: ' + str(self.scenario.cfg))
-                logging.debug(' Emission file: ' + str(emission_out))
-                logging.debug(' Step length: ' + str(self.sim_step))
+                logging.info(" Starting SUMO on port " + str(port))
+                logging.debug(" Cfg file: " + str(self.scenario.cfg))
+                logging.debug(" Emission file: " + str(emission_out))
+                logging.debug(" Step length: " + str(self.sim_step))
 
                 # Opening the I/O thread to SUMO
                 self.sumo_proc = subprocess.Popen(
@@ -262,7 +262,7 @@ class Env(*classdef):
 
                 # wait a small period of time for the subprocess to activate
                 # before trying to connect with traci
-                if os.environ.get('TEST_FLAG', 0):
+                if os.environ.get("TEST_FLAG", 0):
                     time.sleep(0.1)
                 else:
                     time.sleep(config.SUMO_SLEEP)
@@ -272,13 +272,13 @@ class Env(*classdef):
                 self.traci_connection.simulationStep()
                 return
             except Exception as e:
-                print('Error during start: {}'.format(traceback.format_exc()))
+                print("Error during start: {}".format(traceback.format_exc()))
                 error = e
                 self.teardown_sumo()
         raise error
 
     def setup_initial_state(self):
-        """"Return information on the initial state of vehicles in the network.
+        """Return information on the initial state of vehicles in the network.
 
         This information is to be used upon reset. This method also adds this
         information to the self.vehicles class and starts a subscription with
@@ -297,7 +297,7 @@ class Env(*classdef):
         # check to make sure all vehicles have been spawned
         num_spawned_veh = self.traci_connection.simulation.getDepartedNumber()
         if num_spawned_veh < self.vehicles.num_vehicles:
-            logging.error('Not enough vehicles have spawned! Bad start?')
+            logging.error("Not enough vehicles have spawned! Bad start?")
             exit()
 
         # add missing traffic lights in the list of traffic light ids
@@ -329,20 +329,20 @@ class Env(*classdef):
         for veh_id in self.vehicles.get_ids():
             # some constant vehicle parameters to the vehicles class
             self.vehicles.set_state(
-                veh_id, 'length',
+                veh_id, "length",
                 self.traci_connection.vehicle.getLength(veh_id))
 
             # import initial state data to initial_observations dict
             self.initial_observations[veh_id] = dict()
-            self.initial_observations[veh_id]['type'] = \
-                self.vehicles.get_state(veh_id, 'type')
-            self.initial_observations[veh_id]['edge'] = \
+            self.initial_observations[veh_id]["type"] = \
+                self.vehicles.get_state(veh_id, "type")
+            self.initial_observations[veh_id]["edge"] = \
                 self.traci_connection.vehicle.getRoadID(veh_id)
-            self.initial_observations[veh_id]['position'] = \
+            self.initial_observations[veh_id]["position"] = \
                 self.traci_connection.vehicle.getLanePosition(veh_id)
-            self.initial_observations[veh_id]['lane'] = \
+            self.initial_observations[veh_id]["lane"] = \
                 self.traci_connection.vehicle.getLaneIndex(veh_id)
-            self.initial_observations[veh_id]['speed'] = \
+            self.initial_observations[veh_id]["speed"] = \
                 self.traci_connection.vehicle.getSpeed(veh_id)
 
             # save the initial state. This is used in the _reset function
@@ -350,10 +350,10 @@ class Env(*classdef):
             pos = self.traci_connection.vehicle.getPosition(veh_id)
 
             self.initial_state[veh_id] = \
-                (self.initial_observations[veh_id]['type'], route_id,
-                 self.initial_observations[veh_id]['lane'],
-                 self.initial_observations[veh_id]['position'],
-                 self.initial_observations[veh_id]['speed'], pos)
+                (self.initial_observations[veh_id]["type"], route_id,
+                 self.initial_observations[veh_id]["lane"],
+                 self.initial_observations[veh_id]["position"],
+                 self.initial_observations[veh_id]["speed"], pos)
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
@@ -548,15 +548,16 @@ class Env(*classdef):
         if len(self.scenario.net_params.inflows.get()) > 0 and \
                 not self.sumo_params.restart_instance:
             print(
-                '**********************************************************\n'
-                '**********************************************************\n'
-                '**********************************************************\n'
-                'WARNING: Inflows will cause computational performance to\n'
-                'significantly decrease after large number of rollouts. In \n'
-                'order to avoid this, set SumoParams(restart_instance=True).\n'
-                '**********************************************************\n'
-                '**********************************************************\n'
-                '**********************************************************')
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "WARNING: Inflows will cause computational performance to\n"
+                "significantly decrease after large number of rollouts. In \n"
+                "order to avoid this, set SumoParams(restart_instance=True).\n"
+                "**********************************************************\n"
+                "**********************************************************\n"
+                "**********************************************************"
+            )
 
         if self.sumo_params.restart_instance or self.step_counter > 2e6:
             self.step_counter = 0
@@ -584,7 +585,7 @@ class Env(*classdef):
 
             initial_state = dict()
             for i, veh_id in enumerate(veh_ids):
-                route_id = 'route' + initial_positions[i][0]
+                route_id = "route" + initial_positions[i][0]
 
                 # replace initial routes, lanes, and positions to reflect
                 # new values
@@ -595,9 +596,9 @@ class Env(*classdef):
                 initial_state[veh_id] = tuple(list_initial_state)
 
                 # replace initial positions in initial observations
-                self.initial_observations[veh_id]['edge'] = \
+                self.initial_observations[veh_id]["edge"] = \
                     initial_positions[i][0]
-                self.initial_observations[veh_id]['position'] = \
+                self.initial_observations[veh_id]["position"] = \
                     initial_positions[i][1]
 
             self.initial_state = deepcopy(initial_state)
@@ -610,7 +611,7 @@ class Env(*classdef):
                 self.traci_connection.vehicle.unsubscribe(veh_id)
                 self.vehicles.remove(veh_id)
             except (FatalTraCIError, TraCIException):
-                print('Error during start: {}'.format(traceback.format_exc()))
+                print("Error during start: {}".format(traceback.format_exc()))
                 pass
 
         # clear all vehicles from the network and the vehicles class
@@ -621,7 +622,7 @@ class Env(*classdef):
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
             except (FatalTraCIError, TraCIException):
-                print('Error during start: {}'.format(traceback.format_exc()))
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -648,22 +649,12 @@ class Env(*classdef):
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
 
-            # subscribe the new vehicle
-            self.traci_connection.vehicle.subscribe(
-                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
-                         tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
-            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
-
         self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
-        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
-                            getSubscriptionResults(veh_id))
-                           for veh_id in self.initial_ids)
-        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
-                        getSubscriptionResults(tl_id))
-                       for tl_id in self.traffic_lights.get_ids())
+        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
+        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -680,7 +671,7 @@ class Env(*classdef):
                                                 self.get_x_by_id(veh_id))
 
             # re-initialize memory on last lc
-            self.prev_last_lc[veh_id] = -float('inf')
+            self.prev_last_lc[veh_id] = -float("inf")
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -731,19 +722,11 @@ class Env(*classdef):
             return
 
         # clip according to the action space requirements
-
         if isinstance(self.action_space, Box):
-            if isinstance(rl_actions, dict):
-                for key, action in rl_actions.items():
-                    rl_actions[key] = np.clip(
-                        action,
-                        a_min=self.action_space.low,
-                        a_max=self.action_space.high)
-            else:
-                rl_actions = np.clip(
-                    rl_actions,
-                    a_min=self.action_space.low,
-                    a_max=self.action_space.high)
+            rl_actions = np.clip(
+                rl_actions,
+                a_min=self.action_space.low,
+                a_max=self.action_space.high)
 
         self._apply_rl_actions(rl_actions)
 
@@ -795,7 +778,7 @@ class Env(*classdef):
         # if any of the directions are not -1, 0, or 1, raise a ValueError
         if any(d not in [-1, 0, 1] for d in direction):
             raise ValueError(
-                'Direction values for lane changes may only be: -1, 0, or 1.')
+                "Direction values for lane changes may only be: -1, 0, or 1.")
 
         for i, veh_id in enumerate(veh_ids):
             # check for no lane change
@@ -817,7 +800,7 @@ class Env(*classdef):
 
                 if veh_id in self.vehicles.get_rl_ids():
                     self.prev_last_lc[veh_id] = \
-                        self.vehicles.get_state(veh_id, 'last_lc')
+                        self.vehicles.get_state(veh_id, "last_lc")
 
     def choose_routes(self, veh_ids, route_choices):
         """Update the route choice of vehicles in the network.
@@ -930,8 +913,6 @@ class Env(*classdef):
         state: numpy ndarray
             information on the state of the vehicles, which is provided to the
             agent
-        rl_actions: numpy ndarray or dict
-            actions taken by the rl vehicles
         """
         raise NotImplementedError
 
@@ -989,8 +970,8 @@ class Env(*classdef):
         environment opens the TraCI connection.
         """
         print(
-            'Closing connection to TraCI and stopping simulation.\n'
-            'Note, this may print an error message when it closes.'
+            "Closing connection to TraCI and stopping simulation.\n"
+            "Note, this may print an error message when it closes."
         )
         self._close()
 
@@ -1003,7 +984,7 @@ class Env(*classdef):
         try:
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
         except Exception:
-            print('Error during teardown: {}'.format(traceback.format_exc()))
+            print("Error during teardown: {}".format(traceback.format_exc()))
 
     def _seed(self, seed=None):
         return []
