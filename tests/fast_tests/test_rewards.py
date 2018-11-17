@@ -3,9 +3,10 @@ import os
 from tests.setup_scripts import ring_road_exp_setup
 from flow.core.params import EnvParams
 from flow.core.vehicles import Vehicles
+from flow.controllers import RLController
 from flow.core.rewards import average_velocity, total_velocity, min_delay, \
     desired_velocity, max_edge_velocity, penalize_standstill, \
-    penalize_near_standstill
+    penalize_near_standstill, punish_small_rl_headways
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -179,6 +180,32 @@ class TestRewards(unittest.TestCase):
         # check the penalty with good and bad thresholds
         self.assertEqual(penalize_near_standstill(env, thresh=2), -10)
         self.assertEqual(penalize_near_standstill(env, thresh=0.5), -9)
+
+    def test_punish_small_rl_headways(self):
+        vehicles = Vehicles()
+        vehicles.add("test", acceleration_controller=(RLController, {}),
+                     num_vehicles=10)
+
+        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+        # set the headways to 0
+        for veh_id in env.vehicles.get_rl_ids():
+            env.vehicles.set_headway(veh_id, 0)
+
+        # test penalty when headways of all vehicles are currently 0
+        self.assertEqual(punish_small_rl_headways(env, headway_threshold=1),
+                         -10)
+        self.assertEqual(punish_small_rl_headways(env, headway_threshold=2),
+                         -10)
+        self.assertEqual(punish_small_rl_headways(env,
+                                                  headway_threshold=2,
+                                                  penalty_gain=2),
+                         -20)
+        self.assertEqual(punish_small_rl_headways(env,
+                                                  headway_threshold=2,
+                                                  penalty_gain=2,
+                                                  penalty_exponent=2),
+                         -20)
 
 
 if __name__ == '__main__':
