@@ -1,7 +1,6 @@
 """Bay Bridge simulation."""
 
 import os
-import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, InFlows
