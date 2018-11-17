@@ -351,12 +351,7 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
             continue
         follower_headway = env.vehicles.get_headway(follower_id)
         if follower_headway < 0:
-            print('negative follower headway of:', follower_headway)
-            print('rl id:', rl_id)
-            print('follower id:', follower_id)
             continue
         total_reward += follower_headway ** reward_exponent
-    # print(total_reward)
-    if total_reward < 0:
-        print('negative total reward of:', total_reward)
+
     return total_reward * reward_gain
