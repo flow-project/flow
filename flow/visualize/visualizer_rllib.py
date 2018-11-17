@@ -76,10 +76,6 @@ parser.add_argument(
     action='store_true',
     help='Specifies whether to use the \'evaluate\' '
     'reward for the environment.')
-parser.add_argument(
-    '--sumo_web3d',
-    action='store_true',
-    help='Specifies whether sumo web3d will be used to visualize.')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -172,10 +168,6 @@ if __name__ == '__main__':
     sumo_params.restart_instance = False
 
     sumo_params.emission_path = './test_time_rollout/'
-
-    if args.sumo_web3d:
-        sumo_params.num_clients = 2
-        sumo_params.render = False
 
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario))

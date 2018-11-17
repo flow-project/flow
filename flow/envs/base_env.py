@@ -206,7 +206,6 @@ class Env(*classdef):
                 sumo_call = [
                     sumo_binary, '-c', self.scenario.cfg,
                     '--remote-port', str(port),
-                    '--num-clients', str(self.sumo_params.num_clients),
                     '--step-length', str(self.sim_step)
                 ]
 
@@ -253,8 +252,6 @@ class Env(*classdef):
 
                 # import ipdb; ipdb.set_trace()
                 logging.info(' Starting SUMO on port ' + str(port))
-                logging.info(' Number of clients ' +
-                             str(self.sumo_params.num_clients))
                 logging.debug(' Cfg file: ' + str(self.scenario.cfg))
                 logging.debug(' Emission file: ' + str(emission_out))
                 logging.debug(' Step length: ' + str(self.sim_step))
