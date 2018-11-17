@@ -87,6 +87,18 @@ class TestSumoExamples(unittest.TestCase):
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
 
+        # import the experiment variable from the example with inflows
+        exp = bay_bridge_example(render=False, use_inflows=True)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+        # import the experiment variable from the example with traffic lights
+        exp = bay_bridge_example(render=False, use_traffic_lights=True)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
     def test_bay_bridge_toll(self):
         """Verifies that examples/sumo/bay_bridge_toll.py is working."""
         # import the experiment variable from the example

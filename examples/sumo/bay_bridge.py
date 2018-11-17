@@ -13,9 +13,6 @@ from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge import BayBridgeScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
-NETFILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "bay_bridge.net.xml")
-
 
 def bay_bridge_example(render=None,
                        use_inflows=False,
@@ -159,22 +156,13 @@ def bay_bridge_example(render=None,
             departSpeed=20)  # no data for this
 
     net_params = NetParams(inflows=inflow, no_internal_links=False)
-    net_params.netfile = NETFILE
 
-    # download the netfile from AWS
+    # add the location of the netfile
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
     if use_traffic_lights:
-        my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
-                 "bay_bridge_TL_all_green.net.xml"
+        net_params.netfile = os.path.join(cur_dir, "bay_bridge_tl.net.xml")
     else:
-        my_url = "https://s3-us-west-1.amazonaws.com/flow.netfiles/" \
-                 "bay_bridge_junction_fix.net.xml"
-    my_file = urllib.request.urlopen(my_url)
-    data_to_write = my_file.read()
-
-    with open(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), NETFILE),
-            "wb+") as f:
-        f.write(data_to_write)
+        net_params.netfile = os.path.join(cur_dir, "bay_bridge.net.xml")
 
     initial_config = InitialConfig(spacing="uniform", min_gap=15)
 
