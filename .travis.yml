@@ -5,6 +5,10 @@ cache: pip
 python:
   - "3.5"
 
+os: linux
+
+dist: trusty
+
 sudo: required
 
 before_install:
@@ -21,15 +25,12 @@ before_install:
   - conda install python=3.5.2
   - python -V
 
-  # Requirements for ray
-  - pip install tensorflow
-  - pip install opencv-python
-  - pip install nose2
-  - pip install lxml
-  - pip install numpy==1.14.0
-  - pip install scipy==1.1.0
-  - pip install gym==0.10.5
+  # Set up flow env
+  - conda env create -f environment.yml
+  - source activate flow
 
+  # Requirements for Ray
+  - pip install opencv-python
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.3-cp35-cp35m-manylinux1_x86_64.whl
   # - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
