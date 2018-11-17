@@ -204,10 +204,10 @@ class Env(*classdef):
 
                 # command used to start sumo
                 sumo_call = [
-                    sumo_binary, "-c", self.scenario.cfg,
-                    "--remote-port", str(port),
-                    "--num-clients", str(self.sumo_params.num_clients),
-                    "--step-length", str(self.sim_step)
+                    sumo_binary, '-c', self.scenario.cfg,
+                    '--remote-port', str(port),
+                    '--num-clients', str(self.sumo_params.num_clients),
+                    '--step-length', str(self.sim_step)
                 ]
 
                 # add step logs (if requested)
@@ -282,7 +282,7 @@ class Env(*classdef):
         raise error
 
     def setup_initial_state(self):
-        """Return information on the initial state of vehicles in the network.
+        """"Return information on the initial state of vehicles in the network.
 
         This information is to be used upon reset. This method also adds this
         information to the self.vehicles class and starts a subscription with
@@ -487,7 +487,7 @@ class Env(*classdef):
             next_observation = {}
             done = {}
             infos = {}
-            temp_state = states # FIXME have this take rl_actions
+            temp_state = states
             for key, state in temp_state.items():
                 # collect information of the state of the network based on the
                 # environment class used
@@ -999,8 +999,8 @@ class Env(*classdef):
         environment opens the TraCI connection.
         """
         print(
-            "Closing connection to TraCI and stopping simulation.\n"
-            "Note, this may print an error message when it closes."
+            'Closing connection to TraCI and stopping simulation.\n'
+            'Note, this may print an error message when it closes.'
         )
         self._close()
 

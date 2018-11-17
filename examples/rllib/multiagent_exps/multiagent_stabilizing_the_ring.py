@@ -1,6 +1,7 @@
 """Ring road example.
 
-Creates a set of stabilizing the ring experiments to test if more agents -> fewer needed batches
+Creates a set of stabilizing the ring experiments to test if
+ more agents -> fewer needed batches
 """
 
 import json
@@ -8,16 +9,22 @@ import os
 
 import ray
 import ray.rllib.agents.ppo as ppo
-from ray import tune
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
-from ray.tune import run_experiments
+from ray import tune
 from ray.tune.registry import register_env
+from ray.tune import run_experiments
 
+from flow.controllers import ContinuousRouter
+from flow.controllers import IDMController
+from flow.controllers import RLController
+from flow.core.params import EnvParams
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoParams
+from flow.core.vehicles import Vehicles
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import RLController, IDMController, ContinuousRouter
+
 
 os.environ['MULTIAGENT'] = 'True'
 # make sure (sample_batch_size * num_workers ~= train_batch_size)
@@ -26,10 +33,9 @@ HORIZON = 3000
 # Number of rings
 NUM_RINGS = 1
 # number of rollouts per training iteration
-N_ROLLOUTS = 20# int(20/NUM_RINGS)
+N_ROLLOUTS = 20  # int(20/NUM_RINGS)
 # number of parallel workers
-N_CPUS = 4 #int(20/NUM_RINGS)
-
+N_CPUS = 4  # int(20/NUM_RINGS)
 
 # We place one autonomous vehicle and 21 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -95,7 +101,7 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(bunching = 20.0, spacing='custom'),
+    initial=InitialConfig(bunching=20.0, spacing='custom'),
 )
 
 if __name__ == '__main__':
@@ -107,7 +113,7 @@ if __name__ == '__main__':
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['lr'] = tune.grid_search([1e-5, 1e-6]) # 1e-5 seems like the right thing
+    config['lr'] = tune.grid_search([1e-5, 1e-6])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
@@ -139,7 +145,7 @@ if __name__ == '__main__':
         'multiagent': {
             'policy_graphs': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn),
-            "policies_to_train": ["av"]
+            'policies_to_train': ['av']
         }
     })
 
@@ -152,7 +158,6 @@ if __name__ == '__main__':
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': 's3://eugene.experiments/multiagent_tests/lord_of_the_rings'
+            'upload_dir': 's3://<BUCKET NAME>'
         },
     })
-

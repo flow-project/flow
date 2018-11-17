@@ -19,14 +19,15 @@ import sys
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
+from ray.rllib.models import ModelCatalog
 from ray.tune.registry import register_env
 
-from flow.utils.rllib import get_rllib_pkl
-from flow.utils.registry import make_create_env
-from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.core.util import emission_to_csv
-from ray.rllib.models import ModelCatalog
-import gym
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import get_flow_params
+from flow.utils.rllib import get_rllib_config
+from flow.utils.rllib import get_rllib_pkl
+
 
 EXAMPLE_USAGE = """
 example usage:
@@ -35,8 +36,6 @@ example usage:
 Here the arguments are:
 1 - the number of the checkpoint
 """
-
-#FIXME (ev) this almost certainly doesn't work yet
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -53,12 +52,11 @@ parser.add_argument('checkpoint_num', type=str, help='Checkpoint number.')
 parser.add_argument(
     '--run',
     type=str,
-    help="The algorithm or model to train. This may refer to "
-    "the name of a built-on algorithm (e.g. RLLib's DQN "
-    "or PPO), or a user-defined trainable function or "
-    "class registered in the tune registry. "
-    "Required for results trained with flow-0.2.0 and before.")
-# TODO: finalize version here
+    help='The algorithm or model to train. This may refer to '
+    'the name of a built-on algorithm (e.g. RLLib\'s DQN '
+    'or PPO), or a user-defined trainable function or '
+    'class registered in the tune registry. '
+    'Required for results trained with flow-0.2.0 and before.')
 parser.add_argument(
     '--num_rollouts',
     type=int,
@@ -99,7 +97,6 @@ if __name__ == '__main__':
     if config.get('multiagent', {}).get('policy_graphs', {}):
         multiagent = True
         config['multiagent'] = pkl['multiagent']
-        #config['multiagent']['policies_to_train'] = None
         os.environ['MULTIAGENT'] = 'True'
     else:
         multiagent = False
@@ -120,21 +117,21 @@ if __name__ == '__main__':
         else None
     if (args.run and config_run):
         if (args.run != config_run):
-            print("visualizer_rllib.py: error: run argument "
-                  + "\"{}\" passed in ".format(args.run)
-                  + "differs from the one stored in params.json "
-                  + "\"{}\"".format(config_run))
+            print('visualizer_rllib.py: error: run argument '
+                  + '\'{}\' passed in '.format(args.run)
+                  + 'differs from the one stored in params.json '
+                  + '\'{}\''.format(config_run))
             sys.exit(1)
     if (args.run):
         agent_cls = get_agent_class(args.run)
     elif (config_run):
         agent_cls = get_agent_class(config_run)
     else:
-        print("visualizer_rllib.py: error: could not find flow parameter "
-              "\"run\" in params.json, "
-              "add argument --run to provide the algorithm or model used "
-              "to train the results\n e.g. "
-              "python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO")
+        print('visualizer_rllib.py: error: could not find flow parameter '
+              '\'run\' in params.json, '
+              'add argument --run to provide the algorithm or model used '
+              'to train the results\n e.g. '
+              'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
     # create the agent that will be used to compute the actions
@@ -148,8 +145,8 @@ if __name__ == '__main__':
     net_params = flow_params['net']
     vehicles = flow_params['veh']
     initial_config = flow_params['initial']
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
-    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    scenario_class = getattr(module, flow_params['scenario'])
 
     scenario = scenario_class(
         name=exp_tag,
@@ -174,23 +171,14 @@ if __name__ == '__main__':
 
     sumo_params.restart_instance = False
 
-    sumo_params.emission_path = "./test_time_rollout/"
+    sumo_params.emission_path = './test_time_rollout/'
 
     if args.sumo_web3d:
         sumo_params.num_clients = 2
         sumo_params.render = False
 
-    if args.run=="PPO":
-        env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-            env_params=env_params, sumo_params=sumo_params, scenario=scenario))
-    else:
-        env = env_class(
-              env_params=env_params, sumo_params=sumo_params, scenario=scenario)
-    # if hasattr(agent, "local_evaluator"):
-    #     env = agent.local_evaluator.env
-    # else:
-    #     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-    #           env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario))
 
     if multiagent:
         rets = {}

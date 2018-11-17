@@ -10,19 +10,23 @@ import os
 
 import ray
 import ray.rllib.agents.ppo as ppo
-from ray import tune
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
-from ray.tune import run_experiments
+from ray import tune
 from ray.tune.registry import register_env
+from ray.tune import run_experiments
 
-from flow.utils.registry import make_create_env
-from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
+from flow.controllers import ContinuousRouter
+from flow.controllers import RLController
+from flow.controllers import SumoLaneChangeController
+from flow.core.params import EnvParams
+from flow.core.params import InFlows
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoParams
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
-from flow.controllers import RLController, ContinuousRouter, \
-    SumoLaneChangeController
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 
 # time horizon of a single rollout
 HORIZON = 2000
@@ -172,15 +176,15 @@ if __name__ == '__main__':
     config['lambda'] = 0.97
     config['kl_target'] = 0.02
     config['vf_clip_param'] = 10000
-    config['lr'] = tune.grid_search([1e-3,1e-4,1e-5, 1e-6])
+    config['lr'] = tune.grid_search([1e-3, 1e-4, 1e-5, 1e-6])
     config['vf_loss_coeff'] = tune.grid_search([1, 10, 100])
     config['num_sgd_iter'] = tune.grid_search([10, 30])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
     config['model']['squash_to_range'] = True
-    config['model']["max_seq_len"] = 10
+    config['model']['max_seq_len'] = 10
     # Size of the LSTM cell
-    config['model']["lstm_cell_size"] = 32
+    config['model']['lstm_cell_size'] = 32
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -210,7 +214,7 @@ if __name__ == '__main__':
         'multiagent': {
             'policy_graphs': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn),
-            "policies_to_train": ["av"]
+            'policies_to_train': ['av']
         }
     })
 
@@ -223,6 +227,6 @@ if __name__ == '__main__':
                 'training_iteration': 400
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/10-24-18/comm_test4"
+            'upload_dir': 's3://<BUCKET NAME>'
         },
     })

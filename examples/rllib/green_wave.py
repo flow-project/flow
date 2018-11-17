@@ -4,15 +4,20 @@ import json
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
-from ray.tune import run_experiments
 from ray.tune.registry import register_env
+from ray.tune import run_experiments
 
+from flow.controllers import GridRouter
+from flow.controllers import SumoCarFollowingController
+from flow.core.params import EnvParams
+from flow.core.params import InFlows
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoCarFollowingParams
+from flow.core.params import SumoParams
+from flow.core.vehicles import Vehicles
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import SumoCarFollowingController, GridRouter
 
 # time horizon of a single rollout
 HORIZON = 200
@@ -164,21 +169,21 @@ flow_params = dict(
 if __name__ == '__main__':
     ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
-    alg_run = "PPO"
+    alg_run = 'PPO'
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config["num_workers"] = N_CPUS
-    config["train_batch_size"] = HORIZON * N_ROLLOUTS
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32]})
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 30
-    config["sgd_stepsize"] = 5e-5
-    config["observation_filter"] = "NoFilter"
-    config["use_gae"] = True
-    config["clip_param"] = 0.2
-    config["horizon"] = HORIZON
+    config['num_workers'] = N_CPUS
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['gamma'] = 0.999  # discount rate
+    config['model'].update({'fcnet_hiddens': [32, 32]})
+    config['kl_target'] = 0.02
+    config['num_sgd_iter'] = 30
+    config['sgd_stepsize'] = 5e-5
+    config['observation_filter'] = 'NoFilter'
+    config['use_gae'] = True
+    config['clip_param'] = 0.2
+    config['horizon'] = HORIZON
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -192,10 +197,10 @@ if __name__ == '__main__':
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        flow_params["exp_tag"]: {
-            "run": alg_run,
-            "env": env_name,
-            "config": {
+        flow_params['exp_tag']: {
+            'run': alg_run,
+            'env': env_name,
+            'config': {
                 **config
             },
             'checkpoint_freq': 20,

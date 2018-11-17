@@ -7,16 +7,20 @@ import json
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
-from ray.tune import run_experiments
 from ray.tune.registry import register_env
+from ray.tune import run_experiments
 
+from flow.controllers import IDMController
+from flow.controllers import RLController
+from flow.core.params import EnvParams
+from flow.core.params import InFlows
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoParams
+from flow.core.vehicles import Vehicles
+from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
-from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
-from flow.core.vehicles import Vehicles
-from flow.controllers import IDMController, RLController
 
 # experiment number
 # - 0: 10% RL penetration,  5 max controllable vehicles
@@ -132,19 +136,19 @@ flow_params = dict(
 if __name__ == '__main__':
     ray.init(num_cpus=N_CPUS+1, redirect_output=True)
 
-    alg_run = "PPO"
+    alg_run = 'PPO'
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config["num_workers"] = N_CPUS
-    config["train_batch_size"] = HORIZON * N_ROLLOUTS
-    config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [32, 32, 32]})
-    config["use_gae"] = True
-    config["lambda"] = 0.97
-    config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 10
-    config["horizon"] = HORIZON
+    config['num_workers'] = N_CPUS
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['gamma'] = 0.999  # discount rate
+    config['model'].update({'fcnet_hiddens': [32, 32, 32]})
+    config['use_gae'] = True
+    config['lambda'] = 0.97
+    config['kl_target'] = 0.02
+    config['num_sgd_iter'] = 10
+    config['horizon'] = HORIZON
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -158,10 +162,10 @@ if __name__ == '__main__':
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        flow_params["exp_tag"]: {
-            "run": alg_run,
-            "env": env_name,
-            "config": {
+        flow_params['exp_tag']: {
+            'run': alg_run,
+            'env': env_name,
+            'config': {
                 **config
             },
             'checkpoint_freq': 5,
@@ -169,6 +173,6 @@ if __name__ == '__main__':
             'stop': {
                 'training_iteration': 200,
             },
-            "num_samples": 3,
+            'num_samples': 3,
         },
     })
