@@ -27,7 +27,6 @@ class SumoParams:
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 num_clients=1,
                  sumo_binary=None):
         """Instantiate SumoParams.
 
@@ -67,10 +66,7 @@ class SumoParams:
             If set to false, this will silence sumo warnings on the stdout
         teleport_time: int, optional
             If negative, vehicles don't teleport in gridlock. If positive,
-            they teleport after teleport_time seconds.
-        num_clients: int, optional
-            Number of clients SUMO expects to connect. Should be different from
-            one only in very rare situations.
+            they teleport after teleport_time seconds
 
         """
         self.port = port
@@ -85,7 +81,6 @@ class SumoParams:
         self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
-        self.num_clients = num_clients
         if sumo_binary is not None:
             warnings.simplefilter("always", PendingDeprecationWarning)
             warnings.warn(
@@ -146,6 +141,7 @@ class EnvParams:
                 flag indicating that the evaluation reward should be used
                 so the evaluation reward should be used rather than the
                 normal reward
+
         """
         self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
         self.starting_position_shuffle = starting_position_shuffle
@@ -297,8 +293,8 @@ class SumoCarFollowingParams:
 
     def __init__(
             self,
-            accel=2.6,
-            decel=4.5,
+            accel=1.0,
+            decel=1.5,
             sigma=0.5,
             tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
             min_gap=2.5,

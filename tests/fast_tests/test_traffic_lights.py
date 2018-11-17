@@ -247,22 +247,22 @@ class TestIndividualLights(unittest.TestCase):
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "GrGr"
+            "state": "GGGrrrGGGrrr"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "yryr"
+            "state": "yyyrrryyyrrr"
         }, {
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "rGrG"
+            "state": "rrrGGGrrrGGG"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "ryry"
+            "state": "rrryyyrrryyy"
         }]
         tl_logic.add("center0", phases=phases, programID=1)
         tl_logic.add("center1", phases=phases, programID=1, offset=1)

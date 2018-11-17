@@ -382,7 +382,10 @@ class IDMController(BaseController):
         lead_id = env.vehicles.get_leader(self.veh_id)
         h = env.vehicles.get_headway(self.veh_id)
 
-        # in order to deal with ZeroDivisionError
+        # negative headways may be registered by sumo at intersections/
+        # junctions. Setting them to 0 causes vehicles to not move; therefore,
+        # we maintain these negative headways to let sumo control the dynamics
+        # as it sees fit at these points.
         if abs(h) < 1e-3:
             h = 1e-3
 

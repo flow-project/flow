@@ -65,7 +65,7 @@ def bottleneck0_baseline(num_runs, render=True):
     }
 
     # flow rate
-    flow_rate = 2000 * SCALING
+    flow_rate = 1900 * SCALING
 
     # percentage of flow coming out of each lane
     inflow = InFlows()

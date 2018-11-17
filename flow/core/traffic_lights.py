@@ -196,9 +196,8 @@ class TrafficLights:
 
     def actuated_default(self):
         """
-        Return the default values to be used for the generator
-        for a system where all junctions are actuated time-gap
-        based traffic lights.
+        Return the default values to be used for the scenario
+        for a system where all junctions are actuated traffic lights.
 
         Returns
         -------
@@ -213,22 +212,22 @@ class TrafficLights:
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "GrGr"
+            "state": "GGGrrrGGGrrr"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "yryr"
+            "state": "yyyrrryyyrrr"
         }, {
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "rGrG"
+            "state": "rrrGGGrrrGGG"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "ryry"
+            "state": "rrryyyrrryyy"
         }]
 
         return {

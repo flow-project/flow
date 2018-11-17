@@ -35,7 +35,7 @@ class TrafficLightGridEnv(Env):
     * switch_time: minimum switch time for each traffic light (in seconds).
       Earlier RL commands are ignored.
     * tl_type: whether the traffic lights should be actuated by sumo or RL
-      options are respectively "actuated" and "controlled"
+      options are "controlled" and "actuated"
     * discrete: determines whether the action space is meant to be discrete or
       continuous
 
@@ -100,7 +100,7 @@ class TrafficLightGridEnv(Env):
         if self.tl_type != "actuated":
             for i in range(self.rows * self.cols):
                 self.traci_connection.trafficlight.setRedYellowGreenState(
-                    'center' + str(i), "GrGr")
+                    'center' + str(i), "GGGrrrGGGrrr")
                 self.last_change[i, 2] = 1
 
         # Additional Information for Plotting
@@ -152,7 +152,7 @@ class TrafficLightGridEnv(Env):
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """See class definition."""
         # compute the normalizers
         max_dist = max(self.scenario.short_length, self.scenario.long_length,
@@ -200,12 +200,12 @@ class TrafficLightGridEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state="GrGr",
+                            state="GGGrrrGGGrrr",
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='rGrG',
+                            state='rrrGGGrrrGGG',
                             env=self)
                     self.last_change[i, 2] = 1
             else:
@@ -213,12 +213,12 @@ class TrafficLightGridEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='yryr',
+                            state='yyyrrryyyrrr',
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='ryry',
+                            state='rrryyyrrryyy',
                             env=self)
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]
@@ -500,7 +500,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             dtype=np.float32)
         return tl_box
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """
         Returns self.num_observed number of vehicles closest to each traffic
         light and for each vehicle its velocity, distance to intersection,
@@ -571,13 +571,13 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         if self.env_params.evaluate:
             return - rewards.min_delay_unscaled(self)
         else:
-            return (- rewards.min_delay_unscaled(self) +
-                    rewards.penalize_standstill(self, gain=0.2))
+            return rewards.desired_velocity(self, fail=kwargs["fail"])
 
     def additional_command(self):
         """See class definition."""
         # specify observed vehicles
         [self.vehicles.set_observed(veh_id) for veh_id in self.observed_ids]
+
 
 class GreenWaveTestEnv(TrafficLightGridEnv):
     """

@@ -141,7 +141,6 @@ if __name__ == '__main__':
     agent = agent_cls(env=env_name, config=config)
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
-    import ipdb; ipdb.set_trace()
     agent.restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters

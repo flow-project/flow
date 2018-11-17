@@ -131,7 +131,7 @@ class TwoLoopsMergePOEnv(Env):
             self.vehicles, self.sorted_extra_data, normalization)
         return vel_reward + headway_reward
 
-    def get_state(self, rl_actions=None):
+    def get_state(self, **kwargs):
         """See class definition."""
         vel = np.zeros(self.n_obs_vehicles)
         pos = np.zeros(self.n_obs_vehicles)

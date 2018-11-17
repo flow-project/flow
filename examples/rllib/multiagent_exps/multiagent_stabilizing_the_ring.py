@@ -1,7 +1,6 @@
 """Ring road example.
 
-Trains a single autonomous vehicle to stabilize the flow of 21 human-driven
-vehicles in a variable length ring road.
+Creates a set of stabilizing the ring experiments to test if more agents -> fewer needed batches
 """
 
 import json
@@ -27,9 +26,9 @@ HORIZON = 3000
 # Number of rings
 NUM_RINGS = 1
 # number of rollouts per training iteration
-N_ROLLOUTS = int(20/NUM_RINGS)
+N_ROLLOUTS = 20# int(20/NUM_RINGS)
 # number of parallel workers
-N_CPUS = int(20/NUM_RINGS)
+N_CPUS = 4 #int(20/NUM_RINGS)
 
 
 # We place one autonomous vehicle and 21 human-driven vehicles in the network
@@ -100,7 +99,7 @@ flow_params = dict(
 )
 
 if __name__ == '__main__':
-    ray.init()
+    ray.init(num_cpus=5)
 
     config = ppo.DEFAULT_CONFIG.copy()
     config['num_workers'] = min(N_CPUS, 12)
