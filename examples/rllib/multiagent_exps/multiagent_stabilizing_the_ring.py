@@ -25,7 +25,7 @@ os.environ['MULTIAGENT'] = 'True'
 # time horizon of a single rollout
 HORIZON = 3000
 # Number of rings
-NUM_RINGS = 10
+NUM_RINGS = 1
 # number of rollouts per training iteration
 N_ROLLOUTS = int(20/NUM_RINGS)
 # number of parallel workers
