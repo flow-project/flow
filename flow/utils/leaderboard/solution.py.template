@@ -16,6 +16,6 @@ def get_actions(state):
 
 
 # Specify get_state() method below.
-def get_states(env, **kwargs):
+def get_states(env, rl_actions=None):
     # get_states() code goes here...
     return

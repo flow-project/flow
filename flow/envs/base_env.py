@@ -775,7 +775,7 @@ class Env(*classdef):
             if acc[i] is not None:
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                self.traci_connection.vehicle.slowDown(vid, next_vel, 1e-3)
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
 
     def apply_lane_change(self, veh_ids, direction):
         """Apply an instantaneous lane-change to a set of vehicles.
