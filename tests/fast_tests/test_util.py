@@ -185,6 +185,8 @@ class TestRllib(unittest.TestCase):
             sumo_car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
+            # for testing coverage purposes, we add a routing controller
+            routing_controller=(ContinuousRouter, {}),
             num_vehicles=5)
         vehicles.add(
             veh_id="rl",
