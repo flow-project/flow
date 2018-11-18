@@ -139,7 +139,7 @@ class TestRllibExamples(unittest.TestCase):
 
     def run_exp(self, alg_run, env_name, config):
         try:
-            ray.init(num_cpus=1, redis_address="localhost:6379")
+            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
         except Exception:
             pass
 
@@ -147,6 +147,7 @@ class TestRllibExamples(unittest.TestCase):
         config['horizon'] = 50
         config['sample_batch_size'] = 50
         config['num_workers'] = 0
+        config['sgd_minibatch_size'] = 32
 
         run_experiments({
             'test': {
