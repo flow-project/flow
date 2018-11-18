@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # number of parallel workers
     num_cpus = args.num_cpus
 
-    upload_dir = parser.upload_dir
+    upload_dir = args.upload_dir
 
     # Import the benchmark and fetch its flow_params
     benchmark = __import__(
