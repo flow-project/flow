@@ -7,7 +7,9 @@ import numpy as np
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
-from flow.benchmarks.grid1 import flow_params, N_ROWS, N_COLUMNS
+from flow.benchmarks.grid1 import flow_params
+from flow.benchmarks.grid1 import N_ROWS
+from flow.benchmarks.grid1 import N_COLUMNS
 
 
 def grid1_baseline(num_runs, render=True):
@@ -26,12 +28,12 @@ def grid1_baseline(num_runs, render=True):
         SumoExperiment
             class needed to run simulations
     """
-    exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
-    vehicles = flow_params["veh"]
-    env_params = flow_params["env"]
-    net_params = flow_params["net"]
-    initial_config = flow_params.get("initial", InitialConfig())
+    exp_tag = flow_params['exp_tag']
+    sumo_params = flow_params['sumo']
+    vehicles = flow_params['veh']
+    env_params = flow_params['env']
+    net_params = flow_params['net']
+    initial_config = flow_params.get('initial', InitialConfig())
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)

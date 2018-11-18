@@ -7,7 +7,9 @@ import numpy as np
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
-from flow.benchmarks.grid0 import flow_params, N_ROWS, N_COLUMNS
+from flow.benchmarks.grid0 import flow_params
+from flow.benchmarks.grid0 import N_ROWS
+from flow.benchmarks.grid0 import N_COLUMNS
 
 
 def grid0_baseline(num_runs, render=True):

@@ -10,7 +10,8 @@ from flow.core.params import InFlows
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.controllers import ContinuousRouter
-from flow.benchmarks.bottleneck0 import flow_params, SCALING
+from flow.benchmarks.bottleneck0 import flow_params
+from flow.benchmarks.bottleneck0 import SCALING
 
 
 def bottleneck0_baseline(num_runs, render=True):
@@ -38,7 +39,7 @@ def bottleneck0_baseline(num_runs, render=True):
 
     # remove autonomous vehicles
     vehicles = Vehicles()
-    vehicles.add(veh_id="human",
+    vehicles.add(veh_id='human',
                  speed_mode=9,
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0,
