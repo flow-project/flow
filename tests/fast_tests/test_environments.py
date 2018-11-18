@@ -46,52 +46,18 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        params = {"max_decel": 3,
-                  "lane_change_duration": 5,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "lane_change_duration": 5,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "lane_change_duration": 5}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
+        self.assertTrue(
+            test_additional_params(
+                env_class=LaneChangeAccelEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "lane_change_duration": 5,
+                    "target_velocity": 10
+                }
+            )
         )
 
     def test_observation_action_space(self):
@@ -123,15 +89,15 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        env = LaneChangeAccelEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=self.env_params
+        self.assertTrue(
+            test_observed(
+                env_class=LaneChangeAccelEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
         )
-        env.additional_command()
-        self.assertListEqual(env.vehicles.get_observed_ids(),
-                             env.vehicles.get_human_ids())
-        env.terminate()
 
 
 class TestLaneChangeAccelPOEnv(unittest.TestCase):
@@ -163,52 +129,18 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        params = {"max_decel": 3,
-                  "lane_change_duration": 5,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelPOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "lane_change_duration": 5,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelPOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelPOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "lane_change_duration": 5}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            LaneChangeAccelPOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
+        self.assertTrue(
+            test_additional_params(
+                env_class=LaneChangeAccelPOEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "lane_change_duration": 5,
+                    "target_velocity": 10
+                }
+            )
         )
 
     def test_observation_action_space(self):
@@ -232,17 +164,15 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        env = LaneChangeAccelPOEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=self.env_params
+        self.assertTrue(
+            test_observed(
+                env_class=LaneChangeAccelPOEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
         )
-        env.step(None)
-        env.additional_command()
-        self.assertListEqual(env.vehicles.get_observed_ids(),
-                             env.vehicles.get_leader(
-                                 env.vehicles.get_rl_ids()))
-        env.terminate()
 
 
 class TestAccelEnv(unittest.TestCase):
@@ -273,37 +203,17 @@ class TestAccelEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        params = {"max_decel": 3,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            AccelEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "target_velocity": 10}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            AccelEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            AccelEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
+        self.assertTrue(
+            test_additional_params(
+                env_class=AccelEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "target_velocity": 10
+                }
+            )
         )
 
     def test_observation_action_space(self):
@@ -332,15 +242,15 @@ class TestAccelEnv(unittest.TestCase):
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        env = AccelEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=self.env_params
+        self.assertTrue(
+            test_observed(
+                env_class=AccelEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
         )
-        env.additional_command()
-        self.assertListEqual(env.vehicles.get_observed_ids(),
-                             env.vehicles.get_human_ids())
-        env.terminate()
 
 
 class TestTwoLoopsMergeEnv(unittest.TestCase):
@@ -512,37 +422,17 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        params = {"max_decel": 1,
-                  "ring_length": [220, 270]}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 1,
-                  "ring_length": [220, 270]}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 1,
-                  "max_decel": 1}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
+        self.assertTrue(
+            test_additional_params(
+                env_class=WaveAttenuationEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "ring_length": [220, 270],
+                }
+            )
         )
 
     def test_observation_action_space(self):
@@ -610,37 +500,17 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        params = {"max_decel": 1,
-                  "ring_length": [220, 270]}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationPOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 1,
-                  "ring_length": [220, 270]}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationPOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 1,
-                  "max_decel": 1}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationPOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
+        self.assertTrue(
+            test_additional_params(
+                env_class=WaveAttenuationPOEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "ring_length": [220, 270],
+                }
+            )
         )
 
     def test_observation_action_space(self):
@@ -705,52 +575,18 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        params = {"max_decel": 3,
-                  "target_velocity": 25,
-                  "num_rl": 5}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "target_velocity": 25,
-                  "num_rl": 5}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "num_rl": 5}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 25}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            WaveAttenuationMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
+        self.assertTrue(
+            test_additional_params(
+                env_class=WaveAttenuationMergePOEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 1,
+                    "target_velocity": 25,
+                    "num_rl": 5
+                }
+            )
         )
 
     def test_observation_action_space(self):
@@ -829,6 +665,98 @@ class TestTestEnv(unittest.TestCase):
 
         self.env.env_params.additional_params["reward_fn"] = reward_fn
         self.assertEqual(self.env.compute_reward([]), 1)
+
+
+###############################################################################
+#                              Utility methods                                #
+###############################################################################
+
+def test_additional_params(env_class,
+                           sumo_params,
+                           scenario,
+                           additional_params):
+    """Test that the environment raises an Error in any param is missing.
+
+    Parameters
+    ----------
+    env_class : flow.envs.Env type
+        blank
+    sumo_params : flow.scenarios.Scenario
+        sumo-specific parameters
+    scenario : flow.core.params.SumoParams
+        scenario that works for the environment
+    additional_params : dict
+        the valid and required additional parameters for the environment in
+        EnvParams
+
+    Returns
+    -------
+    bool
+        True if the test passed, False otherwise
+    """
+    for key in additional_params.keys():
+        # remove one param from the additional_params dict
+        new_add = additional_params.copy()
+        del new_add[key]
+
+        try:
+            env_class(
+                sumo_params=sumo_params,
+                scenario=scenario,
+                env_params=EnvParams(additional_params=new_add)
+            )
+            # if no KeyError is raised, the test has failed, so return False
+            return False
+        except KeyError:
+            # if a KeyError is raised, test the next param
+            pass
+
+    # if removing all additional params led to KeyErrors, the test has passed,
+    # so return True
+    return True
+
+
+def test_observed(env_class,
+                  sumo_params,
+                  scenario,
+                  env_params,
+                  expected_observed):
+    """Test that the observed vehicles in the environment are as expected.
+
+    Parameters
+    ----------
+    env_class : flow.envs.Env type
+        blank
+    sumo_params : flow.scenarios.Scenario
+        sumo-specific parameters
+    scenario : flow.core.params.SumoParams
+        scenario that works for the environment
+    env_params : flow.core.params.EnvParams
+        environment-specific parameters
+    expected_observed : list or numpy.ndarray
+        expected list of observed vehicles
+
+    Returns
+    -------
+    bool
+        True if the test passed, False otherwise
+    """
+    env = env_class(sumo_params=sumo_params,
+                    scenario=scenario,
+                    env_params=env_params)
+    env.step(None)
+    env.additional_command()
+    test_mask = np.all(
+        np.array(env.vehicles.get_observed_ids()) ==
+        np.array(expected_observed)
+    )
+    env.terminate()
+
+    return test_mask
+
+###############################################################################
+#                                End of utils                                 #
+###############################################################################
 
 
 if __name__ == '__main__':
