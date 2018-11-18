@@ -15,7 +15,7 @@ class TestVisualizerRLlib(unittest.TestCase):
 
     def test_visualizer(self):
         try:
-            ray.init(num_cpus=1, redis_address="localhost:6379")
+            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
         except Exception:
             pass
 
