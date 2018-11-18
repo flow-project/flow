@@ -139,7 +139,7 @@ class TestRllibExamples(unittest.TestCase):
 
     def run_exp(self, alg_run, env_name, config):
         try:
-            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+            ray.init(num_cpus=1, redis_address="localhost:6379")
         except Exception:
             pass
 
