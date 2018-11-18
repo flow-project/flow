@@ -50,7 +50,6 @@ def average_velocity(env, fail=False):
         return 0.
     if len(vel) == 0:
         return 0.
-    # return sum(vel) / 3 #just cuz
 
     return np.mean(vel)
 
@@ -268,7 +267,6 @@ def punish_small_rl_headways(env,
                 (((headway_threshold - env.vehicles.get_headway(veh_id)) /
                   headway_threshold) ** penalty_exponent) * penalty_gain
 
-    # return max_headway_penalty - headway_penalty
     return -np.abs(headway_penalty)
 
 
