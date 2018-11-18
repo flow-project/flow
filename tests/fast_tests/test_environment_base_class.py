@@ -16,6 +16,11 @@ import numpy as np
 
 os.environ["TEST_FLAG"] = "True"
 
+# colors for vehicles
+WHITE = (255, 255, 255, 255)
+CYAN = (0, 255, 255, 255)
+RED = (255, 0, 0, 255)
+
 
 class TestStartingPositionShuffle(unittest.TestCase):
     """
@@ -497,8 +502,8 @@ class TestVehicleColoring(unittest.TestCase):
         # check that, when rendering is off, the colors don't change (this
         # avoids unnecessary API calls)
         for veh_id in env.vehicles.get_ids():
-            self.assertEqual(env.traci_connection.vehicle.getColor(veh_id),
-                             (255, 255, 255, 255))
+            self.assertEqual(
+                env.traci_connection.vehicle.getColor(veh_id), WHITE)
 
         # a little hack to ensure the colors change
         env.sumo_params.render = True
@@ -513,14 +518,14 @@ class TestVehicleColoring(unittest.TestCase):
         # check the colors of all vehicles
         for veh_id in env.vehicles.get_ids():
             if veh_id == "human_0":
-                self.assertEqual(env.traci_connection.vehicle.getColor(veh_id),
-                                 (0, 255, 255, 255))
+                self.assertEqual(
+                    env.traci_connection.vehicle.getColor(veh_id), CYAN)
             elif veh_id == "rl_0":
-                self.assertEqual(env.traci_connection.vehicle.getColor(veh_id),
-                                 (255, 0, 0, 255))
+                self.assertEqual(
+                    env.traci_connection.vehicle.getColor(veh_id), RED)
             else:
-                self.assertEqual(env.traci_connection.vehicle.getColor(veh_id),
-                                 (255, 255, 255, 255))
+                self.assertEqual(
+                    env.traci_connection.vehicle.getColor(veh_id), WHITE)
 
 
 if __name__ == '__main__':
