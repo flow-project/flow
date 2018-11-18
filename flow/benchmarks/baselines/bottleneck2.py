@@ -37,7 +37,7 @@ def bottleneck2_baseline(num_runs, render=True):
     initial_config = flow_params.get('initial', InitialConfig())
     traffic_lights = flow_params.get('tls', TrafficLights())
 
-    # remove autonomous vehicles
+    # we want no autonomous vehicles in the simulation
     vehicles = Vehicles()
     vehicles.add(veh_id='human',
                  speed_mode=9,
@@ -45,7 +45,7 @@ def bottleneck2_baseline(num_runs, render=True):
                  lane_change_mode=0,
                  num_vehicles=1 * SCALING)
 
-    # modify the inflows to only include human vehicles
+    # only include human vehicles in inflows
     flow_rate = 1900 * SCALING
     inflow = InFlows()
     inflow.add(veh_type='human', edge='1',
