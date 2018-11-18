@@ -114,7 +114,11 @@ class TestRllibExamples(unittest.TestCase):
     """
 
     def setUp(self):
-        ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+        try:
+            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+        except:
+            ray.shutdown()
+            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
 
     def tearDown(self):
         ray.shutdown()
