@@ -81,6 +81,10 @@ if __name__ == "__main__":
     config["eval_prob"] = 0.05
     config["noise_stdev"] = grid_search([0.01, 0.02])
     config["stepsize"] = grid_search([0.01, 0.02])
+
+    config["noise_stdev"] = 0.02
+    config["stepsize"] = 0.02
+
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
     config["observation_filter"] = "NoFilter"
     # save the flow params for replay
@@ -101,8 +105,8 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 25,
             "max_failures": 999,
-            "stop": {"training_iteration": 500},
+            "stop": {"training_iteration": 1},
             "num_samples": 1,
-            # "upload_dir": "s3://<BUCKET NAME>"
+            "upload_dir": "s3://" + upload_dir
         },
     })
