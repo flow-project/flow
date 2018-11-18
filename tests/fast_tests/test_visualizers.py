@@ -4,7 +4,6 @@ from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 
 import os
-import ray
 import unittest
 
 os.environ['TEST_FLAG'] = 'True'
