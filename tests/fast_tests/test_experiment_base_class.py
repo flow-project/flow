@@ -98,7 +98,7 @@ class TestConvertToCSV(unittest.TestCase):
     is requested.
     """
 
-    def test_covert_to_csv(self):
+    def test_convert_to_csv(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sumo_params = SumoParams(emission_path="{}/".format(dir_path))
         env, scenario = ring_road_exp_setup(sumo_params=sumo_params)
