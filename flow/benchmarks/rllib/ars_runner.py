@@ -34,6 +34,10 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--benchmark_name", type=str, help="File path to solution environment.")
 
+# required input parameters
+parser.add_argument(
+    "--upload_dir", type=str, help="S3 Bucket to upload to.")
+
 # optional input parameters
 parser.add_argument(
     '--num_rollouts',
@@ -57,6 +61,8 @@ if __name__ == "__main__":
     num_rollouts = args.num_rollouts
     # number of parallel workers
     num_cpus = args.num_cpus
+    # upload dir
+    upload_dir = parser.upload_dir
 
     # Import the benchmark and fetch its flow_params
     benchmark = __import__(
@@ -76,9 +82,11 @@ if __name__ == "__main__":
     config["num_workers"] = min(num_cpus, num_rollouts)
     config["num_rollouts"] = num_rollouts
     config["rollouts_used"] = num_rollouts
-    config["sgd_stepsize"] = grid_search([.01, .02])
-    config["noise_stdev"] = grid_search([.01, .02])
-    # config['policy_type'] = 'LinearPolicy'
+    # config["sgd_stepsize"] = grid_search([.01, .02])
+    # config["noise_stdev"] = grid_search([.01, .02])
+    # optimal hyperparameters:
+    config["sgd_stepsize"] = 0.2
+    config["noise_stdev"] = 0.2
     config['eval_prob'] = 0.05
     config['observation_filter'] = "NoFilter"
 
@@ -100,8 +108,8 @@ if __name__ == "__main__":
             },
             "checkpoint_freq": 25,
             "max_failures": 999,
-            "stop": {"training_iteration": 500},
+            "stop": {"training_iteration": 1},
             "num_samples": 1,
-            # "upload_dir": "s3://<BUCKET NAME>"
+            "upload_dir": "s3://"+upload_dir
         },
     })

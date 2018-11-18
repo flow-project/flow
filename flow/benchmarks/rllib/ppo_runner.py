@@ -78,8 +78,8 @@ if __name__ == "__main__":
     config["train_batch_size"] = horizon * num_rollouts
     config["use_gae"] = True
     config["horizon"] = horizon
-    config["lambda"] = grid_search([0.97, 1.0])
-    config["lr"] = grid_search([5e-4, 5e-5])
+    config["lambda"] = 0.97
+    config["lr"] = 5e-4
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
@@ -104,9 +104,9 @@ if __name__ == "__main__":
             "checkpoint_freq": 25,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 500
+                "training_iteration": 1
             },
             "num_samples": 3,
-            # "upload_dir": "s3://<BUCKET NAME>"
+            "upload_dir": "s3://" + upload_dir
         },
     })

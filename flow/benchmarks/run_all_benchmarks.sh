@@ -16,7 +16,8 @@ echo # just a final linefeed, optics...
 return $retval
 }
 
-declare -a benchmarks=("bottleneck0" "bottleneck1" "bottleneck2"
+declare -a benchmarks=("bottleneck0"
+#                        "bottleneck1" "bottleneck2"
 #                        "figureeight0" "figureeight1" "figureeight2"
 #                        "figureeight0" "figureeight1" "figureeight2"
 #                        "grid0" "grid1"
@@ -30,13 +31,14 @@ dt=$(date '+%Y_%m_%d_%H%M');
 echo $dt
 for run_script in rllib/*_runner.py; do
     for benchmark in "${benchmarks[@]}"; do
-#        if continue(${benchmark}, ${run_script}); then
+        declare alg=`echo ${run_script} | cut -d'/' -f 2 | cut -d'_' -f 1`
         echo "====================================================================="
-        echo "Training ${benchmark} with ${run_script}"
+        echo "Training ${benchmark} with ${alg}"
         echo "====================================================================="
-        ray exec ../../scripts/benchmark_autoscale.yaml "python ./flow/benchmarks/rllib/${run_script} --benchmark_name=${benchmark}" --start --stop --cluster-name=all_benchmark_${benchmark}_$dt
+        ray exec ../../scripts/benchmark_autoscale.yaml "python ./flow/flow/benchmarks/${run_script} --upload_dir="flow-benchmark.results/$dt" --benchmark_name=${benchmark}" --start --stop --cluster-name=all_benchmark_${benchmark}_${args}_$dt --tmux
 #        else
 #            break
 #        fi
     done
+    break
 done
