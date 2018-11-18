@@ -5,7 +5,8 @@ Baseline is no AVs.
 
 import numpy as np
 from flow.core.experiment import SumoExperiment
-from flow.core.params import InitialConfig, InFlows
+from flow.core.params import InitialConfig
+from flow.core.params import InFlows
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.controllers import ContinuousRouter
@@ -28,16 +29,16 @@ def bottleneck2_baseline(num_runs, render=True):
         SumoExperiment
             class needed to run simulations
     """
-    exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
-    env_params = flow_params["env"]
-    net_params = flow_params["net"]
-    initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    exp_tag = flow_params['exp_tag']
+    sumo_params = flow_params['sumo']
+    env_params = flow_params['env']
+    net_params = flow_params['net']
+    initial_config = flow_params.get('initial', InitialConfig())
+    traffic_lights = flow_params.get('tls', TrafficLights())
 
     # remove autonomous vehicles
     vehicles = Vehicles()
-    vehicles.add(veh_id="human",
+    vehicles.add(veh_id='human',
                  speed_mode=9,
                  routing_controller=(ContinuousRouter, {}),
                  lane_change_mode=0,
@@ -46,9 +47,9 @@ def bottleneck2_baseline(num_runs, render=True):
     # modify the inflows to only include human vehicles
     flow_rate = 1900 * SCALING
     inflow = InFlows()
-    inflow.add(veh_type="human", edge="1",
+    inflow.add(veh_type='human', edge='1',
                vehs_per_hour=flow_rate,
-               departLane="random", departSpeed=10)
+               departLane='random', departSpeed=10)
     net_params.inflows = inflow
 
     # modify the rendering to match what is requested
@@ -58,8 +59,8 @@ def bottleneck2_baseline(num_runs, render=True):
     env_params.evaluate = True
 
     # import the scenario class
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
-    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    scenario_class = getattr(module, flow_params['scenario'])
 
     # create the scenario object
     scenario = scenario_class(
@@ -71,8 +72,8 @@ def bottleneck2_baseline(num_runs, render=True):
     )
 
     # import the environment class
-    module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
-    env_class = getattr(module, flow_params["env_name"])
+    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
+    env_class = getattr(module, flow_params['env_name'])
 
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
@@ -81,10 +82,10 @@ def bottleneck2_baseline(num_runs, render=True):
 
     results = exp.run(num_runs, env_params.horizon)
 
-    return np.mean(results["returns"]), np.std(results["returns"])
+    return np.mean(results['returns']), np.std(results['returns'])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     runs = 2  # number of simulations to average over
     mean, std = bottleneck2_baseline(num_runs=runs, render=False)
 

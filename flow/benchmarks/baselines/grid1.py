@@ -35,16 +35,16 @@ def grid1_baseline(num_runs, render=True):
 
     # define the traffic light logic
     tl_logic = TrafficLights(baseline=False)
-    phases = [{"duration": "31", "minDur": "5", "maxDur": "45",
-               "state": "GGGrrrGGGrrr"},
-              {"duration": "2", "minDur": "2", "maxDur": "2",
-               "state": "yyyrrryyyrrr"},
-              {"duration": "31", "minDur": "5", "maxDur": "45",
-               "state": "rrrGGGrrrGGG"},
-              {"duration": "2", "minDur": "2", "maxDur": "2",
-               "state": "rrryyyrrryyy"}]
+    phases = [{'duration': '31', 'minDur': '5', 'maxDur': '45',
+               'state': 'GGGrrrGGGrrr'},
+              {'duration': '2', 'minDur': '2', 'maxDur': '2',
+               'state': 'yyyrrryyyrrr'},
+              {'duration': '31', 'minDur': '5', 'maxDur': '45',
+               'state': 'rrrGGGrrrGGG'},
+              {'duration': '2', 'minDur': '2', 'maxDur': '2',
+               'state': 'rrryyyrrryyy'}]
     for i in range(N_ROWS*N_COLUMNS):
-        tl_logic.add("center"+str(i), tls_type="actuated", phases=phases,
+        tl_logic.add('center'+str(i), tls_type='actuated', phases=phases,
                      programID=1)
 
     # modify the rendering to match what is requested
@@ -54,8 +54,8 @@ def grid1_baseline(num_runs, render=True):
     env_params.evaluate = True
 
     # import the scenario class
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
-    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    scenario_class = getattr(module, flow_params['scenario'])
 
     # create the scenario object
     scenario = scenario_class(
@@ -67,8 +67,8 @@ def grid1_baseline(num_runs, render=True):
     )
 
     # import the environment class
-    module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
-    env_class = getattr(module, flow_params["env_name"])
+    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
+    env_class = getattr(module, flow_params['env_name'])
 
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
@@ -76,12 +76,12 @@ def grid1_baseline(num_runs, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, env_params.horizon)
-    total_delay = np.mean(results["returns"])
+    total_delay = np.mean(results['returns'])
 
     return total_delay
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     runs = 1  # number of simulations to average over
     res = grid1_baseline(num_runs=runs, render=False)
 
