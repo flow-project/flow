@@ -29,13 +29,13 @@ def merge_baseline(num_runs, flow_params, render=True):
         SumoExperiment
             class needed to run simulations
     """
-    exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
-    vehicles = flow_params["veh"]
-    env_params = flow_params["env"]
-    net_params = flow_params["net"]
-    initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    exp_tag = flow_params['exp_tag']
+    sumo_params = flow_params['sumo']
+    vehicles = flow_params['veh']
+    env_params = flow_params['env']
+    net_params = flow_params['net']
+    initial_config = flow_params.get('initial', InitialConfig())
+    traffic_lights = flow_params.get('tls', TrafficLights())
 
     # modify the rendering to match what is requested
     sumo_params.render = render
@@ -44,8 +44,8 @@ def merge_baseline(num_runs, flow_params, render=True):
     env_params.evaluate = True
 
     # import the scenario class
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
-    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    scenario_class = getattr(module, flow_params['scenario'])
 
     # create the scenario object
     scenario = scenario_class(
@@ -57,8 +57,8 @@ def merge_baseline(num_runs, flow_params, render=True):
     )
 
     # import the environment class
-    module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
-    env_class = getattr(module, flow_params["env_name"])
+    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
+    env_class = getattr(module, flow_params['env_name'])
 
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
@@ -66,12 +66,12 @@ def merge_baseline(num_runs, flow_params, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, env_params.horizon)
-    avg_speed = np.mean(results["mean_returns"])
+    avg_speed = np.mean(results['mean_returns'])
 
     return avg_speed
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     runs = 2  # number of simulations to average over
     res = merge_baseline(num_runs=runs, flow_params=flow_params, render=False)
 
