@@ -7,7 +7,7 @@ parameters can be specified here once and used on multiple environments.
 import json
 
 import ray
-import ray.rllib.agents.es as es
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
@@ -29,7 +29,10 @@ if __name__ == "__main__":
     # initialize a ray instance
     ray.init(redirect_output=True)
 
-    config = es.DEFAULT_CONFIG.copy()
+    alg_run = "ES"
+
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
     config["episodes_per_batch"] = N_ROLLOUTS
     config["num_workers"] = N_ROLLOUTS
     config["eval_prob"] = 0.05
@@ -41,13 +44,14 @@ if __name__ == "__main__":
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,
                            indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     # Register as rllib env
     register_env(env_name, create_env)
 
     trials = run_experiments({
         flow_params["exp_tag"]: {
-            "run": "ES",
+            "run": alg_run,
             "env": env_name,
             "config": {
                 **config
