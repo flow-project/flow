@@ -8,7 +8,8 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
-from flow.controllers import IDMController, ContinuousRouter
+from flow.controllers import IDMController
+from flow.controllers import ContinuousRouter
 from flow.benchmarks.figureeight0 import flow_params
 
 
@@ -31,12 +32,12 @@ def figure_eight_baseline(num_runs, flow_params, render=True):
         SumoExperiment
             class needed to run simulations
     """
-    exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
-    env_params = flow_params["env"]
-    net_params = flow_params["net"]
-    initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    exp_tag = flow_params['exp_tag']
+    sumo_params = flow_params['sumo']
+    env_params = flow_params['env']
+    net_params = flow_params['net']
+    initial_config = flow_params.get('initial', InitialConfig())
+    traffic_lights = flow_params.get('tls', TrafficLights())
 
     # modify the rendering to match what is requested
     sumo_params.render = render
@@ -46,15 +47,15 @@ def figure_eight_baseline(num_runs, flow_params, render=True):
 
     # we want no autonomous vehicles in the simulation
     vehicles = Vehicles()
-    vehicles.add(veh_id="human",
-                 acceleration_controller=(IDMController, {"noise": 0.2}),
+    vehicles.add(veh_id='human',
+                 acceleration_controller=(IDMController, {'noise': 0.2}),
                  routing_controller=(ContinuousRouter, {}),
-                 speed_mode="no_collide",
+                 speed_mode='no_collide',
                  num_vehicles=14)
 
     # import the scenario class
-    module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
-    scenario_class = getattr(module, flow_params["scenario"])
+    module = __import__('flow.scenarios', fromlist=[flow_params['scenario']])
+    scenario_class = getattr(module, flow_params['scenario'])
 
     # create the scenario object
     scenario = scenario_class(
@@ -66,8 +67,8 @@ def figure_eight_baseline(num_runs, flow_params, render=True):
     )
 
     # import the environment class
-    module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
-    env_class = getattr(module, flow_params["env_name"])
+    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
+    env_class = getattr(module, flow_params['env_name'])
 
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
@@ -75,12 +76,12 @@ def figure_eight_baseline(num_runs, flow_params, render=True):
     exp = SumoExperiment(env, scenario)
 
     results = exp.run(num_runs, env_params.horizon)
-    avg_speed = np.mean(results["mean_returns"])
+    avg_speed = np.mean(results['mean_returns'])
 
     return avg_speed
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     runs = 2  # number of simulations to average over
     res = figure_eight_baseline(num_runs=runs, flow_params=flow_params)
 
