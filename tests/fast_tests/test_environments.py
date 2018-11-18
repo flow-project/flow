@@ -70,22 +70,24 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         )
 
         # check the observation space
-        self.assertEqual(env.observation_space.shape[0],
-                         3 * env.vehicles.num_vehicles)
-        self.assertTrue(all(env.observation_space.high == 1))
-        self.assertTrue(all(env.observation_space.low == 0))
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=3 * env.vehicles.num_vehicles,
+            expected_min=0,
+            expected_max=1)
+        )
 
         # check the action space
-        self.assertEqual(env.action_space.shape[0],
-                         2 * env.vehicles.num_rl_vehicles)
-        self.assertTrue(
-            (env.action_space.high ==
-             np.array([env.env_params.additional_params["max_accel"],
-                       1])).all())
-        self.assertTrue(
-            (env.action_space.low ==
-             np.array([-env.env_params.additional_params["max_decel"],
-                       -1])).all())
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=2 * env.vehicles.num_rl_vehicles,
+            expected_min=np.array([
+                -env.env_params.additional_params["max_decel"], -1]),
+            expected_max=np.array([
+                env.env_params.additional_params["max_accel"], 1]))
+        )
+
+        env.terminate()
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
@@ -153,14 +155,19 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
         )
 
         # check the observation space
-        self.assertEqual(env.observation_space.shape[0], 5)
-        self.assertTrue(all(env.observation_space.high == 1))
-        self.assertTrue(all(env.observation_space.low == 0))
+        self.assertTrue(test_space(
+            env.observation_space, expected_size=5, expected_min=0,
+            expected_max=1))
 
         # check the action space
-        self.assertEqual(env.action_space.shape[0], 2)
-        self.assertTrue(all(env.action_space.high == np.array([3, 1])))
-        self.assertTrue(all(env.action_space.low == np.array([-3, -1])))
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=2,
+            expected_min=np.array([-3, -1]),
+            expected_max=np.array([3, 1]))
+        )
+
+        env.terminate()
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
@@ -224,19 +231,19 @@ class TestAccelEnv(unittest.TestCase):
             env_params=self.env_params
         )
 
-        # test the observation space
-        self.assertEqual(env.observation_space.shape[0],
-                         2 * env.vehicles.num_vehicles)
-        self.assertTrue(all(env.observation_space.high == 1))
-        self.assertTrue(all(env.observation_space.low == 0))
+        # check the observation space
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=2 * env.vehicles.num_vehicles,
+            expected_min=0, expected_max=1))
 
-        # test the action space
-        self.assertEqual(env.action_space.shape[0],
-                         env.vehicles.num_rl_vehicles)
-        self.assertEqual(env.action_space.high,
-                         env.env_params.additional_params["max_accel"])
-        self.assertEqual(env.action_space.low,
-                         -env.env_params.additional_params["max_decel"])
+        # check the action space
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=env.vehicles.num_rl_vehicles,
+            expected_min=-abs(env.env_params.additional_params["max_decel"]),
+            expected_max=env.env_params.additional_params["max_accel"])
+        )
 
         env.terminate()
 
@@ -287,88 +294,20 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
 
     def test_additional_env_params(self):
         """Ensures that not returning the correct params leads to an error."""
-        params = {"max_decel": 3,
-                  "target_velocity": 10,
-                  "n_preceding": 2,
-                  "n_following": 2,
-                  "n_merging_in": 2}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            TwoLoopsMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "target_velocity": 10,
-                  "n_preceding": 2,
-                  "n_following": 2,
-                  "n_merging_in": 2}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            TwoLoopsMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "n_preceding": 2,
-                  "n_following": 2,
-                  "n_merging_in": 2}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            TwoLoopsMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10,
-                  "n_following": 2,
-                  "n_merging_in": 2}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            TwoLoopsMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10,
-                  "n_preceding": 2,
-                  "n_merging_in": 2}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            TwoLoopsMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
-        )
-
-        params = {"max_accel": 3,
-                  "max_decel": 3,
-                  "target_velocity": 10,
-                  "n_preceding": 2,
-                  "n_following": 2}
-        env_params = EnvParams(additional_params=params)
-        self.assertRaises(
-            KeyError,
-            TwoLoopsMergePOEnv,
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=env_params
+        self.assertTrue(
+            test_additional_params(
+                env_class=TwoLoopsMergePOEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 1,
+                    "max_decel": 3,
+                    "target_velocity": 10,
+                    "n_preceding": 2,
+                    "n_following": 2,
+                    "n_merging_in": 2
+                }
+            )
         )
 
     def test_observation_action_space(self):
@@ -379,18 +318,18 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
             env_params=self.env_params
         )
 
-        # test the observation space
-        self.assertEqual(env.observation_space.shape[0], 17)
-        self.assertTrue(all(env.observation_space.high == float("inf")))
-        self.assertTrue(all(env.observation_space.low == 0))
+        # check the observation space
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=17, expected_min=0, expected_max=float('inf')))
 
-        # test the action space
-        self.assertEqual(env.action_space.shape[0],
-                         env.vehicles.num_rl_vehicles)
-        self.assertEqual(env.action_space.high,
-                         env.env_params.additional_params["max_accel"])
-        self.assertEqual(env.action_space.low,
-                         -env.env_params.additional_params["max_decel"])
+        # check the action space
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=env.vehicles.num_rl_vehicles,
+            expected_min=-abs(env.env_params.additional_params["max_decel"]),
+            expected_max=env.env_params.additional_params["max_accel"])
+        )
 
         env.terminate()
 
@@ -443,33 +382,33 @@ class TestWaveAttenuationEnv(unittest.TestCase):
             env_params=self.env_params
         )
 
-        # test the observation space
-        self.assertEqual(env.observation_space.shape[0],
-                         2 * env.vehicles.num_vehicles)
-        self.assertTrue(all(env.observation_space.high == 1))
-        self.assertTrue(all(env.observation_space.low == 0))
+        # check the observation space
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=2 * env.vehicles.num_vehicles,
+            expected_min=0, expected_max=1))
 
-        # test the action space
-        self.assertEqual(env.action_space.shape[0],
-                         env.vehicles.num_rl_vehicles)
-        self.assertEqual(env.action_space.high,
-                         env.env_params.additional_params["max_accel"])
-        self.assertEqual(env.action_space.low,
-                         -env.env_params.additional_params["max_decel"])
+        # check the action space
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=env.vehicles.num_rl_vehicles,
+            expected_min=-abs(env.env_params.additional_params["max_decel"]),
+            expected_max=env.env_params.additional_params["max_accel"])
+        )
 
         env.terminate()
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        env = WaveAttenuationEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=self.env_params
+        self.assertTrue(
+            test_observed(
+                env_class=WaveAttenuationEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
         )
-        env.additional_command()
-        self.assertListEqual(env.vehicles.get_observed_ids(),
-                             env.vehicles.get_human_ids())
-        env.terminate()
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -523,27 +462,28 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         )
 
         # check the observation space
-        self.assertEqual(env.observation_space.shape[0], 3)
-        self.assertTrue(all(env.observation_space.high == 1))
-        self.assertTrue(all(env.observation_space.low == 0))
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=3, expected_min=0, expected_max=1))
 
         # check the action space
-        self.assertEqual(env.action_space.shape[0], 1)
-        self.assertTrue(all(env.action_space.high == np.array([1])))
-        self.assertTrue(all(env.action_space.low == np.array([-1])))
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=1, expected_min=-1, expected_max=1))
+
+        env.terminate()
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        env = WaveAttenuationPOEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=self.env_params
+        self.assertTrue(
+            test_observed(
+                env_class=WaveAttenuationPOEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
         )
-        env.additional_command()
-        self.assertListEqual(env.vehicles.get_observed_ids(),
-                             env.vehicles.get_leader(
-                                 env.vehicles.get_rl_ids()))
-        env.terminate()
 
 
 class TestWaveAttenuationMergePOEnv(unittest.TestCase):
@@ -599,28 +539,28 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         )
 
         # check the observation space
-        self.assertEqual(env.observation_space.shape[0], 25)
-        self.assertTrue(all(env.observation_space.high == 1))
-        self.assertTrue(all(env.observation_space.low == 0))
+        self.assertTrue(test_space(
+            env.observation_space,
+            expected_size=25, expected_min=0, expected_max=1))
 
         # check the action space
-        self.assertEqual(env.action_space.shape[0], 5)
-        self.assertTrue(all(env.action_space.high == np.array([3])))
-        self.assertTrue(all(env.action_space.low == np.array([-3])))
+        self.assertTrue(test_space(
+            env.action_space,
+            expected_size=5, expected_min=-3, expected_max=3))
+
+        env.terminate()
 
     def test_observed(self):
         """Ensures that the observed ids are returning the correct vehicles."""
-        env = WaveAttenuationMergePOEnv(
-            sumo_params=self.sumo_params,
-            scenario=self.scenario,
-            env_params=self.env_params
+        self.assertTrue(
+            test_observed(
+                env_class=WaveAttenuationMergePOEnv,
+                sumo_params=self.sumo_params,
+                scenario=self.scenario,
+                env_params=self.env_params,
+                expected_observed=["human_0"]
+            )
         )
-        env.step(None)
-        env.additional_command()
-        self.assertListEqual(env.vehicles.get_observed_ids(),
-                             env.vehicles.get_leader(
-                                 env.vehicles.get_rl_ids()))
-        env.terminate()
 
 
 class TestTestEnv(unittest.TestCase):
@@ -714,6 +654,30 @@ def test_additional_params(env_class,
     # if removing all additional params led to KeyErrors, the test has passed,
     # so return True
     return True
+
+
+def test_space(gym_space, expected_size, expected_min, expected_max):
+    """Test the an action or observation space is the correct size and bounds.
+
+    Parameters
+    ----------
+    gym_space : gym.spaces.Box
+        gym space object to be tested
+    expected_size : int
+        expected size
+    expected_min : float or numpy.ndarray
+        expected minimum value(s)
+    expected_max : float or numpy.ndarray
+        expected maximum value(s)
+
+    Returns
+    -------
+    bool
+        True if the test passed, False otherwise
+    """
+    return gym_space.shape[0] == expected_size \
+        and all(gym_space.high == expected_max) \
+        and all(gym_space.low == expected_min)
 
 
 def test_observed(env_class,
