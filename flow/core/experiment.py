@@ -3,6 +3,7 @@
 import logging
 import datetime
 import numpy as np
+import time
 
 from flow.core.util import emission_to_csv
 
@@ -139,6 +140,9 @@ class SumoExperiment:
         self.env.terminate()
 
         if convert_to_csv:
+            # wait a short period of time to ensure the xml file is readable
+            time.sleep(0.1)
+
             # collect the location of the emission file
             dir_path = self.env.sumo_params.emission_path
             emission_filename = \
