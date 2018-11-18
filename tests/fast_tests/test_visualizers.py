@@ -4,8 +4,8 @@ from flow.visualize import visualizer_rllib as vs_rllib
 from flow.visualize.visualizer_rllib import visualizer_rllib
 
 import os
-import ray
 import unittest
+import ray
 
 os.environ['TEST_FLAG'] = 'True'
 
@@ -14,6 +14,11 @@ class TestVisualizerRLlib(unittest.TestCase):
     """Tests visualizer_rllib"""
 
     def test_visualizer(self):
+        try:
+            ray.init(num_cpus=1, redis_address="localhost:6379")
+        except Exception:
+            pass
+
         # current path
         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
 
