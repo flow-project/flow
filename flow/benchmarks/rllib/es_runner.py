@@ -5,6 +5,7 @@ this runner script is executed on. Furthermore, the rllib specific algorithm/
 parameters can be specified here once and used on multiple environments.
 """
 import json
+import argparse
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
@@ -17,12 +18,60 @@ from ray.tune import grid_search
 # use this to specify the environment to run
 from flow.benchmarks.grid1 import flow_params
 
-# number of rollouts per training iteration
-N_ROLLOUTS = 50
-# number of parallel workers
-N_CPUS = 60
+EXAMPLE_USAGE = """
+example usage:
+    python es_runner.py grid0
+Here the arguments are:
+benchmark_name - name of the benchmark to run
+num_rollouts - number of rollouts to train across
+num_cpus - number of cpus to use for training
+
+"""
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description="[Flow] Evaluates a Flow Garden solution on a benchmark.",
+    epilog=EXAMPLE_USAGE)
+
+# required input parameters
+parser.add_argument(
+    "--benchmark_name", type=str, help="File path to solution environment.")
+
+# required input parameters
+parser.add_argument(
+    "--upload_dir", type=str, help="S3 Bucket to upload to.")
+
+# optional input parameters
+parser.add_argument(
+    '--num_rollouts',
+    type=int,
+    default=50,
+    help="The number of rollouts to train over.")
+
+# optional input parameters
+parser.add_argument(
+    '--num_cpus',
+    type=int,
+    default=6,
+    help="The number of cpus to use.")
 
 if __name__ == "__main__":
+    benchmark_name = 'grid0'
+    args = parser.parse_args()
+    # benchmark name
+    benchmark_name = args.benchmark_name
+    # number of rollouts per training iteration
+    num_rollouts = args.num_rollouts
+    # number of parallel workers
+    num_cpus = args.num_cpus
+
+    upload_dir = args.upload_dir
+
+    # Import the benchmark and fetch its flow_params
+    benchmark = __import__(
+        "flow.benchmarks.%s" % benchmark_name, fromlist=["flow_params"])
+    flow_params = benchmark.flow_params
+
     # get the env name and a creator for the environment
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -33,11 +82,15 @@ if __name__ == "__main__":
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config["episodes_per_batch"] = N_ROLLOUTS
-    config["num_workers"] = N_ROLLOUTS
+    config["num_workers"] = min(num_cpus, num_rollouts)
+    config["episodes_per_batch"] = num_rollouts
     config["eval_prob"] = 0.05
     config["noise_stdev"] = grid_search([0.01, 0.02])
     config["stepsize"] = grid_search([0.01, 0.02])
+
+    config["noise_stdev"] = 0.02
+    config["stepsize"] = 0.02
+
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
     config["observation_filter"] = "NoFilter"
     # save the flow params for replay
@@ -60,6 +113,6 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": 500},
             "num_samples": 1,
-            "upload_dir": "s3://<BUCKET NAME>"
+            "upload_dir": "s3://" + upload_dir
         },
     })
