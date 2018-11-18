@@ -17,11 +17,7 @@ class TestVisualizerRLlib(unittest.TestCase):
         try:
             ray.init(num_cpus=1)  # , redis_address="localhost:6379")
         except Exception:
-            ray.shutdown()
-            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
-
-    def tearDown(self):
-        ray.shutdown()
+            pass
 
     def test_visualizer(self):
         # current path

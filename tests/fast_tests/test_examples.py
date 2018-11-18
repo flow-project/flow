@@ -117,11 +117,7 @@ class TestRllibExamples(unittest.TestCase):
         try:
             ray.init(num_cpus=1)  # , redis_address="localhost:6379")
         except Exception:
-            ray.shutdown()
-            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
-
-    def tearDown(self):
-        ray.shutdown()
+            pass
 
     def test_coop_merge(self):
         alg_run, env_name, config = coop_setup()
@@ -148,6 +144,7 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(alg_run, env_name, config)
 
     def run_exp(self, alg_run, env_name, config):
+
         config['train_batch_size'] = 200
         config['horizon'] = 50
         config['sample_batch_size'] = 50
