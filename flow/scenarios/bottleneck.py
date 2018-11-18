@@ -73,7 +73,18 @@ class BottleneckScenario(Scenario):
                 "id": "6",
                 "x": "985",
                 "y": "0"
+            },  # fake node for visualizing
+            {
+                "id": "fake",
+                "x": "1",
+                "y": "1"
+            },
+            {
+                "id": "fake2",
+                "x": "1",
+                "y": "2"
             }
+
         ]  # post-merge2
         return nodes
 
@@ -124,6 +135,15 @@ class BottleneckScenario(Scenario):
                 "from": "5",
                 "to": "6",
                 "length": "155",
+                "spreadType": "center",
+                "numLanes": str(scaling),
+                "speed": "23"
+            },
+            {
+                "id": "fake_edge",
+                "from": "fake",
+                "to": "fake2",
+                "length": "1",
                 "spreadType": "center",
                 "numLanes": str(scaling),
                 "speed": "23"
