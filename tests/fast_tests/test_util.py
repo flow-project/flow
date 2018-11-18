@@ -178,6 +178,8 @@ class TestRllib(unittest.TestCase):
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {}),
+            # for testing coverage purposes, we add a routing controller
+            routing_controller=(ContinuousRouter, {}),
             speed_mode="no_collide",
             num_vehicles=5)
         vehicles.add(
