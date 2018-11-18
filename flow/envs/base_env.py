@@ -26,7 +26,7 @@ except ImportError:
 
 try:
     # Load user config if exists, else load default config
-    import flow.core.config as config
+    import flow.config as config
 except ImportError:
     import flow.config_default as config
 
@@ -34,6 +34,11 @@ from flow.core.util import ensure_dir
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
+
+# colors for vehicles
+WHITE = (255, 255, 255, 255)
+CYAN = (0, 255, 255, 255)
+RED = (255, 0, 0, 255)
 
 
 class Env(gym.Env, Serializable):
@@ -102,7 +107,7 @@ class Env(gym.Env, Serializable):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.scenario.generator.rts
+        self.available_routes = self.scenario.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -122,10 +127,6 @@ class Env(gym.Env, Serializable):
 
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
-
-        # TODO(ak): temporary fix to support old pkl files
-        if not hasattr(self.env_params, "evaluate"):
-            self.env_params.evaluate = False
 
         self.start_sumo()
         self.setup_initial_state()
@@ -162,7 +163,7 @@ class Env(gym.Env, Serializable):
     def start_sumo(self):
         """Start a sumo instance.
 
-        Uses the configuration files created by the generator class to
+        Uses the configuration files created by the scenario class to
         initialize a sumo instance. Also initializes a traci connection to
         interface with sumo from Python.
         """
@@ -460,7 +461,7 @@ class Env(gym.Env, Serializable):
         next_observation = np.copy(self.state)
 
         # compute the reward
-        reward = self.compute_reward(self.state, rl_actions, fail=crash)
+        reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, crash, {}
 
@@ -814,7 +815,7 @@ class Env(gym.Env, Serializable):
             try:
                 # color rl vehicles red
                 self.traci_connection.vehicle.setColor(
-                    vehID=veh_id, color=(255, 0, 0, 255))
+                    vehID=veh_id, color=RED)
             except (FatalTraCIError, TraCIException):
                 pass
 
@@ -822,10 +823,10 @@ class Env(gym.Env, Serializable):
             try:
                 if veh_id in self.vehicles.get_observed_ids():
                     # color observed human-driven vehicles cyan
-                    color = (0, 255, 255, 255)
+                    color = CYAN
                 else:
                     # color unobserved human-driven vehicles white
-                    color = (255, 255, 255, 255)
+                    color = WHITE
                 self.traci_connection.vehicle.setColor(
                     vehID=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
@@ -875,7 +876,7 @@ class Env(gym.Env, Serializable):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
 
         MUST BE implemented in new environments.
@@ -883,8 +884,6 @@ class Env(gym.Env, Serializable):
 
         Parameters
         ----------
-        state: numpy ndarray
-            state of all the vehicles in the simulation
         rl_actions: numpy ndarray
             actions performed by rl vehicles
         kwargs: dict
@@ -903,6 +902,10 @@ class Env(gym.Env, Serializable):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
+        print(
+            "Closing connection to TraCI and stopping simulation.\n"
+            "Note, this may print an error message when it closes."
+        )
         self._close()
 
     def _close(self):
@@ -915,9 +918,6 @@ class Env(gym.Env, Serializable):
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
         except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
-
-    def _seed(self, seed=None):
-        return []
 
     def render(self, mode='human'):
         """See parent class (gym.Env)."""

@@ -9,9 +9,7 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.figure8.figure8_scenario import Figure8Scenario, \
-    ADDITIONAL_NET_PARAMS
-from flow.scenarios.figure8.gen import Figure8Generator
+from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
 
 
 def figure_eight_example(render=None):
@@ -52,7 +50,6 @@ def figure_eight_example(render=None):
 
     scenario = Figure8Scenario(
         name="figure8",
-        generator_class=Figure8Generator,
         vehicles=vehicles,
         net_params=net_params)
 

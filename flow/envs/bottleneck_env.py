@@ -381,7 +381,7 @@ class BottleneckEnv(Env):
             shape=(1, ),
             dtype=np.float32)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """ Outflow rate over last ten seconds normalized to max of 1 """
 
         reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
@@ -859,6 +859,19 @@ class DesiredVelocityEnv(BottleneckEnv):
                     # set the desired velocity of the controller to the default
                     self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
 
+    def compute_reward(self, rl_actions, **kwargs):
+        """Outflow rate over last ten seconds normalized to max of 1."""
+
+        if self.env_params.evaluate:
+            if self.time_counter == self.env_params.horizon:
+                reward = self.vehicles.get_outflow_rate(500)
+            else:
+                return 0
+        else:
+            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+                     (2000.0 * self.scaling)
+        return reward
+
     def reset(self):
         add_params = self.env_params.additional_params
         if add_params.get("reset_inflow"):
@@ -906,10 +919,10 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.vehicles = vehicles
 
                     # delete the cfg and net files
-                    net_path = self.scenario.generator.net_path
-                    net_name = net_path + self.scenario.generator.name
-                    cfg_path = self.scenario.generator.cfg_path
-                    cfg_name = cfg_path + self.scenario.generator.name
+                    net_path = self.scenario.net_path
+                    net_name = net_path + self.scenario.name
+                    cfg_path = self.scenario.cfg_path
+                    cfg_name = cfg_path + self.scenario.name
                     for f in glob.glob(net_name + '*'):
                         os.remove(f)
                     for f in glob.glob(cfg_name + '*'):
@@ -917,7 +930,6 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,
-                        generator_class=self.scenario.generator_class,
                         vehicles=vehicles,
                         net_params=net_params,
                         initial_config=self.scenario.initial_config,
