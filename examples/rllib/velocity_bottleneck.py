@@ -73,12 +73,14 @@ flow_rate = 1900 * SCALING
 inflow = InFlows()
 inflow.add(
     veh_type='human',
+    name='human',
     edge='1',
     vehs_per_hour=flow_rate * (1 - AV_FRAC),
     departLane='random',
     departSpeed=10)
 inflow.add(
     veh_type='followerstopper',
+    name='av',
     edge='1',
     vehs_per_hour=flow_rate * AV_FRAC,
     departLane='random',
