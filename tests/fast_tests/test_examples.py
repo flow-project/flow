@@ -113,6 +113,12 @@ class TestRllibExamples(unittest.TestCase):
     # FIXME(ev) this test adds several minutes to the testing scheme
     """
 
+    def setUp(self):
+        ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+
+    def tearDown(self):
+        ray.shutdown()
+
     def test_coop_merge(self):
         alg_run, env_name, config = coop_setup()
         self.run_exp(alg_run, env_name, config)
@@ -138,11 +144,6 @@ class TestRllibExamples(unittest.TestCase):
         self.run_exp(alg_run, env_name, config)
 
     def run_exp(self, alg_run, env_name, config):
-        try:
-            ray.init(num_cpus=1, redis_address="localhost:6379")
-        except Exception:
-            pass
-
         config['train_batch_size'] = 200
         config['horizon'] = 50
         config['sample_batch_size'] = 50

@@ -5,12 +5,19 @@ from flow.visualize.visualizer_rllib import visualizer_rllib
 
 import os
 import unittest
+import ray
 
 os.environ['TEST_FLAG'] = 'True'
 
 
 class TestVisualizerRLlib(unittest.TestCase):
     """Tests visualizer_rllib"""
+
+    def setUp(self):
+        ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+
+    def tearDown(self):
+        ray.shutdown()
 
     def test_visualizer(self):
         # current path
@@ -38,5 +45,4 @@ class TestVisualizerRLlib(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # ray.init(num_cpus=1, redis_address="localhost:6379")
     unittest.main()
