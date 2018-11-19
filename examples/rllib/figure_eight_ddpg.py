@@ -88,9 +88,9 @@ if __name__ == "__main__":
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config["num_workers"] = N_CPUS
-    config["train_batch_size"] = HORIZON * N_ROLLOUTS
+    # config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
+    # config["model"].update({"fcnet_hiddens": [100, 50, 25]})
 
     # config["actor_hiddens"] = [32, 64]
     # config["critic_hiddens"] = [64, 64]
@@ -115,12 +115,12 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 25,
+            "checkpoint_freq": 1,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 100
-            },
-            "num_samples": 3,
-            "upload_dir": "s3://kevin.experiments"
+                "training_iteration": 1
+            }
+            # "num_samples": 3,
+            # "upload_dir": "s3://kevin.experiments"
         },
     })
