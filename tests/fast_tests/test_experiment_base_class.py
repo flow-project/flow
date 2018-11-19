@@ -1,9 +1,11 @@
 import unittest
 import os
+import time
 
 from flow.core.experiment import SumoExperiment
 from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter
+from flow.core.params import SumoParams
 
 from tests.setup_scripts import ring_road_exp_setup
 import numpy as np
@@ -89,7 +91,35 @@ class TestRLActions(unittest.TestCase):
         # the rl_actions method
         self.assertAlmostEqual(exp.env.vehicles.get_speed("rl_0"), 1, places=1)
 
-        pass
+
+class TestConvertToCSV(unittest.TestCase):
+    """
+    Tests that the emission files are converted to csv's if the parameter
+    is requested.
+    """
+
+    def test_convert_to_csv(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        sumo_params = SumoParams(emission_path="{}/".format(dir_path))
+        env, scenario = ring_road_exp_setup(sumo_params=sumo_params)
+        exp = SumoExperiment(env, scenario)
+        exp.run(num_runs=1, num_steps=10, convert_to_csv=True)
+
+        time.sleep(0.1)
+
+        # check that both the emission xml and csv files exist
+        self.assertTrue(os.path.isfile(dir_path + "/{}-emission.xml".format(
+            scenario.name)))
+        self.assertTrue(os.path.isfile(dir_path + "/{}-emission.csv".format(
+            scenario.name)))
+
+        time.sleep(0.1)
+
+        # delete the files
+        os.remove(os.path.expanduser(dir_path + "/{}-emission.xml".format(
+            scenario.name)))
+        os.remove(os.path.expanduser(dir_path + "/{}-emission.csv".format(
+            scenario.name)))
 
 
 if __name__ == '__main__':
