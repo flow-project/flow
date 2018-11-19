@@ -6,13 +6,20 @@ from flow.core.vehicles import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
+from flow.controllers import RLController
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.envs import Env
 
 from tests.setup_scripts import ring_road_exp_setup
 import os
 import numpy as np
 
 os.environ["TEST_FLAG"] = "True"
+
+# colors for vehicles
+WHITE = (255, 255, 255, 255)
+CYAN = (0, 255, 255, 255)
+RED = (255, 0, 0, 255)
 
 
 class TestStartingPositionShuffle(unittest.TestCase):
@@ -412,6 +419,113 @@ class TestSimsPerStep(unittest.TestCase):
 
         # ensure that the difference in time is equal to sims_per_step
         self.assertEqual(t2 - t1, sims_per_step)
+
+
+class TestAbstractMethods(unittest.TestCase):
+    """
+    These series of tests are meant to ensure that the environment abstractions
+    exist and are in fact abstract, i.e. they will raise errors if not
+    implemented in a child class.
+    """
+
+    def setUp(self):
+        env, scenario = ring_road_exp_setup()
+        sumo_params = SumoParams()
+        env_params = EnvParams()
+        self.env = Env(sumo_params=sumo_params,
+                       env_params=env_params,
+                       scenario=scenario)
+
+    def tearDown(self):
+        self.env.terminate()
+        self.env = None
+
+    def test_get_state(self):
+        """Checks that get_state raises an error."""
+        try:
+            self.env.get_state()
+            raise AssertionError
+        except NotImplementedError:
+            return
+
+    def test_action_space(self):
+        try:
+            self.env.action_space
+            raise AssertionError
+        except NotImplementedError:
+            return
+
+    def test_observation_space(self):
+        try:
+            self.env.observation_space
+            raise AssertionError
+        except NotImplementedError:
+            return
+
+    def test_compute_reward(self):
+        """Checks that compute_reward returns 0."""
+        self.assertEqual(self.env.compute_reward([]), 0)
+
+    def test__apply_rl_actions(self):
+        try:
+            self.env._apply_rl_actions(None)
+            raise AssertionError
+        except NotImplementedError:
+            return
+
+
+class TestVehicleColoring(unittest.TestCase):
+
+    def test_all(self):
+        vehicles = Vehicles()
+        vehicles.add("human", num_vehicles=10)
+        # add an RL vehicle to ensure that its color will be distinct
+        vehicles.add("rl", acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+        _, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+        # we will use the generic environment to ensure this applies to all
+        # environments
+        sumo_params = SumoParams()
+        env_params = EnvParams()
+        env = Env(sumo_params=sumo_params,
+                  env_params=env_params,
+                  scenario=scenario)
+
+        # set one vehicle as observed
+        env.vehicles.set_observed("human_0")
+
+        # update the colors of all vehicles
+        env.update_vehicle_colors()
+        env.traci_connection.simulationStep()
+
+        # check that, when rendering is off, the colors don't change (this
+        # avoids unnecessary API calls)
+        for veh_id in env.vehicles.get_ids():
+            self.assertEqual(
+                env.traci_connection.vehicle.getColor(veh_id), WHITE)
+
+        # a little hack to ensure the colors change
+        env.sumo_params.render = True
+
+        # set one vehicle as observed
+        env.vehicles.set_observed("human_0")
+
+        # update the colors of all vehicles
+        env.update_vehicle_colors()
+        env.traci_connection.simulationStep()
+
+        # check the colors of all vehicles
+        for veh_id in env.vehicles.get_ids():
+            if veh_id == "human_0":
+                self.assertEqual(
+                    env.traci_connection.vehicle.getColor(veh_id), CYAN)
+            elif veh_id == "rl_0":
+                self.assertEqual(
+                    env.traci_connection.vehicle.getColor(veh_id), RED)
+            else:
+                self.assertEqual(
+                    env.traci_connection.vehicle.getColor(veh_id), WHITE)
 
 
 if __name__ == '__main__':
