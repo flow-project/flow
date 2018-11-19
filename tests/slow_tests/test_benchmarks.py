@@ -4,7 +4,6 @@ import json
 
 import ray
 import ray.rllib.agents.ppo as ppo
-import ray.tune.registry as registry
 
 from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
