@@ -26,14 +26,8 @@ before_install:
   - python -V
 
   # Set up requirements for flow
-  - pip install numpy==1.14.0
-  - pip install scipy==1.1.0
-  - pip install lxml==4.2.4
-  - pip install six==1.11.0
-  - pip install path.py
-  - pip install tensorflow==1.10.0
-  - pip install setuptools==39.1.0
-  - pip install gym==0.10.5
+  - conda env create -f environment.yml
+  - source activate flow
 
   # Requirements for Ray
   - pip install opencv-python
