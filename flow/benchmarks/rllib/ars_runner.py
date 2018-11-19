@@ -10,7 +10,7 @@ import argparse
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
-from ray.tune import run_experiments, grid_search
+from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env

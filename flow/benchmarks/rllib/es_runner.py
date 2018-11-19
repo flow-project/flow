@@ -15,9 +15,6 @@ from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
 from ray.tune import grid_search
 
-# use this to specify the environment to run
-from flow.benchmarks.grid1 import flow_params
-
 EXAMPLE_USAGE = """
 example usage:
     python es_runner.py grid0
