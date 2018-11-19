@@ -132,8 +132,8 @@ flow_params = dict(
     ),
 )
 
-if __name__ == '__main__':
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+
+def setup_exps():
 
     alg_run = 'PPO'
 
@@ -155,15 +155,20 @@ if __name__ == '__main__':
     config['env_config']['flow_params'] = flow_json
     config['env_config']['run'] = alg_run
 
-    create_env, env_name = make_create_env(params=flow_params, version=0)
+    create_env, gym_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
-    register_env(env_name, create_env)
+    register_env(gym_name, create_env)
+    return alg_run, gym_name, config
 
+
+if __name__ == '__main__':
+    alg_run, gym_name, config = setup_exps()
+    ray.init(num_cpus=N_CPUS+1, redirect_output=False)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
-            'env': env_name,
+            'env': gym_name,
             'config': {
                 **config
             },
