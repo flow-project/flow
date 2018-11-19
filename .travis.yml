@@ -54,7 +54,7 @@ before_install:
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project/flow/scripts
-  -     ./flow/scripts/setup_sumo_ubuntu1404.sh
+  -     ./setup_sumo_ubuntu1404.sh
   - popd
   - source ~/.bashrc
   - source activate flow
