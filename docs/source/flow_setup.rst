@@ -62,7 +62,7 @@ We begin by downloading SUMO's github directory:
     cd ~
     git clone https://github.com/eclipse/sumo.git
     cd sumo
-    git checkout 016c09d306
+    git checkout 439afd19a3
     make -f Makefile.cvs
 
 If you have OSX, run the following commands. If you don't have brew
