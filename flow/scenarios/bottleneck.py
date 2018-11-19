@@ -143,6 +143,26 @@ class BottleneckScenario(Scenario):
 
         return rts
 
+    def specify_connections(self, net_params):
+        """See parent class."""
+        scaling = net_params.additional_params.get("scaling", 1)
+        conn = []
+        for i in range(4 * scaling):
+            conn += [{
+                "from": "3",
+                "to": "4",
+                "fromLane": str(i),
+                "toLane": str(int(np.floor(i / 2)))
+            }]
+        for i in range(2 * scaling):
+            conn += [{
+                "from": "4",
+                "to": "5",
+                "fromLane": str(i),
+                "toLane": str(int(np.floor(i / 2)))
+            }]
+        return conn
+
     def specify_edge_starts(self):
         """See parent class."""
         return [("1", 0), ("2", 100), ("3", 405), ("4", 425), ("5", 580)]
