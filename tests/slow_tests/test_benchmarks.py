@@ -25,12 +25,14 @@ import flow.benchmarks.merge0 as merge0
 import flow.benchmarks.merge1 as merge1
 import flow.benchmarks.merge2 as merge2
 
-N_CPUS=1
+N_CPUS = 1
 ray.init(num_cpus=N_CPUS, redirect_output=True)
 
 os.environ["TEST_FLAG"] = "True"
 
+
 class TestBenchmarks(unittest.TestCase):
+
     """
     Tests that the baselines in the benchmarks folder are running and
     returning expected values (i.e. values that match those in the CoRL paper
@@ -45,8 +47,8 @@ class TestBenchmarks(unittest.TestCase):
 
     def ray_runner(self, num_runs, flow_params, version):
         alg_run = "PPO"
-        HORIZON=10
-        N_ROLLOUTS=1
+        HORIZON = 10
+        N_ROLLOUTS = 1
 
         agent_cls = get_agent_class(alg_run)
         config = agent_cls._default_config.copy()
@@ -67,7 +69,8 @@ class TestBenchmarks(unittest.TestCase):
         config['env_config']['flow_params'] = flow_json
         config['env_config']['run'] = alg_run
 
-        create_env, env_name = make_create_env(params=flow_params, version=version)
+        create_env, env_name = make_create_env(params=flow_params,
+                                               version=version)
 
         # Register as rllib env
         register_env(env_name, create_env)
@@ -79,8 +82,6 @@ class TestBenchmarks(unittest.TestCase):
             alg.train()
             checkpoint_path = alg.save()
             self.assertTrue("%s.index" % os.path.exists(checkpoint_path))
-
-        
 
     def test_bottleneck0(self):
         """
@@ -186,6 +187,7 @@ class TestBenchmarks(unittest.TestCase):
         # TODO: check that the performance measure is within some range
 
     # create_env, env_name
+
 
 if __name__ == '__main__':
     unittest.main()
