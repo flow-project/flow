@@ -10,6 +10,7 @@ joblib==0.10.3
 python-dateutil==2.7.3
 cached_property
 cloudpickle==0.5.3
+pyglet==1.3.2
 
 # theano==0.8.2 # for rllab
 # lasagne # for rllab
