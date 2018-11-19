@@ -27,11 +27,7 @@ from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
-<<<<<<< HEAD
 from flow.utils.rllib import get_rllib_pkl
-
-=======
->>>>>>> visualizer_test
 
 EXAMPLE_USAGE = """
 example usage:
@@ -40,52 +36,6 @@ example usage:
 Here the arguments are:
 1 - the number of the checkpoint
 """
-
-<<<<<<< HEAD
-parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawDescriptionHelpFormatter,
-    description='[Flow] Evaluates a reinforcement learning agent '
-    'given a checkpoint.',
-    epilog=EXAMPLE_USAGE)
-
-# required input parameters
-parser.add_argument(
-    'result_dir', type=str, help='Directory containing results')
-parser.add_argument('checkpoint_num', type=str, help='Checkpoint number.')
-
-# optional input parameters
-parser.add_argument(
-    '--run',
-    type=str,
-    help='The algorithm or model to train. This may refer to '
-    'the name of a built-on algorithm (e.g. RLLib\'s DQN '
-    'or PPO), or a user-defined trainable function or '
-    'class registered in the tune registry. '
-    'Required for results trained with flow-0.2.0 and before.')
-parser.add_argument(
-    '--num_rollouts',
-    type=int,
-    default=1,
-    help='The number of rollouts to visualize.')
-parser.add_argument(
-    '--emission_to_csv',
-    action='store_true',
-    help='Specifies whether to convert the emission file '
-    'created by sumo into a csv file')
-parser.add_argument(
-    '--no_render',
-    action='store_true',
-    help='Specifies whether to visualize the results')
-parser.add_argument(
-    '--evaluate',
-    action='store_true',
-    help='Specifies whether to use the \'evaluate\' '
-    'reward for the environment.')
-
-if __name__ == '__main__':
-    args = parser.parse_args()
-=======
->>>>>>> visualizer_test
 
 def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
@@ -106,10 +56,6 @@ def visualizer_rllib(args):
         multiagent = False
 
     # Run on only one cpu for rendering purposes
-<<<<<<< HEAD
-    ray.init(num_cpus=1)
-=======
->>>>>>> visualizer_test
     config['num_workers'] = 1
 
     flow_params = get_flow_params(config)
@@ -175,15 +121,12 @@ def visualizer_rllib(args):
         sumo_params.render = False
     else:
         sumo_params.render = True
-<<<<<<< HEAD
 
     sumo_params.restart_instance = False
-=======
     sumo_params.emission_path = './test_time_rollout/'
 
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario))
->>>>>>> visualizer_test
 
     sumo_params.emission_path = './test_time_rollout/'
 
@@ -204,16 +147,11 @@ def visualizer_rllib(args):
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
-<<<<<<< HEAD
         done = False
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
             ret = 0
-        # FIXME each agent should have its own reward
-=======
-        ret = 0
->>>>>>> visualizer_test
         for _ in range(env_params.horizon):
             vehicles = env.unwrapped.vehicles
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
@@ -243,7 +181,6 @@ def visualizer_rllib(args):
         outflow = vehicles.get_outflow_rate(500)
         final_outflows.append(outflow)
         mean_speed.append(np.mean(vel))
-<<<<<<< HEAD
         if multiagent:
             for agent, rew in rets.items():
                 print('Round {}, Return: {} for agent {}'.format(
@@ -261,14 +198,6 @@ def visualizer_rllib(args):
         np.mean(mean_speed), np.std(mean_speed)))
     print('Average, std outflow: {}, {}'.format(
         np.mean(final_outflows), np.std(final_outflows)))
-=======
-        print('Round {}, Return: {}'.format(i, ret))
-    print('Average, std return: {}, {}'.format(np.mean(rets), np.std(rets)))
-    print('Average, std speed: {}, {}'.format(np.mean(mean_speed),
-                                              np.std(mean_speed)))
-    print('Average, std outflow: {}, {}'.format(np.mean(final_outflows),
-                                                np.std(final_outflows)))
->>>>>>> visualizer_test
 
     # terminate the environment
     env.unwrapped.terminate()
