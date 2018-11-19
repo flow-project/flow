@@ -21,6 +21,10 @@ class SumoParams:
                  lateral_resolution=None,
                  no_step_log=True,
                  render=False,
+                 save_render=False,
+                 sight_radius=25,
+                 pxpm=2,
+                 show_radius=False,
                  overtake_right=False,
                  ballistic=False,
                  seed=None,
@@ -75,6 +79,10 @@ class SumoParams:
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
         self.render = render
+        self.save_render = save_render
+        self.sight_radius=sight_radius
+        self.pxpm = pxpm
+        self.show_radius = show_radius
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
