@@ -91,11 +91,9 @@ if __name__ == "__main__":
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [100, 50, 25]})
-    # config["use_gae"] = True
-    # config["lambda"] = 0.97
-    # config["sgd_minibatch_size"] = min(16 * 1024, config["train_batch_size"])
-    # config["kl_target"] = 0.02
-    # config["num_sgd_iter"] = 10
+
+    # config["actor_hiddens"] = [32, 64]
+    # config["critic_hiddens"] = [64, 64]
     config["horizon"] = HORIZON
     config["observation_filter"] = "NoFilter"
 
@@ -117,10 +115,10 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 1,
+            "checkpoint_freq": 25,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 1
+                "training_iteration": 100
             },
             "num_samples": 3,
             "upload_dir": "s3://kevin.experiments"
