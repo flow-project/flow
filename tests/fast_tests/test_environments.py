@@ -657,7 +657,7 @@ def test_additional_params(env_class,
 
 
 def test_space(gym_space, expected_size, expected_min, expected_max):
-    """Test the an action or observation space is the correct size and bounds.
+    """Test that an action or observation space is the correct size and bounds.
 
     Parameters
     ----------
