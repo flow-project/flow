@@ -60,7 +60,7 @@ def total_velocity(env, fail=False):
 
     if any(vel < -100) or fail:
         return 0.
-    if len(vel) == 0:
+    else:
         return sum(vel)
 
 
