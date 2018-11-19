@@ -68,12 +68,11 @@ class AccelEnv(Env):
     def observation_space(self):
         """See class definition."""
         self.obs_var_labels = ['Velocity', 'Absolute_pos']
-        state = Box(
+        return Box(
             low=0,
             high=1,
             shape=(2 * self.vehicles.num_vehicles, ),
             dtype=np.float32)
-        return state
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -92,14 +91,12 @@ class AccelEnv(Env):
 
     def get_state(self, rl_actions=None):
         """See class definition."""
-        # speed normalizer
-        max_speed = self.scenario.max_speed
+        speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
+                 for veh_id in self.sorted_ids]
+        pos = [self.get_x_by_id(veh_id) / self.scenario.length
+               for veh_id in self.sorted_ids]
 
-        return np.ndarray.flatten(
-            np.array([[
-                self.vehicles.get_speed(veh_id) / max_speed,
-                self.get_x_by_id(veh_id) / self.scenario.length
-            ] for veh_id in self.sorted_ids]))
+        return np.array(speed + pos)
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""

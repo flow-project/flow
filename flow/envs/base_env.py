@@ -54,6 +54,11 @@ elif not serializable_flag and multiagent_flag:
 else:
     classdef = (gym.Env, )
 
+# colors for vehicles
+WHITE = (255, 255, 255, 255)
+CYAN = (0, 255, 255, 255)
+RED = (255, 0, 0, 255)
+
 
 class Env(*classdef):
     """Base environment class.
@@ -141,10 +146,6 @@ class Env(*classdef):
 
         # contains the subprocess.Popen instance used to start traci
         self.sumo_proc = None
-
-        # TODO(ak): temporary fix to support old pkl files
-        if not hasattr(self.env_params, "evaluate"):
-            self.env_params.evaluate = False
 
         self.start_sumo()
         self.setup_initial_state()
@@ -882,7 +883,7 @@ class Env(*classdef):
             try:
                 # color rl vehicles red
                 self.traci_connection.vehicle.setColor(
-                    vehID=veh_id, color=(255, 0, 0, 255))
+                    vehID=veh_id, color=RED)
             except (FatalTraCIError, TraCIException):
                 pass
 
@@ -890,10 +891,10 @@ class Env(*classdef):
             try:
                 if veh_id in self.vehicles.get_observed_ids():
                     # color observed human-driven vehicles cyan
-                    color = (0, 255, 255, 255)
+                    color = CYAN
                 else:
                     # color unobserved human-driven vehicles white
-                    color = (255, 255, 255, 255)
+                    color = WHITE
                 self.traci_connection.vehicle.setColor(
                     vehID=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
@@ -985,9 +986,6 @@ class Env(*classdef):
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
         except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
-
-    def _seed(self, seed=None):
-        return []
 
     def render(self, mode='human'):
         """See parent class (gym.Env)."""
