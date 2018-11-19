@@ -418,3 +418,18 @@ class Figure8Scenario(Scenario):
               2 * self.junction_len + 9 * self.inner_space_len)]
 
         return internal_edgestarts
+
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes = net_params.additional_params["lanes"]
+        conn = []
+        for i in range(lanes):
+            conn += [{"from": "right_lower_ring_in",
+                      "to": "right_lower_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+            conn += [{"from": "bottom_upper_ring_in",
+                      "to": "bottom_upper_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+        return conn

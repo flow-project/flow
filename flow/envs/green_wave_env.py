@@ -1,8 +1,8 @@
 import numpy as np
 import re
 
-from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
+from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
 from flow.core import rewards
@@ -10,31 +10,32 @@ from flow.envs.base_env import Env
 
 ADDITIONAL_ENV_PARAMS = {
     # minimum switch time for each traffic light (in seconds)
-    'switch_time': 2.0,
+    "switch_time": 2.0,
     # whether the traffic lights should be actuated by sumo or RL
-    # options are 'controlled' and 'actuated'
-    'tl_type': 'controlled',
+    # options are "controlled" and "actuated"
+    "tl_type": "controlled",
     # determines whether the action space is meant to be discrete or continuous
-    'discrete': False,
+    "discrete": False,
 }
 
 ADDITIONAL_PO_ENV_PARAMS = {
     # num of vehicles the agent can observe on each incoming edge
-    'num_observed': 2,
+    "num_observed": 2,
     # velocity to use in reward functions
-    'target_velocity': 30,
+    "target_velocity": 30,
 }
 
 
 class TrafficLightGridEnv(Env):
-    """Environment for traffic light control of an n x m grid.
+    """Environment used to train traffic lights to regulate traffic flow
+    through an n x m grid.
 
     Required from env_params:
 
     * switch_time: minimum switch time for each traffic light (in seconds).
       Earlier RL commands are ignored.
     * tl_type: whether the traffic lights should be actuated by sumo or RL
-      options are "controlled" and "actuated"
+      options are respectively "actuated" and "controlled"
     * discrete: determines whether the action space is meant to be discrete or
       continuous
 
@@ -67,12 +68,12 @@ class TrafficLightGridEnv(Env):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
-                    'Environment parameter \'{}\' not supplied'.format(p))
+                    'Environment parameter "{}" not supplied'.format(p))
 
-        self.grid_array = scenario.net_params.additional_params['grid_array']
-        self.rows = self.grid_array['row_num']
-        self.cols = self.grid_array['col_num']
-        # self.num_observed = self.grid_array.get('num_observed', 3)
+        self.grid_array = scenario.net_params.additional_params["grid_array"]
+        self.rows = self.grid_array["row_num"]
+        self.cols = self.grid_array["col_num"]
+        # self.num_observed = self.grid_array.get("num_observed", 3)
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
 
@@ -94,16 +95,16 @@ class TrafficLightGridEnv(Env):
         # the second column indicates the direction that is currently being
         # allowed to flow. 0 is flowing top to bottom, 1 is left to right
         # For third column, 0 signifies yellow and 1 green or red
-        self.min_switch_time = env_params.additional_params['switch_time']
+        self.min_switch_time = env_params.additional_params["switch_time"]
 
-        if self.tl_type != 'actuated':
+        if self.tl_type != "actuated":
             for i in range(self.rows * self.cols):
                 self.traci_connection.trafficlight.setRedYellowGreenState(
-                    'center' + str(i), 'GGGrrrGGGrrr')
+                    'center' + str(i), "GrGr")
                 self.last_change[i, 2] = 1
 
         # Additional Information for Plotting
-        self.edge_mapping = {'top': [], 'bot': [], 'right': [], 'left': []}
+        self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
         for i, veh_id in enumerate(self.vehicles.get_ids()):
             edge = self.vehicles.get_edge(veh_id)
             for key in self.edge_mapping:
@@ -112,7 +113,7 @@ class TrafficLightGridEnv(Env):
                     break
 
         # check whether the action space is meant to be discrete or continuous
-        self.discrete = env_params.additional_params.get('discrete', False)
+        self.discrete = env_params.additional_params.get("discrete", False)
 
     @property
     def action_space(self):
@@ -151,7 +152,7 @@ class TrafficLightGridEnv(Env):
             dtype=np.float32)
         return Tuple((speed, dist_to_intersec, edge_num, traffic_lights))
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """See class definition."""
         # compute the normalizers
         max_dist = max(self.scenario.short_length, self.scenario.long_length,
@@ -199,12 +200,12 @@ class TrafficLightGridEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='GGGrrrGGGrrr',
+                            state="GrGr",
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='rrrGGGrrrGGG',
+                            state='rGrG',
                             env=self)
                     self.last_change[i, 2] = 1
             else:
@@ -212,12 +213,12 @@ class TrafficLightGridEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='yyyrrryyyrrr',
+                            state='yryr',
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='rrryyyrrryyy',
+                            state='ryry',
                             env=self)
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]
@@ -232,8 +233,7 @@ class TrafficLightGridEnv(Env):
     # ===============================
 
     def record_obs_var(self):
-        """Saves observations for later plotting.
-
+        """
         Records velocities and edges in self.obs_var_labels at each time
         step. This is used for plotting.
         """
@@ -248,7 +248,8 @@ class TrafficLightGridEnv(Env):
             self.obs_var_labels['positions'][self.time_counter - 1, i] = x
 
     def get_distance_to_intersection(self, veh_ids):
-        """Find the distance to the closest intersection for indicated vehicles
+        """Determines the smallest distance from the current vehicle's position
+        to any of the intersections.
 
         Parameters
         ----------
@@ -268,14 +269,11 @@ class TrafficLightGridEnv(Env):
             return self.find_intersection_dist(veh_ids)
 
     def find_intersection_dist(self, veh_id):
-        """Find distance to the upcoming node.
-
-        Returns the distance from the vehicle's current position to
-        the position of the node it is heading toward.
-        """
+        """Return distance from the vehicle's current position to the position
+        of the node it is heading toward."""
         edge_id = self.vehicles.get_edge(veh_id)
         # FIXME this might not be the best way of handling this
-        if edge_id == '':
+        if edge_id == "":
             return -10
         if 'center' in edge_id:
             return 0
@@ -285,7 +283,8 @@ class TrafficLightGridEnv(Env):
         return dist
 
     def sort_by_intersection_dist(self):
-        """Sorts vehicle ids by their distance to the intersection.
+        """Sorts the vehicle ids of vehicles in the network by their distance
+        to the intersection.
 
         Returns
         -------
@@ -331,13 +330,13 @@ class TrafficLightGridEnv(Env):
     def _split_edge(self, edge):
         """Utility function for convert_edge"""
         if edge:
-            if edge[0] == ':':  # center
-                center_index = int(edge.split('center')[1][0])
+            if edge[0] == ":":  # center
+                center_index = int(edge.split("center")[1][0])
                 base = ((self.cols + 1) * self.rows * 2) \
                     + ((self.rows + 1) * self.cols * 2)
                 return base + center_index + 1
             else:
-                pattern = re.compile(r'[a-zA-Z]+')
+                pattern = re.compile(r"[a-zA-Z]+")
                 edge_type = pattern.match(edge).group()
                 edge = edge.split(edge_type)[1].split('_')
                 row_index, col_index = [int(x) for x in edge]
@@ -355,22 +354,20 @@ class TrafficLightGridEnv(Env):
             return 0
 
     def additional_command(self):
-        """Place exited vehicles back on their start edge every step."""
+        """Used to insert vehicles that are on the exit edge and place them
+        back on their entrance edge."""
         for veh_id in self.vehicles.get_ids():
             self._reroute_if_final_edge(veh_id)
 
     def _reroute_if_final_edge(self, veh_id):
-        """Place exited vehicles back on their start edge every step.
-
-        Checks if an edge is the final edge. If it is return the route it
-        should start off at.
-        """
+        """Checks if an edge is the final edge. If it is return the route it
+        should start off at."""
         edge = self.vehicles.get_edge(veh_id)
-        if edge == '':
+        if edge == "":
             return
-        if edge[0] == ':':  # center edge
+        if edge[0] == ":":  # center edge
             return
-        pattern = re.compile(r'[a-zA-Z]+')
+        pattern = re.compile(r"[a-zA-Z]+")
         edge_type = pattern.match(edge).group()
         edge = edge.split(edge_type)[1].split('_')
         row_index, col_index = [int(x) for x in edge]
@@ -379,40 +376,39 @@ class TrafficLightGridEnv(Env):
         # going to remove it
         route_id = None
         if edge_type == 'bot' and col_index == self.cols:
-            route_id = 'bot{}_0'.format(row_index)
+            route_id = "bot{}_0".format(row_index)
         elif edge_type == 'top' and col_index == 0:
-            route_id = 'top{}_{}'.format(row_index, self.cols)
+            route_id = "top{}_{}".format(row_index, self.cols)
         elif edge_type == 'left' and row_index == 0:
-            route_id = 'left{}_{}'.format(self.rows, col_index)
+            route_id = "left{}_{}".format(self.rows, col_index)
         elif edge_type == 'right' and row_index == self.rows:
-            route_id = 'right0_{}'.format(col_index)
+            route_id = "right0_{}".format(col_index)
 
         if route_id is not None:
-            route_id = 'route' + route_id
+            route_id = "route" + route_id
             # remove the vehicle
             self.traci_connection.vehicle.remove(veh_id)
             # reintroduce it at the start of the network
-            type_id = self.vehicles.get_state(veh_id, 'type')
+            type_id = self.vehicles.get_state(veh_id, "type")
             lane_index = self.vehicles.get_lane(veh_id)
             self.traci_connection.vehicle.addFull(
                 veh_id,
                 route_id,
                 typeID=str(type_id),
                 departLane=str(lane_index),
-                departPos='0',
-                departSpeed='max')
-            speed_mode = self.vehicles.type_parameters[type_id]['speed_mode']
+                departPos="0",
+                departSpeed="max")
+            speed_mode = self.vehicles.type_parameters[type_id]["speed_mode"]
             self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
     def k_closest_to_intersection(self, edges, k):
-        """Return k vehicles closest to an intersection.
-
+        """
         Return the veh_id of the k closest vehicles to an intersection for
         each edge. Performs no check on whether or not edge is going toward an
         intersection or not. Does no padding
         """
         if k < 0:
-            raise IndexError('k must be greater than 0')
+            raise IndexError("k must be greater than 0")
         dists = []
 
         def sort_lambda(veh_id):
@@ -436,7 +432,8 @@ class TrafficLightGridEnv(Env):
 
 
 class PO_TrafficLightGridEnv(TrafficLightGridEnv):
-    """Partially observed env for control of nxm grid of traffic lights.
+    """Environment used to train traffic lights to regulate traffic flow
+    through an n x m grid.
 
     Required from env_params:
 
@@ -477,18 +474,19 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         for p in ADDITIONAL_PO_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
-                    'Environment parameter \'{}\' not supplied'.format(p))
+                    'Environment parameter "{}" not supplied'.format(p))
 
         # number of vehicles nearest each intersection that is observed in the
         # state space; defaults to 2
-        self.num_observed = env_params.additional_params.get('num_observed', 2)
+        self.num_observed = env_params.additional_params.get("num_observed", 2)
 
         # used during visualization
         self.observed_ids = []
 
     @property
     def observation_space(self):
-        """Partially observed state space.
+        """
+        Partially observed state space.
 
         Velocities, distance to intersections, edge number (for nearby
         vehicles), and traffic light state.
@@ -502,12 +500,11 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             dtype=np.float32)
         return tl_box
 
-    def get_state(self, rl_actions=None):
-        """Return observations.
-
+    def get_state(self):
+        """
         Returns self.num_observed number of vehicles closest to each traffic
         light and for each vehicle its velocity, distance to intersection,
-        edge_number. Also returns traffic light state.
+        edge_number traffic light state. This is partially observed
         """
         speeds = []
         dist_to_intersec = []
@@ -574,7 +571,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         if self.env_params.evaluate:
             return - rewards.min_delay_unscaled(self)
         else:
-            return rewards.desired_velocity(self, fail=kwargs['fail'])
+            return (- rewards.min_delay_unscaled(self) +
+                    rewards.penalize_standstill(self, gain=0.2))
 
     def additional_command(self):
         """See class definition."""
@@ -583,8 +581,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
 
 class GreenWaveTestEnv(TrafficLightGridEnv):
-    """Class purely for testing.
-
+    """
     Class that overrides RL methods of green wave so we can test
     construction without needing to specify RL methods
     """
