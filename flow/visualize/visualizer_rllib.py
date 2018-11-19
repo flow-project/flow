@@ -19,7 +19,6 @@ import sys
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
-from ray.rllib.models import ModelCatalog
 from ray.tune.registry import register_env
 from ray.rllib.models import ModelCatalog
 
@@ -36,6 +35,7 @@ example usage:
 Here the arguments are:
 1 - the number of the checkpoint
 """
+
 
 def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
@@ -135,7 +135,6 @@ def visualizer_rllib(args):
 
     if multiagent:
         rets = {}
-        ids = config['multiagent']['policy_graphs'].keys()
         # map the agent id to its policy
         policy_map_fn = config['multiagent']['policy_mapping_fn'].func
         for key in config['multiagent']['policy_graphs'].keys():
