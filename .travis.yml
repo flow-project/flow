@@ -47,10 +47,10 @@ before_install:
   -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
   -     popd
   - popd
-  - ray stop
-  - >-
-      ulimit -n 65536;
-      ray start --head --redis-port=6379 --object-manager-port=8076
+#  - ray stop
+#  - >-
+#      ulimit -n 65536;
+#      ray start --head --redis-port=6379 --object-manager-port=8076
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project
