@@ -1,39 +1,48 @@
-import unittest
+# from flow.visualize import visualizer_rllab as vs_rllab
+# from flow.visualize.visualizer_rllab import visualizer_rllab
+from flow.visualize import visualizer_rllib as vs_rllib
+from flow.visualize.visualizer_rllib import visualizer_rllib
+
 import os
-import pickle
-import numpy as np
+import unittest
+import ray
 
-os.environ["TEST_FLAG"] = "True"
-BROKEN_TESTS = os.environ.get('BROKEN_TESTS', False)
+os.environ['TEST_FLAG'] = 'True'
 
 
-class TestVisualizerFlow(unittest.TestCase):
-    """
-    Tests visualizer_flow:
-    - ensures that it runs
-    - ensures that crashes in the visualizer does not cause the visualizer to
-      crash, and that observations are still being stored
-    """
+class TestVisualizerRLlib(unittest.TestCase):
+    """Tests visualizer_rllib"""
 
-    # TODO fix this test
-    @unittest.skipUnless(BROKEN_TESTS, "broken test (known issue)")
     def test_visualizer(self):
+        try:
+            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+        except Exception:
+            pass
+
         # current path
-        current_path = os.path.realpath(__file__).rsplit("/", 1)[0]
+        current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
 
         # run the experiment and check it doesn't crash
-        os.system("python %s/../flow/visualizer_flow.py "
-                  "tests/test_files/params-collide.pkl --num_rollouts 1" %
-                  current_path)
+        arg_str = '{}/../data/rllib_data/ 1 --num_rollouts 1 ' \
+                  '--no_render'.format(current_path).split()
+        parser = vs_rllib.create_parser()
+        pass_args = parser.parse_args(arg_str)
+        visualizer_rllib(pass_args)
 
-        self.assert_(True)
 
-        # open the generated observations file, and check it isn't all zeros
-        observations = pickle.load(
-            open(current_path + "/observations.pkl", "rb"))
-
-        self.assertNotEqual(np.sum(np.sum(observations)), 0)
+# class TestVisualizerRLlab(unittest.TestCase):
+#     """Tests visualizer_rllab"""
+#
+#     def test_visualizer(self):
+#         # current path
+#         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
+#         arg_str = '{}/../data/rllab_data/itr_0.pkl --num_rollouts 1 ' \
+#                   '--no_render'.format(current_path).split()
+#         parser = vs_rllab.create_parser()
+#         pass_args = parser.parse_args(arg_str)
+#         visualizer_rllab(pass_args)
 
 
 if __name__ == '__main__':
+    ray.init(num_cpus=2)
     unittest.main()
