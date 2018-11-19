@@ -92,8 +92,7 @@ flow_params = dict(
 
 
 def setup_exps():
-
-    alg_run = "PPO"
+    alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS

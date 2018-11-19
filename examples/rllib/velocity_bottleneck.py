@@ -154,7 +154,6 @@ flow_params = dict(
 
 
 def setup_exps():
-
     alg_run = 'PPO'
 
     agent_cls = get_agent_class(alg_run)
