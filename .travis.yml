@@ -27,6 +27,7 @@ before_install:
 
   # Set up requirements for flow
   - conda env create -f environment.yml
+  - source activate flow
 
   # Requirements for Ray
   - pip install opencv-python
