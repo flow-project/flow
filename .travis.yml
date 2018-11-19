@@ -26,7 +26,7 @@ before_install:
   - python -V
 
   # Set up requirements for flow
-  - pip install umpy==1.14.0
+  - pip install numpy==1.14.0
   - pip install scipy==1.1.0
   - pip install lxml==4.2.4
   - pip install six==1.11.0
