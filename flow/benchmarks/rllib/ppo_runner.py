@@ -84,8 +84,15 @@ if __name__ == "__main__":
     config["train_batch_size"] = horizon * num_rollouts
     config["use_gae"] = True
     config["horizon"] = horizon
-    config["lambda"] = 0.97
-    config["lr"] = 5e-4
+    gae_lambda = 0.97
+    step_size = 5e-4
+    if benchmark_name == "grid0":
+        gae_lambda = 0.5
+        step_size = 5e-5
+    elif benchmark_name == "grid1":
+        gae_lambda = 0.3
+    config["lambda"] = gae_lambda
+    config["lr"] = step_size
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
