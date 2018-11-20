@@ -1,15 +1,14 @@
-"""Example of modified minicity network with human-driven vehicles.
-"""
-from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter, \
-    RLController
+"""Example of modified minicity network with human-driven vehicles."""
+from flow.controllers import IDMController
+from flow.controllers import RLController
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.minicity import MiniCityScenario, \
-    ADDITIONAL_NET_PARAMS
+from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import MinicityRouter
 import numpy as np
+
 np.random.seed(204)
 
 
@@ -19,7 +18,8 @@ def minicity_example(render=None,
                      pxpm=None,
                      show_radius=None):
     """
-    Perform a simulation of vehicles on modified minicity of University of Delaware.
+    Perform a simulation of vehicles on modified minicity of University of
+    Delaware.
 
     Parameters
     ----------
@@ -32,7 +32,7 @@ def minicity_example(render=None,
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on the minicity scenario.
     """
-    sumo_params = SumoParams(render=True)
+    sumo_params = SumoParams(render=False)
 
     if render is not None:
         sumo_params.render = render
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     # Dynamic grayscale rendering: minicity_example(render="dgray")
     # Static RGB rendering: minicity_example(render="rgb")
     # Dynamic RGB rendering: minicity_example(render="drgb")
-    exp = minicity_example(#render="drgb",
+    exp = minicity_example(render=True,
                            save_render=False,
                            sight_radius=50,
                            pxpm=3,

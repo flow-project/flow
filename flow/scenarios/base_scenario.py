@@ -606,11 +606,13 @@ class Scenario(Serializable):
                     if self.edge_length(edge_id) > min_gap + VEHICLE_LENGTH)
 
         if initial_config.edges_distribution == "all":
-            available_edges = [edge for edge in self.get_edge_list()
-                               if self.edge_length(edge) > min_gap + VEHICLE_LENGTH]
+            available_edges = [
+                edge for edge in self.get_edge_list()
+                if self.edge_length(edge) > min_gap + VEHICLE_LENGTH]
         else:
-            available_edges = [edge for edge in initial_config.edges_distribution
-                               if self.edge_length(edge) > min_gap + VEHICLE_LENGTH]
+            available_edges = [
+                edge for edge in initial_config.edges_distribution
+                if self.edge_length(edge) > min_gap + VEHICLE_LENGTH]
 
         available_length = \
             distribution_length - lanes_distribution * bunching - \
