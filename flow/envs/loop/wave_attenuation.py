@@ -122,7 +122,7 @@ class WaveAttenuationEnv(Env):
 
         return float(reward)
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """See class definition."""
         speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
                  for veh_id in self.sorted_ids]
@@ -236,7 +236,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         """See class definition."""
         return Box(low=0, high=1, shape=(3, ), dtype=np.float32)
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """See class definition."""
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
@@ -301,7 +301,7 @@ class MultiWaveAttenuationPOEnv(Env):
             shape=(int(self.vehicles.num_rl_vehicles/num_rings), ),
             dtype=np.float32)
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """See class definition."""
         obs = {}
         for rl_id in self.vehicles.get_rl_ids():

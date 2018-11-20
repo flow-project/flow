@@ -904,7 +904,7 @@ class Env(*classdef):
         for veh_id in self.vehicles.get_observed_ids():
             self.vehicles.remove_observed(veh_id)
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """Return the state of the simulation as perceived by the RL agent.
 
         MUST BE implemented in new environments.

@@ -89,7 +89,7 @@ class AccelEnv(Env):
         else:
             return rewards.desired_velocity(self, fail=kwargs['fail'])
 
-    def get_state(self, rl_actions=None):
+    def get_state(self):
         """See class definition."""
         speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
                  for veh_id in self.sorted_ids]
