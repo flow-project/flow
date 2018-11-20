@@ -472,7 +472,7 @@ class Env(*classdef):
             if crash:
                 break
 
-        states = self.get_state(rl_actions)
+        states = self.get_state()
         if isinstance(states, dict):
             self.state = {}
             next_observation = {}
