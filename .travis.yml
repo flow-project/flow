@@ -22,7 +22,6 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda install python=3.5.2
   - python -V
 
   # Set up requirements for flow
@@ -61,9 +60,7 @@ before_install:
 install:
   - pip install flake8 .
   - pip install coveralls
-  - pip install nose
   - pip install matplotlib
-  - pip install jupyter
 
 before_script:
   - flake8 --version
