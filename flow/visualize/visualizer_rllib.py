@@ -57,7 +57,7 @@ def visualizer_rllib(args):
         multiagent = False
 
     # Run on only one cpu for rendering purposes
-    config['num_workers'] = 1
+    config['num_workers'] = 0
 
     flow_params = get_flow_params(config)
 
