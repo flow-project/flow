@@ -1,28 +1,30 @@
 """Base environment class. This is the parent of all other environments."""
 
+from copy import deepcopy
+import gym
+from gym.spaces import Box
 import logging
+import numpy as np
 import os
+import random
 import signal
 import subprocess
-from copy import deepcopy
 import time
 import traceback
-import numpy as np
-import random
 
 import traci
 from traci import constants as tc
-from traci.exceptions import FatalTraCIError, TraCIException
-import gym
-from gym.spaces import Box
+from traci.exceptions import FatalTraCIError
+from traci.exceptions import TraCIException
 
 import sumolib
 
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
+    serializable_flag = True
 except ImportError:
-    Serializable = object
+    serializable_flag = False
 
 try:
     # Load user config if exists, else load default config
@@ -30,10 +32,27 @@ try:
 except ImportError:
     import flow.config_default as config
 
+try:
+    from ray.rllib.env import MultiAgentEnv
+    multiagent_flag = True and os.environ.get('MULTIAGENT', 0)
+except ImportError:
+    multiagent_flag = False
+    MultiAgentEnv = object
+
 from flow.core.util import ensure_dir
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
+
+# pick out the correct class definition
+if serializable_flag and multiagent_flag:
+    classdef = (gym.Env, Serializable, MultiAgentEnv)
+elif serializable_flag and not multiagent_flag:
+    classdef = (gym.Env, Serializable)
+elif not serializable_flag and multiagent_flag:
+    classdef = (gym.Env, MultiAgentEnv)
+else:
+    classdef = (gym.Env,)
 
 # colors for vehicles
 WHITE = (255, 255, 255, 255)
@@ -41,7 +60,7 @@ CYAN = (0, 255, 255, 255)
 RED = (255, 0, 0, 255)
 
 
-class Env(gym.Env, Serializable):
+class Env(*classdef):
     """Base environment class.
 
     Provides the interface for controlling a SUMO simulation. Using this
@@ -73,7 +92,7 @@ class Env(gym.Env, Serializable):
 
     def __init__(self, env_params, sumo_params, scenario):
         # Invoke serializable if using rllab
-        if Serializable is not object:
+        if serializable_flag:
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
@@ -453,17 +472,53 @@ class Env(gym.Env, Serializable):
             if crash:
                 break
 
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(self.get_state()).T
+        states = self.get_state(rl_actions)
+        if isinstance(states, dict):
+            self.state = {}
+            next_observation = {}
+            done = {}
+            infos = {}
+            temp_state = states
+            for key, state in temp_state.items():
+                # collect information of the state of the network based on the
+                # environment class used
+                self.state[key] = np.asarray(state).T
 
-        # collect observation new state associated with action
-        next_observation = np.copy(self.state)
+                # collect observation new state associated with action
+                next_observation[key] = np.copy(self.state[key])
 
-        # compute the reward
-        reward = self.compute_reward(rl_actions, fail=crash)
+                # test if a crash has occurred
+                done[key] = crash
+                # test if the agent has exited the system
+                if key in self.vehicles.get_arrived_ids():
+                    done[key] = True
+                # check if an agent is done
+                if crash:
+                    done['__all__'] = True
+                else:
+                    done['__all__'] = False
+                infos[key] = {}
 
-        return next_observation, reward, crash, {}
+            reward = self.compute_reward(rl_actions, fail=crash)
+
+        else:
+            # collect information of the state of the network based on the
+            # environment class used
+            self.state = np.asarray(states).T
+
+            # collect observation new state associated with action
+            next_observation = np.copy(states)
+
+            # compute the reward
+            reward = self.compute_reward(rl_actions, fail=crash)
+
+            # test if the agent should terminate due to a crash
+            done = crash
+
+            # compute the info for each agent
+            infos = {}
+
+        return next_observation, reward, done, infos
 
     def reset(self):
         """Reset the environment.
@@ -622,12 +677,25 @@ class Env(gym.Env, Serializable):
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(self.get_state()).T
+        states = self.get_state()
+        if isinstance(states, dict):
+            self.state = {}
+            observation = {}
+            for key, state in states.items():
+                # collect information of the state of the network based on the
+                # environment class used
+                self.state[key] = np.asarray(state).T
 
-        # observation associated with the reset (no warm-up steps)
-        observation = np.copy(self.state)
+                # collect observation new state associated with action
+                observation[key] = np.copy(self.state[key]).tolist()
+
+        else:
+            # collect information of the state of the network based on the
+            # environment class used
+            self.state = np.asarray(states).T
+
+            # observation associated with the reset (no warm-up steps)
+            observation = np.copy(states)
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
@@ -836,7 +904,7 @@ class Env(gym.Env, Serializable):
         for veh_id in self.vehicles.get_observed_ids():
             self.vehicles.remove_observed(veh_id)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """Return the state of the simulation as perceived by the RL agent.
 
         MUST BE implemented in new environments.
