@@ -327,9 +327,8 @@ class TestRllib(unittest.TestCase):
 
         # make sure that the Vehicles class that was imported matches the
         # original one
-        if not search_dicts(imported_flow_params["veh"].__dict__,
-                            flow_params["veh"].__dict__):
-            raise AssertionError
+        self.assertTrue(search_dicts(imported_flow_params["veh"].__dict__,
+                                     flow_params["veh"].__dict__))
 
 
 if __name__ == '__main__':

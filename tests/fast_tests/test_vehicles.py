@@ -20,7 +20,7 @@ class TestVehiclesClass(unittest.TestCase):
     Tests various functions in the vehicles class
     """
 
-    def runSpeedLaneChangeModes(self):
+    def test_speed_lane_change_modes(self):
         """
         Check to make sure vehicle class correctly specifies lane change and
         speed modes
@@ -33,7 +33,7 @@ class TestVehiclesClass(unittest.TestCase):
             lane_change_mode="no_lat_collide")
 
         self.assertEqual(vehicles.get_speed_mode("typeA_0"), 1)
-        self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 256)
+        self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 512)
 
         vehicles.add(
             "typeB",
@@ -42,7 +42,7 @@ class TestVehiclesClass(unittest.TestCase):
             lane_change_mode="strategic")
 
         self.assertEqual(vehicles.get_speed_mode("typeB_0"), 0)
-        self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 853)
+        self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 1621)
 
         vehicles.add(
             "typeC",
@@ -145,18 +145,18 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.remove("test_rl_0")
 
         # ensure that the removed vehicle's ID is not in any lists of vehicles
-        if "test_0" in vehicles.get_ids():
-            raise AssertionError("vehicle still in get_ids()")
-        if "test_0" in vehicles.get_human_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_lc_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_ids():
-            raise AssertionError("vehicle still in get_controlled_ids()")
-        if "test_rl_0" in vehicles.get_ids():
-            raise AssertionError("RL vehicle still in get_ids()")
-        if "test_rl_0" in vehicles.get_rl_ids():
-            raise AssertionError("RL vehicle still in get_rl_ids()")
+        self.assertTrue("test_0" not in vehicles.get_ids(),
+                        msg="vehicle still in get_ids()")
+        self.assertTrue("test_0" not in vehicles.get_human_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_lc_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_ids(),
+                        msg="vehicle still in get_controlled_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_ids(),
+                        msg="RL vehicle still in get_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_rl_ids(),
+                        msg="RL vehicle still in get_rl_ids()")
 
         # ensure that the vehicles are not storing extra information in the
         # vehicles.__vehicles dict
