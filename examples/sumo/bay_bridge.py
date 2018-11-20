@@ -61,7 +61,7 @@ def bay_bridge_example(render=None,
         lane_change_mode="no_lat_collide",
         sumo_car_following_params=sumo_car_following_params,
         sumo_lc_params=sumo_lc_params,
-        num_vehicles=1000)
+        num_vehicles=1400)
 
     additional_env_params = {}
     env_params = EnvParams(additional_params=additional_env_params)
