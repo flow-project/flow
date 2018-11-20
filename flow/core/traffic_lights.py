@@ -182,7 +182,7 @@ class TrafficLights:
 
     def actuated_default(self):
         """
-        Return the default values to be used for the generator
+        Return the default values to be used for the scenario
         for a system where all junctions are actuated time-gap
         based traffic lights.
         Returns

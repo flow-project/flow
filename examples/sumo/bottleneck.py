@@ -18,7 +18,7 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 INFLOW = 2000
 # If set to true, will create a inflow-outflow curve for the bottleneck
-PLOT_CAPACITY_CURVE = True
+PLOT_CAPACITY_CURVE = False
 
 
 def bottleneck_example(flow_rate, horizon, render=None):
