@@ -4,6 +4,8 @@ This example consists of 1 learning agent and 6 additional vehicles in an inner
 ring, and 10 vehicles in an outer ring attempting to merge into the inner ring.
 """
 
+from copy import deepcopy
+
 from rllab.algos.trpo import TRPO
 from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.envs.gym_env import GymEnv
@@ -75,7 +77,7 @@ def run_task(*_):
             "n_merging_in": 2,
         })
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
+    additional_net_params = deepcopy(ADDITIONAL_NET_PARAMS)
     additional_net_params["ring_radius"] = 50
     additional_net_params["inner_lanes"] = 1
     additional_net_params["outer_lanes"] = 1

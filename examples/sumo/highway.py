@@ -1,5 +1,7 @@
 """Example of an open multi-lane network with human-driven vehicles."""
 
+from copy import deepcopy
+
 from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, \
@@ -56,7 +58,7 @@ def highway_example(render=None):
         departLane="free",
         departSpeed=20)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
+    additional_net_params = deepcopy(ADDITIONAL_NET_PARAMS)
     net_params = NetParams(
         inflows=inflow, additional_params=additional_net_params)
 

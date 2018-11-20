@@ -4,6 +4,8 @@ Trains a small percentage of rl vehicles to dissipate shockwaves caused by
 merges in an open network.
 """
 
+from copy import deepcopy
+
 from rllab.envs.normalized_env import normalize
 from rllab.misc.instrument import run_experiment_lite
 from rllab.algos.trpo import TRPO
@@ -92,7 +94,7 @@ def run_task(_):
         warmup_steps=0,
         additional_params=additional_env_params)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
+    additional_net_params = deepcopy(ADDITIONAL_NET_PARAMS)
     additional_net_params["merge_lanes"] = 1
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500

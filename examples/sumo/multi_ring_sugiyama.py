@@ -4,6 +4,8 @@ This example consists of 22 IDM cars on a ring creating shockwaves on
 non overlapping rings used to test mult-iagent shared models.
 """
 
+from copy import deepcopy
+
 from flow.controllers import ContinuousRouter
 from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
@@ -50,7 +52,7 @@ def sugiyama_example(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
+    additional_net_params = deepcopy(ADDITIONAL_NET_PARAMS)
     additional_net_params['num_rings'] = NUM_RINGS
     net_params = NetParams(additional_params=additional_net_params)
 

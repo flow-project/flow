@@ -1,5 +1,7 @@
 """Example of ring road with larger merging ring."""
 
+from copy import deepcopy
+
 from flow.controllers import IDMController, SumoLaneChangeController, \
     ContinuousRouter
 from flow.core.experiment import SumoExperiment
@@ -56,7 +58,7 @@ def loop_merge_example(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
+    additional_net_params = deepcopy(ADDITIONAL_NET_PARAMS)
     additional_net_params["ring_radius"] = 50
     additional_net_params["inner_lanes"] = 1
     additional_net_params["outer_lanes"] = 1

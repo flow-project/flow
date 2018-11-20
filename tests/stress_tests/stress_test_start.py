@@ -1,4 +1,7 @@
 """Repeatedly opens up a sumo port to test for race conditions."""
+
+from copy import deepcopy
+
 from flow.controllers import IDMController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
@@ -22,7 +25,7 @@ def start():
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
+    additional_net_params = deepcopy(ADDITIONAL_NET_PARAMS)
     net_params = NetParams(additional_params=additional_net_params)
 
     initial_config = InitialConfig(bunching=20)
