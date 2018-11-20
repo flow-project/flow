@@ -9,6 +9,7 @@ from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
 from examples.sumo.loop_merge import loop_merge_example
 from examples.sumo.merge import merge_example
+from examples.sumo.minicity import minicity_example
 from examples.sumo.sugiyama import sugiyama_example
 
 from examples.rllib.cooperative_merge import setup_exps as coop_setup
@@ -100,6 +101,14 @@ class TestSumoExamples(unittest.TestCase):
         """Verifies that examples/sumo/bay_bridge_toll.py is working."""
         # import the experiment variable from the example
         exp = bay_bridge_toll_example(render=False)
+
+        # run the experiment for a few time steps to ensure it doesn't fail
+        exp.run(1, 5)
+
+    def test_minicity(self):
+        """Verifies that examples/sumo/minicity.py is working."""
+        # import the experiment variable from the example
+        exp = minicity_example(render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
