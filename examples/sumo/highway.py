@@ -56,7 +56,7 @@ def highway_example(render=None):
         departLane="free",
         departSpeed=20)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
     net_params = NetParams(
         inflows=inflow, additional_params=additional_net_params)
 

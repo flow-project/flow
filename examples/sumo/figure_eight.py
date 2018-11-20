@@ -44,7 +44,7 @@ def figure_eight_example(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 

@@ -5,13 +5,12 @@ import traci.constants as tc
 # DEFAULTS
 PROGRAM_ID = 1
 MAX_GAP = 3.0
-DETECTOR_GAP = 0.8
+DETECTOR_GAP = 0.6
 SHOW_DETECTORS = True
 
 
 class TrafficLights:
     """Base traffic light.
-
     This class is used to place traffic lights in the network and describe
     the state of these traffic lights. In addition, this class supports
     modifying the states of certain lights via TraCI.
@@ -19,7 +18,6 @@ class TrafficLights:
 
     def __init__(self, baseline=False):
         """Instantiate base traffic light.
-
         Parameters
         ----------
         baseline: bool
@@ -44,15 +42,12 @@ class TrafficLights:
             file=None,
             freq=None):
         """Add a traffic light component to the network.
-
         When generating networks using xml files, using this method to add a
         traffic light will explicitly place the traffic light in the requested
         node of the generated network.
-
         If traffic lights are not added here but are already present in the
         network (e.g. through a prebuilt net.xml file), then the traffic light
         class will identify and add them separately.
-
         Parameters
         ----------
         node_id : str
@@ -67,14 +62,12 @@ class TrafficLights:
             list of phases to be followed by the traffic light, defaults
             to default sumo traffic light behavior. Each element in the list
             must consist of a dict with two keys:
-
             * "duration": length of the current phase cycle (in sec)
             * "state": string consist the sequence of states in the phase
             * "minDur": optional
                 The minimum duration of the phase when using type actuated
             * "maxDur": optional
                 The maximum duration of the phase when using type actuated
-
         maxGap : int, used for actuated traffic lights
             describes the maximum time gap between successive vehicle that
             will cause the current phase to be prolonged
@@ -87,7 +80,6 @@ class TrafficLights:
             which file the detector shall write results into
         freq : int, optional
             the period over which collected values shall be aggregated
-
         Note
         ----
         For information on defining traffic light properties, see:
@@ -131,10 +123,8 @@ class TrafficLights:
 
     def update(self, tls_subscriptions):
         """Update the states and phases of the traffic lights.
-
         This is called by the environment class, and ensures that the traffic
         light variables match current traffic light data.
-
         Parameters
         ----------
         tls_subscriptions : dict
@@ -148,15 +138,13 @@ class TrafficLights:
 
     def get_properties(self):
         """Return traffic light properties.
-
-        This is meant to be used by the generator to import traffic light data
+        This is meant to be used by the scenario to import traffic light data
         to the .net.xml file
         """
         return self.__tls_properties
 
     def set_state(self, node_id, state, env, link_index="all"):
         """Set the state of the traffic lights on a specific node.
-
         Parameters
         ----------
         node_id : str
@@ -180,12 +168,10 @@ class TrafficLights:
 
     def get_state(self, node_id):
         """Return the state of the traffic light(s) at the specified node.
-
         Parameters
         ----------
         node_id: str
             name of the node
-
         Returns
         -------
         state : str
@@ -199,7 +185,6 @@ class TrafficLights:
         Return the default values to be used for the generator
         for a system where all junctions are actuated time-gap
         based traffic lights.
-
         Returns
         -------
         tl_logic: dict

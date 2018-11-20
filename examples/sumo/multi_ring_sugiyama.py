@@ -50,7 +50,7 @@ def sugiyama_example(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
     additional_net_params['num_rings'] = NUM_RINGS
     net_params = NetParams(additional_params=additional_net_params)
 

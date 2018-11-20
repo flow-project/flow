@@ -92,7 +92,7 @@ def run_task(_):
         warmup_steps=0,
         additional_params=additional_env_params)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
     additional_net_params["merge_lanes"] = 1
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500

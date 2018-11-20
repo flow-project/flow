@@ -28,7 +28,7 @@ NUM_RL = 17
 
 # We consider a highway network with an upstream merging lane producing
 # shockwaves
-additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
 additional_net_params["merge_lanes"] = 1
 additional_net_params["highway_lanes"] = 1
 additional_net_params["pre_merge_length"] = 500

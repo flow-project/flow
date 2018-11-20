@@ -69,7 +69,7 @@ def merge_example(render=None):
         departLane="free",
         departSpeed=7.5)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+    additional_net_params = ADDITIONAL_NET_PARAMS.deepcopy()
     additional_net_params["merge_lanes"] = 1
     additional_net_params["highway_lanes"] = 1
     additional_net_params["pre_merge_length"] = 500
