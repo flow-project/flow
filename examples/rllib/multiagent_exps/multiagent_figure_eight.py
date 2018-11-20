@@ -5,6 +5,7 @@ the accelerations of figure eight."""
 # WARNING: Expected total reward is zero as adversary reward is
 # the negative of the AV reward
 
+from copy import deepcopy
 import json
 import os
 
@@ -23,7 +24,7 @@ from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.vehicles import Vehicles
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
@@ -83,7 +84,7 @@ flow_params = dict(
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS,
+        additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
