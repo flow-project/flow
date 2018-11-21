@@ -291,10 +291,6 @@ class Vehicles:
         for veh_id in sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]:
             if veh_id not in sim_obs[tc.VAR_TELEPORT_STARTING_VEHICLES_IDS]:
                 self.remove(veh_id)
-                # remove exiting vehicles from the vehicle subscription if they
-                # haven't been removed already
-                if vehicle_obs[veh_id] is None:
-                    vehicle_obs.pop(veh_id, None)
             else:
                 # this is meant to resolve the KeyError bug when there are
                 # collisions
@@ -311,10 +307,7 @@ class Vehicles:
                 # updated
                 pass
             else:
-                obs = self._add_departed(veh_id, veh_type, env)
-
-                # add the subscription information of the new vehicle
-                vehicle_obs[veh_id] = obs
+                self._add_departed(veh_id, veh_type, env)
 
         if env.time_counter == 0:
             # reset all necessary values
@@ -329,7 +322,8 @@ class Vehicles:
             # update the "last_lc" variable
             for veh_id in self.__rl_ids:
                 prev_lane = self.get_lane(veh_id)
-                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != prev_lane:
+                if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
+                        prev_lane and veh_id in self.__rl_ids:
                     self.set_state(veh_id, "last_lc", env.time_counter)
 
             # update the "absolute_position" variable
@@ -392,10 +386,6 @@ class Vehicles:
             type of vehicle, as specified to sumo
         env: Env type
             state of the environment at the current time step
-        Returns
-        -------
-        dict
-            subscription results from the new vehicle
         """
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
@@ -443,15 +433,12 @@ class Vehicles:
             if lc_controller[0] != SumoLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
-        # subscribe the new vehicle (if it is not already there)
+        # subscribe the new vehicle
         env.traci_connection.vehicle.subscribe(veh_id, [
             tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
             tc.VAR_SPEED, tc.VAR_EDGES
         ])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
-
-        # get the subscription results from the new vehicle
-        new_obs = env.traci_connection.vehicle.getSubscriptionResults(veh_id)
 
         # some constant vehicle parameters to the vehicles class
         self.set_length(veh_id, env.traci_connection.vehicle.getLength(veh_id))
@@ -478,8 +465,6 @@ class Vehicles:
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
-
-        return new_obs
 
     def remove(self, veh_id):
         """Remove a vehicle.
