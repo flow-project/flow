@@ -5,7 +5,6 @@ Creates a set of stabilizing the ring experiments to test if
 """
 
 import json
-import os
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
@@ -99,8 +98,8 @@ flow_params = dict(
     initial=InitialConfig(bunching=20.0, spacing='custom'),
 )
 
-def setup_exps():
 
+def setup_exps():
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
@@ -148,10 +147,9 @@ def setup_exps():
     return alg_run, env_name, config
 
 
-if __name__=='__main__':
-
+if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS+1)
+    ray.init(num_cpus=N_CPUS + 1)
 
     run_experiments({
         flow_params['exp_tag']: {
@@ -162,6 +160,6 @@ if __name__=='__main__':
                 'training_iteration': 1
             },
             'config': config,
-            'upload_dir': 's3://<BUCKET NAME>'
+            # 'upload_dir': 's3://<BUCKET NAME>'
         },
     })

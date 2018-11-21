@@ -7,7 +7,6 @@ the accelerations of figure eight."""
 
 from copy import deepcopy
 import json
-import os
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
@@ -161,6 +160,6 @@ if __name__ == '__main__':
                 'training_iteration': 1
             },
             'config': config,
-            #'upload_dir': 's3://<BUCKET NAME>'
+            # 'upload_dir': 's3://<BUCKET NAME>'
         },
     })

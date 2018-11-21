@@ -145,7 +145,6 @@ class MultiEnv(MultiAgentEnv, Env):
 
         return next_observation, reward, done, infos
 
-
     def reset(self):
         """Reset the environment.
 

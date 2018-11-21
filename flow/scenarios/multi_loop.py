@@ -98,13 +98,6 @@ class MultiLoopScenario(Scenario):
         increment = available_length / num_vehicles
         vehs_per_ring = num_vehicles / self.num_rings
 
-        # if not all lanes are equal, then we must ensure that vehicles are in
-        # two edges at the same time
-        flag = False
-        lanes = [self.num_lanes(edge) for edge in self.get_edge_list()]
-        if any(lanes[0] != lanes[i] for i in range(1, len(lanes))):
-            flag = True
-
         x = x0
         car_count = 0
         startpositions, startlanes = [], []

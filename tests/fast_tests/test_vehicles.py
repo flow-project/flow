@@ -294,7 +294,6 @@ class TestMultiLaneData(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual_follower_speed,
                                              expected_follower_speed)
 
-
         # Next, test the case where all vehicles are on the same
         # edge and there's two vehicles in each lane
         # Cases to test
@@ -368,7 +367,6 @@ class TestMultiLaneData(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual_follower_speed,
                                              expected_follower_speed)
 
-
         # Now test if all the vehicles are on different edges and
         # different lanes
         additional_net_params = {
@@ -399,7 +397,8 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo", render=True),
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo",
+                                   render=True),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
