@@ -1,6 +1,7 @@
 """Contains the pyglet renderer class."""
 
 import pyglet
+import matplotlib
 from matplotlib import cm
 import matplotlib.colors as colors
 import numpy as np
