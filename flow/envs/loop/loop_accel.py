@@ -124,7 +124,7 @@ class MultiAgentAccelEnv(AccelEnv):
         rl_action = av_action + perturb_weight * adv_action
         self.apply_acceleration(sorted_rl_ids, rl_action)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """The agents receives opposing speed rewards.
 
         The agent receives the class definition reward,

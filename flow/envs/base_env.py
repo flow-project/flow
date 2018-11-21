@@ -9,6 +9,7 @@ import os
 import random
 import signal
 import subprocess
+import sys
 import time
 import traceback
 
@@ -27,17 +28,17 @@ except ImportError:
     serializable_flag = False
 
 try:
+    # Import serializable if rllab is installed
+    from ray.rllib.env import MultiAgentEnv
+    multiagent_flag = True
+except ImportError:
+    multiagent_flag = False
+
+try:
     # Load user config if exists, else load default config
     import flow.config as config
 except ImportError:
     import flow.config_default as config
-
-try:
-    from ray.rllib.env import MultiAgentEnv
-    multiagent_flag = True and os.environ.get('MULTIAGENT', 0)
-except ImportError:
-    multiagent_flag = False
-    MultiAgentEnv = object
 
 from flow.core.util import ensure_dir
 
@@ -45,12 +46,8 @@ from flow.core.util import ensure_dir
 RETRIES_ON_ERROR = 10
 
 # pick out the correct class definition
-if serializable_flag and multiagent_flag:
-    classdef = (gym.Env, Serializable, MultiAgentEnv)
-elif serializable_flag and not multiagent_flag:
+if serializable_flag:
     classdef = (gym.Env, Serializable)
-elif not serializable_flag and multiagent_flag:
-    classdef = (gym.Env, MultiAgentEnv)
 else:
     classdef = (gym.Env,)
 
@@ -60,7 +57,7 @@ CYAN = (0, 255, 255, 255)
 RED = (255, 0, 0, 255)
 
 
-class Env(*classdef):
+class Env(gym.Env):
     """Base environment class.
 
     Provides the interface for controlling a SUMO simulation. Using this
@@ -92,6 +89,7 @@ class Env(*classdef):
 
     def __init__(self, env_params, sumo_params, scenario):
         # Invoke serializable if using rllab
+
         if serializable_flag:
             Serializable.quick_init(self, locals())
 
@@ -149,6 +147,20 @@ class Env(*classdef):
 
         self.start_sumo()
         self.setup_initial_state()
+
+        # # dynamically modify the bases to be multiagent if needed
+        # is_multi = isinstance(self.compute_reward(None, **{"fail": False}), dict)
+        # import ipdb; ipdb.set_trace()
+        # # pick out the correct class definition
+        # if serializable_flag and multiagent_flag and is_multi:
+        #     classdef = (gym.Env, Serializable, MultiAgentEnv)
+        # elif serializable_flag and not multiagent_flag:
+        #     classdef = (gym.Env, Serializable)
+        # elif not serializable_flag and multiagent_flag and is_multi:
+        #     classdef = (gym.Env, MultiAgentEnv)
+        # else:
+        #     classdef = (gym.Env,)
+        # self.__bases__ = classdef
 
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
@@ -299,7 +311,7 @@ class Env(*classdef):
         num_spawned_veh = self.traci_connection.simulation.getDepartedNumber()
         if num_spawned_veh < self.vehicles.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
-            exit()
+            sys.exit()
 
         # add missing traffic lights in the list of traffic light ids
         tls_ids = self.traci_connection.trafficlight.getIDList()
@@ -724,10 +736,17 @@ class Env(*classdef):
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
+            if isinstance(rl_actions, dict):
+                for key, action in rl_actions.items():
+                    rl_actions[key] = np.clip(
+                        action,
+                        a_min=self.action_space.low,
+                        a_max=self.action_space.high)
+            else:
+                rl_actions = np.clip(
+                    rl_actions,
+                    a_min=self.action_space.low,
+                    a_max=self.action_space.high)
 
         self._apply_rl_actions(rl_actions)
 

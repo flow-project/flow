@@ -18,6 +18,10 @@ from examples.rllib.green_wave import setup_exps as green_wave_setup
 from examples.rllib.stabilizing_highway import setup_exps as highway_setup
 from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
 from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
+from examples.rllib.multiagent_exps.multiagent_figure_eight \
+    import setup_exps as multi_figure_eight_setup
+from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
+    import setup_exps as multi_ring_setup
 
 import ray
 from ray.tune import run_experiments
@@ -144,6 +148,14 @@ class TestRllibExamples(unittest.TestCase):
 
     def test_bottleneck(self):
         alg_run, env_name, config = bottleneck_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_multi_figure_eight(self):
+        alg_run, env_name, config = multi_figure_eight_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_multi_ring(self):
+        alg_run, env_name, config = multi_ring_setup()
         self.run_exp(alg_run, env_name, config)
 
     def run_exp(self, alg_run, env_name, config):

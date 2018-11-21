@@ -52,7 +52,6 @@ def visualizer_rllib(args):
     if config.get('multiagent', {}).get('policy_graphs', {}):
         multiagent = True
         config['multiagent'] = pkl['multiagent']
-        os.environ['MULTIAGENT'] = 'True'
     else:
         multiagent = False
 

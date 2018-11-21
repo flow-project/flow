@@ -10,7 +10,7 @@ import json
 import os
 
 import ray
-import ray.rllib.agents.ppo as ppo
+from ray.rllib.agents.agent import get_agent_class
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
 from ray import tune
 from ray.tune.registry import register_env
@@ -31,10 +31,9 @@ from flow.utils.rllib import FlowParamsEncoder
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 14
+N_ROLLOUTS = 4
 # number of parallel workers
-N_CPUS = 14
-os.environ['MULTIAGENT'] = 'True'
+N_CPUS = 2
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -96,10 +95,12 @@ flow_params = dict(
     initial=InitialConfig(),
 )
 
-if __name__ == '__main__':
-    ray.init()
 
-    config = ppo.DEFAULT_CONFIG.copy()
+def setup_exps():
+
+    alg_run = 'PPO'
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['simple_optimizer'] = True
@@ -117,6 +118,7 @@ if __name__ == '__main__':
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -136,23 +138,29 @@ if __name__ == '__main__':
     def policy_mapping_fn(agent_id):
         return agent_id
 
-    policy_ids = list(policy_graphs.keys())
     config.update({
         'multiagent': {
             'policy_graphs': policy_graphs,
             'policy_mapping_fn': tune.function(policy_mapping_fn)
         }
     })
+    return alg_run, env_name, config
+
+
+if __name__ == '__main__':
+
+    alg_run, env_name, config = setup_exps()
+    ray.init(num_cpus=N_CPUS+1)
 
     run_experiments({
         flow_params['exp_tag']: {
-            'run': 'PPO',
+            'run': alg_run,
             'env': env_name,
             'checkpoint_freq': 1,
             'stop': {
                 'training_iteration': 1
             },
             'config': config,
-            'upload_dir': 's3://<BUCKET NAME>'
+            #'upload_dir': 's3://<BUCKET NAME>'
         },
     })
