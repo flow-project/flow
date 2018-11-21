@@ -1,7 +1,10 @@
 """Contains the pyglet renderer class."""
 
 import pyglet
-from pyglet.gl import *
+from pyglet.gl import glClearColor
+from pyglet.gl import GL_LINE_STRIP
+from pyglet.gl import GL_POLYGON
+from pyglet.gl import GL_LINE_LOOP
 from matplotlib import cm
 import matplotlib.colors as colors
 import numpy as np
