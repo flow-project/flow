@@ -1,9 +1,6 @@
 """Contains the pyglet renderer class."""
 
 import pyglet
-from pyglet.gl import GL_LINE_STRIP
-from pyglet.gl import GL_POLYGON
-from pyglet.gl import GL_LINE_LOOP
 from matplotlib import cm
 import matplotlib.colors as colors
 import numpy as np
@@ -307,7 +304,7 @@ class PygletRenderer():
         num = int(len(lane_poly)/2)
         index = [x for x in range(num)]
         group = pyglet.graphics.Group()
-        self.lane_batch.add_indexed(num, GL_LINE_STRIP, group, index,
+        self.lane_batch.add_indexed(num, pyglet.gl.GL_LINE_STRIP, group, index,
                                     ("v2f", lane_poly), ("c3B", lane_color))
 
     def add_vehicle_polys(self, orientations, colors, sight_radius):
@@ -361,7 +358,7 @@ class PygletRenderer():
             vertex_color += color
         index = [x for x in range(3)]
         group = pyglet.graphics.Group()
-        self.vehicle_batch.add_indexed(3, GL_POLYGON,
+        self.vehicle_batch.add_indexed(3, pyglet.gl.GL_POLYGON,
                                        group, index,
                                        ("v2f", vertex_list),
                                        ("c3B", vertex_color))
@@ -394,7 +391,7 @@ class PygletRenderer():
             vertex_color += color
         index = [x for x in range(pxpm)]
         group = pyglet.graphics.Group()
-        self.vehicle_batch.add_indexed(pxpm, GL_LINE_LOOP,
+        self.vehicle_batch.add_indexed(pxpm, pyglet.gl.GL_LINE_LOOP,
                                        group, index,
                                        ("v2f", vertex_list),
                                        ("c3B", vertex_color))
