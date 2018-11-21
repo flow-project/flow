@@ -12,7 +12,6 @@ from flow.envs.base_env import Env
 from flow.core.params import InitialConfig, NetParams
 
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
 
 import random
 import numpy as np
@@ -80,17 +79,11 @@ class WaveAttenuationEnv(Env):
     def observation_space(self):
         """See class definition."""
         self.obs_var_labels = ["Velocity", "Absolute_pos"]
-        speed = Box(
+        return Box(
             low=0,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(2 * self.vehicles.num_vehicles, ),
             dtype=np.float32)
-        pos = Box(
-            low=0.,
-            high=1,
-            shape=(self.vehicles.num_vehicles, ),
-            dtype=np.float32)
-        return Tuple((speed, pos))
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -130,10 +123,12 @@ class WaveAttenuationEnv(Env):
 
     def get_state(self, **kwargs):
         """See class definition."""
-        return np.array([[
-            self.vehicles.get_speed(veh_id) / self.scenario.max_speed,
-            self.get_x_by_id(veh_id) / self.scenario.length
-        ] for veh_id in self.sorted_ids])
+        speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
+                 for veh_id in self.sorted_ids]
+        pos = [self.get_x_by_id(veh_id) / self.scenario.length
+               for veh_id in self.sorted_ids]
+
+        return np.array(speed + pos)
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
