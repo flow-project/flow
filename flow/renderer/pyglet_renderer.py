@@ -1,7 +1,6 @@
 """Contains the pyglet renderer class."""
 
 import pyglet
-from pyglet.gl import glClearColor
 from pyglet.gl import GL_LINE_STRIP
 from pyglet.gl import GL_POLYGON
 from pyglet.gl import GL_LINE_LOOP
@@ -182,7 +181,7 @@ class PygletRenderer():
 
         self.time += 1
 
-        glClearColor(0.125, 0.125, 0.125, 1)
+        pyglet.gl.glClearColor(0.125, 0.125, 0.125, 1)
         self.window.clear()
         self.window.switch_to()
         self.window.dispatch_events()
