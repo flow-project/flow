@@ -736,17 +736,11 @@ class Env(gym.Env):
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
-            if isinstance(rl_actions, dict):
-                for key, action in rl_actions.items():
-                    rl_actions[key] = np.clip(
-                        action,
-                        a_min=self.action_space.low,
-                        a_max=self.action_space.high)
-            else:
-                rl_actions = np.clip(
-                    rl_actions,
-                    a_min=self.action_space.low,
-                    a_max=self.action_space.high)
+
+            rl_actions = np.clip(
+                rl_actions,
+                a_min=self.action_space.low,
+                a_max=self.action_space.high)
 
         self._apply_rl_actions(rl_actions)
 

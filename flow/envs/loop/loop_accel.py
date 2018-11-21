@@ -2,6 +2,7 @@
 
 from flow.core import rewards
 from flow.envs.base_env import Env
+from flow.envs.multiagent_env import MultiEnv
 
 from gym.spaces.box import Box
 
@@ -106,7 +107,7 @@ class AccelEnv(Env):
                 self.vehicles.set_observed(veh_id)
 
 
-class MultiAgentAccelEnv(AccelEnv):
+class MultiAgentAccelEnv(AccelEnv, MultiEnv):
     """Adversarial multi-agent env.
 
     Multi-agent env with an adversarial agent perturbing

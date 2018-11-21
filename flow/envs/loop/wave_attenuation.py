@@ -11,6 +11,7 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.envs.base_env import Env
+from flow.envs.multiagent_env import MultiEnv
 
 from gym.spaces.box import Box
 
@@ -262,7 +263,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         self.vehicles.set_observed(lead_id)
 
 
-class MultiWaveAttenuationPOEnv(Env):
+class MultiWaveAttenuationPOEnv(MultiEnv):
     """Multiagent shared model version of WaveAttenuationPOEnv
 
     Intended to work with Lord Of The Rings Scenario.
