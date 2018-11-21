@@ -59,7 +59,7 @@ def sugiyama_example(render=None):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = sugiyama_example(render="drgb")
+    exp = sugiyama_example()
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)
