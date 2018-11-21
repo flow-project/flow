@@ -2,6 +2,7 @@ from copy import deepcopy
 import numpy as np
 import random
 import traceback
+from gym.spaces import Box
 
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException

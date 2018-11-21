@@ -189,7 +189,7 @@ def visualizer_rllib(args):
     if multiagent:
         for agent, rew in rets.items():
             print('Average, std return: {}, {} for agent {}'.format(
-                np.mean(rew), np.std(rew), agent))
+                np.mean(rew[agent]), np.std(rew[agent]), agent))
     else:
         print('Average, std return: {}, {}'.format(
             np.mean(rets), np.std(rets)))
