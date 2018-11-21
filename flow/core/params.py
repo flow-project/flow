@@ -94,7 +94,7 @@ class SumoParams:
         self.no_step_log = no_step_log
         self.render = render
         self.save_render = save_render
-        self.sight_radius=sight_radius
+        self.sight_radius = sight_radius
         self.pxpm = pxpm
         self.show_radius = show_radius
         self.seed = seed
