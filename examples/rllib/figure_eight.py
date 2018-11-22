@@ -68,7 +68,7 @@ flow_params = dict(
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS,
+        additional_params=ADDITIONAL_NET_PARAMS.copy(),
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
