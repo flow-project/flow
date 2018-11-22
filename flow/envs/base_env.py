@@ -160,66 +160,8 @@ class Env(gym.Env, Serializable):
                 pxpm=pxpm,
                 show_radius=show_radius)
 
-            # get human and RL simulation status
-            human_idlist = self.vehicles.get_human_ids()
-            machine_idlist = self.vehicles.get_rl_ids()
-            human_logs = []
-            human_orientations = []
-            human_dynamics = []
-            machine_logs = []
-            machine_orientations = []
-            machine_dynamics = []
-            max_speed = self.scenario.max_speed
-            for id in human_idlist:
-                if "rl" in id:
-                    machine_logs.append(
-                        [self.vehicles.get_timestep(id),
-                         self.vehicles.get_timedelta(id),
-                         id])
-                    machine_orientations.append(
-                        self.vehicles.get_orientation(id))
-                    machine_dynamics.append(
-                        self.vehicles.get_speed(id)/max_speed)
-                else:
-                    human_logs.append(
-                        [self.vehicles.get_timestep(id),
-                         self.vehicles.get_timedelta(id),
-                         id])
-                    human_orientations.append(
-                        self.vehicles.get_orientation(id))
-                    human_dynamics.append(
-                        self.vehicles.get_speed(id)/max_speed)
-            for id in machine_idlist:
-                machine_logs.append(
-                    [self.vehicles.get_timestep(id),
-                     self.vehicles.get_timedelta(id),
-                     id])
-                machine_orientations.append(
-                    self.vehicles.get_orientation(id))
-                machine_dynamics.append(
-                    self.vehicles.get_speed(id)/max_speed)
-
-            # step the renderer
-            self.frame = self.renderer.render(human_orientations,
-                                              machine_orientations,
-                                              human_dynamics,
-                                              machine_dynamics,
-                                              human_logs,
-                                              machine_logs)
-
-            # get local observation of RL vehicles
-            self.sights = []
-            for id in human_idlist:
-                if "rl" in id:
-                    orientation = self.vehicles.get_orientation(id)
-                    sight = self.renderer.get_sight(
-                        orientation, id)
-                    self.sights.append(sight)
-            for id in machine_idlist:
-                orientation = self.vehicles.get_orientation(id)
-                sight = self.renderer.get_sight(
-                    orientation, id)
-                self.sights.append(sight)
+            # render a frame
+            self.pyglet_render()
 
             # cache rendering
             self.frame_buffer = [self.frame.copy() for _ in range(5)]
@@ -550,70 +492,16 @@ class Env(gym.Env, Serializable):
                 break
 
             if self.sumo_params.render in ["gray", "dgray", "rgb", "drgb"]:
-                # get human and RL simulation status
-                human_idlist = self.vehicles.get_human_ids()
-                machine_idlist = self.vehicles.get_rl_ids()
-                human_logs = []
-                human_orientations = []
-                human_dynamics = []
-                machine_logs = []
-                machine_orientations = []
-                machine_dynamics = []
-                max_speed = self.scenario.max_speed
-                for id in human_idlist:
-                    if "rl" in id:
-                        machine_logs.append(
-                            [self.vehicles.get_timestep(id),
-                             self.vehicles.get_timedelta(id),
-                             id])
-                        machine_orientations.append(
-                            self.vehicles.get_orientation(id))
-                        machine_dynamics.append(
-                            self.vehicles.get_speed(id)/max_speed)
-                    else:
-                        human_logs.append(
-                            [self.vehicles.get_timestep(id),
-                             self.vehicles.get_timedelta(id),
-                             id])
-                        human_orientations.append(
-                            self.vehicles.get_orientation(id))
-                        human_dynamics.append(
-                            self.vehicles.get_speed(id)/max_speed)
-                for id in machine_idlist:
-                    machine_logs.append(
-                        [self.vehicles.get_timestep(id),
-                         self.vehicles.get_timedelta(id),
-                         id])
-                    machine_orientations.append(
-                        self.vehicles.get_orientation(id))
-                    machine_dynamics.append(
-                        self.vehicles.get_speed(id)/max_speed)
-
-                # step the renderer
-                self.frame = self.renderer.render(human_orientations,
-                                                  machine_orientations,
-                                                  human_dynamics,
-                                                  machine_dynamics,
-                                                  human_logs,
-                                                  machine_logs)
-
-                # get local observation of RL vehicles
-                self.sights = []
-                for id in human_idlist:
-                    if "rl" in id:
-                        orientation = self.vehicles.get_orientation(id)
-                        sight = self.renderer.get_sight(
-                            orientation, id)
-                        self.sights.append(sight)
-                for id in machine_idlist:
-                    orientation = self.vehicles.get_orientation(id)
-                    sight = self.renderer.get_sight(
-                        orientation, id)
-                    self.sights.append(sight)
+                # render a frame
+                self.pyglet_render()
 
                 # cache rendering
-                self.frame_buffer = [self.frame.copy() for _ in range(5)]
-                self.sights_buffer = [self.sights.copy() for _ in range(5)]
+                if self.step_counter % 10 == 0:
+                    self.frame_buffer.append(self.frame.copy())
+                    self.sights_buffer.append(self.sights.copy())
+                if len(self.frame_buffer) > 5:
+                    self.frame_buffer.pop(0)
+                    self.sights_buffer.pop(0)
 
         # collect information of the state of the network based on the
         # environment class used
@@ -796,66 +684,8 @@ class Env(gym.Env, Serializable):
             observation, _, _, _ = self.step(rl_actions=None)
 
         if self.sumo_params.render in ["gray", "dgray", "rgb", "drgb"]:
-            # get human and RL simulation status
-            human_idlist = self.vehicles.get_human_ids()
-            machine_idlist = self.vehicles.get_rl_ids()
-            human_logs = []
-            human_orientations = []
-            human_dynamics = []
-            machine_logs = []
-            machine_orientations = []
-            machine_dynamics = []
-            max_speed = self.scenario.max_speed
-            for id in human_idlist:
-                if "rl" in id:
-                    machine_logs.append(
-                        [self.vehicles.get_timestep(id),
-                         self.vehicles.get_timedelta(id),
-                         id])
-                    machine_orientations.append(
-                        self.vehicles.get_orientation(id))
-                    machine_dynamics.append(
-                        self.vehicles.get_speed(id)/max_speed)
-                else:
-                    human_logs.append(
-                        [self.vehicles.get_timestep(id),
-                         self.vehicles.get_timedelta(id),
-                         id])
-                    human_orientations.append(
-                        self.vehicles.get_orientation(id))
-                    human_dynamics.append(
-                        self.vehicles.get_speed(id)/max_speed)
-            for id in machine_idlist:
-                machine_logs.append(
-                    [self.vehicles.get_timestep(id),
-                     self.vehicles.get_timedelta(id),
-                     id])
-                machine_orientations.append(
-                    self.vehicles.get_orientation(id))
-                machine_dynamics.append(
-                    self.vehicles.get_speed(id)/max_speed)
-
-            # step the renderer
-            self.frame = self.renderer.render(human_orientations,
-                                              machine_orientations,
-                                              human_dynamics,
-                                              machine_dynamics,
-                                              human_logs,
-                                              machine_logs)
-
-            # get local observation of RL vehicles
-            self.sights = []
-            for id in human_idlist:
-                if "rl" in id:
-                    orientation = self.vehicles.get_orientation(id)
-                    sight = self.renderer.get_sight(
-                        orientation, id)
-                    self.sights.append(sight)
-            for id in machine_idlist:
-                orientation = self.vehicles.get_orientation(id)
-                sight = self.renderer.get_sight(
-                    orientation, id)
-                self.sights.append(sight)
+            # render a frame
+            self.pyglet_render()
 
             # cache rendering
             self.frame_buffer = [self.frame.copy() for _ in range(5)]
@@ -1154,3 +984,67 @@ class Env(gym.Env, Serializable):
     def render(self, mode='human'):
         """See parent class (gym.Env)."""
         pass
+
+    def pyglet_render(self):
+        """Render a frame using pyglet."""
+
+        # get human and RL simulation status
+        human_idlist = self.vehicles.get_human_ids()
+        machine_idlist = self.vehicles.get_rl_ids()
+        human_logs = []
+        human_orientations = []
+        human_dynamics = []
+        machine_logs = []
+        machine_orientations = []
+        machine_dynamics = []
+        max_speed = self.scenario.max_speed
+        for id in human_idlist:
+            if "rl" in id:
+                machine_logs.append(
+                    [self.vehicles.get_timestep(id),
+                     self.vehicles.get_timedelta(id),
+                     id])
+                machine_orientations.append(
+                    self.vehicles.get_orientation(id))
+                machine_dynamics.append(
+                    self.vehicles.get_speed(id)/max_speed)
+            else:
+                human_logs.append(
+                    [self.vehicles.get_timestep(id),
+                     self.vehicles.get_timedelta(id),
+                     id])
+                human_orientations.append(
+                    self.vehicles.get_orientation(id))
+                human_dynamics.append(
+                    self.vehicles.get_speed(id)/max_speed)
+        for id in machine_idlist:
+            machine_logs.append(
+                [self.vehicles.get_timestep(id),
+                 self.vehicles.get_timedelta(id),
+                 id])
+            machine_orientations.append(
+                self.vehicles.get_orientation(id))
+            machine_dynamics.append(
+                self.vehicles.get_speed(id)/max_speed)
+
+        # step the renderer
+        self.frame = self.renderer.render(human_orientations,
+                                          machine_orientations,
+                                          human_dynamics,
+                                          machine_dynamics,
+                                          human_logs,
+                                          machine_logs)
+
+        # get local observation of RL vehicles
+        self.sights = []
+        for id in human_idlist:
+            if "rl" in id:
+                orientation = self.vehicles.get_orientation(id)
+                sight = self.renderer.get_sight(
+                    orientation, id)
+                self.sights.append(sight)
+        for id in machine_idlist:
+            orientation = self.vehicles.get_orientation(id)
+            sight = self.renderer.get_sight(
+                orientation, id)
+            self.sights.append(sight)
