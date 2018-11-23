@@ -114,7 +114,7 @@ class PygletRenderer():
             self.frame = frame[::-1, :, 0:3][..., ::-1]
             print("Rendering with Pyglet with frame size",
                   (self.width, self.height))
-        except ValueError:
+        except ImportError:
             self.window = None
             self.frame = None
             warnings.warn("Cannot access display. Aborting.", ResourceWarning)
