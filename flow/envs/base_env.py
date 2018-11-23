@@ -132,13 +132,8 @@ class Env(gym.Env, Serializable):
         self.start_sumo()
         self.setup_initial_state()
 
-        # render the simulation using either default sumo-gui or pyglet
-        mode = self.sumo_params.render
-        if mode not in [True, False, "rgb", "drgb", "gray", "dgray"]:
-            raise ValueError("Mode %s is not supported!" % mode)
-
         # use pyglet to render the simulation
-        if self.sumo_params.render in ["gray", "dgray", "rgb", "drgb"]:
+        if mode in ['gray', 'dgray', 'rgb', 'drgb']:
             save_render = self.sumo_params.save_render
             sight_radius = self.sumo_params.sight_radius
             pxpm = self.sumo_params.pxpm
@@ -162,6 +157,10 @@ class Env(gym.Env, Serializable):
 
             # render a frame
             self.render(reset=True)
+        elif mode in [True, False]:
+            pass  # default to sumo-gui (if True) or sumo (if False)
+        else:
+            raise ValueError("Mode %s is not supported!" % mode)
 
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
@@ -953,7 +952,7 @@ class Env(gym.Env, Serializable):
         self.scenario.close()
 
         # close pyglet renderer
-        if self.sumo_params.render in ["gray", "dgray", "rgb", "drgb"]:
+        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             self.renderer.close()
 
     def teardown_sumo(self):
@@ -963,23 +962,30 @@ class Env(gym.Env, Serializable):
         except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
 
-    def render(self, reset=False, mode='human'):
-        """Render a frame."""
-            if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
-                # render a frame
-                self.pyglet_render()
+    def render(self, reset=False, buffer_length=5):
+        """Render a frame.
+        Parameters
+        ----------
+        reset: bool
+            set to True to reset the buffer
+        buffer_length: int
+            length of the buffer
+        """
+        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+            # render a frame
+            self.pyglet_render()
 
-                # cache rendering
-                if reset:
-                    self.frame_buffer = [self.frame.copy() for _ in range(5)]
-                    self.sights_buffer = [self.sights.copy() for _ in range(5)]
-                else:
-                    if self.step_counter % 10 == 0:
-                        self.frame_buffer.append(self.frame.copy())
-                        self.sights_buffer.append(self.sights.copy())
-                    if len(self.frame_buffer) > 5:
-                        self.frame_buffer.pop(0)
-                        self.sights_buffer.pop(0)
+            # cache rendering
+            if reset:
+                self.frame_buffer = [self.frame.copy() for _ in range(5)]
+                self.sights_buffer = [self.sights.copy() for _ in range(5)]
+            else:
+                if self.step_counter % int(1/self.sim_step) == 0:
+                    self.frame_buffer.append(self.frame.copy())
+                    self.sights_buffer.append(self.sights.copy())
+                if len(self.frame_buffer) > buffer_length:
+                    self.frame_buffer.pop(0)
+                    self.sights_buffer.pop(0)
 
     def pyglet_render(self):
         """Render a frame using pyglet."""
