@@ -161,11 +161,7 @@ class Env(gym.Env, Serializable):
                 show_radius=show_radius)
 
             # render a frame
-            self.pyglet_render()
-
-            # cache rendering
-            self.frame_buffer = [self.frame.copy() for _ in range(5)]
-            self.sights_buffer = [self.sights.copy() for _ in range(5)]
+            self.render(reset=True)
 
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
@@ -491,17 +487,8 @@ class Env(gym.Env, Serializable):
             if crash:
                 break
 
-            if self.sumo_params.render in ["gray", "dgray", "rgb", "drgb"]:
-                # render a frame
-                self.pyglet_render()
-
-                # cache rendering
-                if self.step_counter % 10 == 0:
-                    self.frame_buffer.append(self.frame.copy())
-                    self.sights_buffer.append(self.sights.copy())
-                if len(self.frame_buffer) > 5:
-                    self.frame_buffer.pop(0)
-                    self.sights_buffer.pop(0)
+            # render a frame
+            self.render()
 
         # collect information of the state of the network based on the
         # environment class used
@@ -683,13 +670,8 @@ class Env(gym.Env, Serializable):
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
 
-        if self.sumo_params.render in ["gray", "dgray", "rgb", "drgb"]:
-            # render a frame
-            self.pyglet_render()
-
-            # cache rendering
-            self.frame_buffer = [self.frame.copy() for _ in range(5)]
-            self.sights_buffer = [self.sights.copy() for _ in range(5)]
+        # render a frame
+        self.render(reset=True)
 
         return observation
 
@@ -981,9 +963,23 @@ class Env(gym.Env, Serializable):
         except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
 
-    def render(self, mode='human'):
-        """See parent class (gym.Env)."""
-        pass
+    def render(self, reset=False, mode='human'):
+        """Render a frame."""
+            if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+                # render a frame
+                self.pyglet_render()
+
+                # cache rendering
+                if reset:
+                    self.frame_buffer = [self.frame.copy() for _ in range(5)]
+                    self.sights_buffer = [self.sights.copy() for _ in range(5)]
+                else:
+                    if self.step_counter % 10 == 0:
+                        self.frame_buffer.append(self.frame.copy())
+                        self.sights_buffer.append(self.sights.copy())
+                    if len(self.frame_buffer) > 5:
+                        self.frame_buffer.pop(0)
+                        self.sights_buffer.pop(0)
 
     def pyglet_render(self):
         """Render a frame using pyglet."""
