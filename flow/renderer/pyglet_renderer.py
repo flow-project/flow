@@ -10,6 +10,7 @@ import os
 from os.path import expanduser
 import time
 import copy
+import warnings
 HOME = expanduser("~")
 
 
@@ -37,20 +38,20 @@ class PygletRenderer():
             ----------
             network: list
                 A list of road network polygons
-            mode: string or boolean
+            mode: str or bool
                 False: no rendering
                 True: delegate rendering to sumo-gui for back-compatibility
                 "gray": static grayscale rendering, which is good for training
                 "dgray": dynamic grayscale rendering
                 "rgb": static RGB rendering
                 "drgb": dynamic RGB rendering, which is good for visualization
-            save_render: boolean
+            save_render: bool
                 Specify whether to save rendering data to disk
-            path: string
+            path: str
                 Specify where to store the rendering data
             sight_radius: int
                 Set the radius of observation for RL vehicles (meter)
-            show_radius: boolean
+            show_radius: bool
                 Specify whether to render the radius of RL observation
             pxpm: int
                 Specify rendering resolution (pixel / meter)
@@ -59,10 +60,10 @@ class PygletRenderer():
         if self.mode not in [True, False, "rgb", "drgb", "gray", "dgray"]:
             raise ValueError("Mode %s is not supported!" % self.mode)
         self.save_render = save_render
+        self.path = path + '/' + time.strftime("%Y%m%d-%H%M%S")
         if self.save_render:
             if not os.path.exists(path):
                 os.mkdir(path)
-            self.path = path + '/' + time.strftime("%Y%m%d-%H%M%S")
             os.mkdir(self.path)
             self.data = [network]
         self.sight_radius = sight_radius
@@ -103,16 +104,20 @@ class PygletRenderer():
                          for c in [200, 200, 0]]
             self.lane_colors.append(color)
 
-        self.window = pyglet.window.Window(width=self.width,
-                                           height=self.height)
-        buffer = pyglet.image.get_buffer_manager().get_color_buffer()
-        image_data = buffer.get_image_data()
-        frame = np.fromstring(image_data.data, dtype=np.uint8, sep='')
-        frame = frame.reshape(buffer.height, buffer.width, 4)
-        self.frame = frame[::-1, :, 0:3][..., ::-1]
-
-        print("Rendering with Pyglet with frame size",
-              (self.width, self.height))
+        try:
+            self.window = pyglet.window.Window(width=self.width,
+                                               height=self.height)
+            buffer = pyglet.image.get_buffer_manager().get_color_buffer()
+            image_data = buffer.get_image_data()
+            frame = np.fromstring(image_data.data, dtype=np.uint8, sep='')
+            frame = frame.reshape(buffer.height, buffer.width, 4)
+            self.frame = frame[::-1, :, 0:3][..., ::-1]
+            print("Rendering with Pyglet with frame size",
+                  (self.width, self.height))
+        except:
+            self.window = None
+            self.frame = None
+            warnings.warn("Cannot access display. Aborting.", ResourceWarning)
 
     def render(self,
                human_orientations,
@@ -150,12 +155,12 @@ class PygletRenderer():
             machine_logs: list
                 A list contains the timestep (ms), timedelta (ms), and id of
                 all RL vehicles
-            save_render: boolean
+            save_render: bool
                 Specify whether to Specify whether to save rendering data to
                 disk
             sight_radius: int
                 Set the radius of observation for RL vehicles (meter)
-            show_radius: boolean
+            show_radius: bool
                 Specify whether to render the radius of RL observation
         """
 
@@ -236,11 +241,11 @@ class PygletRenderer():
             ----------
             orientation: list
                 An orientation is a list contains [x, y, angle]
-            id: string
+            id: str
                 The vehicle to observe for
             sight_radius: int
                 Set the radius of observation for RL vehicles (meter)
-            save_render: boolean
+            save_render: bool
                 Specify whether to save rendering data to disk
         """
 
