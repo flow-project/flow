@@ -540,12 +540,15 @@ class Vehicles:
         self.__vehicles[veh_id]["headway"] = headway
 
     def get_orientation(self, veh_id):
+        """Return the orientation of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["orientation"]
 
     def get_timestep(self, veh_id):
+        """Return the time step of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["timestep"]
 
     def get_timedelta(self, veh_id):
+        """Return the simulation time delta of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["timedelta"]
 
     def get_ids(self):
