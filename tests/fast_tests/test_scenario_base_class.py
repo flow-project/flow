@@ -351,6 +351,19 @@ class TestEvenStartPos(unittest.TestCase):
             if self.env.vehicles.get_edge(veh_id) not in edges:
                 raise AssertionError
 
+    def test_edges_distribution_dict(self):
+        """
+        Tests that vehicles of the correct quantity are placed on each edge
+        when edges_distribution is a dict.
+        """
+        # initialize a scenario with edges_distributions as a dict
+
+        # test that when the number of vehicles don't match an AssertionError
+        # is raised
+
+        # verify that the correct number of vehicles are placed in each edge
+        pass
+
     def test_num_vehicles(self):
         """
         Tests that the number of starting positions generated is:
