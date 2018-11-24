@@ -9,6 +9,7 @@ import time
 import traceback
 import numpy as np
 import random
+from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
 import traci
 from traci import constants as tc
@@ -131,6 +132,37 @@ class Env(gym.Env, Serializable):
         self.start_sumo()
         self.setup_initial_state()
 
+        # use pyglet to render the simulation
+        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+            save_render = self.sumo_params.save_render
+            sight_radius = self.sumo_params.sight_radius
+            pxpm = self.sumo_params.pxpm
+            show_radius = self.sumo_params.show_radius
+
+            # get network polygons
+            network = []
+            for lane_id in self.traci_connection.lane.getIDList():
+                _lane_poly = self.traci_connection.lane.getShape(lane_id)
+                lane_poly = [i for pt in _lane_poly for i in pt]
+                network.append(lane_poly)
+
+            # instantiate a pyglet renderer
+            self.renderer = Renderer(
+                network,
+                self.sumo_params.render,
+                save_render,
+                sight_radius=sight_radius,
+                pxpm=pxpm,
+                show_radius=show_radius)
+
+            # render a frame
+            self.render(reset=True)
+        elif self.sumo_params.render in [True, False]:
+            pass  # default to sumo-gui (if True) or sumo (if False)
+        else:
+            raise ValueError("Mode %s is not supported!" %
+                             self.sumo_params.render)
+
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
 
@@ -182,7 +214,8 @@ class Env(gym.Env, Serializable):
                         time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
                         port = sumolib.miscutils.getFreeSocketPort()
 
-                sumo_binary = "sumo-gui" if self.sumo_params.render else "sumo"
+                sumo_binary = "sumo-gui" if self.sumo_params.render is True\
+                    else "sumo"
 
                 # command used to start sumo
                 sumo_call = [
@@ -292,7 +325,8 @@ class Env(gym.Env, Serializable):
         for veh_id in self.vehicles.get_ids():
             self.traci_connection.vehicle.subscribe(veh_id, [
                 tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-                tc.VAR_SPEED, tc.VAR_EDGES
+                tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+                tc.VAR_SPEED_WITHOUT_TRACI
             ])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -300,7 +334,8 @@ class Env(gym.Env, Serializable):
         # exiting, and colliding vehicles
         self.traci_connection.simulation.subscribe([
             tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS
+            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS, tc.VAR_TIME_STEP,
+            tc.VAR_DELTA_T
         ])
 
         # subscribe the traffic light
@@ -343,15 +378,14 @@ class Env(gym.Env, Serializable):
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
-            tc.VAR_ARRIVED_VEHICLES_IDS: []
+            tc.VAR_ARRIVED_VEHICLES_IDS: [],
+            tc.VAR_TIME_STEP: [],
+            tc.VAR_DELTA_T: []
         }
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
         self.traffic_lights.update(tls_obs)
-
-        # store the network observations in the vehicles class
-        self.vehicles.update(vehicle_obs, id_lists, self)
 
     def step(self, rl_actions):
         """Advance the environment by one step.
@@ -452,6 +486,9 @@ class Env(gym.Env, Serializable):
             # stop collecting new simulation steps if there is a collision
             if crash:
                 break
+
+            # render a frame
+            self.render()
 
         # collect information of the state of the network based on the
         # environment class used
@@ -633,6 +670,9 @@ class Env(gym.Env, Serializable):
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
 
+        # render a frame
+        self.render(reset=True)
+
         return observation
 
     def additional_command(self):
@@ -808,7 +848,7 @@ class Env(gym.Env, Serializable):
         """
         # do not change the colors of vehicles if the sumo-gui is not active
         # (in order to avoid slow downs)
-        if not self.sumo_params.render:
+        if self.sumo_params.render is not True:
             return
 
         for veh_id in self.vehicles.get_rl_ids():
@@ -912,6 +952,10 @@ class Env(gym.Env, Serializable):
         self.traci_connection.close()
         self.scenario.close()
 
+        # close pyglet renderer
+        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+            self.renderer.close()
+
     def teardown_sumo(self):
         """Kill the sumo subprocess instance."""
         try:
@@ -919,6 +963,96 @@ class Env(gym.Env, Serializable):
         except Exception:
             print("Error during teardown: {}".format(traceback.format_exc()))
 
-    def render(self, mode='human'):
-        """See parent class (gym.Env)."""
-        pass
+    def render(self, reset=False, buffer_length=5):
+        """Render a frame.
+
+        Parameters
+        ----------
+        reset: bool
+            set to True to reset the buffer
+        buffer_length: int
+            length of the buffer
+        """
+        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+            # render a frame
+            self.pyglet_render()
+
+            # cache rendering
+            if reset:
+                self.frame_buffer = [self.frame.copy() for _ in range(5)]
+                self.sights_buffer = [self.sights.copy() for _ in range(5)]
+            else:
+                if self.step_counter % int(1/self.sim_step) == 0:
+                    self.frame_buffer.append(self.frame.copy())
+                    self.sights_buffer.append(self.sights.copy())
+                if len(self.frame_buffer) > buffer_length:
+                    self.frame_buffer.pop(0)
+                    self.sights_buffer.pop(0)
+
+    def pyglet_render(self):
+        """Render a frame using pyglet."""
+
+        # get human and RL simulation status
+        human_idlist = self.vehicles.get_human_ids()
+        machine_idlist = self.vehicles.get_rl_ids()
+        human_logs = []
+        human_orientations = []
+        human_dynamics = []
+        machine_logs = []
+        machine_orientations = []
+        machine_dynamics = []
+        max_speed = self.scenario.max_speed
+        for id in human_idlist:
+            # Force tracking human vehicles by adding "track" in vehicle id.
+            # The tracked human vehicles will be treated as machine vehicles.
+            if 'track' in id:
+                machine_logs.append(
+                    [self.vehicles.get_timestep(id),
+                     self.vehicles.get_timedelta(id),
+                     id])
+                machine_orientations.append(
+                    self.vehicles.get_orientation(id))
+                machine_dynamics.append(
+                    self.vehicles.get_speed(id)/max_speed)
+            else:
+                human_logs.append(
+                    [self.vehicles.get_timestep(id),
+                     self.vehicles.get_timedelta(id),
+                     id])
+                human_orientations.append(
+                    self.vehicles.get_orientation(id))
+                human_dynamics.append(
+                    self.vehicles.get_speed(id)/max_speed)
+        for id in machine_idlist:
+            machine_logs.append(
+                [self.vehicles.get_timestep(id),
+                 self.vehicles.get_timedelta(id),
+                 id])
+            machine_orientations.append(
+                self.vehicles.get_orientation(id))
+            machine_dynamics.append(
+                self.vehicles.get_speed(id)/max_speed)
+
+        # step the renderer
+        self.frame = self.renderer.render(human_orientations,
+                                          machine_orientations,
+                                          human_dynamics,
+                                          machine_dynamics,
+                                          human_logs,
+                                          machine_logs)
+
+        # get local observation of RL vehicles
+        self.sights = []
+        for id in human_idlist:
+            # Force tracking human vehicles by adding "track" in vehicle id.
+            # The tracked human vehicles will be treated as machine vehicles.
+            if "track" in id:
+                orientation = self.vehicles.get_orientation(id)
+                sight = self.renderer.get_sight(
+                    orientation, id)
+                self.sights.append(sight)
+        for id in machine_idlist:
+            orientation = self.vehicles.get_orientation(id)
+            sight = self.renderer.get_sight(
+                orientation, id)
+            self.sights.append(sight)

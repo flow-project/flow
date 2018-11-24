@@ -354,6 +354,13 @@ class Vehicles:
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
+            _position = vehicle_obs[veh_id][tc.VAR_POSITION]
+            _angle = vehicle_obs[veh_id][tc.VAR_ANGLE]
+            _time_step = sim_obs[tc.VAR_TIME_STEP]
+            _time_delta = sim_obs[tc.VAR_DELTA_T]
+            self.__vehicles[veh_id]["orientation"] = list(_position) + [_angle]
+            self.__vehicles[veh_id]["timestep"] = _time_step
+            self.__vehicles[veh_id]["timedelta"] = _time_delta
             headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
             # check for a collided vehicle or a vehicle with no leader
             if headway is None:
@@ -440,7 +447,8 @@ class Vehicles:
         # subscribe the new vehicle
         env.traci_connection.vehicle.subscribe(veh_id, [
             tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-            tc.VAR_SPEED, tc.VAR_EDGES
+            tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
+            tc.VAR_SPEED_WITHOUT_TRACI
         ])
         env.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
@@ -530,6 +538,18 @@ class Vehicles:
     def set_headway(self, veh_id, headway):
         """Set the headway of the specified vehicle."""
         self.__vehicles[veh_id]["headway"] = headway
+
+    def get_orientation(self, veh_id):
+        """Return the orientation of the vehicle of veh_id."""
+        return self.__vehicles[veh_id]["orientation"]
+
+    def get_timestep(self, veh_id):
+        """Return the time step of the vehicle of veh_id."""
+        return self.__vehicles[veh_id]["timestep"]
+
+    def get_timedelta(self, veh_id):
+        """Return the simulation time delta of the vehicle of veh_id."""
+        return self.__vehicles[veh_id]["timedelta"]
 
     def get_ids(self):
         """Return the names of all vehicles currently in the network."""
@@ -684,6 +704,27 @@ class Vehicles:
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
+
+    def get_default_speed(self, veh_id, error=-1001):
+        """Return the default next speed of the specified vehicle in SUMO if
+        no control is applied.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_default_speed(vehID, error) for vehID in veh_id]
+        return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
+                                                   error)
 
     def get_absolute_position(self, veh_id, error=-1001):
         """Return the absolute position of the specified vehicle.
