@@ -160,7 +160,8 @@ class Env(gym.Env, Serializable):
         elif self.sumo_params.render in [True, False]:
             pass  # default to sumo-gui (if True) or sumo (if False)
         else:
-            raise ValueError("Mode %s is not supported!" % mode)
+            raise ValueError("Mode %s is not supported!" %
+                             self.sumo_params.render)
 
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
