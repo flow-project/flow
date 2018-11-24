@@ -133,7 +133,7 @@ class Env(gym.Env, Serializable):
         self.setup_initial_state()
 
         # use pyglet to render the simulation
-        if mode in ['gray', 'dgray', 'rgb', 'drgb']:
+        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             save_render = self.sumo_params.save_render
             sight_radius = self.sumo_params.sight_radius
             pxpm = self.sumo_params.pxpm
@@ -149,7 +149,7 @@ class Env(gym.Env, Serializable):
             # instantiate a pyglet renderer
             self.renderer = Renderer(
                 network,
-                mode,
+                self.sumo_params.render,
                 save_render,
                 sight_radius=sight_radius,
                 pxpm=pxpm,
@@ -157,7 +157,7 @@ class Env(gym.Env, Serializable):
 
             # render a frame
             self.render(reset=True)
-        elif mode in [True, False]:
+        elif self.sumo_params.render in [True, False]:
             pass  # default to sumo-gui (if True) or sumo (if False)
         else:
             raise ValueError("Mode %s is not supported!" % mode)
@@ -964,6 +964,7 @@ class Env(gym.Env, Serializable):
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.
+
         Parameters
         ----------
         reset: bool
