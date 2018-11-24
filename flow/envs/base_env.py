@@ -1003,7 +1003,9 @@ class Env(gym.Env, Serializable):
         machine_dynamics = []
         max_speed = self.scenario.max_speed
         for id in human_idlist:
-            if "rl" in id:
+            # Force tracking human vehicles by adding "track" in vehicle id.
+            # The tracked human vehicles will be treated as machine vehicles.
+            if 'track' in id:
                 machine_logs.append(
                     [self.vehicles.get_timestep(id),
                      self.vehicles.get_timedelta(id),
@@ -1042,7 +1044,9 @@ class Env(gym.Env, Serializable):
         # get local observation of RL vehicles
         self.sights = []
         for id in human_idlist:
-            if "rl" in id:
+            # Force tracking human vehicles by adding "track" in vehicle id.
+            # The tracked human vehicles will be treated as machine vehicles.
+            if "track" in id:
                 orientation = self.vehicles.get_orientation(id)
                 sight = self.renderer.get_sight(
                     orientation, id)
