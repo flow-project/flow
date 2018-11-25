@@ -12,12 +12,8 @@ import subprocess
 import sys
 import time
 import traceback
-<<<<<<< HEAD
-=======
-import numpy as np
-import random
+
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
->>>>>>> efdf050e6d8667f612a8f6cb550fbb6b4496879d
 
 import traci
 from traci import constants as tc
