@@ -81,7 +81,6 @@ def make_create_env(params, version=0, render=None):
         if render is not None:
             sumo_params.render = render
 
-
         try:
             register(
                 id=env_name,
