@@ -270,7 +270,7 @@ class Env(gym.Env, Serializable):
                 logging.debug(" Cfg file: " + str(self.scenario.cfg))
                 if self.sumo_params.num_clients > 1:
                     logging.info(" Num clients are" +
-                                  str(self.sumo_params.num_clients))
+                                 str(self.sumo_params.num_clients))
                 logging.debug(" Emission file: " + str(emission_out))
                 logging.debug(" Step length: " + str(self.sim_step))
 
