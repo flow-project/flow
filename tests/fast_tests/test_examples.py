@@ -160,10 +160,9 @@ class TestRllibExamples(unittest.TestCase):
 
     def run_exp(self, alg_run, env_name, config):
         try:
-            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
-        except Exception:
+            ray.init(num_cpus=1)
+        except:
             pass
-
         config['train_batch_size'] = 200
         config['horizon'] = 50
         config['sample_batch_size'] = 50
@@ -187,5 +186,5 @@ class TestRllibExamples(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ray.init(num_cpus=1)
+    ray.init(num_cpus=1)  # , redis_address="localhost:6379")
     unittest.main()

@@ -15,7 +15,10 @@ class TestVisualizerRLlib(unittest.TestCase):
 
     def test_visualizer_single(self):
         """Test for single agent"""
-
+        try:
+            ray.init(num_cpus=1)
+        except:
+            pass
         # current path
         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
 
@@ -29,7 +32,10 @@ class TestVisualizerRLlib(unittest.TestCase):
     # FIXME(ev) set the horizon so that this runs faster
     def test_visualizer_multi(self):
         """Test for multi-agent visualization"""
-
+        try:
+            ray.init(num_cpus=1)
+        except:
+            pass
         # current path
         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
 
@@ -55,8 +61,5 @@ class TestVisualizerRLlib(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    try:
-        ray.init(num_cpus=1)  # , redis_address="localhost:6379")
-    except Exception:
-        pass
+    ray.init(num_cpus=1)
     unittest.main()
