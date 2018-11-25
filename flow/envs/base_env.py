@@ -497,6 +497,9 @@ class Env(*classdef):
             if crash:
                 break
 
+            # render a frame
+            self.render()
+
         states = self.get_state()
         if isinstance(states, dict):
             self.state = {}
@@ -514,7 +517,9 @@ class Env(*classdef):
 
                 # test if a crash has occurred
                 done[key] = crash
-                # test if the agent has exited the system
+                # test if the agent has exited the system, if so
+                # its agent should be done
+                # FIXME(ev) this assumes that agents are single vehicles
                 if key in self.vehicles.get_arrived_ids():
                     done[key] = True
                 # check if an agent is done
@@ -523,9 +528,6 @@ class Env(*classdef):
                 else:
                     done['__all__'] = False
                 infos[key] = {}
-
-            reward = self.compute_reward(rl_actions, fail=crash)
-
         else:
             # collect information of the state of the network based on the
             # environment class used
@@ -534,17 +536,14 @@ class Env(*classdef):
             # collect observation new state associated with action
             next_observation = np.copy(states)
 
-            # compute the reward
-            reward = self.compute_reward(rl_actions, fail=crash)
-
             # test if the agent should terminate due to a crash
             done = crash
 
             # compute the info for each agent
             infos = {}
 
-        # render a frame
-        self.render()
+        # compute the reward
+        reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, done, infos
 

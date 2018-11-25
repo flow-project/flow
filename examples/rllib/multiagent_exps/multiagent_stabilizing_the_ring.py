@@ -32,7 +32,7 @@ NUM_RINGS = 1
 # number of rollouts per training iteration
 N_ROLLOUTS = 20  # int(20/NUM_RINGS)
 # number of parallel workers
-N_CPUS = 4  # int(20/NUM_RINGS)
+N_CPUS = 2  # int(20/NUM_RINGS)
 
 # We place one autonomous vehicle and 21 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -103,12 +103,12 @@ def setup_exps():
     alg_run = 'PPO'
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config['num_workers'] = min(N_CPUS, 12)
+    config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['lr'] = tune.grid_search([1e-5, 1e-6])
+    config['lr'] = tune.grid_search([1e-5])
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 

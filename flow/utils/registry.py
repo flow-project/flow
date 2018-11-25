@@ -2,7 +2,6 @@
 
 import gym
 from gym.envs.registration import register
-from gym.envs.registration import registry
 
 from copy import deepcopy
 
@@ -81,8 +80,7 @@ def make_create_env(params, version=0, render=None):
         if render is not None:
             sumo_params.render = render
 
-        # check if we are already registered
-        if env_name not in registry.env_specs:
+        try:
             register(
                 id=env_name,
                 entry_point='flow.envs:' + params["env_name"],
@@ -91,6 +89,8 @@ def make_create_env(params, version=0, render=None):
                     "sumo_params": sumo_params,
                     "scenario": scenario
                 })
+        except Exception:
+            pass
         return gym.envs.make(env_name)
 
     return create_env, env_name

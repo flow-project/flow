@@ -1,7 +1,7 @@
 import os
 import unittest
 
-# from examples.sumo.bay_bridge import bay_bridge_example
+from examples.sumo.bay_bridge import bay_bridge_example
 from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
 from examples.sumo.bottleneck import bottleneck_example
 from examples.sumo.figure_eight import figure_eight_example
@@ -40,7 +40,7 @@ class TestSumoExamples(unittest.TestCase):
     def test_bottleneck(self):
         """Verifies that examples/sumo/bottleneck.py is working."""
         # import the experiment variable from the example
-        exp = bottleneck_example(1000, 5, render=False)
+        exp = bottleneck_example(20, 5, render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -160,11 +160,10 @@ class TestRllibExamples(unittest.TestCase):
 
     def run_exp(self, alg_run, env_name, config):
         try:
-            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+            ray.init(num_cpus=1)
         except Exception:
             pass
-
-        config['train_batch_size'] = 200
+        config['train_batch_size'] = 50
         config['horizon'] = 50
         config['sample_batch_size'] = 50
         config['num_workers'] = 0
@@ -187,5 +186,5 @@ class TestRllibExamples(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ray.init(num_cpus=1)
+    ray.init(num_cpus=1)  # , redis_address="localhost:6379")
     unittest.main()
