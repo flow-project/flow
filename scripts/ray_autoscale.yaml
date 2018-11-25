@@ -1,7 +1,11 @@
 # cluster.yaml ========================================= 
 
 # An unique identifier for the head node and workers of this cluster.
+<<<<<<< HEAD
 #cluster_name: test #<YOUR NAME>
+=======
+# cluster_name: kparvate_vel_bottleneck_rllib_v1
+>>>>>>> bottleneck_journal
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
@@ -9,7 +13,11 @@ min_workers: 0 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
+<<<<<<< HEAD
 max_workers: 4
+=======
+max_workers: 2
+>>>>>>> bottleneck_journal
 
 # The autoscaler will scale up the cluster to this target fraction of resource
 # usage. For example, if a cluster of 10 nodes is 100% busy and
@@ -68,8 +76,8 @@ worker_nodes:
 
 #file_mounts: {
 ## path to your repo and the desired branch name
-#"/tmp/path": "/Users/kanaad/code/research/learning-traffic/rllab-multiagent/.git/modules/learning-traffic/refs/heads/multi-ring-stabilize-aggressive",
-#}
+#"/tmp/path": "/Users/kanaad/code/research/learning-traffic/rllab-multiagent/.git/modules/learning-traffic/refs/heads/bottleneck_journal",
+}
 
 setup_commands:
     # checkout your desired branch on all worker nodes

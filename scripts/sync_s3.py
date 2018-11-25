@@ -4,7 +4,7 @@
 """
 
 import sys
-from flow import config
+from flow.core import config
 import os
 import argparse
 sys.path.append('.')
