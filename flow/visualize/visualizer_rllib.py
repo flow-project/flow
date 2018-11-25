@@ -43,7 +43,7 @@ def visualizer_rllib(args):
     config = get_rllib_config(result_dir)
 
     # Run on only one cpu for rendering purposes
-    config['num_workers'] = 1
+    config['num_workers'] = 0
 
     flow_params = get_flow_params(config)
 
@@ -105,6 +105,11 @@ def visualizer_rllib(args):
     else:
         sumo_params.render = True
     sumo_params.emission_path = './test_time_rollout/'
+
+    # prepare for rendering
+    if args.sumo_web3d:
+        sumo_params.num_clients = 2
+        sumo_params.render = False
 
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario))
@@ -191,6 +196,10 @@ def create_parser():
         action='store_true',
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
+    parser.add_argument(
+        '--sumo_web3d',
+        action='store_true',
+        help='Specifies whether sumo web3d will be used to visualize.')
     return parser
 
 

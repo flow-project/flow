@@ -220,10 +220,9 @@ class Env(gym.Env, Serializable):
                 # command used to start sumo
                 sumo_call = [
                     sumo_binary, "-c", self.scenario.cfg,
-                    "--remote-port",
+                    "--remote-port", str(port),
                     "--num-clients", str(self.sumo_params.num_clients),
-                    str(port), "--step-length",
-                    str(self.sim_step)
+                    "--step-length", str(self.sim_step)
                 ]
 
                 # add step logs (if requested)
@@ -269,6 +268,9 @@ class Env(gym.Env, Serializable):
 
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(self.scenario.cfg))
+                if self.sumo_params.num_clients > 1:
+                    logging.info(" Num clients are" +
+                                  str(self.sumo_params.num_clients))
                 logging.debug(" Emission file: " + str(emission_out))
                 logging.debug(" Step length: " + str(self.sim_step))
 
@@ -283,8 +285,8 @@ class Env(gym.Env, Serializable):
                 else:
                     time.sleep(config.SUMO_SLEEP)
 
-                self.traci_connection.setOrder(0)
                 self.traci_connection = traci.connect(port, numRetries=100)
+                self.traci_connection.setOrder(0)
 
                 self.traci_connection.simulationStep()
                 return
