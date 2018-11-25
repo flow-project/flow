@@ -17,7 +17,7 @@ class TestVisualizerRLlib(unittest.TestCase):
         """Test for single agent"""
         try:
             ray.init(num_cpus=1)
-        except:
+        except Exception:
             pass
         # current path
         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
@@ -34,7 +34,7 @@ class TestVisualizerRLlib(unittest.TestCase):
         """Test for multi-agent visualization"""
         try:
             ray.init(num_cpus=1)
-        except:
+        except Exception:
             pass
         # current path
         current_path = os.path.realpath(__file__).rsplit('/', 1)[0]
