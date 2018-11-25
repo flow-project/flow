@@ -87,12 +87,6 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    # create the agent that will be used to compute the actions
-    agent = agent_cls(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
-    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
-    agent.restore(checkpoint)
-
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
     net_params = flow_params['net']
@@ -123,12 +117,19 @@ def visualizer_rllib(args):
         sumo_params.render = True
 
     sumo_params.restart_instance = False
-    sumo_params.emission_path = './test_time_rollout/'
-
-    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario))
 
     sumo_params.emission_path = './test_time_rollout/'
+
+    # lower the horizon if testing
+    if args.horizon:
+        config['horizon'] = args.horizon
+        env_params.horizon = args.horizon
+
+    # create the agent that will be used to compute the actions
+    agent = agent_cls(env=env_name, config=config)
+    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
+    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
+    agent.restore(checkpoint)
 
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario))
@@ -252,6 +253,10 @@ def create_parser():
         action='store_true',
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
+    parser.add_argument(
+        '--horizon',
+        type=int,
+        help='Specifies the horizon.')
     return parser
 
 
