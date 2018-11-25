@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
-[![Coverage Status](https://coveralls.io/repos/github/flow-project/flow/badge.svg?branch=coverage)](https://coveralls.io/github/flow-project/flow?branch=coverage)
+[![Coverage Status](https://coveralls.io/repos/github/flow-project/flow/badge.svg?branch=master)](https://coveralls.io/github/flow-project/flow?branch=master)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
 # Flow
@@ -30,7 +30,7 @@ C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and B
 
 # Contributors
 
-Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Saleh Albeaik, Kathy Jang, Ananth Kuchibhotla. Alumni contributors include Leah Dickstein and Nathan Mandi. Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants.
+Cathy Wu, Eugene Vinitsky, Aboudy Kreidieh, Kanaad Parvate, Nishant Kheterpal, Kathy Jang, Fangyu Wu, Mahesh Murag, Kevin Chien, and Jonathan Lin. Alumni contributors include Leah Dickstein, Ananth Kuchibhotla, and Nathan Mandi. Flow is supported by the [Mobile Sensing Lab](http://bayen.eecs.berkeley.edu/) at UC Berkeley and Amazon AWS Machine Learning research grants.
 
 
 <!-- ## Getting Started
