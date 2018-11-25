@@ -15,6 +15,6 @@ sudo apt-get install -y \
 pip install imutils
 
 # Running script in the background.
-nohup xvfb-run -a -s \
-    "-screen 0 1400x900x24 +extension RANDR"\
-    -- python script.py 0e-1 > script.log 2>&1 &
+#nohup xvfb-run -a -s \
+#    "-screen 0 1400x900x24 +extension RANDR"\
+#    -- python script.py 0e-1 > script.log 2>&1 &

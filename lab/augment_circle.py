@@ -66,9 +66,9 @@ ModelCatalog.register_custom_model("pixel_flow_network", PixelFlowNetwork)
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 1
+N_ROLLOUTS = 14
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 15
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
 vehicles = Vehicles()
