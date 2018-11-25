@@ -106,7 +106,7 @@ class WaveAttenuationEnv(Env):
         ]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         # in the warmup steps
         if rl_actions is None:
@@ -171,8 +171,8 @@ class WaveAttenuationEnv(Env):
         net_params = NetParams(additional_params=additional_net_params)
 
         self.scenario = self.scenario.__class__(
-            self.scenario.orig_name, self.scenario.generator_class,
-            self.scenario.vehicles, net_params, initial_config)
+            self.scenario.orig_name, self.scenario.vehicles,
+            net_params, initial_config)
 
         # solve for the velocity upper bound of the ring
         def v_eq_max_function(v):
@@ -327,10 +327,10 @@ class WaveAttenuationCNNEnv(WaveAttenuationEnv):
     def get_state(self, **kwargs):
         """See class definition."""
         sights_buffer = np.squeeze(np.array(self.sights_buffer))
-        sights_buffer = np.moveaxis(sights_buffer, 0, -1)
+        sights_buffer = np.moveaxis(sights_buffer, 0, -1).T
         return sights_buffer / 255.
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         max_speed = self.scenario.max_speed
         speed = self.vehicles.get_speed(self.vehicles.get_ids())

@@ -11,7 +11,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
@@ -67,9 +67,9 @@ ModelCatalog.register_custom_model("pixel_flow_network", PixelFlowNetwork)
 # time horizon of a single rollout
 HORIZON = 3000
 # number of rollouts per training iteration
-N_ROLLOUTS = 14
+N_ROLLOUTS = 1
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 2
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -90,7 +90,7 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="augmenting_figure_eight%s" % augmentation,
+    exp_tag="augment_cross%s" % augmentation,
 
     # name of the flow environment the experiment is running on
     env_name="AccelCNNIDMEnv",
