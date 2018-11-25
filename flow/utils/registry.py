@@ -2,7 +2,6 @@
 
 import gym
 from gym.envs.registration import register
-from gym.envs.registration import registry
 
 from copy import deepcopy
 
