@@ -10,9 +10,10 @@ dependencies:
     - python-dateutil==2.7.3
     - tensorflow==1.10.0
     - cloudpickle==0.5.3
+    - opencv
     - setuptools==39.1.0
     - pip:
-        - gym==0.10.5        
+        - gym==0.10.5
         - pyprind==2.11.2
         - nose2==0.8.0
         - cached_property
