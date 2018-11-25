@@ -221,6 +221,7 @@ class Env(gym.Env, Serializable):
                 sumo_call = [
                     sumo_binary, "-c", self.scenario.cfg,
                     "--remote-port",
+                    "--num-clients", str(self.sumo_params.num_clients),
                     str(port), "--step-length",
                     str(self.sim_step)
                 ]
@@ -282,6 +283,7 @@ class Env(gym.Env, Serializable):
                 else:
                     time.sleep(config.SUMO_SLEEP)
 
+                self.traci_connection.setOrder(0)
                 self.traci_connection = traci.connect(port, numRetries=100)
 
                 self.traci_connection.simulationStep()

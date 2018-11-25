@@ -31,7 +31,8 @@ class SumoParams:
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
-                 sumo_binary=None):
+                 sumo_binary=None,
+                 num_clients=1):
         """Instantiate SumoParams.
 
         Attributes
@@ -85,6 +86,8 @@ class SumoParams:
         teleport_time: int, optional
             If negative, vehicles don't teleport in gridlock. If positive,
             they teleport after teleport_time seconds
+        num_clients: int, optional
+            Number of clients that will connect to Traci
 
         """
         self.port = port
@@ -111,6 +114,7 @@ class SumoParams:
                 PendingDeprecationWarning
             )
             self.render = sumo_binary == "sumo-gui"
+        self.num_clients = num_clients
 
 
 class EnvParams:
