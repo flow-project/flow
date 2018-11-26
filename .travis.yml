@@ -34,8 +34,6 @@ before_install:
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.3-cp35-cp35m-manylinux1_x86_64.whl
   - pip install redis~=2.10.6
-  # - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
-
 
   # Copy over local rllib changes (testing branch)
   - pushd $HOME/build/flow-project
@@ -48,10 +46,6 @@ before_install:
   -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
   -     popd
   - popd
-#  - ray stop
-#  - >-
-#      ulimit -n 65536;
-#      ray start --head --redis-port=6379 --object-manager-port=8076
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project
