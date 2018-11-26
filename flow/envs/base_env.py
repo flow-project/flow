@@ -4,15 +4,14 @@ from copy import deepcopy
 import gym
 from gym.spaces import Box
 import logging
-import numpy as np
 import os
-import random
 import signal
 import subprocess
 import sys
 import time
 import traceback
-
+import numpy as np
+import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
 import traci
@@ -529,7 +528,6 @@ class Env(*classdef):
                 else:
                     done['__all__'] = False
                 infos[key] = {}
-
         else:
             # collect information of the state of the network based on the
             # environment class used
@@ -538,14 +536,13 @@ class Env(*classdef):
             # collect observation new state associated with action
             next_observation = np.copy(states)
 
-            # compute the reward
-
             # test if the agent should terminate due to a crash
             done = crash
 
             # compute the info for each agent
             infos = {}
 
+        # compute the reward
         reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, done, infos
