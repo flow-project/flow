@@ -990,25 +990,22 @@ class Vehicles:
         This includes the speed between the specified vehicle and the
         vehicle immediately ahead of it in all lanes.
 
+        Missing lead vehicles have a speed of zero.
+
         Parameters
         ----------
         veh_id : str or list<str>
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
-
         Returns
         -------
         list<float>
         """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_leaders_speed(vehID, error)
-                    for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("leaders_speed", error)
 
-    def set_lane_leaders_speed(self, veh_id, lead_speed):
-        """Set the speed of the leaders of the specified vehicles"""
-        self.__vehicles[veh_id]["leaders_speed"] = lead_speed
+        lane_leaders = self.get_lane_leaders(veh_id)
+        return [0 if lane_leader is '' else
+                self.get_speed(lane_leader) for lane_leader in lane_leaders]
 
     def get_lane_followers_speed(self, veh_id, error=list()):
         """Return the speed of the followers of the specified vehicles.
@@ -1016,25 +1013,22 @@ class Vehicles:
         This includes the speed between the specified vehicle and the
         vehicle immediately behind it in all lanes.
 
+        Missing following vehicles have a speed of zero.
+
         Parameters
         ----------
         veh_id : str or list<str>
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
-
         Returns
         -------
         list<float>
         """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_followers_speed(vehID, error)
-                    for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("followers_speed", error)
-
-    def set_lane_followers_speed(self, veh_id, follower_speed):
-        """Set the speed of the leaders of the specified vehicles"""
-        self.__vehicles[veh_id]["followers_speed"] = follower_speed
+        lane_followers = self.get_lane_followers(veh_id)
+        return [0 if lane_follower is '' else
+                self.get_speed(lane_follower) for
+                lane_follower in lane_followers]
 
     def set_lane_leaders(self, veh_id, lane_leaders):
         """Set the lane leaders of the specified vehicle."""
@@ -1172,16 +1166,13 @@ class Vehicles:
             # each vehicle
             edge = self.get_edge(veh_id)
             if edge:
-                headways, tailways, lead_speed, follow_speed, \
-                    leaders, followers = \
+                headways, tailways, leaders, followers = \
                     self._multi_lane_headways_util(veh_id, edge_dict,
                                                    num_edges, env)
 
                 # add the above values to the vehicles class
                 self.set_lane_headways(veh_id, headways)
                 self.set_lane_tailways(veh_id, tailways)
-                self.set_lane_leaders_speed(veh_id, lead_speed)
-                self.set_lane_followers_speed(veh_id, follow_speed)
                 self.set_lane_leaders(veh_id, leaders)
                 self.set_lane_followers(veh_id, followers)
 
@@ -1237,8 +1228,6 @@ class Vehicles:
         # set default values for all output values
         headway = [1000] * num_lanes
         tailway = [1000] * num_lanes
-        lead_speed = [0] * num_lanes
-        follow_speed = [0] * num_lanes
         leader = [""] * num_lanes
         follower = [""] * num_lanes
 
@@ -1264,7 +1253,6 @@ class Vehicles:
                         leader[lane] = ids[index]
                         headway[lane] = (positions[index] - this_pos
                                          - self.get_length(leader[lane]))
-                    lead_speed[lane] = self.get_speed(leader[lane])
 
                 # you are in the back of the queue, the lane follower is in the
                 # edges behind you
@@ -1272,21 +1260,20 @@ class Vehicles:
                     follower[lane] = ids[index - 1]
                     tailway[lane] = (this_pos - positions[index - 1]
                                      - self.get_length(veh_id))
-                    follow_speed[lane] = self.get_speed(ids[index-1])
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
-                headway[lane], lead_speed[lane], leader[lane] = \
+                headway[lane], leader[lane] = \
                     self._next_edge_leaders(
                     veh_id, edge_dict, lane, num_edges, env)
 
             # if lane follower not found, check previous edges
             if follower[lane] == "":
-                tailway[lane], follow_speed[lane], follower[lane] = \
+                tailway[lane], follower[lane] = \
                     self._prev_edge_followers(
                     veh_id, edge_dict, lane, num_edges, env)
 
-        return headway, tailway, lead_speed, follow_speed, leader, follower
+        return headway, tailway, leader, follower
 
     def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges, env):
         """Search for leaders in the next edge.
@@ -1299,8 +1286,6 @@ class Vehicles:
         -------
         headway : float
             lane headway for the specified lane
-        lead_speed : float
-            speed of leader for the specified lane
         leader : str
             lane leader for the specified lane
         """
@@ -1308,7 +1293,6 @@ class Vehicles:
         edge = self.get_edge(veh_id)
 
         headway = 1000  # env.scenario.length
-        lead_speed = 0
         leader = ""
         add_length = 0  # length increment in headway
 
@@ -1325,7 +1309,6 @@ class Vehicles:
                     leader = edge_dict[edge][lane][0][0]
                     headway = edge_dict[edge][lane][0][1] - pos + add_length \
                         - self.get_length(leader)
-                    lead_speed = self.get_speed(leader)
             except KeyError:
                 # current edge has no vehicles, so move on
                 continue
@@ -1334,7 +1317,7 @@ class Vehicles:
             if leader != "":
                 break
 
-        return headway, lead_speed, leader
+        return headway, leader
 
     def _prev_edge_followers(self, veh_id, edge_dict, lane, num_edges, env):
         """Search for followers in the previous edge.
@@ -1347,8 +1330,6 @@ class Vehicles:
         -------
         tailway : float
             lane tailway for the specified lane
-        follow_speed : f;pat
-            follower speed for the specified lane
         follower : str
             lane follower for the specified lane
         """
@@ -1356,7 +1337,6 @@ class Vehicles:
         edge = self.get_edge(veh_id)
 
         tailway = 1000  # env.scenario.length
-        follow_speed = 0
         follower = ""
         add_length = 0  # length increment in headway
 
@@ -1372,7 +1352,6 @@ class Vehicles:
                 if len(edge_dict[edge][lane]) > 0:
                     tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
                               - self.get_length(veh_id)
-                    follow_speed = self.get_speed(edge_dict[edge][lane][-1][0])
                     follower = edge_dict[edge][lane][-1][0]
             except KeyError:
                 # current edge has no vehicles, so move on
@@ -1382,4 +1361,4 @@ class Vehicles:
             if follower != "":
                 break
 
-        return tailway, follow_speed, follower
+        return tailway, follower
