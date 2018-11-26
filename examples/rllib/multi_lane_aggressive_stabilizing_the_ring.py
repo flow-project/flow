@@ -137,6 +137,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 500,
             },
-            "upload_dir": "s3://multi-ring-stabilize"
+            "upload_dir": "s3://kanaad.experiments/multi-ring-stabilize"
         },
     })
