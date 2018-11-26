@@ -26,6 +26,8 @@ from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
+from flow.utils.rllib import get_rllib_pkl
+
 
 EXAMPLE_USAGE = """
 example usage:
@@ -40,10 +42,21 @@ def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
+    # config = get_rllib_config(result_dir + '/..')
+    # pkl = get_rllib_pkl(result_dir + '/..')
     config = get_rllib_config(result_dir)
+    pkl = get_rllib_pkl(result_dir)
+
+    # check if we have a multiagent scenario but in a
+    # backwards compatible way
+    if config.get('multiagent', {}).get('policy_graphs', {}):
+        multiagent = True
+        config['multiagent'] = pkl['multiagent']
+    else:
+        multiagent = False
 
     # Run on only one cpu for rendering purposes
-    config['num_workers'] = 1
+    config['num_workers'] = 0
 
     flow_params = get_flow_params(config)
 
@@ -73,10 +86,6 @@ def visualizer_rllib(args):
               'to train the results\n e.g. '
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
-    agent = agent_cls(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
-    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
-    agent.restore(checkpoint)
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -97,45 +106,98 @@ def visualizer_rllib(args):
     module = __import__('flow.envs', fromlist=[flow_params['env_name']])
     env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
+    env_params.restart_instance = False
     if args.evaluate:
         env_params.evaluate = True
     sumo_params = flow_params['sumo']
+
     if args.no_render:
         sumo_params.render = False
     else:
         sumo_params.render = True
+
+    sumo_params.restart_instance = False
+
     sumo_params.emission_path = './test_time_rollout/'
+
+    # lower the horizon if testing
+    if args.horizon:
+        config['horizon'] = args.horizon
+        env_params.horizon = args.horizon
+
+    # create the agent that will be used to compute the actions
+    agent = agent_cls(env=env_name, config=config)
+    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
+    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
+    agent.restore(checkpoint)
 
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario))
 
-    # Run the environment in the presence of the pre-trained RL agent for the
-    # requested number of time steps / rollouts
-    rets = []
+    if multiagent:
+        rets = {}
+        # map the agent id to its policy
+        policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+        for key in config['multiagent']['policy_graphs'].keys():
+            rets[key] = []
+    else:
+        rets = []
     final_outflows = []
     mean_speed = []
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
-        ret = 0
+        done = False
+        if multiagent:
+            ret = {key: [0] for key in rets.keys()}
+        else:
+            ret = 0
         for _ in range(env_params.horizon):
             vehicles = env.unwrapped.vehicles
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
-            action = agent.compute_action(state)
+            if multiagent:
+                action = {}
+                for agent_id in state.keys():
+                    action[agent_id] = agent.compute_action(
+                        state[agent_id], policy_id=policy_map_fn(agent_id))
+            else:
+                action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
-            ret += reward
-            if done:
+            if multiagent:
+                for actor, rew in reward.items():
+                    ret[policy_map_fn(actor)][0] += rew
+            else:
+                ret += reward
+            if multiagent and done['__all__']:
                 break
-        rets.append(ret)
+            if not multiagent and done:
+                break
+
+        if multiagent:
+            for key in rets.keys():
+                rets[key].append(ret[key])
+        else:
+            rets.append(ret)
         outflow = vehicles.get_outflow_rate(500)
         final_outflows.append(outflow)
         mean_speed.append(np.mean(vel))
-        print('Round {}, Return: {}'.format(i, ret))
-    print('Average, std return: {}, {}'.format(np.mean(rets), np.std(rets)))
-    print('Average, std speed: {}, {}'.format(np.mean(mean_speed),
-                                              np.std(mean_speed)))
-    print('Average, std outflow: {}, {}'.format(np.mean(final_outflows),
-                                                np.std(final_outflows)))
+        if multiagent:
+            for agent, rew in rets.items():
+                print('Round {}, Return: {} for agent {}'.format(
+                    i, ret, agent))
+        else:
+            print('Round {}, Return: {}'.format(i, ret))
+    if multiagent:
+        for agent, rew in rets.items():
+            print('Average, std return: {}, {} for agent {}'.format(
+                np.mean(rew), np.std(rew), agent))
+    else:
+        print('Average, std return: {}, {}'.format(
+            np.mean(rets), np.std(rets)))
+    print('Average, std speed: {}, {}'.format(
+        np.mean(mean_speed), np.std(mean_speed)))
+    print('Average, std outflow: {}, {}'.format(
+        np.mean(final_outflows), np.std(final_outflows)))
 
     # terminate the environment
     env.unwrapped.terminate()
@@ -191,6 +253,10 @@ def create_parser():
         action='store_true',
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
+    parser.add_argument(
+        '--horizon',
+        type=int,
+        help='Specifies the horizon.')
     return parser
 
 

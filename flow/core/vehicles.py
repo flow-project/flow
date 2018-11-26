@@ -64,9 +64,11 @@ class Vehicles:
 
         # number of vehicles that entered the network for every time-step
         self._num_departed = []
+        self._arrived_ids = []
 
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
+        self._departed_ids = []
 
         # simulation step size
         self.sim_step = 0
@@ -109,7 +111,6 @@ class Vehicles:
             number of vehicles of this type to be added to the network
         speed_mode : str or int, optional
             may be one of the following:
-
              * "right_of_way" (default): respect safe speed, right of way and
                brake hard at red lights if needed. DOES NOT respect
                max accel and decel which enables emergency stopping.
@@ -122,10 +123,8 @@ class Vehicles:
              * int values may be used to define custom speed mode for the given
                vehicles, specified at:
                http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
-
         lane_change_mode : str or int, optional
             may be one of the following:
-
             * "no_lat_collide" (default): Human cars will not make lane
               changes, RL cars can lane change into any space, no matter how
               likely it is to crash
@@ -136,7 +135,6 @@ class Vehicles:
             * int values may be used to define custom lane change modes for the
               given vehicles, specified at:
               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
-
         sumo_car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
         sumo_lc_params : flow.core.params.SumoLaneChangeParams
@@ -278,7 +276,6 @@ class Vehicles:
         """Update the vehicle class with data from the current time step.
 
         The following actions are performed:
-
         * The state of all vehicles is modified to match their state at the
           current time step. This includes states specified by sumo, and states
           explicitly defined by flow, e.g. "absolute_position".
@@ -322,6 +319,8 @@ class Vehicles:
                 self.set_state(veh_id, "last_lc", -float("inf"))
             self._num_departed.clear()
             self._num_arrived.clear()
+            self._departed_ids.clear()
+            self._arrived_ids.clear()
             self.sim_step = env.sim_step
         else:
             # update the "last_lc" variable
@@ -351,6 +350,8 @@ class Vehicles:
             self._num_departed.append(
                 len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
             self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
+            self._departed_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+            self._arrived_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -627,6 +628,20 @@ class Vehicles:
         else:
             return 0
 
+    def get_arrived_ids(self):
+        """Return the ids of vehicles that arrived in the last time step"""
+        if len(self._arrived_ids) > 0:
+            return self._arrived_ids[-1]
+        else:
+            return 0
+
+    def get_departed_ids(self):
+        """Return the ids of vehicles that departed in the last time step"""
+        if len(self._departed_ids) > 0:
+            return self._departed_ids[-1]
+        else:
+            return 0
+
     def get_initial_speed(self, veh_id, error=-1001):
         """Return the initial speed upon reset of the specified vehicle.
 
@@ -636,11 +651,9 @@ class Vehicles:
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
-
         Returns
         -------
         float
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_initial_speed(vehID, error) for vehID in veh_id]
@@ -655,11 +668,9 @@ class Vehicles:
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
-
         Returns
         -------
         int
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [
@@ -676,11 +687,9 @@ class Vehicles:
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
-
         Returns
         -------
         int
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed_mode(vehID, error) for vehID in veh_id]
@@ -695,19 +704,16 @@ class Vehicles:
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
-
         Returns
         -------
         float
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED, error)
 
     def get_default_speed(self, veh_id, error=-1001):
-        """Return the default next speed of the specified vehicle in SUMO if
-        no control is applied.
+        """Return the expected speed if no control were applied
 
         Parameters
         ----------
@@ -739,7 +745,6 @@ class Vehicles:
         Returns
         -------
         float
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [
@@ -760,7 +765,6 @@ class Vehicles:
         Returns
         -------
         float
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_position(vehID, error) for vehID in veh_id]
@@ -779,7 +783,6 @@ class Vehicles:
         Returns
         -------
         str
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_edge(vehID, error) for vehID in veh_id]
@@ -798,7 +801,6 @@ class Vehicles:
         Returns
         -------
         int
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane(vehID, error) for vehID in veh_id]
@@ -821,7 +823,6 @@ class Vehicles:
         Returns
         -------
         float
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_length(vehID, error) for vehID in veh_id]
@@ -840,7 +841,6 @@ class Vehicles:
         Returns
         -------
         object
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_acc_controller(vehID, error) for vehID in veh_id]
@@ -859,7 +859,6 @@ class Vehicles:
         Returns
         -------
         object
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [
@@ -881,7 +880,6 @@ class Vehicles:
         Returns
         -------
         object
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [
@@ -902,7 +900,6 @@ class Vehicles:
         Returns
         -------
         list<str>
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_route(vehID, error) for vehID in veh_id]
@@ -921,7 +918,6 @@ class Vehicles:
         Returns
         -------
         str
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_leader(vehID, error) for vehID in veh_id]
@@ -940,7 +936,6 @@ class Vehicles:
         Returns
         -------
         str
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_follower(vehID, error) for vehID in veh_id]
@@ -959,7 +954,6 @@ class Vehicles:
         Returns
         -------
         float
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_headway(vehID, error) for vehID in veh_id]
@@ -985,11 +979,56 @@ class Vehicles:
         Returns
         -------
         list<float>
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_headways(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_headways", error)
+
+    def get_lane_leaders_speed(self, veh_id, error=list()):
+        """Return the speed of the leaders of the specified vehicles.
+
+        This includes the speed between the specified vehicle and the
+        vehicle immediately ahead of it in all lanes.
+
+        Missing lead vehicles have a speed of zero.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+        Returns
+        -------
+        list<float>
+        """
+
+        lane_leaders = self.get_lane_leaders(veh_id)
+        return [0 if lane_leader is '' else
+                self.get_speed(lane_leader) for lane_leader in lane_leaders]
+
+    def get_lane_followers_speed(self, veh_id, error=list()):
+        """Return the speed of the followers of the specified vehicles.
+
+        This includes the speed between the specified vehicle and the
+        vehicle immediately behind it in all lanes.
+
+        Missing following vehicles have a speed of zero.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+        Returns
+        -------
+        list<float>
+        """
+        lane_followers = self.get_lane_followers(veh_id)
+        return [0 if lane_follower is '' else
+                self.get_speed(lane_follower) for
+                lane_follower in lane_followers]
 
     def set_lane_leaders(self, veh_id, lane_leaders):
         """Set the lane leaders of the specified vehicle."""
@@ -1008,7 +1047,6 @@ class Vehicles:
         Returns
         -------
         list<float>
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_leaders(vehID, error) for vehID in veh_id]
@@ -1034,7 +1072,6 @@ class Vehicles:
         Returns
         -------
         list<float>
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_tailways(vehID, error) for vehID in veh_id]
@@ -1057,7 +1094,6 @@ class Vehicles:
         Returns
         -------
         list<str>
-
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_followers(vehID, error) for vehID in veh_id]
@@ -1088,7 +1124,8 @@ class Vehicles:
     def _multi_lane_headways(self, env):
         """Compute multi-lane data for all vehicles.
 
-        This includes the lane leaders/followers/headways/tailways for all
+        This includes the lane leaders/followers/headways/tailways/
+        leader velocity/follower velocity for all
         vehicles in the network.
         """
         edge_list = env.scenario.get_edge_list()
@@ -1170,6 +1207,12 @@ class Vehicles:
         tailway : list<float>
             Index = lane index
             Element = tailway at this lane
+        lead_speed : list<str>
+            Index = lane index
+            Element = speed of leader at this lane
+        follow_speed : list<str>
+            Index = lane index
+            Element = speed of follower at this lane
         leader : list<str>
             Index = lane index
             Element = leader at this lane
@@ -1220,12 +1263,14 @@ class Vehicles:
 
             # if lane leader not found, check next edges
             if leader[lane] == "":
-                headway[lane], leader[lane] = self._next_edge_leaders(
+                headway[lane], leader[lane] = \
+                    self._next_edge_leaders(
                     veh_id, edge_dict, lane, num_edges, env)
 
             # if lane follower not found, check previous edges
             if follower[lane] == "":
-                tailway[lane], follower[lane] = self._prev_edge_followers(
+                tailway[lane], follower[lane] = \
+                    self._prev_edge_followers(
                     veh_id, edge_dict, lane, num_edges, env)
 
         return headway, tailway, leader, follower
