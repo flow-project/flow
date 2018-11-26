@@ -27,9 +27,9 @@ HORIZON = 3000
 # Number of rings
 NUM_RINGS = 1
 # number of rollouts per training iteration
-N_ROLLOUTS = 20#int(20/NUM_RINGS)
+N_ROLLOUTS = int(80/NUM_RINGS)
 # number of parallel workers
-N_CPUS = 6#int(20/NUM_RINGS)
+N_CPUS = 16
 
 
 # We place one autonomous vehicle and 21 human-driven vehicles in the network
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['lr'] = tune.grid_search([1e-5, 1e-6]) # 1e-5 seems like the right thing
+    config['lr'] = 1e-5
     config['horizon'] = HORIZON
     config['observation_filter'] = 'NoFilter'
 
@@ -153,7 +153,7 @@ if __name__ == '__main__':
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': 's3://eugene.experiments/multiagent_tests/lord_of_the_rings'
+            'upload_dir': 's3://eugene.experiments/multiagent_tests/lord_of_the_rings/{}_rings'.format(NUM_RINGS)
         },
     })
 
