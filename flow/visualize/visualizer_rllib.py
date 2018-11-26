@@ -45,7 +45,11 @@ def visualizer_rllib(args):
     # config = get_rllib_config(result_dir + '/..')
     # pkl = get_rllib_pkl(result_dir + '/..')
     config = get_rllib_config(result_dir)
-    pkl = get_rllib_pkl(result_dir)
+    # TODO(ev) backwards compatibility hack
+    try:
+        pkl = get_rllib_pkl(result_dir)
+    except Exception:
+        pass
 
     # check if we have a multiagent scenario but in a
     # backwards compatible way
