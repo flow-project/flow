@@ -42,13 +42,22 @@ def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
+    # config = get_rllib_config(result_dir + '/..')
+    # pkl = get_rllib_pkl(result_dir + '/..')
     config = get_rllib_config(result_dir)
+    # TODO(ev) backwards compatibility hack
+    try:
+        pkl = get_rllib_pkl(result_dir)
+    except Exception:
+        pass
 
     # check if we have a multiagent scenario but in a
     # backwards compatible way
-    if args.multiagent:
-        pkl = get_rllib_pkl(result_dir)
+    if config.get('multiagent', {}).get('policy_graphs', {}):
+        multiagent = True
         config['multiagent'] = pkl['multiagent']
+    else:
+        multiagent = False
 
     # Run on only one cpu for rendering purposes
     config['num_workers'] = 0
@@ -139,7 +148,7 @@ def visualizer_rllib(args):
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario))
 
-    if args.multiagent:
+    if multiagent:
         rets = {}
         # map the agent id to its policy
         policy_map_fn = config['multiagent']['policy_mapping_fn'].func
@@ -153,14 +162,14 @@ def visualizer_rllib(args):
         vel = []
         state = env.reset()
         done = False
-        if args.multiagent:
+        if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
             ret = 0
         for _ in range(env_params.horizon):
             vehicles = env.unwrapped.vehicles
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
-            if args.multiagent:
+            if multiagent:
                 action = {}
                 for agent_id in state.keys():
                     action[agent_id] = agent.compute_action(
@@ -168,17 +177,17 @@ def visualizer_rllib(args):
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
-            if args.multiagent:
+            if multiagent:
                 for actor, rew in reward.items():
                     ret[policy_map_fn(actor)][0] += rew
             else:
                 ret += reward
-            if args.multiagent and done['__all__']:
+            if multiagent and done['__all__']:
                 break
-            if not args.multiagent and done:
+            if not multiagent and done:
                 break
 
-        if args.multiagent:
+        if multiagent:
             for key in rets.keys():
                 rets[key].append(ret[key])
         else:
@@ -186,13 +195,13 @@ def visualizer_rllib(args):
         outflow = vehicles.get_outflow_rate(500)
         final_outflows.append(outflow)
         mean_speed.append(np.mean(vel))
-        if args.multiagent:
+        if multiagent:
             for agent, rew in rets.items():
                 print('Round {}, Return: {} for agent {}'.format(
                     i, ret, agent))
         else:
             print('Round {}, Return: {}'.format(i, ret))
-    if args.multiagent:
+    if multiagent:
         for agent, rew in rets.items():
             print('Average, std return: {}, {} for agent {}'.format(
                 np.mean(rew), np.std(rew), agent))
@@ -266,11 +275,6 @@ def create_parser():
         '--horizon',
         type=int,
         help='Specifies the horizon.')
-    parser.add_argument(
-        '--multiagent',
-        action='store_true',
-        help='Specifies if multiagent is being used'
-    )
     return parser
 
 
