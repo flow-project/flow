@@ -24,7 +24,7 @@ HORIZON = 3000
 # number of rollouts per training iteration
 N_ROLLOUTS = 20
 # number of parallel workers
-N_CPUS = 8
+N_CPUS = 16
 
 # We place 8 autonomous vehicle and 72 human-driven vehicles in the network
 vehicles = Vehicles()
@@ -138,6 +138,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 500,
             },
-            "upload_dir": "s3://kanaad.experiments/multi-ring-stabilize_v1"
+            "upload_dir": "s3://kanaad.experiments/multi-ring-stabilize_v1/fast"
         },
     })
