@@ -64,3 +64,55 @@ Another thing to keep in mind is that Flow parameters in RLlib experiments
 should be defined **outside** of the ``make_create_env`` function. This allows
 that environment creator function to use other experiment parameters later,
 upon visualization. 
+
+
+
+Using Sumo-Web3d to visualize
+=============================
+There are two options to create slightly fancy visualizations that look like
+
+.. image:: ../img/sumo_web3dvis.png
+   :width: 400
+   :align: center
+
+First, go to `Sumo-Web3d <https://github.com/flow-project/sumo-web3d>`_ and
+follow the installation instructions.
+
+Then, if you don't need any RL, from the sumo-web3d folder run
+
+::
+
+   python sumo_web3d/sumo_web3d.py "path to sumo.cfg"
+
+If you want to visualize the result of an RL experiment use the rllib
+visualization instructions given above with the additional flag
+`--sumo_web3d`
+
+::
+
+   python ./visualizer_rllab.py /result_dir/itr_XXX.pkl --sumo_web3d
+
+Then, either from the terminal logs pick out the printed port that has
+num-clients = 2 or you can run
+
+::
+
+   ps aux | grep sumo
+
+It will print out the ports running SUMO; you can then pick out the port number
+with 2 clients. For example, it may look something like
+
+::
+
+   eugenevinitsky   54189   0.0  0.1  4360720  11208   ??  Ss
+   5:33PM   0:00.04 sumo -c <PATH-TO-CFG.sumo.cfg>
+   --remote-port 61057 --num-clients 2 --step-length 0.1
+   --no-step-log --emission-output --time-to-teleport -1
+
+Here you would pick out 61057 and then run
+
+::
+
+   python sumo_web3d/sumo_web3d.py --sumo-port "port_num" -c "path to sumo.cfg"
+
+where "port_num" is the port indicated above, 61057.

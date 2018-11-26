@@ -60,6 +60,11 @@ def visualizer_rllib(args):
 
     flow_params = get_flow_params(config)
 
+    # hack for old pkl files
+    # TODO(ev) remove eventually
+    sumo_params = flow_params['sumo']
+    setattr(sumo_params, 'num_clients', 1)
+
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(
         params=flow_params, version=0, render=False)
@@ -87,6 +92,21 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
+    # modify sumo params for visualization ease
+    if args.no_render:
+        sumo_params.render = False
+    else:
+        sumo_params.render = True
+
+    sumo_params.restart_instance = False
+
+    sumo_params.emission_path = './test_time_rollout/'
+
+    # prepare for rendering
+    if args.sumo_web3d:
+        sumo_params.num_clients = 2
+        sumo_params.render = False
+
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
     net_params = flow_params['net']
@@ -109,16 +129,6 @@ def visualizer_rllib(args):
     env_params.restart_instance = False
     if args.evaluate:
         env_params.evaluate = True
-    sumo_params = flow_params['sumo']
-
-    if args.no_render:
-        sumo_params.render = False
-    else:
-        sumo_params.render = True
-
-    sumo_params.restart_instance = False
-
-    sumo_params.emission_path = './test_time_rollout/'
 
     # lower the horizon if testing
     if args.horizon:
@@ -253,6 +263,10 @@ def create_parser():
         action='store_true',
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
+    parser.add_argument(
+        '--sumo_web3d',
+        action='store_true',
+        help='Specifies whether sumo web3d will be used to visualize.')
     parser.add_argument(
         '--horizon',
         type=int,
