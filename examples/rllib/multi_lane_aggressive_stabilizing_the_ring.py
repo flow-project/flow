@@ -64,13 +64,14 @@ flow_params = dict(
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=50,
-        starting_position_shuffle=True,
+        # starting_position_shuffle=True,
         vehicle_arrangement_shuffle=True,
         additional_params={
             "max_accel": 1,
-            "max_decel": 1,
+            "max_decel": 1.5,
             "ring_length": [400, 400],
-            "num_lanes": 4
+            "num_lanes": 4,
+            "lane_change_duration" : 50,
         },
     ),
 
@@ -137,6 +138,6 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 500,
             },
-            "upload_dir": "s3://kanaad.experiments/multi-ring-stabilize"
+            "upload_dir": "s3://kanaad.experiments/multi-ring-stabilize_v1"
         },
     })

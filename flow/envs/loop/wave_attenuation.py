@@ -11,6 +11,7 @@ abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 from flow.envs.base_env import Env
 from flow.core.params import InitialConfig, NetParams
 
+from gym.spaces.discrete import Discrete
 from gym.spaces.box import Box
 from gym.spaces.tuple_space import Tuple
 
@@ -27,6 +28,10 @@ ADDITIONAL_ENV_PARAMS = {
     # trained on
     "ring_length": [220, 270],
     "num_lanes": 1,
+    # lane change duration for autonomous vehicles, in s. Autonomous vehicles
+    # reject new lane changing commands for this duration after successfully
+    # changing lanes.
+    "lane_change_duration": 5,
 }
 
 
@@ -125,8 +130,8 @@ class WaveAttenuationEnv(Env):
         rl_actions = np.array(rl_actions)
         accel_threshold = 0
 
-        if np.mean(np.abs(rl_actions)) > accel_threshold:
-            reward += eta * (accel_threshold - np.mean(np.abs(rl_actions)))
+        if np.mean(np.abs(rl_actions[0])) > accel_threshold:
+            reward += eta * (accel_threshold - np.mean(np.abs(rl_actions[0])))
 
         return float(reward)
 
@@ -294,11 +299,29 @@ class MultiRLWaveAttenuationPOEnv(WaveAttenuationEnv):
         """See class definition."""
         return Box(low=0, high=1, shape=(4*self.vehicles.num_rl_vehicles, ), dtype=np.float32)
 
+    @property
+    def action_space(self):
+        """See class definition."""
+        max_decel = self.env_params.additional_params["max_decel"]
+        max_accel = self.env_params.additional_params["max_accel"]
+
+        obs_list = [Box(low=-abs(max_decel), high=max_accel, shape=(self.vehicles.num_rl_vehicles, ), dtype=np.float32)]
+        for _ in range(self.vehicles.num_rl_vehicles, ):
+            obs_list.append(Discrete(10))
+        return Tuple(obs_list)
+
+
     def get_state(self, **kwargs):
         """See class definition."""
         total_obs = []
-        for rl_id in self.vehicles.get_rl_ids():
-            rl_id = self.vehicles.get_rl_ids()[0]
+
+        # re-arrange actions according to mapping in observation space
+        sorted_rl_ids = [
+            veh_id for veh_id in self.sorted_ids
+            if veh_id in self.vehicles.get_rl_ids()
+        ]
+
+        for rl_id in sorted_rl_ids:
             lead_id = self.vehicles.get_leader(rl_id) or rl_id
 
             # normalizers
@@ -316,6 +339,40 @@ class MultiRLWaveAttenuationPOEnv(WaveAttenuationEnv):
             ])
 
         return np.array(total_obs)
+
+    def _apply_rl_actions(self, actions):
+        """See class definition."""
+        acceleration = actions[0]
+        direction = []
+        for x in actions[1:]:
+            if x == 0:
+                direction.append(-1)
+            elif x == 1:
+                direction.append(1)
+            else:
+                direction.append(0)
+
+        direction = np.array(direction)
+
+        # re-arrange actions according to mapping in observation space
+        sorted_rl_ids = [
+            veh_id for veh_id in self.sorted_ids
+            if veh_id in self.vehicles.get_rl_ids()
+        ]
+
+        # represents vehicles that are allowed to change lanes
+        non_lane_changing_veh = \
+            [self.time_counter <=
+             self.env_params.additional_params["lane_change_duration"]
+             + self.vehicles.get_state(veh_id, 'last_lc')
+             for veh_id in sorted_rl_ids]
+        # vehicle that are not allowed to change have their directions set to 0
+        direction[non_lane_changing_veh] = \
+            np.array([0] * sum(non_lane_changing_veh))
+
+        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
+        self.apply_lane_change(sorted_rl_ids, direction=direction)
+
 
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""

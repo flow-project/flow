@@ -43,7 +43,7 @@ def sugiyama_example(render=None):
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=80)
 
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS, starting_position_shuffle=True)
+    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS, vehicle_arrangement_shuffle=True)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     additional_net_params["lanes"] = 4
