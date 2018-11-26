@@ -8,23 +8,25 @@ Benchmarking for Reinforcement Learning in Traffic Control," CoRR, vol.
 abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 """
 
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
 from flow.envs.base_env import Env
-from flow.core.params import InitialConfig, NetParams
+from flow.envs.multiagent_env import MultiEnv
 
 from gym.spaces.box import Box
 
-import random
 import numpy as np
+import random
 from scipy.optimize import fsolve
 
 ADDITIONAL_ENV_PARAMS = {
     # maximum acceleration of autonomous vehicles
-    "max_accel": 1,
+    'max_accel': 1,
     # maximum deceleration of autonomous vehicles
-    "max_decel": 1,
+    'max_decel': 1,
     # bounds on the ranges of ring road lengths the autonomous vehicle is
     # trained on
-    "ring_length": [220, 270],
+    'ring_length': [220, 270],
 }
 
 
@@ -62,7 +64,7 @@ class WaveAttenuationEnv(Env):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
-                    'Environment parameter "{}" not supplied'.format(p))
+                    'Environment parameter \'{}\' not supplied'.format(p))
 
         super().__init__(env_params, sumo_params, scenario)
 
@@ -70,8 +72,8 @@ class WaveAttenuationEnv(Env):
     def action_space(self):
         """See class definition."""
         return Box(
-            low=-np.abs(self.env_params.additional_params["max_decel"]),
-            high=self.env_params.additional_params["max_accel"],
+            low=-np.abs(self.env_params.additional_params['max_decel']),
+            high=self.env_params.additional_params['max_accel'],
             shape=(self.vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
@@ -104,7 +106,7 @@ class WaveAttenuationEnv(Env):
             for veh_id in self.vehicles.get_ids()
         ])
 
-        if any(vel < -100) or kwargs["fail"]:
+        if any(vel < -100) or kwargs['fail']:
             return 0.
 
         # reward average velocity
@@ -121,7 +123,7 @@ class WaveAttenuationEnv(Env):
 
         return float(reward)
 
-    def get_state(self, **kwargs):
+    def get_state(self):
         """See class definition."""
         speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
                  for veh_id in self.sorted_ids]
@@ -146,15 +148,15 @@ class WaveAttenuationEnv(Env):
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {
-            "length":
+            'length':
             random.randint(
-                self.env_params.additional_params["ring_length"][0],
-                self.env_params.additional_params["ring_length"][1]),
-            "lanes":
+                self.env_params.additional_params['ring_length'][0],
+                self.env_params.additional_params['ring_length'][1]),
+            'lanes':
             1,
-            "speed_limit":
+            'speed_limit':
             30,
-            "resolution":
+            'resolution':
             40
         }
         net_params = NetParams(additional_params=additional_net_params)
@@ -183,8 +185,8 @@ class WaveAttenuationEnv(Env):
         v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
 
         print('\n-----------------------')
-        print('ring length:', net_params.additional_params["length"])
-        print("v_max:", v_eq_max)
+        print('ring length:', net_params.additional_params['length'])
+        print('v_max:', v_eq_max)
         print('-----------------------')
 
         # restart the sumo instance
@@ -235,14 +237,14 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         """See class definition."""
         return Box(low=0, high=1, shape=(3, ), dtype=np.float32)
 
-    def get_state(self, **kwargs):
+    def get_state(self):
         """See class definition."""
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
 
         # normalizers
         max_speed = 15.
-        max_length = self.env_params.additional_params["ring_length"][1]
+        max_length = self.env_params.additional_params['ring_length'][1]
 
         observation = np.array([
             self.vehicles.get_speed(rl_id) / max_speed,
@@ -259,3 +261,111 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
         self.vehicles.set_observed(lead_id)
+
+
+class MultiWaveAttenuationPOEnv(MultiEnv):
+    """Multiagent shared model version of WaveAttenuationPOEnv
+
+    Intended to work with Lord Of The Rings Scenario.
+    Note that this environment current
+    only works when there is one autonomous vehicle
+    on each ring.
+
+    Required from env_params: See parent class
+
+    States
+        See parent class
+    Actions
+        See parent class
+
+    Rewards
+        See parent class
+
+    Termination
+        See parent class
+
+    """
+
+    @property
+    def observation_space(self):
+        """See class definition."""
+        return Box(low=0, high=1, shape=(3,), dtype=np.float32)
+
+    @property
+    def action_space(self):
+        """See class definition."""
+        add_params = self.scenario.net_params.additional_params
+        num_rings = add_params['num_rings']
+        return Box(
+            low=-np.abs(self.env_params.additional_params['max_decel']),
+            high=self.env_params.additional_params['max_accel'],
+            shape=(int(self.vehicles.num_rl_vehicles/num_rings), ),
+            dtype=np.float32)
+
+    def get_state(self):
+        """See class definition."""
+        obs = {}
+        for rl_id in self.vehicles.get_rl_ids():
+            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+
+            # normalizers
+            max_speed = 15.
+            max_length = self.env_params.additional_params['ring_length'][1]
+
+            observation = np.array([
+                self.vehicles.get_speed(rl_id) / max_speed,
+                (self.vehicles.get_speed(lead_id) -
+                 self.vehicles.get_speed(rl_id))
+                / max_speed,
+                self.vehicles.get_headway(rl_id) / max_length
+            ])
+            obs.update({rl_id: observation})
+
+        return obs
+
+    def _apply_rl_actions(self, rl_actions):
+        """Split the accelerations by ring"""
+        if rl_actions:
+            rl_ids = list(rl_actions.keys())
+            accel = list(rl_actions.values())
+            self.apply_acceleration(rl_ids, accel)
+
+    def compute_reward(self, rl_actions, **kwargs):
+        """See class definition."""
+        # in the warmup steps
+        if rl_actions is None:
+            return {}
+
+        rew = {}
+        for rl_id in rl_actions.keys():
+            edge_id = rl_id.split('_')[1]
+            edges = self.gen_edges(edge_id)
+            vehs_on_edge = self.vehicles.get_ids_by_edge(edges)
+            vel = np.array([
+                self.vehicles.get_speed(veh_id)
+                for veh_id in vehs_on_edge
+            ])
+            if any(vel < -100) or kwargs['fail']:
+                return 0.
+
+            target_vel = self.env_params.additional_params['target_velocity']
+            max_cost = np.array([target_vel] * len(vehs_on_edge))
+            max_cost = np.linalg.norm(max_cost)
+
+            cost = vel - target_vel
+            cost = np.linalg.norm(cost)
+
+            rew[rl_id] = max(max_cost - cost, 0) / max_cost
+        return rew
+
+    def additional_command(self):
+        """Define which vehicles are observed for visualization purposes."""
+        # specify observed vehicles
+        for rl_id in self.vehicles.get_rl_ids():
+            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+            self.vehicles.set_observed(lead_id)
+
+    def gen_edges(self, i):
+        """Return the edges corresponding to the rl id"""
+        return ['top_{}'.format(i), 'left_{}'.format(i),
+                'right_{}'.format(i), 'bottom_{}'.format(i)]
