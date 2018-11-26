@@ -15,13 +15,10 @@ def _read_requirements_file():
 
 class build_ext(_build_ext.build_ext):
     def run(self):
-        try:
-            import traci
-        except ImportError:
-            subprocess.check_call(
-                ['pip', 'install',
-                 'https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/'
-                 'sumotools-0.1.0-py3-none-any.whl'])
+        subprocess.check_call(
+            ['pip', 'install',
+             'https://akreidieh.s3.amazonaws.com/sumo/flow-0.3.0/'
+             'sumotools-0.2.0-py3-none-any.whl'])
 
 
 class BinaryDistribution(Distribution):
@@ -35,6 +32,12 @@ setup(
     distclass=BinaryDistribution,
     cmdclass={"build_ext": build_ext},
     packages=find_packages(),
+    description=("A system for applying deep reinforcement learning and "
+                 "control to autonomous vehicles and traffic infrastructure"),
+    long_description=open("README.md").read(),
+    url="https://github.com/flow-project/flow",
+    keywords=("autonomous vehicles intelligent-traffic-control"
+              "reinforcement-learning deep-learning python"),
     install_requires=_read_requirements_file(),
     zip_safe=False,
 )

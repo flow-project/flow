@@ -182,6 +182,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             routing_controller=(ContinuousRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 accel=1000, decel=1000),
+            lane_change_mode=0,
             num_vehicles=5)
 
         # create the environment and scenario classes for a ring road
@@ -223,7 +224,9 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
         # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
+        veh_obs = dict((veh_id, self.env.traci_connection.vehicle.
+                        getSubscriptionResults(veh_id))
+                       for veh_id in self.env.vehicles.get_ids())
 
         # get vehicle ids for the entering, exiting, and colliding vehicles
         id_list = self.env.traci_connection.simulation.getSubscriptionResults()
@@ -292,7 +295,9 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
         # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
+        veh_obs = dict((veh_id, self.env.traci_connection.vehicle.
+                        getSubscriptionResults(veh_id))
+                       for veh_id in self.env.vehicles.get_ids())
 
         # get vehicle ids for the entering, exiting, and colliding vehicles
         id_list = self.env.traci_connection.simulation.getSubscriptionResults()

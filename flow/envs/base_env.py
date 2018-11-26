@@ -338,8 +338,12 @@ class Env(gym.Env, Serializable):
                  self.initial_observations[veh_id]["speed"], pos)
 
         # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
+        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                            getSubscriptionResults(veh_id))
+                           for veh_id in self.vehicles.get_ids())
+        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                        getSubscriptionResults(tl_id))
+                       for tl_id in self.traffic_lights.get_ids())
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
@@ -427,12 +431,14 @@ class Env(gym.Env, Serializable):
             self.traci_connection.simulationStep()
 
             # collect subscription information from sumo
-            vehicle_obs = \
-                self.traci_connection.vehicle.getSubscriptionResults()
+            vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                                getSubscriptionResults(veh_id))
+                               for veh_id in self.vehicles.get_ids())
+            tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                            getSubscriptionResults(tl_id))
+                           for tl_id in self.traffic_lights.get_ids())
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
@@ -595,12 +601,22 @@ class Env(gym.Env, Serializable):
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
 
+            # subscribe the new vehicle
+            self.traci_connection.vehicle.subscribe(
+                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                         tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
         self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                            getSubscriptionResults(veh_id))
+                           for veh_id in self.initial_ids)
+        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                        getSubscriptionResults(tl_id))
+                       for tl_id in self.traffic_lights.get_ids())
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -684,7 +700,7 @@ class Env(gym.Env, Serializable):
             if acc[i] is not None:
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1e-3)
 
     def apply_lane_change(self, veh_ids, direction):
         """Apply an instantaneous lane-change to a set of vehicles.

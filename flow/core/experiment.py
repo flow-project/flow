@@ -102,18 +102,20 @@ class SumoExperiment:
         vels = []
         mean_vels = []
         std_vels = []
+        outflows = []
         for i in range(num_runs):
             vel = np.zeros(num_steps)
             logging.info("Iter #" + str(i))
             ret = 0
             ret_list = []
-            vehicles = self.env.vehicles
             state = self.env.reset()
             for j in range(num_steps):
+                vehicles = self.env.vehicles
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
                 ret += reward
                 ret_list.append(reward)
+
                 if done:
                     break
             rets.append(ret)
@@ -122,12 +124,14 @@ class SumoExperiment:
             ret_lists.append(ret_list)
             mean_vels.append(np.mean(vel))
             std_vels.append(np.std(vel))
+            outflows.append(vehicles.get_outflow_rate(int(500)))
             print("Round {0}, return: {1}".format(i, ret))
 
         info_dict["returns"] = rets
         info_dict["velocities"] = vels
         info_dict["mean_returns"] = mean_rets
         info_dict["per_step_returns"] = ret_lists
+        info_dict["mean_outflows"] = np.mean(outflows)
 
         print("Average, std return: {}, {}".format(
             np.mean(rets), np.std(rets)))

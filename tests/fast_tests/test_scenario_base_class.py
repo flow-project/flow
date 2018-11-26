@@ -609,9 +609,9 @@ class TestEdgeLength(unittest.TestCase):
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_0"), 5.00)
+            scenario.edge_length(":center_intersection_0"), 11.20)
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_1"), 6.20)
+            scenario.edge_length(":center_intersection_1"), 11.20)
 
 
 class TestSpeedLimit(unittest.TestCase):
@@ -744,8 +744,7 @@ class TestGetJunctionList(unittest.TestCase):
              ':center_intersection_1', ':bottom_upper_ring_in_0',
              ':bottom_lower_ring_0', ':top_lower_ring_0',
              ':top_upper_ring_0', ':left_lower_ring_0',
-             ':center_intersection_2', ':center_intersection_0',
-             ':center_intersection_3', ':left_upper_ring_0']
+             ':center_intersection_0', ':left_upper_ring_0']
 
         self.assertCountEqual(junction_list, expected_junction_list)
 
@@ -764,8 +763,7 @@ class TestNextPrevEdge(unittest.TestCase):
         """
         env, scenario = figure_eight_exp_setup()
         next_edge = scenario.next_edge("bottom_upper_ring_in", 0)
-        expected_next_edge = [(':center_intersection_0', 0),
-                              (':center_intersection_1', 0)]
+        expected_next_edge = [(':center_intersection_0', 0)]
 
         self.assertCountEqual(next_edge, expected_next_edge)
 
