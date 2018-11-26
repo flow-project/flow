@@ -372,14 +372,14 @@ class BottleneckEnv(Env):
             shape=(1,),
             dtype=np.float32)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """ Outflow rate over last ten seconds normalized to max of 1 """
 
         reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
                  (2000.0 * self.scaling)
         return reward
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         return np.asarray([1])
 
@@ -431,7 +431,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         return Box(low=0, high=1, shape=(num_obs,), dtype=np.float32)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         headway_scale = 1000
 
@@ -534,7 +534,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         return np.concatenate((rl_obs, relative_obs, edge_obs))
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         num_rl = self.vehicles.num_rl_vehicles
         lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
@@ -745,10 +745,14 @@ class DesiredVelocityEnv(BottleneckEnv):
                 if segment[2]:  # if controlled
                     num_lanes = self.scenario.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
+        add_params = self.env_params.additional_params
+        max_accel = add_params.get("max_accel")
+        max_decel = add_params.get("max_decel")
         return Box(
-            low=-1.5, high=1.0, shape=(int(action_size),), dtype=np.float32)
+            low=-max_decel*self.sim_step, high=max_accel*self.sim_step,
+            shape=(int(action_size), ), dtype=np.float32)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # action space is number of vehicles in each segment in each lane,
         # number of rl vehicles in each segment in each lane
@@ -838,14 +842,14 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     traci_veh = self.traci_connection.vehicle
                     max_speed_curr = traci_veh.getMaxSpeed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
+                    next_max = np.clip(max_speed_curr + action, 0.01, 30.0)
                     traci_veh.setMaxSpeed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
+                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 30.0)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
 
         if self.env_params.evaluate:
@@ -905,10 +909,10 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.vehicles = vehicles
 
                     # delete the cfg and net files
-                    net_path = self.scenario.generator.net_path
-                    net_name = net_path + self.scenario.generator.name
-                    cfg_path = self.scenario.generator.cfg_path
-                    cfg_name = cfg_path + self.scenario.generator.name
+                    net_path = self.scenario.net_path
+                    net_name = net_path + self.scenario.name
+                    cfg_path = self.scenario.cfg_path
+                    cfg_name = cfg_path + self.scenario.name
                     for f in glob.glob(net_name + '*'):
                         os.remove(f)
                     for f in glob.glob(cfg_name + '*'):
@@ -916,7 +920,6 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,
-                        generator_class=self.scenario.generator_class,
                         vehicles=vehicles,
                         net_params=net_params,
                         initial_config=self.scenario.initial_config,

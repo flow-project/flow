@@ -140,7 +140,7 @@ class BayBridgeEnv(Env):
                         self.traci_connection.vehicle.setLaneChangeMode(
                             veh_id, 512)
                         self.traci_connection.vehicle.setColor(
-                            veh_id, (0, 255, 255, 0))
+                            veh_id, (0, 255, 255, 255))
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
@@ -191,7 +191,7 @@ class BayBridgeEnv(Env):
                         self.traci_connection.vehicle.setLaneChangeMode(
                             veh_id, 512)
                         self.traci_connection.vehicle.setColor(
-                            veh_id, (255, 0, 255, 0))
+                            veh_id, (255, 0, 255, 255))
                     else:
                         if pos > 120:
                             if self.toll_wait_time[lane] < 0:
@@ -208,7 +208,7 @@ class BayBridgeEnv(Env):
                 tlsID=TB_TL_ID, state=new_tls_state)
 
     # TODO: decide on a good reward function
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
 
@@ -218,6 +218,6 @@ class BayBridgeEnv(Env):
         """Implemented by child classes."""
         pass
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """Implemented by child classes."""
         return []

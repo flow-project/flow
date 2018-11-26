@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
 [![Docs](https://readthedocs.org/projects/flow/badge)](http://flow.readthedocs.org/en/latest/)
+[![Coverage Status](https://coveralls.io/repos/github/flow-project/flow/badge.svg?branch=coverage)](https://coveralls.io/github/flow-project/flow?branch=coverage)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/flow-project/flow/blob/master/LICENSE.md)
 
 # Flow
@@ -18,8 +19,7 @@ See [our website](https://flow-project.github.io/) for more information on the a
 
 We welcome your contributions.
 
-- Ask questions on our mailing list: [flow-dev@googlegroups.com](https://groups.google.com/forum/#!forum/flow-dev).
-- Please report bugs by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
+- Please report bugs or ask questions by submitting a [GitHub issue](https://github.com/flow-project/flow/issues).
 - Submit contributions using [pull requests](https://github.com/flow-project/flow/pulls).
 
 # Citing Flow

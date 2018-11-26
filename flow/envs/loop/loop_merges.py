@@ -116,7 +116,7 @@ class TwoLoopsMergePOEnv(Env):
         ]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         vel_reward = rewards.desired_velocity(self, fail=kwargs["fail"])
 
@@ -131,7 +131,7 @@ class TwoLoopsMergePOEnv(Env):
             self.vehicles, self.sorted_extra_data, normalization)
         return vel_reward + headway_reward
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         vel = np.zeros(self.n_obs_vehicles)
         pos = np.zeros(self.n_obs_vehicles)

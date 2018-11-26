@@ -100,7 +100,7 @@ class WaveAttenuationEnv(Env):
         ]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         # in the warmup steps
         if rl_actions is None:
@@ -128,7 +128,7 @@ class WaveAttenuationEnv(Env):
 
         return float(reward)
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         return np.array([[
             self.vehicles.get_speed(veh_id) / self.scenario.max_speed,
@@ -165,8 +165,8 @@ class WaveAttenuationEnv(Env):
         net_params = NetParams(additional_params=additional_net_params)
 
         self.scenario = self.scenario.__class__(
-            self.scenario.orig_name, self.scenario.generator_class,
-            self.scenario.vehicles, net_params, initial_config)
+            self.scenario.orig_name, self.scenario.vehicles,
+            net_params, initial_config)
 
         # solve for the velocity upper bound of the ring
         def v_eq_max_function(v):
@@ -240,7 +240,7 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
         """See class definition."""
         return Box(low=0, high=1, shape=(3, ), dtype=np.float32)
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         rl_id = self.vehicles.get_rl_ids()[0]
         lead_id = self.vehicles.get_leader(rl_id) or rl_id
@@ -335,7 +335,7 @@ class MultiWaveAttenuationPOEnv(Env):
             accel = list(rl_actions.values())
             self.apply_acceleration(rl_ids, accel)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         # in the warmup steps
         if rl_actions is None:
@@ -375,68 +375,68 @@ class MultiWaveAttenuationPOEnv(Env):
         return ["top_{}".format(i), "left_{}".format(i),
                 "right_{}".format(i), "bottom_{}".format(i)]
 
-    def reset(self):
-        """See parent class.
-
-        The sumo instance is reset with a new ring length, and a number of
-        steps are performed with the rl vehicle acting as a human vehicle.
-        """
-        # update the scenario
-        initial_config = InitialConfig(bunching=20, min_gap=0,
-                                       spacing='custom')
-        add_net_params = self.scenario.net_params.additional_params
-        additional_net_params = {
-            "length":
-                random.randint(
-                    self.env_params.additional_params["ring_length"][0],
-                    self.env_params.additional_params["ring_length"][1]),
-            "lanes":
-                1,
-            "speed_limit":
-                30,
-            "resolution":
-                40,
-            "num_rings":add_net_params["num_rings"]
-        }
-        net_params = NetParams(additional_params=additional_net_params)
-
-        self.scenario = self.scenario.__class__(
-            self.scenario.orig_name, self.scenario.generator_class,
-            self.scenario.vehicles, net_params, initial_config)
-
-        # solve for the velocity upper bound of the ring
-        def v_eq_max_function(v):
-            num_veh = self.vehicles.num_vehicles - 1
-            # maximum gap in the presence of one rl vehicle
-            s_eq_max = (self.scenario.length -
-                        self.vehicles.num_vehicles * 5) / num_veh
-
-            v0 = 30
-            s0 = 2
-            T = 1
-            gamma = 4
-
-            error = s_eq_max - (s0 + v * T) * (1 - (v / v0) ** gamma) ** -0.5
-
-            return error
-
-        v_guess = 4.
-        v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
-
-        print('\n-----------------------')
-        print('ring length:', net_params.additional_params["length"])
-        print("v_max:", v_eq_max)
-        print('-----------------------')
-
-        # restart the sumo instance
-        self.restart_sumo(
-            sumo_params=self.sumo_params,
-            render=self.sumo_params.render)
-
-        # perform the generic reset function
-        observation = super().reset()
-
-        # reset the timer to zero
-        self.time_counter = 0
-
-        return observation
+    # def reset(self):
+    #     """See parent class.
+    #
+    #     The sumo instance is reset with a new ring length, and a number of
+    #     steps are performed with the rl vehicle acting as a human vehicle.
+    #     """
+    #     # update the scenario
+    #     initial_config = InitialConfig(bunching=20, min_gap=0,
+    #                                    spacing='custom')
+    #     add_net_params = self.scenario.net_params.additional_params
+    #     additional_net_params = {
+    #         "length":
+    #             random.randint(
+    #                 self.env_params.additional_params["ring_length"][0],
+    #                 self.env_params.additional_params["ring_length"][1]),
+    #         "lanes":
+    #             1,
+    #         "speed_limit":
+    #             30,
+    #         "resolution":
+    #             40,
+    #         "num_rings":add_net_params["num_rings"]
+    #     }
+    #     net_params = NetParams(additional_params=additional_net_params)
+    #
+    #     self.scenario = self.scenario.__class__(
+    #         self.scenario.orig_name,
+    #         self.scenario.vehicles, net_params, initial_config)
+    #
+    #     # solve for the velocity upper bound of the ring
+    #     def v_eq_max_function(v):
+    #         num_veh = self.vehicles.num_vehicles - 1
+    #         # maximum gap in the presence of one rl vehicle
+    #         s_eq_max = (self.scenario.length -
+    #                     self.vehicles.num_vehicles * 5) / num_veh
+    #
+    #         v0 = 30
+    #         s0 = 2
+    #         T = 1
+    #         gamma = 4
+    #
+    #         error = s_eq_max - (s0 + v * T) * (1 - (v / v0) ** gamma) ** -0.5
+    #
+    #         return error
+    #
+    #     v_guess = 4.
+    #     v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
+    #
+    #     print('\n-----------------------')
+    #     print('ring length:', net_params.additional_params["length"])
+    #     print("v_max:", v_eq_max)
+    #     print('-----------------------')
+    #
+    #     # restart the sumo instance
+    #     self.restart_sumo(
+    #         sumo_params=self.sumo_params,
+    #         render=self.sumo_params.render)
+    #
+    #     # perform the generic reset function
+    #     observation = super().reset()
+    #
+    #     # reset the timer to zero
+    #     self.time_counter = 0
+    #
+    #     return observation

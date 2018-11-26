@@ -83,14 +83,14 @@ class AccelEnv(Env):
         ]
         self.apply_acceleration(sorted_rl_ids, rl_actions)
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
             return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
         else:
             return rewards.desired_velocity(self, fail=kwargs['fail'])
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # speed normalizer
         max_speed = self.scenario.max_speed
@@ -138,7 +138,7 @@ class MultiAgentAccelEnv(AccelEnv):
             reward = rewards.desired_velocity(self, fail=kwargs['fail'])
             return {'av': reward, 'adversary': -reward}
 
-    def get_state(self, **kwargs):
+    def get_state(self, rl_actions=None):
         """See class definition for the state. Both adversary and
         agent receive the same state
         """

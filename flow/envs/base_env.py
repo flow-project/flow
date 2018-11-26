@@ -28,7 +28,7 @@ except ImportError:
 
 try:
     # Load user config if exists, else load default config
-    import flow.core.config as config
+    import flow.config as config
 except ImportError:
     import flow.config_default as config
 
@@ -52,7 +52,7 @@ elif serializable_flag and not multiagent_flag:
 elif not serializable_flag and multiagent_flag:
     classdef = (gym.Env, MultiAgentEnv)
 else:
-    classdef = (gym.Env)
+    classdef = (gym.Env,)
 
 
 class Env(*classdef):
@@ -121,7 +121,7 @@ class Env(*classdef):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.scenario.generator.rts
+        self.available_routes = self.scenario.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -181,7 +181,7 @@ class Env(*classdef):
     def start_sumo(self):
         """Start a sumo instance.
 
-        Uses the configuration files created by the generator class to
+        Uses the configuration files created by the scenario class to
         initialize a sumo instance. Also initializes a traci connection to
         interface with sumo from Python.
         """
@@ -204,9 +204,10 @@ class Env(*classdef):
 
                 # command used to start sumo
                 sumo_call = [
-                    sumo_binary, '-c', self.scenario.cfg, '--remote-port',
-                    str(port), '--step-length',
-                    str(self.sim_step)
+                    sumo_binary, "-c", self.scenario.cfg,
+                    "--remote-port", str(port),
+                    "--num-clients", str(self.sumo_params.num_clients),
+                    "--step-length", str(self.sim_step)
                 ]
 
                 # add step logs (if requested)
@@ -250,7 +251,10 @@ class Env(*classdef):
                 sumo_call.append('--time-to-teleport')
                 sumo_call.append(str(int(self.sumo_params.teleport_time)))
 
+                # import ipdb; ipdb.set_trace()
                 logging.info(' Starting SUMO on port ' + str(port))
+                logging.info(' Number of clients ' +
+                             str(self.sumo_params.num_clients))
                 logging.debug(' Cfg file: ' + str(self.scenario.cfg))
                 logging.debug(' Emission file: ' + str(emission_out))
                 logging.debug(' Step length: ' + str(self.sim_step))
@@ -267,6 +271,7 @@ class Env(*classdef):
                     time.sleep(config.SUMO_SLEEP)
 
                 self.traci_connection = traci.connect(port, numRetries=100)
+                self.traci_connection.setOrder(0)
 
                 self.traci_connection.simulationStep()
                 return
@@ -355,8 +360,12 @@ class Env(*classdef):
                  self.initial_observations[veh_id]['speed'], pos)
 
         # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
+        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                            getSubscriptionResults(veh_id))
+                           for veh_id in self.vehicles.get_ids())
+        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                        getSubscriptionResults(tl_id))
+                       for tl_id in self.traffic_lights.get_ids())
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
@@ -444,12 +453,14 @@ class Env(*classdef):
             self.traci_connection.simulationStep()
 
             # collect subscription information from sumo
-            vehicle_obs = \
-                self.traci_connection.vehicle.getSubscriptionResults()
+            vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                                getSubscriptionResults(veh_id))
+                               for veh_id in self.vehicles.get_ids())
+            tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                            getSubscriptionResults(tl_id))
+                           for tl_id in self.traffic_lights.get_ids())
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
@@ -468,7 +479,6 @@ class Env(*classdef):
 
             # stop collecting new simulation steps if there is a collision
             if crash:
-                done = True
                 break
 
         states = self.get_state(rl_actions)
@@ -498,7 +508,7 @@ class Env(*classdef):
                     done['__all__'] = False
                 infos[key] = {}
 
-            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+            reward = self.compute_reward(rl_actions, fail=crash)
 
         else:
             # collect information of the state of the network based on the
@@ -509,7 +519,7 @@ class Env(*classdef):
             next_observation = np.copy(states)
 
             # compute the reward
-            reward = self.compute_reward(self.state, rl_actions, fail=crash)
+            reward = self.compute_reward(rl_actions, fail=crash)
 
             # test if the agent should terminate due to a crash
             done = crash
@@ -648,12 +658,22 @@ class Env(*classdef):
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
 
+            # subscribe the new vehicle
+            self.traci_connection.vehicle.subscribe(
+                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                         tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
         self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                            getSubscriptionResults(veh_id))
+                           for veh_id in self.initial_ids)
+        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                        getSubscriptionResults(tl_id))
+                       for tl_id in self.traffic_lights.get_ids())
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -758,7 +778,7 @@ class Env(*classdef):
             if acc[i] is not None:
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1e-3)
 
     def apply_lane_change(self, veh_ids, direction):
         """Apply an instantaneous lane-change to a set of vehicles.
@@ -910,7 +930,7 @@ class Env(*classdef):
         for veh_id in self.vehicles.get_observed_ids():
             self.vehicles.remove_observed(veh_id)
 
-    def get_state(self, rl_actions = None):
+    def get_state(self, rl_actions=None):
         """Return the state of the simulation as perceived by the RL agent.
 
         MUST BE implemented in new environments.
@@ -952,7 +972,7 @@ class Env(*classdef):
         """
         raise NotImplementedError
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """Reward function for the RL agent(s).
 
         MUST BE implemented in new environments.
@@ -960,8 +980,6 @@ class Env(*classdef):
 
         Parameters
         ----------
-        state: numpy ndarray
-            state of all the vehicles in the simulation
         rl_actions: numpy ndarray
             actions performed by rl vehicles
         kwargs: dict
@@ -980,6 +998,10 @@ class Env(*classdef):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
+        print(
+            "Closing connection to TraCI and stopping simulation.\n"
+            "Note, this may print an error message when it closes."
+        )
         self._close()
 
     def _close(self):

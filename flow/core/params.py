@@ -27,6 +27,7 @@ class SumoParams:
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
+                 num_clients=1,
                  sumo_binary=None):
         """Instantiate SumoParams.
 
@@ -66,7 +67,10 @@ class SumoParams:
             If set to false, this will silence sumo warnings on the stdout
         teleport_time: int, optional
             If negative, vehicles don't teleport in gridlock. If positive,
-            they teleport after teleport_time seconds
+            they teleport after teleport_time seconds.
+        num_clients: int, optional
+            Number of clients SUMO expects to connect. Should be different from
+            one only in very rare situations.
 
         """
         self.port = port
@@ -81,6 +85,7 @@ class SumoParams:
         self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
+        self.num_clients = num_clients
         if sumo_binary is not None:
             warnings.simplefilter("always", PendingDeprecationWarning)
             warnings.warn(
@@ -190,10 +195,10 @@ class NetParams:
         osm_path : str, optional
             path to the .osm file that should be used to generate the network
             configuration files. This parameter is only needed / used if the
-            OpenStreetMapGenerator generator class is used.
+            OpenStreetMapScenario class is used.
         netfile : str, optional
             path to the .net.xml file that should be passed to SUMO. This is
-            only needed / used if the NetFileGenerator class is used, such as
+            only needed / used if the NetFileScenario class is used, such as
             in the case of Bay Bridge experiments (which use a custom net.xml
             file)
         additional_params : dict, optional
@@ -292,8 +297,8 @@ class SumoCarFollowingParams:
 
     def __init__(
             self,
-            accel=1.0,
-            decel=1.5,
+            accel=2.6,
+            decel=4.5,
             sigma=0.5,
             tau=1.0,  # past 1 at sim_step=0.1 you no longer see waves
             min_gap=2.5,

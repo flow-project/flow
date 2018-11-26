@@ -3,7 +3,8 @@
 import json
 
 import ray
-import ray.rllib.agents.ppo as ppo
+
+from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 from ray.tune import run_experiments
 
@@ -15,7 +16,7 @@ from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
 from flow.core.vehicles import Vehicles
-from flow.scenarios.figure8.figure8_scenario import ADDITIONAL_NET_PARAMS
+from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
@@ -45,16 +46,13 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='figure_eight_intersec_control',
+    exp_tag='to_visualize',
 
     # name of the flow environment the experiment is running on
     env_name='AccelEnv',
 
     # name of the scenario class the experiment is running on
     scenario='Figure8Scenario',
-
-    # name of the generator used to create/modify network configuration files
-    generator='Figure8Generator',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -91,23 +89,26 @@ flow_params = dict(
 if __name__ == '__main__':
     ray.init(num_cpus=N_CPUS+1, redirect_output=False)
 
-    config = ppo.DEFAULT_CONFIG.copy()
-    config['num_workers'] = N_CPUS
-    config['train_batch_size'] = HORIZON * N_ROLLOUTS
-    config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
-    config['use_gae'] = True
-    config['lambda'] = 0.97
-    config['sgd_minibatch_size'] = min(16 * 1024, config['train_batch_size'])
-    config['kl_target'] = 0.02
-    config['num_sgd_iter'] = 10
-    config['horizon'] = HORIZON
-    config['observation_filter'] = 'NoFilter'
+    alg_run = "PPO"
+
+    agent_cls = get_agent_class(alg_run)
+    config = agent_cls._default_config.copy()
+    config["num_workers"] = N_CPUS
+    config["train_batch_size"] = HORIZON * N_ROLLOUTS
+    config["gamma"] = 0.999  # discount rate
+    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
+    config["use_gae"] = True
+    config["lambda"] = 0.97
+    config["kl_target"] = 0.02
+    config["num_sgd_iter"] = 10
+    config["horizon"] = HORIZON
+    config["observation_filter"] = "NoFilter"
 
     # save the flow params for replay
     flow_json = json.dumps(
         flow_params, cls=FlowParamsEncoder, sort_keys=True, indent=4)
     config['env_config']['flow_params'] = flow_json
+    config['env_config']['run'] = alg_run
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
@@ -115,17 +116,17 @@ if __name__ == '__main__':
     register_env(env_name, create_env)
 
     trials = run_experiments({
-        flow_params['exp_tag']: {
-            'run': 'PPO',
-            'env': env_name,
-            'config': {
+        flow_params["exp_tag"]: {
+            "run": alg_run,
+            "env": env_name,
+            "config": {
                 **config
             },
             'checkpoint_freq': 1,
             'max_failures': 999,
             'stop': {
-                'training_iteration': 200
+                'training_iteration': 1
             },
-            'num_samples': 1,
+            "num_samples": 1,
         },
     })

@@ -110,7 +110,7 @@ class WaveAttenuationMergePOEnv(Env):
                 continue
             self.apply_acceleration([rl_id], [rl_actions[i]])
 
-    def get_state(self, rl_id=None, **kwargs):
+    def get_state(self, rl_id=None):
         """See class definition."""
         self.leader = []
         self.follower = []
@@ -152,7 +152,7 @@ class WaveAttenuationMergePOEnv(Env):
 
         return observation
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
             return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))

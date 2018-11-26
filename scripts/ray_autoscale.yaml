@@ -39,8 +39,8 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: m4.16xlarge
-    ImageId: ami-006f44e731fd3f83d # Flow AMI (Ubuntu)
+    InstanceType: c4.4xlarge
+    ImageId: ami-01644d4b7f4ebb13f # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -55,7 +55,7 @@ head_node:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
     InstanceType: c4.4xlarge #c4.4xlarge
-    ImageId: ami-006f44e731fd3f83d # Flow AMI (Ubuntu)
+    ImageId: ami-01644d4b7f4ebb13f # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -68,13 +68,13 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
-"/tmp/path": "/Users/kanaad/code/research/learning-traffic/rllab-multiagent/.git/modules/learning-traffic/refs/heads/multiagent",
+"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/multiagent",
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git stash && git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git stash && git checkout eugene_upstream/master && git reset --hard eugene_upstream/multiagent_rollouts2
+    - cd ray && git fetch flow_upstream && git stash && git checkout flow_upstream/ray_merge
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc

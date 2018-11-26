@@ -13,8 +13,7 @@ from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers import SumoCarFollowingController, GridRouter
 
-from flow.scenarios.grid.gen import SimpleGridGenerator
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
+from flow.scenarios.grid import SimpleGridScenario
 
 
 def gen_edges(row_num, col_num):
@@ -97,7 +96,11 @@ def run_task(*_):
         veh_id="idm",
         acceleration_controller=(SumoCarFollowingController, {}),
         sumo_car_following_params=SumoCarFollowingParams(
-            min_gap=2.5, tau=1.1, max_speed=v_enter),
+            min_gap=2.5,
+            tau=1.1,
+            max_speed=v_enter,
+            decel=7.5,  # avoid collisions at emergency stops
+        ),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars,
         speed_mode="all_checks")
@@ -125,7 +128,6 @@ def run_task(*_):
 
     scenario = SimpleGridScenario(
         name="grid-intersection",
-        generator_class=SimpleGridGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,

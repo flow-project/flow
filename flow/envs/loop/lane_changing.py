@@ -100,7 +100,7 @@ class LaneChangeAccelEnv(Env):
             dtype=np.float32)
         return Tuple((speed, pos, lane))
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         # compute the system-level performance of vehicles from a velocity
         # perspective
@@ -114,7 +114,7 @@ class LaneChangeAccelEnv(Env):
 
         return reward
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         # normalizers
         max_speed = self.scenario.max_speed
@@ -208,7 +208,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
                    self.vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
-    def get_state(self):
+    def get_state(self, rl_actions=None):
         """See class definition."""
         obs = [
             0
