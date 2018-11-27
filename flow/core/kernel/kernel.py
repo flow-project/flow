@@ -60,7 +60,7 @@ class Kernel(object):
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
             self.scenario = KernelScenario(self, None)
-            self.vehicle = KernelVehicle(self, None, None)
+            self.vehicle = KernelVehicle(self, None)
             self.traffic_light = KernelTrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
