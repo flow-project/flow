@@ -1,23 +1,36 @@
-"""Figure eight example."""
+"""Example of a multi-agent environment containing a figure eight with
+one autonomous vehicle and an adversary that is allowed to perturb
+the accelerations of figure eight."""
 
+# WARNING: Expected total reward is zero as adversary reward is
+# the negative of the AV reward
+
+from copy import deepcopy
 import json
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
-from ray.tune import run_experiments
+from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
+from ray import tune
 from ray.tune.registry import register_env
+from ray.tune import run_experiments
 
+from flow.controllers import ContinuousRouter
+from flow.controllers import IDMController
+from flow.controllers import RLController
+from flow.core.params import EnvParams
+from flow.core.params import InitialConfig
+from flow.core.params import NetParams
+from flow.core.params import SumoParams
+from flow.core.vehicles import Vehicles
+from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import IDMController, ContinuousRouter, RLController
-from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1500
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 4
 # number of parallel workers
 N_CPUS = 2
 
@@ -40,10 +53,10 @@ vehicles.add(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='figure_eight_intersection_control',
+    exp_tag='multiagent_figure_eight',
 
     # name of the flow environment the experiment is running on
-    env_name='AccelEnv',
+    env_name='MultiAgentAccelEnv',
 
     # name of the scenario class the experiment is running on
     scenario='Figure8Scenario',
@@ -61,6 +74,7 @@ flow_params = dict(
             'target_velocity': 20,
             'max_accel': 3,
             'max_decel': 3,
+            'perturb_weight': 0.03
         },
     ),
 
@@ -68,7 +82,7 @@ flow_params = dict(
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS.copy(),
+        additional_params=deepcopy(ADDITIONAL_NET_PARAMS),
     ),
 
     # vehicles to be placed in the network at the start of a rollout (see
@@ -88,13 +102,16 @@ def setup_exps():
     config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['simple_optimizer'] = True
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [32, 32]})
+    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['use_gae'] = True
     config['lambda'] = 0.97
+    config['sgd_minibatch_size'] = 128
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
+    config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -102,27 +119,47 @@ def setup_exps():
     config['env_config']['flow_params'] = flow_json
     config['env_config']['run'] = alg_run
 
-    create_env, gym_name = make_create_env(params=flow_params, version=0)
+    create_env, env_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
-    register_env(gym_name, create_env)
-    return alg_run, gym_name, config
+    register_env(env_name, create_env)
+
+    test_env = create_env()
+    obs_space = test_env.observation_space
+    act_space = test_env.action_space
+
+    def gen_policy():
+        return (PPOPolicyGraph, obs_space, act_space, {})
+
+    # Setup PG with an ensemble of `num_policies` different policy graphs
+    policy_graphs = {'av': gen_policy(), 'adversary': gen_policy()}
+
+    def policy_mapping_fn(agent_id):
+        return agent_id
+
+    config.update({
+        'multiagent': {
+            'policy_graphs': policy_graphs,
+            'policy_mapping_fn': tune.function(policy_mapping_fn)
+        }
+    })
+    return alg_run, env_name, config
 
 
 if __name__ == '__main__':
-    alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
-    trials = run_experiments({
+
+    alg_run, env_name, config = setup_exps()
+    ray.init(num_cpus=N_CPUS+1)
+
+    run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
-            'env': gym_name,
-            'config': {
-                **config
-            },
-            'checkpoint_freq': 20,
-            'max_failures': 999,
+            'env': env_name,
+            'checkpoint_freq': 1,
             'stop': {
-                'training_iteration': 200,
+                'training_iteration': 1
             },
-        }
+            'config': config,
+            # 'upload_dir': 's3://<BUCKET NAME>'
+        },
     })

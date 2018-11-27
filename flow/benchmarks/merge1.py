@@ -11,6 +11,7 @@ Observation Dimension: (65, )
 Horizon: 750 steps
 """
 
+from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
@@ -28,7 +29,7 @@ NUM_RL = 13
 
 # We consider a highway network with an upstream merging lane producing
 # shockwaves
-additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+additional_net_params = deepcopy(ADDITIONAL_NET_PARAMS)
 additional_net_params["merge_lanes"] = 1
 additional_net_params["highway_lanes"] = 1
 additional_net_params["pre_merge_length"] = 500

@@ -1,10 +1,13 @@
 """Base environment class. This is the parent of all other environments."""
 
+from copy import deepcopy
+import gym
+from gym.spaces import Box
 import logging
 import os
 import signal
 import subprocess
-from copy import deepcopy
+import sys
 import time
 import traceback
 import numpy as np
@@ -13,17 +16,17 @@ from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
 import traci
 from traci import constants as tc
-from traci.exceptions import FatalTraCIError, TraCIException
-import gym
-from gym.spaces import Box
+from traci.exceptions import FatalTraCIError
+from traci.exceptions import TraCIException
 
 import sumolib
 
 try:
     # Import serializable if rllab is installed
     from rllab.core.serializable import Serializable
+    serializable_flag = True
 except ImportError:
-    Serializable = object
+    serializable_flag = False
 
 try:
     # Load user config if exists, else load default config
@@ -36,13 +39,19 @@ from flow.core.util import ensure_dir
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
 
+# pick out the correct class definition
+if serializable_flag:
+    classdef = (gym.Env, Serializable)
+else:
+    classdef = (gym.Env,)
+
 # colors for vehicles
 WHITE = (255, 255, 255, 255)
 CYAN = (0, 255, 255, 255)
 RED = (255, 0, 0, 255)
 
 
-class Env(gym.Env, Serializable):
+class Env(*classdef):
     """Base environment class.
 
     Provides the interface for controlling a SUMO simulation. Using this
@@ -74,7 +83,8 @@ class Env(gym.Env, Serializable):
 
     def __init__(self, env_params, sumo_params, scenario):
         # Invoke serializable if using rllab
-        if Serializable is not object:
+
+        if serializable_flag:
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
@@ -220,9 +230,9 @@ class Env(gym.Env, Serializable):
                 # command used to start sumo
                 sumo_call = [
                     sumo_binary, "-c", self.scenario.cfg,
-                    "--remote-port",
-                    str(port), "--step-length",
-                    str(self.sim_step)
+                    "--remote-port", str(port),
+                    "--num-clients", str(self.sumo_params.num_clients),
+                    "--step-length", str(self.sim_step)
                 ]
 
                 # add step logs (if requested)
@@ -268,6 +278,9 @@ class Env(gym.Env, Serializable):
 
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(self.scenario.cfg))
+                if self.sumo_params.num_clients > 1:
+                    logging.info(" Num clients are" +
+                                 str(self.sumo_params.num_clients))
                 logging.debug(" Emission file: " + str(emission_out))
                 logging.debug(" Step length: " + str(self.sim_step))
 
@@ -283,6 +296,7 @@ class Env(gym.Env, Serializable):
                     time.sleep(config.SUMO_SLEEP)
 
                 self.traci_connection = traci.connect(port, numRetries=100)
+                self.traci_connection.setOrder(0)
 
                 self.traci_connection.simulationStep()
                 return
@@ -313,7 +327,7 @@ class Env(gym.Env, Serializable):
         num_spawned_veh = self.traci_connection.simulation.getDepartedNumber()
         if num_spawned_veh < self.vehicles.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
-            exit()
+            sys.exit()
 
         # add missing traffic lights in the list of traffic light ids
         tls_ids = self.traci_connection.trafficlight.getIDList()
@@ -490,17 +504,52 @@ class Env(gym.Env, Serializable):
             # render a frame
             self.render()
 
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(self.get_state()).T
+        states = self.get_state()
+        if isinstance(states, dict):
+            self.state = {}
+            next_observation = {}
+            done = {}
+            infos = {}
+            temp_state = states
+            for key, state in temp_state.items():
+                # collect information of the state of the network based on the
+                # environment class used
+                self.state[key] = np.asarray(state).T
 
-        # collect observation new state associated with action
-        next_observation = np.copy(self.state)
+                # collect observation new state associated with action
+                next_observation[key] = np.copy(self.state[key])
+
+                # test if a crash has occurred
+                done[key] = crash
+                # test if the agent has exited the system, if so
+                # its agent should be done
+                # FIXME(ev) this assumes that agents are single vehicles
+                if key in self.vehicles.get_arrived_ids():
+                    done[key] = True
+                # check if an agent is done
+                if crash:
+                    done['__all__'] = True
+                else:
+                    done['__all__'] = False
+                infos[key] = {}
+        else:
+            # collect information of the state of the network based on the
+            # environment class used
+            self.state = np.asarray(states).T
+
+            # collect observation new state associated with action
+            next_observation = np.copy(states)
+
+            # test if the agent should terminate due to a crash
+            done = crash
+
+            # compute the info for each agent
+            infos = {}
 
         # compute the reward
         reward = self.compute_reward(rl_actions, fail=crash)
 
-        return next_observation, reward, crash, {}
+        return next_observation, reward, done, infos
 
     def reset(self):
         """Reset the environment.
@@ -659,12 +708,25 @@ class Env(gym.Env, Serializable):
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
-        # collect information of the state of the network based on the
-        # environment class used
-        self.state = np.asarray(self.get_state()).T
+        states = self.get_state()
+        if isinstance(states, dict):
+            self.state = {}
+            observation = {}
+            for key, state in states.items():
+                # collect information of the state of the network based on the
+                # environment class used
+                self.state[key] = np.asarray(state).T
 
-        # observation associated with the reset (no warm-up steps)
-        observation = np.copy(self.state)
+                # collect observation new state associated with action
+                observation[key] = np.copy(self.state[key]).tolist()
+
+        else:
+            # collect information of the state of the network based on the
+            # environment class used
+            self.state = np.asarray(states).T
+
+            # observation associated with the reset (no warm-up steps)
+            observation = np.copy(states)
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
@@ -696,6 +758,7 @@ class Env(gym.Env, Serializable):
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
+
             rl_actions = np.clip(
                 rl_actions,
                 a_min=self.action_space.low,

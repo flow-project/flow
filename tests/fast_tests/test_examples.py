@@ -18,6 +18,10 @@ from examples.rllib.green_wave import setup_exps as green_wave_setup
 from examples.rllib.stabilizing_highway import setup_exps as highway_setup
 from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
 from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
+from examples.rllib.multiagent_exps.multiagent_figure_eight \
+    import setup_exps as multi_figure_eight_setup
+from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
+    import setup_exps as multi_ring_setup
 
 import ray
 from ray.tune import run_experiments
@@ -36,7 +40,7 @@ class TestSumoExamples(unittest.TestCase):
     def test_bottleneck(self):
         """Verifies that examples/sumo/bottleneck.py is working."""
         # import the experiment variable from the example
-        exp = bottleneck_example(1000, 5, render=False)
+        exp = bottleneck_example(20, 5, render=False)
 
         # run the experiment for a few time steps to ensure it doesn't fail
         exp.run(1, 5)
@@ -146,13 +150,20 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = bottleneck_setup()
         self.run_exp(alg_run, env_name, config)
 
+    def test_multi_figure_eight(self):
+        alg_run, env_name, config = multi_figure_eight_setup()
+        self.run_exp(alg_run, env_name, config)
+
+    def test_multi_ring(self):
+        alg_run, env_name, config = multi_ring_setup()
+        self.run_exp(alg_run, env_name, config)
+
     def run_exp(self, alg_run, env_name, config):
         try:
-            ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+            ray.init(num_cpus=1)
         except Exception:
             pass
-
-        config['train_batch_size'] = 200
+        config['train_batch_size'] = 50
         config['horizon'] = 50
         config['sample_batch_size'] = 50
         config['num_workers'] = 0
@@ -175,5 +186,5 @@ class TestRllibExamples(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ray.init(num_cpus=1)
+    ray.init(num_cpus=1)  # , redis_address="localhost:6379")
     unittest.main()
