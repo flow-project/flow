@@ -80,15 +80,17 @@ def make_create_env(params, version=0, render=None):
         if render is not None:
             sumo_params.render = render
 
-        register(
-            id=env_name,
-            entry_point='flow.envs:' + params["env_name"],
-            max_episode_steps=env_params.horizon,
-            kwargs={
-                "env_params": env_params,
-                "sumo_params": sumo_params,
-                "scenario": scenario
-            })
+        try:
+            register(
+                id=env_name,
+                entry_point='flow.envs:' + params["env_name"],
+                kwargs={
+                    "env_params": env_params,
+                    "sumo_params": sumo_params,
+                    "scenario": scenario
+                })
+        except Exception:
+            pass
         return gym.envs.make(env_name)
 
     return create_env, env_name

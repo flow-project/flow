@@ -2,10 +2,7 @@
 
 from flow.envs.base_env import Env
 from flow.core import rewards
-
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
-
 import numpy as np
 
 ADDITIONAL_ENV_PARAMS = {
@@ -83,21 +80,11 @@ class TwoLoopsMergePOEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        speed = Box(
+        return Box(
             low=0,
             high=np.inf,
-            shape=(self.n_obs_vehicles, ),
+            shape=(2 * self.n_obs_vehicles + 3, ),
             dtype=np.float32)
-        absolute_pos = Box(
-            low=0.,
-            high=np.inf,
-            shape=(self.n_obs_vehicles, ),
-            dtype=np.float32)
-        queue_length = Box(low=0, high=np.inf, shape=(1, ), dtype=np.float32)
-        vel_stats = Box(
-            low=-np.inf, high=np.inf, shape=(2, ), dtype=np.float32)
-
-        return Tuple((speed, absolute_pos, queue_length, vel_stats))
 
     @property
     def action_space(self):
@@ -207,8 +194,8 @@ class TwoLoopsMergePOEnv(Env):
         vel_stats[1] = np.mean(vel_all[num_inner:])
         vel_stats = np.nan_to_num(vel_stats)
 
-        return np.array(
-            [normalized_vel, normalized_pos, queue_length, vel_stats]).T
+        return np.concatenate(
+            (normalized_vel, normalized_pos, queue_length, vel_stats))
 
     def sort_by_position(self):
         """

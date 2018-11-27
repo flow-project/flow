@@ -570,6 +570,8 @@ class Scenario(Serializable):
             If there is not enough space to place all vehicles in the allocated
             space in the network with the specified minimum gap.
         """
+        min_gap = max(0, initial_config.min_gap)
+
         x0 = initial_config.x0
         # changes to x0 in kwargs suggests a switch in between rollouts, and so
         # overwrites anything in initial_config
@@ -606,21 +608,25 @@ class Scenario(Serializable):
 
         if initial_config.edges_distribution == "all":
             distribution_length = \
-                sum([self.edge_length(edge_id) *
-                     min([self.num_lanes(edge_id), lanes_distribution])
-                     for edge_id in self.get_edge_list()])
+                sum(self.edge_length(edge_id) *
+                    min([self.num_lanes(edge_id), lanes_distribution])
+                    for edge_id in self.get_edge_list()
+                    if self.edge_length(edge_id) > min_gap + VEHICLE_LENGTH)
         else:
             distribution_length = \
-                sum([self.edge_length(edge_id) *
-                     min([self.num_lanes(edge_id), lanes_distribution])
-                     for edge_id in initial_config.edges_distribution])
-
-        min_gap = max(0, initial_config.min_gap)
+                sum(self.edge_length(edge_id) *
+                    min(self.num_lanes(edge_id), lanes_distribution)
+                    for edge_id in initial_config.edges_distribution
+                    if self.edge_length(edge_id) > min_gap + VEHICLE_LENGTH)
 
         if initial_config.edges_distribution == "all":
-            available_edges = self.get_edge_list()
+            available_edges = [
+                edge for edge in self.get_edge_list()
+                if self.edge_length(edge) > min_gap + VEHICLE_LENGTH]
         else:
-            available_edges = initial_config.edges_distribution
+            available_edges = [
+                edge for edge in initial_config.edges_distribution
+                if self.edge_length(edge) > min_gap + VEHICLE_LENGTH]
 
         available_length = \
             distribution_length - lanes_distribution * bunching - \
