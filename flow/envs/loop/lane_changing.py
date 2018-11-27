@@ -4,7 +4,6 @@ from flow.envs.base_env import Env
 from flow.core import rewards
 
 from gym.spaces.box import Box
-from gym.spaces.tuple_space import Tuple
 import numpy as np
 
 ADDITIONAL_ENV_PARAMS = {
@@ -83,22 +82,11 @@ class LaneChangeAccelEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        speed = Box(
+        return Box(
             low=0,
             high=1,
-            shape=(self.vehicles.num_vehicles, ),
+            shape=(3 * self.vehicles.num_vehicles, ),
             dtype=np.float32)
-        lane = Box(
-            low=0,
-            high=1,
-            shape=(self.vehicles.num_vehicles, ),
-            dtype=np.float32)
-        pos = Box(
-            low=0.,
-            high=1,
-            shape=(self.vehicles.num_vehicles, ),
-            dtype=np.float32)
-        return Tuple((speed, pos, lane))
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
@@ -123,11 +111,14 @@ class LaneChangeAccelEnv(Env):
             self.scenario.num_lanes(edge)
             for edge in self.scenario.get_edge_list())
 
-        return np.array([[
-            self.vehicles.get_speed(veh_id) / max_speed,
-            self.get_x_by_id(veh_id) / length,
-            self.vehicles.get_lane(veh_id) / max_lanes
-        ] for veh_id in self.sorted_ids])
+        speed = [self.vehicles.get_speed(veh_id) / max_speed
+                 for veh_id in self.sorted_ids]
+        pos = [self.get_x_by_id(veh_id) / length
+               for veh_id in self.sorted_ids]
+        lane = [self.vehicles.get_lane(veh_id) / max_lanes
+                for veh_id in self.sorted_ids]
+
+        return np.array(speed + pos + lane)
 
     def _apply_rl_actions(self, actions):
         """See class definition."""
@@ -240,14 +231,13 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
                     lane_headways[j] /= max_length
                     vel_in_front[j] = self.vehicles.get_speed(lane_leader) \
                         / max_speed
+                    self.visible.extend([lane_leader])
             for j, lane_follower in enumerate(lane_followers):
                 if lane_follower != '':
                     lane_headways[j] /= max_length
                     vel_behind[j] = self.vehicles.get_speed(lane_follower) \
                         / max_speed
-
-            self.visible.extend(lane_leaders)
-            self.visible.extend(lane_followers)
+                    self.visible.extend([lane_follower])
 
             # add the headways, tailways, and speed for all lane leaders
             # and followers
