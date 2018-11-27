@@ -1,5 +1,10 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
+from flow.core.kernel.simulation import TraCISimulation
+from flow.core.kernel.scenario import KernelScenario
+from flow.core.kernel.vehicle import KernelVehicle
+from flow.core.kernel.traffic_light import KernelTrafficLight
+
 
 class Kernel(object):
     """Kernel for abstract function calling across traffic simulator APIs.
@@ -53,10 +58,10 @@ class Kernel(object):
         self.kernel_api = None
 
         if simulator == "traci":
-            self.simulation = None
-            self.scenario = None
-            self.vehicle = None
-            self.traffic_light = None
+            self.simulation = TraCISimulation(self)
+            self.scenario = KernelScenario(self, None)
+            self.vehicle = KernelVehicle(self, None, None)
+            self.traffic_light = KernelTrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
