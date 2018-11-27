@@ -369,7 +369,7 @@ class Env(*classdef):
         # check to make sure all vehicles have been spawned
         if len(self.initial_ids) < self.vehicles.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
-            exit()
+            sys.exit()
 
         # save the initial state. This is used in the _reset function
         for veh_id in self.vehicles.get_ids():
