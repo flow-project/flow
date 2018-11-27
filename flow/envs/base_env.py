@@ -25,12 +25,6 @@ try:
 except ImportError:
     serializable_flag = False
 
-try:
-    # Load user config if exists, else load default config
-    import flow.config as config
-except ImportError:
-    import flow.config_default as config
-
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 
