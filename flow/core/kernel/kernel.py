@@ -70,7 +70,7 @@ class Kernel(object):
         self.traffic_light.pass_api(kernel_api)
 
     def update(self, reset):
-        """Update the kernel subclasses with after a simulation step.
+        """Update the kernel subclasses after a simulation step.
 
         This is meant to support optimizations in the performance of some
         simulators. For example, this step allows the vehicle subclass in the
