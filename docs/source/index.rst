@@ -20,6 +20,7 @@ Flow is a work in progress - input is welcome. Available documentation is limite
    intro
    flow_setup
    Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/>
+   multiagent
    visualizing
    modules
 

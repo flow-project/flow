@@ -46,7 +46,7 @@ vehicles.add(
     ),
     num_vehicles=1 * SCALING)
 vehicles.add(
-    veh_id="followerstopper",
+    veh_id="av",
     acceleration_controller=(RLController, {
         "fail_safe": "instantaneous"
     }),
@@ -97,7 +97,8 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 inflow.add(
-    veh_type="followerstopper",
+    veh_type="av",
+    name="av",
     edge="1",
     vehs_per_hour=flow_rate * (AV_FRAC),
     departLane="random",
