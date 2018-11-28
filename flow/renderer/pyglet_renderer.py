@@ -60,7 +60,7 @@ class PygletRenderer():
         if self.mode not in [True, False, "rgb", "drgb", "gray", "dgray"]:
             raise ValueError("Mode %s is not supported!" % self.mode)
         self.save_render = save_render
-        self.path = path + '/' + time.strftime("%Y%m%d-%H%M%S")
+        self.path = path + '/' + time.strftime("%Y-%m-%d-%H%M%S")
         if self.save_render:
             if not os.path.exists(path):
                 os.mkdir(path)

@@ -13,6 +13,7 @@ parser : ArgumentParser
 """
 
 import argparse
+from datetime import datetime
 import numpy as np
 import os
 import sys
@@ -107,9 +108,17 @@ def visualizer_rllib(args):
     sumo_params.emission_path = './test_time_rollout/'
 
     # prepare for rendering
-    if args.sumo_web3d:
+    if args.render_mode == 'sumo_web3d':
         sumo_params.num_clients = 2
         sumo_params.render = False
+    elif args.render_mode == 'drgb':
+        sumo_params.render = 'drgb'
+    elif args.render_mode == 'sumo_gui':
+        sumo_params.render = True
+
+    if args.save_render:
+        sumo_params.render = 'drgb'
+        sumo_params.save_render = True
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -226,6 +235,22 @@ def visualizer_rllib(args):
 
         emission_to_csv(emission_path)
 
+    # if we wanted to save the render, here we create the movie
+    if args.save_render:
+        dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
+        dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
+        recent_dir = dirs[-1]
+        # create the movie
+        movie_dir = os.path.expanduser('~') + '/flow_rendering/' + recent_dir
+        save_dir = os.path.expanduser('~') + '/flow_movies'
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
+        os_cmd += " -pix_fmt yuv420p out.mp4"
+        os_cmd += "&& cp out.mp4 " + save_dir + "/"
+        os.system(os_cmd)
+
+
 
 def create_parser():
     parser = argparse.ArgumentParser(
@@ -268,9 +293,15 @@ def create_parser():
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
     parser.add_argument(
-        '--sumo_web3d',
+        '--render_mode',
+        type=str,
+        default='sumo_gui',
+        help='Pick the render mode. Options include sumo_web3d, '
+             'rgbd and sumo_gui')
+    parser.add_argument(
+        '--save_render',
         action='store_true',
-        help='Specifies whether sumo web3d will be used to visualize.')
+        help='saves the render to a file')
     parser.add_argument(
         '--horizon',
         type=int,
