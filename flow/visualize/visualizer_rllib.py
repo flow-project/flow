@@ -242,11 +242,12 @@ def visualizer_rllib(args):
         recent_dir = dirs[-1]
         # create the movie
         movie_dir = os.path.expanduser('~') + '/flow_rendering/' + recent_dir
+        import ipdb; ipdb.set_trace()
         save_dir = os.path.expanduser('~') + '/flow_movies'
         if not os.path.exists(save_dir):
             os.mkdir(save_dir)
         os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
-        os_cmd += " -pix_fmt yuv420p out.mp4"
+        os_cmd += " -pix_fmt yuv420p " + dirs[-1] + ".mp4"
         os_cmd += "&& cp out.mp4 " + save_dir + "/"
         os.system(os_cmd)
 
