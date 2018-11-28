@@ -101,7 +101,7 @@ def visualizer_rllib(args):
 
     sumo_params.emission_path = './test_time_rollout/'
 
-    # pick your renderi
+    # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
         sumo_params.num_clients = 2
         sumo_params.render = False
@@ -110,17 +110,13 @@ def visualizer_rllib(args):
         sumo_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
         sumo_params.render = True
+    elif args.render_mode == 'no_render':
+        sumo_params.render = False
 
     if args.save_render:
         sumo_params.render = 'drgb'
         sumo_params.pxpm = 4
         sumo_params.save_render = True
-
-    # modify sumo params for visualization ease
-    if args.no_render:
-        sumo_params.render = False
-    else:
-        sumo_params.render = True
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -285,10 +281,6 @@ def create_parser():
         help='Specifies whether to convert the emission file '
              'created by sumo into a csv file')
     parser.add_argument(
-        '--no_render',
-        action='store_true',
-        help='Specifies whether to visualize the results')
-    parser.add_argument(
         '--evaluate',
         action='store_true',
         help='Specifies whether to use the \'evaluate\' reward '
@@ -298,7 +290,7 @@ def create_parser():
         type=str,
         default='sumo_gui',
         help='Pick the render mode. Options include sumo_web3d, '
-             'rgbd and sumo_gui')
+             'rgbd, sumo_gui, and no_render')
     parser.add_argument(
         '--save_render',
         action='store_true',
