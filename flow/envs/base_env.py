@@ -129,7 +129,7 @@ class Env(*classdef):
         self.colors = {}
 
         # create the Flow kernel
-        self.k = Kernel(simulator="traci")
+        self.k = Kernel(simulator="traci", sim_params=sumo_params)
 
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
