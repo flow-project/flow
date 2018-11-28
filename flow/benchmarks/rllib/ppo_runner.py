@@ -99,19 +99,24 @@ if __name__ == "__main__":
     # Register as rllib env
     register_env(env_name, create_env)
 
-    trials = run_experiments({
-        flow_params["exp_tag"]: {
-            "run": alg_run,
-            "env": env_name,
-            "config": {
-                **config
-            },
-            "checkpoint_freq": 25,
-            "max_failures": 999,
-            "stop": {
-                "training_iteration": 500
-            },
-            "num_samples": 3,
-            "upload_dir": "s3://" + upload_dir
+    exp_tag = {
+        "run": alg_run,
+        "env": env_name,
+        "config": {
+            **config
         },
+        "checkpoint_freq": 25,
+        "max_failures": 999,
+        "stop": {
+            "training_iteration": 500
+        },
+        "num_samples": 3,
+
+    }
+
+    if upload_dir:
+        exp_tag["upload_dir"] = "s3://" + upload_dir
+
+    trials = run_experiments({
+        flow_params["exp_tag"]: exp_tag
     })

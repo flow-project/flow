@@ -82,9 +82,9 @@ if __name__ == "__main__":
     config["num_workers"] = min(num_cpus, num_rollouts)
     config["episodes_per_batch"] = num_rollouts
     config["eval_prob"] = 0.05
-    config["noise_stdev"] = grid_search([0.01, 0.02])
-    config["stepsize"] = grid_search([0.01, 0.02])
-
+    # config["noise_stdev"] = grid_search([0.01, 0.02])
+    # config["stepsize"] = grid_search([0.01, 0.02])
+    # optimal parameters
     config["noise_stdev"] = 0.02
     config["stepsize"] = 0.02
 
@@ -99,8 +99,7 @@ if __name__ == "__main__":
     # Register as rllib env
     register_env(env_name, create_env)
 
-    trials = run_experiments({
-        flow_params["exp_tag"]: {
+    exp_tag = {
             "run": alg_run,
             "env": env_name,
             "config": {
@@ -110,6 +109,11 @@ if __name__ == "__main__":
             "max_failures": 999,
             "stop": {"training_iteration": 500},
             "num_samples": 1,
-            "upload_dir": "s3://" + upload_dir
-        },
+        }
+
+    if upload_dir:
+        exp_tag["upload_dir"] = "s3://" + upload_dir
+
+    trials = run_experiments({
+        flow_params["exp_tag"]: exp_tag
     })

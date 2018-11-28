@@ -102,3 +102,8 @@ If you use the following benchmarks for academic research, you are highly
 encouraged to cite our paper:
 
 *paper to be specified at a later date*
+
+## Evaluating benchmarks on EC2
+
+The `run_all_benchmarks.sh` script will run each benchmark over all runners specified in the rllib folder on EC2,
+allowing a user to quickly start instances that will validate their changes (serves as regression tests for Flow).
