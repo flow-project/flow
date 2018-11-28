@@ -245,7 +245,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, lane_pos, speed, pos = \
+            type_id, route_id, lane_index, pos, speed = \
                 self.initial_state[veh_id]
 
             try:
@@ -254,7 +254,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
@@ -265,7 +265,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
 
         self.traci_connection.simulationStep()
