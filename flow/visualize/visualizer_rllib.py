@@ -97,28 +97,30 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    # modify sumo params for visualization ease
-    if args.no_render:
-        sumo_params.render = False
-    else:
-        sumo_params.render = True
-
     sumo_params.restart_instance = False
 
     sumo_params.emission_path = './test_time_rollout/'
 
-    # prepare for rendering
+    # pick your renderi
     if args.render_mode == 'sumo_web3d':
         sumo_params.num_clients = 2
         sumo_params.render = False
     elif args.render_mode == 'drgb':
         sumo_params.render = 'drgb'
+        sumo_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
         sumo_params.render = True
 
     if args.save_render:
         sumo_params.render = 'drgb'
+        sumo_params.pxpm = 4
         sumo_params.save_render = True
+
+    # modify sumo params for visualization ease
+    if args.no_render:
+        sumo_params.render = False
+    else:
+        sumo_params.render = True
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -247,7 +249,7 @@ def visualizer_rllib(args):
             os.mkdir(save_dir)
         os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
         os_cmd += " -pix_fmt yuv420p " + dirs[-1] + ".mp4"
-        os_cmd += "&& cp out.mp4 " + save_dir + "/"
+        os_cmd += "&& cp " + dirs[-1] + ".mp4 " + save_dir + "/"
         os.system(os_cmd)
 
 
