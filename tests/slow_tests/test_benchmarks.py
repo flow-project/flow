@@ -1,6 +1,7 @@
 import unittest
 import os
 import json
+import shutil
 
 import ray
 import ray.rllib.agents.ppo as ppo
@@ -27,7 +28,7 @@ import flow.benchmarks.merge2 as merge2
 N_CPUS = 1
 ray.init(num_cpus=N_CPUS, redirect_output=True)
 
-os.environ["TEST_FLAG"] = "True"
+os.environ['TEST_FLAG'] = 'True'
 
 
 class TestBenchmarks(unittest.TestCase):
@@ -44,23 +45,30 @@ class TestBenchmarks(unittest.TestCase):
         self.exp.run(5, 50)
     """
 
+    def setup(self):
+        if not os.path.exists('./benchmark_tmp'):
+            os.mkdir('benchmark_tmp')
+
+    def tearDown(self):
+        shutil.rmtree('benchmark_tmp')
+
     def ray_runner(self, num_runs, flow_params, version):
-        alg_run = "PPO"
+        alg_run = 'PPO'
         HORIZON = 10
         N_ROLLOUTS = 1
 
         agent_cls = get_agent_class(alg_run)
         config = agent_cls._default_config.copy()
-        config["num_workers"] = 1
-        config["timesteps_per_batch"] = HORIZON * N_ROLLOUTS
-        config["gamma"] = 0.999  # discount rate
-        config["model"].update({"fcnet_hiddens": [100, 50, 25]})
-        config["use_gae"] = True
-        config["lambda"] = 0.97
-        config["kl_target"] = 0.02
-        config["num_sgd_iter"] = 1
-        config["horizon"] = HORIZON
-        config["observation_filter"] = "NoFilter"
+        config['num_workers'] = 1
+        config['train_batch_size'] = 200 # arbitrary
+        config['gamma'] = 0.999  # discount rate
+        config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+        config['use_gae'] = True
+        config['lambda'] = 0.97
+        config['kl_target'] = 0.02
+        config['num_sgd_iter'] = 1
+        config['horizon'] = HORIZON
+        config['observation_filter'] = 'NoFilter'
 
         # save the flow params for replay
         flow_json = json.dumps(
@@ -79,13 +87,13 @@ class TestBenchmarks(unittest.TestCase):
 
         for i in range(num_runs):
             alg.train()
-            checkpoint_path = alg.save()
-            self.assertTrue("%s.index" % os.path.exists(checkpoint_path))
+            checkpoint_path = alg.save('benchmark_tmp')
+            self.assertTrue('%s.index' % os.path.exists(checkpoint_path))
 
     def test_bottleneck0(self):
         """
         Tests flow/benchmark/baselines/bottleneck0.py
-        env_name="DesiredVelocityEnv",
+        env_name='DesiredVelocityEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, bottleneck0.flow_params, 0)
@@ -113,7 +121,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_figure_eight0(self):
         """
         Tests flow/benchmark/baselines/figureeight{0,1,2}.py
-        env_name="AccelEnv",
+        env_name='AccelEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, figureeight0.flow_params, 0)
@@ -141,7 +149,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_grid0(self):
         """
         Tests flow/benchmark/baselines/grid0.py
-        env_name="PO_TrafficLightGridEnv",
+        env_name='PO_TrafficLightGridEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, grid0.flow_params, 0)
@@ -160,7 +168,7 @@ class TestBenchmarks(unittest.TestCase):
     def test_merge0(self):
         """
         Tests flow/benchmark/baselines/merge{0,1,2}.py
-        env_name="WaveAttenuationMergePOEnv",
+        env_name='WaveAttenuationMergePOEnv',
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, merge0.flow_params, 0)
@@ -182,10 +190,6 @@ class TestBenchmarks(unittest.TestCase):
         """
         # run the bottleneck to make sure it runs
         self.ray_runner(1, merge2.flow_params, 2)
-
-        # TODO: check that the performance measure is within some range
-
-    # create_env, env_name
 
 
 if __name__ == '__main__':
