@@ -55,12 +55,11 @@ class TestBenchmarks(unittest.TestCase):
     def ray_runner(self, num_runs, flow_params, version):
         alg_run = 'PPO'
         HORIZON = 10
-        N_ROLLOUTS = 1
 
         agent_cls = get_agent_class(alg_run)
         config = agent_cls._default_config.copy()
         config['num_workers'] = 1
-        config['train_batch_size'] = 200 # arbitrary
+        config['train_batch_size'] = 200  # arbitrary
         config['gamma'] = 0.999  # discount rate
         config['model'].update({'fcnet_hiddens': [100, 50, 25]})
         config['use_gae'] = True
