@@ -67,7 +67,7 @@ def make_create_env(params, version=0, render=None):
 
     def create_env(*_):
         sumo_params = deepcopy(params['sumo'])
-        vehicles = deepcopy(params['vehicles'])
+        vehicles = deepcopy(params['veh'])
 
         scenario = scenario_class(
             name=exp_tag,
