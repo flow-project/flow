@@ -442,11 +442,7 @@ class TestAbstractMethods(unittest.TestCase):
 
     def test_get_state(self):
         """Checks that get_state raises an error."""
-        try:
-            self.env.get_state()
-            raise AssertionError
-        except NotImplementedError:
-            return
+        self.assertRaises(NotImplementedError, self.env.get_state)
 
     def test_action_space(self):
         try:
@@ -467,11 +463,8 @@ class TestAbstractMethods(unittest.TestCase):
         self.assertEqual(self.env.compute_reward([]), 0)
 
     def test__apply_rl_actions(self):
-        try:
-            self.env._apply_rl_actions(None)
-            raise AssertionError
-        except NotImplementedError:
-            return
+        self.assertRaises(NotImplementedError, self.env._apply_rl_actions,
+                          rl_actions=None)
 
 
 class TestVehicleColoring(unittest.TestCase):

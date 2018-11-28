@@ -5,6 +5,10 @@ cache: pip
 python:
   - "3.5"
 
+os: linux
+
+dist: trusty
+
 sudo: required
 
 before_install:
@@ -18,25 +22,23 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda install python=3.6
+  - conda install python=3.5.2
   - python -V
 
-  # Requirements for ray
-  - pip install tensorflow
-  - pip install opencv-python
-  - pip install nose2
-  - pip install lxml
-  - pip install scipy
+  # Set up requirements for flow
+  - conda env create -f environment.yml
+  - source activate flow
 
+  # Requirements for Ray
+  - pip install opencv-python
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.0-cp36-cp36m-manylinux1_x86_64.whl
-  # - pip install https://s3-us-west-2.amazonaws.com/ray-wheels/3d224c4edfc4f96d72e8b281fc39ca3573ed8382/ray-0.3.0-cp35-cp35m-manylinux1_x86_64.whl
-  - pip install gym==0.10.5
+  - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.3-cp35-cp35m-manylinux1_x86_64.whl
+  - pip install redis~=2.10.6
 
   # Copy over local rllib changes (testing branch)
   - pushd $HOME/build/flow-project
   -     git clone https://github.com/flow-project/ray.git
-  -     cd ray && git fetch && git checkout master && cd ..
+  -     cd ray && git fetch && git checkout ray_merge && cd ..
   -     pushd ray
   -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
   -         rm -rf $RAY_SITE_DIR/rllib
@@ -46,39 +48,10 @@ before_install:
   - popd
 
   # [sumo] dependencies and binaries
-  - sudo apt-get update
-  # - sudo apt-get upgrade -y
-  - sudo apt-get install -y subversion autoconf build-essential libtool
-  - sudo apt-get install -y libxerces-c3.1 libxerces-c3-dev libproj-dev
-  - sudo apt-get install -y proj-bin proj-data libgdal1-dev libfox-1.6-0
-  - sudo apt-get install -y libfox-1.6-dev
   - pushd $HOME/build/flow-project
-  -     mkdir -p sumo/bin
-  -     pushd sumo/bin
-  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/sumo
-  -         chmod u+x sumo
-  -         wget https://s3.amazonaws.com/cathywu/sumo/Ubuntu1404/netconvert
-  -         chmod u+x netconvert
-  -     popd
-  -     export SUMO_HOME="$HOME/build/flow-project/sumo"
-  -     export PATH="$SUMO_HOME/bin:$PATH"
-  # -     LD_DEBUG=libs sumo  # debug sumo library dependencies
-  # -     LD_DEBUG=libs netconvert  # debug netconvert library dependencies
-  #     [sumo] Add data directory
-  -     pushd sumo
-  -         wget https://s3.amazonaws.com/cathywu/sumo/data.tar.gz
-  -         tar xzf data.tar.gz
-  -     popd
-  #     [sumo] Add python tools traci and sumolib
-  -     mkdir -p sumo/tools
-  -     pushd sumo/tools
-  -         wget https://s3.amazonaws.com/cathywu/sumo/traci.tar.gz
-  -         tar xzf traci.tar.gz
-  -         wget https://s3.amazonaws.com/cathywu/sumo/sumolib.tar.gz
-  -         tar xzf sumolib.tar.gz
-  -         export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
-  -     popd
+  -     ./flow/scripts/setup_sumo_ubuntu1404.sh
   - popd
+  - source ~/.bashrc
 
   - ls ../
 
@@ -86,6 +59,8 @@ install:
   - pip install flake8 .
   - pip install coveralls
   - pip install nose
+  - pip install matplotlib
+  - pip install jupyter
 
 before_script:
   - flake8 --version
