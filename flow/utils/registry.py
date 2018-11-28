@@ -62,7 +62,6 @@ def make_create_env(params, version=0, render=None):
 
     env_params = params['env']
     net_params = params['net']
-    vehicles = params['veh']
     initial_config = params.get('initial', InitialConfig())
     traffic_lights = params.get("tls", TrafficLights())
 
