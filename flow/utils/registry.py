@@ -66,8 +66,8 @@ def make_create_env(params, version=0, render=None):
     traffic_lights = params.get("tls", TrafficLights())
 
     def create_env(*_):
-        vehicles = deepcopy(params['veh'])
         sumo_params = deepcopy(params['sumo'])
+        vehicles = deepcopy(params['vehicles'])
 
         scenario = scenario_class(
             name=exp_tag,
