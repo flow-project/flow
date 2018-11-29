@@ -251,7 +251,6 @@ def visualizer_rllib(args):
         os.system(os_cmd)
 
 
-
 def create_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
