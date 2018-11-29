@@ -138,7 +138,6 @@ for outer_folder in */; do
                     fi
                 fi
             fi
-
         else
             python $script_path/../flow/visualize/visualizer_rllib.py $file_path $checkpoint_num \
             --save_render
@@ -147,3 +146,7 @@ for outer_folder in */; do
     done
     cd "../"
 done
+
+if ${FLAGS_bmmode}; then
+    echo $failed_exps
+fi
