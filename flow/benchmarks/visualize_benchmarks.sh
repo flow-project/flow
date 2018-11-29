@@ -1,21 +1,29 @@
 #!/bin/bash
-echo "Visualizing all benchmarks \n"
+echo "Visualizing all benchmarks"
 
-echo "Please pass the pass to the folder containing the benchmark pkl files" \
-"And hit [ENTER] \n"
-read file_path
+script_path=$(pwd)
 
+file_path=
+if [ $# == 0 ]; then
+    echo "Please pass the path to the outer folder containing benchmarks"
+    exit 1
+else
+    file_path=$1
+fi
 cd "$file_path"
+
 # step into every pulled folder
-for outer_folder in ./; do
-    for inner_folder in ./; do
-    # find the number of the highest checkpoint
-    list=$(find . -name 'checkpoint*' -maxdepth 1 | sort -n)
-    file_name=${list[-1]}
-    # get the checkpoint number as we will need to pass it to visualizer
-    checkpoint_num="$(cut -d'_' -f2 <<<"$file_name")"
-    file_path=$(pwd)$file_name
-    python ./../flow/visualize/visualizer_rllib.py $file_path $checkpoint_num \
-    --save_render
+for outer_folder in */; do
+    cd $outer_folder
+    for inner_folder in */; do
+        cd $inner_folder
+        checkpoint_num="$(ls | grep '^checkpoint_[0-9]\+$' | cut -c12- | sort -n | tail -n1)"
+        echo $checkpoint_num
+        file_path=$(pwd)
+        python $script_path/./../../flow/visualize/visualizer_rllib.py $file_path $checkpoint_num \
+        --save_render
+
+        cd "../"
     done
+    cd "../"
 done
