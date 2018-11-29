@@ -20,7 +20,7 @@ for outer_folder in */; do
         checkpoint_num="$(ls | grep '^checkpoint_[0-9]\+$' | cut -c12- | sort -n | tail -n1)"
         echo "Visualizing highest checkpoints in "$outer_folder
         file_path=$(pwd)
-        python $script_path/./../../flow/visualize/visualizer_rllib.py $file_path $checkpoint_num \
+        python $script_path/../flow/visualize/visualizer_rllib.py $file_path $checkpoint_num \
         --save_render
         cd "../"
     done
