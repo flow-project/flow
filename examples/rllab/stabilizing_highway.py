@@ -11,8 +11,7 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from flow.scenarios.merge.gen import MergeGenerator
-from flow.scenarios.merge.scenario import MergeScenario, ADDITIONAL_NET_PARAMS
+from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import RLController, IDMController
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoParams, InFlows, EnvParams, NetParams, \
@@ -107,7 +106,6 @@ def run_task(_):
 
     scenario = MergeScenario(
         name="merge-rl",
-        generator_class=MergeGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
