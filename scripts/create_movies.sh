@@ -3,7 +3,7 @@ echo "Preparing to make and save movies"
 
 ##################################################
 # CONSTANTS
-PERF_GUARANTEE=1.0
+PERF_GUARANTEE=.95
 ##################################################
 
 # save this so we can find visualizer_rllib.py
@@ -13,8 +13,8 @@ script_path=$(pwd)
 . $script_path/../flow/utils/shflags
 
 # define a 'name' command-line string flag
-DEFINE_string 'checkpoint_path' 'no_flag' 'path to outer folder with pkl files' 'fc'
-DEFINE_boolean 'bm_mode' false 'whether to check if benchmarks satisfy metrics' 'bm'
+DEFINE_string 'filepath' 'no_flag' 'path to outer folder with pkl files' 'f'
+DEFINE_boolean 'bmmode' false 'whether to check if benchmarks satisfy metrics' 'b'
 
 # parse the command-line
 FLAGS "$@" || exit $?
@@ -22,12 +22,13 @@ eval set -- "${FLAGS_ARGV}"
 
 # check if a path to the checkpoints was passed
 file_path=
-if [ "${FLAGS_checkpoint_path}" == 'no_flag' ]; then
+if [ "${FLAGS_filepath}" == 'no_path' ]; then
     echo "Please pass the path to the outer folder containing benchmarks"
     exit 1
 fi
 
-cd "${FLAGS_checkpoint_path}"
+echo "entering data folder: ${FLAGS_filepath}"
+cd "${FLAGS_filepath}"
 
 # create an array containing the benchmark names and expected metrics
 declare -a benchmarks=(
@@ -36,7 +37,6 @@ declare -a benchmarks=(
                         "grid0" "grid1"
                         "merge0" "merge1" "merge2"
                         )
-
 
 # step into every pulled folder
 for outer_folder in */; do
@@ -50,7 +50,7 @@ for outer_folder in */; do
         file_path=$(pwd)
 
         # if you want to evaluate the benchmarks
-        if ${FLAGS_bm_mode}; then
+        if ${FLAGS_bmmode}; then
             python $script_path/../flow/visualize/visualizer_rllib.py $file_path $checkpoint_num \
             --save_render --num_rollouts 5> $script_path/tmp.txt
             # read out the text file to find the avg velocity and avg outflow
@@ -68,23 +68,24 @@ for outer_folder in */; do
             # now figure out whether benchmark should be evaluated by speed or
             # by outflow
 
+            failed_exps="failed exps are: "
             # benchmarks with outflow rewards
             if $outer_folder == "bottleneck0" or $outer_folder == "bottleneck1"\
             or $outer_folder == "bottleneck2"; then
                 if $outer_folder == "bottleneck0"; then
                     if $outflow/1167.0 lt $PERF_GUARANTEE; then
                         echo "bottleneck 0 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"bottleneck0 "
                     fi
                 elif $outer_folder == "bottleneck1"; then
                     if $outflow/1258.0 lt $PERF_GUARANTEE; then
                         echo "bottleneck 1 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"bottleneck1 "
                     fi
                 elif $outer_folder == "bottleneck2"; then
                     if $outflow/2143.0 lt $PERF_GUARANTEE; then
                         echo "bottleneck 2 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"bottleneck2 "
                     fi
                 fi
 
@@ -95,32 +96,32 @@ for outer_folder in */; do
                 if $outer_folder == "figureeight0"; then
                     if $speed/7.3 lt $PERF_GUARANTEE; then
                         echo "figureeight 0 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"figureeight0 "
                     fi
                 elif $outer_folder == "figureeight1"; then
                     if $speed/6.4 lt $PERF_GUARANTEE; then
                         echo "figureeight 1 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"figureeight1 "
                     fi
                 elif $outer_folder == "figureeight2"; then
                     if $speed/5.7 lt $PERF_GUARANTEE; then
                         echo "figureeight 2 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"figureeight2 "
                     fi
                 elif $outer_folder == "merge0"; then
                     if $speed/13.0 lt $PERF_GUARANTEE; then
                         echo "merge 0 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"merge0 "
                     fi
                 elif $outer_folder == "merge1"; then
                     if $speed/13.0 lt $PERF_GUARANTEE; then
                         echo "merge 1 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"merge1 "
                     fi
                 elif $outer_folder == "merge2"; then
                     if $speed/13.0 lt $PERF_GUARANTEE; then
                         echo "merge 2 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"merge2 "
                     fi
                 fi
             # benchmarks that use the reward as their metric
@@ -128,16 +129,15 @@ for outer_folder in */; do
                 if $outer_folder == "grid0"; then
                     if rew/296.0 lt 0.97; then
                         echo "grid 0 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"grid0 "
                     fi
                 elif $outer_folder == "grid1"; then
                     if rew/296.0 lt 0.97; then
                         echo "grid 1 underperformed"
-                        exit 1
+                        failed_exps=$failed_exps"grid1 "
                     fi
                 fi
             fi
-
 
         else
             python $script_path/../flow/visualize/visualizer_rllib.py $file_path $checkpoint_num \
