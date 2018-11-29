@@ -4,7 +4,7 @@ from flow.envs.base_env import Env
 from flow.envs.multiagent_env import MultiEnv
 from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.envs.bottleneck_env import BottleNeckAccelEnv, BottleneckEnv, \
-    DesiredVelocityEnv, RLRampMeterEnv
+    DesiredVelocityEnv
 from flow.envs.green_wave_env import TrafficLightGridEnv, \
     PO_TrafficLightGridEnv, GreenWaveTestEnv
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
@@ -21,7 +21,8 @@ __all__ = [
     "Env", "MultiEnv", "AccelEnv", "LaneChangeAccelEnv",
     "LaneChangeAccelPOEnv",
     "GreenWaveTestEnv", "GreenWaveTestEnv", "WaveAttenuationMergePOEnv",
-    "TwoLoopsMergePOEnv", "BottleneckEnv", "BottleNeckAccelEnv", "RLRampMeterEnv",
-    "WaveAttenuationEnv", "WaveAttenuationPOEnv", "MultiWaveAttenuationPOEnv", "TrafficLightGridEnv",
-    "PO_TrafficLightGridEnv", "DesiredVelocityEnv", "TestEnv", "BayBridgeEnv"
+    "TwoLoopsMergePOEnv", "BottleneckEnv", "BottleNeckAccelEnv",
+    "WaveAttenuationEnv", "WaveAttenuationPOEnv", "MultiWaveAttenuationPOEnv",
+    "TrafficLightGridEnv", "PO_TrafficLightGridEnv", "DesiredVelocityEnv",
+    "TestEnv", "BayBridgeEnv", "MultiAgentAccelEnv",
 ]
