@@ -137,6 +137,9 @@ class Env(*classdef):
         self.traci_connection = self.k.simulation.start_simulation(
             scenario=self.scenario, sim_params=sumo_params)
 
+        # pass the kernel api to the kernel and it's subclasses
+        self.k.pass_api(self.traci_connection)
+
         self.setup_initial_state()
 
         # use pyglet to render the simulation
