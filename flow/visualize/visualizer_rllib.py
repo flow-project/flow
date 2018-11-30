@@ -271,12 +271,12 @@ def create_parser():
              'class registered in the tune registry. '
              'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
-        '--num_rollouts',
+        '--num-rollouts',
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
     parser.add_argument(
-        '--emission_to_csv',
+        '--emission-to-csv',
         action='store_true',
         help='Specifies whether to convert the emission file '
              'created by sumo into a csv file')
@@ -286,11 +286,12 @@ def create_parser():
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
     parser.add_argument(
-        '--render_mode',
+        '--render-mode',
         type=str,
         default='sumo-gui',
         help='Pick the render mode. Options include sumo-web3d, '
-             'rgbd, sumo-gui, and no-render')
+             'rgbd, sumo-gui, and no-render. For more details'
+             'see the visualization tutorial.')
     parser.add_argument(
         '--save_render',
         action='store_true',
