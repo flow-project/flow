@@ -1,4 +1,5 @@
 """Contains all callable environments in Flow."""
+# flake8: noqa
 
 # single agent envs
 from flow.envs.base_env import Env
@@ -16,6 +17,15 @@ from flow.envs.loop.wave_attenuation import WaveAttenuationEnv, \
 from flow.envs.merge import WaveAttenuationMergePOEnv
 from flow.envs.test import TestEnv
 
+env_list = [
+    'Env', 'MultiEnv', 'AccelEnv', 'LaneChangeAccelEnv',
+    'LaneChangeAccelPOEnv', 'GreenWaveTestEnv', 'GreenWaveTestEnv',
+    'WaveAttenuationMergePOEnv', 'TwoLoopsMergePOEnv', 'BottleneckEnv',
+    'BottleNeckAccelEnv', 'WaveAttenuationEnv', 'WaveAttenuationPOEnv',
+    'TrafficLightGridEnv', 'PO_TrafficLightGridEnv', 'DesiredVelocityEnv',
+    'TestEnv', 'BayBridgeEnv',
+]
+
 # multi agent envs
 multi_flag = True
 try:
@@ -23,18 +33,10 @@ try:
 except Exception:
     multi_flag = False
 
-env_list = [
-    "Env", "MultiEnv", "AccelEnv", "LaneChangeAccelEnv",
-    "LaneChangeAccelPOEnv", "GreenWaveTestEnv", "GreenWaveTestEnv",
-    "WaveAttenuationMergePOEnv", "TwoLoopsMergePOEnv", "BottleneckEnv",
-    "BottleNeckAccelEnv", "WaveAttenuationEnv", "WaveAttenuationPOEnv",
-    "TrafficLightGridEnv", "PO_TrafficLightGridEnv", "DesiredVelocityEnv",
-    "TestEnv", "BayBridgeEnv",
-]
-
 if multi_flag:
     from flow.envs.loop.wave_attenuation import MultiWaveAttenuationPOEnv
     from flow.envs.loop.loop_accel import MultiAgentAccelEnv
-    env_list += ["MultiAgentAccelEnv", "MultiWaveAttenuationPOEnv"]
+    env_list += ['MultiAgentAccelEnv', 'MultiWaveAttenuationPOEnv']
+    __all__ = env_list
 else:
     __all__ = env_list
