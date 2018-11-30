@@ -290,7 +290,8 @@ def create_parser():
         type=str,
         default='sumo-gui',
         help='Pick the render mode. Options include sumo-web3d, '
-             'rgbd, sumo-gui, and no-render')
+             'rgbd, sumo-gui, and no-render. For more details'
+             'see the visualization tutorial.')
     parser.add_argument(
         '--save-render',
         action='store_true',
