@@ -13,6 +13,7 @@ parser : ArgumentParser
 """
 
 import argparse
+from datetime import datetime
 import numpy as np
 import os
 import sys
@@ -96,20 +97,26 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    # modify sumo params for visualization ease
-    if args.no_render:
-        sumo_params.render = False
-    else:
-        sumo_params.render = True
-
     sumo_params.restart_instance = False
 
     sumo_params.emission_path = './test_time_rollout/'
 
-    # prepare for rendering
-    if args.sumo_web3d:
+    # pick your rendering mode
+    if args.render_mode == 'sumo-web3d':
         sumo_params.num_clients = 2
         sumo_params.render = False
+    elif args.render_mode == 'drgb':
+        sumo_params.render = 'drgb'
+        sumo_params.pxpm = 4
+    elif args.render_mode == 'sumo-gui':
+        sumo_params.render = True
+    elif args.render_mode == 'no-render':
+        sumo_params.render = False
+
+    if args.save_render:
+        sumo_params.render = 'drgb'
+        sumo_params.pxpm = 4
+        sumo_params.save_render = True
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -226,6 +233,21 @@ def visualizer_rllib(args):
 
         emission_to_csv(emission_path)
 
+    # if we wanted to save the render, here we create the movie
+    if args.save_render:
+        dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
+        dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
+        recent_dir = dirs[-1]
+        # create the movie
+        movie_dir = os.path.expanduser('~') + '/flow_rendering/' + recent_dir
+        save_dir = os.path.expanduser('~') + '/flow_movies'
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
+        os_cmd += " -pix_fmt yuv420p " + dirs[-1] + ".mp4"
+        os_cmd += "&& cp " + dirs[-1] + ".mp4 " + save_dir + "/"
+        os.system(os_cmd)
+
 
 def create_parser():
     parser = argparse.ArgumentParser(
@@ -249,28 +271,31 @@ def create_parser():
              'class registered in the tune registry. '
              'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
-        '--num_rollouts',
+        '--num-rollouts',
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
     parser.add_argument(
-        '--emission_to_csv',
+        '--emission-to-csv',
         action='store_true',
         help='Specifies whether to convert the emission file '
              'created by sumo into a csv file')
-    parser.add_argument(
-        '--no_render',
-        action='store_true',
-        help='Specifies whether to visualize the results')
     parser.add_argument(
         '--evaluate',
         action='store_true',
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
     parser.add_argument(
-        '--sumo_web3d',
+        '--render-mode',
+        type=str,
+        default='sumo-gui',
+        help='Pick the render mode. Options include sumo-web3d, '
+             'rgbd, sumo-gui, and no-render. For more details'
+             'see the visualization tutorial.')
+    parser.add_argument(
+        '--save_render',
         action='store_true',
-        help='Specifies whether sumo web3d will be used to visualize.')
+        help='saves the render to a file')
     parser.add_argument(
         '--horizon',
         type=int,
