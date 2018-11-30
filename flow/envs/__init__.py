@@ -20,7 +20,7 @@ from flow.envs.test import TestEnv
 multi_flag = True
 try:
     from flow.envs.multiagent_env import MultiEnv
-except:
+except Exception:
     multi_flag = False
 
 env_list = [
@@ -32,11 +32,9 @@ env_list = [
     "TestEnv", "BayBridgeEnv",
 ]
 
-
 if multi_flag:
     from flow.envs.loop.wave_attenuation import MultiWaveAttenuationPOEnv
     from flow.envs.loop.loop_accel import MultiAgentAccelEnv
     env_list += ["MultiAgentAccelEnv", "MultiWaveAttenuationPOEnv"]
-
 else:
-__all__ = env_list
+    __all__ = env_list
