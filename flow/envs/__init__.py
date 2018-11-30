@@ -17,9 +17,9 @@ from flow.envs.merge import WaveAttenuationMergePOEnv
 from flow.envs.test import TestEnv
 
 # multi agent envs
+multi_flag = True
 try:
     from flow.envs.multiagent_env import MultiEnv
-    multi_flag = True
 except:
     multi_flag = False
 
