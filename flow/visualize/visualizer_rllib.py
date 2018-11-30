@@ -203,15 +203,15 @@ def visualizer_rllib(args):
         final_outflows.append(outflow)
         mean_speed.append(np.mean(vel))
         if multiagent:
-            for agent, rew in rets.items():
+            for agent_id, rew in rets.items():
                 print('Round {}, Return: {} for agent {}'.format(
-                    i, ret, agent))
+                    i, ret, agent_id))
         else:
             print('Round {}, Return: {}'.format(i, ret))
     if multiagent:
-        for agent, rew in rets.items():
+        for agent_id, rew in rets.items():
             print('Average, std return: {}, {} for agent {}'.format(
-                np.mean(rew), np.std(rew), agent))
+                np.mean(rew), np.std(rew), agent_id))
     else:
         print('Average, std return: {}, {}'.format(
             np.mean(rets), np.std(rets)))
