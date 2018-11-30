@@ -2,9 +2,6 @@
 
 from solution import BENCHMARK, get_actions, get_states
 from evaluate import evaluate_policy
-import sys
-PATH = sys.argv[1]
-sys.path.append(PATH)
 
 # Evaluate the solution
 mean, stdev = evaluate_policy(

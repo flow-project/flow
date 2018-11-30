@@ -14,10 +14,9 @@ def make_create_env(params, version=0, render=None):
 
     This environment creation method allows for the specification of several
     key parameters when creating any flow environment, including the requested
-    environment, scenario, and generator classes, and the inputs needed to make
-    these classes generalizable to networks of varying sizes and shapes, and
-    well as varying forms of control (e.g. AVs, automated traffic lights,
-    etc...).
+    environment and scenario classes, and the inputs needed to make these
+    classes generalizable to networks of varying sizes and shapes, and well as
+    varying forms of control (e.g. AVs, automated traffic lights, etc...).
 
     This method can also be used to recreate the environment a policy was
     trained on and assess it performance, or a modified form of the previous
@@ -31,8 +30,6 @@ def make_create_env(params, version=0, render=None):
          - exp_tag: name of the experiment
          - env_name: name of the flow environment the experiment is running on
          - scenario: name of the scenario class the experiment uses
-         - generator: name of the generator used to create/modify the network
-           configuration files
          - sumo: sumo-related parameters (see flow.core.params.SumoParams)
          - env: environment related parameters (see flow.core.params.EnvParams)
          - net: network-related parameters (see flow.core.params.NetParams and
@@ -62,39 +59,38 @@ def make_create_env(params, version=0, render=None):
 
     module = __import__("flow.scenarios", fromlist=[params["scenario"]])
     scenario_class = getattr(module, params["scenario"])
-    module = __import__("flow.scenarios", fromlist=[params["generator"]])
-    generator_class = getattr(module, params["generator"])
 
     env_params = params['env']
     net_params = params['net']
-    vehicles = params['veh']
     initial_config = params.get('initial', InitialConfig())
     traffic_lights = params.get("tls", TrafficLights())
 
     def create_env(*_):
+        sumo_params = deepcopy(params['sumo'])
+        vehicles = deepcopy(params['veh'])
+
         scenario = scenario_class(
             name=exp_tag,
-            generator_class=generator_class,
             vehicles=vehicles,
             net_params=net_params,
             initial_config=initial_config,
             traffic_lights=traffic_lights,
         )
 
-        sumo_params = deepcopy(params['sumo'])
-
         if render is not None:
             sumo_params.render = render
 
-        register(
-            id=env_name,
-            entry_point='flow.envs:' + params["env_name"],
-            max_episode_steps=env_params.horizon,
-            kwargs={
-                "env_params": env_params,
-                "sumo_params": sumo_params,
-                "scenario": scenario
-            })
+        try:
+            register(
+                id=env_name,
+                entry_point='flow.envs:' + params["env_name"],
+                kwargs={
+                    "env_params": env_params,
+                    "sumo_params": sumo_params,
+                    "scenario": scenario
+                })
+        except Exception:
+            pass
         return gym.envs.make(env_name)
 
     return create_env, env_name

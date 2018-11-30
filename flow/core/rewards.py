@@ -33,7 +33,7 @@ def desired_velocity(env, fail=False):
     if any(vel < -100) or fail:
         return 0.
 
-    target_vel = env.env_params.additional_params["target_velocity"]
+    target_vel = env.env_params.additional_params['target_velocity']
     max_cost = np.array([target_vel] * num_vehicles)
     max_cost = np.linalg.norm(max_cost)
 
@@ -41,6 +41,27 @@ def desired_velocity(env, fail=False):
     cost = np.linalg.norm(cost)
 
     return max(max_cost - cost, 0) / max_cost
+
+
+def average_velocity(env, fail=False):
+    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
+
+    if any(vel < -100) or fail:
+        return 0.
+    if len(vel) == 0:
+        return 0.
+    # return sum(vel) / 3 #just cuz
+
+    return np.mean(vel)
+
+
+def total_velocity(env, fail=False):
+    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
+
+    if any(vel < -100) or fail:
+        return 0.
+    if len(vel) != 0:
+        return sum(vel)
 
 
 def reward_density(env):
@@ -67,7 +88,7 @@ def max_edge_velocity(env, edge_list, fail=False):
     if any(vel < -100) or fail:
         return 0.
 
-    target_vel = env.env_params.additional_params["target_velocity"]
+    target_vel = env.env_params.additional_params['target_velocity']
     max_cost = np.array([target_vel] * num_vehicles)
     max_cost = np.linalg.norm(max_cost)
 
@@ -78,8 +99,7 @@ def max_edge_velocity(env, edge_list, fail=False):
 
 
 def rl_forward_progress(env, gain=0.1):
-    """A reward function used to slightly rewards the RL vehicles travelling
-    forward to help with sparse problems
+    """A reward function used to reward the RL vehicles travelling forward.
 
     Parameters
     ----------
@@ -95,17 +115,15 @@ def rl_forward_progress(env, gain=0.1):
 
 
 def boolean_action_penalty(discrete_actions, gain=1.0):
-    """ Penalize boolean actions that indicate a switch"""
+    """Penalize boolean actions that indicate a switch"""
     return gain * np.sum(discrete_actions)
 
 
 def min_delay(env):
-    """A reward function used to encourage minimization of total delay in the
-    system. Distance travelled is used as a scaled value of delay.
+    """A reward function used to encourage minimization of total delay.
 
     This function measures the deviation of a system of vehicles from all the
     vehicles smoothly travelling at a fixed speed to their destinations.
-
     Parameters
     ----------
     env: flow.envs.Env type
@@ -122,8 +140,11 @@ def min_delay(env):
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
-    cost = time_step * sum((v_top - vel) / v_top)
-    return max((max_cost - cost) / max_cost, 0)
+    try:
+        cost = time_step * sum((v_top - vel) / v_top)
+        return max((max_cost - cost) / max_cost, 0)
+    except ZeroDivisionError:
+        return 0
 
 
 def min_delay_unscaled(env):
@@ -149,14 +170,46 @@ def min_delay_unscaled(env):
 
 
 def penalize_tl_changes(actions, gain=1):
-    """
-    A reward function that penalizes delay and traffic light switches.
+    """A reward function that penalizes delay and traffic light switches.
+
     :param actions: {list of booleans} - indicates whether a switch is desired
-    :param gain: {float} - multiplicative factor on the action penalty
+    :param gain: float} - multiplicative factor on the action penalty
     :return: a penalty on vehicle delays and traffic light switches
     """
     action_penalty = gain * np.sum(np.round(actions))
     return -action_penalty
+
+
+def penalize_standstill(env, gain=1):
+    """A reward function that penalizes vehicle standstill
+
+    Is it better for this to be:
+        a) penalize standstill in general?
+        b) multiplicative based on time that vel=0?
+
+    Parameters
+    ----------
+    actions:{list of booleans} - indicates whether a switch is desired
+    gain:{float} - multiplicative factor on the action penalty
+    """
+    veh_ids = env.vehicles.get_ids()
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    num_standstill = len(vel[vel == 0])
+    penalty = gain * num_standstill
+    return -penalty
+
+
+def penalize_near_standstill(env, thresh=0.3, gain=1):
+    veh_ids = env.vehicles.get_ids()
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    penalize = len(vel[vel < 0.3])
+    penalty = gain * penalize
+    return -penalty
+
+
+def penalize_jerkiness(env, gain=1):
+    """A penalty function the penalizes jerky driving"""
+    pass
 
 
 def penalize_headway_variance(vehicles,
@@ -165,7 +218,6 @@ def penalize_headway_variance(vehicles,
                               penalty_gain=1,
                               penalty_exponent=1):
     """A reward function used to train rl vehicles to encourage large headways
-    among a pre-specified list of vehicles vids.
 
     Parameters
     ----------
@@ -236,7 +288,7 @@ def punish_rl_lane_changes(env, penalty=1):
     """
     total_lane_change_penalty = 0
     for veh_id in env.vehicles.get_rl_ids():
-        if env.vehicles.get_state(veh_id, "last_lc") == env.timer:
+        if env.vehicles.get_state(veh_id, 'last_lc') == env.timer:
             total_lane_change_penalty -= penalty
 
     return total_lane_change_penalty
@@ -272,7 +324,7 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
         if env.vehicles.get_lane(veh_id) == lane
     ]
 
-    return -1 * (len(lane_ids)**penalty_exponent) * penalty_gain
+    return -1 * (len(lane_ids) ** penalty_exponent) * penalty_gain
 
 
 def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
@@ -303,7 +355,7 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
             print('rl id:', rl_id)
             print('follower id:', follower_id)
             continue
-        total_reward += follower_headway**reward_exponent
+        total_reward += follower_headway ** reward_exponent
     # print(total_reward)
     if total_reward < 0:
         print('negative total reward of:', total_reward)

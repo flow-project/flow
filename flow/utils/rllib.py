@@ -3,6 +3,7 @@ Utility functions for Flow compatibility with RLlib.
 
 This includes: environment generation, serialization, and visualization.
 """
+import dill
 import json
 from copy import deepcopy
 
@@ -132,3 +133,18 @@ def get_flow_params(config):
     flow_params["tls"] = tls
 
     return flow_params
+
+
+def get_rllib_config(path):
+    """Return the data from the specified rllib configuration file."""
+    jsonfile = path + '/params.json'  # params.json is the config file
+    jsondata = json.loads(open(jsonfile).read())
+    return jsondata
+
+
+def get_rllib_pkl(path):
+    """Return the data from the specified rllib configuration file."""
+    pklfile = path + '/params.pkl'  # params.json is the config file
+    with open(pklfile, 'rb') as file:
+        pkldata = dill.load(file)
+    return pkldata
