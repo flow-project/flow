@@ -102,15 +102,15 @@ def visualizer_rllib(args):
     sumo_params.emission_path = './test_time_rollout/'
 
     # pick your rendering mode
-    if args.render_mode == 'sumo_web3d':
+    if args.render_mode == 'sumo-web3d':
         sumo_params.num_clients = 2
         sumo_params.render = False
     elif args.render_mode == 'drgb':
         sumo_params.render = 'drgb'
         sumo_params.pxpm = 4
-    elif args.render_mode == 'sumo_gui':
+    elif args.render_mode == 'sumo-gui':
         sumo_params.render = True
-    elif args.render_mode == 'no_render':
+    elif args.render_mode == 'no-render':
         sumo_params.render = False
 
     if args.save_render:
@@ -288,9 +288,9 @@ def create_parser():
     parser.add_argument(
         '--render_mode',
         type=str,
-        default='sumo_gui',
-        help='Pick the render mode. Options include sumo_web3d, '
-             'rgbd, sumo_gui, and no_render')
+        default='sumo-gui',
+        help='Pick the render mode. Options include sumo-web3d, '
+             'rgbd, sumo-gui, and no-render')
     parser.add_argument(
         '--save_render',
         action='store_true',
