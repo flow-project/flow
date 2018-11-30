@@ -122,7 +122,7 @@ class TrafficLightGridEnv(Env):
             return Discrete(2 ** self.num_traffic_lights)
         else:
             return Box(
-                low=0,
+                low=-1,
                 high=1,
                 shape=(self.num_traffic_lights,),
                 dtype=np.float32)
@@ -189,7 +189,7 @@ class TrafficLightGridEnv(Env):
         else:
             # convert values less than 0.5 to zero and above to 1. 0's indicate
             # that should not switch the direction
-            rl_mask = rl_actions > 0.5
+            rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
             # check if our timer has exceeded the yellow phase, meaning it
@@ -224,7 +224,7 @@ class TrafficLightGridEnv(Env):
                     self.last_change[i, 1] = not self.last_change[i, 1]
                     self.last_change[i, 2] = 0
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
 
@@ -566,7 +566,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                 self.last_change.flatten().tolist()
             ]))
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
             return - rewards.min_delay_unscaled(self)
@@ -589,6 +589,6 @@ class GreenWaveTestEnv(TrafficLightGridEnv):
         """See class definition."""
         pass
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """No return, for testing purposes."""
         return 0

@@ -1,6 +1,13 @@
 import unittest
 import os
 
+from flow.benchmarks.figureeight0 import flow_params as figureeight0
+from flow.benchmarks.figureeight1 import flow_params as figureeight1
+from flow.benchmarks.figureeight2 import flow_params as figureeight2
+from flow.benchmarks.merge0 import flow_params as merge0
+from flow.benchmarks.merge1 import flow_params as merge1
+from flow.benchmarks.merge2 import flow_params as merge2
+
 from flow.benchmarks.baselines.bottleneck0 import bottleneck0_baseline
 from flow.benchmarks.baselines.bottleneck1 import bottleneck1_baseline
 from flow.benchmarks.baselines.bottleneck2 import bottleneck2_baseline
@@ -50,8 +57,21 @@ class TestBaselines(unittest.TestCase):
         """
         Tests flow/benchmark/baselines/figureeight{0,1,2}.py
         """
-        # run the bottleneck to make sure it runs
-        figure_eight_baseline(num_runs=1, render=False)
+        # run the figure eight 0 to make sure it runs
+        figure_eight_baseline(num_runs=1, flow_params=figureeight0,
+                              render=False)
+
+        # TODO: check that the performance measure is within some range
+
+        # run the figure eight 1 to make sure it runs
+        figure_eight_baseline(num_runs=1, flow_params=figureeight1,
+                              render=False)
+
+        # TODO: check that the performance measure is within some range
+
+        # run the figure eight 2 to make sure it runs
+        figure_eight_baseline(num_runs=1, flow_params=figureeight2,
+                              render=False)
 
         # TODO: check that the performance measure is within some range
 
@@ -77,8 +97,18 @@ class TestBaselines(unittest.TestCase):
         """
         Tests flow/benchmark/baselines/merge{0,1,2}.py
         """
-        # run the bottleneck to make sure it runs
-        merge_baseline(num_runs=1, render=False)
+        # run the merge 0 to make sure it runs
+        merge_baseline(num_runs=1, flow_params=merge0, render=False)
+
+        # TODO: check that the performance measure is within some range
+
+        # run the merge 1 to make sure it runs
+        merge_baseline(num_runs=1, flow_params=merge1, render=False)
+
+        # TODO: check that the performance measure is within some range
+
+        # run the merge 2 to make sure it runs
+        merge_baseline(num_runs=1, flow_params=merge2, render=False)
 
         # TODO: check that the performance measure is within some range
 

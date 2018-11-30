@@ -39,16 +39,13 @@ def run_task(*_):
     initial_config = flow_params.get("initial", InitialConfig())
     traffic_lights = flow_params.get("tls", TrafficLights())
 
-    # import the scenario and generator classes
+    # import the scenario class
     module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
     scenario_class = getattr(module, flow_params["scenario"])
-    module = __import__("flow.scenarios", fromlist=[flow_params["generator"]])
-    generator_class = getattr(module, flow_params["generator"])
 
     # create the scenario object
     scenario = scenario_class(
         name=exp_tag,
-        generator_class=generator_class,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
