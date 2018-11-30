@@ -59,15 +59,11 @@ class TestBenchmarks(unittest.TestCase):
         agent_cls = get_agent_class(alg_run)
         config = agent_cls._default_config.copy()
         config['num_workers'] = 1
-        config['train_batch_size'] = 200  # arbitrary
-        config['gamma'] = 0.999  # discount rate
-        config['model'].update({'fcnet_hiddens': [100, 50, 25]})
-        config['use_gae'] = True
-        config['lambda'] = 0.97
-        config['kl_target'] = 0.02
+        config['sample_batch_size'] = 50  # arbitrary
+        config['train_batch_size'] = 50  # arbitrary
+        config['sgd_minibatch_size'] = 10
         config['num_sgd_iter'] = 1
         config['horizon'] = HORIZON
-        config['observation_filter'] = 'NoFilter'
 
         # save the flow params for replay
         flow_json = json.dumps(
@@ -109,7 +105,7 @@ class TestBenchmarks(unittest.TestCase):
         # TODO: check that the performance measure is within some range
 
     def test_bottleneck2(self):
-        """
+        """s
         Tests flow/benchmark/baselines/bottleneck2.py
         """
         # run the bottleneck to make sure it runs
