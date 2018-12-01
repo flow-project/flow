@@ -13,7 +13,6 @@ from ray.tune import run_experiments
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
 from flow.utils.rllib import FlowParamsEncoder
-from ray.tune import grid_search
 
 EXAMPLE_USAGE = """
 example usage:
