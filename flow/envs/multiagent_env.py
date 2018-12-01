@@ -4,6 +4,7 @@ import random
 import traceback
 from gym.spaces import Box
 
+from traci import constants as tc
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
 
@@ -89,12 +90,14 @@ class MultiEnv(MultiAgentEnv, Env):
             self.traci_connection.simulationStep()
 
             # collect subscription information from sumo
-            vehicle_obs = \
-                self.traci_connection.vehicle.getSubscriptionResults()
+            vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                                getSubscriptionResults(veh_id))
+                               for veh_id in self.vehicles.get_ids())
+            tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                            getSubscriptionResults(tl_id))
+                           for tl_id in self.traffic_lights.get_ids())
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
@@ -114,6 +117,9 @@ class MultiEnv(MultiAgentEnv, Env):
             # stop collecting new simulation steps if there is a collision
             if crash:
                 break
+
+            # render a frame
+            self.render()
 
         states = self.get_state()
         self.state = {}
@@ -141,6 +147,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 done['__all__'] = False
             infos[key] = {}
 
+        # compute the reward
         reward = self.compute_reward(rl_actions, fail=crash)
 
         return next_observation, reward, done, infos
@@ -152,18 +159,18 @@ class MultiEnv(MultiAgentEnv, Env):
         the environment, and re-initializes the vehicles in their starting
         positions.
 
-        If "vehicle_arrangement_shuffle" is set to True in env_params, the
+        If 'vehicle_arrangement_shuffle' is set to True in env_params, the
         vehicles swap initial positions with one another. Also, if a
-        "starting_position_shuffle" is set to True, the initial position of
+        'starting_position_shuffle' is set to True, the initial position of
         vehicles are redone.
 
-        If "warmup_steps" is set to a value greater than 0, then this method
+        If 'warmup_steps' is set to a value greater than 0, then this method
         also runs the necessary number of warmup steps before beginning
         training, with actions to the agents being assigned by the simulator.
 
         Returns
         -------
-        observation: dict of numpy ndarrays
+        observation: numpy ndarray
             the initial observation of the space. The initial reward is assumed
             to be zero.
         """
@@ -174,15 +181,15 @@ class MultiEnv(MultiAgentEnv, Env):
         if len(self.scenario.net_params.inflows.get()) > 0 and \
                 not self.sumo_params.restart_instance:
             print(
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "WARNING: Inflows will cause computational performance to\n"
-                "significantly decrease after large number of rollouts. In \n"
-                "order to avoid this, set SumoParams(restart_instance=True).\n"
-                "**********************************************************\n"
-                "**********************************************************\n"
-                "**********************************************************"
+                '**********************************************************\n'
+                '**********************************************************\n'
+                '**********************************************************\n'
+                'WARNING: Inflows will cause computational performance to\n'
+                'significantly decrease after large number of rollouts. In \n'
+                'order to avoid this, set SumoParams(restart_instance=True).\n'
+                '**********************************************************\n'
+                '**********************************************************\n'
+                '**********************************************************'
             )
 
         if self.sumo_params.restart_instance or self.step_counter > 2e6:
@@ -211,7 +218,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
             initial_state = dict()
             for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]
+                route_id = 'route' + initial_positions[i][0]
 
                 # replace initial routes, lanes, and positions to reflect
                 # new values
@@ -222,9 +229,9 @@ class MultiEnv(MultiAgentEnv, Env):
                 initial_state[veh_id] = tuple(list_initial_state)
 
                 # replace initial positions in initial observations
-                self.initial_observations[veh_id]["edge"] = \
+                self.initial_observations[veh_id]['edge'] = \
                     initial_positions[i][0]
-                self.initial_observations[veh_id]["position"] = \
+                self.initial_observations[veh_id]['position'] = \
                     initial_positions[i][1]
 
             self.initial_state = deepcopy(initial_state)
@@ -237,7 +244,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.traci_connection.vehicle.unsubscribe(veh_id)
                 self.vehicles.remove(veh_id)
             except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+                print('Error during start: {}'.format(traceback.format_exc()))
                 pass
 
         # clear all vehicles from the network and the vehicles class
@@ -248,7 +255,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
             except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+                print('Error during start: {}'.format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -275,12 +282,22 @@ class MultiEnv(MultiAgentEnv, Env):
                     departPos=str(lane_pos),
                     departSpeed=str(speed))
 
+            # subscribe the new vehicle
+            self.traci_connection.vehicle.subscribe(
+                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                         tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
         self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                            getSubscriptionResults(veh_id))
+                           for veh_id in self.initial_ids)
+        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                        getSubscriptionResults(tl_id))
+                       for tl_id in self.traffic_lights.get_ids())
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -297,7 +314,7 @@ class MultiEnv(MultiAgentEnv, Env):
                                                 self.get_x_by_id(veh_id))
 
             # re-initialize memory on last lc
-            self.prev_last_lc[veh_id] = -float("inf")
+            self.prev_last_lc[veh_id] = -float('inf')
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
@@ -316,6 +333,9 @@ class MultiEnv(MultiAgentEnv, Env):
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
+
+        # render a frame
+        self.render(reset=True)
 
         return observation
 
