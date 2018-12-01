@@ -350,3 +350,83 @@ class Figure8Scenario(Scenario):
                       "fromLane": str(i),
                       "toLane": str(i)}]
         return conn
+
+    def specify_edge_starts(self):
+        """See base class."""
+        edgestarts = \
+            [("bottom_lower_ring",
+              0 + self.inner_space_len),
+             ("right_lower_ring_in",
+              self.ring_edgelen + 2 * self.inner_space_len),
+             ("right_lower_ring_out",
+              self.ring_edgelen + self.intersection_len / 2 +
+              self.junction_len + 3 * self.inner_space_len),
+             ("left_upper_ring",
+              self.ring_edgelen + self.intersection_len +
+              self.junction_len + 4 * self.inner_space_len),
+             ("top_upper_ring",
+              2 * self.ring_edgelen + self.intersection_len +
+              self.junction_len + 5 * self.inner_space_len),
+             ("right_upper_ring",
+              3 * self.ring_edgelen + self.intersection_len +
+              self.junction_len + 6 * self.inner_space_len),
+             ("bottom_upper_ring_in",
+              4 * self.ring_edgelen + self.intersection_len +
+              self.junction_len + 7 * self.inner_space_len),
+             ("bottom_upper_ring_out",
+              4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
+              2 * self.junction_len + 8 * self.inner_space_len),
+             ("top_lower_ring",
+              4 * self.ring_edgelen + 2 * self.intersection_len +
+              2 * self.junction_len + 9 * self.inner_space_len),
+             ("left_lower_ring",
+              5 * self.ring_edgelen + 2 * self.intersection_len +
+              2 * self.junction_len + 10 * self.inner_space_len)]
+
+        return edgestarts
+
+    def specify_intersection_edge_starts(self):
+        """See base class."""
+        intersection_edgestarts = \
+            [(":center_intersection_%s" % (1 + self.lanes),
+              self.ring_edgelen + self.intersection_len / 2 +
+              3 * self.inner_space_len),
+             (":center_intersection_1",
+              4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
+              self.junction_len + 8 * self.inner_space_len)]
+
+        return intersection_edgestarts
+
+    def specify_internal_edge_starts(self):
+        """See base class."""
+        internal_edgestarts = \
+            [(":bottom_lower_ring",
+              0),
+             (":right_lower_ring_in",
+              self.ring_edgelen + self.inner_space_len),
+             (":right_lower_ring_out",
+              self.ring_edgelen + self.intersection_len / 2 +
+              self.junction_len + 2 * self.inner_space_len),
+             (":left_upper_ring",
+              self.ring_edgelen + self.intersection_len +
+              self.junction_len + 3 * self.inner_space_len),
+             (":top_upper_ring",
+              2 * self.ring_edgelen + self.intersection_len +
+              self.junction_len + 4 * self.inner_space_len),
+             (":right_upper_ring",
+              3 * self.ring_edgelen + self.intersection_len +
+              self.junction_len + 5 * self.inner_space_len),
+             (":bottom_upper_ring_in",
+              4 * self.ring_edgelen + self.intersection_len +
+              self.junction_len + 6 * self.inner_space_len),
+             (":bottom_upper_ring_out",
+              4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
+              2 * self.junction_len + 7 * self.inner_space_len),
+             (":top_lower_ring",
+              4 * self.ring_edgelen + 2 * self.intersection_len +
+              2 * self.junction_len + 8 * self.inner_space_len),
+             (":left_lower_ring",
+              5 * self.ring_edgelen + 2 * self.intersection_len +
+              2 * self.junction_len + 9 * self.inner_space_len)]
+
+        return internal_edgestarts
