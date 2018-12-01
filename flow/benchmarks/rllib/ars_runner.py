@@ -10,7 +10,7 @@ import argparse
 
 import ray
 from ray.rllib.agents.agent import get_agent_class
-from ray.tune import run_experiments, grid_search
+from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
@@ -99,8 +99,7 @@ if __name__ == "__main__":
     # Register as rllib env
     register_env(env_name, create_env)
 
-    trials = run_experiments({
-        flow_params["exp_tag"]: {
+    exp_tag = {
             "run": alg_run,
             "env": env_name,
             "config": {
@@ -111,5 +110,11 @@ if __name__ == "__main__":
             "stop": {"training_iteration": 500},
             "num_samples": 1,
             "upload_dir": "s3://"+upload_dir
-        },
+        }
+
+    if upload_dir:
+        exp_tag["upload_dir"] = "s3://" + upload_dir
+
+    trials = run_experiments({
+        flow_params["exp_tag"]: exp_tag
     })
