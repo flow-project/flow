@@ -44,8 +44,8 @@ head_node:
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
-#        SpotOptions:
-#            MaxPrice: "1.0"
+        SpotOptions:
+            MaxPrice: "1.0"
 
     # Additional options in the boto docs.
 
@@ -61,8 +61,8 @@ worker_nodes:
     InstanceMarketOptions:
         MarketType: spot
          # Additional options can be found in the boto docs, e.g.
-#        SpotOptions:
-#            MaxPrice: "1.0"
+        SpotOptions:
+            MaxPrice: "1.0"
 
     # Additional options in the boto docs.
 
