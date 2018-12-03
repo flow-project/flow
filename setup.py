@@ -17,8 +17,8 @@ class build_ext(_build_ext.build_ext):
     def run(self):
         subprocess.check_call(
             ['pip', 'install',
-             'https://akreidieh.s3.amazonaws.com/sumo/flow-0.3.0/'
-             'sumotools-0.2.0-py3-none-any.whl'])
+             'https://evinitsky.s3.amazonaws.com/flow-sumo/flow-0.3.0/'
+             'sumotools-0.3.0-py3-none-any.whl'])
 
 
 class BinaryDistribution(Distribution):
