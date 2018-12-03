@@ -449,8 +449,8 @@ class Env(gym.Env, Serializable):
                 != 0
 
             # stop collecting new simulation steps if there is a collision
-            if crash:
-                break
+            # if crash:
+            #     break
 
         # collect information of the state of the network based on the
         # environment class used
@@ -460,9 +460,9 @@ class Env(gym.Env, Serializable):
         next_observation = np.copy(self.state)
 
         # compute the reward
-        reward = self.compute_reward(rl_actions, fail=crash)
+        reward = self.compute_reward(rl_actions, fail=False)
 
-        return next_observation, reward, crash, {}
+        return next_observation, reward, False, {}
 
     def reset(self):
         """Reset the environment.

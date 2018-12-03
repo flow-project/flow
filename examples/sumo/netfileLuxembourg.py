@@ -27,7 +27,7 @@ def figure_eight_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
-    sumo_params = SumoParams(render=True, sim_step=1)
+    sumo_params = SumoParams(render=False, sim_step=1, emission_path='data/', no_step_log=False)
 
     if render is not None:
         sumo_params.render = render
@@ -55,4 +55,4 @@ if __name__ == "__main__":
     exp = figure_eight_example()
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 3600*24)
+    exp.run(1, 3600*24, convert_to_csv=True)
