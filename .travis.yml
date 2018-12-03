@@ -51,7 +51,6 @@ before_install:
   -     ./flow/scripts/setup_sumo_ubuntu1404.sh
   - popd
   - source ~/.bashrc
-  - source activate flow
 
   - ls ../
 
