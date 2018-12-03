@@ -51,6 +51,7 @@ before_install:
   -     ./flow/scripts/setup_sumo_ubuntu1404.sh
   - popd
   - source ~/.bashrc
+  - source activate flow
 
   - ls ../
 
@@ -62,11 +63,11 @@ install:
   - pip install jupyter
 
 before_script:
-  - flake8 --version
+  - flake8 --versionren
   - flake8 --show-source
 
 script:
-  - python setup.py install
+  - python setup.py develop
   - nose2 --with-coverage
 
 after_success:
