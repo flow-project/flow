@@ -1,5 +1,6 @@
 """
-Run density experiment to generate capacity diagram
+Run density experiment to generate capacity diagram for the
+bottleneck experiment
 """
 
 import ray
@@ -7,7 +8,7 @@ import ray
 from examples.sumo.bottleneck import bottleneck_example
 
 import numpy as np
-
+import multiprocessing
 
 @ray.remote
 def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
@@ -35,8 +36,9 @@ if __name__ == '__main__':
     rollout_inflows = []
     rollout_outflows = []
 
-    ray.init()
-    bottleneck_outputs = [run_bottleneck.remote(d, 10, 1500)
+    num_cpus = multiprocessing.cpu_count()
+    ray.init(num_cpus=max(num_cpus - 2, 1))
+    bottleneck_outputs = [run_bottleneck.remote(d, 10, 2000)
                           for d in densities]
     for output in ray.get(bottleneck_outputs):
         outflow, velocity, bottleneckdensity, per_rollout_outflows = output
