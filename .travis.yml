@@ -63,7 +63,7 @@ install:
   - pip install jupyter
 
 before_script:
-  - flake8 --versionren
+  - flake8 --version
   - flake8 --show-source
 
 script:
