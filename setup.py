@@ -17,7 +17,7 @@ class build_ext(_build_ext.build_ext):
     def run(self):
         subprocess.check_call(
             ['pip', 'install',
-             'https://evinitsky.s3.amazonaws.com/flow-sumo/flow-0.3.0/'
+             'https://s3-us-west-1.amazonaws.com/flow-sumo/flow-0.3.0/'
              'sumotools-0.3.0-py3-none-any.whl'])
 
 
