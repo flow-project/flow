@@ -22,7 +22,6 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda install python=3.5.2
   - python -V
 
   # Set up requirements for flow
@@ -32,7 +31,7 @@ before_install:
   # Requirements for Ray
   - pip install opencv-python
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.3-cp35-cp35m-manylinux1_x86_64.whl
+  - pip install ray==0.6.0
   - pip install redis~=2.10.6
 
   # Copy over local rllib changes (testing branch)
