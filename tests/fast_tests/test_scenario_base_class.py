@@ -584,7 +584,7 @@ class TestEdgeLength(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        # create the environment and scenario classes for a figure eight
+        # create the environment and scenario classes for a ring road
         env, scenario = ring_road_exp_setup(net_params=net_params)
 
         self.assertEqual(scenario.edge_length("top"), 250)
@@ -605,9 +605,9 @@ class TestEdgeLength(unittest.TestCase):
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_0"), 11.20)
+            scenario.edge_length(":center_intersection_0"), 6.20)
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_1"), 11.20)
+            scenario.edge_length(":center_intersection_1"), 6.20)
 
 
 class TestSpeedLimit(unittest.TestCase):
