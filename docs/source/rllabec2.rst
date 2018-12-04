@@ -43,10 +43,11 @@ you are using already-existing network files (from, say, OpenStreetMap),
 ensure they do not get deleted by ``make clean`` by storing such files
 elsewhere.
 
-Inside the experiment, change the ``mode`` to ``ec2`` (other options are
-``local`` and ``local_docker``). You should run the experiment in
+Inside the experiment, change the ``mode`` to ``ec2``. Other mode options are
+``local``, which uses your standard environment and ``local_docker``, which 
+uses a local Docker image to run the experiment. You should run the experiment in
 ``local_docker`` mode briefly before running the ``ec2`` version to
-ensure there are no errors, particularly with Docker image compatability
+ensure there are no errors, particularly with Docker image compatibility.
 
 After running ``python example.py`` once the ``mode`` of ``example.py``
 is ``ec2``, you should see your experiment running on AWS.
