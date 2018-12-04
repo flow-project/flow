@@ -323,12 +323,6 @@ class Env(*classdef):
             value = sparse state information (only what is needed to add a
             vehicle in a sumo network with traci)
         """
-        # check to make sure all vehicles have been spawned
-        num_spawned_veh = self.traci_connection.simulation.getDepartedNumber()
-        if num_spawned_veh < self.vehicles.num_vehicles:
-            logging.error("Not enough vehicles have spawned! Bad start?")
-            sys.exit()
-
         # add missing traffic lights in the list of traffic light ids
         tls_ids = self.traci_connection.trafficlight.getIDList()
 
@@ -357,35 +351,6 @@ class Env(*classdef):
             self.traci_connection.trafficlight.subscribe(
                 node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
-        for veh_id in self.vehicles.get_ids():
-            # some constant vehicle parameters to the vehicles class
-            self.vehicles.set_state(
-                veh_id, "length",
-                self.traci_connection.vehicle.getLength(veh_id))
-
-            # import initial state data to initial_observations dict
-            self.initial_observations[veh_id] = dict()
-            self.initial_observations[veh_id]["type"] = \
-                self.vehicles.get_state(veh_id, "type")
-            self.initial_observations[veh_id]["edge"] = \
-                self.traci_connection.vehicle.getRoadID(veh_id)
-            self.initial_observations[veh_id]["position"] = \
-                self.traci_connection.vehicle.getLanePosition(veh_id)
-            self.initial_observations[veh_id]["lane"] = \
-                self.traci_connection.vehicle.getLaneIndex(veh_id)
-            self.initial_observations[veh_id]["speed"] = \
-                self.traci_connection.vehicle.getSpeed(veh_id)
-
-            # save the initial state. This is used in the _reset function
-            route_id = self.traci_connection.vehicle.getRouteID(veh_id)
-            pos = self.traci_connection.vehicle.getPosition(veh_id)
-
-            self.initial_state[veh_id] = \
-                (self.initial_observations[veh_id]["type"], route_id,
-                 self.initial_observations[veh_id]["lane"],
-                 self.initial_observations[veh_id]["position"],
-                 self.initial_observations[veh_id]["speed"], pos)
-
         # collect subscription information from sumo
         vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
                             getSubscriptionResults(veh_id))
@@ -404,6 +369,21 @@ class Env(*classdef):
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
         self.traffic_lights.update(tls_obs)
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) < self.vehicles.num_vehicles:
+            logging.error("Not enough vehicles have spawned! Bad start?")
+            sys.exit()
+
+        # save the initial state. This is used in the _reset function
+        for veh_id in self.vehicles.get_ids():
+            type_id = self.vehicles.get_state(veh_id, "type")
+            pos = self.vehicles.get_position(veh_id)
+            lane = self.vehicles.get_lane(veh_id)
+            speed = self.vehicles.get_speed(veh_id)
+            route_id = "route" + self.vehicles.get_edge(veh_id)
+
+            self.initial_state[veh_id] = (type_id, route_id, lane, pos, speed)
 
     def step(self, rl_actions):
         """Advance the environment by one step.
@@ -605,16 +585,9 @@ class Env(*classdef):
                 list_initial_state[3] = initial_positions[i][1]
                 initial_state[veh_id] = tuple(list_initial_state)
 
-                # replace initial positions in initial observations
-                self.initial_observations[veh_id]["edge"] = \
-                    initial_positions[i][0]
-                self.initial_observations[veh_id]["position"] = \
-                    initial_positions[i][1]
-
             self.initial_state = deepcopy(initial_state)
 
-        # # clear all vehicles from the network and the vehicles class
-
+        # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
@@ -636,7 +609,7 @@ class Env(*classdef):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, lane_pos, speed, pos = \
+            type_id, route_id, lane_index, pos, speed = \
                 self.initial_state[veh_id]
 
             try:
@@ -645,7 +618,7 @@ class Env(*classdef):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
@@ -656,7 +629,7 @@ class Env(*classdef):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
 
             # subscribe the new vehicle
@@ -985,9 +958,6 @@ class Env(*classdef):
             "Closing connection to TraCI and stopping simulation.\n"
             "Note, this may print an error message when it closes."
         )
-        self._close()
-
-    def _close(self):
         self.traci_connection.close()
         self.scenario.close()
 

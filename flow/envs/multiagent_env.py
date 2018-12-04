@@ -228,16 +228,9 @@ class MultiEnv(MultiAgentEnv, Env):
                 list_initial_state[3] = initial_positions[i][1]
                 initial_state[veh_id] = tuple(list_initial_state)
 
-                # replace initial positions in initial observations
-                self.initial_observations[veh_id]['edge'] = \
-                    initial_positions[i][0]
-                self.initial_observations[veh_id]['position'] = \
-                    initial_positions[i][1]
-
             self.initial_state = deepcopy(initial_state)
 
-        # # clear all vehicles from the network and the vehicles class
-
+        # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
@@ -259,7 +252,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, lane_pos, speed, pos = \
+            type_id, route_id, lane_index, pos, speed = \
                 self.initial_state[veh_id]
 
             try:
@@ -268,7 +261,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
@@ -279,7 +272,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
 
             # subscribe the new vehicle
