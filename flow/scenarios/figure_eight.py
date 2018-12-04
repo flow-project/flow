@@ -49,7 +49,7 @@ class Figure8Scenario(Scenario):
         ring_radius = net_params.additional_params["radius_ring"]
         self.ring_edgelen = ring_radius * np.pi / 2.
         self.intersection_len = 2 * ring_radius
-        self.junction_len = 2.9 + 3.3 * net_params.additional_params["lanes"]
+        self.junction_len = 8.0 + 3.2 * net_params.additional_params["lanes"]
         self.inner_space_len = 0.28
 
         # instantiate "length" in net params
