@@ -212,22 +212,22 @@ class TrafficLights:
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "GGGrrrGGGrrr"
+            "state": "GrGr"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "yyyrrryyyrrr"
+            "state": "yryr"
         }, {
             "duration": "31",
             "minDur": "8",
             "maxDur": "45",
-            "state": "rrrGGGrrrGGG"
+            "state": "rGrG"
         }, {
             "duration": "6",
             "minDur": "3",
             "maxDur": "6",
-            "state": "rrryyyrrryyy"
+            "state": "ryry"
         }]
 
         return {

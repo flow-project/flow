@@ -14,7 +14,11 @@ class ContinuousRouter(BaseRouter):
 
     def choose_route(self, env):
         """Adopt the current edge's route if about to leave the network."""
-        if env.vehicles.get_edge(self.veh_id) == \
+        if len(env.vehicles.get_route(self.veh_id)) == 0:
+            # this occurs to inflowing vehicles, whose information is not added
+            # to the subscriptions in the first step that they departed
+            return None
+        elif env.vehicles.get_edge(self.veh_id) == \
                 env.vehicles.get_route(self.veh_id)[-1]:
             return env.available_routes[env.vehicles.get_edge(self.veh_id)]
         else:
@@ -60,13 +64,15 @@ class GridRouter(BaseRouter):
     """A router used to re-route a vehicle within a grid environment."""
 
     def choose_route(self, env):
-        if env.vehicles.get_edge(self.veh_id) == \
+        if len(env.vehicles.get_route(self.veh_id)) == 0:
+            # this occurs to inflowing vehicles, whose information is not added
+            # to the subscriptions in the first step that they departed
+            return None
+        elif env.vehicles.get_edge(self.veh_id) == \
                 env.vehicles.get_route(self.veh_id)[-1]:
-            new_route = [env.vehicles.get_edge(self.veh_id)]
+            return [env.vehicles.get_edge(self.veh_id)]
         else:
-            new_route = None
-
-        return new_route
+            return None
 
 
 class BayBridgeRouter(ContinuousRouter):

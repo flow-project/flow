@@ -1,7 +1,8 @@
 """Grid example."""
 from flow.controllers.routing_controllers import GridRouter
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
+from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
+    SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
@@ -56,6 +57,10 @@ def grid_example(render=None):
     vehicles.add(
         veh_id="human",
         routing_controller=(GridRouter, {}),
+        sumo_car_following_params=SumoCarFollowingParams(
+            min_gap=2.5,
+            decel=7.5,  # avoid collisions at emergency stops
+        ),
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
@@ -65,22 +70,22 @@ def grid_example(render=None):
         "duration": "31",
         "minDur": "8",
         "maxDur": "45",
-        "state": "GGGrrrGGGrrr"
+        "state": "GrGr"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
-        "state": "yyyrrryyyrrr"
+        "state": "yryr"
     }, {
         "duration": "31",
         "minDur": "8",
         "maxDur": "45",
-        "state": "rrrGGGrrrGGG"
+        "state": "rGrG"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
-        "state": "rrryyyrrryyy"
+        "state": "ryry"
     }]
     tl_logic.add("center0", phases=phases, programID=1)
     tl_logic.add("center1", phases=phases, programID=1)

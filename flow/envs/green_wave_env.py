@@ -100,7 +100,7 @@ class TrafficLightGridEnv(Env):
         if self.tl_type != "actuated":
             for i in range(self.rows * self.cols):
                 self.traci_connection.trafficlight.setRedYellowGreenState(
-                    'center' + str(i), "GGGrrrGGGrrr")
+                    'center' + str(i), "GrGr")
                 self.last_change[i, 2] = 1
 
         # Additional Information for Plotting
@@ -200,12 +200,12 @@ class TrafficLightGridEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state="GGGrrrGGGrrr",
+                            state="GrGr",
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='rrrGGGrrrGGG',
+                            state='rGrG',
                             env=self)
                     self.last_change[i, 2] = 1
             else:
@@ -213,12 +213,12 @@ class TrafficLightGridEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='yyyrrryyyrrr',
+                            state='yryr',
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='center{}'.format(i),
-                            state='rrryyyrrryyy',
+                            state='ryry',
                             env=self)
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]

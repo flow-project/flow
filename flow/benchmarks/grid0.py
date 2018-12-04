@@ -41,6 +41,7 @@ vehicles.add(
     sumo_car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
+        decel=7.5,  # avoid collisions at emergency stops
     ),
     routing_controller=(GridRouter, {}),
     num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS,

@@ -352,8 +352,12 @@ class Env(*classdef):
                 node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
 
         # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
+        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                            getSubscriptionResults(veh_id))
+                           for veh_id in self.vehicles.get_ids())
+        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                        getSubscriptionResults(tl_id))
+                       for tl_id in self.traffic_lights.get_ids())
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
@@ -455,12 +459,14 @@ class Env(*classdef):
             self.traci_connection.simulationStep()
 
             # collect subscription information from sumo
-            vehicle_obs = \
-                self.traci_connection.vehicle.getSubscriptionResults()
+            vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                                getSubscriptionResults(veh_id))
+                               for veh_id in self.vehicles.get_ids())
+            tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                            getSubscriptionResults(tl_id))
+                           for tl_id in self.traffic_lights.get_ids())
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
@@ -485,46 +491,18 @@ class Env(*classdef):
             self.render()
 
         states = self.get_state()
-        if isinstance(states, dict):
-            self.state = {}
-            next_observation = {}
-            done = {}
-            infos = {}
-            temp_state = states
-            for key, state in temp_state.items():
-                # collect information of the state of the network based on the
-                # environment class used
-                self.state[key] = np.asarray(state).T
+        # collect information of the state of the network based on the
+        # environment class used
+        self.state = np.asarray(states).T
 
-                # collect observation new state associated with action
-                next_observation[key] = np.copy(self.state[key])
+        # collect observation new state associated with action
+        next_observation = np.copy(states)
 
-                # test if a crash has occurred
-                done[key] = crash
-                # test if the agent has exited the system, if so
-                # its agent should be done
-                # FIXME(ev) this assumes that agents are single vehicles
-                if key in self.vehicles.get_arrived_ids():
-                    done[key] = True
-                # check if an agent is done
-                if crash:
-                    done['__all__'] = True
-                else:
-                    done['__all__'] = False
-                infos[key] = {}
-        else:
-            # collect information of the state of the network based on the
-            # environment class used
-            self.state = np.asarray(states).T
+        # test if the agent should terminate due to a crash
+        done = crash
 
-            # collect observation new state associated with action
-            next_observation = np.copy(states)
-
-            # test if the agent should terminate due to a crash
-            done = crash
-
-            # compute the info for each agent
-            infos = {}
+        # compute the info for each agent
+        infos = {}
 
         # compute the reward
         reward = self.compute_reward(rl_actions, fail=crash)
@@ -654,12 +632,22 @@ class Env(*classdef):
                     departPos=str(pos),
                     departSpeed=str(speed))
 
+            # subscribe the new vehicle
+            self.traci_connection.vehicle.subscribe(
+                veh_id, [tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION,
+                         tc.VAR_ROAD_ID, tc.VAR_SPEED, tc.VAR_EDGES])
+            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+
         self.traci_connection.simulationStep()
 
         # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
+        vehicle_obs = dict((veh_id, self.traci_connection.vehicle.
+                            getSubscriptionResults(veh_id))
+                           for veh_id in self.initial_ids)
+        tls_obs = dict((tl_id, self.traci_connection.trafficlight.
+                        getSubscriptionResults(tl_id))
+                       for tl_id in self.traffic_lights.get_ids())
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
@@ -682,24 +670,12 @@ class Env(*classdef):
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         states = self.get_state()
-        if isinstance(states, dict):
-            self.state = {}
-            observation = {}
-            for key, state in states.items():
-                # collect information of the state of the network based on the
-                # environment class used
-                self.state[key] = np.asarray(state).T
+        # collect information of the state of the network based on the
+        # environment class used
+        self.state = np.asarray(states).T
 
-                # collect observation new state associated with action
-                observation[key] = np.copy(self.state[key]).tolist()
-
-        else:
-            # collect information of the state of the network based on the
-            # environment class used
-            self.state = np.asarray(states).T
-
-            # observation associated with the reset (no warm-up steps)
-            observation = np.copy(states)
+        # observation associated with the reset (no warm-up steps)
+        observation = np.copy(states)
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
@@ -760,7 +736,7 @@ class Env(*classdef):
             if acc[i] is not None:
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
+                self.traci_connection.vehicle.slowDown(vid, next_vel, 1e-3)
 
     def apply_lane_change(self, veh_ids, direction):
         """Apply an instantaneous lane-change to a set of vehicles.

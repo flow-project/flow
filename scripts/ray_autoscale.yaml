@@ -39,13 +39,13 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: m4.16xlarge #c4.4xlarge
-    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
+    InstanceType: c4.4xlarge
+    ImageId: ami-060b3311dd2b675ee # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
-#        SpotOptions:
-#            MaxPrice: "1.0"
+        SpotOptions:
+            MaxPrice: "1.0"
 
     # Additional options in the boto docs.
 
@@ -54,15 +54,15 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: m4.16xlarge #c4.4xlarge
-    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
+    InstanceType: c4.4xlarge
+    ImageId: ami-060b3311dd2b675ee # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
         MarketType: spot
          # Additional options can be found in the boto docs, e.g.
-#        SpotOptions:
-#            MaxPrice: "1.0"
+        SpotOptions:
+            MaxPrice: "1.0"
 
     # Additional options in the boto docs.
 
