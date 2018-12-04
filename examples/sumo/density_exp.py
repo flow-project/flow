@@ -5,7 +5,7 @@ bottleneck experiment
 
 import ray
 
-from examples.sumo.bottleneck import bottleneck_example
+from examples.sumo.bottlenecks import bottleneck_example
 
 import numpy as np
 import multiprocessing
@@ -13,7 +13,7 @@ import multiprocessing
 @ray.remote
 def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
     print('Running experiment for inflow rate: ', flow_rate, render)
-    exp = bottleneck_example(flow_rate, num_steps)
+    exp = bottleneck_example(flow_rate, num_steps, restart_instance=True)
     info_dict = exp.run(num_trials, num_steps)
 
     return info_dict['average_outflow'], \

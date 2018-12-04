@@ -124,7 +124,7 @@ class BottleneckDensityExperiment(SumoExperiment):
 
 
 def bottleneck_example(flow_rate, horizon, enable_lane_changing=False,
-                       render=None):
+                       render=None, restart_instance=False):
     """Perform a simulation of vehicles on a bottleneck.
 
     Parameters
@@ -135,6 +135,8 @@ def bottleneck_example(flow_rate, horizon, enable_lane_changing=False,
         time horizon
     render: bool, optional
         specifies whether to use sumo's gui during execution
+    restart_instance: bool, optional
+        whether to restart SUMO on every new run
 
     Returns
     -------
@@ -149,7 +151,7 @@ def bottleneck_example(flow_rate, horizon, enable_lane_changing=False,
         sim_step=0.5,
         render=render,
         overtake_right=False,
-        restart_instance=False)
+        restart_instance=restart_instance)
 
     vehicles = Vehicles()
 
