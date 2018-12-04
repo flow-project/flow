@@ -20,14 +20,6 @@ flow.core.experiment module
     :undoc-members:
     :show-inheritance:
 
-flow.core.generator module
---------------------------
-
-.. automodule:: flow.core.generator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 flow.core.params module
 -----------------------
 

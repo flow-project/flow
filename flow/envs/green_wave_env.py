@@ -18,6 +18,13 @@ ADDITIONAL_ENV_PARAMS = {
     "discrete": False,
 }
 
+ADDITIONAL_PO_ENV_PARAMS = {
+    # num of vehicles the agent can observe on each incoming edge
+    "num_observed": 2,
+    # velocity to use in reward functions
+    "target_velocity": 30,
+}
+
 
 class TrafficLightGridEnv(Env):
     """Environment used to train traffic lights to regulate traffic flow
@@ -57,6 +64,12 @@ class TrafficLightGridEnv(Env):
     """
 
     def __init__(self, env_params, sumo_params, scenario):
+
+        for p in ADDITIONAL_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
+
         self.grid_array = scenario.net_params.additional_params["grid_array"]
         self.rows = self.grid_array["row_num"]
         self.cols = self.grid_array["col_num"]
@@ -109,7 +122,7 @@ class TrafficLightGridEnv(Env):
             return Discrete(2 ** self.num_traffic_lights)
         else:
             return Box(
-                low=0,
+                low=-1,
                 high=1,
                 shape=(self.num_traffic_lights,),
                 dtype=np.float32)
@@ -176,7 +189,7 @@ class TrafficLightGridEnv(Env):
         else:
             # convert values less than 0.5 to zero and above to 1. 0's indicate
             # that should not switch the direction
-            rl_mask = rl_actions > 0.5
+            rl_mask = rl_actions > 0.0
 
         for i, action in enumerate(rl_mask):
             # check if our timer has exceeded the yellow phase, meaning it
@@ -211,7 +224,7 @@ class TrafficLightGridEnv(Env):
                     self.last_change[i, 1] = not self.last_change[i, 1]
                     self.last_change[i, 2] = 0
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
 
@@ -458,14 +471,14 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
     def __init__(self, env_params, sumo_params, scenario):
         super().__init__(env_params, sumo_params, scenario)
 
+        for p in ADDITIONAL_PO_ENV_PARAMS.keys():
+            if p not in env_params.additional_params:
+                raise KeyError(
+                    'Environment parameter "{}" not supplied'.format(p))
+
         # number of vehicles nearest each intersection that is observed in the
         # state space; defaults to 2
         self.num_observed = env_params.additional_params.get("num_observed", 2)
-
-        # used while computing the reward
-        self.env_params.additional_params["target_velocity"] = \
-            max(self.scenario.speed_limit(edge)
-                for edge in self.scenario.get_edge_list())
 
         # used during visualization
         self.observed_ids = []
@@ -553,10 +566,10 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                 self.last_change.flatten().tolist()
             ]))
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
-            return rewards.min_delay_unscaled(self)
+            return - rewards.min_delay_unscaled(self)
         else:
             return rewards.desired_velocity(self, fail=kwargs["fail"])
 
@@ -576,6 +589,6 @@ class GreenWaveTestEnv(TrafficLightGridEnv):
         """See class definition."""
         pass
 
-    def compute_reward(self, state, rl_actions, **kwargs):
+    def compute_reward(self, rl_actions, **kwargs):
         """No return, for testing purposes."""
         return 0

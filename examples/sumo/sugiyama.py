@@ -9,18 +9,16 @@ from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario, \
-    ADDITIONAL_NET_PARAMS
+from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 
 
-def sugiyama_example(sumo_binary=None):
+def sugiyama_example(render=None):
     """
     Perform a simulation of vehicles on a ring road.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render : bool, optional
         specifies whether to use sumo's gui during execution
 
     Returns
@@ -29,10 +27,10 @@ def sugiyama_example(sumo_binary=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a ring road.
     """
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, render=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     vehicles = Vehicles()
     vehicles.add(
@@ -50,7 +48,6 @@ def sugiyama_example(sumo_binary=None):
 
     scenario = LoopScenario(
         name="sugiyama",
-        generator_class=CircleGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)

@@ -27,9 +27,16 @@ In this section we install Flow as well as the binaries and packages needed
 to support the traffic simulator used in modeling the dynamics of traffic
 networks: SUMO.
 
+If you have not done so already, download the Flow github repository.
+
+::
+
+    git clone https://github.com/flow-project/flow.git
+    cd flow
+
 We begin by creating a conda environment and installing Flow and its
 dependencies within the environment. This can be done by running the below
-script.
+script. Be sure to run the below commands from ``/path/to/flow``.
 
 ::
 
@@ -58,10 +65,22 @@ We begin by downloading SUMO's github directory:
     git checkout 1d4338ab80
     make -f Makefile.cvs
 
-If you have OSX, run the following commands
+If you have OSX, run the following commands. If you don't have brew
+you can find installation instructions at 
+<https://docs.brew.sh/Installation>
 
 ::
 
+    brew update
+    brew install Caskroom/cask/xquartz
+    brew install autoconf
+    brew install automake
+    brew install pkg-config
+    brew install libtool
+    brew install gdal
+    brew install proj
+    brew install xerces-c
+    brew install fox
     export CPPFLAGS=-I/opt/X11/include
     export LDFLAGS=-L/opt/X11/lib
     ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
@@ -140,6 +159,12 @@ To visualize the training progress:
 ::
 
     tensorboard --logdir=~/ray_results
+
+If tensorboard is not installed, you can install with pip: 
+
+::
+
+    pip install tensorboard
 
 For information on how to deploy a cluster, refer to the `Ray instructions <http://ray.readthedocs.io/en/latest/autoscaling.html>`_.
 The basic workflow is running the following locally, ssh-ing into the host machine, and starting
@@ -245,7 +270,7 @@ g. Ray/RLlib (optional)
 =======================
 RLlib is another RL library that has been extensively tested on the Flow
 repository. 
-First visit <https://github.com/eugenevinitsky/ray/blob/master/doc/source/installation.rst> and
+First visit <https://github.com/flow-project/ray/blob/master/doc/source/installation.rst> and
 install the required packages. Do NOT `pip install ray`.
 
 The installation process for this library is as follows:
@@ -253,8 +278,9 @@ The installation process for this library is as follows:
 ::
 
     cd ~
-    git clone https://github.com/eugenevinitsky/ray.git
-    python ray/python/setup.py develop
+    git clone https://github.com/flow-project/ray.git
+    cd ray/python/
+    python setup.py develop
 
 If missing libraries cause errors, please also install additional 
 required libraries as specified at 
@@ -269,7 +295,7 @@ You may define user-specific config parameters as follows
 
 ::
 
-    cp flow/core/config.template.py flow/core/config.py  # Create template for users using pycharm
+    cp flow/config_default.py flow/config.py  # Create template for users using pycharm
 
 
 Remote installation using docker

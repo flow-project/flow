@@ -5,19 +5,18 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.highway.gen import HighwayGenerator
-from flow.scenarios.highway.scenario import HighwayScenario, \
-    ADDITIONAL_NET_PARAMS
+from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
+    ADDITIONAL_ENV_PARAMS
+from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
 
 
-def highway_example(sumo_binary=None):
+def highway_example(render=None):
     """
     Perform a simulation of vehicles on a highway.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render : bool, optional
         specifies whether to use sumo's gui during execution
 
     Returns
@@ -26,10 +25,10 @@ def highway_example(sumo_binary=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
-    sumo_params = SumoParams(sumo_binary="sumo-gui")
+    sumo_params = SumoParams(render=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     vehicles = Vehicles()
     vehicles.add(
@@ -46,31 +45,30 @@ def highway_example(sumo_binary=None):
     inflow = InFlows()
     inflow.add(
         veh_type="human",
-        edge="highway",
+        edge="highway_0",
         probability=0.25,
         departLane="free",
         departSpeed=20)
     inflow.add(
         veh_type="human2",
-        edge="highway",
+        edge="highway_0",
         probability=0.25,
         departLane="free",
         departSpeed=20)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(
-        in_flows=inflow, additional_params=additional_net_params)
+        inflows=inflow, additional_params=additional_net_params)
 
     initial_config = InitialConfig(spacing="uniform", shuffle=True)
 
     scenario = HighwayScenario(
         name="highway",
-        generator_class=HighwayGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = LaneChangeAccelEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 

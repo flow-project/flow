@@ -4,18 +4,14 @@ from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop.gen import CircleGenerator
-from flow.scenarios.loop.loop_scenario import LoopScenario, \
-    ADDITIONAL_NET_PARAMS
+from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 import ray
 
 
 @ray.remote
 def start():
     """Start a environment object with ray."""
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
-
-    sumo_params.sumo_binary = 'sumo'
+    sumo_params = SumoParams(sim_step=0.1, render=False)
 
     vehicles = Vehicles()
     vehicles.add(
@@ -33,7 +29,6 @@ def start():
 
     scenario = LoopScenario(
         name="sugiyama",
-        generator_class=CircleGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)

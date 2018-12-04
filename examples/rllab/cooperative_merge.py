@@ -16,8 +16,7 @@ from flow.controllers import RLController, IDMController, \
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
-from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
-from flow.scenarios.loop_merge.scenario import TwoLoopsOneMergingScenario, \
+from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS
 
 HORIZON = 300
@@ -25,9 +24,9 @@ HORIZON = 300
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(sim_step=0.2, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.2, render=True)
 
-    # note that the vehicles are added sequentially by the generator,
+    # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
     vehicles = Vehicles()
     # Inner ring vehicles
@@ -89,7 +88,6 @@ def run_task(*_):
 
     scenario = TwoLoopsOneMergingScenario(
         name=exp_tag,
-        generator_class=TwoLoopOneMergingGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)

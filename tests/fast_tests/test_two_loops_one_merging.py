@@ -7,14 +7,13 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_merges import TwoLoopsMergePOEnv, \
     ADDITIONAL_ENV_PARAMS
-from flow.scenarios.loop_merge.gen import TwoLoopOneMergingGenerator
-from flow.scenarios.loop_merge.scenario import TwoLoopsOneMergingScenario
+from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario
 
 os.environ["TEST_FLAG"] = "True"
 
 
 def two_loops_one_merging_exp_setup(vehicles=None):
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo")
+    sumo_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         vehicles = Vehicles()
@@ -58,7 +57,6 @@ def two_loops_one_merging_exp_setup(vehicles=None):
 
     scenario = TwoLoopsOneMergingScenario(
         "loop-merges",
-        TwoLoopOneMergingGenerator,
         vehicles,
         net_params,
         initial_config=initial_config)
@@ -70,7 +68,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
 
 class TestLoopMerges(unittest.TestCase):
     """
-    Tests the loop_merges generator, scenario, and environment.
+    Tests the loop_merges scenario and environment.
     """
 
     def setUp(self):

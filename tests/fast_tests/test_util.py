@@ -102,10 +102,9 @@ class TestRegistry(unittest.TestCase):
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
             scenario="Figure8Scenario",
-            generator="Figure8Generator",
             sumo=SumoParams(
                 sim_step=0.1,
-                sumo_binary="sumo",
+                render=False,
             ),
             env=EnvParams(
                 horizon=1500,
@@ -143,26 +142,24 @@ class TestRegistry(unittest.TestCase):
 
         # Note that we expect the port number in sumo_params to change, and
         # that this feature is in fact needed to avoid race conditions
-        flow_params["sumo"].port = env.env.sumo_params.port
+        flow_params["sumo"].port = env.sumo_params.port
 
         # check that each of the parameter match
-        self.assertEqual(env.env.env_params.__dict__,
+        self.assertEqual(env.env_params.__dict__,
                          flow_params["env"].__dict__)
-        self.assertEqual(env.env.sumo_params.__dict__,
+        self.assertEqual(env.sumo_params.__dict__,
                          flow_params["sumo"].__dict__)
-        self.assertEqual(env.env.traffic_lights.__dict__,
+        self.assertEqual(env.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
-        self.assertEqual(env.env.scenario.net_params.__dict__,
+        self.assertEqual(env.scenario.net_params.__dict__,
                          flow_params["net"].__dict__)
-        self.assertEqual(env.env.scenario.net_params.__dict__,
+        self.assertEqual(env.scenario.net_params.__dict__,
                          flow_params["net"].__dict__)
-        self.assertEqual(env.env.scenario.initial_config.__dict__,
+        self.assertEqual(env.scenario.initial_config.__dict__,
                          flow_params["initial"].__dict__)
-        self.assertEqual(env.env.__class__.__name__, flow_params["env_name"])
-        self.assertEqual(env.env.scenario.__class__.__name__,
+        self.assertEqual(env.__class__.__name__, flow_params["env_name"])
+        self.assertEqual(env.scenario.__class__.__name__,
                          flow_params["scenario"])
-        self.assertEqual(env.env.scenario.generator_class.__name__,
-                         flow_params["generator"])
 
 
 class TestRllib(unittest.TestCase):
@@ -181,6 +178,8 @@ class TestRllib(unittest.TestCase):
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {}),
+            # for testing coverage purposes, we add a routing controller
+            routing_controller=(ContinuousRouter, {}),
             speed_mode="no_collide",
             num_vehicles=5)
         vehicles.add(
@@ -213,11 +212,10 @@ class TestRllib(unittest.TestCase):
             exp_tag="merge_0",
             env_name="WaveAttenuationMergePOEnv",
             scenario="MergeScenario",
-            generator="MergeGenerator",
             sumo=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
-                sumo_binary="sumo",
+                render=False,
             ),
             env=EnvParams(
                 horizon=750,
@@ -231,7 +229,7 @@ class TestRllib(unittest.TestCase):
                 },
             ),
             net=NetParams(
-                in_flows=inflow,
+                inflows=inflow,
                 no_internal_links=False,
                 additional_params={
                     "merge_length": 100,
@@ -272,11 +270,11 @@ class TestRllib(unittest.TestCase):
         os.remove(os.path.expanduser('params.json'))
 
         # test that this inflows are correct
-        self.assertTrue(imported_flow_params["net"].in_flows.__dict__ ==
-                        flow_params["net"].in_flows.__dict__)
+        self.assertTrue(imported_flow_params["net"].inflows.__dict__ ==
+                        flow_params["net"].inflows.__dict__)
 
-        imported_flow_params["net"].in_flows = None
-        flow_params["net"].in_flows = None
+        imported_flow_params["net"].inflows = None
+        flow_params["net"].inflows = None
 
         # make sure the rest of the imported flow_params match the originals
         self.assertTrue(imported_flow_params["env"].__dict__ == flow_params[
@@ -296,8 +294,6 @@ class TestRllib(unittest.TestCase):
             imported_flow_params["env_name"] == flow_params["env_name"])
         self.assertTrue(
             imported_flow_params["scenario"] == flow_params["scenario"])
-        self.assertTrue(
-            imported_flow_params["generator"] == flow_params["generator"])
 
         def search_dicts(obj1, obj2):
             """Searches through dictionaries as well as lists of dictionaries
@@ -331,9 +327,8 @@ class TestRllib(unittest.TestCase):
 
         # make sure that the Vehicles class that was imported matches the
         # original one
-        if not search_dicts(imported_flow_params["veh"].__dict__,
-                            flow_params["veh"].__dict__):
-            raise AssertionError
+        self.assertTrue(search_dicts(imported_flow_params["veh"].__dict__,
+                                     flow_params["veh"].__dict__))
 
 
 if __name__ == '__main__':
