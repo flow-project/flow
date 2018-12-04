@@ -13,8 +13,7 @@ from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers import SumoCarFollowingController, GridRouter
 
-from flow.scenarios.grid.gen import SimpleGridGenerator
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
+from flow.scenarios.grid import SimpleGridScenario
 
 
 def gen_edges(row_num, col_num):
@@ -47,7 +46,7 @@ def get_flow_params(v_enter, vehs_per_hour, col_num, row_num,
             departSpeed=v_enter)
 
     net_params = NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params)
 
@@ -90,7 +89,7 @@ def run_task(*_):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=1, render=True)
 
     vehicles = Vehicles()
     vehicles.add(
@@ -106,8 +105,10 @@ def run_task(*_):
 
     additional_env_params = {
         "target_velocity": 50,
-        "num_steps": 500,
-        "switch_time": 3.0
+        "switch_time": 3.0,
+        "num_observed": 2,
+        "discrete": False,
+        "tl_type": "controlled"
     }
     env_params = EnvParams(additional_params=additional_env_params)
 
@@ -123,7 +124,6 @@ def run_task(*_):
 
     scenario = SimpleGridScenario(
         name="grid-intersection",
-        generator_class=SimpleGridGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,

@@ -39,7 +39,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: m4.10xlarge #c4.4xlarge
+    InstanceType: m4.16xlarge #c4.4xlarge
     ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
@@ -54,7 +54,7 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: m4.10xlarge #c4.4xlarge
+    InstanceType: m4.16xlarge #c4.4xlarge
     ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
@@ -68,13 +68,13 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
-#"/tmp/path": "<PATH TO LEARNING TRAFFIC>/.git/refs/heads/<BRANCH NAME>",
+"/tmp/path": "<PATH TO FLOW>.git/refs/heads/<BRANCH NAME>",
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git checkout master && git pull
+    - cd ray && git fetch eugene_upstream && git checkout eugene_upstream/master && git pull eugene_upstream master
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc

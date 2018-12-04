@@ -8,23 +8,22 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 
 from flow.core.experiment import SumoExperiment
-from flow.envs.bay_bridge import BayBridgeEnv
-from flow.scenarios.bay_bridge_toll.gen import BayBridgeTollGenerator
-from flow.scenarios.bay_bridge_toll.scenario import BayBridgeTollScenario
+from flow.envs.bay_bridge.base import BayBridgeEnv
+from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
 NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bottleneck.net.xml")
 
 
-def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
+def bay_bridge_toll_example(render=None, use_traffic_lights=False):
     """Perform a simulation of the toll portion of the Bay Bridge.
 
     This consists of the toll booth and sections of the road leading up to it.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render : bool, optional
         specifies whether to use sumo's gui during execution
     use_traffic_lights: bool, optional
         whether to activate the traffic lights in the scenario
@@ -35,8 +34,8 @@ def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
     """
     sumo_params = SumoParams(sim_step=0.4, overtake_right=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     sumo_car_following_params = SumoCarFollowingParams(speedDev=0.2)
     sumo_lc_params = SumoLaneChangeParams(
@@ -85,7 +84,7 @@ def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
         departSpeed=10)
 
     net_params = NetParams(
-        in_flows=inflow, no_internal_links=False, netfile=NETFILE)
+        inflows=inflow, no_internal_links=False, netfile=NETFILE)
 
     # download the netfile from AWS
     if use_traffic_lights:
@@ -108,7 +107,6 @@ def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
 
     scenario = BayBridgeTollScenario(
         name="bay_bridge_toll",
-        generator_class=BayBridgeTollGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config)
@@ -120,8 +118,8 @@ def bay_bridge_bottleneck_example(sumo_binary=None, use_traffic_lights=False):
 
 if __name__ == "__main__":
     # import the experiment variable
-    exp = bay_bridge_bottleneck_example(
-        sumo_binary="sumo-gui", use_traffic_lights=False)
+    exp = bay_bridge_toll_example(
+        render=True, use_traffic_lights=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

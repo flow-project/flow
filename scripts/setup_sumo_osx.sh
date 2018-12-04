@@ -15,8 +15,3 @@ chmod +x *
 popd
 echo 'export PATH=$PATH:$HOME/sumo_binaries/bin' >> ~/.bash_profile
 echo 'export SUMO_HOME=$HOME/sumo_binaries/bin' >> ~/.bash_profile
-
-source ~/.bash_profile
-
-echo "Installing sumo tools"
-pip install https://akreidieh.s3.amazonaws.com/sumo/flow-0.2.0/sumotools-0.1.0-py3-none-any.whl

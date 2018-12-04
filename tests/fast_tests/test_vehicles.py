@@ -3,13 +3,14 @@ import os
 import numpy as np
 
 from flow.core.vehicles import Vehicles
-from flow.core.params import SumoCarFollowingParams, NetParams, InitialConfig
+from flow.core.params import SumoCarFollowingParams, NetParams, \
+    InitialConfig, SumoParams
 from flow.controllers.car_following_models import IDMController, \
     SumoCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
-from tests.setup_scripts import ring_road_exp_setup
+from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 
 os.environ["TEST_FLAG"] = "True"
 
@@ -19,7 +20,7 @@ class TestVehiclesClass(unittest.TestCase):
     Tests various functions in the vehicles class
     """
 
-    def runSpeedLaneChangeModes(self):
+    def test_speed_lane_change_modes(self):
         """
         Check to make sure vehicle class correctly specifies lane change and
         speed modes
@@ -32,7 +33,7 @@ class TestVehiclesClass(unittest.TestCase):
             lane_change_mode="no_lat_collide")
 
         self.assertEqual(vehicles.get_speed_mode("typeA_0"), 1)
-        self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 256)
+        self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 512)
 
         vehicles.add(
             "typeB",
@@ -41,7 +42,7 @@ class TestVehiclesClass(unittest.TestCase):
             lane_change_mode="strategic")
 
         self.assertEqual(vehicles.get_speed_mode("typeB_0"), 0)
-        self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 853)
+        self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 1621)
 
         vehicles.add(
             "typeC",
@@ -144,18 +145,18 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.remove("test_rl_0")
 
         # ensure that the removed vehicle's ID is not in any lists of vehicles
-        if "test_0" in vehicles.get_ids():
-            raise AssertionError("vehicle still in get_ids()")
-        if "test_0" in vehicles.get_human_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_lc_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_ids():
-            raise AssertionError("vehicle still in get_controlled_ids()")
-        if "test_rl_0" in vehicles.get_ids():
-            raise AssertionError("RL vehicle still in get_ids()")
-        if "test_rl_0" in vehicles.get_rl_ids():
-            raise AssertionError("RL vehicle still in get_rl_ids()")
+        self.assertTrue("test_0" not in vehicles.get_ids(),
+                        msg="vehicle still in get_ids()")
+        self.assertTrue("test_0" not in vehicles.get_human_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_lc_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_ids(),
+                        msg="vehicle still in get_controlled_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_ids(),
+                        msg="RL vehicle still in get_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_rl_ids(),
+                        msg="RL vehicle still in get_rl_ids()")
 
         # ensure that the vehicles are not storing extra information in the
         # vehicles.__vehicles dict
@@ -174,10 +175,10 @@ class TestVehiclesClass(unittest.TestCase):
 class TestMultiLaneData(unittest.TestCase):
     """
     Tests the functions get_lane_leaders(), get_lane_followers(),
-    get_lane_headways(), and get_lane_footways() in the Vehicles class.
+    get_lane_headways(), and get_lane_tailways() in the Vehicles class.
     """
 
-    def test_no_junctions(self):
+    def test_no_junctions_ring(self):
         """
         Test the above mentioned methods in the absence of junctions.
         """
@@ -226,6 +227,279 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_tail = [27.85714285714286] * 3
         np.testing.assert_array_almost_equal(actual_lane_tail,
                                              expected_lane_tail)
+
+    def test_no_junctions_highway(self):
+        additional_net_params = {
+            "length": 100,
+            "lanes": 3,
+            "speed_limit": 30,
+            "resolution": 40,
+            "num_edges": 1
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+        vehicles = Vehicles()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(RLController, {}),
+            num_vehicles=3,
+            initial_speed=1.0)
+
+        # Test Cases
+        # 1. If there's only one vehicle in each lane, we should still
+        # find one leader and one follower for the central vehicle
+        initial_config = InitialConfig(lanes_distribution=float("inf"))
+        initial_config.spacing = "custom"
+        initial_pos = {}
+        initial_pos["start_positions"] = [('highway_0', 20),
+                                          ('highway_0', 30),
+                                          ('highway_0', 10)]
+        initial_pos["start_lanes"] = [1, 2, 0]
+        initial_config.additional_params = initial_pos
+
+        env, scenario = highway_exp_setup(
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            net_params=net_params,
+            vehicles=vehicles,
+            initial_config=initial_config)
+        env.reset()
+
+        # test the central car
+        # test_0 is car to test in central lane
+        # test_1 should be leading car in lane 2
+        # test_2 should be trailing car in lane 0
+        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        expected_lane_leaders = ["", "", "test_1"]
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
+        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        expected_lane_headways = [1000, 1000, 5.0]
+        np.testing.assert_array_almost_equal(actual_lane_headways,
+                                             expected_lane_headways)
+
+        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        expected_lane_followers = ["test_2", "", ""]
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
+        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        expected_lane_tailways = [5.0, 1000, 1000]
+        np.testing.assert_array_almost_equal(actual_lane_tailways,
+                                             expected_lane_tailways)
+
+        # test the leader/follower speed methods
+        expected_leader_speed = [0.0, 0.0, 1.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+
+        expected_follower_speed = [1.0, 0.0, 0.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
+
+        # Next, test the case where all vehicles are on the same
+        # edge and there's two vehicles in each lane
+        # Cases to test
+        # 1. For lane 0, should find a leader and follower for tested car
+        # 2. For lane 1, both vehicles are behind the test car
+        # 3. For lane 2, both vehicles are in front of the tested car
+        # 4. For lane 3, one vehicle in front and one behind the tested car
+        additional_net_params = {
+            "length": 100,
+            "lanes": 4,
+            "speed_limit": 30,
+            "resolution": 40,
+            "num_edges": 1
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+        vehicles = Vehicles()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(RLController, {}),
+            num_vehicles=9,
+            initial_speed=1.0)
+
+        initial_config = InitialConfig(lanes_distribution=float("inf"))
+        initial_config.spacing = "custom"
+        initial_pos = {}
+        initial_pos["start_positions"] = [('highway_0', 50),
+                                          ('highway_0', 60),
+                                          ('highway_0', 40),
+                                          ('highway_0', 40),
+                                          ('highway_0', 30),
+                                          ('highway_0', 60),
+                                          ('highway_0', 70),
+                                          ('highway_0', 60),
+                                          ('highway_0', 40),
+                                          ]
+        initial_pos["start_lanes"] = [0, 0, 0, 1, 1, 2, 2, 3, 3]
+        initial_config.additional_params = initial_pos
+
+        env, scenario = highway_exp_setup(
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            net_params=net_params,
+            vehicles=vehicles,
+            initial_config=initial_config)
+        env.reset()
+
+        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        expected_lane_leaders = ["test_1", "", "test_5", "test_7"]
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
+
+        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        expected_lane_headways = [5.0, 1000, 5.0, 5.0]
+        np.testing.assert_array_almost_equal(actual_lane_headways,
+                                             expected_lane_headways)
+
+        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        expected_lane_followers = ["test_2", "test_3", "", "test_8"]
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
+
+        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        expected_lane_tailways = [5.0, 5.0, 1000, 5.0]
+        np.testing.assert_array_almost_equal(actual_lane_tailways,
+                                             expected_lane_tailways)
+
+        # test the leader/follower speed methods
+        expected_leader_speed = [1.0, 0.0, 1.0, 1.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+        expected_follower_speed = [1.0, 1.0, 0.0, 1.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
+
+        # Now test if all the vehicles are on different edges and
+        # different lanes
+        additional_net_params = {
+            "length": 100,
+            "lanes": 3,
+            "speed_limit": 30,
+            "resolution": 40,
+            "num_edges": 3
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+        vehicles = Vehicles()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(RLController, {}),
+            num_vehicles=3,
+            initial_speed=1.0)
+
+        # Test Cases
+        # 1. If there's only one vehicle in each lane, we should still
+        # find one leader and one follower for the central vehicle
+        initial_config = InitialConfig(lanes_distribution=float("inf"))
+        initial_config.spacing = "custom"
+        initial_pos = {}
+        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
+                                          ('highway_2', 75 - (2 * 100 / 3.0)),
+                                          ('highway_0', 25)]
+        initial_pos["start_lanes"] = [1, 2, 0]
+        initial_config.additional_params = initial_pos
+
+        env, scenario = highway_exp_setup(
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo",
+                                   render=True),
+            net_params=net_params,
+            vehicles=vehicles,
+            initial_config=initial_config)
+        env.reset()
+
+        # test the central car
+        # test_0 is car to test in central lane
+        # test_1 should be leading car in lane 2
+        # test_2 should be trailing car in lane 0
+
+        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        expected_lane_leaders = ["", "", "test_1"]
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
+        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        expected_lane_headways = [1000, 1000, 19.996667]
+        np.testing.assert_array_almost_equal(actual_lane_headways,
+                                             expected_lane_headways)
+
+        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        expected_lane_followers = ["test_2", "", ""]
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
+        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        expected_lane_tailways = [19.996667, 1000, 1000]
+        np.testing.assert_array_almost_equal(actual_lane_tailways,
+                                             expected_lane_tailways)
+
+        # test the leader/follower speed methods
+        expected_leader_speed = [0.0, 0.0, 1.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+        expected_follower_speed = [1.0, 0.0, 0.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
+
+        # Now test if all the vehicles are on different edges and same
+        # lanes
+        additional_net_params = {
+            "length": 100,
+            "lanes": 3,
+            "speed_limit": 30,
+            "resolution": 40,
+            "num_edges": 3
+        }
+        net_params = NetParams(additional_params=additional_net_params)
+        vehicles = Vehicles()
+        vehicles.add(
+            veh_id="test",
+            acceleration_controller=(RLController, {}),
+            num_vehicles=3,
+            initial_speed=1.0)
+
+        # Test Cases
+        # 1. If there's only one vehicle in each lane, we should still
+        # find one leader and one follower for the central vehicle
+        initial_config = InitialConfig(lanes_distribution=float("inf"))
+        initial_config.spacing = "custom"
+        initial_pos = {}
+        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
+                                          ('highway_2', 75 - (2 * 100 / 3.0)),
+                                          ('highway_0', 25)]
+        initial_pos["start_lanes"] = [0, 0, 0]
+        initial_config.additional_params = initial_pos
+
+        env, scenario = highway_exp_setup(
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            net_params=net_params,
+            vehicles=vehicles,
+            initial_config=initial_config)
+        env.reset()
+
+        # test the central car
+        # test_0 is car to test in lane 0
+        # test_1 should be leading car in lane 0
+        # test_2 should be trailing car in lane 0
+        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        expected_lane_leaders = ["test_1", "", ""]
+        self.assertTrue(actual_lane_leaders == expected_lane_leaders)
+        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        expected_lane_headways = [19.996667, 1000, 1000]
+        np.testing.assert_array_almost_equal(actual_lane_headways,
+                                             expected_lane_headways)
+
+        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        expected_lane_followers = ["test_2", "", ""]
+        self.assertTrue(actual_lane_followers == expected_lane_followers)
+        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        expected_lane_tailways = [19.996667, 1000, 1000]
+        np.testing.assert_array_almost_equal(actual_lane_tailways,
+                                             expected_lane_tailways)
+
+        # test the leader/follower speed methods
+        expected_leader_speed = [1.0, 0.0, 0.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+        expected_follower_speed = [1.0, 0.0, 0.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
 
     def test_junctions(self):
         """

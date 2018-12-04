@@ -9,7 +9,7 @@ from rllab and rllib.
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.traffic_lights import TrafficLights
-from flow.utils.rllib import get_rllib_config, get_flow_params
+from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.utils.registry import make_create_env
 
 from flow.benchmarks.grid0 import flow_params as grid0
@@ -94,18 +94,15 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     initial_config = flow_params.get("initial", InitialConfig())
     traffic_lights = flow_params.get("tls", TrafficLights())
 
-    # import the environment, scenario, and generator classes
+    # import the environment and scenario classes
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
     env_class = getattr(module, flow_params["env_name"])
     module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])
     scenario_class = getattr(module, flow_params["scenario"])
-    module = __import__("flow.scenarios", fromlist=[flow_params["generator"]])
-    generator_class = getattr(module, flow_params["generator"])
 
     # recreate the scenario and environment
     scenario = scenario_class(
         name=exp_tag,
-        generator_class=generator_class,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -197,7 +194,7 @@ def get_compute_action_rllib(path_to_dir, checkpoint_num, alg):
     # create and register a gym+rllib env
     flow_params = get_flow_params(config)
     create_env, env_name = make_create_env(
-        params=flow_params, version=9999, sumo_binary="sumo")
+        params=flow_params, version=9999, render=False)
     register_env(env_name, create_env)
 
     # recreate the agent

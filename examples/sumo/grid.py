@@ -5,17 +5,16 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.grid.gen import SimpleGridGenerator
-from flow.scenarios.grid.grid_scenario import SimpleGridScenario
+from flow.scenarios.grid import SimpleGridScenario
 
 
-def grid_example(sumo_binary=None):
+def grid_example(render=None):
     """
     Perform a simulation of vehicles on a grid.
 
     Parameters
     ----------
-    sumo_binary: bool, optional
+    render: bool, optional
         specifies whether to use sumo's gui during execution
 
     Returns
@@ -48,10 +47,10 @@ def grid_example(sumo_binary=None):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=0.1, sumo_binary="sumo-gui")
+    sumo_params = SumoParams(sim_step=0.1, render=True)
 
-    if sumo_binary is not None:
-        sumo_params.sumo_binary = sumo_binary
+    if render is not None:
+        sumo_params.render = render
 
     vehicles = Vehicles()
     vehicles.add(
@@ -100,7 +99,6 @@ def grid_example(sumo_binary=None):
 
     scenario = SimpleGridScenario(
         name="grid-intersection",
-        generator_class=SimpleGridGenerator,
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,

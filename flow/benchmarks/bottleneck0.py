@@ -83,7 +83,7 @@ if not DISABLE_RAMP_METER:
 
 additional_net_params = {"scaling": SCALING}
 net_params = NetParams(
-    in_flows=inflow,
+    inflows=inflow,
     no_internal_links=False,
     additional_params=additional_net_params)
 
@@ -97,13 +97,10 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="BottleneckScenario",
 
-    # name of the generator used to create/modify network configuration files
-    generator="BottleneckGenerator",
-
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=0.5,
-        sumo_binary="sumo",
+        render=False,
         print_warnings=False,
         restart_instance=True,
     ),
@@ -119,7 +116,7 @@ flow_params = dict(
     # network-related parameters (see flow.core.params.NetParams and the
     # scenario's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
-        in_flows=inflow,
+        inflows=inflow,
         no_internal_links=False,
         additional_params=additional_net_params,
     ),
