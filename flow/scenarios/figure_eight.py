@@ -29,17 +29,14 @@ class Figure8Scenario(Scenario):
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLights()):
         """Initialize a figure 8 scenario.
-
         Requires from net_params:
         - ring_radius: radius of the circular portions of the network. Also
           corresponds to half the length of the perpendicular straight lanes.
         - resolution: number of nodes resolution in the circular portions
         - lanes: number of lanes in the network
         - speed: max speed of vehicles in the network
-
         In order for right-of-way dynamics to take place at the intersection,
         set "no_internal_links" in net_params to False.
-
         See flow/scenarios/base_scenario.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
@@ -388,10 +385,10 @@ class Figure8Scenario(Scenario):
     def specify_intersection_edge_starts(self):
         """See base class."""
         intersection_edgestarts = \
-            [(":center_intersection_%s" % (1 + self.lanes),
+            [(":center_intersection_%s" % self.lanes,
               self.ring_edgelen + self.intersection_len / 2 +
               3 * self.inner_space_len),
-             (":center_intersection_1",
+             (":center_intersection_0",
               4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
               self.junction_len + 8 * self.inner_space_len)]
 
