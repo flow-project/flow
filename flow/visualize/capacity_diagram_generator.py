@@ -43,7 +43,6 @@ plt.ylabel('Outflow' + r'$ \ \frac{vehs}{hour}$')
 plt.tick_params(labelsize=20)
 plt.rcParams['xtick.minor.size'] = 20
 plt.minorticks_on()
-import ipdb; ipdb.set_trace()
 plt.show()
 
 # inflows = []
