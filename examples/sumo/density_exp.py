@@ -3,13 +3,12 @@ Run density experiment to generate capacity diagram for the
 bottleneck experiment
 """
 
+import multiprocessing
+import numpy as np
 import os
 import ray
 
 from examples.sumo.bottlenecks import bottleneck_example
-
-import numpy as np
-import multiprocessing
 
 
 @ray.remote
@@ -19,14 +18,14 @@ def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
     info_dict = exp.run(num_trials, num_steps)
 
     return info_dict['average_outflow'], \
-           np.mean(info_dict['velocities']), \
-           np.mean(info_dict['average_rollout_density_outflow']), \
-           info_dict['per_rollout_outflows'], \
-           flow_rate
+        np.mean(info_dict['velocities']), \
+        np.mean(info_dict['average_rollout_density_outflow']), \
+        info_dict['per_rollout_outflows'], \
+        flow_rate
 
 
 if __name__ == '__main__':
-    # import the experiment variable
+    # import the experiment variable`
     densities = list(range(400, 3000, 100))
     outflows = []
     velocities = []
@@ -45,7 +44,7 @@ if __name__ == '__main__':
                           for d in densities]
     for output in ray.get(bottleneck_outputs):
         outflow, velocity, bottleneckdensity, \
-        per_rollout_outflows, flow_rate = output
+            per_rollout_outflows, flow_rate = output
         for i, _ in enumerate(per_rollout_outflows):
             rollout_outflows.append(per_rollout_outflows[i])
             rollout_inflows.append(flow_rate)
