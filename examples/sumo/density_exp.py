@@ -27,7 +27,7 @@ def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
 
 if __name__ == '__main__':
     # import the experiment variable
-    densities = list(range(400, 600, 100))
+    densities = list(range(400, 3000, 100))
     outflows = []
     velocities = []
     bottleneckdensities = []
