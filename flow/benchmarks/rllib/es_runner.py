@@ -81,8 +81,6 @@ if __name__ == "__main__":
     config["num_workers"] = min(num_cpus, num_rollouts)
     config["episodes_per_batch"] = num_rollouts
     config["eval_prob"] = 0.05
-    # config["noise_stdev"] = grid_search([0.01, 0.02])
-    # config["stepsize"] = grid_search([0.01, 0.02])
     # optimal parameters
     config["noise_stdev"] = 0.02
     config["stepsize"] = 0.02
