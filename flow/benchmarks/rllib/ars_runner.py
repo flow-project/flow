@@ -41,6 +41,7 @@ if __name__ == "__main__":
     config["noise_stdev"] = grid_search([.01, .02])
     config['policy_type'] = 'LinearPolicy'
     config['eval_prob'] = 0.05
+    config['clip_actions']  = False # FIXME(ev) temporary ray bug
     config['observation_filter'] = "NoFilter"
 
     # save the flow params for replay
