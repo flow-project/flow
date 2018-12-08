@@ -341,8 +341,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     action,
                     a_min=self.action_space.low,
                     a_max=self.action_space.high)
-        else:
-            return rl_actions
+        return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):
         """Specify the actions to be performed by the rl agent(s).

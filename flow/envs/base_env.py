@@ -738,13 +738,11 @@ class Env(*classdef):
             return None
 
         if isinstance(self.action_space, Box):
-            rl_clipped = np.clip(
+            rl_actions = np.clip(
                 rl_actions,
                 a_min=self.action_space.low,
                 a_max=self.action_space.high)
-            return rl_clipped
-        else:
-            return rl_actions
+        return rl_actions
 
     def apply_rl_actions(self, rl_actions=None):
         """Specify the actions to be performed by the rl agent(s).
