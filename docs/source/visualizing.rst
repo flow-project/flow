@@ -90,7 +90,7 @@ visualization instructions given above with the additional flag
 
 ::
 
-   python ./visualizer_rllab.py /result_dir/itr_XXX.pkl --sumo_web3d
+   python ./visualizer_rllab.py /result_dir/itr_XXX.pkl --sumo-web3d
 
 Then, either from the terminal logs pick out the printed port that has
 num-clients = 2 or you can run
@@ -113,6 +113,6 @@ Here you would pick out 61057 and then run
 
 ::
 
-   python sumo_web3d/sumo_web3d.py --sumo-port "port_num" -c "path to sumo.cfg"
+   python sumo_web3d/sumo_web3d.py --sumo-port "port-num" -c "path to sumo.cfg"
 
 where "port_num" is the port indicated above, 61057.
