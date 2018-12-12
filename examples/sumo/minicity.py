@@ -61,7 +61,6 @@ def minicity_example(render=None,
         sumo_lc_params=SumoLaneChangeParams(
             lane_change_mode="no_lat_collide",
         ),
-        initial_speed=0,
         num_vehicles=90)
     vehicles.add(
         veh_id="rl",
@@ -70,7 +69,6 @@ def minicity_example(render=None,
         sumo_car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
-        initial_speed=0,
         num_vehicles=10)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)

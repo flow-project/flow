@@ -271,8 +271,7 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3,
-            initial_speed=1.0)
+            num_vehicles=3)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -343,8 +342,7 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=9,
-            initial_speed=1.0)
+            num_vehicles=9)
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
@@ -411,8 +409,7 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3,
-            initial_speed=1.0)
+            num_vehicles=3)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -479,8 +476,7 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3,
-            initial_speed=1.0)
+            num_vehicles=3)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
