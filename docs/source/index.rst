@@ -6,9 +6,9 @@
 Welcome to Flow
 ================
 
-`Flow <https://flow-project.github.io>`_ is a computational framework for deep RL and control experiments for traffic microsimulation. Visit `our website <https://flow-project.github.io>`_ for more information. 
+`Flow <https://flow-project.github.io>`_ is a computational framework for deep RL and control experiments for traffic microsimulation. Visit `our website <https://flow-project.github.io>`_ for more information.
 
-Flow is a work in progress - input is welcome. Available documentation is limited for now. 
+Flow is a work in progress - input is welcome. Available documentation is limited for now.
 `Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/exercises>`_ are available in iPython notebook format.
 
 *If you are looking for Akvo Flow, their documentation can be found at* http://flowsupport.akvo.org.
@@ -19,7 +19,9 @@ Flow is a work in progress - input is welcome. Available documentation is limite
 
    intro
    flow_setup
-   Tutorials <https://github.com/flow-project/flow/tree/master/tutorials/>
+   tutorials
+   multiagent
+   rendering
    visualizing
    modules
 
@@ -27,10 +29,17 @@ Flow is a work in progress - input is welcome. Available documentation is limite
 .. Citing Flow
 .. ============
 
-.. If you use Flow for academic research, you are highly encouraged to cite the following paper:
+If you use Flow for academic research, you are highly encouraged to cite our paper:
 
-.. - Yan Duan, Xi Chen, Rein Houthooft, John Schulman, Pieter Abbeel. "`Benchmarking Deep Reinforcement Learning for Continuous Control <http://arxiv.org/abs/1604.06778>`_. *Proceedings of the 33rd International Conference on Machine Learning (ICML), 2016.*
+C. Wu, A. Kreidieh, K. Parvate, E. Vinitsky, A. Bayen, "Flow: Architecture and
+Benchmarking for Reinforcement Learning in Traffic Control," CoRR,
+vol. abs/1710.05465, 2017. [Online]. Available: https://arxiv.org/abs/1710.05465
 
+If you use the benchmarks, you are highly encouraged to cite our paper:
+
+Vinitsky, E., Kreidieh, A., Le Flem, L., Kheterpal, N., Jang, K., Wu, F., ... &
+Bayen, A. M. (2018, October). Benchmarks for reinforcement learning in
+mixed-autonomy traffic. In Conference on Robot Learning (pp. 399-409).
 
 Indices and tables
 ==================
