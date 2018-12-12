@@ -1,8 +1,54 @@
 import unittest
-from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams
+from flow.core.params import SumoParams, SumoLaneChangeParams, \
+    SumoCarFollowingParams
 import os
 
 os.environ["TEST_FLAG"] = "True"
+
+
+class TestSumoParams(unittest.TestCase):
+    """Tests flow.core.params.SumoParams"""
+
+    def test_params(self):
+        """Tests that the various parameters lead to correct assignments in the
+        attribute of the class."""
+        # start a SumoParams with some attributes
+        params = SumoParams(
+             port=None,
+             sim_step=0.125,
+             emission_path=None,
+             lateral_resolution=None,
+             no_step_log=False,
+             render=True,
+             save_render=True,
+             sight_radius=50,
+             show_radius=True,
+             pxpm=10,
+             overtake_right=True,
+             ballistic=True,
+             seed=204,
+             restart_instance=True,
+             print_warnings=False,
+             teleport_time=-1,
+             sumo_binary=None)
+
+        # ensure that the attributes match their correct values
+        self.assertEqual(params.port, None)
+        self.assertEqual(params.sim_step, 0.125)
+        self.assertEqual(params.emission_path, None)
+        self.assertEqual(params.lateral_resolution, None)
+        self.assertEqual(params.no_step_log, False)
+        self.assertEqual(params.render, True)
+        self.assertEqual(params.save_render, True)
+        self.assertEqual(params.sight_radius, 50)
+        self.assertEqual(params.show_radius, True)
+        self.assertEqual(params.pxpm, 10)
+        self.assertEqual(params.overtake_right, True)
+        self.assertEqual(params.ballistic, True)
+        self.assertEqual(params.seed, 204)
+        self.assertEqual(params.restart_instance, True)
+        self.assertEqual(params.print_warnings, False)
+        self.assertEqual(params.teleport_time, -1)
 
 
 class TestSumoCarFollowingParams(unittest.TestCase):
