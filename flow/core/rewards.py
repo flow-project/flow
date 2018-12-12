@@ -3,7 +3,7 @@
 import numpy as np
 
 
-def desired_velocity(env, fail=False):
+def desired_velocity(env, fail=False, edge_list=None):
     """Encourage proximity to a desired velocity.
 
     This function measures the deviation of a system of vehicles from a
@@ -21,14 +21,22 @@ def desired_velocity(env, fail=False):
 
     Parameters
     ----------
-    env: flow.envs.Env type
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    fail: bool
+    fail : bool, optional
         specifies if any crash or other failure occurred in the system
+    edge_list : list  of str, optional
+        list of edges the reward is computed over. If no edge_list is defined,
+        the reward is computed over all edges
     """
-    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
-    num_vehicles = env.vehicles.num_vehicles
+    if edge_list is None:
+        veh_ids = env.vehicles.get_ids()
+    else:
+        veh_ids = env.vehicles.get_ids_by_edge(edge_list)
+
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    num_vehicles = len(veh_ids)
 
     if any(vel < -100) or fail:
         return 0.
@@ -65,36 +73,6 @@ def total_velocity(env, fail=False):
 
 def reward_density(env):
     return env.vehicles.get_num_arrived() / env.sim_step
-
-
-def max_edge_velocity(env, edge_list, fail=False):
-    """Reward desired velocity on a restricted set of edges.
-
-    Parameters
-    ----------
-    env: flow.envs.Env type
-        the environment variable, which contains information on the current
-        state of the system.
-    edge_list: list <str>
-        list of edges the reward is computed over
-    fail: bool
-        specifies if any crash or other failure occurred in the system
-    """
-    veh_ids = env.vehicles.get_ids_by_edge(edge_list)
-    vel = np.array(env.vehicles.get_speed(veh_ids))
-    num_vehicles = len(veh_ids)
-
-    if any(vel < -100) or fail:
-        return 0.
-
-    target_vel = env.env_params.additional_params['target_velocity']
-    max_cost = np.array([target_vel] * num_vehicles)
-    max_cost = np.linalg.norm(max_cost)
-
-    cost = vel - target_vel
-    cost = np.linalg.norm(cost)
-
-    return max(max_cost - cost, 0)
 
 
 def rl_forward_progress(env, gain=0.1):
@@ -229,7 +207,7 @@ def penalize_headway_variance(vehicles,
 
 
 def punish_small_rl_headways(env,
-                             headway_threshold,
+                             headway_threshold=5,
                              penalty_gain=1,
                              penalty_exponent=1):
     """A reward function used to train rl vehicles to avoid small headways.
