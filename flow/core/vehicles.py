@@ -99,35 +99,6 @@ class Vehicles:
             initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
-<<<<<<< HEAD
-=======
-        speed_mode : str or int, optional
-            may be one of the following:
-             * "right_of_way" (default): respect safe speed, right of way and
-               brake hard at red lights if needed. DOES NOT respect
-               max accel and decel which enables emergency stopping.
-               Necessary to prevent custom models from crashing
-             * "no_collide": Human and RL cars are preventing from reaching
-               speeds that may cause crashes (also serves as a failsafe).
-             * "aggressive": Human and RL cars are not limited by sumo with
-               regard to their accelerations, and can crash longitudinally
-             * "all_checks": all sumo safety checks are activated
-             * int values may be used to define custom speed mode for the given
-               vehicles, specified at:
-               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
-        lane_change_mode : str or int, optional
-            may be one of the following:
-            * "no_lat_collide" (default): Human cars will not make lane
-              changes, RL cars can lane change into any space, no matter how
-              likely it is to crash
-            * "strategic": Human cars make lane changes in accordance with SUMO
-              to provide speed boosts
-            * "aggressive": RL cars are not limited by sumo with regard to
-              their lane-change actions, and can crash longitudinally
-            * int values may be used to define custom lane change modes for the
-              given vehicles, specified at:
-              http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
->>>>>>> a0d443896becb7455cff5cc568d1b1c4b873f483
         sumo_car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
         sumo_lc_params : flow.core.params.SumoLaneChangeParams
@@ -772,7 +743,7 @@ class Vehicles:
 
         Returns
         -------
-        object
+        flow.controller.BaseController
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_acc_controller(vehID, error) for vehID in veh_id]
@@ -790,7 +761,7 @@ class Vehicles:
 
         Returns
         -------
-        object
+        flow.controllers.BaseLaneChangeController
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [
