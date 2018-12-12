@@ -13,7 +13,7 @@ from flow.controllers import ContinuousRouter
 from flow.benchmarks.figureeight0 import flow_params
 
 
-def figure_eight_baseline(num_runs, flow_params, render=True):
+def figure_eight_baseline(num_runs, render=True):
     """Run script for all figure eight baselines.
 
     Parameters

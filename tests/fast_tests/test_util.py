@@ -142,23 +142,23 @@ class TestRegistry(unittest.TestCase):
 
         # Note that we expect the port number in sumo_params to change, and
         # that this feature is in fact needed to avoid race conditions
-        flow_params["sumo"].port = env.env.sumo_params.port
+        flow_params["sumo"].port = env.sumo_params.port
 
         # check that each of the parameter match
-        self.assertEqual(env.env.env_params.__dict__,
+        self.assertEqual(env.env_params.__dict__,
                          flow_params["env"].__dict__)
-        self.assertEqual(env.env.sumo_params.__dict__,
+        self.assertEqual(env.sumo_params.__dict__,
                          flow_params["sumo"].__dict__)
-        self.assertEqual(env.env.traffic_lights.__dict__,
+        self.assertEqual(env.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
-        self.assertEqual(env.env.scenario.net_params.__dict__,
+        self.assertEqual(env.scenario.net_params.__dict__,
                          flow_params["net"].__dict__)
-        self.assertEqual(env.env.scenario.net_params.__dict__,
+        self.assertEqual(env.scenario.net_params.__dict__,
                          flow_params["net"].__dict__)
-        self.assertEqual(env.env.scenario.initial_config.__dict__,
+        self.assertEqual(env.scenario.initial_config.__dict__,
                          flow_params["initial"].__dict__)
-        self.assertEqual(env.env.__class__.__name__, flow_params["env_name"])
-        self.assertEqual(env.env.scenario.__class__.__name__,
+        self.assertEqual(env.__class__.__name__, flow_params["env_name"])
+        self.assertEqual(env.scenario.__class__.__name__,
                          flow_params["scenario"])
 
 
@@ -327,9 +327,8 @@ class TestRllib(unittest.TestCase):
 
         # make sure that the Vehicles class that was imported matches the
         # original one
-        if not search_dicts(imported_flow_params["veh"].__dict__,
-                            flow_params["veh"].__dict__):
-            raise AssertionError
+        self.assertTrue(search_dicts(imported_flow_params["veh"].__dict__,
+                                     flow_params["veh"].__dict__))
 
 
 if __name__ == '__main__':

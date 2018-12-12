@@ -20,7 +20,7 @@ class TestVehiclesClass(unittest.TestCase):
     Tests various functions in the vehicles class
     """
 
-    def runSpeedLaneChangeModes(self):
+    def test_speed_lane_change_modes(self):
         """
         Check to make sure vehicle class correctly specifies lane change and
         speed modes
@@ -33,7 +33,7 @@ class TestVehiclesClass(unittest.TestCase):
             lane_change_mode="no_lat_collide")
 
         self.assertEqual(vehicles.get_speed_mode("typeA_0"), 1)
-        self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 256)
+        self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 512)
 
         vehicles.add(
             "typeB",
@@ -42,7 +42,7 @@ class TestVehiclesClass(unittest.TestCase):
             lane_change_mode="strategic")
 
         self.assertEqual(vehicles.get_speed_mode("typeB_0"), 0)
-        self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 853)
+        self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 1621)
 
         vehicles.add(
             "typeC",
@@ -145,18 +145,18 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.remove("test_rl_0")
 
         # ensure that the removed vehicle's ID is not in any lists of vehicles
-        if "test_0" in vehicles.get_ids():
-            raise AssertionError("vehicle still in get_ids()")
-        if "test_0" in vehicles.get_human_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_lc_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_ids():
-            raise AssertionError("vehicle still in get_controlled_ids()")
-        if "test_rl_0" in vehicles.get_ids():
-            raise AssertionError("RL vehicle still in get_ids()")
-        if "test_rl_0" in vehicles.get_rl_ids():
-            raise AssertionError("RL vehicle still in get_rl_ids()")
+        self.assertTrue("test_0" not in vehicles.get_ids(),
+                        msg="vehicle still in get_ids()")
+        self.assertTrue("test_0" not in vehicles.get_human_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_lc_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_ids(),
+                        msg="vehicle still in get_controlled_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_ids(),
+                        msg="RL vehicle still in get_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_rl_ids(),
+                        msg="RL vehicle still in get_rl_ids()")
 
         # ensure that the vehicles are not storing extra information in the
         # vehicles.__vehicles dict
@@ -175,7 +175,7 @@ class TestVehiclesClass(unittest.TestCase):
 class TestMultiLaneData(unittest.TestCase):
     """
     Tests the functions get_lane_leaders(), get_lane_followers(),
-    get_lane_headways(), and get_lane_footways() in the Vehicles class.
+    get_lane_headways(), and get_lane_tailways() in the Vehicles class.
     """
 
     def test_no_junctions_ring(self):
@@ -241,7 +241,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3)
+            num_vehicles=3,
+            initial_speed=1.0)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -282,6 +283,17 @@ class TestMultiLaneData(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
+        # test the leader/follower speed methods
+        expected_leader_speed = [0.0, 0.0, 1.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+
+        expected_follower_speed = [1.0, 0.0, 0.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
+
         # Next, test the case where all vehicles are on the same
         # edge and there's two vehicles in each lane
         # Cases to test
@@ -301,7 +313,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=9)
+            num_vehicles=9,
+            initial_speed=1.0)
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
@@ -344,6 +357,16 @@ class TestMultiLaneData(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
+        # test the leader/follower speed methods
+        expected_leader_speed = [1.0, 0.0, 1.0, 1.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+        expected_follower_speed = [1.0, 1.0, 0.0, 1.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
+
         # Now test if all the vehicles are on different edges and
         # different lanes
         additional_net_params = {
@@ -358,7 +381,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3)
+            num_vehicles=3,
+            initial_speed=1.0)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -373,7 +397,8 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo",
+                                   render=True),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -400,6 +425,16 @@ class TestMultiLaneData(unittest.TestCase):
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
+        # test the leader/follower speed methods
+        expected_leader_speed = [0.0, 0.0, 1.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+        expected_follower_speed = [1.0, 0.0, 0.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
+
         # Now test if all the vehicles are on different edges and same
         # lanes
         additional_net_params = {
@@ -414,7 +449,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3)
+            num_vehicles=3,
+            initial_speed=1.0)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -454,6 +490,16 @@ class TestMultiLaneData(unittest.TestCase):
         expected_lane_tailways = [19.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
+
+        # test the leader/follower speed methods
+        expected_leader_speed = [1.0, 0.0, 0.0]
+        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_leader_speed,
+                                             expected_leader_speed)
+        expected_follower_speed = [1.0, 0.0, 0.0]
+        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        np.testing.assert_array_almost_equal(actual_follower_speed,
+                                             expected_follower_speed)
 
     def test_junctions(self):
         """
