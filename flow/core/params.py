@@ -21,12 +21,17 @@ class SumoParams:
                  lateral_resolution=None,
                  no_step_log=True,
                  render=False,
+                 save_render=False,
+                 sight_radius=25,
+                 show_radius=False,
+                 pxpm=2,
                  overtake_right=False,
                  ballistic=False,
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
                  teleport_time=-1,
+                 num_clients=1,
                  sumo_binary=None):
         """Instantiate SumoParams.
 
@@ -46,8 +51,22 @@ class SumoParams:
         no_step_log: bool, optional
             specifies whether to add sumo's step logs to the log file, and
             print them into the terminal during runtime, defaults to True
-        render: bool, optional
+        render: str or bool, optional
             specifies whether to visualize the rollout(s)
+            False: no rendering
+            True: delegate rendering to sumo-gui for back-compatibility
+            "gray": static grayscale rendering, which is good for training
+            "dgray": dynamic grayscale rendering
+            "rgb": static RGB rendering
+            "drgb": dynamic RGB rendering, which is good for visualization
+        save_render: bool, optional
+            specifies whether to save rendering data to disk
+        sight_radius: int, optional
+            sets the radius of observation for RL vehicles (meter)
+        show_radius: bool, optional
+            specifies whether to render the radius of RL observation
+        pxpm: int, optional
+            specifies rendering resolution (pixel / meter)
         overtake_right: bool, optional
             whether vehicles are allowed to overtake on the right as well as
             the left
@@ -67,6 +86,8 @@ class SumoParams:
         teleport_time: int, optional
             If negative, vehicles don't teleport in gridlock. If positive,
             they teleport after teleport_time seconds
+        num_clients: int, optional
+            Number of clients that will connect to Traci
 
         """
         self.port = port
@@ -75,12 +96,17 @@ class SumoParams:
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
         self.render = render
+        self.save_render = save_render
+        self.sight_radius = sight_radius
+        self.pxpm = pxpm
+        self.show_radius = show_radius
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
         self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
+        self.num_clients = num_clients
         if sumo_binary is not None:
             warnings.simplefilter("always", PendingDeprecationWarning)
             warnings.warn(
@@ -191,10 +217,10 @@ class NetParams:
         osm_path : str, optional
             path to the .osm file that should be used to generate the network
             configuration files. This parameter is only needed / used if the
-            OpenStreetMapGenerator generator class is used.
+            OpenStreetMapScenario class is used.
         netfile : str, optional
             path to the .net.xml file that should be passed to SUMO. This is
-            only needed / used if the NetFileGenerator class is used, such as
+            only needed / used if the NetFileScenario class is used, such as
             in the case of Bay Bridge experiments (which use a custom net.xml
             file)
         additional_params : dict, optional
