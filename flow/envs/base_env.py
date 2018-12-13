@@ -88,7 +88,6 @@ class Env(*classdef):
             time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
         self.vehicles = scenario.vehicles
-        self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
         # step_counter: number of total steps taken
@@ -221,12 +220,6 @@ class Env(*classdef):
             value = sparse state information (only what is needed to add a
             vehicle in a sumo network with traci)
         """
-        # add missing traffic lights in the list of traffic light ids
-        tls_ids = self.traci_connection.trafficlight.getIDList()
-
-        for tl_id in list(set(tls_ids) - set(self.traffic_lights.get_ids())):
-            self.traffic_lights.add(tl_id)
-
         # subscribe the requested states for traci-related speedups
         for veh_id in self.vehicles.get_ids():
             self.traci_connection.vehicle.subscribe(veh_id, [
@@ -244,14 +237,8 @@ class Env(*classdef):
             tc.VAR_DELTA_T
         ])
 
-        # subscribe the traffic light
-        for node_id in self.traffic_lights.get_ids():
-            self.traci_connection.trafficlight.subscribe(
-                node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
-
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
@@ -262,7 +249,9 @@ class Env(*classdef):
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # check to make sure all vehicles have been spawned
         if len(self.initial_ids) < self.vehicles.num_vehicles:
@@ -350,6 +339,7 @@ class Env(*classdef):
 
             self.additional_command()
 
+            # advance the simulation in the simulator by one step
             self.k.simulation.simulation_step()
 
             # collect subscription information from sumo
@@ -357,12 +347,12 @@ class Env(*classdef):
                 self.traci_connection.vehicle.getSubscriptionResults()
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
-            self.traffic_lights.update(tls_obs)
+
+            # store new observations in the vehicles and traffic lights class
+            self.k.update(reset=False)
 
             # update the colors of vehicles
             self.update_vehicle_colors()
@@ -550,16 +540,18 @@ class Env(*classdef):
                     departPos=str(pos),
                     departSpeed=str(speed))
 
+        # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # update the colors of vehicles
         self.update_vehicle_colors()
