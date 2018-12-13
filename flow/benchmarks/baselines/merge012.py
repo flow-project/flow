@@ -10,7 +10,7 @@ from flow.core.traffic_lights import TrafficLights
 from flow.benchmarks.merge0 import flow_params
 
 
-def merge_baseline(num_runs, flow_params, render=True):
+def merge_baseline(num_runs, render=True):
     """Run script for all merge baselines.
 
     Parameters

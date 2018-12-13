@@ -1,0 +1,101 @@
+# benchmark_cluster.yaml script — running the benchmark experiments
+
+# An unique identifier for the head node and workers of this cluster.
+#cluster_name: test #<YOUR NAME>
+
+# The minimum number of workers nodes to launch in addition to the head
+# node. This number should be >= 0.
+min_workers: 0 #<NUM WORKERS IN CLUSTER>
+
+# The maximum number of workers nodes to launch in addition to the head
+# node. This takes precedence over min_workers.
+max_workers: 0
+
+# The autoscaler will scale up the cluster to this target fraction of resource
+# usage. For example, if a cluster of 10 nodes is 100% busy and
+# target_utilization is 0.8, it would resize the cluster to 13. This fraction
+# can be decreased to increase the aggressiveness of upscaling.
+target_utilization_fraction: 0.8
+
+# If a node is idle for this many minutes, it will be removed.
+idle_timeout_minutes: 5
+
+# Cloud-provider specific configuration.
+provider:
+    type: aws
+    region: us-west-1
+    availability_zone: us-west-1a
+
+# How Ray will authenticate with newly launched nodes.
+auth:
+    ssh_user: ubuntu
+# By default Ray creates a new private keypair, but you can also use your own.
+# If you do so, make sure to also set "KeyName" in the head and worker node
+# configurations below.
+#    ssh_private_key: /path/to/your/key.pem
+
+# Provider-specific config for the head node, e.g. instance type. By default
+# Ray will auto-configure unspecified fields such as SubnetId and KeyName.
+# For more documentation on available fields, see:
+# http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
+head_node:
+    InstanceType: c4.4xlarge
+    ImageId: ami-060b3311dd2b675ee # Flow AMI (Ubuntu)
+    InstanceMarketOptions:
+        MarketType: spot
+         #Additional options can be found in the boto docs, e.g.
+        SpotOptions:
+            MaxPrice: "1.0"
+
+    # Additional options in the boto docs.
+
+# Provider-specific config for worker nodes, e.g. instance type. By default
+# Ray will auto-configure unspecified fields such as SubnetId and KeyName.
+# For more documentation on available fields, see:
+# http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
+worker_nodes:
+    InstanceType: c4.4xlarge
+    ImageId: ami-060b3311dd2b675ee # Flow AMI (Ubuntu)
+
+    #Run workers on spot by default. Comment this out to use on-demand.
+    InstanceMarketOptions:
+        MarketType: spot
+         # Additional options can be found in the boto docs, e.g.
+        SpotOptions:
+            MaxPrice: "1.0"
+
+    # Additional options in the boto docs.
+
+setup_commands:
+    # checkout your desired branch on all worker nodes
+    - cd flow && git fetch && git checkout origin/new_sumo
+#    - cd ray && git fetch flow_upstream && git checkout flow_upstream/ray_merge && git pull flow_upstream master
+    - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
+    - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
+    - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
+    - echo 'export PATH="/home/ubuntu/anaconda3/bin:$PATH"' >> ~/.bashrc
+# Custom commands that will be run on the head node after common setup.
+head_setup_commands:
+    - PATH="/home/ubuntu/anaconda3/bin:$PATH" yes | ~/anaconda3/bin/conda install boto3=1.4.8  # 1.4.8 adds InstanceMarketOptions
+
+# Custom commands that will be run on worker nodes after common setup.
+worker_setup_commands: []
+
+# Command to start ray on the head node. You don't need to change this.
+head_start_ray_commands:
+    - ray stop
+    - >-
+      ulimit -n 65536;
+      ray start
+      --head
+      --redis-port=6379
+      --object-manager-port=8076
+      --autoscaling-config=~/ray_bootstrap_config.yaml
+# Command to start ray on worker nodes. You don't need to change this.
+worker_start_ray_commands:
+    - ray stop
+    - >-
+      ulimit -n 65536;
+      ray start
+      --redis-address=$RAY_HEAD_IP:6379
+      --object-manager-port=8076
