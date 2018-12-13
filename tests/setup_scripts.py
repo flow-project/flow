@@ -13,7 +13,7 @@ from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv

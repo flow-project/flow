@@ -1,7 +1,7 @@
 """Contains the bottleneck scenario class."""
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 import numpy as np
 

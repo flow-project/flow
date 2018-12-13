@@ -6,7 +6,7 @@ Baseline is an actuated traffic light provided by SUMO.
 import numpy as np
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.benchmarks.grid0 import flow_params
 from flow.benchmarks.grid0 import N_ROWS
 from flow.benchmarks.grid0 import N_COLUMNS
