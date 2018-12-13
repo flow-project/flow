@@ -201,6 +201,7 @@ class Env(*classdef):
 
         self.traci_connection = self.k.simulation.start_simulation(
             scenario=self.scenario, sim_params=self.sumo_params)
+        self.k.pass_api(self.traci_connection)
         self.setup_initial_state()
 
     def setup_initial_state(self):
