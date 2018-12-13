@@ -5,7 +5,7 @@ from tests.setup_scripts import ring_road_exp_setup, grid_mxn_exp_setup
 from flow.core.vehicles import Vehicles
 from flow.core.params import NetParams
 from flow.core.params import SumoCarFollowingParams
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.core.experiment import SumoExperiment
 from flow.controllers.routing_controllers import GridRouter
 from flow.controllers.car_following_models import IDMController

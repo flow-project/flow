@@ -17,7 +17,7 @@ except ImportError:
     Serializable = object
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.core.util import makexml, printxml, ensure_dir
 
 E = etree.Element
@@ -69,7 +69,7 @@ class Scenario(Serializable):
         initial_config : InitialConfig type
             see flow/core/params.py
         traffic_lights : flow.core.traffic_lights.TrafficLights type
-            see flow/core/traffic_lights.py
+            see flow/core/params.py
         """
         # Invoke serializable if using rllab
         if Serializable is not object:

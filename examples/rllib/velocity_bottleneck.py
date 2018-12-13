@@ -14,7 +14,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter, \
     SumoLaneChangeController
