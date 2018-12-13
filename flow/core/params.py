@@ -121,6 +121,14 @@ class TrafficLights:
             if freq:
                 self.__tls_properties[node_id]["freq"] = freq
 
+    def get_properties(self):
+        """Return traffic light properties.
+
+        This is meant to be used by the generator to import traffic light data
+        to the .net.xml file
+        """
+        return self.__tls_properties
+
     def actuated_default(self):
         """
         Return the default values to be used for the scenario
