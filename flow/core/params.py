@@ -3,9 +3,8 @@
 import logging
 from flow.utils.flow_warnings import deprecation_warning
 import warnings
-import traci.constants as tc
 
-# DEFAULTS for traffic lights
+# Traffic light defaults
 PROGRAM_ID = 1
 MAX_GAP = 3.0
 DETECTOR_GAP = 0.6
@@ -27,10 +26,8 @@ class TrafficLights:
         ----------
         baseline: bool
         """
-        self.__tls = dict()  # contains current time step traffic light data
-        self.__ids = list()  # names of nodes with traffic lights
-        self.__tls_properties = dict()  # traffic light xml properties
-        self.num_traffic_lights = 0  # number of traffic light nodes
+        # traffic light xml properties
+        self.__tls_properties = dict()
 
         # all traffic light parameters are set to default baseline values
         self.baseline = baseline
@@ -96,14 +93,6 @@ class TrafficLights:
         For information on defining traffic light properties, see:
         http://sumo.dlr.de/wiki/Simulation/Traffic_Lights#Defining_New_TLS-Programs
         """
-        # increment the number of traffic lights
-        self.num_traffic_lights += 1
-
-        # TODO add proper checks here: make sure programID exists
-        # NOTE: the keys you add to the dictionary need to match the xml spec
-        # add the node id to the list of controlled nodes
-        self.__ids.append(node_id)
-
         # prepare the data needed to generate xml files
         self.__tls_properties[node_id] = {"id": node_id, "type": tls_type}
 
@@ -131,71 +120,6 @@ class TrafficLights:
 
             if freq:
                 self.__tls_properties[node_id]["freq"] = freq
-
-    def update(self, tls_subscriptions):
-        """Update the states and phases of the traffic lights.
-
-        This is called by the environment class, and ensures that the traffic
-        light variables match current traffic light data.
-
-        Parameters
-        ----------
-        tls_subscriptions : dict
-            sumo traffic light subscription data
-        """
-        self.__tls = tls_subscriptions.copy()
-
-    def get_ids(self):
-        """Return the names of all nodes with traffic lights."""
-        return self.__ids
-
-    def get_properties(self):
-        """Return traffic light properties.
-
-        This is meant to be used by the scenario to import traffic light data
-        to the .net.xml file
-        """
-        return self.__tls_properties
-
-    def set_state(self, node_id, state, env, link_index="all"):
-        """Set the state of the traffic lights on a specific node.
-
-        Parameters
-        ----------
-        node_id : str
-            name of the node with the controlled traffic lights
-        state : str
-            requested state(s) for the traffic light
-        env : flow.envs.base_env.Env type
-            the environment at the current time step
-        link_index : int, optional
-            index of the link whose traffic light state is meant to be changed.
-            If no value is provided, the lights on all links are updated.
-        """
-        if link_index == "all":
-            # if lights on all lanes are changed
-            env.traci_connection.trafficlight.setRedYellowGreenState(
-                tlsID=node_id, state=state)
-        else:
-            # if lights on a single lane is changed
-            env.traci_connection.trafficlight.setLinkState(
-                tlsID=node_id, tlsLinkIndex=link_index, state=state)
-
-    def get_state(self, node_id):
-        """Return the state of the traffic light(s) at the specified node.
-
-        Parameters
-        ----------
-        node_id: str
-            name of the node
-
-        Returns
-        -------
-        state : str
-            Index = lane index
-            Element = state of the traffic light at that node/lane
-        """
-        return self.__tls[node_id][tc.TL_RED_YELLOW_GREEN_STATE]
 
     def actuated_default(self):
         """

@@ -198,12 +198,12 @@ class TrafficLightGridEnv(Env):
                 self.last_change[i, 0] += self.sim_step
                 if self.last_change[i, 0] >= self.min_switch_time:
                     if self.last_change[i, 1] == 0:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state="GGGrrrGGGrrr",
                             env=self)
                     else:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state='rrrGGGrrrGGG',
                             env=self)
@@ -211,12 +211,12 @@ class TrafficLightGridEnv(Env):
             else:
                 if action:
                     if self.last_change[i, 1] == 0:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state='yyyrrryyyrrr',
                             env=self)
                     else:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
                             state='rrryyyrrryyy',
                             env=self)
