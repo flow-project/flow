@@ -88,6 +88,7 @@ class Env(*classdef):
             time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
         self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
         self.vehicles = scenario.vehicles
+        self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
         self.time_counter = 0
         # step_counter: number of total steps taken
