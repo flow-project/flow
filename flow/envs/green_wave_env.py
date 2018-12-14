@@ -550,7 +550,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         for edge in self.scenario.get_edge_list():
             ids = self.vehicles.get_ids_by_edge(edge)
             if len(ids) > 0:
-                density += [5 * len(ids) / self.scenario.edge_length(edge)]
+                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
                 velocity_avg += [
                     np.mean(
                         [self.vehicles.get_speed(veh_id)

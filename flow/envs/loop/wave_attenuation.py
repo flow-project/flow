@@ -125,9 +125,9 @@ class WaveAttenuationEnv(Env):
 
     def get_state(self):
         """See class definition."""
-        speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
+        speed = [self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
                  for veh_id in self.sorted_ids]
-        pos = [self.get_x_by_id(veh_id) / self.scenario.length
+        pos = [self.get_x_by_id(veh_id) / self.k.scenario.length()
                for veh_id in self.sorted_ids]
 
         return np.array(speed + pos)
@@ -294,7 +294,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
     @property
     def action_space(self):
         """See class definition."""
-        add_params = self.scenario.net_params.additional_params
+        add_params = self.net_params.additional_params
         num_rings = add_params['num_rings']
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
