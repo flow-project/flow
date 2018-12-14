@@ -57,6 +57,11 @@ class KernelScenario(object):
         self.master_kernel = master_kernel
         self.kernel_api = None
 
+        # These variable need to be filled in by the generate_network method.
+        self.network = None
+        self.orig_name = None
+        self.name = None
+
     def generate_network(self, network):
         """Generate the necessary prerequisites for the simulating a network.
 

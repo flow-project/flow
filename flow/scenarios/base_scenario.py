@@ -97,6 +97,7 @@ class Scenario(Serializable):
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
+    # TODO: convert to property
     def specify_edge_starts(self):
         """Define edge starts for road sections in the network.
 
@@ -107,12 +108,13 @@ class Scenario(Serializable):
 
         Returns
         -------
-        edgestarts : list
+        list
             list of edge names and starting positions,
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
         raise NotImplementedError
 
+    # TODO: convert to property
     def specify_intersection_edge_starts(self):
         """Define edge starts for intersections.
 
@@ -125,12 +127,13 @@ class Scenario(Serializable):
 
         Returns
         -------
-        intersection_edgestarts : list
+        list
             list of intersection names and starting positions,
             ex: [(intersection0, pos0), (intersection1, pos1), ...]
         """
         return []
 
+    # TODO: convert to property
     def specify_internal_edge_starts(self):
         """Define the edge starts for internal edge nodes.
 
@@ -143,12 +146,13 @@ class Scenario(Serializable):
 
         Returns
         -------
-        internal_edgestarts : list
+        list
             list of internal junction names and starting positions,
             ex: [(internal0, pos0), (internal1, pos1), ...]
         """
         return []
 
+    # TODO: convert to property
     def specify_nodes(self, net_params):
         """Specify the attributes of nodes in the network.
 
@@ -159,7 +163,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        nodes : list of dict
+        list of dict
 
             A list of node attributes (a separate dict for each node). Nodes
             attributes must include:
@@ -173,6 +177,7 @@ class Scenario(Serializable):
         """
         raise NotImplementedError
 
+    # TODO: convert to property
     def specify_edges(self, net_params):
         """Specify the attributes of edges connecting pairs on nodes.
 
@@ -183,7 +188,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        edges : list of dict
+        list of dict
 
             A list of edges attributes (a separate dict for each edge). Edge
             attributes must include:
@@ -206,6 +211,7 @@ class Scenario(Serializable):
         """
         raise NotImplementedError
 
+    # TODO: convert to property
     def specify_types(self, net_params):
         """Specify the attributes of various edge types (if any exist).
 
@@ -216,7 +222,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        types: list of dict
+        list of dict
             A list of type attributes for specific groups of edges. If none are
             specified, no .typ.xml file is created.
 
@@ -225,6 +231,7 @@ class Scenario(Serializable):
         """
         return None
 
+    # TODO: convert to property
     def specify_connections(self, net_params):
         """Specify the attributes of connections.
 
@@ -239,7 +246,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        connections : list of dict
+        list of dict
             A list of connection attributes. If none are specified, no .con.xml
             file is created.
 
@@ -248,6 +255,7 @@ class Scenario(Serializable):
         """
         return None
 
+    # TODO: convert to property
     def specify_routes(self, net_params):
         """Specify the routes vehicles can take starting from any edge.
 
@@ -264,7 +272,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        routes : dict
+        dict
             Key = name of the starting edge
             Element = list of edges a vehicle starting from this edge must
             traverse.

@@ -195,7 +195,7 @@ class MultiEnv(MultiAgentEnv, Env):
         # perform shuffling (if requested)
         if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
             if self.starting_position_shuffle:
-                x0 = np.random.uniform(0, self.scenario.length)
+                x0 = np.random.uniform(0, self.k.scenario.length())
             else:
                 x0 = self.initial_config.x0
 

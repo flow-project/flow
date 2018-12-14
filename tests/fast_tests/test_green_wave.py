@@ -8,7 +8,7 @@ from tests.setup_scripts import grid_mxn_exp_setup
 class TestEnvironment(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
-        self.env, self.scenario = grid_mxn_exp_setup()
+        self.env, scenario = grid_mxn_exp_setup()
 
         # instantiate an experiment class
         self.exp = SumoExperiment(self.env)
@@ -48,7 +48,7 @@ class TestEnvironment(unittest.TestCase):
 class TestUtils(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
-        self.env, self.scenario = grid_mxn_exp_setup()
+        self.env, scenario = grid_mxn_exp_setup()
 
         # instantiate an experiment class
         self.exp = SumoExperiment(self.env)
