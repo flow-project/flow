@@ -63,7 +63,7 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = SumoExperiment(self.env)
 
         self.exp.run(50, 50)
 
@@ -122,7 +122,7 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = SumoExperiment(self.env)
 
         self.exp.run(50, 50)
 
