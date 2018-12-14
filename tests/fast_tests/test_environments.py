@@ -428,11 +428,11 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.scenario.length, 230)
+        self.assertEqual(env.k.scenario.length(), 230)
         env.reset()
-        self.assertEqual(env.scenario.length, 222)
+        self.assertEqual(env.k.scenario.length(), 222)
         env.reset()
-        self.assertEqual(env.scenario.length, 239)
+        self.assertEqual(env.k.scenario.length(), 239)
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
