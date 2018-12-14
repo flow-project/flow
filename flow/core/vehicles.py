@@ -341,7 +341,8 @@ class Vehicles:
                 if this_edge == "":
                     self.set_absolute_position(veh_id, -1001)
                 else:
-                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
+                    change = env.k.scenario.get_x(this_edge, this_pos) \
+                        - prev_pos
                     new_abs_pos = (self.get_absolute_position(veh_id) +
                                    change) % env.k.scenario.length()
                     self.set_absolute_position(veh_id, new_abs_pos)
@@ -1227,7 +1228,7 @@ class Vehicles:
         this_pos = self.get_position(veh_id)
         this_edge = self.get_edge(veh_id)
         this_lane = self.get_lane(veh_id)
-        num_lanes = env.scenario.num_lanes(this_edge)
+        num_lanes = env.k.scenario.num_lanes(this_edge)
 
         # set default values for all output values
         headway = [1000] * num_lanes
