@@ -71,7 +71,7 @@ class TraCIScenario(KernelScenario):
         self.cfg = None
 
     def generate_network(self, network):
-        """Generate the necessary prerequisites for the simulating a network.
+        """See parent class.
 
         This class uses network specific features to generate the necessary xml
         files needed to initialize a sumo instance. This includes a .net.xml
@@ -85,6 +85,8 @@ class TraCIScenario(KernelScenario):
         """
         # store the scenario object in the network variable
         self.network = network
+        self.orig_name = network.orig_name
+        self.name = network.name
 
         # names of the soon-to-be-generated xml and sumo config files
         self.nodfn = '%s.nod.xml' % self.network.name
@@ -239,6 +241,7 @@ class TraCIScenario(KernelScenario):
             return -1001
 
     def length(self):
+        """See parent class."""
         return self.__length
 
     def speed_limit(self, edge_id):

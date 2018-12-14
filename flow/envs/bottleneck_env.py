@@ -825,7 +825,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     pos = self.vehicles.get_position(rl_id)
 
                     if not self.symmetric:
-                        num_lanes = self.scenario.num_lanes(edge)
+                        num_lanes = self.k.scenario.num_lanes(edge)
                         # find what segment we fall into
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
                         action = rl_actions[int(lane) + bucket * num_lanes +
@@ -914,10 +914,10 @@ class DesiredVelocityEnv(BottleneckEnv):
                         os.remove(f)
 
                     self.scenario = self.scenario.__class__(
-                        name=self.scenario.orig_name,
+                        name=self.k.scenario.orig_name,
                         vehicles=vehicles,
                         net_params=net_params,
-                        initial_config=self.scenario.initial_config,
+                        initial_config=self.initial_config,
                         traffic_lights=self.scenario.traffic_lights)
                     observation = super().reset()
 
