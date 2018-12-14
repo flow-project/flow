@@ -369,7 +369,7 @@ class Vehicles:
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
-                vtype = self.get_type("type")
+                vtype = self.get_type(veh_id)
                 min_gap = self.minGap[vtype]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
