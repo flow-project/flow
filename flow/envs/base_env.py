@@ -492,8 +492,8 @@ class Env(*classdef):
             for i, veh_id in enumerate(veh_ids):
                 route_id = "route" + initial_positions[i][0]
 
-                # replace initial routes, lanes, and positions to reflect
-                # new values
+                # replace initial routes, lanes, positions, and speeds to
+                # reflect new values
                 list_initial_state = list(self.initial_state[veh_id])
                 list_initial_state[1] = route_id
                 list_initial_state[2] = initial_lanes[i]
