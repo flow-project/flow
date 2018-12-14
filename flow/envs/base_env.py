@@ -79,6 +79,7 @@ class Env(*classdef):
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
+        self.scenario = scenario
         self.net_params = scenario.net_params
         self.initial_config = scenario.initial_config
         self.sumo_params = sumo_params
