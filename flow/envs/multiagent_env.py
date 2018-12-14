@@ -197,14 +197,14 @@ class MultiEnv(MultiAgentEnv, Env):
             if self.starting_position_shuffle:
                 x0 = np.random.uniform(0, self.scenario.length)
             else:
-                x0 = self.scenario.initial_config.x0
+                x0 = self.initial_config.x0
 
             veh_ids = deepcopy(self.initial_ids)
             if self.vehicle_arrangement_shuffle:
                 random.shuffle(veh_ids)
 
             initial_positions, initial_lanes = \
-                self.scenario.generate_starting_positions(
+                self.k.scenario.generate_starting_positions(
                     num_vehicles=len(self.initial_ids), x0=x0)
 
             initial_state = dict()
