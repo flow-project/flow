@@ -74,7 +74,8 @@ class TestStartingPositionShuffle(unittest.TestCase):
         offset = after_reset[0] - before_reset[0]
 
         # remove the new offset from the original positions after reset
-        after_reset = np.mod(after_reset - offset, self.env.scenario.length)
+        after_reset = np.mod(after_reset - offset,
+                             self.env.k.scenario.length())
 
         np.testing.assert_array_almost_equal(before_reset, after_reset)
 
