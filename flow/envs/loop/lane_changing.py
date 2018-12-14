@@ -180,14 +180,14 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
     """
 
     def __init__(self, env_params, sumo_params, scenario):
+        super().__init__(env_params, sumo_params, scenario)
+
         # maximum number of lanes on any edge in the network
-        self.num_lanes = max(
-            scenario.num_lanes(edge) for edge in scenario.get_edge_list())
+        self.num_lanes = max(self.k.scenario.num_lanes(edge)
+                             for edge in self.k.scenario.get_edge_list())
 
         # lists of visible vehicles, used for visualization purposes
         self.visible = []
-
-        super().__init__(env_params, sumo_params, scenario)
 
     @property
     def observation_space(self):
