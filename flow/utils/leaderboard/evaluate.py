@@ -124,7 +124,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     # create a SumoExperiment object with the "rl_actions" method as
     # described in the inputs. Note that the state may not be that which is
     # specified by the environment.
-    exp = SumoExperiment(env=env, scenario=scenario)
+    exp = SumoExperiment(env=env)
 
     # run the experiment and return the reward
     res = exp.run(
