@@ -11,7 +11,7 @@ class TestEnvironment(unittest.TestCase):
         self.env, self.scenario = grid_mxn_exp_setup()
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = SumoExperiment(self.env)
 
     def tearDown(self):
         # terminate the traci instance
@@ -51,7 +51,7 @@ class TestUtils(unittest.TestCase):
         self.env, self.scenario = grid_mxn_exp_setup()
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = SumoExperiment(self.env)
 
     def gen_edges(self, row_num, col_num):
         edges = []
