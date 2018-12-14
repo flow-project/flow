@@ -1002,7 +1002,7 @@ class Scenario(Serializable):
 
         # add the initial positions of vehicles to the xml file
         for i, veh_id in enumerate(self.vehicle_ids):
-            veh_type = vehicles.get_state(veh_id, "type")
+            veh_type = vehicles.get_type(veh_id)
             edge, pos = positions[i]
             lane = lanes[i]
             type_depart_speed = vehicles.get_initial_speed(veh_id)
