@@ -236,14 +236,6 @@ class Env(*classdef):
             ])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
-        # subscribe some simulation parameters needed to check for entering,
-        # exiting, and colliding vehicles
-        self.traci_connection.simulation.subscribe([
-            tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS, tc.VAR_TIME_STEP,
-            tc.VAR_DELTA_T
-        ])
-
         # subscribe the traffic light
         for node_id in self.traffic_lights.get_ids():
             self.traci_connection.trafficlight.subscribe(
