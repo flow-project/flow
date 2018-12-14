@@ -113,7 +113,7 @@ class TwoLoopsMergePOEnv(Env):
             [self.env_params.additional_params["target_velocity"]
              ] * self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
-        normalization = self.scenario.length / self.vehicles.num_vehicles
+        normalization = self.k.scenario.length() / self.vehicles.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
             self.vehicles, self.sorted_extra_data, normalization)
         return vel_reward + headway_reward
@@ -177,10 +177,10 @@ class TwoLoopsMergePOEnv(Env):
 
         # normalize the speed
         # FIXME(cathywu) can divide by self.max_speed
-        normalized_vel = np.array(vel) / self.scenario.max_speed
+        normalized_vel = np.array(vel) / self.k.scenario.max_speed()
 
         # normalize the position
-        normalized_pos = np.array(pos) / self.scenario.length
+        normalized_pos = np.array(pos) / self.k.scenario.length()
 
         # Compute number of vehicles in the outer ring
         queue_length = np.zeros(1)

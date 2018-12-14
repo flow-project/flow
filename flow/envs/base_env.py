@@ -75,12 +75,11 @@ class Env(*classdef):
 
     def __init__(self, env_params, sumo_params, scenario):
         # Invoke serializable if using rllab
-
         if serializable_flag:
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
-        self.scenario = scenario
+        # self.scenario = scenario
         self.sumo_params = sumo_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -110,7 +109,7 @@ class Env(*classdef):
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
         # dynamically
-        self.available_routes = self.scenario.rts
+        self.available_routes = self.k.scenario.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -131,11 +130,15 @@ class Env(*classdef):
         # create the Flow kernel
         self.k = Kernel(simulator="traci", sim_params=sumo_params)
 
+        # use the scenario class's network parameters to generate the necessary
+        # scenario components within the scenario kernel
+        self.k.scenario.generate_network(scenario)
+
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=sumo_params)
+            scenario=self.k.scenario, sim_params=sumo_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(self.traci_connection)
@@ -189,8 +192,7 @@ class Env(*classdef):
         render: bool, optional
             specifies whether to use sumo's gui
         """
-        self.traci_connection.close(False)
-        self.k.simulation.sumo_proc.kill()
+        self.k.close()
 
         if render is not None:
             self.sumo_params.render = render
@@ -200,7 +202,7 @@ class Env(*classdef):
             self.sumo_params.emission_path = sumo_params.emission_path
 
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=self.sumo_params)
+            scenario=self.k.scenario, sim_params=self.sumo_params)
         self.k.pass_api(self.traci_connection)
         self.setup_initial_state()
 
@@ -235,14 +237,6 @@ class Env(*classdef):
                 tc.VAR_SPEED_WITHOUT_TRACI
             ])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
-
-        # subscribe some simulation parameters needed to check for entering,
-        # exiting, and colliding vehicles
-        self.traci_connection.simulation.subscribe([
-            tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS, tc.VAR_TIME_STEP,
-            tc.VAR_DELTA_T
-        ])
 
         # subscribe the traffic light
         for node_id in self.traffic_lights.get_ids():
@@ -479,7 +473,7 @@ class Env(*classdef):
         # perform shuffling (if requested)
         if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
             if self.starting_position_shuffle:
-                x0 = np.random.uniform(0, self.scenario.length)
+                x0 = np.random.uniform(0, self.k.scenario.length())
             else:
                 x0 = self.scenario.initial_config.x0
 
@@ -488,7 +482,7 @@ class Env(*classdef):
                 random.shuffle(veh_ids)
 
             initial_positions, initial_lanes = \
-                self.scenario.generate_starting_positions(
+                self.k.scenario.generate_starting_positions(
                     num_vehicles=len(self.initial_ids), x0=x0)
 
             initial_state = dict()
@@ -923,7 +917,7 @@ class Env(*classdef):
         machine_logs = []
         machine_orientations = []
         machine_dynamics = []
-        max_speed = self.scenario.max_speed
+        max_speed = self.k.scenario.max_speed()
         for id in human_idlist:
             # Force tracking human vehicles by adding "track" in vehicle id.
             # The tracked human vehicles will be treated as machine vehicles.
