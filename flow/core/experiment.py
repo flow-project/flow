@@ -58,7 +58,7 @@ class SumoExperiment:
         self.env = env
 
         logging.info(" Starting experiment {} at {}".format(
-            env.scenario.name, str(datetime.datetime.utcnow())))
+            env.k.scenario.name, str(datetime.datetime.utcnow())))
 
         logging.info("Initializing environment.")
 

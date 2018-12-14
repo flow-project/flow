@@ -149,16 +149,12 @@ class WaveAttenuationEnv(Env):
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {
-            'length':
-            random.randint(
+            'length': random.randint(
                 self.env_params.additional_params['ring_length'][0],
                 self.env_params.additional_params['ring_length'][1]),
-            'lanes':
-            self.scenario.lanes,
-            'speed_limit':
-            30,
-            'resolution':
-            40
+            'lanes': self.net_params.additional_params['lanes'],
+            'speed_limit': self.net_params.additional_params['speed_limit'],
+            'resolution': self.net_params.additional_params['resolution']
         }
         net_params = NetParams(additional_params=additional_net_params)
 

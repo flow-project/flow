@@ -50,7 +50,7 @@ class TestCollisions(unittest.TestCase):
         net_params = NetParams(
             no_internal_links=False, additional_params=additional_net_params)
 
-        self.env, self.scenario = grid_mxn_exp_setup(
+        env, scenario = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sumo_params=sumo_params,
@@ -58,14 +58,13 @@ class TestCollisions(unittest.TestCase):
             net_params=net_params)
 
         # go through the env and set all the lights to green
-        for i in range(self.env.rows * self.env.cols):
-            self.env.traci_connection.trafficlight.setRedYellowGreenState(
+        for i in range(env.rows * env.cols):
+            env.traci_connection.trafficlight.setRedYellowGreenState(
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env)
-
-        self.exp.run(50, 50)
+        exp = SumoExperiment(env)
+        exp.run(50, 50)
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
@@ -109,7 +108,7 @@ class TestCollisions(unittest.TestCase):
             inflows=inflows,
             additional_params=additional_net_params)
 
-        self.env, self.scenario = grid_mxn_exp_setup(
+        env, scenario = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
             sumo_params=sumo_params,
@@ -117,14 +116,13 @@ class TestCollisions(unittest.TestCase):
             net_params=net_params)
 
         # go through the env and set all the lights to green
-        for i in range(self.env.rows * self.env.cols):
-            self.env.traci_connection.trafficlight.setRedYellowGreenState(
+        for i in range(env.rows * env.cols):
+            env.traci_connection.trafficlight.setRedYellowGreenState(
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env)
-
-        self.exp.run(50, 50)
+        exp = SumoExperiment(env)
+        exp.run(50, 50)
 
 
 if __name__ == '__main__':
