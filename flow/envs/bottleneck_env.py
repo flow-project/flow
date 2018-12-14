@@ -422,7 +422,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
     @property
     def observation_space(self):
         """See class definition."""
-        num_edges = len(self.scenario.get_edge_list())
+        num_edges = len(self.k.scenario.get_edge_list())
         num_rl_veh = self.num_rl
         num_obs = 2 * num_edges + 4 * MAX_LANES * self.scaling \
             * num_rl_veh + 4 * num_rl_veh
@@ -700,7 +700,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.action_index[i] + segment * controlled
                 ]
             else:
-                num_lanes = self.scenario.num_lanes(edge)
+                num_lanes = self.k.scenario.num_lanes(edge)
                 self.action_index += [
                     self.action_index[i] + segment * controlled * num_lanes
                 ]
@@ -918,7 +918,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                         vehicles=vehicles,
                         net_params=net_params,
                         initial_config=self.initial_config,
-                        traffic_lights=self.scenario.traffic_lights)
+                        traffic_lights=self.traffic_lights)
                     observation = super().reset()
 
                     # reset the timer to zero
