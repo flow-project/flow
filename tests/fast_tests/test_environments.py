@@ -1,3 +1,4 @@
+import random
 import numpy as np
 import unittest
 import os
@@ -409,6 +410,29 @@ class TestWaveAttenuationEnv(unittest.TestCase):
                 expected_observed=["human_0"]
             )
         )
+
+    def test_reset(self):
+        """
+        Tests that the reset method creating new ring lengths within the
+        requested range.
+        """
+        # set a random seed to ensure the network lengths are always the same
+        # during testing
+        random.seed(9001)
+
+        # create the environment
+        env = WaveAttenuationEnv(
+            sumo_params=self.sumo_params,
+            scenario=self.scenario,
+            env_params=self.env_params
+        )
+
+        # reset the network several times and check its length
+        self.assertEqual(env.scenario.length, 230)
+        env.reset()
+        self.assertEqual(env.scenario.length, 222)
+        env.reset()
+        self.assertEqual(env.scenario.length, 239)
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
