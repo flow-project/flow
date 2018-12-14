@@ -187,7 +187,7 @@ def bay_bridge_example(render=None,
 
     env = BayBridgeEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return SumoExperiment(env)
 
 
 if __name__ == "__main__":

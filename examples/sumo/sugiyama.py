@@ -54,7 +54,7 @@ def sugiyama_example(render=None):
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return SumoExperiment(env)
 
 
 if __name__ == "__main__":

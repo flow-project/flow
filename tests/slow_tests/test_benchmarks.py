@@ -39,12 +39,6 @@ class TestBenchmarks(unittest.TestCase):
     reported on the website, or other).
     """
 
-    """
-    self.env, self.scenario = setup_bottlenecks()
-        self.exp = SumoExperiment(self.env, self.scenario)
-        self.exp.run(5, 50)
-    """
-
     def setup(self):
         if not os.path.exists('./benchmark_tmp'):
             os.mkdir('benchmark_tmp')
