@@ -362,13 +362,13 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos()
 
         # check when "num_vehicles" is not specified
-        pos, lanes = self.env.k.scenario.generate_starting_positions()
+        pos, lanes, speeds = self.env.k.scenario.generate_starting_positions()
         self.assertEqual(len(pos), self.env.vehicles.num_vehicles)
         self.assertEqual(len(lanes), self.env.vehicles.num_vehicles)
 
         # check when "num_vehicles" is specified
-        startpos, startlanes = self.env.k.scenario.generate_starting_positions(
-            num_vehicles=10)
+        startpos, startlanes, startspeeds = \
+            self.env.k.scenario.generate_starting_positions(num_vehicles=10)
         self.assertEqual(len(startpos), 10)
         self.assertEqual(len(startlanes), 10)
 

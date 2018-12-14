@@ -41,10 +41,10 @@ vehicles.add(
     sumo_car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
+        speed_mode="right_of_way",
     ),
     routing_controller=(GridRouter, {}),
-    num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS,
-    speed_mode="right_of_way")
+    num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS)
 
 # inflows of vehicles are place on all outer edges (listed here)
 outer_edges = []
