@@ -169,7 +169,7 @@ class WaveAttenuationEnv(Env):
         def v_eq_max_function(v):
             num_veh = self.vehicles.num_vehicles - 1
             # maximum gap in the presence of one rl vehicle
-            s_eq_max = (self.scenario.length -
+            s_eq_max = (self.k.scenario.length() -
                         self.vehicles.num_vehicles * 5) / num_veh
 
             v0 = 30

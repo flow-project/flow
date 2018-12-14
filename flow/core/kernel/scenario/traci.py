@@ -631,7 +631,7 @@ class TraCIScenario(KernelScenario):
             }
             routes.append(E('vType', id=params['veh_id'], **type_params_str))
 
-        vehicle_ids = vehicles.ids
+        vehicle_ids = vehicles.get_ids()
 
         if shuffle:
             random.shuffle(vehicle_ids)

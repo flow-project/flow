@@ -317,7 +317,7 @@ class BottleneckEnv(Env):
 
     def distance_to_bottleneck(self, veh_id):
         pre_bottleneck_edges = {
-            str(i): self.scenario.edge_length(str(i))
+            str(i): self.k.scenario.edge_length(str(i))
             for i in [1, 2, 3]
         }
         edge_pos = self.vehicles.get_position(veh_id)
@@ -520,12 +520,12 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         # per edge data (average speed, density
         edge_obs = []
-        for edge in self.scenario.get_edge_list():
+        for edge in self.k.scenario.get_edge_list():
             veh_ids = self.vehicles.get_ids_by_edge(edge)
             if len(veh_ids) > 0:
                 avg_speed = (sum(self.vehicles.get_speed(veh_ids)) /
                              len(veh_ids)) / self.max_speed
-                density = len(veh_ids) / self.scenario.edge_length(edge)
+                density = len(veh_ids) / self.k.scenario.edge_length(edge)
                 edge_obs += [avg_speed, density]
             else:
                 edge_obs += [0, 0]
@@ -668,7 +668,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         # edge (str) -> segment start location (list of int)
         self.slices = {}
         for edge, num_segments, _ in self.segments:
-            edge_length = self.scenario.edge_length(edge)
+            edge_length = self.k.scenario.edge_length(edge)
             self.slices[edge] = np.linspace(0, edge_length, num_segments + 1)
 
         # get info for observed segments
@@ -683,7 +683,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         # edge (str) -> segment start location (list of int)
         self.obs_slices = {}
         for edge, num_segments in self.obs_segments:
-            edge_length = self.scenario.edge_length(edge)
+            edge_length = self.k.scenario.edge_length(edge)
             self.obs_slices[edge] = np.linspace(0, edge_length,
                                                 num_segments + 1)
 
@@ -714,7 +714,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.action_index[edge] = [action_list[index]]
                     action_list += [action_list[index] + controlled]
                 else:
-                    num_lanes = self.scenario.num_lanes(edge)
+                    num_lanes = self.k.scenario.num_lanes(edge)
                     self.action_index[edge] = [action_list[index]]
                     action_list += [
                         action_list[index] +
@@ -729,7 +729,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         # density and velocity for rl and non-rl vehicles per segment
         # Last element is the outflow
         for segment in self.obs_segments:
-            num_obs += 4 * segment[1] * self.scenario.num_lanes(segment[0])
+            num_obs += 4 * segment[1] * self.k.scenario.num_lanes(segment[0])
         num_obs += 1
         return Box(low=0.0, high=1.0, shape=(num_obs, ), dtype=np.float32)
 
@@ -742,7 +742,7 @@ class DesiredVelocityEnv(BottleneckEnv):
             action_size = 0.0
             for segment in self.segments:  # iterate over segments
                 if segment[2]:  # if controlled
-                    num_lanes = self.scenario.num_lanes(segment[0])
+                    num_lanes = self.k.scenario.num_lanes(segment[0])
                     action_size += num_lanes * segment[1]
         return Box(
             low=-1.5, high=1.0, shape=(int(action_size), ), dtype=np.float32)
@@ -759,7 +759,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         rl_speeds_list = []
         NUM_VEHICLE_NORM = 20
         for i, edge in enumerate(EDGE_LIST):
-            num_lanes = self.scenario.num_lanes(edge)
+            num_lanes = self.k.scenario.num_lanes(edge)
             num_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
             num_rl_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
             vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
@@ -904,10 +904,10 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.vehicles = vehicles
 
                     # delete the cfg and net files
-                    net_path = self.scenario.net_path
-                    net_name = net_path + self.scenario.name
-                    cfg_path = self.scenario.cfg_path
-                    cfg_name = cfg_path + self.scenario.name
+                    net_path = self.k.scenario.net_path
+                    net_name = net_path + self.k.scenario.name
+                    cfg_path = self.k.scenario.cfg_path
+                    cfg_name = cfg_path + self.k.scenario.name
                     for f in glob.glob(net_name + '*'):
                         os.remove(f)
                     for f in glob.glob(cfg_name + '*'):

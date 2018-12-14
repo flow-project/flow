@@ -79,7 +79,8 @@ class Env(*classdef):
             Serializable.quick_init(self, locals())
 
         self.env_params = env_params
-        # self.scenario = scenario
+        self.net_params = scenario.net_params
+        self.initial_config = scenario.initial_config
         self.sumo_params = sumo_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -105,11 +106,6 @@ class Env(*classdef):
         self.vehicle_arrangement_shuffle = \
             env_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = env_params.starting_position_shuffle
-
-        # the available_routes variable contains a dictionary of routes
-        # vehicles can traverse; to be used when routes need to be chosen
-        # dynamically
-        self.available_routes = self.k.scenario.rts
 
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
@@ -142,6 +138,11 @@ class Env(*classdef):
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(self.traci_connection)
+
+        # the available_routes variable contains a dictionary of routes
+        # vehicles can traverse; to be used when routes need to be chosen
+        # dynamically
+        self.available_routes = self.k.scenario.rts
 
         self.setup_initial_state()
 
@@ -447,7 +448,7 @@ class Env(*classdef):
         self.time_counter = 0
 
         # warn about not using restart_instance when using inflows
-        if len(self.scenario.net_params.inflows.get()) > 0 and \
+        if len(self.net_params.inflows.get()) > 0 and \
                 not self.sumo_params.restart_instance:
             print(
                 "**********************************************************\n"
@@ -475,7 +476,7 @@ class Env(*classdef):
             if self.starting_position_shuffle:
                 x0 = np.random.uniform(0, self.k.scenario.length())
             else:
-                x0 = self.scenario.initial_config.x0
+                x0 = self.initial_config.x0
 
             veh_ids = deepcopy(self.initial_ids)
             if self.vehicle_arrangement_shuffle:
@@ -690,7 +691,7 @@ class Env(*classdef):
             this_edge = self.vehicles.get_edge(veh_id)
             target_lane = min(
                 max(this_lane + direction[i], 0),
-                self.scenario.num_lanes(this_edge) - 1)
+                self.k.scenario.num_lanes(this_edge) - 1)
 
             # perform the requested lane action action in TraCI
             if target_lane != this_lane:
@@ -738,7 +739,7 @@ class Env(*classdef):
         if self.vehicles.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
-        return self.scenario.get_x(
+        return self.k.scenario.get_x(
             self.vehicles.get_edge(veh_id), self.vehicles.get_position(veh_id))
 
     def sort_by_position(self):
@@ -872,8 +873,7 @@ class Env(*classdef):
             "Closing connection to TraCI and stopping simulation.\n"
             "Note, this may print an error message when it closes."
         )
-        self.traci_connection.close()
-        self.scenario.close()
+        self.k.close()
 
         # close pyglet renderer
         if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
