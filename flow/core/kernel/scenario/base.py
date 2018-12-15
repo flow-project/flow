@@ -153,7 +153,7 @@ class KernelScenario(object):
 
         Returns
         -------
-        edge position : tup
+        tup
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
@@ -171,7 +171,7 @@ class KernelScenario(object):
 
         Returns
         -------
-        absolute_position : float
+        float
             position with respect to some global reference
         """
         raise NotImplementedError
@@ -217,11 +217,11 @@ class KernelScenario(object):
 
         Returns
         -------
-        startpositions : list of tuple (float, float)
+        list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
+        list of int
             list of start lanes
-        startvel : list of float
+        list of float
             list of start speeds
         """
         num_vehicles = num_vehicles or self.network.vehicles.num_vehicles
@@ -261,11 +261,11 @@ class KernelScenario(object):
 
         Returns
         -------
-        startpositions : list of tuple (float, float)
+        list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
+        list of int
             list of start lanes
-        startvel : list of float
+        list of float
             list of start speeds
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
@@ -364,11 +364,11 @@ class KernelScenario(object):
 
         Returns
         -------
-        startpositions : list of tuple (float, float)
+        list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
+        list of int
             list of start lanes
-        startvel : list of float
+        list of float
             list of start speeds
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
@@ -434,6 +434,8 @@ class KernelScenario(object):
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate a user defined set of starting positions.
 
+        This is called straight from the scenario class.
+
         Parameters
         ----------
         initial_config : InitialConfig type
@@ -446,14 +448,15 @@ class KernelScenario(object):
 
         Returns
         -------
-        startpositions : list of tuple (float, float)
+        list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
+        list of int
             list of start lanes
-        startvel : list of float
+        list of float
             list of start speeds
         """
-        raise NotImplementedError
+        return self.network.gen_custom_start_pos(
+            initial_config=initial_config, num_vehicles=num_vehicles, **kwargs)
 
     def _get_start_pos_util(self, initial_config, num_vehicles, **kwargs):
         """Prepare initial_config data for starting position methods.
