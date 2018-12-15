@@ -456,7 +456,11 @@ class KernelScenario(object):
             list of start speeds
         """
         return self.network.gen_custom_start_pos(
-            initial_config=initial_config, num_vehicles=num_vehicles, **kwargs)
+            cls=self,
+            initial_config=initial_config,
+            num_vehicles=num_vehicles,
+            **kwargs
+        )
 
     def _get_start_pos_util(self, initial_config, num_vehicles, **kwargs):
         """Prepare initial_config data for starting position methods.
