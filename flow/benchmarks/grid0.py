@@ -121,5 +121,8 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(shuffle=True),
+    initial=InitialConfig(
+        spacing='custom',
+        shuffle=True,
+    ),
 )
