@@ -261,7 +261,7 @@ class TwoLoopsOneMergingScenario(Scenario):
             merge_bunching = initial_config.additional_params["merge_bunching"]
 
         num_merge_vehicles = \
-            sum("merge" in cls.vehicles.get_type(veh_id)
+            sum("merge" in cls.vehicles.get_state(veh_id, 'type')
                 for veh_id in cls.vehicles.get_ids())
 
         radius = cls.net_params.additional_params["ring_radius"]
