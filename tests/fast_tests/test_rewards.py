@@ -1,12 +1,13 @@
 import unittest
 import os
+import numpy as np
 from tests.setup_scripts import ring_road_exp_setup
 from flow.core.params import EnvParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import RLController
 from flow.core.rewards import average_velocity, total_velocity, min_delay
-from flow.core.rewards import desired_velocity, penalize_standstill
-from flow.core.rewards import penalize_near_standstill
+from flow.core.rewards import desired_velocity, reward_rl_opening_headways
+from flow.core.rewards import penalize_near_standstill, penalize_standstill
 from flow.core.rewards import punish_small_rl_headways, boolean_action_penalty
 
 os.environ["TEST_FLAG"] = "True"
@@ -21,7 +22,7 @@ class TestRewards(unittest.TestCase):
         vehicles.add("test", num_vehicles=10)
 
         env_params = EnvParams(additional_params={
-            "target_velocity": 10, "max_accel": 1, "max_decel": 1})
+            "target_velocity": np.sqrt(10), "max_accel": 1, "max_decel": 1})
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles,
                                             env_params=env_params)
@@ -37,21 +38,24 @@ class TestRewards(unittest.TestCase):
                                           fail=False), 0)
 
         # change the speed of one vehicle
-        env.vehicles.test_set_speed("test_0", 10)
+        env.vehicles.test_set_speed("test_0", np.sqrt(10))
 
         # check the new average speed
-        self.assertAlmostEqual(desired_velocity(env, fail=False), 0.05131670)
+        self.assertAlmostEqual(desired_velocity(env, fail=False),
+                               1 - np.sqrt(90) / 10)
 
         # check the new average speed for a subset of edges
         self.assertAlmostEqual(desired_velocity(env, edge_list=["bottom"],
-                                                fail=False), 0.18350341907)
+                                                fail=False),
+                               1 - np.sqrt(20) / np.sqrt(30))
 
         # change the speed of one of the vehicles outside the edge list
         env.vehicles.test_set_speed("test_8", 10)
 
         # check that the new average speed is the same as before
         self.assertAlmostEqual(desired_velocity(env, edge_list=["bottom"],
-                                                fail=False), 0.18350341907)
+                                                fail=False),
+                               1 - np.sqrt(20) / np.sqrt(30))
 
     def test_average_velocity(self):
         """Test the average_velocity method."""
@@ -205,6 +209,40 @@ class TestRewards(unittest.TestCase):
         actions = [True, False, False, True, False]
         self.assertEqual(boolean_action_penalty(actions, gain=1), 2)
         self.assertEqual(boolean_action_penalty(actions, gain=2), 4)
+
+    def test_reward_rl_opening_headways(self):
+        """Test the reward_rl_opening_headways method."""
+        # check that the reward returns 0 if there are no RL vehicles.
+        vehicles = Vehicles()
+        vehicles.add('test', num_vehicles=10)
+
+        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertAlmostEqual(reward_rl_opening_headways(env), 0)
+
+        # add an RL vehicle
+        vehicles.add('test_rl', acceleration_controller=(RLController, {}),
+                     num_vehicles=1)
+
+        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+
+        # check the method for different tailways
+        follower = env.vehicles.get_follower('test_rl_0')
+
+        env.vehicles.set_headway(follower, -10)
+        self.assertAlmostEqual(reward_rl_opening_headways(env), 0)
+
+        env.vehicles.set_headway(follower, 10)
+        self.assertAlmostEqual(reward_rl_opening_headways(env, 0.1, 1), 1)
+
+        env.vehicles.set_headway(follower, 10)
+        self.assertAlmostEqual(reward_rl_opening_headways(env, 0.1, 2), 10)
+
+        env.vehicles.set_headway(follower, 10)
+        self.assertAlmostEqual(reward_rl_opening_headways(env, 0.5, 2), 50)
+
+        env.vehicles.set_follower('test_rl_0', None)
+        self.assertAlmostEqual(reward_rl_opening_headways(env, 0.5, 2), 0)
 
 
 if __name__ == '__main__':
