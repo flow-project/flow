@@ -2,16 +2,16 @@ import numpy as np
 import unittest
 import os
 from flow.core.vehicles import Vehicles
-from flow.core.params import NetParams, EnvParams, SumoParams
+from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
-from flow.scenarios import LoopScenario, MergeScenario, \
+from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario, \
     TwoLoopsOneMergingScenario
 from flow.scenarios.loop import ADDITIONAL_NET_PARAMS as LOOP_PARAMS
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
 from flow.scenarios.loop_merge import ADDITIONAL_NET_PARAMS as LM_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
-    TestEnv, TwoLoopsMergePOEnv
+    TestEnv, TwoLoopsMergePOEnv, DesiredVelocityEnv
 
 
 os.environ["TEST_FLAG"] = "True"
@@ -605,6 +605,79 @@ class TestTestEnv(unittest.TestCase):
 
         self.env.env_params.additional_params["reward_fn"] = reward_fn
         self.assertEqual(self.env.compute_reward([]), 1)
+
+
+class TestDesiredVelocityEnv(unittest.TestCase):
+
+    """Tests the DesiredVelocityEnv environment in flow/envs/bottleneck.py"""
+
+    def test_reset_inflows(self):
+        """Tests that the inflow  change within the expected range when calling
+        reset."""
+        # set a random seed for inflows to be the same every time
+        np.random.seed(seed=123)
+
+        sumo_params = SumoParams(sim_step=0.5, restart_instance=True)
+
+        vehicles = Vehicles()
+        vehicles.add(veh_id="human")
+        vehicles.add(veh_id="followerstopper")
+
+        # edge name, how many segments to observe/control, whether the segment
+        # is controlled
+        controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
+                               ("4", 2, True), ("5", 1, False)]
+        num_observed_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 3),
+                                 ("5", 1)]
+        env_params = EnvParams(
+            additional_params={
+                "target_velocity": 40,
+                "disable_tb": True,
+                "disable_ramp_metering": True,
+                "controlled_segments": controlled_segments,
+                "symmetric": False,
+                "observed_segments": num_observed_segments,
+                "reset_inflow": True,  # this must be set to True for the test
+                "lane_change_duration": 5,
+                "max_accel": 3,
+                "max_decel": 3,
+                "inflow_range": [1000, 2000]  # this is what we're testing
+            }
+        )
+
+        inflow = InFlows()
+        inflow.add(veh_type="human",
+                   edge="1",
+                   vehs_per_hour=1500,  # the initial inflow we're checking for
+                   departLane="random",
+                   departSpeed=10)
+
+        net_params = NetParams(
+            inflows=inflow,
+            no_internal_links=False,
+            additional_params={"scaling": 1})
+
+        scenario = BottleneckScenario(
+            name="bay_bridge_toll",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        env = DesiredVelocityEnv(env_params, sumo_params, scenario)
+
+        # check that the first inflow rate is approximately 1500
+        for _ in range(500):
+            env.step(rl_actions=None)
+        self.assertAlmostEqual(env.vehicles.get_inflow_rate(250)/1500, 1, 2)
+
+        # reset the environment and get a new inflow rate
+        env.reset()
+        expected_inflow = 1353.6  # just from checking the new inflow
+
+        # check that the new inflow rate is approximately as expected
+        for _ in range(500):
+            env.step(rl_actions=None)
+        self.assertAlmostEqual(
+            env.vehicles.get_inflow_rate(250)/expected_inflow, 1, 2)
 
 
 ###############################################################################
