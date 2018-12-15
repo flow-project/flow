@@ -155,8 +155,9 @@ class TrafficLightGridEnv(Env):
     def get_state(self):
         """See class definition."""
         # compute the normalizers
-        max_dist = max(self.scenario.short_length, self.scenario.long_length,
-                       self.scenario.inner_length)
+        max_dist = max(self.k.scenario.network.short_length,
+                       self.k.scenario.network.long_length,
+                       self.k.scenario.network.inner_length)
 
         # get the state arrays
         speeds = [
@@ -169,7 +170,7 @@ class TrafficLightGridEnv(Env):
         ]
         edges = [
             self._convert_edge(self.vehicles.get_edge(veh_id)) /
-            (self.scenario.num_edges - 1)
+            (self.k.scenario.network.num_edges - 1)
             for veh_id in self.vehicles.get_ids()
         ]
 
@@ -496,7 +497,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             low=0.,
             high=1,
             shape=(12 * self.num_observed * self.num_traffic_lights +
-                   2 * len(self.scenario.get_edge_list()) +
+                   2 * len(self.k.scenario.get_edge_list()) +
                    3 * self.num_traffic_lights,),
             dtype=np.float32)
         return tl_box
@@ -537,7 +538,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                 ]
                 edge_number += \
                     [self._convert_edge(self.vehicles.get_edge(veh_id))
-                     / (self.k.scenario.num_edges - 1)
+                     / (self.k.scenario.network.num_edges - 1)
                      for veh_id in observed_ids]
 
                 if len(observed_ids) < self.num_observed:

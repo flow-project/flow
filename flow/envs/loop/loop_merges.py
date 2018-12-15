@@ -124,7 +124,7 @@ class TwoLoopsMergePOEnv(Env):
         pos = np.zeros(self.n_obs_vehicles)
 
         sorted = self.sorted_extra_data
-        merge_len = self.scenario.intersection_length
+        merge_len = self.k.scenario.network.intersection_length
 
         # Merge stretch is pos 0.0-25.5 (ish), so actively merging vehicles
         # are sorted at the front of the list. Otherwise, vehicles closest to
