@@ -304,7 +304,7 @@ class Scenario(Serializable):
                 self.initial_config, num_vehicles, **kwargs)
         elif self.initial_config.spacing == "custom":
             startpositions, startlanes = self.gen_custom_start_pos(
-                self.initial_config, num_vehicles, **kwargs)
+                self, self.initial_config, num_vehicles, **kwargs)
         else:
             raise ValueError('"spacing" argument in initial_config does not '
                              'contain a valid option')
@@ -495,12 +495,15 @@ class Scenario(Serializable):
 
         return startpositions, startlanes
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+    @staticmethod
+    def gen_custom_start_pos(cls, initial_config, num_vehicles, **kwargs):
         """Generate a user defined set of starting positions.
 
         Parameters
         ----------
-        initial_config : InitialConfig type
+        cls : flow.core.kernel.scenario.KernelScenario
+            flow scenario kernel, with all the relevant methods implemented
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
@@ -510,9 +513,9 @@ class Scenario(Serializable):
 
         Returns
         -------
-        startpositions : list of tuple (float, float)
+        list of tuple (float, float)
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
+        list of int
             list of start lanes
         """
         raise NotImplementedError
