@@ -99,7 +99,7 @@ class TrafficLightGridEnv(Env):
 
         if self.tl_type != "actuated":
             for i in range(self.rows * self.cols):
-                self.traffic_lights.set_state(
+                self.k.traffic_light.set_state(
                     node_id='center' + str(i), state="GGGrrrGGGrrr", env=self)
                 self.last_change[i, 2] = 1
 
@@ -385,20 +385,17 @@ class TrafficLightGridEnv(Env):
         if route_id is not None:
             route_id = "route" + route_id
             # remove the vehicle
-            self.traci_connection.vehicle.remove(veh_id)
+            self.k.vehicle.remove(veh_id)
             # reintroduce it at the start of the network
             type_id = self.k.vehicle.get_type(veh_id)
             lane_index = self.k.vehicle.get_lane(veh_id)
-            self.traci_connection.vehicle.addFull(
-                veh_id,
-                route_id,
-                typeID=str(type_id),
-                departLane=str(lane_index),
-                departPos="0",
-                departSpeed="max")
-            speed_mode = self.k.vehicle.type_parameters[type_id][
-                "sumo_car_following_params"].speed_mode
-            self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
+            self.k.vehicle.add(
+                veh_id=veh_id,
+                route_id=route_id,
+                type_id=str(type_id),
+                lane=str(lane_index),
+                pos="0",
+                speed="max")
 
     def k_closest_to_intersection(self, edges, k):
         """

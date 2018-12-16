@@ -583,13 +583,13 @@ class BottleNeckAccelEnv(BottleneckEnv):
                            MAX_LANES * self.scaling
                 # reintroduce it at the start of the network
                 try:
-                    self.traci_connection.vehicle.addFull(
-                        rl_id,
-                        'route1',
-                        typeID=str('rl'),
-                        departLane=str(lane_num),
-                        departPos="0",
-                        departSpeed="max")
+                    self.k.vehicle.add(
+                        veh_id=rl_id,
+                        route_id='route1',
+                        type_id=str('rl'),
+                        lane=str(lane_num),
+                        pos="0",
+                        speed="max")
                 except Exception:
                     pass
 
