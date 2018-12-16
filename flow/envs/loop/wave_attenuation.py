@@ -75,7 +75,7 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(self.vehicles.num_rl_vehicles, ),
+            shape=(self.k.vehicle.num_rl_vehicles, ),
             dtype=np.float32)
 
     @property
@@ -85,16 +85,16 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=0,
             high=1,
-            shape=(2 * self.vehicles.num_vehicles, ),
+            shape=(2 * self.k.vehicle.num_vehicles, ),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
-        self.apply_acceleration(sorted_rl_ids, rl_actions)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
@@ -103,8 +103,8 @@ class WaveAttenuationEnv(Env):
             return 0
 
         vel = np.array([
-            self.vehicles.get_speed(veh_id)
-            for veh_id in self.vehicles.get_ids()
+            self.k.vehicle.get_speed(veh_id)
+            for veh_id in self.k.vehicle.get_ids()
         ])
 
         if any(vel < -100) or kwargs['fail']:
@@ -126,9 +126,9 @@ class WaveAttenuationEnv(Env):
 
     def get_state(self):
         """See class definition."""
-        speed = [self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
+        speed = [self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed()
                  for veh_id in self.sorted_ids]
-        pos = [self.get_x_by_id(veh_id) / self.k.scenario.length()
+        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
                for veh_id in self.sorted_ids]
 
         return np.array(speed + pos)
@@ -136,9 +136,9 @@ class WaveAttenuationEnv(Env):
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        if self.vehicles.num_rl_vehicles > 0:
-            for veh_id in self.vehicles.get_human_ids():
-                self.vehicles.set_observed(veh_id)
+        if self.k.vehicle.num_rl_vehicles > 0:
+            for veh_id in self.k.vehicle.get_human_ids():
+                self.k.vehicle.set_observed(veh_id)
 
     def reset(self):
         """See parent class.
@@ -164,10 +164,10 @@ class WaveAttenuationEnv(Env):
 
         # solve for the velocity upper bound of the ring
         def v_eq_max_function(v):
-            num_veh = self.vehicles.num_vehicles - 1
+            num_veh = self.k.vehicle.num_vehicles - 1
             # maximum gap in the presence of one rl vehicle
             s_eq_max = (self.k.scenario.length() -
-                        self.vehicles.num_vehicles * 5) / num_veh
+                        self.k.vehicle.num_vehicles * 5) / num_veh
 
             v0 = 30
             s0 = 2
@@ -236,18 +236,18 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
     def get_state(self):
         """See class definition."""
-        rl_id = self.vehicles.get_rl_ids()[0]
-        lead_id = self.vehicles.get_leader(rl_id) or rl_id
+        rl_id = self.k.vehicle.get_rl_ids()[0]
+        lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
 
         # normalizers
         max_speed = 15.
         max_length = self.env_params.additional_params['ring_length'][1]
 
         observation = np.array([
-            self.vehicles.get_speed(rl_id) / max_speed,
-            (self.vehicles.get_speed(lead_id) - self.vehicles.get_speed(rl_id))
-            / max_speed,
-            self.vehicles.get_headway(rl_id) / max_length
+            self.k.vehicle.get_speed(rl_id) / max_speed,
+            (self.k.vehicle.get_speed(lead_id) -
+             self.k.vehicle.get_speed(rl_id)) / max_speed,
+            self.k.vehicle.get_headway(rl_id) / max_length
         ])
 
         return observation
@@ -255,9 +255,9 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        rl_id = self.vehicles.get_rl_ids()[0]
-        lead_id = self.vehicles.get_leader(rl_id) or rl_id
-        self.vehicles.set_observed(lead_id)
+        rl_id = self.k.vehicle.get_rl_ids()[0]
+        lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
+        self.k.vehicle.set_observed(lead_id)
 
 
 class MultiWaveAttenuationPOEnv(MultiEnv):
@@ -296,25 +296,24 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(int(self.vehicles.num_rl_vehicles/num_rings), ),
+            shape=(int(self.k.vehicle.num_rl_vehicles/num_rings), ),
             dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
         obs = {}
-        for rl_id in self.vehicles.get_rl_ids():
-            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+        for rl_id in self.k.vehicle.get_rl_ids():
+            lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
 
             # normalizers
             max_speed = 15.
             max_length = self.env_params.additional_params['ring_length'][1]
 
             observation = np.array([
-                self.vehicles.get_speed(rl_id) / max_speed,
-                (self.vehicles.get_speed(lead_id) -
-                 self.vehicles.get_speed(rl_id))
-                / max_speed,
-                self.vehicles.get_headway(rl_id) / max_length
+                self.k.vehicle.get_speed(rl_id) / max_speed,
+                (self.k.vehicle.get_speed(lead_id) -
+                 self.k.vehicle.get_speed(rl_id)) / max_speed,
+                self.k.vehicle.get_headway(rl_id) / max_length
             ])
             obs.update({rl_id: observation})
 
@@ -325,7 +324,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         if rl_actions:
             rl_ids = list(rl_actions.keys())
             accel = list(rl_actions.values())
-            self.apply_acceleration(rl_ids, accel)
+            self.k.vehicle.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
@@ -337,9 +336,9 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         for rl_id in rl_actions.keys():
             edge_id = rl_id.split('_')[1]
             edges = self.gen_edges(edge_id)
-            vehs_on_edge = self.vehicles.get_ids_by_edge(edges)
+            vehs_on_edge = self.k.vehicle.get_ids_by_edge(edges)
             vel = np.array([
-                self.vehicles.get_speed(veh_id)
+                self.k.vehicle.get_speed(veh_id)
                 for veh_id in vehs_on_edge
             ])
             if any(vel < -100) or kwargs['fail']:
@@ -358,9 +357,9 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        for rl_id in self.vehicles.get_rl_ids():
-            lead_id = self.vehicles.get_leader(rl_id) or rl_id
-            self.vehicles.set_observed(lead_id)
+        for rl_id in self.k.vehicle.get_rl_ids():
+            lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
+            self.k.vehicle.set_observed(lead_id)
 
     def gen_edges(self, i):
         """Return the edges corresponding to the rl id"""

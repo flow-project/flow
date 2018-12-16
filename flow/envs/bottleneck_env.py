@@ -127,7 +127,7 @@ class BottleneckEnv(Env):
         self.disable_tb = env_params.get_additional_param("disable_tb")
         self.disable_ramp_metering = \
             env_params.get_additional_param("disable_ramp_metering")
-        self.rl_id_list = deepcopy(self.vehicles.get_rl_ids())
+        self.rl_id_list = deepcopy(self.k.vehicle.get_rl_ids())
 
         self.next_period = START_RECORD_TIME / self.sim_step
         self.cars_arrived = 0
@@ -152,7 +152,6 @@ class BottleneckEnv(Env):
         self.outflow_index = 0
 
     def additional_command(self):
-        # print(self.vehicles.get_outflow_rate(100))
         super().additional_command()
         # build a list of vehicles and their edges and positions
         self.edge_dict = defaultdict(list)
@@ -161,15 +160,15 @@ class BottleneckEnv(Env):
         self.edge_dict.update((k, [[]
                                    for _ in range(MAX_LANES * self.scaling)])
                               for k in EDGE_LIST)
-        for veh_id in self.vehicles.get_ids():
+        for veh_id in self.k.vehicle.get_ids():
             try:
-                edge = self.vehicles.get_edge(veh_id)
+                edge = self.k.vehicle.get_edge(veh_id)
                 if edge not in self.edge_dict:
                     self.edge_dict.update({
                         edge: [[] for _ in range(MAX_LANES * self.scaling)]
                     })
-                lane = self.vehicles.get_lane(veh_id)  # integer
-                pos = self.vehicles.get_position(veh_id)
+                lane = self.k.vehicle.get_lane(veh_id)  # integer
+                pos = self.k.vehicle.get_position(veh_id)
                 self.edge_dict[edge][lane].append((veh_id, pos))
             except Exception:
                 pass
@@ -180,7 +179,7 @@ class BottleneckEnv(Env):
             self.alinea()
 
         # compute the outflow
-        veh_ids = self.vehicles.get_ids_by_edge('4')
+        veh_ids = self.k.vehicle.get_ids_by_edge('4')
         self.smoothed_num[self.outflow_index] = len(veh_ids)
         self.outflow_index = \
             (self.outflow_index + 1) % self.smoothed_num.shape[0]
@@ -191,12 +190,12 @@ class BottleneckEnv(Env):
             self.next_period += PERIOD / self.sim_step
             self.cars_arrived = 0
 
-        self.cars_arrived += self.vehicles.get_num_arrived()
+        self.cars_arrived += self.k.vehicle.get_num_arrived()
 
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
-            if self.vehicles.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
+            if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
                 lane_change_mode = \
                     self.cars_before_ramp[veh_id]["lane_change_mode"]
                 color = self.cars_before_ramp[veh_id]["color"]
@@ -219,7 +218,7 @@ class BottleneckEnv(Env):
                         traci_veh = self.traci_connection.vehicle
                         # Disable lane changes inside Toll Area
                         lane_change_mode = \
-                            self.vehicles.get_lane_change_mode(veh_id)
+                            self.k.vehicle.get_lane_change_mode(veh_id)
                         color = traci_veh.getColor(veh_id)
                         self.cars_before_ramp[veh_id] = {
                             "lane_change_mode": lane_change_mode,
@@ -255,8 +254,8 @@ class BottleneckEnv(Env):
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
-            if self.vehicles.get_edge(veh_id) == EDGE_AFTER_TOLL:
-                lane = self.vehicles.get_lane(veh_id)
+            if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
+                lane = self.k.vehicle.get_lane(veh_id)
                 lane_change_mode = \
                     self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
                 color = self.cars_waiting_for_toll[veh_id]["color"]
@@ -292,7 +291,7 @@ class BottleneckEnv(Env):
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
                         lane_change_mode = \
-                            self.vehicles.get_lane_change_mode(veh_id)
+                            self.k.vehicle.get_lane_change_mode(veh_id)
                         color = self.traci_connection.vehicle.getColor(veh_id)
                         self.cars_waiting_for_toll[veh_id] = \
                             {"lane_change_mode": lane_change_mode,
@@ -321,8 +320,8 @@ class BottleneckEnv(Env):
             str(i): self.k.scenario.edge_length(str(i))
             for i in [1, 2, 3]
         }
-        edge_pos = self.vehicles.get_position(veh_id)
-        edge = self.vehicles.get_edge(veh_id)
+        edge_pos = self.k.vehicle.get_position(veh_id)
+        edge = self.k.vehicle.get_edge(veh_id)
         if edge in pre_bottleneck_edges:
             total_length = pre_bottleneck_edges[edge] - edge_pos
             for next_edge in range(int(edge) + 1, 4):
@@ -332,24 +331,24 @@ class BottleneckEnv(Env):
             return -1
 
     def get_bottleneck_outflow_vehicles_per_hour(self, sample_period):
-        return self.vehicles.get_outflow_rate(sample_period)
+        return self.k.vehicle.get_outflow_rate(sample_period)
 
     def get_bottleneck_density(self, lanes=None):
         BOTTLE_NECK_LEN = 280
-        bottleneck_ids = self.vehicles.get_ids_by_edge(['3', '4'])
+        bottleneck_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         if lanes:
             veh_ids = [
                 veh_id for veh_id in bottleneck_ids
-                if str(self.vehicles.get_edge(veh_id)) + "_" +
-                str(self.vehicles.get_lane(veh_id)) in lanes
+                if str(self.k.vehicle.get_edge(veh_id)) + "_" +
+                str(self.k.vehicle.get_lane(veh_id)) in lanes
             ]
         else:
-            veh_ids = self.vehicles.get_ids_by_edge(['3', '4'])
+            veh_ids = self.k.vehicle.get_ids_by_edge(['3', '4'])
         return len(veh_ids) / BOTTLE_NECK_LEN
 
     def get_avg_bottleneck_velocity(self):
-        veh_ids = self.vehicles.get_ids_by_edge(['3', '4', '5'])
-        return sum(self.vehicles.get_speed(veh_ids)) / len(veh_ids) \
+        veh_ids = self.k.vehicle.get_ids_by_edge(['3', '4', '5'])
+        return sum(self.k.vehicle.get_speed(veh_ids)) / len(veh_ids) \
             if len(veh_ids) != 0 else 0
 
     # Dummy action and observation spaces
@@ -374,7 +373,7 @@ class BottleneckEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         """ Outflow rate over last ten seconds normalized to max of 1 """
 
-        reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+        reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
             (2000.0 * self.scaling)
         return reward
 
@@ -434,7 +433,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
         """See class definition."""
         headway_scale = 1000
 
-        rl_ids = self.vehicles.get_rl_ids()
+        rl_ids = self.k.vehicle.get_rl_ids()
 
         # rl vehicle data (absolute position, speed, and lane index)
         rl_obs = np.empty(0)
@@ -450,7 +449,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
                 id_counter += 1
 
             # get the edge and convert it to a number
-            edge_num = self.vehicles.get_edge(veh_id)
+            edge_num = self.k.vehicle.get_edge(veh_id)
             if edge_num is None:
                 edge_num = -1
             elif edge_num == '':
@@ -460,9 +459,9 @@ class BottleNeckAccelEnv(BottleneckEnv):
             else:
                 edge_num = int(edge_num) / 6
             rl_obs = np.concatenate((rl_obs, [
-                self.get_x_by_id(veh_id) / 1000,
-                (self.vehicles.get_speed(veh_id) / self.max_speed),
-                (self.vehicles.get_lane(veh_id) / MAX_LANES), edge_num
+                self.k.vehicle.get_x_by_id(veh_id) / 1000,
+                (self.k.vehicle.get_speed(veh_id) / self.max_speed),
+                (self.k.vehicle.get_lane(veh_id) / MAX_LANES), edge_num
             ]))
         # if all the missing vehicles are at the end, pad
         diff = self.num_rl - int(rl_obs.shape[0] / 4)
@@ -493,10 +492,10 @@ class BottleNeckAccelEnv(BottleneckEnv):
             vel_behind = np.asarray([0 for _ in range(num_lanes)
                                      ]) / self.max_speed
 
-            lane_leaders = self.vehicles.get_lane_leaders(veh_id)
-            lane_followers = self.vehicles.get_lane_followers(veh_id)
-            lane_headways = self.vehicles.get_lane_headways(veh_id)
-            lane_tailways = self.vehicles.get_lane_tailways(veh_id)
+            lane_leaders = self.k.vehicle.get_lane_leaders(veh_id)
+            lane_followers = self.k.vehicle.get_lane_followers(veh_id)
+            lane_headways = self.k.vehicle.get_lane_headways(veh_id)
+            lane_tailways = self.k.vehicle.get_lane_tailways(veh_id)
             headway[0:len(lane_headways)] = (
                 np.asarray(lane_headways) / headway_scale)
             tailway[0:len(lane_tailways)] = (
@@ -504,10 +503,10 @@ class BottleNeckAccelEnv(BottleneckEnv):
             for i, lane_leader in enumerate(lane_leaders):
                 if lane_leader != '':
                     vel_in_front[i] = (
-                        self.vehicles.get_speed(lane_leader) / self.max_speed)
+                        self.k.vehicle.get_speed(lane_leader) / self.max_speed)
             for i, lane_follower in enumerate(lane_followers):
                 if lane_followers != '':
-                    vel_behind[i] = (self.vehicles.get_speed(lane_follower) /
+                    vel_behind[i] = (self.k.vehicle.get_speed(lane_follower) /
                                      self.max_speed)
 
             relative_obs = np.concatenate((relative_obs, headway, tailway,
@@ -522,9 +521,9 @@ class BottleNeckAccelEnv(BottleneckEnv):
         # per edge data (average speed, density
         edge_obs = []
         for edge in self.k.scenario.get_edge_list():
-            veh_ids = self.vehicles.get_ids_by_edge(edge)
+            veh_ids = self.k.vehicle.get_ids_by_edge(edge)
             if len(veh_ids) > 0:
-                avg_speed = (sum(self.vehicles.get_speed(veh_ids)) /
+                avg_speed = (sum(self.k.vehicle.get_speed(veh_ids)) /
                              len(veh_ids)) / self.max_speed
                 density = len(veh_ids) / self.k.scenario.edge_length(edge)
                 edge_obs += [avg_speed, density]
@@ -535,7 +534,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        num_rl = self.vehicles.num_rl_vehicles
+        num_rl = self.k.vehicle.num_rl_vehicles
         lane_change_acts = np.abs(np.round(rl_actions[1::2])[:num_rl])
         return (rewards.desired_velocity(self) + rewards.rl_forward_progress(
             self, gain=0.1) - rewards.boolean_action_penalty(
@@ -543,10 +542,11 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
     def sort_by_position(self):
         if self.env_params.sort_vehicles:
-            sorted_ids = sorted(self.vehicles.get_ids(), key=self.get_x_by_id)
+            sorted_ids = sorted(self.k.vehicle.get_ids(),
+                                key=self.k.vehicle.get_x_by_id)
             return sorted_ids, None
         else:
-            return self.vehicles.get_ids(), None
+            return self.k.vehicle.get_ids(), None
 
     def _apply_rl_actions(self, actions):
         """
@@ -558,36 +558,36 @@ class BottleNeckAccelEnv(BottleneckEnv):
         for actions during that lane change. if a lane change isn't applied,
         and sufficient time has passed, issue an acceleration like normal.
         """
-        num_rl = self.vehicles.num_rl_vehicles
+        num_rl = self.k.vehicle.num_rl_vehicles
         acceleration = actions[::2][:num_rl]
         direction = np.round(actions[1::2])[:num_rl]
 
         # re-arrange actions according to mapping in observation space
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \
             [self.time_counter <= self.lane_change_duration
-             + self.vehicles.get_state(veh_id, 'last_lc')
+             + self.k.vehicle.get_last_lc(veh_id)
              for veh_id in sorted_rl_ids]
         # vehicle that are not allowed to change have their directions set to 0
         direction[non_lane_changing_veh] = \
             np.array([0] * sum(non_lane_changing_veh))
 
-        self.apply_acceleration(sorted_rl_ids, acc=acceleration)
-        self.apply_lane_change(sorted_rl_ids, direction=direction)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, acc=acceleration)
+        self.k.vehicle.apply_lane_change(sorted_rl_ids, direction=direction)
 
     def additional_command(self):
         super().additional_command()
         # if the number of rl vehicles has decreased introduce it back in
-        num_rl = self.vehicles.num_rl_vehicles
+        num_rl = self.k.vehicle.num_rl_vehicles
         if num_rl != len(self.rl_id_list) and self.add_rl_if_exit:
             # find the vehicles that have exited
             diff_list = list(
-                set(self.rl_id_list).difference(self.vehicles.get_rl_ids()))
+                set(self.rl_id_list).difference(self.k.vehicle.get_rl_ids()))
             for rl_id in diff_list:
                 # distribute rl cars evenly over lanes
                 lane_num = self.rl_id_list.index(rl_id) % \
@@ -765,19 +765,19 @@ class DesiredVelocityEnv(BottleneckEnv):
             num_rl_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
             vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
             rl_vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
-            ids = self.vehicles.get_ids_by_edge(edge)
-            lane_list = self.vehicles.get_lane(ids)
-            pos_list = self.vehicles.get_position(ids)
+            ids = self.k.vehicle.get_ids_by_edge(edge)
+            lane_list = self.k.vehicle.get_lane(ids)
+            pos_list = self.k.vehicle.get_position(ids)
             for i, id in enumerate(ids):
                 segment = np.searchsorted(self.obs_slices[edge],
                                           pos_list[i]) - 1
-                if id in self.vehicles.get_rl_ids():
+                if id in self.k.vehicle.get_rl_ids():
                     rl_vehicle_speeds[segment, lane_list[i]] \
-                        += self.vehicles.get_speed(id)
+                        += self.k.vehicle.get_speed(id)
                     num_rl_vehicles[segment, lane_list[i]] += 1
                 else:
                     vehicle_speeds[segment, lane_list[i]] \
-                        += self.vehicles.get_speed(id)
+                        += self.k.vehicle.get_speed(id)
                     num_vehicles[segment, lane_list[i]] += 1
 
             # normalize
@@ -806,7 +806,7 @@ class DesiredVelocityEnv(BottleneckEnv):
             if int(unnorm_rl_list[i]) else 0 for i in range(num_rl)
         ]) / 50
         outflow = np.asarray(
-            self.vehicles.get_outflow_rate(20 * self.sim_step) / 2000.0)
+            self.k.vehicle.get_outflow_rate(20 * self.sim_step) / 2000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
                                mean_speed_norm, mean_rl_speed, [outflow]))
 
@@ -817,13 +817,13 @@ class DesiredVelocityEnv(BottleneckEnv):
         Then they're split into segment actions.
         Then they're split into lane actions.
         """
-        for rl_id in self.vehicles.get_rl_ids():
-            edge = self.vehicles.get_edge(rl_id)
-            lane = self.vehicles.get_lane(rl_id)
+        for rl_id in self.k.vehicle.get_rl_ids():
+            edge = self.k.vehicle.get_edge(rl_id)
+            lane = self.k.vehicle.get_lane(rl_id)
             if edge:
                 # If in outer lanes, on a controlled edge, in a controlled lane
                 if edge[0] != ':' and edge in self.controlled_edges:
-                    pos = self.vehicles.get_position(rl_id)
+                    pos = self.k.vehicle.get_position(rl_id)
 
                     if not self.symmetric:
                         num_lanes = self.k.scenario.num_lanes(edge)
@@ -850,11 +850,11 @@ class DesiredVelocityEnv(BottleneckEnv):
 
         if self.env_params.evaluate:
             if self.time_counter == self.env_params.horizon:
-                reward = self.vehicles.get_outflow_rate(500)
+                reward = self.k.vehicle.get_outflow_rate(500)
             else:
                 return 0
         else:
-            reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+            reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling)
         return reward
 
@@ -910,7 +910,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                             lane_change_mode=0,
                         ),
                         num_vehicles=1 * self.scaling)
-                    self.vehicles = vehicles
+                    self.initial_vehicles = deepcopy(vehicles)
 
                     # delete the cfg and net files
                     net_path = self.k.scenario.net_path

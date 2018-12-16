@@ -62,7 +62,7 @@ class AccelEnv(Env):
         return Box(
             low=-abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(self.vehicles.num_rl_vehicles, ),
+            shape=(self.k.vehicle.num_rl_vehicles, ),
             dtype=np.float32)
 
     @property
@@ -72,29 +72,29 @@ class AccelEnv(Env):
         return Box(
             low=0,
             high=1,
-            shape=(2 * self.vehicles.num_vehicles, ),
+            shape=(2 * self.k.vehicle.num_vehicles, ),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
-        self.apply_acceleration(sorted_rl_ids, rl_actions)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
-            return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
+            return np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
         else:
             return rewards.desired_velocity(self, fail=kwargs['fail'])
 
     def get_state(self):
         """See class definition."""
-        speed = [self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
+        speed = [self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed()
                  for veh_id in self.sorted_ids]
-        pos = [self.get_x_by_id(veh_id) / self.k.scenario.length()
+        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
                for veh_id in self.sorted_ids]
 
         return np.array(speed + pos)
@@ -102,9 +102,9 @@ class AccelEnv(Env):
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        if self.vehicles.num_rl_vehicles > 0:
-            for veh_id in self.vehicles.get_human_ids():
-                self.vehicles.set_observed(veh_id)
+        if self.k.vehicle.num_rl_vehicles > 0:
+            for veh_id in self.k.vehicle.get_human_ids():
+                self.k.vehicle.set_observed(veh_id)
 
 
 class MultiAgentAccelEnv(AccelEnv, MultiEnv):
@@ -117,13 +117,13 @@ class MultiAgentAccelEnv(AccelEnv, MultiEnv):
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
         av_action = rl_actions['av']
         adv_action = rl_actions['adversary']
         perturb_weight = self.env_params.additional_params['perturb_weight']
         rl_action = av_action + perturb_weight * adv_action
-        self.apply_acceleration(sorted_rl_ids, rl_action)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_action)
 
     def compute_reward(self, rl_actions, **kwargs):
         """The agents receives opposing speed rewards.
@@ -132,7 +132,8 @@ class MultiAgentAccelEnv(AccelEnv, MultiEnv):
         the adversary receives the negative of the agent reward
         """
         if self.env_params.evaluate:
-            reward = np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
+            reward = np.mean(
+                self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
             return {'av': reward, 'adversary': -reward}
         else:
             reward = rewards.desired_velocity(self, fail=kwargs['fail'])
@@ -144,8 +145,8 @@ class MultiAgentAccelEnv(AccelEnv, MultiEnv):
         The adversary state and the agent state are identical.
         """
         state = np.array([[
-            self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed(),
-            self.get_x_by_id(veh_id) / self.k.scenario.length()
+            self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed(),
+            self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
         ] for veh_id in self.sorted_ids])
         state = np.ndarray.flatten(state)
         return {'av': state, 'adversary': state}

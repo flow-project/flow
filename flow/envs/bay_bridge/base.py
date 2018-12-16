@@ -88,18 +88,18 @@ class BayBridgeEnv(Env):
         # forward for edges
         self.edge_dict.update(
             (k, [[] for _ in range(MAX_LANES)]) for k in EDGE_LIST)
-        for veh_id in self.vehicles.get_ids():
-            edge = self.vehicles.get_edge(veh_id)
+        for veh_id in self.k.vehicle.get_ids():
+            edge = self.k.vehicle.get_edge(veh_id)
             if edge not in self.edge_dict:
                 self.edge_dict.update({edge: [[] for _ in range(MAX_LANES)]})
-            lane = self.vehicles.get_lane(veh_id)  # integer
-            pos = self.vehicles.get_position(veh_id)
+            lane = self.k.vehicle.get_lane(veh_id)  # integer
+            pos = self.k.vehicle.get_position(veh_id)
 
             # perform necessary lane change actions to keep vehicle in the
             # right route
             self.edge_dict[edge][lane].append((veh_id, pos))
             if edge == "124952171" and lane == 1:
-                self.apply_lane_change([veh_id], direction=[1])
+                self.k.vehicle.apply_lane_change([veh_id], direction=[1])
 
         if not self.disable_tb:
             self.apply_toll_bridge_control()
@@ -109,7 +109,7 @@ class BayBridgeEnv(Env):
     def ramp_meter_lane_change_control(self):
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
-            if self.vehicles.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
+            if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
                 lane_change_mode = self.cars_before_ramp[veh_id][
                     "lane_change_mode"]
                 color = self.cars_before_ramp[veh_id]["color"]
@@ -130,7 +130,7 @@ class BayBridgeEnv(Env):
                 if pos > RAMP_METER_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
-                        lane_change_mode = self.vehicles.get_lane_change_mode(
+                        lane_change_mode = self.k.vehicle.get_lane_change_mode(
                             veh_id)
                         color = self.traci_connection.vehicle.getColor(veh_id)
                         self.cars_before_ramp[veh_id] = {
@@ -145,8 +145,8 @@ class BayBridgeEnv(Env):
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
         for veh_id in self.cars_waiting_for_toll:
-            if self.vehicles.get_edge(veh_id) == EDGE_AFTER_TOLL:
-                lane = self.vehicles.get_lane(veh_id)
+            if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
+                lane = self.k.vehicle.get_lane(veh_id)
                 lane_change_mode = \
                     self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
                 color = self.cars_waiting_for_toll[veh_id]["color"]
@@ -182,7 +182,7 @@ class BayBridgeEnv(Env):
                 if pos > TOLL_BOOTH_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
-                        lc_mode = self.vehicles.get_lane_change_mode(veh_id)
+                        lc_mode = self.k.vehicle.get_lane_change_mode(veh_id)
                         color = self.traci_connection.vehicle.getColor(veh_id)
                         self.cars_waiting_for_toll[veh_id] = {
                             "lane_change_mode": lc_mode,
@@ -210,7 +210,7 @@ class BayBridgeEnv(Env):
     # TODO: decide on a good reward function
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
+        return np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
 
     """ The below methods need to be updated by child classes. """
 

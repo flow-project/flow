@@ -30,7 +30,7 @@ class TestRewards(unittest.TestCase):
         self.assertEqual(desired_velocity(env, fail=False), 0)
 
         # change the speed of one vehicle
-        env.vehicles.test_set_speed("test_0", 10)
+        env.k.vehicle.test_set_speed("test_0", 10)
 
         # check the new average speed
         self.assertAlmostEqual(desired_velocity(env, fail=False), 0.05131670)
@@ -49,7 +49,7 @@ class TestRewards(unittest.TestCase):
         self.assertEqual(average_velocity(env, fail=False), 0)
 
         # change the speed of one vehicle
-        env.vehicles.test_set_speed("test_0", 10)
+        env.k.vehicle.test_set_speed("test_0", 10)
 
         # check the new average speed
         self.assertEqual(average_velocity(env, fail=False), 1)
@@ -68,7 +68,7 @@ class TestRewards(unittest.TestCase):
         self.assertEqual(total_velocity(env, fail=False), 0)
 
         # change the speed of one vehicle
-        env.vehicles.test_set_speed("test_0", 10)
+        env.k.vehicle.test_set_speed("test_0", 10)
 
         # check the new average speed
         self.assertEqual(total_velocity(env, fail=False), 10)

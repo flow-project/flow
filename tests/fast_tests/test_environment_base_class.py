@@ -58,18 +58,18 @@ class TestStartingPositionShuffle(unittest.TestCase):
         self.env = None
 
     def test_starting_pos(self):
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # position of vehicles before reset
-        before_reset = \
-            np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        before_reset = np.array([self.env.k.vehicle.get_x_by_id(veh_id)
+                                 for veh_id in ids])
 
         # reset the environment
         self.env.reset()
 
         # position of vehicles after reset
-        after_reset = \
-            np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        after_reset = np.array([self.env.k.vehicle.get_x_by_id(veh_id)
+                                for veh_id in ids])
 
         offset = after_reset[0] - before_reset[0]
 
@@ -116,16 +116,18 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
         self.env = None
 
     def test_shuffle(self):
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # position of vehicles before reset
-        before_reset = [self.env.get_x_by_id(veh_id) for veh_id in ids]
+        before_reset = [self.env.k.vehicle.get_x_by_id(veh_id)
+                        for veh_id in ids]
 
         # reset the environment
         self.env.reset()
 
         # position of vehicles after reset
-        after_reset = [self.env.get_x_by_id(veh_id) for veh_id in ids]
+        after_reset = [self.env.k.vehicle.get_x_by_id(veh_id)
+                       for veh_id in ids]
 
         self.assertCountEqual(before_reset, after_reset)
 
@@ -203,14 +205,14 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         ensures that vehicles can never have velocities below zero given any
         acceleration.
         """
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         vel0 = np.array(
-            [self.env.vehicles.get_speed(veh_id) for veh_id in ids])
+            [self.env.k.vehicle.get_speed(veh_id) for veh_id in ids])
 
         # apply a certain set of accelerations to the vehicles in the network
         accel_step0 = np.array([0, 1, 4, 9, 16])
-        self.env.apply_acceleration(veh_ids=ids, acc=accel_step0)
+        self.env.k.vehicle.apply_acceleration(veh_ids=ids, acc=accel_step0)
         self.env.k.simulation.simulation_step()
 
         # compare the new velocity of the vehicles to the expected velocity
@@ -230,11 +232,11 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         id_list = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.update(veh_obs, id_list, self.env)
+        self.env.k.vehicle.update(veh_obs, id_list, self.env)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
-        self.env.apply_acceleration(veh_ids=ids, acc=accel_step1)
+        self.env.k.vehicle.apply_acceleration(veh_ids=ids, acc=accel_step1)
         self.env.k.simulation.simulation_step()
 
         # this time, some vehicles should be at 0 velocity (NOT less), and sum
@@ -252,7 +254,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         Ensures that apply_lane_change raises ValueErrors when it should
         """
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # make sure that running apply lane change with a invalid direction
         # values leads to a ValueError
@@ -260,7 +262,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         self.assertRaises(
             ValueError,
-            self.env.apply_lane_change,
+            self.env.k.vehicle.apply_lane_change,
             veh_ids=ids,
             direction=bad_directions)
 
@@ -272,14 +274,14 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         is no lane in te requested direction.
         """
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
         lane0 = np.array(
-            [self.env.vehicles.get_lane(veh_id) for veh_id in ids])
+            [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids])
         max_lanes = self.env.net_params.additional_params['lanes']
 
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
-        self.env.apply_lane_change(ids, direction=direction0)
+        self.env.k.vehicle.apply_lane_change(ids, direction=direction0)
         self.env.k.simulation.simulation_step()
 
         # check that the lane vehicle lane changes to the correct direction
@@ -300,12 +302,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         id_list = self.env.traci_connection.simulation.getSubscriptionResults()
 
         # store the network observations in the vehicles class
-        self.env.vehicles.update(veh_obs, id_list, self.env)
+        self.env.k.vehicle.update(veh_obs, id_list, self.env)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
         direction1 = np.array([-1, -1, -1, -1, -1])
-        self.env.apply_lane_change(ids, direction=direction1)
+        self.env.k.vehicle.apply_lane_change(ids, direction=direction1)
         self.env.k.simulation.simulation_step()
 
         # check that the lane vehicle lane changes to the correct direction
@@ -343,7 +345,7 @@ class TestSorting(unittest.TestCase):
         self.env.reset()
 
         sorted_ids = self.env.sorted_ids
-        positions = self.env.vehicles.get_absolute_position(sorted_ids)
+        positions = self.env.k.vehicle.get_absolute_position(sorted_ids)
 
         # ensure vehicles ids are in sorted order by positions
         self.assertTrue(
@@ -367,7 +369,7 @@ class TestSorting(unittest.TestCase):
         self.env.reset()
 
         sorted_ids = list(self.env.sorted_ids)
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # ensure that the list of ids did not change
         self.assertListEqual(sorted_ids, ids)
@@ -488,15 +490,15 @@ class TestVehicleColoring(unittest.TestCase):
                   scenario=scenario)
 
         # set one vehicle as observed
-        env.vehicles.set_observed("human_0")
+        env.k.vehicle.set_observed("human_0")
 
         # update the colors of all vehicles
-        env.update_vehicle_colors()
+        env.k.vehicle.update_vehicle_colors()
         env.k.simulation.simulation_step()
 
         # check that, when rendering is off, the colors don't change (this
         # avoids unnecessary API calls)
-        for veh_id in env.vehicles.get_ids():
+        for veh_id in env.k.vehicle.get_ids():
             self.assertEqual(
                 env.traci_connection.vehicle.getColor(veh_id), WHITE)
 
@@ -504,14 +506,14 @@ class TestVehicleColoring(unittest.TestCase):
         env.sumo_params.render = True
 
         # set one vehicle as observed
-        env.vehicles.set_observed("human_0")
+        env.k.vehicle.set_observed("human_0")
 
         # update the colors of all vehicles
-        env.update_vehicle_colors()
+        env.k.vehicle.update_vehicle_colors()
         env.k.simulation.simulation_step()
 
         # check the colors of all vehicles
-        for veh_id in env.vehicles.get_ids():
+        for veh_id in env.k.vehicle.get_ids():
             if veh_id == "human_0":
                 self.assertEqual(
                     env.traci_connection.vehicle.getColor(veh_id), CYAN)

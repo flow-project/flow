@@ -127,8 +127,9 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos(initial_config)
 
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        ids = self.env.k.vehicle.get_ids()
+        veh_pos = np.array([self.env.k.vehicle.get_x_by_id(veh_id)
+                            for veh_id in ids])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
@@ -159,8 +160,9 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos(initial_config)
 
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        ids = self.env.k.vehicle.get_ids()
+        veh_pos = np.array([self.env.k.vehicle.get_x_by_id(veh_id)
+                            for veh_id in ids])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
@@ -189,8 +191,9 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos(initial_config)
 
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        ids = self.env.k.vehicle.get_ids()
+        veh_pos = np.array([self.env.k.vehicle.get_x_by_id(veh_id)
+                            for veh_id in ids])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
@@ -220,8 +223,9 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos(initial_config)
 
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        ids = self.env.k.vehicle.get_ids()
+        veh_pos = np.array([self.env.k.vehicle.get_x_by_id(veh_id)
+                            for veh_id in ids])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
@@ -252,12 +256,12 @@ class TestEvenStartPos(unittest.TestCase):
         lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
         veh_pos = []
         for i in range(lanes):
             veh_pos.append([
-                self.env.get_x_by_id(veh_id) for veh_id in ids
-                if self.env.vehicles.get_lane(veh_id) == i
+                self.env.k.vehicle.get_x_by_id(veh_id) for veh_id in ids
+                if self.env.k.vehicle.get_lane(veh_id) == i
             ])
 
         # check that the vehicles are uniformly distributed in the number of
@@ -292,8 +296,8 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos(initial_config)
 
         # check that only the first lane has vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+        ids = self.env.k.vehicle.get_ids()
+        veh_lanes = [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
         self.assertEqual(np.unique(veh_lanes).size, 1)
 
         # delete the created environment
@@ -313,12 +317,12 @@ class TestEvenStartPos(unittest.TestCase):
         lanes = self.env.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
         veh_pos = []
         for i in range(lanes):
             veh_pos.append([
-                self.env.get_x_by_id(veh_id) for veh_id in ids
-                if self.env.vehicles.get_lane(veh_id) == i
+                self.env.k.vehicle.get_x_by_id(veh_id) for veh_id in ids
+                if self.env.k.vehicle.get_lane(veh_id) == i
             ])
 
         # check that the vehicles are uniformly distributed in the number of
@@ -350,8 +354,8 @@ class TestEvenStartPos(unittest.TestCase):
 
         # check that all vehicles are only placed in edges specified in the
         # edges_distribution term
-        for veh_id in self.env.vehicles.get_ids():
-            self.assertTrue(self.env.vehicles.get_edge(veh_id) in edges)
+        for veh_id in self.env.k.vehicle.get_ids():
+            self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
 
     def test_num_vehicles(self):
         """
@@ -366,8 +370,8 @@ class TestEvenStartPos(unittest.TestCase):
         # check when "num_vehicles" is not specified
         pos, lanes, speeds = self.env.k.scenario.generate_starting_positions(
             initial_config=InitialConfig())
-        self.assertEqual(len(pos), self.env.vehicles.num_vehicles)
-        self.assertEqual(len(lanes), self.env.vehicles.num_vehicles)
+        self.assertEqual(len(pos), self.env.k.vehicle.num_vehicles)
+        self.assertEqual(len(lanes), self.env.k.vehicle.num_vehicles)
 
         # check when "num_vehicles" is specified
         pos, lanes, speeds = self.env.k.scenario.generate_starting_positions(
@@ -408,8 +412,9 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
 
     def test_even_start_pos_internal(self):
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        ids = self.env.k.vehicle.get_ids()
+        veh_pos = np.array([self.env.k.vehicle.get_x_by_id(veh_id)
+                            for veh_id in ids])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
@@ -429,7 +434,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
                     # if not, check that the last or first vehicle is right
                     # after an internal link, on position 0
                     pos = [
-                        self.env.get_x_by_id(veh_id)
+                        self.env.k.vehicle.get_x_by_id(veh_id)
                         for veh_id in [ids[i + 1], ids[i]]
                     ]
                     rel_pos = [
@@ -487,8 +492,8 @@ class TestRandomStartPos(unittest.TestCase):
         self.setUp_gen_start_pos(initial_config)
 
         # verify that all vehicles are located in the number of allocated lanes
-        for veh_id in self.env.vehicles.get_ids():
-            self.assertLess(self.env.vehicles.get_lane(veh_id),
+        for veh_id in self.env.k.vehicle.get_ids():
+            self.assertLess(self.env.k.vehicle.get_lane(veh_id),
                             initial_config.lanes_distribution)
 
     def test_edges_distribution(self):
@@ -506,8 +511,8 @@ class TestRandomStartPos(unittest.TestCase):
 
         # check that all vehicles are only placed in edges specified in the
         # edges_distribution term
-        for veh_id in self.env.vehicles.get_ids():
-            self.assertTrue(self.env.vehicles.get_edge(veh_id) in edges)
+        for veh_id in self.env.k.vehicle.get_ids():
+            self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in edges)
 
 
 class TestEvenStartPosVariableLanes(unittest.TestCase):
@@ -539,7 +544,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
         Ensure that enough vehicles are placed in the network, and they cover
         all possible lanes.
         """
-        expected_num_vehicles = self.env.vehicles.num_vehicles
+        expected_num_vehicles = self.env.k.vehicle.num_vehicles
         actual_num_vehicles = \
             len(self.env.traci_connection.vehicle.getIDList())
 
@@ -547,7 +552,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
         self.assertEqual(expected_num_vehicles, actual_num_vehicles)
 
         # check that all possible lanes are covered
-        lanes = self.env.vehicles.get_lane(self.env.vehicles.get_ids())
+        lanes = self.env.k.vehicle.get_lane(self.env.k.vehicle.get_ids())
         self.assertFalse(any(i not in lanes for i in range(4)))
 
 
