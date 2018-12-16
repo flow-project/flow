@@ -10,7 +10,7 @@ from flow.core.params import InFlows
 from flow.core.params import SumoLaneChangeParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.controllers import ContinuousRouter
 from flow.benchmarks.bottleneck2 import flow_params
 from flow.benchmarks.bottleneck2 import SCALING

@@ -250,7 +250,7 @@ class BottleneckEnv(Env):
         # we should be green, otherwise we should be red
         tl_mask = (self.ramp_state <= self.green_time)
         colors = ['G' if val else 'r' for val in tl_mask]
-        self.traffic_lights.set_state('3', ''.join(colors), self)
+        self.k.traffic_light.set_state('3', ''.join(colors))
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []

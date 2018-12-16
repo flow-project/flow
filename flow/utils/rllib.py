@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.core.vehicles import Vehicles
 
 

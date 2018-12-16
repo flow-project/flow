@@ -6,7 +6,7 @@ Baseline is no AVs.
 import numpy as np
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.benchmarks.merge0 import flow_params
 
 

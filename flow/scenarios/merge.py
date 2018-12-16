@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from numpy import pi, sin, cos
 
 INFLOW_EDGE_LEN = 100  # length of the inflow edges (needed for resets)

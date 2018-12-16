@@ -86,22 +86,15 @@ class MultiEnv(MultiAgentEnv, Env):
 
             self.additional_command()
 
+            # advance the simulation in the simulator by one step
             self.k.simulation.simulation_step()
 
-            # collect subscription information from sumo
-            vehicle_obs = \
-                self.traci_connection.vehicle.getSubscriptionResults()
-            id_lists = \
-                self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
-
             # store new observations in the vehicles and traffic lights class
-            self.k.vehicle.update(vehicle_obs, id_lists, self)
-            self.traffic_lights.update(tls_obs)
+            self.k.update(reset=False)
 
             # update the colors of vehicles
-            self.update_vehicle_colors()
+            if self.sumo_params.render:
+                self.k.vehicle.update_vehicle_colors()
 
             # collect list of sorted vehicle ids
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()

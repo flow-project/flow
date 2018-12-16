@@ -8,7 +8,7 @@ from rllab and rllib.
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.utils.registry import make_create_env
 

@@ -4,7 +4,7 @@ import numpy as np
 from numpy import pi, sin, cos, linspace
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 from flow.scenarios.base_scenario import Scenario
 
 ADDITIONAL_NET_PARAMS = {
