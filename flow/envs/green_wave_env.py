@@ -240,7 +240,7 @@ class TrafficLightGridEnv(Env):
                 self.time_counter - 1, i] = self.k.vehicle.get_speed(veh_id)
             self.obs_var_labels['edges'][self.time_counter - 1, i] = \
                 self._convert_edge(self.k.vehicle.get_edge(veh_id))
-            x = self.get_x_by_id(veh_id)
+            x = self.k.vehicle.get_x_by_id(veh_id)
             if x > 2000:  # hardcode
                 x = 0
             self.obs_var_labels['positions'][self.time_counter - 1, i] = x

@@ -206,7 +206,8 @@ class TwoLoopsMergePOEnv(Env):
         environment are sorted with regards to which ring this currently
         reside on.
         """
-        pos = [self.get_x_by_id(veh_id) for veh_id in self.k.vehicle.get_ids()]
+        pos = [self.k.vehicle.get_x_by_id(veh_id)
+               for veh_id in self.k.vehicle.get_ids()]
         sorted_indx = np.argsort(pos)
         sorted_ids = np.array(self.k.vehicle.get_ids())[sorted_indx]
 

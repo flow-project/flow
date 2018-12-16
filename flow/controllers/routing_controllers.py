@@ -29,7 +29,7 @@ class MinicityRouter(BaseRouter):
 
     def choose_route(self, env):
         """See parent class."""
-        vehicles = env.vehicle
+        vehicles = env.k.vehicle
         veh_id = self.veh_id
         veh_edge = vehicles.get_edge(veh_id)
         veh_route = vehicles.get_route(veh_id)
