@@ -302,7 +302,7 @@ class BottleneckEnv(Env):
         if newTLState != self.tl_state:
             self.tl_state = newTLState
             self.k.traffic_light.set_state(
-                node_id=TB_TL_ID, state=newTLState, env=self)
+                node_id=TB_TL_ID, state=newTLState)
 
     def distance_to_bottleneck(self, veh_id):
         pre_bottleneck_edges = {

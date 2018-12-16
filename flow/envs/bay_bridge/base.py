@@ -193,7 +193,7 @@ class BayBridgeEnv(Env):
         if new_tls_state != self.tl_state:
             self.tl_state = new_tls_state
             self.k.traffic_light.set_state(
-                node_id=TB_TL_ID, state=new_tls_state, env=self)
+                node_id=TB_TL_ID, state=new_tls_state)
 
     # TODO: decide on a good reward function
     def compute_reward(self, rl_actions, **kwargs):

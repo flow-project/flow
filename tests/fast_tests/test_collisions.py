@@ -61,7 +61,7 @@ class TestCollisions(unittest.TestCase):
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
             env.k.traffic_light.set_state(
-                node_id='center' + str(i), state="gggggggggggg", env=self)
+                node_id='center' + str(i), state="gggggggggggg")
 
         # instantiate an experiment class
         exp = SumoExperiment(env)
@@ -120,7 +120,7 @@ class TestCollisions(unittest.TestCase):
         # go through the env and set all the lights to green
         for i in range(env.rows * env.cols):
             env.k.traffic_light.set_state(
-                node_id='center' + str(i), state="gggggggggggg", env=self)
+                node_id='center' + str(i), state="gggggggggggg")
 
         # instantiate an experiment class
         exp = SumoExperiment(env)
