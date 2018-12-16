@@ -99,8 +99,8 @@ class TrafficLightGridEnv(Env):
 
         if self.tl_type != "actuated":
             for i in range(self.rows * self.cols):
-                self.traci_connection.trafficlight.setRedYellowGreenState(
-                    'center' + str(i), "GGGrrrGGGrrr")
+                self.traffic_lights.set_state(
+                    node_id='center' + str(i), state="GGGrrrGGGrrr", env=self)
                 self.last_change[i, 2] = 1
 
         # Additional Information for Plotting
