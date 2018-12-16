@@ -111,16 +111,18 @@ class TestLoopMerges(unittest.TestCase):
         # reset the environment to ensure all vehicles are at their starting
         # positions
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # collect the starting edges of all vehicles
         merge_starting_edges = []
         other_starting_edges = []
         for veh_id in ids:
             if veh_id[:5] == "merge":
-                merge_starting_edges.append(self.env.vehicles.get_edge(veh_id))
+                merge_starting_edges.append(
+                    self.env.k.vehicle.get_edge(veh_id))
             else:
-                other_starting_edges.append(self.env.vehicles.get_edge(veh_id))
+                other_starting_edges.append(
+                    self.env.k.vehicle.get_edge(veh_id))
 
         # ensure that all vehicles are starting in the edges they should be in
         expected_merge_starting_edges = ["right", "top", "bottom"]

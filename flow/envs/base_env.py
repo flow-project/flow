@@ -82,6 +82,8 @@ class Env(*classdef):
 
         self.env_params = env_params
         self.scenario = scenario
+        self.net_params = scenario.net_params
+        self.initial_config = scenario.initial_config
         self.sumo_params = sumo_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -118,14 +120,18 @@ class Env(*classdef):
                         sim_params=self.sumo_params,
                         vehicles=scenario.vehicles)
 
+        # use the scenario class's network parameters to generate the necessary
+        # scenario components within the scenario kernel
+        self.k.scenario.generate_network(scenario)
+
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
-        api = self.k.simulation.start_simulation(scenario=self.k.scenario,
-                                                 sim_params=sumo_params)
+        self.traci_connection = self.k.simulation.start_simulation(
+            scenario=self.k.scenario, sim_params=sumo_params)
 
         # pass the kernel api to the kernel and it's subclasses
-        self.k.pass_api(api)
+        self.k.pass_api(self.traci_connection)
 
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
@@ -185,7 +191,7 @@ class Env(*classdef):
         render: bool, optional
             specifies whether to use sumo's gui
         """
-        self.k.simulation.close()
+        self.k.close()
 
         if render is not None:
             self.sumo_params.render = render
@@ -194,8 +200,11 @@ class Env(*classdef):
             ensure_dir(sumo_params.emission_path)
             self.sumo_params.emission_path = sumo_params.emission_path
 
-        self.k.simulation.start_simulation(scenario=self.k.scenario,
-                                           sim_params=self.sumo_params)
+        self.k.scenario.generate_network(self.scenario)
+        self.traci_connection = self.k.simulation.start_simulation(
+            scenario=self.k.scenario, sim_params=self.sumo_params)
+        self.k.pass_api(self.traci_connection)
+
         self.setup_initial_state()
 
     def setup_initial_state(self):
@@ -222,7 +231,7 @@ class Env(*classdef):
             sys.exit()
 
         # save the initial state. This is used in the _reset function
-        for veh_id in self.k.vehicle.get_ids():
+        for veh_id in self.initial_ids:
             type_id = self.scenario.vehicles.get_type(veh_id)
             pos = self.k.vehicle.get_position(veh_id)
             lane = self.k.vehicle.get_lane(veh_id)
@@ -347,7 +356,7 @@ class Env(*classdef):
                 # test if the agent has exited the system, if so
                 # its agent should be done
                 # FIXME(ev) this assumes that agents are single vehicles
-                if key in self.vehicles.get_arrived_ids():
+                if key in self.k.vehicle.get_arrived_ids():
                     done[key] = True
                 # check if an agent is done
                 if crash:
@@ -464,7 +473,7 @@ class Env(*classdef):
         for veh_id in list(self.k.vehicle.get_ids()):
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
+            except (FatalTraCIError, TraCIException, KeyError):
                 print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network

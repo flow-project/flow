@@ -124,19 +124,19 @@ class BaseController:
             action otherwise
         """
         # if there is only one vehicle in the network, all actions are safe
-        if env.vehicles.num_vehicles == 1:
+        if env.k.vehicle.num_vehicles == 1:
             return action
 
-        lead_id = env.vehicles.get_leader(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
 
         # if there is no other vehicle in the lane, all actions are safe
         if lead_id is None:
             return action
 
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
         sim_step = env.sim_step
         next_vel = this_vel + action * sim_step
-        h = env.vehicles.get_headway(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
 
         if next_vel > 0:
             # the second and third terms cover (conservatively) the extra
@@ -174,13 +174,13 @@ class BaseController:
         safe_action: float
             the requested action clipped by the safe velocity
         """
-        if env.vehicles.num_vehicles == 1:
+        if env.k.vehicle.num_vehicles == 1:
             # if there is only one vehicle in the network, all actions are safe
             return action
         else:
             safe_velocity = self.safe_velocity(env)
 
-            this_vel = env.vehicles.get_speed(self.veh_id)
+            this_vel = env.k.vehicle.get_speed(self.veh_id)
             sim_step = env.sim_step
 
             if this_vel + action * sim_step > safe_velocity:
@@ -210,11 +210,11 @@ class BaseController:
             maximum safe velocity given a maximum deceleration and delay in
             performing the breaking action
         """
-        lead_id = env.vehicles.get_leader(self.veh_id)
-        lead_vel = env.vehicles.get_speed(lead_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
 
-        h = env.vehicles.get_headway(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
         dv = lead_vel - this_vel
 
         v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)

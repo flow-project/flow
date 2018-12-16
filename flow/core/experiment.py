@@ -100,7 +100,7 @@ class SumoExperiment:
             logging.info("Iter #" + str(i))
             ret = 0
             ret_list = []
-            vehicles = self.env.vehicles
+            vehicles = self.env.k.vehicle
             state = self.env.reset()
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions(state))

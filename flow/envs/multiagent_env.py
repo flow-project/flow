@@ -56,8 +56,8 @@ class MultiEnv(MultiAgentEnv, Env):
                     accel_contr = self.k.vehicle.get_acc_controller(veh_id)
                     action = accel_contr.get_action(self)
                     accel.append(action)
-                self.apply_acceleration(self.k.vehicle.get_controlled_ids(),
-                                        accel)
+                self.k.vehicle.apply_acceleration(
+                    self.k.vehicle.get_controlled_ids(), accel)
 
             # perform lane change actions for controlled human-driven vehicles
             if len(self.k.vehicle.get_controlled_lc_ids()) > 0:
@@ -66,7 +66,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     target_lane = self.k.vehicle.get_lane_changing_controller(
                         veh_id).get_action(self)
                     direction.append(target_lane)
-                self.apply_lane_change(
+                self.k.vehicle.apply_lane_change(
                     self.k.vehicle.get_controlled_lc_ids(),
                     direction=direction)
 
