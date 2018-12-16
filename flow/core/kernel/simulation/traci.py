@@ -67,7 +67,6 @@ class TraCISimulation(KernelSimulation):
     def close(self):
         """See parent class."""
         self.kernel_api.close()
-        self.sumo_proc.kill()
 
     def check_collision(self):
         """See parent class."""

@@ -203,6 +203,10 @@ class KernelVehicle(object):
         """Return the simulation time delta of the vehicle of veh_id."""
         raise NotImplementedError
 
+    def get_type(self, veh_id):
+        """Return the type of the vehicle of veh_id."""
+        raise NotImplementedError
+
     def get_ids(self):
         """Return the names of all vehicles currently in the network."""
         raise NotImplementedError

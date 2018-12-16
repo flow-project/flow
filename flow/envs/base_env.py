@@ -100,8 +100,11 @@ class Env(*classdef):
         # store the initial state of the vehicles class (for restarting sumo)
         self.initial_vehicles = deepcopy(scenario.vehicles)
 
+        # the simulator used by this environment
+        self.simulator = 'traci'
+
         # create the Flow kernel
-        self.k = Kernel(simulator="traci",
+        self.k = Kernel(simulator=self.simulator,
                         sim_params=self.sumo_params,
                         vehicles=scenario.vehicles)
 
@@ -156,7 +159,7 @@ class Env(*classdef):
         elif self.sumo_params.render in [True, False]:
             pass  # default to sumo-gui (if True) or sumo (if False)
         else:
-            raise ValueError("Mode %s is not supported!" %
+            raise ValueError('Mode %s is not supported!' %
                              self.sumo_params.render)
 
     # TODO(ak): Rename to restart_simulation
@@ -177,6 +180,10 @@ class Env(*classdef):
             specifies whether to use sumo's gui
         """
         self.k.close()
+
+        # killed the sumo process if using sumo/TraCI
+        if self.simulator == 'traci':
+            self.k.simulation.sumo_proc.kill()
 
         if render is not None:
             self.sumo_params.render = render

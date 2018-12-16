@@ -79,8 +79,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     routing_ids.append(veh_id)
                     route_contr = self.k.vehicle.get_routing_controller(veh_id)
                     routing_actions.append(route_contr.choose_route(self))
-
-            self.choose_routes(routing_ids, routing_actions)
+            self.k.vehicle.choose_routes(routing_ids, routing_actions)
 
             self.apply_rl_actions(rl_actions)
 
