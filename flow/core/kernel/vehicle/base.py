@@ -191,6 +191,18 @@ class KernelVehicle(object):
     #                        State acquisition methods                        #
     ###########################################################################
 
+    def get_orientation(self, veh_id):
+        """Return the orientation of the vehicle of veh_id."""
+        raise NotImplementedError
+
+    def get_timestep(self, veh_id):
+        """Return the time step of the vehicle of veh_id."""
+        raise NotImplementedError
+
+    def get_timedelta(self, veh_id):
+        """Return the simulation time delta of the vehicle of veh_id."""
+        raise NotImplementedError
+
     def get_ids(self):
         """Return the names of all vehicles currently in the network."""
         raise NotImplementedError
@@ -244,6 +256,22 @@ class KernelVehicle(object):
 
     def get_speed(self, veh_id, error=-1001):
         """Return the speed of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+        """
+        raise NotImplementedError
+
+    def get_default_speed(self, veh_id, error=-1001):
+        """Return the expected speed if no control were applied
 
         Parameters
         ----------
@@ -475,6 +503,48 @@ class KernelVehicle(object):
 
         This includes the headways between the specified vehicle and the
         vehicle immediately ahead of it in all lanes.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        list of float
+        """
+        raise NotImplementedError
+
+    def get_lane_leaders_speed(self, veh_id, error=list()):
+        """Return the speed of the leaders of the specified vehicles.
+
+        This includes the speed between the specified vehicle and the
+        vehicle immediately ahead of it in all lanes.
+
+        Missing lead vehicles have a speed of zero.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        list of float
+        """
+        raise NotImplementedError
+
+    def get_lane_followers_speed(self, veh_id, error=list()):
+        """Return the speed of the followers of the specified vehicles.
+
+        This includes the speed between the specified vehicle and the
+        vehicle immediately behind it in all lanes.
+
+        Missing following vehicles have a speed of zero.
 
         Parameters
         ----------
