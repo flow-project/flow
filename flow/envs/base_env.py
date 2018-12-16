@@ -124,8 +124,12 @@ class Env(*classdef):
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
 
+        # the simulator used by this environment
+        self.simulator = 'traci'
+
         # create the Flow kernel
-        self.k = Kernel(simulator="traci", sim_params=sumo_params)
+        self.k = Kernel(simulator=self.simulator,
+                        sim_params=self.sumo_params)
 
         # use the scenario class's network parameters to generate the necessary
         # scenario components within the scenario kernel
@@ -195,6 +199,10 @@ class Env(*classdef):
             specifies whether to use sumo's gui
         """
         self.k.close()
+
+        # killed the sumo process if using sumo/TraCI
+        if self.simulator == 'traci':
+            self.k.simulation.sumo_proc.kill()
 
         if render is not None:
             self.sumo_params.render = render
