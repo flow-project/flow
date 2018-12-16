@@ -4,6 +4,7 @@ import logging
 import datetime
 import numpy as np
 import time
+import os
 
 from flow.core.util import emission_to_csv
 
@@ -136,8 +137,7 @@ class SumoExperiment:
             dir_path = self.env.sumo_params.emission_path
             emission_filename = \
                 "{0}-emission.xml".format(self.env.scenario.name)
-            emission_path = \
-                "{0}/{1}".format(dir_path, emission_filename)
+            emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
             emission_to_csv(emission_path)

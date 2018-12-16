@@ -358,6 +358,10 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         return self.__vehicles[veh_id]["timedelta"]
 
+    def get_type(self, veh_id):
+        """Return the type of the vehicle of veh_id."""
+        return self.__vehicles[veh_id]["type"]
+
     def get_ids(self):
         """See parent class."""
         return self.__ids
@@ -879,7 +883,7 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_rl_ids():
             try:
                 # color rl vehicles red
-                self.kernel_api.vehicle.setColor(vehID=veh_id, color=WHITE)
+                self.kernel_api.vehicle.setColor(vehID=veh_id, color=RED)
             except (FatalTraCIError, TraCIException):
                 pass
 
@@ -900,7 +904,7 @@ class TraCIVehicle(KernelVehicle):
             self.remove_observed(veh_id)
 
     def add(self, veh_id, type_id, route_id, pos, lane, speed):
-        """See parent clas."""
+        """See parent class."""
         self.kernel_api.vehicle.addFull(
             veh_id,
             route_id,

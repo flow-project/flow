@@ -8,7 +8,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.envs import Env
+from flow.envs import Env, TestEnv
 
 from tests.setup_scripts import ring_road_exp_setup
 import os
@@ -485,16 +485,15 @@ class TestVehicleColoring(unittest.TestCase):
         # environments
         sumo_params = SumoParams()
         env_params = EnvParams()
-        env = Env(sumo_params=sumo_params,
-                  env_params=env_params,
-                  scenario=scenario)
+        env = TestEnv(sumo_params=sumo_params,
+                      env_params=env_params,
+                      scenario=scenario)
 
         # set one vehicle as observed
         env.k.vehicle.set_observed("human_0")
 
         # update the colors of all vehicles
-        env.k.vehicle.update_vehicle_colors()
-        env.k.simulation.simulation_step()
+        env.step(rl_actions=None)
 
         # check that, when rendering is off, the colors don't change (this
         # avoids unnecessary API calls)
@@ -509,8 +508,7 @@ class TestVehicleColoring(unittest.TestCase):
         env.k.vehicle.set_observed("human_0")
 
         # update the colors of all vehicles
-        env.k.vehicle.update_vehicle_colors()
-        env.k.simulation.simulation_step()
+        env.step(rl_actions=None)
 
         # check the colors of all vehicles
         for veh_id in env.k.vehicle.get_ids():
