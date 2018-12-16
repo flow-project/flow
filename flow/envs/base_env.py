@@ -24,12 +24,6 @@ try:
 except ImportError:
     serializable_flag = False
 
-try:
-    # Load user config if exists, else load default config
-    import flow.config as config
-except ImportError:
-    import flow.config_default as config
-
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
 
@@ -38,11 +32,6 @@ if serializable_flag:
     classdef = (gym.Env, Serializable)
 else:
     classdef = (gym.Env,)
-
-# colors for vehicles
-WHITE = (255, 255, 255, 255)
-CYAN = (0, 255, 255, 255)
-RED = (255, 0, 0, 255)
 
 
 class Env(*classdef):
@@ -110,10 +99,6 @@ class Env(*classdef):
 
         # store the initial state of the vehicles class (for restarting sumo)
         self.initial_vehicles = deepcopy(scenario.vehicles)
-
-        # TODO(ak): temporary fix to support old pkl files
-        if not hasattr(self.env_params, "evaluate"):
-            self.env_params.evaluate = False
 
         # create the Flow kernel
         self.k = Kernel(simulator="traci",
