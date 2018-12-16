@@ -12,6 +12,11 @@ from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from bisect import bisect_left
 import itertools
 
+# colors for vehicles
+WHITE = (255, 255, 255, 255)
+CYAN = (0, 255, 255, 255)
+RED = (255, 0, 0, 255)
+
 
 class TraCIVehicle(KernelVehicle):
     """Flow kernel for the TraCI API.
@@ -874,8 +879,7 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_rl_ids():
             try:
                 # color rl vehicles red
-                self.kernel_api.vehicle.setColor(vehID=veh_id,
-                                                 color=(255, 0, 0, 255))
+                self.kernel_api.vehicle.setColor(vehID=veh_id, color=WHITE)
             except (FatalTraCIError, TraCIException):
                 pass
 
@@ -883,10 +887,10 @@ class TraCIVehicle(KernelVehicle):
             try:
                 if veh_id in self.get_observed_ids():
                     # color observed human-driven vehicles cyan
-                    color = (0, 255, 255, 255)
+                    color = CYAN
                 else:
                     # color unobserved human-driven vehicles white
-                    color = (255, 255, 255, 255)
+                    color = WHITE
                 self.kernel_api.vehicle.setColor(vehID=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
                 pass
