@@ -2,7 +2,7 @@ import random
 import numpy as np
 import unittest
 import os
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
 from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario, \

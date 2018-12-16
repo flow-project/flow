@@ -8,7 +8,7 @@ from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, \
     SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
 

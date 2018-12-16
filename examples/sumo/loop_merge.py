@@ -5,7 +5,7 @@ from flow.controllers import IDMController, SumoLaneChangeController, \
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS

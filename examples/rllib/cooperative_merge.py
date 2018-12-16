@@ -26,7 +26,7 @@ from flow.core.params import NetParams
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 
 # time horizon of a single rollout
 HORIZON = 100

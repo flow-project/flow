@@ -3,7 +3,7 @@ import os
 import time
 
 from flow.core.experiment import SumoExperiment
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.controllers import RLController, ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoParams

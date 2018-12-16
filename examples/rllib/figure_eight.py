@@ -11,7 +11,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 

@@ -10,7 +10,7 @@ from copy import deepcopy
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.params import TrafficLights
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 
 
 class FlowParamsEncoder(json.JSONEncoder):
@@ -23,7 +23,7 @@ class FlowParamsEncoder(json.JSONEncoder):
     def default(self, obj):
         """See parent class.
 
-        Extended to support the Vehicles object in flow/core/vehicles.py.
+        Extended to support the Vehicles object in flow/core/params.py.
         """
         allowed_types = [dict, list, tuple, str, int, float, bool, type(None)]
 

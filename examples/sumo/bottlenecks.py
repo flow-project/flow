@@ -1,7 +1,7 @@
 """File demonstrating formation of congestion in bottleneck."""
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import TrafficLights
 
 from flow.scenarios.bottleneck import BottleneckScenario

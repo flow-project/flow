@@ -5,7 +5,7 @@ in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import TrafficLights
 
 from flow.scenarios.bottleneck import BottleneckScenario

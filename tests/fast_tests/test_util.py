@@ -4,7 +4,7 @@ import os
 import json
 import collections
 
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import TrafficLights
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
