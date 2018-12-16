@@ -213,8 +213,8 @@ class Env(*classdef):
             value = sparse state information (only what is needed to add a
             vehicle in a sumo network with traci)
         """
-        # store the network observations in the vehicles class
-        self.k.vehicle.update(reset=True)
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # check to make sure all vehicles have been spawned
         if len(self.initial_ids) < self.k.vehicle.num_vehicles:
@@ -304,6 +304,7 @@ class Env(*classdef):
 
             self.additional_command()
 
+            # advance the simulation in the simulator by one step
             self.k.simulation.simulation_step()
 
             # store new observations in the vehicles and traffic lights class

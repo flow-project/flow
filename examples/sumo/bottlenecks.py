@@ -2,7 +2,7 @@
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 
 from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers import SumoLaneChangeController, ContinuousRouter

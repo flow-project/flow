@@ -6,7 +6,7 @@ in a segment of space
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 
 from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers.lane_change_controllers import SumoLaneChangeController

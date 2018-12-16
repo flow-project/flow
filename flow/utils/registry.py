@@ -6,7 +6,7 @@ from gym.envs.registration import register
 from copy import deepcopy
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 
 
 def make_create_env(params, version=0, render=None):

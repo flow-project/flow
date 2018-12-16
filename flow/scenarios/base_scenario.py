@@ -1,7 +1,7 @@
 """Contains the base scenario class."""
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLights
 import time
 
 try:
