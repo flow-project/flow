@@ -7,7 +7,7 @@ point before exiting the network.
 
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController

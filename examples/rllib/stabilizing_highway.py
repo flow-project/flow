@@ -15,7 +15,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.controllers import IDMController, RLController
 
 # experiment number

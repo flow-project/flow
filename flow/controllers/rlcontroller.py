@@ -11,13 +11,15 @@ class RLController(BaseController):
 
     Usage:
 
-        >>> from flow.core.vehicles import Vehicles
+        >>> from flow.core.params import Vehicles
         >>> vehicles = Vehicles()
         >>> vehicles.add(acceleration_controller=(RLController, {}))
 
     In order to collect the list of all RL vehicles in the next, run:
 
-        >>> rl_ids = vehicles.get_rl_ids()
+        >>> from flow.envs import Env
+        >>> env = Env(...)
+        >>> rl_ids = env.k.vehicle.get_rl_ids()
     """
 
     def __init__(self, veh_id, sumo_cf_params, time_delay=0, fail_safe=None):

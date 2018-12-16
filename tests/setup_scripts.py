@@ -14,7 +14,7 @@ from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import TrafficLights
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
 from flow.scenarios.bottleneck import BottleneckScenario

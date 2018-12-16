@@ -20,7 +20,7 @@ from flow.core.params import EnvParams
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 

@@ -2,7 +2,7 @@ import unittest
 import os
 
 from tests.setup_scripts import ring_road_exp_setup, grid_mxn_exp_setup
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import NetParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import TrafficLights

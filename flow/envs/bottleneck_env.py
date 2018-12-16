@@ -10,7 +10,7 @@ from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import InFlows, NetParams
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 
 from collections import defaultdict
 from copy import deepcopy

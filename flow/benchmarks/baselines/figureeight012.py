@@ -7,7 +7,7 @@ import numpy as np
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.params import SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import TrafficLights
 from flow.controllers import IDMController
 from flow.controllers import ContinuousRouter

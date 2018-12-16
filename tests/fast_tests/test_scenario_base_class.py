@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController

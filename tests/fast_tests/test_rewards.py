@@ -2,7 +2,7 @@ import unittest
 import os
 from tests.setup_scripts import ring_road_exp_setup
 from flow.core.params import EnvParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.rewards import average_velocity, total_velocity, \
     desired_velocity
 

@@ -2,7 +2,7 @@ import unittest
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import ContinuousRouter

@@ -3,7 +3,7 @@ import unittest
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 

@@ -8,7 +8,7 @@ from rllab.policies.gaussian_gru_policy import GaussianGRUPolicy
 
 from flow.scenarios.loop import LoopScenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from rllab.envs.gym_env import GymEnv
 

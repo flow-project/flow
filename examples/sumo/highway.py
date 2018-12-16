@@ -4,7 +4,7 @@ from flow.controllers import IDMController
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
-from flow.core.vehicles import Vehicles
+from flow.core.params import Vehicles
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
     ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
