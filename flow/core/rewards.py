@@ -44,11 +44,9 @@ def desired_velocity(env, fail=False, edge_list=None):
     target_vel = env.env_params.additional_params['target_velocity']
     max_cost = np.array([target_vel] * num_vehicles)
     max_cost = np.linalg.norm(max_cost)
-    print(max_cost)
 
     cost = vel - target_vel
     cost = np.linalg.norm(cost)
-    print(cost)
 
     return max(max_cost - cost, 0) / max_cost
 
