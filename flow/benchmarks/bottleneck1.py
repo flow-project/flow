@@ -12,7 +12,7 @@ Horizon: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter
@@ -29,16 +29,24 @@ AV_FRAC = 0.25
 vehicles = Vehicles()
 vehicles.add(
     veh_id="human",
-    speed_mode=9,
     routing_controller=(ContinuousRouter, {}),
-    lane_change_mode=1621,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=1621,
+    ),
     num_vehicles=1 * SCALING)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode=9,
-    lane_change_mode=0,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
