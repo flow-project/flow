@@ -53,20 +53,32 @@ class LoopScenario(Scenario):
 
         nodes = [{
             "id": "bottom",
-            "x": repr(0),
-            "y": repr(-r)
+            "x": 0,
+            "y": -r,
+            "z": 0,
+            "from": "left",
+            "to": "bottom"
         }, {
             "id": "right",
-            "x": repr(r),
-            "y": repr(0)
+            "x": r,
+            "y": 0,
+            "z": 0,
+            "from": "bottom",
+            "to": "right"
         }, {
             "id": "top",
-            "x": repr(0),
-            "y": repr(r)
+            "x": 0,
+            "y": r,
+            "z": 0,
+            "from": "right",
+            "to": "top"
         }, {
             "id": "left",
-            "x": repr(-r),
-            "y": repr(0)
+            "x": -r,
+            "y": 0,
+            "z": 0,
+            "from": "top",
+            "to": "left"
         }]
 
         return nodes
@@ -80,68 +92,64 @@ class LoopScenario(Scenario):
 
         edges = [{
             "id":
-            "bottom",
+                "bottom",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "bottom",
+                "bottom",
             "to":
-            "right",
+                "right",
             "length":
-            repr(edgelen),
-            "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                repr(edgelen),
+            "shape": [
+                (r * cos(t), r * sin(t), 0)
                 for t in linspace(-pi / 2, 0, resolution)
-            ])
+            ]
         }, {
             "id":
-            "right",
+                "right",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "right",
+                "right",
             "to":
-            "top",
+                "top",
             "length":
-            repr(edgelen),
-            "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                repr(edgelen),
+            "shape": [
+                (r * cos(t), r * sin(t), 0)
                 for t in linspace(0, pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
-            "top",
+                "top",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "top",
+                "top",
             "to":
-            "left",
+                "left",
             "length":
-            repr(edgelen),
-            "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                repr(edgelen),
+            "shape": [
+                (r * cos(t), r * sin(t), 0)
                 for t in linspace(pi / 2, pi, resolution)
-            ])
+            ]
         }, {
             "id":
-            "left",
+                "left",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "left",
+                "left",
             "to":
-            "bottom",
+                "bottom",
             "length":
-            repr(edgelen),
-            "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+                repr(edgelen),
+            "shape": [
+                (r * cos(t), r * sin(t), 0)
                 for t in linspace(pi, 3 * pi / 2, resolution)
-            ])
+            ]
         }]
 
         return edges

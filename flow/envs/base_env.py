@@ -101,7 +101,7 @@ class Env(*classdef):
         self.initial_vehicles = deepcopy(scenario.vehicles)
 
         # the simulator used by this environment
-        self.simulator = 'traci'
+        self.simulator = 'aimsun'
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
@@ -116,7 +116,7 @@ class Env(*classdef):
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.k.scenario, sim_params=sumo_params)
+            network=self.k.scenario, sim_params=sumo_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(self.traci_connection)

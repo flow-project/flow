@@ -1,9 +1,9 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
-from flow.core.kernel.simulation import TraCISimulation
-from flow.core.kernel.scenario import TraCIScenario
-from flow.core.kernel.vehicle import TraCIVehicle
-from flow.core.kernel.traffic_light import TraCITrafficLight
+from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
+from flow.core.kernel.scenario import TraCIScenario, AimsunKernelScenario
+from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
+from flow.core.kernel.traffic_light import TraCITrafficLight, AimsunKernelTrafficLight
 
 
 class Kernel(object):
@@ -64,6 +64,11 @@ class Kernel(object):
             self.scenario = TraCIScenario(self)
             self.vehicle = TraCIVehicle(self, sim_params, vehicles)
             self.traffic_light = TraCITrafficLight(self)
+        elif simulator == 'aimsun':
+            self.simulation = AimsunKernelSimulation(self)
+            self.scenario = AimsunKernelScenario(self)
+            self.vehicle = AimsunKernelVehicle(self, sim_params, vehicles)
+            self.traffic_light = AimsunKernelTrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
