@@ -658,7 +658,8 @@ class SumoCarFollowingParams:
                max accel and decel which enables emergency stopping.
                Necessary to prevent custom models from crashing
              * "no_collide": Human and RL cars are preventing from reaching
-               speeds that may cause crashes (also serves as a failsafe).
+               speeds that may cause crashes (also serves as a failsafe). Note:
+               this may lead to collisions in complex networks
              * "aggressive": Human and RL cars are not limited by sumo with
                regard to their accelerations, and can crash longitudinally
              * "all_checks": all sumo safety checks are activated
