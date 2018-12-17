@@ -3,6 +3,7 @@ from flow.controllers import IDMController
 from flow.controllers import RLController
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
@@ -54,15 +55,21 @@ def minicity_example(render=None,
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityRouter, {}),
-        speed_mode=1,
-        lane_change_mode="no_lat_collide",
+        sumo_car_following_params=SumoCarFollowingParams(
+            speed_mode=1,
+        ),
+        sumo_lc_params=SumoLaneChangeParams(
+            lane_change_mode="no_lat_collide",
+        ),
         initial_speed=0,
         num_vehicles=90)
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        speed_mode="no_collide",
+        sumo_car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         initial_speed=0,
         num_vehicles=10)
 

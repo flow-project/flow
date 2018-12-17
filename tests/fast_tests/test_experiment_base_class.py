@@ -5,6 +5,7 @@ import time
 from flow.core.experiment import SumoExperiment
 from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter
+from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoParams
 
 from tests.setup_scripts import ring_road_exp_setup
@@ -78,7 +79,9 @@ class TestRLActions(unittest.TestCase):
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             num_vehicles=1)
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
