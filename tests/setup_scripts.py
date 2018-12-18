@@ -633,16 +633,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "right",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "1",
+            1,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(-pi / 2, 0, resolution)
-            ])
+            ]
         }, {
             "id":
             "right",
@@ -651,16 +651,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "top",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "3",
+            3,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(0, pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
             "top",
@@ -669,16 +669,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "left",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "2",
+            2,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(pi / 2, pi, resolution)
-            ])
+            ]
         }, {
             "id":
             "left",
@@ -687,16 +687,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "bottom",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "4",
+            4,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(pi, 3 * pi / 2, resolution)
-            ])
+            ]
         }]
 
         return edges
