@@ -56,8 +56,8 @@ class HighwayScenario(Scenario):
         for i in range(num_edges+1):
             nodes += [{
                 "id": "edge_{}".format(i),
-                "x": repr(segment_lengths[i]),
-                "y": repr(0)
+                "x": segment_lengths[i],
+                "y": 0
             }]
 
         return nodes
@@ -75,7 +75,7 @@ class HighwayScenario(Scenario):
                 "type": "highwayType",
                 "from": "edge_{}".format(i),
                 "to": "edge_{}".format(i+1),
-                "length": repr(segment_length)
+                "length": segment_length
             }]
 
         return edges
@@ -87,8 +87,8 @@ class HighwayScenario(Scenario):
 
         types = [{
             "id": "highwayType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types
