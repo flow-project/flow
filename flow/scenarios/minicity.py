@@ -105,8 +105,8 @@ class MiniCityScenario(Scenario):
                                                     node['y'] * SCALING])
 
         for node in nodes:
-            node['x'] = str(node['x'] * SCALING)
-            node['y'] = str(node['y'] * SCALING)
+            node['x'] = node['x'] * SCALING
+            node['y'] = node['y'] * SCALING
 
         return nodes
 
@@ -413,20 +413,17 @@ class MiniCityScenario(Scenario):
                  ]
 
         for edge in edges:
-            edge['numLanes'] = str(edge['numLanes'])
             if 'shape' in edge:
                 edge['length'] = sum(
                     [np.sqrt((edge['shape'][i][0] - edge['shape'][i+1][0])**2 +
                              (edge['shape'][i][1] - edge['shape'][i+1][1])**2)
                      * SCALING for i in range(len(edge['shape'])-1)])
-                edge['length'] = str(edge['length'])
-                edge['shape'] = ' '.join('%.2f,%.2f' % (blip*SCALING,
-                                                        blop*SCALING)
-                                         for blip, blop in edge['shape'])
+                edge['shape'] = [(blip*SCALING, blop*SCALING)
+                                 for blip, blop in edge['shape']]
             else:
-                edge['length'] = str(np.linalg.norm(
+                edge['length'] = np.linalg.norm(
                     self.nodes_dict[edge['to']] -
-                    self.nodes_dict[edge['from']]))
+                    self.nodes_dict[edge['from']])
 
             # fix junction overlapping issue
             junctions = {'e_8_b': 2,
@@ -451,7 +448,7 @@ class MiniCityScenario(Scenario):
                          'e_53': 49
                          }
             if edge['id'] in junctions:
-                edge['length'] = str(junctions[edge['id']])
+                edge['length'] = junctions[edge['id']]
 
         return edges
 
@@ -467,8 +464,8 @@ class MiniCityScenario(Scenario):
                 conn += [{
                     'from': e_from,
                     'to': e_to,
-                    'fromLane': str(i),
-                    'toLane': str(int(np.floor(i / 2)))
+                    'fromLane': i,
+                    'toLane': int(np.floor(i / 2))
                 }]
         # connect lanes at roundabout (order matters)
         edges_from_r = ['e_66', 'e_66', 'e_7', 'e_7', 'e_9', 'e_9']
@@ -478,16 +475,16 @@ class MiniCityScenario(Scenario):
                 conn += [{
                     'from': r_from,
                     'to': r_to,
-                    'fromLane': str(i),
-                    'toLane': str(i)
+                    'fromLane': i,
+                    'toLane': i
                 }]
 
         # split one lane to two lanes from e_68 to e_66
         conn += [{
             'from': 'e_68',
             'to': 'e_66',
-            'fromLane': '0',
-            'toLane': '0'
+            'fromLane': 0,
+            'toLane': 0
         }]
 
         # remove u-turn connections at n_m4 and n_s7_l
@@ -498,15 +495,15 @@ class MiniCityScenario(Scenario):
                 conn += [{
                     'from': u_from,
                     'to': u_to,
-                    'fromLane': str(i),
-                    'toLane': str(i)
+                    'fromLane': i,
+                    'toLane': i
                 }]
 
         return conn
 
     def specify_types(self, net_params):
         """See parent class."""
-        types = [{'id': 'edgeType', 'speed': repr(30)}]
+        types = [{'id': 'edgeType', 'speed': 30}]
         return types
 
     def specify_routes(self, net_params):

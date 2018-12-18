@@ -54,31 +54,19 @@ class LoopScenario(Scenario):
         nodes = [{
             "id": "bottom",
             "x": 0,
-            "y": -r,
-            "z": 0,
-            "from": "left",
-            "to": "bottom"
+            "y": -r
         }, {
             "id": "right",
             "x": r,
-            "y": 0,
-            "z": 0,
-            "from": "bottom",
-            "to": "right"
+            "y": 0
         }, {
             "id": "top",
             "x": 0,
-            "y": r,
-            "z": 0,
-            "from": "right",
-            "to": "top"
+            "y": r
         }, {
             "id": "left",
             "x": -r,
-            "y": 0,
-            "z": 0,
-            "from": "top",
-            "to": "left"
+            "y": 0
         }]
 
         return nodes
@@ -100,11 +88,12 @@ class LoopScenario(Scenario):
             "to":
                 "right",
             "length":
-                repr(edgelen),
-            "shape": [
-                (r * cos(t), r * sin(t), 0)
-                for t in linspace(-pi / 2, 0, resolution)
-            ]
+                edgelen,
+            "shape":
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(-pi / 2, 0, resolution)
+                ]
         }, {
             "id":
                 "right",
@@ -115,11 +104,12 @@ class LoopScenario(Scenario):
             "to":
                 "top",
             "length":
-                repr(edgelen),
-            "shape": [
-                (r * cos(t), r * sin(t), 0)
-                for t in linspace(0, pi / 2, resolution)
-            ]
+                edgelen,
+            "shape":
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(0, pi / 2, resolution)
+                ]
         }, {
             "id":
                 "top",
@@ -131,10 +121,11 @@ class LoopScenario(Scenario):
                 "left",
             "length":
                 repr(edgelen),
-            "shape": [
-                (r * cos(t), r * sin(t), 0)
-                for t in linspace(pi / 2, pi, resolution)
-            ]
+            "shape":
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(pi / 2, pi, resolution)
+                ]
         }, {
             "id":
                 "left",
@@ -146,10 +137,11 @@ class LoopScenario(Scenario):
                 "bottom",
             "length":
                 repr(edgelen),
-            "shape": [
-                (r * cos(t), r * sin(t), 0)
-                for t in linspace(pi, 3 * pi / 2, resolution)
-            ]
+            "shape":
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(pi, 3 * pi / 2, resolution)
+                ]
         }]
 
         return edges
@@ -161,8 +153,8 @@ class LoopScenario(Scenario):
 
         types = [{
             "id": "edgeType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types
