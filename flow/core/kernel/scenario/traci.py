@@ -392,8 +392,8 @@ class TraCIScenario(KernelScenario):
                 traffic_lights.add(node['id'])
 
             # modify the x and y values to be strings
-            node['x'] = repr(node['x'])
-            node['y'] = repr(node['y'])
+            node['x'] = str(node['x'])
+            node['y'] = str(node['y'])
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
@@ -404,14 +404,14 @@ class TraCIScenario(KernelScenario):
 
         # modify the length, shape, numLanes, and speed values
         for edge in edges:
-            edge['length'] = repr(edge['length'])
+            edge['length'] = str(edge['length'])
             if 'shape' in edge:
                 edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
                                          for x, y in edge['shape'])
             if 'numLanes' in edge:
-                edge['numLanes'] = repr(edge['numLanes'])
+                edge['numLanes'] = str(edge['numLanes'])
             if 'speed' in edge:
-                edge['speed'] = repr(edge['speed'])
+                edge['speed'] = str(edge['speed'])
 
         # xml file for edges
         x = makexml('edges', 'http://sumo.dlr.de/xsd/edges_file.xsd')
@@ -425,9 +425,9 @@ class TraCIScenario(KernelScenario):
             # modify the numLanes and speed values
             for typ in types:
                 if 'numLanes' in typ:
-                    typ['numLanes'] = repr(typ['numLanes'])
+                    typ['numLanes'] = str(typ['numLanes'])
                 if 'speed' in typ:
-                    typ['speed'] = repr(typ['speed'])
+                    typ['speed'] = str(typ['speed'])
 
             x = makexml('types', 'http://sumo.dlr.de/xsd/types_file.xsd')
             for type_attributes in types:
@@ -440,9 +440,9 @@ class TraCIScenario(KernelScenario):
             # modify the fromLane and toLane values
             for connection in connections:
                 if 'fromLane' in connection:
-                    connection['fromLane'] = repr(connection['fromLane'])
+                    connection['fromLane'] = str(connection['fromLane'])
                 if 'toLane' in connection:
-                    connection['toLane'] = repr(connection['toLane'])
+                    connection['toLane'] = str(connection['toLane'])
 
             x = makexml('connections',
                         'http://sumo.dlr.de/xsd/connections_file.xsd')
