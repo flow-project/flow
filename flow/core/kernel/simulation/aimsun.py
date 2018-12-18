@@ -1,6 +1,13 @@
 """Script containing the base simulation kernel class."""
 from flow.core.kernel.simulation.base import KernelSimulation
-from subprocess import Popen
+import subprocess
+import os
+
+try:
+    # Load user config if exists, else load default config
+    import flow.config as config
+except ImportError:
+    import flow.config_default as config
 
 
 class AimsunKernelSimulation(KernelSimulation):
@@ -30,7 +37,6 @@ class AimsunKernelSimulation(KernelSimulation):
 
         self.master_kernel = master_kernel
         self.kernel_api = None
-
         self.sim_step = None
 
     def pass_api(self, kernel_api):
@@ -53,10 +59,20 @@ class AimsunKernelSimulation(KernelSimulation):
         sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
             simulation-specific parameters
         """
-        aimsun_path = "/home/yashar/Aimsun_Next_8_3_0/Aimsun_Next"
-        script_path = "/home/yashar/git_clone/flow/flow/utils/aimsun.py"
+        # save the simulation step size (for later use)
+        self.sim_step = sim_params.sim_step
+
+        # path to the Aimsun_Next binary
+        aimsun_path = config.AIMSUN_NEXT_PATH
+
+        # path to the supplementary file that is used to generate an aimsun
+        # network from a template
+        cur_dir = os.path.dirname(__file__)
+        script_path = os.path.join(cur_dir, "../../../utils/aimsun.py")
+
+        # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
-        Popen(aimsun_call)
+        subprocess.Popen(aimsun_call)
 
     def simulation_step(self):
         """Advance the simulation by one step.
@@ -69,9 +85,8 @@ class AimsunKernelSimulation(KernelSimulation):
 
         order = 0
         when = int(when + self.sim_step)
-        self.kernel_api.ANGSetSimulationOrder(order, when) # TODO this is risky since "when" should be integer
-
-
+        # TODO this is risky since "when" should be integer
+        self.kernel_api.ANGSetSimulationOrder(order, when)
 
     def update(self, reset):
         """Update the internal attributes of the simulation kernel.
@@ -85,7 +100,7 @@ class AimsunKernelSimulation(KernelSimulation):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        raise NotImplementedError
+        pass
 
     def check_collision(self):
         """Determine if a collision occurred in the last time step.
@@ -95,9 +110,9 @@ class AimsunKernelSimulation(KernelSimulation):
         bool
             True if collision occurred, False otherwise
         """
-        veh_ids = self.master_kernel.vehicles.get_ids()
+        veh_ids = self.master_kernel.vehicle.get_ids()
         for veh in veh_ids:
-            headway = self.master_kernel.vehicles.get_headway(veh, error)
+            headway = self.master_kernel.vehicle.get_headway(veh)
             if headway <= 0:
                 return True
             else:
@@ -105,7 +120,6 @@ class AimsunKernelSimulation(KernelSimulation):
 
     def close(self):
         """Closes the current simulation instance."""
-
         # Stop simulation
         order = 1  # 1: Cancel simulation
         when = int(self.kernel_api.AKIGetCurrentSimulationTime())  # sim time
@@ -114,7 +128,8 @@ class AimsunKernelSimulation(KernelSimulation):
         # Save and close the network
         gui = GKGUISystem.getGUISystem().getActiveGui()
         model = gui.getActiveModel()
-        gui.save() #TODO this can be saveAs depending on the template
+        gui.save()  # TODO this can be saveAs depending on the template
         gui.closeDocument(model)
+
         # Quit the GUI
         gui.forceQuit()

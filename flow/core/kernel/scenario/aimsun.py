@@ -57,9 +57,6 @@ class AimsunKernelScenario(KernelScenario):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        network : flow.scenarios.Scenario
-            an object containing relevant network-specific features such as the
-            locations and properties of nodes and edges in the network
         """
         KernelScenario.__init__(self, master_kernel)
 
@@ -69,6 +66,7 @@ class AimsunKernelScenario(KernelScenario):
 
         self.edges = None
         self.nodes = None
+        self.types = None
         self.connections = None
         self.routes = None
         self.net_params = None
@@ -77,52 +75,21 @@ class AimsunKernelScenario(KernelScenario):
         self.edges = scenario.edges
         self.routes = scenario.routes
         self.nodes = scenario.nodes
+        self.types = scenario.types
         self.connections = scenario.connections
         self.net_params = scenario.net_params
 
-        output = {"edges": self.edges, "nodes": self.nodes, "net_params": self.net_params}
-        print(output)
+        output = {
+            "edges": self.edges,
+            "nodes": self.nodes,
+            "types": self.types,
+            "net_params": self.net_params
+        }
         cur_dir = os.path.dirname(__file__)
+        # TODO: add current time
         with open(os.path.join(cur_dir, 'data.json'), 'w') as outfile:
             json.dump(output, outfile,
                       cls=FlowParamsEncoder, sort_keys=True, indent=4)
-
-        # # Aimsun GUI
-        # gui = GKGUISystem.getGUISystem().getActiveGui()
-        # model = gui.getActiveModel()
-        #
-        # lane_width = 3.6 #TODO additional params??
-        # num_lanes = self.net_params.additional_params["lanes"]
-        #
-        # # Draw edges
-        # for edge in self.edges:
-        #     points = GKPoints()
-        #     for p in edge["shape"]:
-        #         new_point = GKPoint()
-        #         new_point.set(p[0], p[1], 0)
-        #         points.append(new_point)
-        #
-        #     cmd = model.createNewCmd(model.getType("GKSection"))
-        #     cmd.setPoints(num_lanes, lane_width, points)
-        #     model.getCommander().addCommand(cmd)
-        #     section = cmd.createdObject()
-        #     section.setName(edge["id"])
-        #     edge["aimsun_id"] = section.getId()  # store aimsun id
-        #
-        # # Draw turnings
-        # section_type = model.getType("GKSection")
-        # for node in self.nodes:
-        #     cmd = model.createNewCmd(model.getType("GKTurning"))
-        #     from_section = model.getCatalog().findByName(node["from"],
-        #                                                  section_type,
-        #                                                  True)
-        #     to_section = model.getCatalog().findByName(node["to"],
-        #                                                section_type,
-        #                                                True)
-        #     cmd.setTurning(from_section, to_section)
-        #     model.getCommander().addCommand(cmd)
-        #     turn = cmd.createdObject()
-        #     turn.setName("%s_to_%s" % (node["from"], node["to"])) # TODO replace with node["id"]
 
         return self.edges, self.connections
 
@@ -149,11 +116,13 @@ class AimsunKernelScenario(KernelScenario):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        raise NotImplementedError
+        pass
 
     def close(self):
         """Close the scenario."""
-        raise NotImplementedError
+        # delete the json file that was used to read the scenario data
+        cur_dir = os.path.dirname(__file__)
+        os.remove(os.path.join(cur_dir, 'data.json'))
 
     ###########################################################################
     #                        State acquisition methods                        #
@@ -191,9 +160,8 @@ class AimsunKernelScenario(KernelScenario):
         #     junction_id = AKIInfNetGetJunctionId(i)
         #     junction_length = 0 #TODO check this, no function for junc length
         #     length_all_junctions += junction_length
-        return sum([
-            self.edge_length(edge_id) for edge_id in self.get_edge_list()
-        ])
+        return sum(self.edge_length(edge_id)
+                   for edge_id in self.get_edge_list())
 
     def speed_limit(self, edge_id):
         """Return the speed limit of a given edge/junction.
