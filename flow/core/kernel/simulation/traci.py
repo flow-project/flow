@@ -52,7 +52,8 @@ class TraCISimulation(KernelSimulation):
         # exiting, and colliding vehicles
         self.kernel_api.simulation.subscribe([
             tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS
+            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS, tc.VAR_TIME_STEP,
+            tc.VAR_DELTA_T
         ])
 
     def simulation_step(self):
