@@ -395,7 +395,8 @@ class TrafficLightGridEnv(Env):
                 departLane=str(lane_index),
                 departPos="0",
                 departSpeed="max")
-            speed_mode = self.vehicles.type_parameters[type_id]["speed_mode"]
+            speed_mode = self.vehicles.type_parameters[type_id][
+                "sumo_car_following_params"].speed_mode
             self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
     def k_closest_to_intersection(self, edges, k):

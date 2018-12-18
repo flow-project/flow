@@ -4,6 +4,15 @@ import logging
 from flow.utils.flow_warnings import deprecation_warning
 import warnings
 
+SPEED_MODES = {
+    "aggressive": 0,
+    "no_collide": 1,
+    "right_of_way": 25,
+    "all_checks": 31
+}
+
+LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
+
 # Traffic light defaults
 PROGRAM_ID = 1
 MAX_GAP = 3.0
@@ -489,6 +498,7 @@ class SumoCarFollowingParams:
 
     def __init__(
             self,
+            speed_mode='right_of_way',
             accel=1.0,
             decel=1.5,
             sigma=0.5,
@@ -504,6 +514,23 @@ class SumoCarFollowingParams:
 
         Attributes
         ----------
+        speed_mode : str or int, optional
+            may be one of the following:
+
+             * "right_of_way" (default): respect safe speed, right of way and
+               brake hard at red lights if needed. DOES NOT respect
+               max accel and decel which enables emergency stopping.
+               Necessary to prevent custom models from crashing
+             * "no_collide": Human and RL cars are preventing from reaching
+               speeds that may cause crashes (also serves as a failsafe). Note:
+               this may lead to collisions in complex networks
+             * "aggressive": Human and RL cars are not limited by sumo with
+               regard to their accelerations, and can crash longitudinally
+             * "all_checks": all sumo safety checks are activated
+             * int values may be used to define custom speed mode for the given
+               vehicles, specified at:
+               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
+
         accel: float
             see Note
         decel: float
@@ -572,11 +599,22 @@ class SumoCarFollowingParams:
             "carFollowModel": car_follow_model,
         }
 
+        # adjust the speed mode value
+        if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
+            speed_mode = SPEED_MODES[speed_mode]
+        elif not (isinstance(speed_mode, int)
+                  or isinstance(speed_mode, float)):
+            logging.error("Setting speed mode of to default.")
+            speed_mode = SPEED_MODES["no_collide"]
+
+        self.speed_mode = speed_mode
+
 
 class SumoLaneChangeParams:
     """Parameters for sumo-controlled lane change behavior."""
 
     def __init__(self,
+                 lane_change_mode="no_lat_collide",
                  model="LC2013",
                  lc_strategic=1.0,
                  lc_cooperative=1.0,
@@ -596,6 +634,20 @@ class SumoLaneChangeParams:
 
         Attributes
         ----------
+        lane_change_mode : str or int, optional
+            may be one of the following:
+
+            * "no_lat_collide" (default): Human cars will not make lane
+              changes, RL cars can lane change into any space, no matter how
+              likely it is to crash
+            * "strategic": Human cars make lane changes in accordance with SUMO
+              to provide speed boosts
+            * "aggressive": RL cars are not limited by sumo with regard to
+              their lane-change actions, and can crash longitudinally
+            * int values may be used to define custom lane change modes for the
+              given vehicles, specified at:
+              http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
+
         model: str, optional
             see laneChangeModel in Note
         lc_strategic: float, optional
@@ -732,6 +784,16 @@ class SumoLaneChangeParams:
                 "lcTimeToImpatience": str(lc_time_to_impatience),
                 "lcAccelLat": str(lc_accel_lat)
             }
+
+        # adjust the lane change mode value
+        if isinstance(lane_change_mode, str) and lane_change_mode in LC_MODES:
+            lane_change_mode = LC_MODES[lane_change_mode]
+        elif not (isinstance(lane_change_mode, int)
+                  or isinstance(lane_change_mode, float)):
+            logging.error("Setting lane change mode to default.")
+            lane_change_mode = LC_MODES["no_lat_collide"]
+
+        self.lane_change_mode = lane_change_mode
 
 
 class InFlows:
