@@ -747,6 +747,8 @@ class Scenario(Serializable):
             # modify the x and y values to be strings
             node['x'] = str(node['x'])
             node['y'] = str(node['y'])
+            if 'radius' in node:
+                node['radius'] = str(node['radius'])
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
