@@ -347,7 +347,7 @@ class Scenario(Serializable):
         # return an empty list of starting positions and lanes if there are no
         # vehicles to be placed
         if num_vehicles == 0:
-            return [], []
+            return [], [], []
 
         increment = available_length / num_vehicles
 
