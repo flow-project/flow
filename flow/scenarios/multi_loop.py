@@ -160,20 +160,20 @@ class MultiLoopScenario(Scenario):
             for k in range(num_cols):
                 nodes += [{
                     "id": "bottom_{}".format(i),
-                    "x": repr(0 + j * ring_spacing),
-                    "y": repr(-r + k * ring_spacing)
+                    "x": 0 + j * ring_spacing,
+                    "y": -r + k * ring_spacing
                 }, {
                     "id": "right_{}".format(i),
-                    "x": repr(r + j * ring_spacing),
-                    "y": repr(0 + k * ring_spacing)
+                    "x": r + j * ring_spacing,
+                    "y": 0 + k * ring_spacing
                 }, {
                     "id": "top_{}".format(i),
-                    "x": repr(0 + j * ring_spacing),
-                    "y": repr(r + k * ring_spacing)
+                    "x": 0 + j * ring_spacing,
+                    "y": r + k * ring_spacing
                 }, {
                     "id": "left_{}".format(i),
-                    "x": repr(-r + j * ring_spacing),
-                    "y": repr(0 + k * ring_spacing)
+                    "x": -r + j * ring_spacing,
+                    "y": 0 + k * ring_spacing
                 }]
                 i += 1
                 # FIXME this break if we don't have an exact square
@@ -209,13 +209,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "right_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(-pi / 2, 0, resolution)
-                        ])
+                        ]
                 }, {
                     "id":
                         "right_{}".format(i),
@@ -226,13 +226,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "top_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(0, pi / 2, resolution)
-                        ])
+                        ]
                 }, {
                     "id":
                         "top_{}".format(i),
@@ -243,13 +243,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "left_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(pi / 2, pi, resolution)
-                        ])
+                        ]
                 }, {
                     "id":
                         "left_{}".format(i),
@@ -260,13 +260,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "bottom_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(pi, 3 * pi / 2, resolution)
-                        ])
+                        ]
                 }]
                 i += 1
                 if i >= ring_num:
@@ -283,8 +283,8 @@ class MultiLoopScenario(Scenario):
 
         types = [{
             "id": "edgeType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types
