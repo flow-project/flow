@@ -61,7 +61,7 @@ class Kernel(object):
 
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
-            self.scenario = KernelScenario(self, None)
+            self.scenario = KernelScenario(self)
             self.vehicle = KernelVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
         else:
