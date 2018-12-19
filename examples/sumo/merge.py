@@ -6,7 +6,7 @@ point before exiting the network.
 """
 
 from flow.core.params import SumoParams, EnvParams, \
-    NetParams, InitialConfig, InFlows
+    NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
@@ -47,7 +47,9 @@ def merge_example(render=None):
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        speed_mode="no_collide",
+        sumo_car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         num_vehicles=5)
 
     env_params = EnvParams(

@@ -7,6 +7,8 @@ import numpy as np
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
+from flow.core.params import SumoLaneChangeParams
+from flow.core.params import SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 from flow.controllers import ContinuousRouter
@@ -40,9 +42,13 @@ def bottleneck1_baseline(num_runs, render=True):
     # we want no autonomous vehicles in the simulation
     vehicles = Vehicles()
     vehicles.add(veh_id='human',
-                 speed_mode=9,
+                 sumo_car_following_params=SumoCarFollowingParams(
+                     speed_mode=9,
+                 ),
                  routing_controller=(ContinuousRouter, {}),
-                 lane_change_mode=1621,
+                 sumo_lc_params=SumoLaneChangeParams(
+                     lane_change_mode=1621,
+                 ),
                  num_vehicles=1 * SCALING)
 
     # only include human vehicles in inflows
