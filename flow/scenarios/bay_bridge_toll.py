@@ -1,9 +1,9 @@
 """Contains the Bay Bridge toll scenario class."""
 
-from flow.scenarios.netfile import NetFileScenario
+from flow.scenarios.base_scenario import Scenario
 
 
-class BayBridgeTollScenario(NetFileScenario):
+class BayBridgeTollScenario(Scenario):
     """A scenario used to simulate the Bay Bridge toll."""
 
     def generate_starting_positions(self, **kwargs):

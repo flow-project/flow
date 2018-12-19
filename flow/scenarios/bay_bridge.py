@@ -1,9 +1,9 @@
 """Contains the Bay Bridge scenario class."""
 
-from flow.scenarios.netfile import NetFileScenario
+from flow.scenarios.base_scenario import Scenario
 
 
-class BayBridgeScenario(NetFileScenario):
+class BayBridgeScenario(Scenario):
     """A scenario used to simulate the bottleneck portion of the Bay Bridge."""
 
     def specify_routes(self, net_params):
