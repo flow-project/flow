@@ -330,11 +330,10 @@ class MultiEnv(MultiAgentEnv, Env):
             The rl_actions clipped according to the box
         """
         # ignore if no actions are issued
-
-        # clip according to the action space requirements
         if rl_actions is None:
             return None
 
+        # clip according to the action space requirements
         if isinstance(self.action_space, Box):
             for key, action in rl_actions.items():
                 rl_actions[key] = np.clip(
