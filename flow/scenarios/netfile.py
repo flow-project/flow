@@ -6,44 +6,6 @@ from flow.scenarios.base_scenario import Scenario
 
 
 class NetFileScenario(Scenario):
-    """Class that creates a scenario from a .net.xml file.
-
-    The .net.xml file is specified in the NetParams object. For example:
-
-        >>> from flow.core.params import NetParams
-        >>> net_params = NetParams(netfile="/path/to/netfile.net.xml")
-
-    No "specify_nodes" and "specify_edges" routes are needed. However, a
-    "specify_routes" file is still needed to specify the appropriate routes
-    vehicles can traverse in the network.
-    """
-
-    def __init__(self,
-                 name,
-                 vehicles,
-                 net_params,
-                 initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
-        """Initialize a scenario from a .net.xml file.
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
-        super().__init__(name, vehicles, net_params, initial_config,
-                         traffic_lights)
-
-    def generate_net(self, net_params, traffic_lights):
-        """See parent class.
-
-        The network file is generated from the .osm file specified in
-        net_params.osm_path
-        """
-        # name of the .net.xml file (located in cfg_path)
-        self.netfn = net_params.netfile
-
-        # collect data from the generated network configuration file
-        edges_dict, conn_dict = self._import_edges_from_net()
-
-        return edges_dict, conn_dict
 
     def specify_nodes(self, net_params):
         """See class definition."""
