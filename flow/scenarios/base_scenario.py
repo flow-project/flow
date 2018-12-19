@@ -218,15 +218,27 @@ class Scenario(Serializable):
         This is meant to provide some global reference frame for the road
         edges in the network.
 
-        MUST BE implemented in any new scenario subclass.
+        By default, the edge starts are specified from the network
+        configuration file. Note that, the values are arbitrary but do not
+        allow the positions of any two edges to overlap, thereby making them
+        compatible with all starting position methods for vehicles.
 
         Returns
         -------
-        edgestarts : list
+        list of (str, float)
             list of edge names and starting positions,
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
-        raise NotImplementedError
+        length = 0
+        edgestarts = []
+        for edge_id in sorted(self._edge_list):
+            # the current edge starts where the last edge ended
+            edgestarts.append((edge_id, length))
+            # increment the total length of the network with the length of the
+            # current edge
+            length += self._edges[edge_id]["length"]
+
+        return edgestarts
 
     def specify_intersection_edge_starts(self):
         """Define edge starts for intersections.
@@ -256,13 +268,17 @@ class Scenario(Serializable):
         sections. This methods does not need to be specified if "no-internal-
         links" is set to True in net_params.
 
+        By default, all internal edge starts are given a position of -1. This
+        may be overridden; however, in general we do not worry about internal
+        edges and junctions in large networks.
+
         Returns
         -------
         internal_edgestarts : list
             list of internal junction names and starting positions,
             ex: [(internal0, pos0), (internal1, pos1), ...]
         """
-        return []
+        return [(":", -1)]
 
     def get_edge(self, x):
         """Compute an edge and relative position from an absolute position.
@@ -1443,28 +1459,30 @@ class Scenario(Serializable):
         """Close the scenario class.
 
         Deletes the xml files that were created by the scenario class. This
-        is to prevent them from building up in the debug folder.
+        is to prevent them from building up in the debug folder. Note that in
+        the case of import .net.xml files we do not want to delete them.
         """
-        os.remove(self.net_path + self.nodfn)
-        os.remove(self.net_path + self.edgfn)
-        os.remove(self.net_path + self.cfgfn)
-        os.remove(self.cfg_path + self.addfn)
-        os.remove(self.cfg_path + self.guifn)
-        os.remove(self.cfg_path + self.netfn)
-        os.remove(self.cfg_path + self.roufn)
-        os.remove(self.cfg_path + self.sumfn)
+        if self.net_params.netfile is None:
+            os.remove(self.net_path + self.nodfn)
+            os.remove(self.net_path + self.edgfn)
+            os.remove(self.net_path + self.cfgfn)
+            os.remove(self.cfg_path + self.addfn)
+            os.remove(self.cfg_path + self.guifn)
+            os.remove(self.cfg_path + self.netfn)
+            os.remove(self.cfg_path + self.roufn)
+            os.remove(self.cfg_path + self.sumfn)
 
-        # the connection file is not always created
-        try:
-            os.remove(self.net_path + self.confn)
-        except OSError:
-            pass
+            # the connection file is not always created
+            try:
+                os.remove(self.net_path + self.confn)
+            except OSError:
+                pass
 
-        # neither is the type file
-        try:
-            os.remove(self.net_path + self.typfn)
-        except OSError:
-            pass
+            # neither is the type file
+            try:
+                os.remove(self.net_path + self.typfn)
+            except OSError:
+                pass
 
     def __str__(self):
         """Return the name of the scenario and the number of vehicles."""
