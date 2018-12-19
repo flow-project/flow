@@ -406,7 +406,8 @@ class Env(*classdef):
             infos = {}
 
         # compute the reward
-        reward = self.compute_reward(rl_actions, fail=crash)
+        rl_clipped = self.clip_actions(rl_actions)
+        reward = self.compute_reward(rl_clipped, fail=crash)
 
         return next_observation, reward, done, infos
 
@@ -595,6 +596,31 @@ class Env(*classdef):
         """Additional commands that may be performed by the step method."""
         pass
 
+    def clip_actions(self, rl_actions=None):
+        """Clip the actions passed from the RL agent.
+
+        Parameters
+        ----------
+        rl_actions : list or numpy ndarray
+            list of actions provided by the RL algorithm
+
+        Returns
+        -------
+        numpy ndarray (float)
+            The rl_actions clipped according to the box
+        """
+        # ignore if no actions are issued
+        if rl_actions is None:
+            return None
+
+        # clip according to the action space requirements
+        if isinstance(self.action_space, Box):
+            rl_actions = np.clip(
+                rl_actions,
+                a_min=self.action_space.low,
+                a_max=self.action_space.high)
+        return rl_actions
+
     def apply_rl_actions(self, rl_actions=None):
         """Specify the actions to be performed by the rl agent(s).
 
@@ -603,22 +629,15 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions: list or numpy ndarray
+        rl_actions : list or numpy ndarray
             list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued
         if rl_actions is None:
             return
 
-        # clip according to the action space requirements
-        if isinstance(self.action_space, Box):
-
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
-
-        self._apply_rl_actions(rl_actions)
+        rl_clipped = self.clip_actions(rl_actions)
+        self._apply_rl_actions(rl_clipped)
 
     def _apply_rl_actions(self, rl_actions):
         raise NotImplementedError
