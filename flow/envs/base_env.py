@@ -729,11 +729,10 @@ class Env(*classdef):
             The rl_actions clipped according to the box
         """
         # ignore if no actions are issued
-
-        # clip according to the action space requirements
         if rl_actions is None:
             return None
 
+        # clip according to the action space requirements
         if isinstance(self.action_space, Box):
             rl_actions = np.clip(
                 rl_actions,
