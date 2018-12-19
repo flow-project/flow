@@ -22,9 +22,6 @@ def figure_eight_baseline(num_runs, render=True):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        flow_params : dict
-            the flow meta-parameters describing the structure of a benchmark.
-            Must be one of the figure eight flow_params
         render : bool, optional
             specifies whether to use sumo's gui during execution
 
@@ -76,7 +73,7 @@ def figure_eight_baseline(num_runs, render=True):
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
 
-    exp = SumoExperiment(env, scenario)
+    exp = SumoExperiment(env)
 
     results = exp.run(num_runs, env_params.horizon)
     avg_speed = np.mean(results['mean_returns'])
@@ -86,7 +83,7 @@ def figure_eight_baseline(num_runs, render=True):
 
 if __name__ == '__main__':
     runs = 2  # number of simulations to average over
-    res = figure_eight_baseline(num_runs=runs, flow_params=flow_params)
+    res = figure_eight_baseline(num_runs=runs)
 
     print('---------')
     print('The average speed across {} runs is {}'.format(runs, res))
