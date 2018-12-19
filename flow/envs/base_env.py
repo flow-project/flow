@@ -716,19 +716,16 @@ class Env(*classdef):
         pass
 
     def clip_actions(self, rl_actions=None):
-        """Clip the actions passed from the RL agent
-
-        If no actions are provided at any given step, the rl agents default to
-        performing actions specified by sumo.
+        """Clip the actions passed from the RL agent.
 
         Parameters
         ----------
-        rl_actions: list or numpy ndarray
+        rl_actions : list or numpy ndarray
             list of actions provided by the RL algorithm
 
         Returns
         -------
-        rl_clipped: np.ndarray (float)
+        numpy ndarray (float)
             The rl_actions clipped according to the box
         """
         # ignore if no actions are issued
@@ -752,7 +749,7 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions: list or numpy ndarray
+        rl_actions : list or numpy ndarray
             list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued
