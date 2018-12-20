@@ -422,8 +422,9 @@ class TraCIScenario(KernelScenario):
             if 'priority' in edge:
                 edge['priority'] = str(edge['priority'])
             if 'shape' in edge:
-                edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
-                                         for x, y in edge['shape'])
+                if not isinstance(edge['shape'], str):
+                    edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
+                                             for x, y in edge['shape'])
             if 'numLanes' in edge:
                 edge['numLanes'] = str(edge['numLanes'])
             if 'speed' in edge:
