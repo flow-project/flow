@@ -50,6 +50,7 @@ class TraCIVehicle(KernelVehicle):
         self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
+        self.initial_speeds = []  # speed of vehicles at the start of a rollout
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = vehicles.type_parameters
@@ -261,6 +262,10 @@ class TraCIVehicle(KernelVehicle):
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
 
+        # specify the initial speed
+        self.__vehicles[veh_id]["initial_speed"] = \
+            self.type_parameters[veh_type]["initial_speed"]
+
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][
             "sumo_car_following_params"].speed_mode
@@ -422,6 +427,24 @@ class TraCIVehicle(KernelVehicle):
             return self._num_arrived[-1]
         else:
             return 0
+
+    def get_initial_speed(self, veh_id, error=-1001):
+        """Return the initial speed upon reset of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list<str>
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_initial_speed(vehID, error) for vehID in veh_id]
+        return self.__vehicles.get(veh_id, {}).get("initial_speed", error)
 
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
