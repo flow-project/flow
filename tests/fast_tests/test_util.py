@@ -5,7 +5,7 @@ import json
 import collections
 
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams
@@ -129,7 +129,7 @@ class TestRegistry(unittest.TestCase):
             ),
             veh=vehicles,
             initial=InitialConfig(),
-            tls=TrafficLights(),
+            tls=TrafficLightParams(),
         )
 
         # some random version number for testing
@@ -248,7 +248,7 @@ class TestRllib(unittest.TestCase):
             ),
             veh=vehicles,
             initial=InitialConfig(),
-            tls=TrafficLights(),
+            tls=TrafficLightParams(),
         )
 
         # create an config dict with space for the flow_params dict

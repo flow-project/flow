@@ -6,7 +6,7 @@ import urllib.request
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, InFlows
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 
 from flow.core.experiment import SumoExperiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
@@ -68,7 +68,7 @@ def bay_bridge_example(render=None,
     additional_env_params = {}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    traffic_lights = TrafficLights()
+    traffic_lights = TrafficLightParams()
 
     inflow = InFlows()
 
