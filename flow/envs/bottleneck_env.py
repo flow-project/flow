@@ -20,8 +20,6 @@ from gym.spaces.box import Box
 
 from flow.core import rewards
 from flow.envs.base_env import Env
-import os
-import glob
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
