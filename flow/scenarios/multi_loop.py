@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace, ceil, sqrt
 
 ADDITIONAL_NET_PARAMS = {
@@ -29,7 +29,7 @@ class MultiLoopScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a loop scenario.
 
         Requires from net_params:

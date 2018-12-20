@@ -235,12 +235,6 @@ class Env(*classdef):
             value = sparse state information (only what is needed to add a
             vehicle in a sumo network with traci)
         """
-        # add missing traffic lights in the list of traffic light ids
-        tls_ids = self.traci_connection.trafficlight.getIDList()
-
-        for tl_id in list(set(tls_ids) - set(self.traffic_lights.get_ids())):
-            self.traffic_lights.add(tl_id)
-
         # subscribe the requested states for traci-related speedups
         for veh_id in self.vehicles.get_ids():
             self.traci_connection.vehicle.subscribe(veh_id, [
@@ -250,14 +244,8 @@ class Env(*classdef):
             ])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
-        # subscribe the traffic light
-        for node_id in self.traffic_lights.get_ids():
-            self.traci_connection.trafficlight.subscribe(
-                node_id, [tc.TL_RED_YELLOW_GREEN_STATE])
-
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
         id_lists = {
             tc.VAR_DEPARTED_VEHICLES_IDS: [],
             tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
@@ -268,7 +256,9 @@ class Env(*classdef):
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # check to make sure all vehicles have been spawned
         if len(self.initial_ids) < self.vehicles.num_vehicles:
@@ -294,7 +284,7 @@ class Env(*classdef):
         simulator by the number of time steps requested per environment step.
 
         Results from the simulations are processed through various classes,
-        such as the Vehicles and TrafficLights classes, to produce standardized
+        such as the Vehicle and TrafficLight kernels, to produce standardized
         methods for identifying specific network state features. Finally,
         results from the simulator are used to generate appropriate
         observations.
@@ -356,6 +346,7 @@ class Env(*classdef):
 
             self.additional_command()
 
+            # advance the simulation in the simulator by one step
             self.k.simulation.simulation_step()
 
             # collect subscription information from sumo
@@ -363,12 +354,12 @@ class Env(*classdef):
                 self.traci_connection.vehicle.getSubscriptionResults()
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
-            self.traffic_lights.update(tls_obs)
+
+            # store new observations in the vehicles and traffic lights class
+            self.k.update(reset=False)
 
             # update the colors of vehicles
             self.update_vehicle_colors()
@@ -429,7 +420,8 @@ class Env(*classdef):
             infos = {}
 
         # compute the reward
-        reward = self.compute_reward(rl_actions, fail=crash)
+        rl_clipped = self.clip_actions(rl_actions)
+        reward = self.compute_reward(rl_clipped, fail=crash)
 
         return next_observation, reward, done, infos
 
@@ -558,16 +550,18 @@ class Env(*classdef):
                     departPos=str(pos),
                     departSpeed=str(speed))
 
+        # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # update the colors of vehicles
         self.update_vehicle_colors()
@@ -618,6 +612,31 @@ class Env(*classdef):
         """Additional commands that may be performed by the step method."""
         pass
 
+    def clip_actions(self, rl_actions=None):
+        """Clip the actions passed from the RL agent.
+
+        Parameters
+        ----------
+        rl_actions : list or numpy ndarray
+            list of actions provided by the RL algorithm
+
+        Returns
+        -------
+        numpy ndarray (float)
+            The rl_actions clipped according to the box
+        """
+        # ignore if no actions are issued
+        if rl_actions is None:
+            return None
+
+        # clip according to the action space requirements
+        if isinstance(self.action_space, Box):
+            rl_actions = np.clip(
+                rl_actions,
+                a_min=self.action_space.low,
+                a_max=self.action_space.high)
+        return rl_actions
+
     def apply_rl_actions(self, rl_actions=None):
         """Specify the actions to be performed by the rl agent(s).
 
@@ -626,22 +645,15 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions: list or numpy ndarray
+        rl_actions : list or numpy ndarray
             list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued
         if rl_actions is None:
             return
 
-        # clip according to the action space requirements
-        if isinstance(self.action_space, Box):
-
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
-
-        self._apply_rl_actions(rl_actions)
+        rl_clipped = self.clip_actions(rl_actions)
+        self._apply_rl_actions(rl_clipped)
 
     def _apply_rl_actions(self, rl_actions):
         raise NotImplementedError
