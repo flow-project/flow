@@ -1,7 +1,7 @@
 """Contains the base scenario class."""
 
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 import time
 
 try:
@@ -25,7 +25,7 @@ class Scenario(Serializable):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Instantiate the base scenario class.
 
         Attributes
@@ -38,7 +38,7 @@ class Scenario(Serializable):
             see flow/core/params.py
         initial_config : InitialConfig type
             see flow/core/params.py
-        traffic_lights : flow.core.params.TrafficLights
+        traffic_lights : flow.core.params.TrafficLightParams
             see flow/core/params.py
         """
         # Invoke serializable if using rllab

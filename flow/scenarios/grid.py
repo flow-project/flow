@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from collections import defaultdict
 
 ADDITIONAL_NET_PARAMS = {
@@ -48,7 +48,7 @@ class SimpleGridScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize an nxm grid scenario.
 
         The grid scenario consists of m vertical lanes and n horizontal lanes,
