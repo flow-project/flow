@@ -226,7 +226,8 @@ class TrafficLightGridEnv(Env):
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
+        # penalize traffic light changes for occurring
+        return - rewards.boolean_action_penalty(rl_actions >= 0.5, gain=1.0)
 
     # ===============================
     # ============ UTILS ============
@@ -389,7 +390,7 @@ class TrafficLightGridEnv(Env):
             # remove the vehicle
             self.traci_connection.vehicle.remove(veh_id)
             # reintroduce it at the start of the network
-            type_id = self.vehicles.get_state(veh_id, "type")
+            type_id = self.vehicles.get_type(veh_id)
             lane_index = self.vehicles.get_lane(veh_id)
             self.traci_connection.vehicle.addFull(
                 veh_id,
@@ -398,7 +399,8 @@ class TrafficLightGridEnv(Env):
                 departLane=str(lane_index),
                 departPos="0",
                 departSpeed="max")
-            speed_mode = self.vehicles.type_parameters[type_id]["speed_mode"]
+            speed_mode = self.vehicles.type_parameters[type_id][
+                "sumo_car_following_params"].speed_mode
             self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
     def k_closest_to_intersection(self, edges, k):

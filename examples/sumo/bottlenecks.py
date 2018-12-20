@@ -1,6 +1,6 @@
 """File demonstrating formation of congestion in bottleneck."""
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows
+    InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.core.traffic_lights import TrafficLights
 
@@ -48,10 +48,14 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     vehicles.add(
         veh_id="human",
-        speed_mode=25,
         lane_change_controller=(SumoLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
-        lane_change_mode=1621,
+        sumo_car_following_params=SumoCarFollowingParams(
+            speed_mode=25,
+        ),
+        sumo_lc_params=SumoLaneChangeParams(
+            lane_change_mode=1621,
+        ),
         num_vehicles=1)
 
     additional_env_params = {
@@ -101,7 +105,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     env = BottleneckEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return SumoExperiment(env)
 
 
 if __name__ == "__main__":

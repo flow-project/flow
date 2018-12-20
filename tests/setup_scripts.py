@@ -64,7 +64,9 @@ def ring_road_exp_setup(sumo_params=None,
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             num_vehicles=1)
 
     if env_params is None:
@@ -151,7 +153,9 @@ def figure_eight_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -240,7 +244,9 @@ def highway_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -448,7 +454,9 @@ def variable_lanes_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
