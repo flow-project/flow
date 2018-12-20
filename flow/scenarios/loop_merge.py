@@ -298,7 +298,7 @@ class TwoLoopsOneMergingScenario(Scenario):
 
             # x = [x0] * initial_config.lanes_distribution
             if initial_config.additional_params.get("ring_from_right", False):
-                x = [dict(cls.network.edgestarts)["right"]] * \
+                x = [dict(cls.edgestarts)["right"]] * \
                     cls.network.net_params.additional_params["inner_lanes"]
             else:
                 x = [x0] * \
@@ -310,20 +310,19 @@ class TwoLoopsOneMergingScenario(Scenario):
                 pos = cls.get_edge(x[lane_count])
 
                 # ensures that vehicles are not placed in an internal junction
-                while pos[0] in dict(cls.network.internal_edgestarts).keys():
+                while pos[0] in dict(cls.internal_edgestarts).keys():
                     # find the location of the internal edge in
                     # total_edgestarts, which has the edges ordered by position
-                    edges = [tup[0] for tup in cls.network.total_edgestarts]
+                    edges = [tup[0] for tup in cls.total_edgestarts]
                     indx_edge = next(
                         i for i, edge in enumerate(edges) if edge == pos[0])
 
                     # take the next edge in the list, and place the car at the
                     # beginning of this edge
                     if indx_edge == len(edges) - 1:
-                        next_edge_pos = cls.network.total_edgestarts[0]
+                        next_edge_pos = cls.total_edgestarts[0]
                     else:
-                        next_edge_pos = cls.network.total_edgestarts[
-                            indx_edge + 1]
+                        next_edge_pos = cls.total_edgestarts[indx_edge + 1]
 
                     x[lane_count] = next_edge_pos[1]
                     pos = (next_edge_pos[0], 0)
@@ -354,10 +353,10 @@ class TwoLoopsOneMergingScenario(Scenario):
 
             if initial_config.additional_params.get(
                     "merge_from_top", False):
-                x = [dict(cls.network.edgestarts)["top"] - x0] * \
+                x = [dict(cls.edgestarts)["top"] - x0] * \
                     cls.network.net_params.additional_params["outer_lanes"]
             else:
-                x = [dict(cls.network.edgestarts)["bottom"] - x0] * \
+                x = [dict(cls.edgestarts)["bottom"] - x0] * \
                     cls.network.net_params.additional_params["outer_lanes"]
             car_count = 0
             lane_count = 0
@@ -366,20 +365,19 @@ class TwoLoopsOneMergingScenario(Scenario):
                 pos = cls.get_edge(x[lane_count])
 
                 # ensures that vehicles are not placed in an internal junction
-                while pos[0] in dict(cls.network.internal_edgestarts).keys():
+                while pos[0] in dict(cls.internal_edgestarts).keys():
                     # find the location of the internal edge in
                     # total_edgestarts, which has the edges ordered by position
-                    edges = [tup[0] for tup in cls.network.total_edgestarts]
+                    edges = [tup[0] for tup in cls.total_edgestarts]
                     indx_edge = next(
                         i for i, edge in enumerate(edges) if edge == pos[0])
 
                     # take the next edge in the list, and place the car at the
                     # beginning of this edge
                     if indx_edge == len(edges) - 1:
-                        next_edge_pos = cls.network.total_edgestarts[0]
+                        next_edge_pos = cls.total_edgestarts[0]
                     else:
-                        next_edge_pos = cls.network.total_edgestarts[
-                            indx_edge + 1]
+                        next_edge_pos = cls.total_edgestarts[indx_edge + 1]
 
                     x[lane_count] = next_edge_pos[1]
                     pos = (next_edge_pos[0], 0)

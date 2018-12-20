@@ -61,6 +61,12 @@ class KernelScenario(object):
         self.network = None
         self.orig_name = None
         self.name = None
+        self.edgestarts = None
+        self.internal_edgestarts = None
+        self.intersection_edgestarts = None
+        self.internal_edgestarts_dict = None
+        self.total_edgestarts = None
+        self.total_edgestarts_dict = None
 
     def generate_network(self, network):
         """Generate the necessary prerequisites for the simulating a network.
@@ -292,20 +298,19 @@ class KernelScenario(object):
             pos = self.get_edge(x)
 
             # ensures that vehicles are not placed in an internal junction
-            while pos[0] in dict(self.network.internal_edgestarts).keys():
+            while pos[0] in dict(self.internal_edgestarts).keys():
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
-                edges = [tup[0] for tup in self.network.total_edgestarts]
+                edges = [tup[0] for tup in self.total_edgestarts]
                 indx_edge = next(
                     i for i, edge in enumerate(edges) if edge == pos[0])
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
                 if indx_edge == len(edges) - 1:
-                    next_edge_pos = self.network.total_edgestarts[0]
+                    next_edge_pos = self.total_edgestarts[0]
                 else:
-                    next_edge_pos = self.network.total_edgestarts[
-                        indx_edge + 1]
+                    next_edge_pos = self.total_edgestarts[indx_edge + 1]
 
                 x = next_edge_pos[1]
                 pos = (next_edge_pos[0], 0)
