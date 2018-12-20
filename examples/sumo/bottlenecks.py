@@ -105,7 +105,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     env = BottleneckEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return SumoExperiment(env)
 
 
 if __name__ == "__main__":

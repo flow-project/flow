@@ -253,7 +253,7 @@ class Env(*classdef):
 
         # save the initial state. This is used in the _reset function
         for veh_id in self.vehicles.get_ids():
-            type_id = self.vehicles.get_state(veh_id, "type")
+            type_id = self.vehicles.get_type(veh_id)
             pos = self.vehicles.get_position(veh_id)
             lane = self.vehicles.get_lane(veh_id)
             speed = self.vehicles.get_speed(veh_id)
