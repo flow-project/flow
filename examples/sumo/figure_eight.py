@@ -6,7 +6,8 @@ average speed of vehicles in the network.
 """
 from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, NetParams
+from flow.core.params import SumoParams, EnvParams, NetParams, \
+    SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
@@ -38,7 +39,9 @@ def figure_eight_example(render=None):
         acceleration_controller=(IDMController, {}),
         lane_change_controller=(StaticLaneChanger, {}),
         routing_controller=(ContinuousRouter, {}),
-        speed_mode="no_collide",
+        sumo_car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         initial_speed=0,
         num_vehicles=14)
 
@@ -55,7 +58,7 @@ def figure_eight_example(render=None):
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return SumoExperiment(env)
 
 
 if __name__ == "__main__":

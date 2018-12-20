@@ -317,7 +317,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
             initial_config=initial_config)
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(env, scenario)
+        self.exp = SumoExperiment(env)
 
     def tearDown_failsafe(self):
         # free data used by the class
