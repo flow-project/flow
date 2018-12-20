@@ -10,7 +10,7 @@ from flow.core.traffic_lights import TrafficLights
 from flow.benchmarks.merge0 import flow_params
 
 
-def merge_baseline(num_runs, flow_params, render=True):
+def merge_baseline(num_runs, render=True):
     """Run script for all merge baselines.
 
     Parameters
@@ -18,9 +18,6 @@ def merge_baseline(num_runs, flow_params, render=True):
         num_runs : int
             number of rollouts the performance of the environment is evaluated
             over
-        flow_params : dict
-            the flow meta-parameters describing the structure of a benchmark.
-            Must be one of the merge flow_params
         render: bool, optional
             specifies whether to use sumo's gui during execution
 
@@ -63,7 +60,7 @@ def merge_baseline(num_runs, flow_params, render=True):
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
 
-    exp = SumoExperiment(env, scenario)
+    exp = SumoExperiment(env)
 
     results = exp.run(num_runs, env_params.horizon)
     avg_speed = np.mean(results['mean_returns'])
@@ -73,7 +70,7 @@ def merge_baseline(num_runs, flow_params, render=True):
 
 if __name__ == '__main__':
     runs = 2  # number of simulations to average over
-    res = merge_baseline(num_runs=runs, flow_params=flow_params, render=False)
+    res = merge_baseline(num_runs=runs, render=False)
 
     print('---------')
     print('The average speed across {} runs is {}'.format(runs, res))

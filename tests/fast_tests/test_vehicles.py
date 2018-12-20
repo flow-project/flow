@@ -4,7 +4,7 @@ import numpy as np
 
 from flow.core.vehicles import Vehicles
 from flow.core.params import SumoCarFollowingParams, NetParams, \
-    InitialConfig, SumoParams
+    InitialConfig, SumoParams, SumoLaneChangeParams
 from flow.controllers.car_following_models import IDMController, \
     SumoCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
@@ -20,7 +20,7 @@ class TestVehiclesClass(unittest.TestCase):
     Tests various functions in the vehicles class
     """
 
-    def runSpeedLaneChangeModes(self):
+    def test_speed_lane_change_modes(self):
         """
         Check to make sure vehicle class correctly specifies lane change and
         speed modes
@@ -29,28 +29,50 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            speed_mode='no_collide',
-            lane_change_mode="no_lat_collide")
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode='no_collide',
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            )
+        )
 
-        self.assertEqual(vehicles.get_speed_mode("typeA_0"), 1)
-        self.assertEqual(vehicles.get_lane_change_mode("typeA_0"), 256)
+        self.assertEqual(vehicles.type_parameters["typeA"][
+                             "sumo_car_following_params"].speed_mode, 1)
+        self.assertEqual(vehicles.type_parameters["typeA"][
+                             "sumo_lc_params"].lane_change_mode, 512)
 
         vehicles.add(
             "typeB",
             acceleration_controller=(IDMController, {}),
-            speed_mode='aggressive',
-            lane_change_mode="strategic")
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode='aggressive',
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="strategic",
+            )
+        )
 
-        self.assertEqual(vehicles.get_speed_mode("typeB_0"), 0)
-        self.assertEqual(vehicles.get_lane_change_mode("typeB_0"), 853)
+        self.assertEqual(vehicles.type_parameters["typeB"][
+                             "sumo_car_following_params"].speed_mode, 0)
+        self.assertEqual(vehicles.type_parameters["typeB"][
+                             "sumo_lc_params"].lane_change_mode, 1621)
 
         vehicles.add(
             "typeC",
             acceleration_controller=(IDMController, {}),
-            speed_mode=31,
-            lane_change_mode=277)
-        self.assertEqual(vehicles.get_speed_mode("typeC_0"), 31)
-        self.assertEqual(vehicles.get_lane_change_mode("typeC_0"), 277)
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode=31,
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode=277
+            )
+        )
+
+        self.assertEqual(vehicles.type_parameters["typeC"][
+                             "sumo_car_following_params"].speed_mode, 31)
+        self.assertEqual(vehicles.type_parameters["typeC"][
+                             "sumo_lc_params"].lane_change_mode, 277)
 
     def test_controlled_id_params(self):
         """
@@ -63,8 +85,12 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            speed_mode='no_collide',
-            lane_change_mode="no_lat_collide")
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            ))
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
 
         # check that, if the vehicle is a SumoCarFollowingController vehicle,
@@ -73,8 +99,12 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(SumoCarFollowingController, {}),
-            speed_mode='no_collide',
-            lane_change_mode="no_lat_collide")
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
+            sumo_lc_params=SumoLaneChangeParams(
+                lane_change_mode="no_lat_collide",
+            ))
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"],
                          default_mingap)
@@ -145,18 +175,18 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.remove("test_rl_0")
 
         # ensure that the removed vehicle's ID is not in any lists of vehicles
-        if "test_0" in vehicles.get_ids():
-            raise AssertionError("vehicle still in get_ids()")
-        if "test_0" in vehicles.get_human_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_lc_ids():
-            raise AssertionError("vehicle still in get_controlled_lc_ids()")
-        if "test_0" in vehicles.get_controlled_ids():
-            raise AssertionError("vehicle still in get_controlled_ids()")
-        if "test_rl_0" in vehicles.get_ids():
-            raise AssertionError("RL vehicle still in get_ids()")
-        if "test_rl_0" in vehicles.get_rl_ids():
-            raise AssertionError("RL vehicle still in get_rl_ids()")
+        self.assertTrue("test_0" not in vehicles.get_ids(),
+                        msg="vehicle still in get_ids()")
+        self.assertTrue("test_0" not in vehicles.get_human_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_lc_ids(),
+                        msg="vehicle still in get_controlled_lc_ids()")
+        self.assertTrue("test_0" not in vehicles.get_controlled_ids(),
+                        msg="vehicle still in get_controlled_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_ids(),
+                        msg="RL vehicle still in get_ids()")
+        self.assertTrue("test_rl_0" not in vehicles.get_rl_ids(),
+                        msg="RL vehicle still in get_rl_ids()")
 
         # ensure that the vehicles are not storing extra information in the
         # vehicles.__vehicles dict
