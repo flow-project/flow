@@ -97,12 +97,6 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    # modify sumo params for visualization ease
-    if args.no_render:
-        sumo_params.render = False
-    else:
-        sumo_params.render = True
-
     sumo_params.restart_instance = False
 
     sumo_params.emission_path = './test_time_rollout/'
@@ -113,11 +107,15 @@ def visualizer_rllib(args):
         sumo_params.render = False
     elif args.render_mode == 'drgb':
         sumo_params.render = 'drgb'
+        sumo_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
         sumo_params.render = True
+    elif args.render_mode == 'no_render':
+        sumo_params.render = False
 
     if args.save_render:
         sumo_params.render = 'drgb'
+        sumo_params.pxpm = 4
         sumo_params.save_render = True
 
     # Recreate the scenario from the pickled parameters
@@ -205,15 +203,15 @@ def visualizer_rllib(args):
         final_outflows.append(outflow)
         mean_speed.append(np.mean(vel))
         if multiagent:
-            for agent, rew in rets.items():
+            for agent_id, rew in rets.items():
                 print('Round {}, Return: {} for agent {}'.format(
-                    i, ret, agent))
+                    i, ret, agent_id))
         else:
             print('Round {}, Return: {}'.format(i, ret))
     if multiagent:
-        for agent, rew in rets.items():
+        for agent_id, rew in rets.items():
             print('Average, std return: {}, {} for agent {}'.format(
-                np.mean(rew), np.std(rew), agent))
+                np.mean(rew), np.std(rew), agent_id))
     else:
         print('Average, std return: {}, {}'.format(
             np.mean(rets), np.std(rets)))
@@ -246,8 +244,8 @@ def visualizer_rllib(args):
         if not os.path.exists(save_dir):
             os.mkdir(save_dir)
         os_cmd = "cd " + movie_dir + " && ffmpeg -i frame_%06d.png"
-        os_cmd += " -pix_fmt yuv420p out.mp4"
-        os_cmd += "&& cp out.mp4 " + save_dir + "/"
+        os_cmd += " -pix_fmt yuv420p " + dirs[-1] + ".mp4"
+        os_cmd += "&& cp " + dirs[-1] + ".mp4 " + save_dir + "/"
         os.system(os_cmd)
 
 
@@ -273,19 +271,15 @@ def create_parser():
              'class registered in the tune registry. '
              'Required for results trained with flow-0.2.0 and before.')
     parser.add_argument(
-        '--num_rollouts',
+        '--num-rollouts',
         type=int,
         default=1,
         help='The number of rollouts to visualize.')
     parser.add_argument(
-        '--emission_to_csv',
+        '--emission-to-csv',
         action='store_true',
         help='Specifies whether to convert the emission file '
              'created by sumo into a csv file')
-    parser.add_argument(
-        '--no_render',
-        action='store_true',
-        help='Specifies whether to visualize the results')
     parser.add_argument(
         '--evaluate',
         action='store_true',

@@ -3,7 +3,7 @@ import unittest
 
 # from examples.sumo.bay_bridge import bay_bridge_example
 from examples.sumo.bay_bridge_toll import bay_bridge_toll_example
-from examples.sumo.bottleneck import bottleneck_example
+from examples.sumo.bottlenecks import bottleneck_example
 from examples.sumo.figure_eight import figure_eight_example
 from examples.sumo.grid import grid_example
 from examples.sumo.highway import highway_example
@@ -38,7 +38,7 @@ class TestSumoExamples(unittest.TestCase):
     """
 
     def test_bottleneck(self):
-        """Verifies that examples/sumo/bottleneck.py is working."""
+        """Verifies that examples/sumo/bottlenecks.py is working."""
         # import the experiment variable from the example
         exp = bottleneck_example(20, 5, render=False)
 
