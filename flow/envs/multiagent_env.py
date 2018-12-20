@@ -86,7 +86,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
             self.additional_command()
 
-            self.traci_connection.simulationStep()
+            self.k.simulation.simulation_step()
 
             # collect subscription information from sumo
             vehicle_obs = \
@@ -107,9 +107,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
             # crash encodes whether the simulator experienced a collision
-            crash = \
-                self.traci_connection.simulation.getStartingTeleportNumber() \
-                != 0
+            crash = self.k.simulation.check_collision()
 
             # stop collecting new simulation steps if there is a collision
             if crash:
@@ -269,7 +267,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     departPos=str(pos),
                     departSpeed=str(speed))
 
-        self.traci_connection.simulationStep()
+        self.k.simulation.simulation_step()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
