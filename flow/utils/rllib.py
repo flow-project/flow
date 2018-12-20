@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.core.vehicles import Vehicles
 
 
@@ -121,7 +121,7 @@ def get_flow_params(config):
     if "initial" in flow_params:
         initial.__dict__ = flow_params["initial"].copy()
 
-    tls = TrafficLights()
+    tls = TrafficLightParams()
     if "tls" in flow_params:
         tls.__dict__ = flow_params["tls"].copy()
 

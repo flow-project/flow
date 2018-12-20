@@ -2,7 +2,7 @@
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers import SumoLaneChangeController, ContinuousRouter
@@ -78,7 +78,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
         departLane="random",
         departSpeed=10)
 
-    traffic_lights = TrafficLights()
+    traffic_lights = TrafficLightParams()
     if not DISABLE_TB:
         traffic_lights.add(node_id="2")
     if not DISABLE_RAMP_METER:

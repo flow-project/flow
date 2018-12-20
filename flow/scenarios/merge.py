@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos
 
 INFLOW_EDGE_LEN = 100  # length of the inflow edges (needed for resets)
@@ -32,7 +32,7 @@ class MergeScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a merge scenario.
 
         Requires from net_params:

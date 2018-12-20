@@ -12,7 +12,7 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.core.vehicles import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
@@ -48,7 +48,7 @@ def ring_road_exp_setup(sumo_params=None,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights: flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -95,7 +95,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = LoopScenario(
@@ -138,7 +138,7 @@ def figure_eight_exp_setup(sumo_params=None,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights: flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -186,7 +186,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = Figure8Scenario(
@@ -229,7 +229,7 @@ def highway_exp_setup(sumo_params=None,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights: flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -277,7 +277,7 @@ def highway_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = HighwayScenario(
@@ -327,13 +327,13 @@ def grid_mxn_exp_setup(row_num=1,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    tl_logic: TrafficLights type
+    tl_logic: flow.core.params.TrafficLightParams
         specifies logic of any traffic lights added to the system
     """
     logging.basicConfig(level=logging.WARNING)
 
     if tl_logic is None:
-        tl_logic = TrafficLights(baseline=False)
+        tl_logic = TrafficLightParams(baseline=False)
 
     if sumo_params is None:
         # set default sumo_params configuration
@@ -439,7 +439,7 @@ def variable_lanes_exp_setup(sumo_params=None,
     initial_config: InitialConfig type
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights: flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -486,7 +486,7 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = VariableLanesScenario(

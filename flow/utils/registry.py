@@ -6,7 +6,7 @@ from gym.envs.registration import register
 from copy import deepcopy
 
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 
 
 def make_create_env(params, version=0, render=None):
@@ -39,7 +39,7 @@ def make_create_env(params, version=0, render=None):
          - initial (optional): parameters affecting the positioning of vehicles
            upon initialization/reset (see flow.core.params.InitialConfig)
          - tls (optional): traffic lights to be introduced to specific nodes
-           (see flow.core.traffic_lights.TrafficLights)
+           (see flow.core.params.TrafficLightParams)
     version : int, optional
         environment version number
     render : bool, optional
@@ -63,7 +63,7 @@ def make_create_env(params, version=0, render=None):
     env_params = params['env']
     net_params = params['net']
     initial_config = params.get('initial', InitialConfig())
-    traffic_lights = params.get("tls", TrafficLights())
+    traffic_lights = params.get("tls", TrafficLightParams())
 
     def create_env(*_):
         sumo_params = deepcopy(params['sumo'])

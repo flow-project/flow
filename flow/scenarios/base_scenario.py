@@ -17,7 +17,7 @@ except ImportError:
     Serializable = object
 
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.core.util import makexml, printxml, ensure_dir
 
 E = etree.Element
@@ -55,7 +55,7 @@ class Scenario(Serializable):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Instantiate the base scenario class.
 
         Attributes
@@ -68,7 +68,7 @@ class Scenario(Serializable):
             see flow/core/params.py
         initial_config : InitialConfig type
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             see flow/core/params.py
         """
         # Invoke serializable if using rllab
@@ -714,7 +714,7 @@ class Scenario(Serializable):
         net_params : flow.core.params.NetParams type
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
-        traffic_lights : flow.core.params.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
 
@@ -879,7 +879,7 @@ class Scenario(Serializable):
         ----------
         net_params : NetParams type
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         """

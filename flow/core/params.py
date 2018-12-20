@@ -20,7 +20,7 @@ DETECTOR_GAP = 0.6
 SHOW_DETECTORS = True
 
 
-class TrafficLights:
+class TrafficLightParams:
     """Base traffic light.
 
     This class is used to place traffic lights in the network and describe
