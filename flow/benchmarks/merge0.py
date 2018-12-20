@@ -13,7 +13,7 @@ Horizon: 750 steps
 
 from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
+    InFlows, SumoCarFollowingParams
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.core.vehicles import Vehicles
 from flow.controllers import SumoCarFollowingController, RLController
@@ -39,12 +39,16 @@ vehicles = Vehicles()
 vehicles.add(
     veh_id="human",
     acceleration_controller=(SumoCarFollowingController, {}),
-    speed_mode="no_collide",
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode="no_collide",
+    ),
     num_vehicles=5)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
-    speed_mode="no_collide",
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode="no_collide",
+    ),
     num_vehicles=0)
 
 # Vehicles are introduced from both sides of merge, with RL vehicles entering

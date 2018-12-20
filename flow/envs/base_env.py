@@ -5,8 +5,6 @@ import gym
 from gym.spaces import Box
 import logging
 import os
-import signal
-import subprocess
 import sys
 import time
 import traceback
@@ -14,7 +12,6 @@ import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
-import traci
 from traci import constants as tc
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
@@ -28,13 +25,8 @@ try:
 except ImportError:
     serializable_flag = False
 
-try:
-    # Load user config if exists, else load default config
-    import flow.config as config
-except ImportError:
-    import flow.config_default as config
-
 from flow.core.util import ensure_dir
+from flow.core.kernel import Kernel
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
@@ -136,10 +128,18 @@ class Env(*classdef):
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
 
-        # contains the subprocess.Popen instance used to start traci
-        self.sumo_proc = None
+        # create the Flow kernel
+        self.k = Kernel(simulator="traci", sim_params=sumo_params)
 
-        self.start_sumo()
+        # initialize the simulation using the simulation kernel. This will use
+        # the scenario kernel as an input in order to determine what network
+        # needs to be simulated.
+        self.traci_connection = self.k.simulation.start_simulation(
+            scenario=self.scenario, sim_params=sumo_params)
+
+        # pass the kernel api to the kernel and it's subclasses
+        self.k.pass_api(self.traci_connection)
+
         self.setup_initial_state()
 
         # use pyglet to render the simulation
@@ -190,7 +190,7 @@ class Env(*classdef):
             specifies whether to use sumo's gui
         """
         self.traci_connection.close(False)
-        self.sumo_proc.kill()
+        self.k.simulation.sumo_proc.kill()
 
         if render is not None:
             self.sumo_params.render = render
@@ -199,112 +199,10 @@ class Env(*classdef):
             ensure_dir(sumo_params.emission_path)
             self.sumo_params.emission_path = sumo_params.emission_path
 
-        self.start_sumo()
+        self.traci_connection = self.k.simulation.start_simulation(
+            scenario=self.scenario, sim_params=self.sumo_params)
+        self.k.pass_api(self.traci_connection)
         self.setup_initial_state()
-
-    def start_sumo(self):
-        """Start a sumo instance.
-
-        Uses the configuration files created by the scenario class to
-        initialize a sumo instance. Also initializes a traci connection to
-        interface with sumo from Python.
-        """
-        error = None
-        for _ in range(RETRIES_ON_ERROR):
-            try:
-                # port number the sumo instance will be run on
-                if self.sumo_params.port is not None:
-                    port = self.sumo_params.port
-                else:
-                    # Don't do backoff when testing
-                    if os.environ.get("TEST_FLAG", 0):
-                        # backoff to decrease likelihood of race condition
-                        time_stamp = ''.join(str(time.time()).split('.'))
-                        # 1.0 for consistency w/ above
-                        time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
-                        port = sumolib.miscutils.getFreeSocketPort()
-
-                sumo_binary = "sumo-gui" if self.sumo_params.render is True\
-                    else "sumo"
-
-                # command used to start sumo
-                sumo_call = [
-                    sumo_binary, "-c", self.scenario.cfg,
-                    "--remote-port", str(port),
-                    "--num-clients", str(self.sumo_params.num_clients),
-                    "--step-length", str(self.sim_step)
-                ]
-
-                # add step logs (if requested)
-                if self.sumo_params.no_step_log:
-                    sumo_call.append("--no-step-log")
-
-                # add the lateral resolution of the sublanes (if requested)
-                if self.sumo_params.lateral_resolution is not None:
-                    sumo_call.append("--lateral-resolution")
-                    sumo_call.append(str(self.sumo_params.lateral_resolution))
-
-                # add the emission path to the sumo command (if requested)
-                if self.sumo_params.emission_path is not None:
-                    ensure_dir(self.sumo_params.emission_path)
-                    emission_out = \
-                        self.sumo_params.emission_path + \
-                        "{0}-emission.xml".format(self.scenario.name)
-                    sumo_call.append("--emission-output")
-                    sumo_call.append(emission_out)
-                else:
-                    emission_out = None
-
-                if self.sumo_params.overtake_right:
-                    sumo_call.append("--lanechange.overtake-right")
-                    sumo_call.append("true")
-
-                if self.sumo_params.ballistic:
-                    sumo_call.append("--step-method.ballistic")
-                    sumo_call.append("true")
-
-                # specify a simulation seed (if requested)
-                if self.sumo_params.seed is not None:
-                    sumo_call.append("--seed")
-                    sumo_call.append(str(self.sumo_params.seed))
-
-                if not self.sumo_params.print_warnings:
-                    sumo_call.append("--no-warnings")
-                    sumo_call.append("true")
-
-                # set the time it takes for a gridlock teleport to occur
-                sumo_call.append("--time-to-teleport")
-                sumo_call.append(str(int(self.sumo_params.teleport_time)))
-
-                logging.info(" Starting SUMO on port " + str(port))
-                logging.debug(" Cfg file: " + str(self.scenario.cfg))
-                if self.sumo_params.num_clients > 1:
-                    logging.info(" Num clients are" +
-                                 str(self.sumo_params.num_clients))
-                logging.debug(" Emission file: " + str(emission_out))
-                logging.debug(" Step length: " + str(self.sim_step))
-
-                # Opening the I/O thread to SUMO
-                self.sumo_proc = subprocess.Popen(
-                    sumo_call, preexec_fn=os.setsid)
-
-                # wait a small period of time for the subprocess to activate
-                # before trying to connect with traci
-                if os.environ.get("TEST_FLAG", 0):
-                    time.sleep(0.1)
-                else:
-                    time.sleep(config.SUMO_SLEEP)
-
-                self.traci_connection = traci.connect(port, numRetries=100)
-                self.traci_connection.setOrder(0)
-
-                self.traci_connection.simulationStep()
-                return
-            except Exception as e:
-                print("Error during start: {}".format(traceback.format_exc()))
-                error = e
-                self.teardown_sumo()
-        raise error
 
     def setup_initial_state(self):
         """Return information on the initial state of vehicles in the network.
@@ -338,14 +236,6 @@ class Env(*classdef):
             ])
             self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
 
-        # subscribe some simulation parameters needed to check for entering,
-        # exiting, and colliding vehicles
-        self.traci_connection.simulation.subscribe([
-            tc.VAR_DEPARTED_VEHICLES_IDS, tc.VAR_ARRIVED_VEHICLES_IDS,
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS, tc.VAR_TIME_STEP,
-            tc.VAR_DELTA_T
-        ])
-
         # subscribe the traffic light
         for node_id in self.traffic_lights.get_ids():
             self.traci_connection.trafficlight.subscribe(
@@ -373,7 +263,7 @@ class Env(*classdef):
 
         # save the initial state. This is used in the _reset function
         for veh_id in self.vehicles.get_ids():
-            type_id = self.vehicles.get_state(veh_id, "type")
+            type_id = self.vehicles.get_type(veh_id)
             pos = self.vehicles.get_position(veh_id)
             lane = self.vehicles.get_lane(veh_id)
             speed = self.vehicles.get_speed(veh_id)
@@ -452,7 +342,7 @@ class Env(*classdef):
 
             self.additional_command()
 
-            self.traci_connection.simulationStep()
+            self.k.simulation.simulation_step()
 
             # collect subscription information from sumo
             vehicle_obs = \
@@ -473,9 +363,7 @@ class Env(*classdef):
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
             # crash encodes whether the simulator experienced a collision
-            crash = \
-                self.traci_connection.simulation.getStartingTeleportNumber() \
-                != 0
+            crash = self.k.simulation.check_collision()
 
             # stop collecting new simulation steps if there is a collision
             if crash:
@@ -527,7 +415,8 @@ class Env(*classdef):
             infos = {}
 
         # compute the reward
-        reward = self.compute_reward(rl_actions, fail=crash)
+        rl_clipped = self.clip_actions(rl_actions)
+        reward = self.compute_reward(rl_clipped, fail=crash)
 
         return next_observation, reward, done, infos
 
@@ -654,7 +543,7 @@ class Env(*classdef):
                     departPos=str(pos),
                     departSpeed=str(speed))
 
-        self.traci_connection.simulationStep()
+        self.k.simulation.simulation_step()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
@@ -714,6 +603,31 @@ class Env(*classdef):
         """Additional commands that may be performed by the step method."""
         pass
 
+    def clip_actions(self, rl_actions=None):
+        """Clip the actions passed from the RL agent.
+
+        Parameters
+        ----------
+        rl_actions : list or numpy ndarray
+            list of actions provided by the RL algorithm
+
+        Returns
+        -------
+        numpy ndarray (float)
+            The rl_actions clipped according to the box
+        """
+        # ignore if no actions are issued
+        if rl_actions is None:
+            return None
+
+        # clip according to the action space requirements
+        if isinstance(self.action_space, Box):
+            rl_actions = np.clip(
+                rl_actions,
+                a_min=self.action_space.low,
+                a_max=self.action_space.high)
+        return rl_actions
+
     def apply_rl_actions(self, rl_actions=None):
         """Specify the actions to be performed by the rl agent(s).
 
@@ -722,22 +636,15 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions: list or numpy ndarray
+        rl_actions : list or numpy ndarray
             list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued
         if rl_actions is None:
             return
 
-        # clip according to the action space requirements
-        if isinstance(self.action_space, Box):
-
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
-
-        self._apply_rl_actions(rl_actions)
+        rl_clipped = self.clip_actions(rl_actions)
+        self._apply_rl_actions(rl_clipped)
 
     def _apply_rl_actions(self, rl_actions):
         raise NotImplementedError
@@ -988,13 +895,6 @@ class Env(*classdef):
         # close pyglet renderer
         if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             self.renderer.close()
-
-    def teardown_sumo(self):
-        """Kill the sumo subprocess instance."""
-        try:
-            os.killpg(self.sumo_proc.pid, signal.SIGTERM)
-        except Exception:
-            print("Error during teardown: {}".format(traceback.format_exc()))
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.
