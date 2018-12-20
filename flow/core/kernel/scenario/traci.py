@@ -6,6 +6,7 @@ import logging
 import random
 import time
 import os
+import sys
 import subprocess
 import traceback
 import xml.etree.ElementTree as ElementTree
@@ -100,15 +101,26 @@ class TraCIScenario(KernelScenario):
         self.sumfn = '%s.sumo.cfg' % self.network.name
         self.guifn = '%s.gui.cfg' % self.network.name
 
+        # can only provide one of osm path or netfile path to the scenario
+        assert self.network.net_params.netfile is None \
+            or self.network.net_params.osm_path is None
+
         # create the network configuration files
-        self._edges, self._connections = self.generate_net(
-            self.network.net_params,
-            self.network.traffic_lights,
-            self.network.nodes,
-            self.network.edges,
-            self.network.types,
-            self.network.connections
-        )
+        if self.network.net_params.netfile is not None:
+            self._edges, self._connections = self.generate_net_from_netfile(
+                self.network.net_params)
+        elif self.network.net_params.osm_path is not None:
+            self._edges, self._connections = self.generate_net_from_osm(
+                self.network.net_params)
+        else:
+            self._edges, self._connections = self.generate_net(
+                self.network.net_params,
+                self.network.traffic_lights,
+                self.network.nodes,
+                self.network.edges,
+                self.network.types,
+                self.network.connections
+            )
 
         # list of edges and internal links (junctions)
         self._edge_list = [
@@ -224,7 +236,7 @@ class TraCIScenario(KernelScenario):
             except KeyError:
                 # in case several internal links are being generalized for
                 # by a single element (for backwards compatibility)
-                edge_name = edge.rsplit("_", 1)[0]
+                edge_name = edge.rsplit('_', 1)[0]
                 return self.network.total_edgestarts_dict.get(edge_name, -1001)
         else:
             return self.network.total_edgestarts_dict[edge] + position
@@ -502,6 +514,94 @@ class TraCIScenario(KernelScenario):
                 print('Retrying in {} seconds...'.format(WAIT_ON_ERROR))
                 time.sleep(WAIT_ON_ERROR)
         raise error
+
+    def generate_net_from_osm(self, net_params):
+        """Generate .net.xml files from OpenStreetMap files.
+
+        This is accomplished by calling the sumo ``netconvert`` binary. Only
+        vehicle roads are included from the networks.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams type
+            network-specific parameters. Different networks require different
+            net_params; see the separate sub-classes for more information.
+
+        Returns
+        -------
+        edges : dict <dict>
+            Key = name of the edge
+            Elements = length, lanes, speed
+        connection_data : dict < dict < list<tup> > >
+            Key = name of the arriving edge
+                Key = lane index
+                Element = list of edge/lane pairs that a vehicle can traverse
+                from the arriving edge/lane pairs
+        """
+        # specify the location of the input osm file
+        osm_path = net_params.osm_path
+
+        # specify the location of the output file
+        netfn = "%s.net.xml" % self.name
+
+        # generate the network file with sumo
+        net_cmd = "netconvert --osm-files {0} --output-file {1}".\
+            format(osm_path, self.cfg_path + netfn)
+
+        # this handles removing all roads in the network that cannot be ridden
+        # by vehicles
+        net_cmd += \
+            " --remove-edges.by-vclass rail_slow,rail_fast,bicycle,pedestrian"
+
+        # this removes edges that are not connected to a network (isolated)
+        net_cmd += " --remove-edges.isolated"
+
+        # this removes internal links from the network (useful when the network
+        # becomes very large)
+        if net_params.no_internal_links:
+            net_cmd += " --no_internal_links"
+
+        subprocess.call(
+            net_cmd, stdout=sys.stdout, stderr=sys.stderr, shell=True)
+
+        # name of the .net.xml file (located in cfg_path)
+        self.netfn = netfn
+
+        # collect data from the generated network configuration file
+        edges_dict, conn_dict = self._import_edges_from_net()
+
+        return edges_dict, conn_dict
+
+    def generate_net_from_netfile(self, net_params):
+        """Pass relevant data from an already processed .net.xml file.
+
+        This method is used to collect the edges and connection data from a
+        netfile and pass it to the scenario class for later use.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams type
+            network-specific parameters. Different networks require different
+            net_params; see the separate sub-classes for more information.
+
+        Returns
+        -------
+        edges : dict <dict>
+            Key = name of the edge
+            Elements = length, lanes, speed
+        connection_data : dict < dict < list<tup> > >
+            Key = name of the arriving edge
+                Key = lane index
+                Element = list of edge/lane pairs that a vehicle can traverse
+                from the arriving edge/lane pairs
+        """
+        # name of the .net.xml file (located in cfg_path)
+        self.netfn = net_params.netfile
+
+        # collect data from the generated network configuration file
+        edges_dict, conn_dict = self._import_edges_from_net()
+
+        return edges_dict, conn_dict
 
     def generate_cfg(self, net_params, traffic_lights, routes):
         """Generate .sumo.cfg files using net files and netconvert.
