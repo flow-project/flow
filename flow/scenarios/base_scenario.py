@@ -38,11 +38,7 @@ class Scenario(Serializable):
             see flow/core/params.py
         initial_config : InitialConfig type
             see flow/core/params.py
-<<<<<<< HEAD
-        traffic_lights : flow.core.params.TrafficLights
-=======
         traffic_lights : flow.core.params.TrafficLightParams
->>>>>>> kernel_traffic_lights
             see flow/core/params.py
         """
         # Invoke serializable if using rllab

@@ -485,7 +485,7 @@ class Env(*classdef):
             if self.vehicle_arrangement_shuffle:
                 random.shuffle(veh_ids)
 
-            initial_positions, initial_lanes, initial_speeds = \
+            initial_positions, initial_lanes = \
                 self.k.scenario.generate_starting_positions(
                     initial_config=self.initial_config,
                     num_vehicles=len(self.initial_ids), x0=x0)
@@ -500,7 +500,6 @@ class Env(*classdef):
                 list_initial_state[1] = route_id
                 list_initial_state[2] = initial_lanes[i]
                 list_initial_state[3] = initial_positions[i][1]
-                list_initial_state[4] = initial_speeds[i]
                 initial_state[veh_id] = tuple(list_initial_state)
 
             self.initial_state = deepcopy(initial_state)

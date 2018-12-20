@@ -140,10 +140,7 @@ class MultiLoopScenario(Scenario):
         #         pos = max(0, min(self.edge_length(edge), pos + perturb))
         #         startpositions[i] = (edge, pos)
 
-        # all vehicles start with an initial speed of 0 m/s
-        startvel = [0 for _ in range(len(startlanes))]
-
-        return startpositions, startlanes, startvel
+        return startpositions, startlanes
 
     def specify_nodes(self, net_params):
         """See parent class."""
