@@ -210,7 +210,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # apply a certain set of accelerations to the vehicles in the network
         accel_step0 = np.array([0, 1, 4, 9, 16])
         self.env.apply_acceleration(veh_ids=ids, acc=accel_step0)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # compare the new velocity of the vehicles to the expected velocity
         # given the accelerations
@@ -234,7 +234,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
         self.env.apply_acceleration(veh_ids=ids, acc=accel_step1)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # this time, some vehicles should be at 0 velocity (NOT less), and sum
         # are a result of the accelerations that took place
@@ -278,7 +278,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
         self.env.apply_lane_change(ids, direction=direction0)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
@@ -304,7 +304,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # time to test lane changes to the right
         direction1 = np.array([-1, -1, -1, -1, -1])
         self.env.apply_lane_change(ids, direction=direction1)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
@@ -490,7 +490,7 @@ class TestVehicleColoring(unittest.TestCase):
 
         # update the colors of all vehicles
         env.update_vehicle_colors()
-        env.traci_connection.simulationStep()
+        env.k.simulation.simulation_step()
 
         # check that, when rendering is off, the colors don't change (this
         # avoids unnecessary API calls)
@@ -506,7 +506,7 @@ class TestVehicleColoring(unittest.TestCase):
 
         # update the colors of all vehicles
         env.update_vehicle_colors()
-        env.traci_connection.simulationStep()
+        env.k.simulation.simulation_step()
 
         # check the colors of all vehicles
         for veh_id in env.vehicles.get_ids():
