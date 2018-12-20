@@ -129,7 +129,7 @@ class TraCIScenario(KernelScenario):
 
         # generate starting position for vehicles in the network
         kwargs = self.network.initial_config.additional_params
-        positions, lanes, speeds = self.generate_starting_positions(
+        positions, lanes = self.generate_starting_positions(
             initial_config=self.network.initial_config,
             num_vehicles=self.network.vehicles.num_vehicles,
             **kwargs
@@ -144,7 +144,7 @@ class TraCIScenario(KernelScenario):
         self.rts = self.network.routes
 
         shuffle = self.network.initial_config.shuffle
-        self.make_routes(positions, lanes, speeds, shuffle)
+        self.make_routes(positions, lanes, shuffle)
 
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
@@ -394,6 +394,8 @@ class TraCIScenario(KernelScenario):
             # modify the x and y values to be strings
             node['x'] = str(node['x'])
             node['y'] = str(node['y'])
+            if 'radius' in node:
+                node['radius'] = str(node['radius'])
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
@@ -405,6 +407,8 @@ class TraCIScenario(KernelScenario):
         # modify the length, shape, numLanes, and speed values
         for edge in edges:
             edge['length'] = str(edge['length'])
+            if 'priority' in edge:
+                edge['priority'] = str(edge['priority'])
             if 'shape' in edge:
                 edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
                                          for x, y in edge['shape'])
@@ -632,7 +636,7 @@ class TraCIScenario(KernelScenario):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, positions, lanes, speeds, shuffle):
+    def make_routes(self, positions, lanes, shuffle):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
@@ -646,8 +650,6 @@ class TraCIScenario(KernelScenario):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         lanes : list of float
             list of start lanes
-        speeds : list of float
-            list of start speeds
         shuffle : bool
             specifies whether the vehicle IDs should be shuffled before the
             vehicles are assigned starting positions
@@ -679,7 +681,7 @@ class TraCIScenario(KernelScenario):
                     depart='0',
                     id=veh_id,
                     color='1,1,1',
-                    departSpeed=str(speeds[i]),
+                    departSpeed=str(vehicles.get_initial_speed(veh_id)),
                     departPos=str(pos),
                     departLane=str(lanes[i])))
 
