@@ -112,9 +112,6 @@ class Env(*classdef):
         # dynamically
         self.available_routes = self.scenario.rts
 
-        # TraCI connection used to communicate with sumo
-        self.traci_connection = None
-
         # dictionary of initial observations used while resetting vehicles
         # after each rollout
         self.initial_observations = dict.fromkeys(self.vehicles.get_ids())
