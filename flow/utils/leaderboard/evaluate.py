@@ -8,7 +8,7 @@ from rllab and rllib.
 
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.utils.registry import make_create_env
 
@@ -92,7 +92,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     env_params.evaluate = True  # Set to true to get evaluation returns
     net_params = flow_params["net"]
     initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    traffic_lights = flow_params.get("tls", TrafficLightParams())
 
     # import the environment and scenario classes
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
