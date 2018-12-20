@@ -7,6 +7,8 @@ from flow.controllers import SumoLaneChangeController
 from flow.controllers import RLController
 import collections
 import warnings
+
+
 SPEED_MODES = {
     "aggressive": 0,
     "no_collide": 1,
@@ -156,7 +158,7 @@ class Vehicles:
         return self.__vehicles[veh_id]["type"]
 
 
-class TrafficLights:
+class TrafficLightParams:
     """Base traffic light.
 
     This class is used to place traffic lights in the network and describe

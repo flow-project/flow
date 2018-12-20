@@ -1,7 +1,7 @@
 """Contains the bottleneck scenario class."""
 
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.scenarios.base_scenario import Scenario
 import numpy as np
 from numpy import linspace, pi, sin, cos
@@ -18,7 +18,7 @@ class MiniCityScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Instantiate the scenario class.
 
         Requires from net_params:
@@ -418,8 +418,8 @@ class MiniCityScenario(Scenario):
                     [np.sqrt((edge['shape'][i][0] - edge['shape'][i+1][0])**2 +
                              (edge['shape'][i][1] - edge['shape'][i+1][1])**2)
                      * SCALING for i in range(len(edge['shape'])-1)])
-                edge['shape'] = [(blip*SCALING, blop*SCALING)
-                                 for blip, blop in edge['shape']]
+                edge['shape'] = [(x * SCALING, y * SCALING)
+                                 for x, y in edge['shape']]
             else:
                 edge['length'] = np.linalg.norm(
                     self.nodes_dict[edge['to']] -
