@@ -139,6 +139,47 @@ class TraCIScenario(KernelScenario):
             self.edge_length(edge_id) for edge_id in self.get_edge_list()
         ])
 
+        # parameters to be specified under each unique subclass's
+        # __init__() function
+        self.edgestarts = self.network.edge_starts
+
+        # if no edge_starts are specified, generate default values to be used
+        # by the "get_x" method
+        if self.edgestarts is None:
+            length = 0
+            self.edgestarts = []
+            for edge_id in sorted(self._edge_list):
+                # the current edge starts where the last edge ended
+                self.edgestarts.append((edge_id, length))
+                # increment the total length of the network with the length of
+                # the current edge
+                length += self._edges[edge_id]['length']
+
+        # these optional parameters need only be used if "no-internal-links"
+        # is set to "false" while calling sumo's netconvert function
+        self.internal_edgestarts = self.network.internal_edge_starts
+        self.intersection_edgestarts = self.network.intersection_edge_starts
+
+        # in case the user did not write the intersection edge-starts in
+        # internal edge-starts as well (because of redundancy), merge the two
+        # together
+        self.internal_edgestarts += self.intersection_edgestarts
+        seen = set()
+        self.internal_edgestarts = \
+            [item for item in self.internal_edgestarts
+             if item[1] not in seen and not seen.add(item[1])]
+        self.internal_edgestarts_dict = dict(self.internal_edgestarts)
+
+        # total_edgestarts and total_edgestarts_dict contain all of the above
+        # edges, with the former being ordered by position
+        if self.network.net_params.no_internal_links:
+            self.total_edgestarts = self.edgestarts
+        else:
+            self.total_edgestarts = self.edgestarts + self.internal_edgestarts
+        self.total_edgestarts.sort(key=lambda tup: tup[1])
+
+        self.total_edgestarts_dict = dict(self.total_edgestarts)
+
         # generate starting position for vehicles in the network
         kwargs = self.network.initial_config.additional_params
         positions, lanes = self.generate_starting_positions(
@@ -169,28 +210,30 @@ class TraCIScenario(KernelScenario):
         """Close the scenario class.
 
         Deletes the xml files that were created by the scenario class. This
-        is to prevent them from building up in the debug folder.
+        is to prevent them from building up in the debug folder. Note that in
+        the case of import .net.xml files we do not want to delete them.
         """
-        os.remove(self.net_path + self.nodfn)
-        os.remove(self.net_path + self.edgfn)
-        os.remove(self.net_path + self.cfgfn)
-        os.remove(self.cfg_path + self.addfn)
-        os.remove(self.cfg_path + self.guifn)
-        os.remove(self.cfg_path + self.netfn)
-        os.remove(self.cfg_path + self.roufn)
-        os.remove(self.cfg_path + self.sumfn)
+        if self.network.net_params.netfile is None:
+            os.remove(self.net_path + self.nodfn)
+            os.remove(self.net_path + self.edgfn)
+            os.remove(self.net_path + self.cfgfn)
+            os.remove(self.cfg_path + self.addfn)
+            os.remove(self.cfg_path + self.guifn)
+            os.remove(self.cfg_path + self.netfn)
+            os.remove(self.cfg_path + self.roufn)
+            os.remove(self.cfg_path + self.sumfn)
 
-        # the connection file is not always created
-        try:
-            os.remove(self.net_path + self.confn)
-        except OSError:
-            pass
+            # the connection file is not always created
+            try:
+                os.remove(self.net_path + self.confn)
+            except OSError:
+                pass
 
-        # neither is the type file
-        try:
-            os.remove(self.net_path + self.typfn)
-        except OSError:
-            pass
+            # neither is the type file
+            try:
+                os.remove(self.net_path + self.typfn)
+            except OSError:
+                pass
 
     def get_edge(self, x):
         """Compute an edge and relative position from an absolute position.
@@ -206,7 +249,7 @@ class TraCIScenario(KernelScenario):
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
-        for (edge, start_pos) in reversed(self.network.total_edgestarts):
+        for (edge, start_pos) in reversed(self.total_edgestarts):
             if x >= start_pos:
                 return edge, x - start_pos
 
@@ -232,14 +275,14 @@ class TraCIScenario(KernelScenario):
 
         if edge[0] == ':':
             try:
-                return self.network.internal_edgestarts_dict[edge] + position
+                return self.internal_edgestarts_dict[edge] + position
             except KeyError:
                 # in case several internal links are being generalized for
                 # by a single element (for backwards compatibility)
                 edge_name = edge.rsplit('_', 1)[0]
-                return self.network.total_edgestarts_dict.get(edge_name, -1001)
+                return self.total_edgestarts_dict.get(edge_name, -1001)
         else:
-            return self.network.total_edgestarts_dict[edge] + position
+            return self.total_edgestarts_dict[edge] + position
 
     def edge_length(self, edge_id):
         """Return the length of a given edge/junction.

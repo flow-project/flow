@@ -93,49 +93,28 @@ class Scenario(Serializable):
         self.initial_config = initial_config
         self.traffic_lights = traffic_lights
 
-        # specify the attributes of the nodes
-        self.nodes = self.specify_nodes(net_params)
-
-        # collect the attributes of each edge
-        self.edges = self.specify_edges(net_params)
-
-        # specify the types attributes (default is None)
-        self.types = self.specify_types(net_params)
-
-        # specify the connection attributes (default is None)
-        self.connections = self.specify_connections(net_params)
+        if net_params.netfile is None and net_params.osm_path is None:
+            # specify the attributes of the nodes
+            self.nodes = self.specify_nodes(net_params)
+            # collect the attributes of each edge
+            self.edges = self.specify_edges(net_params)
+            # specify the types attributes (default is None)
+            self.types = self.specify_types(net_params)
+            # specify the connection attributes (default is None)
+            self.connections = self.specify_connections(net_params)
+        else:
+            self.nodes = None
+            self.edges = None
+            self.types = None
+            self.connections = None
 
         # specify routes vehicles can take
         self.routes = self.specify_routes(net_params)
 
-        # parameters to be specified under each unique subclass's
-        # __init__() function
-        self.edgestarts = self.specify_edge_starts()
-
-        # these optional parameters need only be used if "no-internal-links"
-        # is set to "false" while calling sumo's netconvert function
-        self.internal_edgestarts = self.specify_internal_edge_starts()
-        self.intersection_edgestarts = self.specify_intersection_edge_starts()
-
-        # in case the user did not write the intersection edge-starts in
-        # internal edge-starts as well (because of redundancy), merge the two
-        # together
-        self.internal_edgestarts += self.intersection_edgestarts
-        seen = set()
-        self.internal_edgestarts = \
-            [item for item in self.internal_edgestarts
-             if item[1] not in seen and not seen.add(item[1])]
-        self.internal_edgestarts_dict = dict(self.internal_edgestarts)
-
-        # total_edgestarts and total_edgestarts_dict contain all of the above
-        # edges, with the former being ordered by position
-        if self.net_params.no_internal_links:
-            self.total_edgestarts = self.edgestarts
-        else:
-            self.total_edgestarts = self.edgestarts + self.internal_edgestarts
-        self.total_edgestarts.sort(key=lambda tup: tup[1])
-
-        self.total_edgestarts_dict = dict(self.total_edgestarts)
+        # optional parameters, used to get positions from some global reference
+        self.edge_starts = self.specify_edge_starts()
+        self.internal_edge_starts = self.specify_internal_edge_starts()
+        self.intersection_edge_starts = self.specify_intersection_edge_starts()
 
     # TODO: convert to property
     def specify_edge_starts(self):
@@ -155,17 +134,7 @@ class Scenario(Serializable):
             list of edge names and starting positions,
             ex: [(edge0, pos0), (edge1, pos1), ...]
         """
-        # FIXME: move to scenario kernel somehow
-        length = 0
-        edgestarts = []
-        for edge_id in sorted(self._edge_list):
-            # the current edge starts where the last edge ended
-            edgestarts.append((edge_id, length))
-            # increment the total length of the network with the length of the
-            # current edge
-            length += self._edges[edge_id]['length']
-
-        return edgestarts
+        return None
 
     # TODO: convert to property
     def specify_intersection_edge_starts(self):
