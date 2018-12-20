@@ -85,7 +85,7 @@ def bottleneck2_baseline(num_runs, render=True):
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
 
-    exp = SumoExperiment(env, scenario)
+    exp = SumoExperiment(env)
 
     results = exp.run(num_runs, env_params.horizon)
 

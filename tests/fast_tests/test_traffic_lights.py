@@ -224,7 +224,7 @@ class TestItRuns(unittest.TestCase):
         env, scenario = grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
-        self.exp = SumoExperiment(env, scenario)
+        self.exp = SumoExperiment(env)
 
     def tearDown(self):
         # free data used by the class
@@ -281,7 +281,7 @@ class TestIndividualLights(unittest.TestCase):
         env, scenario = grid_mxn_exp_setup(
             row_num=1, col_num=4, tl_logic=tl_logic)
 
-        self.exp = SumoExperiment(env, scenario)
+        self.exp = SumoExperiment(env)
 
     def tearDown(self):
         # free data used by the class
