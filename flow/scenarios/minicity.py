@@ -420,8 +420,8 @@ class MiniCityScenario(Scenario):
                     [np.sqrt((edge['shape'][i][0] - edge['shape'][i+1][0])**2 +
                              (edge['shape'][i][1] - edge['shape'][i+1][1])**2)
                      * SCALING for i in range(len(edge['shape'])-1)])
-                edge['shape'] = [(blip*SCALING, blop*SCALING)
-                                 for blip, blop in edge['shape']]
+                edge['shape'] = [(x * SCALING, y * SCALING)
+                                 for x, y in edge['shape']]
             else:
                 edge['length'] = np.linalg.norm(self.nodes[edge['to']] -
                                                 self.nodes[edge['from']])
