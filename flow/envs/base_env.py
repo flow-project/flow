@@ -105,12 +105,14 @@ class Env(*classdef):
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
-                        sim_params=self.sumo_params,
-                        vehicles=scenario.vehicles)
+                        sim_params=self.sumo_params)
 
         # use the scenario class's network parameters to generate the necessary
         # scenario components within the scenario kernel
         self.k.scenario.generate_network(scenario)
+
+        # initial the vehicles kernel using the VehicleParams object
+        self.k.vehicle.initialize(self.initial_vehicles)
 
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
@@ -193,6 +195,7 @@ class Env(*classdef):
             self.sumo_params.emission_path = sumo_params.emission_path
 
         self.k.scenario.generate_network(self.scenario)
+        self.k.vehicle.initialize(self.initial_vehicles)
         self.traci_connection = self.k.simulation.start_simulation(
             scenario=self.k.scenario, sim_params=self.sumo_params)
         self.k.pass_api(self.traci_connection)
@@ -457,7 +460,7 @@ class Env(*classdef):
         for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException, KeyError):
+            except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
         # clear all vehicles from the network and the vehicles class
@@ -465,7 +468,7 @@ class Env(*classdef):
         for veh_id in list(self.k.vehicle.get_ids()):
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException, KeyError):
+            except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network

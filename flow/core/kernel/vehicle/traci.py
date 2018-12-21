@@ -26,8 +26,7 @@ class TraCIVehicle(KernelVehicle):
 
     def __init__(self,
                  master_kernel,
-                 sim_params,
-                 vehicles):
+                 sim_params):
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
 
@@ -46,17 +45,16 @@ class TraCIVehicle(KernelVehicle):
         # on the state of the vehicles for a given time step
         self.__sumo_obs = {}
 
-        self.num_vehicles = 0  # total number of vehicles in the network
-        self.num_rl_vehicles = 0  # number of rl vehicles in the network
-        self.num_types = 0  # number of unique types of vehicles in the network
-        self.types = []  # types of vehicles in the network
-        self.initial_speeds = []  # speed of vehicles at the start of a rollout
+        # total number of vehicles in the network
+        self.num_vehicles = 0
+        # number of rl vehicles in the network
+        self.num_rl_vehicles = 0
 
         # contains the parameters associated with each type of vehicle
-        self.type_parameters = vehicles.type_parameters
+        self.type_parameters = {}
 
         # contain the minGap attribute of each type of vehicle
-        self.minGap = vehicles.minGap
+        self.minGap = 0
 
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
@@ -68,6 +66,17 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
         self._arrived_ids = []
+
+    def initialize(self, vehicles):
+        """
+
+        :param vehicles:
+        :return:
+        """
+        self.type_parameters = vehicles.type_parameters
+        self.minGap = vehicles.minGap
+        self.num_vehicles = 0
+        self.num_rl_vehicles = 0
 
     def update(self, reset):
         """See parent class.
@@ -162,7 +171,10 @@ class TraCIVehicle(KernelVehicle):
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            _position = vehicle_obs[veh_id][tc.VAR_POSITION]
+            try:
+                _position = vehicle_obs[veh_id][tc.VAR_POSITION]
+            except:
+                return
             _angle = vehicle_obs[veh_id][tc.VAR_ANGLE]
             _time_step = sim_obs[tc.VAR_TIME_STEP]
             _time_delta = sim_obs[tc.VAR_DELTA_T]
