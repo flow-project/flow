@@ -281,7 +281,7 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         num_merge_vehicles = \
             sum("merge" in cls.network.vehicles.get_type(veh_id)
-                for veh_id in cls.network.vehicles.get_ids())
+                for veh_id in cls.network.vehicles.ids)
 
         radius = cls.network.net_params.additional_params["ring_radius"]
         lane_length = cls.network.net_params.additional_params["lane_length"]
