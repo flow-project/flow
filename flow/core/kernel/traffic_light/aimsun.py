@@ -74,7 +74,7 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        raise NotImplementedError
+        pass
 
     def get_ids(self):
         """Return the names of all nodes with traffic lights."""

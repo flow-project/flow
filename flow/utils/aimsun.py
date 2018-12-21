@@ -1,11 +1,14 @@
 import sys
+SITEPACKAGES = "/home/yashar/anaconda3/envs/aimsun/lib/python2.7/site-packages"
+sys.path.append(SITEPACKAGES)
+
+from copy import deepcopy
 import argparse
 import json
 import os
 from flow.core.params import NetParams, InFlows
 
-SITEPACKAGES = "/home/yashar/anaconda3/envs/aimsun/lib/python2.7/site-packages"
-sys.path.append(SITEPACKAGES)
+
 
 import numpy
 from numpy import pi, sin, cos, linspace
@@ -43,28 +46,36 @@ def generate_net(nodes, edges, net_params):
         points = GKPoints()
         for p in edge["shape"]:
             new_point = GKPoint()
-            new_point.set(p[0], p[1], p[2])
+            new_point.set(p[0], p[1], 0)
             points.append(new_point)
 
         cmd = model.createNewCmd(model.getType("GKSection"))
-        cmd.setPoints(num_lanes, lane_width, points)
+        cmd.setPoints(edge["numLanes"], lane_width, points)
         model.getCommander().addCommand(cmd)
         section = cmd.createdObject()
         section.setName(edge["id"])
+        sectionType = model.getType("GKSection")
+        edge_aimsun = model.getCatalog().findByName(edge["id"], sectionType)
+        edge_aimsun.setSpeed(edge["speed"])
 
     # Draw turnings
     sectionType = model.getType("GKSection")
 
     for node in nodes:
-        cmd = model.createNewCmd(model.getType("GKTurning"))
-        from_section = model.getCatalog().findByName(
-            node["from"], sectionType, True)
-        to_section = model.getCatalog().findByName(
-            node["to"], sectionType, True)
-        cmd.setTurning(from_section, to_section)
-        model.getCommander().addCommand(cmd)
-        turn = cmd.createdObject()
-        turn.setName("%s_to_%s" % (node["from"], node["to"]))
+        node_id = node['id']
+        from_edges = [edge['id'] for edge in edges if edge['from'] == node_id]
+        to_edges = [edge['id'] for edge in edges if edge['to'] == node_id]
+        for i in range(len(from_edges)):
+            for j in range(len(to_edges)):
+                cmd = model.createNewCmd(model.getType("GKTurning"))
+                to_section = model.getCatalog().findByName(
+                    from_edges[i], sectionType, True)
+                from_section = model.getCatalog().findByName(
+                    to_edges[j], sectionType, True)
+                cmd.setTurning(from_section, to_section)
+                model.getCommander().addCommand(cmd)
+                turn = cmd.createdObject()
+                #turn.setName("%s_to_%s" % (node["from"], node["to"]))
 
     # save doc  # TODO: what is this? Can we make it the commented thing?
     gui.saveAs('/home/yashar/Documents/test_flow.ang')
@@ -77,6 +88,17 @@ with open('/home/yashar/git_clone/flow/flow/core/kernel/scenario/data.json') as 
     data = json.load(f)
 nodes = data['nodes']
 edges = data['edges']
+types = data['types']
+
+for i in range(len(edges)):
+    if 'type' in edges[i]:
+        for typ in types:
+            if typ['id'] == edges[i]['type']:
+                new_dict = deepcopy(typ)
+                new_dict.pop("id")
+                edges[i].update(new_dict)
+            break
+# connections = data['connections']  # FIXME: add later
 
 net_params = NetParams()
 net_params.__dict__ = data["net_params"].copy()

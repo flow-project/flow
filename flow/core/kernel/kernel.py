@@ -67,7 +67,7 @@ class Kernel(object):
         elif simulator == 'aimsun':
             self.simulation = AimsunKernelSimulation(self)
             self.scenario = AimsunKernelScenario(self)
-            self.vehicle = AimsunKernelVehicle(self, sim_params, vehicles)
+            self.vehicle = AimsunKernelVehicle(self, sim_params)
             self.traffic_light = AimsunKernelTrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.

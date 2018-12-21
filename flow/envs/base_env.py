@@ -224,20 +224,23 @@ class Env(*classdef):
         # store new observations in the vehicles and traffic lights class
         self.k.update(reset=True)
 
-        # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) < self.k.vehicle.num_vehicles:
-            logging.error("Not enough vehicles have spawned! Bad start?")
-            sys.exit()
+        # generate starting position for vehicles in the network
+        kwargs = self.scenario.initial_config.additional_params
+        positions, lanes = self.k.scenario.generate_starting_positions(
+            initial_config=self.scenario.initial_config,
+            num_vehicles=self.scenario.vehicles.num_vehicles,
+            **kwargs
+        )
 
         # save the initial state. This is used in the _reset function
-        for veh_id in self.initial_ids:
+        for i, veh_id in enumerate(self.initial_ids):
             type_id = self.scenario.vehicles.get_type(veh_id)
-            pos = self.k.vehicle.get_position(veh_id)
-            lane = self.k.vehicle.get_lane(veh_id)
-            speed = self.k.vehicle.get_speed(veh_id)
-            route_id = "route" + self.k.vehicle.get_edge(veh_id)
+            pos = positions[i][1]
+            lane = lanes[i]
+            speed = self.scenario.vehicles.get_initial_speed(veh_id)
+            edge = positions[i][0]
 
-            self.initial_state[veh_id] = (type_id, route_id, lane, pos, speed)
+            self.initial_state[veh_id] = (type_id, edge, lane, pos, speed)
 
     def step(self, rl_actions):
         """Advance the environment by one step.
@@ -464,11 +467,11 @@ class Env(*classdef):
             self.initial_state = deepcopy(initial_state)
 
         # clear all vehicles from the network and the vehicles class
-        for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
-            try:
-                self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+        # for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
+        #     try:
+        #         self.k.vehicle.remove(veh_id)
+        #     except (FatalTraCIError, TraCIException):
+        #         print("Error during start: {}".format(traceback.format_exc()))
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -480,14 +483,14 @@ class Env(*classdef):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, pos, speed = \
+            type_id, pos, lane_index, edge, speed = \
                 self.initial_state[veh_id]
 
             try:
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
-                    route_id=route_id,
+                    edge=edge,
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
@@ -498,7 +501,7 @@ class Env(*classdef):
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
-                    route_id=route_id,
+                    edge=edge,
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
@@ -542,6 +545,11 @@ class Env(*classdef):
 
         # render a frame
         self.render(reset=True)
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) < self.k.vehicle.num_vehicles:
+            logging.error("Not enough vehicles have spawned! Bad start?")
+            sys.exit()
 
         return observation
 

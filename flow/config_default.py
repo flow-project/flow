@@ -18,4 +18,4 @@ AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET", None)
 
 AWS_S3_PATH = "s3://bucket_name"
 
-AIMSUN_NEXT_PATH = "$HOME/Aimsun_Next_8_3_0/Aimsun_Next"
+AIMSUN_NEXT_PATH = "~/Aimsun_Next_8_3_0/Aimsun_Next"
