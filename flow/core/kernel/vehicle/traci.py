@@ -428,24 +428,6 @@ class TraCIVehicle(KernelVehicle):
         else:
             return 0
 
-    def get_initial_speed(self, veh_id, error=-1001):
-        """Return the initial speed upon reset of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float
-        """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_initial_speed(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("initial_speed", error)
-
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
