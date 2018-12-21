@@ -63,7 +63,7 @@ class AimsunKernelSimulation(KernelSimulation):
         self.sim_step = sim_params.sim_step
 
         # path to the Aimsun_Next binary
-        aimsun_path = config.AIMSUN_NEXT_PATH
+        aimsun_path = os.path.expanduser(config.AIMSUN_NEXT_PATH)
 
         # path to the supplementary file that is used to generate an aimsun
         # network from a template

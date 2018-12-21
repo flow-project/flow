@@ -120,7 +120,7 @@ class LoopScenario(Scenario):
             "to":
                 "left",
             "length":
-                repr(edgelen),
+                edgelen,
             "shape":
                 [
                     (r * cos(t), r * sin(t))
@@ -136,7 +136,7 @@ class LoopScenario(Scenario):
             "to":
                 "bottom",
             "length":
-                repr(edgelen),
+                edgelen,
             "shape":
                 [
                     (r * cos(t), r * sin(t))
