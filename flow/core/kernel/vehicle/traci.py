@@ -319,25 +319,28 @@ class TraCIVehicle(KernelVehicle):
         except (FatalTraCIError, TraCIException):
             pass
 
-        # remove from the vehicles kernel
-        del self.__vehicles[veh_id]
-        del self.__sumo_obs[veh_id]
-        self.__ids.remove(veh_id)
-        self.num_vehicles -= 1
+        try:
+            # remove from the vehicles kernel
+            del self.__vehicles[veh_id]
+            del self.__sumo_obs[veh_id]
+            self.__ids.remove(veh_id)
+            self.num_vehicles -= 1
 
-        # remove it from all other ids (if it is there)
-        if veh_id in self.__human_ids:
-            self.__human_ids.remove(veh_id)
-            if veh_id in self.__controlled_ids:
-                self.__controlled_ids.remove(veh_id)
-            if veh_id in self.__controlled_lc_ids:
-                self.__controlled_lc_ids.remove(veh_id)
-        else:
-            self.__rl_ids.remove(veh_id)
-            self.num_rl_vehicles -= 1
+            # remove it from all other ids (if it is there)
+            if veh_id in self.__human_ids:
+                self.__human_ids.remove(veh_id)
+                if veh_id in self.__controlled_ids:
+                    self.__controlled_ids.remove(veh_id)
+                if veh_id in self.__controlled_lc_ids:
+                    self.__controlled_lc_ids.remove(veh_id)
+            else:
+                self.__rl_ids.remove(veh_id)
+                self.num_rl_vehicles -= 1
 
-        # make sure that the rl ids remain sorted
-        self.__rl_ids.sort()
+            # make sure that the rl ids remain sorted
+            self.__rl_ids.sort()
+        except KeyError:
+            pass
 
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
