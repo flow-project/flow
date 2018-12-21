@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
@@ -25,7 +25,7 @@ class HighwayScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a highway scenario.
 
         Requires from net_params:

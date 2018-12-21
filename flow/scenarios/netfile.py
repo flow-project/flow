@@ -1,7 +1,7 @@
 """Contains the scenario class for .net.xml files."""
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.scenarios.base_scenario import Scenario
 
 
@@ -23,7 +23,7 @@ class NetFileScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a scenario from a .net.xml file.
 
         See flow/scenarios/base_scenario.py for description of params.

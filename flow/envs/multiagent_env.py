@@ -24,7 +24,7 @@ class MultiEnv(MultiAgentEnv, Env):
         simulator by the number of time steps requested per environment step.
 
         Results from the simulations are processed through various classes,
-        such as the Vehicles and TrafficLights classes, to produce standardized
+        such as the Vehicle and TrafficLight kernels, to produce standardized
         methods for identifying specific network state features. Finally,
         results from the simulator are used to generate appropriate
         observations.
@@ -86,6 +86,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
             self.additional_command()
 
+            # advance the simulation in the simulator by one step
             self.k.simulation.simulation_step()
 
             # collect subscription information from sumo
@@ -93,12 +94,12 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.traci_connection.vehicle.getSubscriptionResults()
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
-            self.traffic_lights.update(tls_obs)
+
+            # store new observations in the vehicles and traffic lights class
+            self.k.update(reset=False)
 
             # update the colors of vehicles
             self.update_vehicle_colors()
@@ -267,16 +268,18 @@ class MultiEnv(MultiAgentEnv, Env):
                     departPos=str(pos),
                     departSpeed=str(speed))
 
+        # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # update the colors of vehicles
         self.update_vehicle_colors()

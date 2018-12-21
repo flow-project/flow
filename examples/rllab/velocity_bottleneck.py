@@ -6,7 +6,7 @@ in a segment of space
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
@@ -104,7 +104,7 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 
-traffic_lights = TrafficLights()
+traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
     traffic_lights.add(node_id="2")
 if not DISABLE_RAMP_METER:

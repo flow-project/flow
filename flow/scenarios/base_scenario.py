@@ -17,7 +17,7 @@ except ImportError:
     Serializable = object
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.core.util import makexml, printxml, ensure_dir
 
 E = etree.Element
@@ -55,7 +55,7 @@ class Scenario(Serializable):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Instantiate the base scenario class.
 
         Attributes
@@ -68,8 +68,8 @@ class Scenario(Serializable):
             see flow/core/params.py
         initial_config : InitialConfig type
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
-            see flow/core/traffic_lights.py
+        traffic_lights : flow.core.params.TrafficLightParams
+            see flow/core/params.py
         """
         # Invoke serializable if using rllab
         if Serializable is not object:
@@ -714,7 +714,7 @@ class Scenario(Serializable):
         net_params : flow.core.params.NetParams type
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
 
@@ -733,14 +733,16 @@ class Scenario(Serializable):
         # specify the attributes of the nodes
         nodes = self.specify_nodes(net_params)
 
+        tl_ids = list(traffic_lights.get_properties().keys())
+
         # add traffic lights to the nodes
-        for n_id in traffic_lights.get_ids():
+        for n_id in tl_ids:
             indx = next(i for i, nd in enumerate(nodes) if nd["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
         for node in nodes:
             # for nodes that have traffic lights that haven't been added
-            if node["id"] not in traffic_lights.get_ids() \
+            if node["id"] not in tl_ids \
                     and node.get("type", None) == "traffic_light":
                 traffic_lights.add(node["id"])
 
@@ -877,7 +879,7 @@ class Scenario(Serializable):
         ----------
         net_params : NetParams type
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         """
@@ -895,7 +897,8 @@ class Scenario(Serializable):
             add.append(E("route", id="route%s" % edge, edges=" ".join(route)))
 
         # add (optionally) the traffic light properties to the .add.xml file
-        if traffic_lights.num_traffic_lights > 0:
+        num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
+        if num_traffic_lights > 0:
             if traffic_lights.baseline:
                 tl_params = traffic_lights.actuated_default()
                 tl_type = str(tl_params["tl_type"])
