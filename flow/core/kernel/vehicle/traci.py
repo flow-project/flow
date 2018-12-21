@@ -191,6 +191,8 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
                 veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
+                if '@' in veh_type:
+                    veh_type = veh_type.split('@')[0]
                 min_gap = self.minGap[veh_type]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
