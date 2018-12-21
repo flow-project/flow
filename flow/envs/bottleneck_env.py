@@ -903,7 +903,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                         vehicles=vehicles,
                         net_params=net_params,
                         initial_config=self.initial_config,
-                        traffic_lights=self.traffic_lights)
+                        traffic_lights=self.scenario.traffic_lights)
                     observation = super().reset()
 
                     # reset the timer to zero

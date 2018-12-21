@@ -342,7 +342,9 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams()
+        self.sumo_params = SumoParams(
+            restart_instance=True
+        )
         self.scenario = LoopScenario(
             name="test_merge",
             vehicles=vehicles,
@@ -432,7 +434,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         env.reset()
         self.assertEqual(env.k.scenario.length(), 222)
         env.reset()
-        self.assertEqual(env.k.scenario.length(), 239)
+        self.assertEqual(env.k.scenario.length(), 236)
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
