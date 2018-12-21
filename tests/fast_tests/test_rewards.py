@@ -50,7 +50,7 @@ class TestRewards(unittest.TestCase):
                                1 - np.sqrt(20) / np.sqrt(30))
 
         # change the speed of one of the vehicles outside the edge list
-        env.vehicles.test_set_speed("test_8", 10)
+        env.k.vehicle.test_set_speed("test_8", 10)
 
         # check that the new average speed is the same as before
         self.assertAlmostEqual(desired_velocity(env, edge_list=["bottom"],
@@ -120,7 +120,7 @@ class TestRewards(unittest.TestCase):
         self.assertAlmostEqual(min_delay(env), 0)
 
         # change the speed of one vehicle
-        env.vehicles.test_set_speed("test_0", 10)
+        env.k.vehicle.test_set_speed("test_0", 10)
 
         # check the min_delay with the new speed
         self.assertAlmostEqual(min_delay(env), 0.0333333333333)
@@ -141,7 +141,7 @@ class TestRewards(unittest.TestCase):
         self.assertEqual(penalize_standstill(env, gain=2), -20)
 
         # change the speed of one vehicle
-        env.vehicles.test_set_speed("test_0", 10)
+        env.k.vehicle.test_set_speed("test_0", 10)
 
         # check the penalty is acknowledging all vehicles but one
         self.assertEqual(penalize_standstill(env, gain=1), -9)
@@ -163,7 +163,7 @@ class TestRewards(unittest.TestCase):
         self.assertEqual(penalize_near_standstill(env, gain=2), -20)
 
         # change the speed of one vehicle
-        env.vehicles.test_set_speed("test_0", 1)
+        env.k.vehicle.test_set_speed("test_0", 1)
 
         # check the penalty with good and bad thresholds
         self.assertEqual(penalize_near_standstill(env, thresh=2), -10)
@@ -178,8 +178,8 @@ class TestRewards(unittest.TestCase):
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
         # set the headways to 0
-        for veh_id in env.vehicles.get_rl_ids():
-            env.vehicles.set_headway(veh_id, 0)
+        for veh_id in env.k.vehicle.get_rl_ids():
+            env.k.vehicle.set_headway(veh_id, 0)
 
         # test penalty when headways of all vehicles are currently 0
         self.assertEqual(punish_small_rl_headways(env, headway_threshold=1),
@@ -227,21 +227,21 @@ class TestRewards(unittest.TestCase):
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
         # check the method for different tailways
-        follower = env.vehicles.get_follower('test_rl_0')
+        follower = env.k.vehicle.get_follower('test_rl_0')
 
-        env.vehicles.set_headway(follower, -10)
+        env.k.vehicle.set_headway(follower, -10)
         self.assertAlmostEqual(reward_rl_opening_headways(env), 0)
 
-        env.vehicles.set_headway(follower, 10)
+        env.k.vehicle.set_headway(follower, 10)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.1, 1), 1)
 
-        env.vehicles.set_headway(follower, 10)
+        env.k.vehicle.set_headway(follower, 10)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.1, 2), 10)
 
-        env.vehicles.set_headway(follower, 10)
+        env.k.vehicle.set_headway(follower, 10)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.5, 2), 50)
 
-        env.vehicles.set_follower('test_rl_0', None)
+        env.k.vehicle.set_follower('test_rl_0', None)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.5, 2), 0)
 
 

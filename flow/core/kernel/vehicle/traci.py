@@ -26,8 +26,7 @@ class TraCIVehicle(KernelVehicle):
 
     def __init__(self,
                  master_kernel,
-                 sim_params,
-                 vehicles):
+                 sim_params):
         """See parent class."""
         KernelVehicle.__init__(self, master_kernel, sim_params)
 
@@ -46,17 +45,16 @@ class TraCIVehicle(KernelVehicle):
         # on the state of the vehicles for a given time step
         self.__sumo_obs = {}
 
-        self.num_vehicles = 0  # total number of vehicles in the network
-        self.num_rl_vehicles = 0  # number of rl vehicles in the network
-        self.num_types = 0  # number of unique types of vehicles in the network
-        self.types = []  # types of vehicles in the network
-        self.initial_speeds = []  # speed of vehicles at the start of a rollout
+        # total number of vehicles in the network
+        self.num_vehicles = 0
+        # number of rl vehicles in the network
+        self.num_rl_vehicles = 0
 
         # contains the parameters associated with each type of vehicle
-        self.type_parameters = vehicles.type_parameters
+        self.type_parameters = {}
 
         # contain the minGap attribute of each type of vehicle
-        self.minGap = vehicles.minGap
+        self.minGap = {}
 
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
@@ -68,6 +66,17 @@ class TraCIVehicle(KernelVehicle):
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
         self._arrived_ids = []
+
+    def initialize(self, vehicles):
+        """
+
+        :param vehicles:
+        :return:
+        """
+        self.type_parameters = vehicles.type_parameters
+        self.minGap = vehicles.minGap
+        self.num_vehicles = 0
+        self.num_rl_vehicles = 0
 
     def update(self, reset):
         """See parent class.
@@ -162,13 +171,18 @@ class TraCIVehicle(KernelVehicle):
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            _position = vehicle_obs[veh_id][tc.VAR_POSITION]
-            _angle = vehicle_obs[veh_id][tc.VAR_ANGLE]
-            _time_step = sim_obs[tc.VAR_TIME_STEP]
-            _time_delta = sim_obs[tc.VAR_DELTA_T]
-            self.__vehicles[veh_id]["orientation"] = list(_position) + [_angle]
-            self.__vehicles[veh_id]["timestep"] = _time_step
-            self.__vehicles[veh_id]["timedelta"] = _time_delta
+            try:
+                _position = vehicle_obs.get(veh_id, {}).get(
+                    tc.VAR_POSITION, -1001)
+                _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001)
+                _time_step = sim_obs[tc.VAR_TIME_STEP]
+                _time_delta = sim_obs[tc.VAR_DELTA_T]
+                self.__vehicles[veh_id]["orientation"] = \
+                    list(_position) + [_angle]
+                self.__vehicles[veh_id]["timestep"] = _time_step
+                self.__vehicles[veh_id]["timedelta"] = _time_delta
+            except TypeError:
+                pass
             headway = vehicle_obs.get(veh_id, {}).get(tc.VAR_LEADER, None)
             # check for a collided vehicle or a vehicle with no leader
             if headway is None:
@@ -177,6 +191,8 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
                 veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
+                if '@' in veh_type:
+                    veh_type = veh_type.split('@')[0]
                 min_gap = self.minGap[veh_type]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
@@ -305,25 +321,28 @@ class TraCIVehicle(KernelVehicle):
         except (FatalTraCIError, TraCIException):
             pass
 
-        # remove from the vehicles kernel
-        del self.__vehicles[veh_id]
-        del self.__sumo_obs[veh_id]
-        self.__ids.remove(veh_id)
-        self.num_vehicles -= 1
+        try:
+            # remove from the vehicles kernel
+            del self.__vehicles[veh_id]
+            del self.__sumo_obs[veh_id]
+            self.__ids.remove(veh_id)
+            self.num_vehicles -= 1
 
-        # remove it from all other ids (if it is there)
-        if veh_id in self.__human_ids:
-            self.__human_ids.remove(veh_id)
-            if veh_id in self.__controlled_ids:
-                self.__controlled_ids.remove(veh_id)
-            if veh_id in self.__controlled_lc_ids:
-                self.__controlled_lc_ids.remove(veh_id)
-        else:
-            self.__rl_ids.remove(veh_id)
-            self.num_rl_vehicles -= 1
+            # remove it from all other ids (if it is there)
+            if veh_id in self.__human_ids:
+                self.__human_ids.remove(veh_id)
+                if veh_id in self.__controlled_ids:
+                    self.__controlled_ids.remove(veh_id)
+                if veh_id in self.__controlled_lc_ids:
+                    self.__controlled_lc_ids.remove(veh_id)
+            else:
+                self.__rl_ids.remove(veh_id)
+                self.num_rl_vehicles -= 1
 
-        # make sure that the rl ids remain sorted
-        self.__rl_ids.sort()
+            # make sure that the rl ids remain sorted
+            self.__rl_ids.sort()
+        except KeyError:
+            pass
 
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""

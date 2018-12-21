@@ -132,12 +132,14 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=4,
             acceleration_controller=(IDMController, {}))
 
-        self.assertEqual(vehicles.num_vehicles, 7)
-        self.assertEqual(len(vehicles.get_ids()), 7)
-        self.assertEqual(len(vehicles.get_rl_ids()), 0)
-        self.assertEqual(len(vehicles.get_human_ids()), 7)
-        self.assertEqual(len(vehicles.get_controlled_ids()), 4)
-        self.assertEqual(len(vehicles.get_controlled_lc_ids()), 2)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertEqual(env.k.vehicle.num_vehicles, 7)
+        self.assertEqual(len(env.k.vehicle.get_ids()), 7)
+        self.assertEqual(len(env.k.vehicle.get_rl_ids()), 0)
+        self.assertEqual(len(env.k.vehicle.get_human_ids()), 7)
+        self.assertEqual(len(env.k.vehicle.get_controlled_ids()), 4)
+        self.assertEqual(len(env.k.vehicle.get_controlled_lc_ids()), 2)
 
     def test_add_vehicles_rl(self):
         """
@@ -150,12 +152,14 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
-        self.assertEqual(vehicles.num_vehicles, 10)
-        self.assertEqual(len(vehicles.get_ids()), 10)
-        self.assertEqual(len(vehicles.get_rl_ids()), 10)
-        self.assertEqual(len(vehicles.get_human_ids()), 0)
-        self.assertEqual(len(vehicles.get_controlled_ids()), 0)
-        self.assertEqual(len(vehicles.get_controlled_lc_ids()), 0)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertEqual(env.k.vehicle.num_vehicles, 10)
+        self.assertEqual(len(env.k.vehicle.get_ids()), 10)
+        self.assertEqual(len(env.k.vehicle.get_rl_ids()), 10)
+        self.assertEqual(len(env.k.vehicle.get_human_ids()), 0)
+        self.assertEqual(len(env.k.vehicle.get_controlled_ids()), 0)
+        self.assertEqual(len(env.k.vehicle.get_controlled_lc_ids()), 0)
 
     def test_remove(self):
         """
@@ -170,36 +174,40 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
         # remove one human-driven vehicle and on rl vehicle
-        vehicles.remove("test_0")
-        vehicles.remove("test_rl_0")
+        env.k.vehicle.remove("test_0")
+        env.k.vehicle.remove("test_rl_0")
 
         # ensure that the removed vehicle's ID is not in any lists of vehicles
-        self.assertTrue("test_0" not in vehicles.get_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_ids(),
                         msg="vehicle still in get_ids()")
-        self.assertTrue("test_0" not in vehicles.get_human_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_human_ids(),
                         msg="vehicle still in get_controlled_lc_ids()")
-        self.assertTrue("test_0" not in vehicles.get_controlled_lc_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_controlled_lc_ids(),
                         msg="vehicle still in get_controlled_lc_ids()")
-        self.assertTrue("test_0" not in vehicles.get_controlled_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_controlled_ids(),
                         msg="vehicle still in get_controlled_ids()")
-        self.assertTrue("test_rl_0" not in vehicles.get_ids(),
+        self.assertTrue("test_rl_0" not in env.k.vehicle.get_ids(),
                         msg="RL vehicle still in get_ids()")
-        self.assertTrue("test_rl_0" not in vehicles.get_rl_ids(),
+        self.assertTrue("test_rl_0" not in env.k.vehicle.get_rl_ids(),
                         msg="RL vehicle still in get_rl_ids()")
 
         # ensure that the vehicles are not storing extra information in the
         # vehicles.__vehicles dict
-        error_state = vehicles.get_state('test_0', "type", error=None)
+        error_state = env.k.vehicle.get_speed('test_0', error=None)
         self.assertIsNone(error_state)
-        error_state_rl = vehicles.get_state('rl_test_0', "type", error=None)
+        error_state_rl = env.k.vehicle.get_speed('rl_test_0', error=None)
         self.assertIsNone(error_state_rl)
 
         # ensure that the num_vehicles matches the actual number of vehicles
-        self.assertEqual(vehicles.num_vehicles, len(vehicles.get_ids()))
+        self.assertEqual(env.k.vehicle.num_vehicles,
+                         len(env.k.vehicle.get_ids()))
 
         # ensures that then num_rl_vehicles matches the actual number of rl veh
-        self.assertEqual(vehicles.num_rl_vehicles, len(vehicles.get_rl_ids()))
+        self.assertEqual(env.k.vehicle.num_rl_vehicles,
+                         len(env.k.vehicle.get_rl_ids()))
 
 
 class TestMultiLaneData(unittest.TestCase):
@@ -579,26 +587,29 @@ class TestObservedIDs(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add(veh_id="test", num_vehicles=10)
 
-        # test setting new observed values
-        vehicles.set_observed("test_0")
-        self.assertCountEqual(vehicles.get_observed_ids(), ["test_0"])
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
-        vehicles.set_observed("test_1")
-        self.assertCountEqual(vehicles.get_observed_ids(),
+        # test setting new observed values
+        env.k.vehicle.set_observed("test_0")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(), ["test_0"])
+
+        env.k.vehicle.set_observed("test_1")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(),
                               ["test_0", "test_1"])
 
         # ensures that setting vehicles twice doesn't add an element
-        vehicles.set_observed("test_0")
-        self.assertListEqual(vehicles.get_observed_ids(), ["test_0", "test_1"])
+        env.k.vehicle.set_observed("test_0")
+        self.assertListEqual(env.k.vehicle.get_observed_ids(),
+                             ["test_0", "test_1"])
 
         # test removing observed values
-        vehicles.remove_observed("test_0")
-        self.assertCountEqual(vehicles.get_observed_ids(), ["test_1"])
+        env.k.vehicle.remove_observed("test_0")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(), ["test_1"])
 
         # ensures that removing a value that does not exist does not lead to
         # an error
-        vehicles.remove_observed("test_0")
-        self.assertCountEqual(vehicles.get_observed_ids(), ["test_1"])
+        env.k.vehicle.remove_observed("test_0")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(), ["test_1"])
 
 
 if __name__ == '__main__':
