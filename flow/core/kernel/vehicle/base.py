@@ -258,6 +258,14 @@ class KernelVehicle(object):
         """Return the number of vehicles that arrived in the last time step."""
         raise NotImplementedError
 
+    def get_arrived_ids(self):
+        """Return the ids of vehicles that arrived in the last time step."""
+        raise NotImplementedError
+
+    def get_departed_ids(self):
+        """Return the ids of vehicles that departed in the last time step."""
+        raise NotImplementedError
+
     def get_speed(self, veh_id, error=-1001):
         """Return the speed of the specified vehicle.
 
