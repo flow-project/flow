@@ -197,7 +197,7 @@ class Env(*classdef):
             scenario=self.k.scenario, sim_params=self.sumo_params)
         self.k.pass_api(self.traci_connection)
 
-        self.setup_initial_state()
+        # self.setup_initial_state()
 
     def setup_initial_state(self):
         """Return information on the initial state of vehicles in the network.
@@ -457,7 +457,7 @@ class Env(*classdef):
         for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
             try:
                 self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
+            except (FatalTraCIError, TraCIException, KeyError):
                 print("Error during start: {}".format(traceback.format_exc()))
 
         # clear all vehicles from the network and the vehicles class
