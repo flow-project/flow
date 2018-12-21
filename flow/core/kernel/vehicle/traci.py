@@ -54,7 +54,7 @@ class TraCIVehicle(KernelVehicle):
         self.type_parameters = {}
 
         # contain the minGap attribute of each type of vehicle
-        self.minGap = 0
+        self.minGap = {}
 
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
@@ -171,8 +171,8 @@ class TraCIVehicle(KernelVehicle):
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            _position = vehicle_obs[veh_id][tc.VAR_POSITION]
-            _angle = vehicle_obs[veh_id][tc.VAR_ANGLE]
+            _position = vehicle_obs.get(veh_id, {}).get(tc.VAR_POSITION, -1001)
+            _angle = vehicle_obs.get(veh_id, {}).get(tc.VAR_ANGLE, -1001)
             _time_step = sim_obs[tc.VAR_TIME_STEP]
             _time_delta = sim_obs[tc.VAR_DELTA_T]
             self.__vehicles[veh_id]["orientation"] = list(_position) + [_angle]
