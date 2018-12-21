@@ -225,14 +225,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
-        # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_list = self.env.traci_connection.simulation.getSubscriptionResults()
-
         # store the network observations in the vehicles class
-        self.env.k.vehicle.update(veh_obs, id_list, self.env)
+        self.env.k.vehicle.update(False)
 
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
@@ -295,14 +289,8 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_list = self.env.traci_connection.simulation.getSubscriptionResults()
-
         # store the network observations in the vehicles class
-        self.env.k.vehicle.update(veh_obs, id_list, self.env)
+        self.env.k.vehicle.update(False)
 
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
