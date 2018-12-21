@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from collections import defaultdict
 
 ADDITIONAL_NET_PARAMS = {
@@ -48,7 +48,7 @@ class SimpleGridScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize an nxm grid scenario.
 
         The grid scenario consists of m vertical lanes and n horizontal lanes,
@@ -535,9 +535,8 @@ class SimpleGridScenario(Scenario):
                 x += d_inc
 
         start_lanes = [0] * len(start_positions)
-        start_speeds = [0] * len(start_positions)
 
-        return start_positions, start_lanes, start_speeds
+        return start_positions, start_lanes
 
     def get_edge_names(self):
         """Return a the edge IDs attribute for a list of edge objects."""

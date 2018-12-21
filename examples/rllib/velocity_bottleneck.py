@@ -14,7 +14,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.core.params import Vehicles
 from flow.controllers import RLController, ContinuousRouter, \
     SumoLaneChangeController
@@ -92,7 +92,7 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 
-traffic_lights = TrafficLights()
+traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
     traffic_lights.add(node_id="2")
 if not DISABLE_RAMP_METER:
@@ -152,7 +152,7 @@ flow_params = dict(
     ),
 
     # traffic lights to be introduced to specific nodes (see
-    # flow.core.traffic_lights.TrafficLights)
+    # flow.core.params.TrafficLightParams)
     tls=traffic_lights,
 )
 

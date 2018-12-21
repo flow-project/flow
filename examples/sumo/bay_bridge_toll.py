@@ -10,6 +10,7 @@ from flow.core.params import Vehicles
 from flow.core.experiment import SumoExperiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
+from flow.scenarios.bay_bridge_toll import EDGES_DISTRIBUTION
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
 NETFILE = os.path.join(
@@ -108,7 +109,8 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
 
     initial_config = InitialConfig(
         spacing="uniform",  # "random",
-        min_gap=15)
+        min_gap=15,
+        edges_distribution=EDGES_DISTRIBUTION.copy())
 
     scenario = BayBridgeTollScenario(
         name="bay_bridge_toll",

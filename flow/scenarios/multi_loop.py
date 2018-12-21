@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace, ceil, sqrt
 
 ADDITIONAL_NET_PARAMS = {
@@ -29,7 +29,7 @@ class MultiLoopScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a loop scenario.
 
         Requires from net_params:
@@ -140,10 +140,7 @@ class MultiLoopScenario(Scenario):
         #         pos = max(0, min(self.edge_length(edge), pos + perturb))
         #         startpositions[i] = (edge, pos)
 
-        # all vehicles start with an initial speed of 0 m/s
-        startvel = [0 for _ in range(len(startlanes))]
-
-        return startpositions, startlanes, startvel
+        return startpositions, startlanes
 
     def specify_nodes(self, net_params):
         """See parent class."""

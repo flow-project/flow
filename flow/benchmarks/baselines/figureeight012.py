@@ -8,7 +8,7 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import Vehicles
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController
 from flow.controllers import ContinuousRouter
 from flow.benchmarks.figureeight0 import flow_params
@@ -35,7 +35,7 @@ def figure_eight_baseline(num_runs, render=True):
     env_params = flow_params['env']
     net_params = flow_params['net']
     initial_config = flow_params.get('initial', InitialConfig())
-    traffic_lights = flow_params.get('tls', TrafficLights())
+    traffic_lights = flow_params.get('tls', TrafficLightParams())
 
     # modify the rendering to match what is requested
     sumo_params.render = render

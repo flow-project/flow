@@ -3,7 +3,7 @@ from flow.controllers.routing_controllers import GridRouter
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.params import Vehicles
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
 
@@ -60,7 +60,7 @@ def grid_example(render=None):
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    tl_logic = TrafficLights(baseline=False)
+    tl_logic = TrafficLightParams(baseline=False)
     phases = [{
         "duration": "31",
         "minDur": "8",

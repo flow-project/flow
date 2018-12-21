@@ -20,8 +20,6 @@ from gym.spaces.box import Box
 
 from flow.core import rewards
 from flow.envs.base_env import Env
-import os
-import glob
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
 EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
@@ -901,16 +899,6 @@ class DesiredVelocityEnv(BottleneckEnv):
                         num_vehicles=1 * self.scaling)
                     self.initial_vehicles = deepcopy(vehicles)
 
-                    # delete the cfg and net files
-                    net_path = self.k.scenario.net_path
-                    net_name = net_path + self.k.scenario.name
-                    cfg_path = self.k.scenario.cfg_path
-                    cfg_name = cfg_path + self.k.scenario.name
-                    for f in glob.glob(net_name + '*'):
-                        os.remove(f)
-                    for f in glob.glob(cfg_name + '*'):
-                        os.remove(f)
-
                     self.scenario = self.scenario.__class__(
                         name=self.k.scenario.orig_name,
                         vehicles=vehicles,
@@ -926,8 +914,8 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                 except Exception as e:
                     print('error on reset ', e)
-                    # perform the generic reset function
 
+        # perform the generic reset function
         observation = super().reset()
 
         # reset the timer to zero

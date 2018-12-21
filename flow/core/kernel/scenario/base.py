@@ -61,6 +61,12 @@ class KernelScenario(object):
         self.network = None
         self.orig_name = None
         self.name = None
+        self.edgestarts = None
+        self.internal_edgestarts = None
+        self.intersection_edgestarts = None
+        self.internal_edgestarts_dict = None
+        self.total_edgestarts = None
+        self.total_edgestarts_dict = None
 
     def generate_network(self, network):
         """Generate the necessary prerequisites for the simulating a network.
@@ -221,25 +227,23 @@ class KernelScenario(object):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         list of int
             list of start lanes
-        list of float
-            list of start speeds
         """
         num_vehicles = num_vehicles or self.network.vehicles.num_vehicles
 
         if initial_config.spacing == "uniform":
-            startpositions, startlanes, startvel = self.gen_even_start_pos(
+            startpositions, startlanes = self.gen_even_start_pos(
                 initial_config, num_vehicles, **kwargs)
         elif initial_config.spacing == "random":
-            startpositions, startlanes, startvel = self.gen_random_start_pos(
+            startpositions, startlanes = self.gen_random_start_pos(
                 initial_config, num_vehicles, **kwargs)
         elif initial_config.spacing == "custom":
-            startpositions, startlanes, startvel = self.gen_custom_start_pos(
+            startpositions, startlanes = self.gen_custom_start_pos(
                 initial_config, num_vehicles, **kwargs)
         else:
             raise ValueError('"spacing" argument in initial_config does not '
                              'contain a valid option')
 
-        return startpositions, startlanes, startvel
+        return startpositions, startlanes
 
     def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate uniformly spaced starting positions.
@@ -265,12 +269,15 @@ class KernelScenario(object):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         list of int
             list of start lanes
-        list of float
-            list of start speeds
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
             self._get_start_pos_util(initial_config, num_vehicles, **kwargs)
+
+        # return an empty list of starting positions and lanes if there are no
+        # vehicles to be placed
+        if num_vehicles == 0:
+            return [], []
 
         increment = available_length / num_vehicles
 
@@ -291,20 +298,19 @@ class KernelScenario(object):
             pos = self.get_edge(x)
 
             # ensures that vehicles are not placed in an internal junction
-            while pos[0] in dict(self.network.internal_edgestarts).keys():
+            while pos[0] in dict(self.internal_edgestarts).keys():
                 # find the location of the internal edge in total_edgestarts,
                 # which has the edges ordered by position
-                edges = [tup[0] for tup in self.network.total_edgestarts]
+                edges = [tup[0] for tup in self.total_edgestarts]
                 indx_edge = next(
                     i for i, edge in enumerate(edges) if edge == pos[0])
 
                 # take the next edge in the list, and place the car at the
                 # beginning of this edge
                 if indx_edge == len(edges) - 1:
-                    next_edge_pos = self.network.total_edgestarts[0]
+                    next_edge_pos = self.total_edgestarts[0]
                 else:
-                    next_edge_pos = self.network.total_edgestarts[
-                        indx_edge + 1]
+                    next_edge_pos = self.total_edgestarts[indx_edge + 1]
 
                 x = next_edge_pos[1]
                 pos = (next_edge_pos[0], 0)
@@ -344,10 +350,7 @@ class KernelScenario(object):
                 pos = max(0, min(self.edge_length(edge), pos + perturb))
                 startpositions[i] = (edge, pos)
 
-        # all vehicles start with an initial speed of 0 m/s
-        startvel = [0 for _ in range(len(startlanes))]
-
-        return startpositions, startlanes, startvel
+        return startpositions, startlanes
 
     def gen_random_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate random starting positions.
@@ -368,8 +371,6 @@ class KernelScenario(object):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         list of int
             list of start lanes
-        list of float
-            list of start speeds
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = self._get_start_pos_util(
@@ -426,10 +427,7 @@ class KernelScenario(object):
             startpositions.append((edge_i, pos_i))
             startlanes.append(lane_i)
 
-        # all vehicles start with an initial speed of 0 m/s
-        startvel = [0 for _ in range(len(startlanes))]
-
-        return startpositions, startlanes, startvel
+        return startpositions, startlanes
 
     def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
         """Generate a user defined set of starting positions.
@@ -452,8 +450,6 @@ class KernelScenario(object):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         list of int
             list of start lanes
-        list of float
-            list of start speeds
         """
         return self.network.gen_custom_start_pos(
             cls=self,

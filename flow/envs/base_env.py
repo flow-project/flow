@@ -241,7 +241,7 @@ class Env(*classdef):
         simulator by the number of time steps requested per environment step.
 
         Results from the simulations are processed through various classes,
-        such as the Vehicles and TrafficLights classes, to produce standardized
+        such as the Vehicle and TrafficLight kernels, to produce standardized
         methods for identifying specific network state features. Finally,
         results from the simulator are used to generate appropriate
         observations.
@@ -371,7 +371,8 @@ class Env(*classdef):
             infos = {}
 
         # compute the reward
-        reward = self.compute_reward(rl_actions, fail=crash)
+        rl_clipped = self.clip_actions(rl_actions)
+        reward = self.compute_reward(rl_clipped, fail=crash)
 
         return next_observation, reward, done, infos
 
@@ -433,7 +434,7 @@ class Env(*classdef):
             if self.vehicle_arrangement_shuffle:
                 random.shuffle(veh_ids)
 
-            initial_positions, initial_lanes, initial_speeds = \
+            initial_positions, initial_lanes = \
                 self.k.scenario.generate_starting_positions(
                     initial_config=self.initial_config,
                     num_vehicles=len(self.initial_ids), x0=x0)
@@ -448,7 +449,6 @@ class Env(*classdef):
                 list_initial_state[1] = route_id
                 list_initial_state[2] = initial_lanes[i]
                 list_initial_state[3] = initial_positions[i][1]
-                list_initial_state[4] = initial_speeds[i]
                 initial_state[veh_id] = tuple(list_initial_state)
 
             self.initial_state = deepcopy(initial_state)
@@ -539,6 +539,31 @@ class Env(*classdef):
         """Additional commands that may be performed by the step method."""
         pass
 
+    def clip_actions(self, rl_actions=None):
+        """Clip the actions passed from the RL agent.
+
+        Parameters
+        ----------
+        rl_actions : list or numpy ndarray
+            list of actions provided by the RL algorithm
+
+        Returns
+        -------
+        numpy ndarray (float)
+            The rl_actions clipped according to the box
+        """
+        # ignore if no actions are issued
+        if rl_actions is None:
+            return None
+
+        # clip according to the action space requirements
+        if isinstance(self.action_space, Box):
+            rl_actions = np.clip(
+                rl_actions,
+                a_min=self.action_space.low,
+                a_max=self.action_space.high)
+        return rl_actions
+
     def apply_rl_actions(self, rl_actions=None):
         """Specify the actions to be performed by the rl agent(s).
 
@@ -547,22 +572,15 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions: list or numpy ndarray
+        rl_actions : list or numpy ndarray
             list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued
         if rl_actions is None:
             return
 
-        # clip according to the action space requirements
-        if isinstance(self.action_space, Box):
-
-            rl_actions = np.clip(
-                rl_actions,
-                a_min=self.action_space.low,
-                a_max=self.action_space.high)
-
-        self._apply_rl_actions(rl_actions)
+        rl_clipped = self.clip_actions(rl_actions)
+        self._apply_rl_actions(rl_clipped)
 
     def _apply_rl_actions(self, rl_actions):
         raise NotImplementedError
