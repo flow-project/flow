@@ -63,9 +63,11 @@ class TraCIVehicle(KernelVehicle):
 
         # number of vehicles that entered the network for every time-step
         self._num_departed = []
+        self._departed_ids = []
 
         # number of vehicles to exit the network for every time-step
         self._num_arrived = []
+        self._arrived_ids = []
 
     def update(self, reset):
         """See parent class.
@@ -122,6 +124,8 @@ class TraCIVehicle(KernelVehicle):
                 self.prev_last_lc[veh_id] = -float("inf")
             self._num_departed.clear()
             self._num_arrived.clear()
+            self._departed_ids.clear()
+            self._arrived_ids.clear()
         else:
             self.time_counter += 1
             # update the "last_lc" variable
@@ -153,6 +157,8 @@ class TraCIVehicle(KernelVehicle):
             self._num_departed.append(
                 len(sim_obs[tc.VAR_DEPARTED_VEHICLES_IDS]))
             self._num_arrived.append(len(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS]))
+            self._departed_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
+            self._arrived_ids.append(sim_obs[tc.VAR_ARRIVED_VEHICLES_IDS])
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
@@ -425,6 +431,20 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         if len(self._num_arrived) > 0:
             return self._num_arrived[-1]
+        else:
+            return 0
+
+    def get_arrived_ids(self):
+        """See parent class."""
+        if len(self._arrived_ids) > 0:
+            return self._arrived_ids[-1]
+        else:
+            return 0
+
+    def get_departed_ids(self):
+        """See parent class."""
+        if len(self._departed_ids) > 0:
+            return self._departed_ids[-1]
         else:
             return 0
 
