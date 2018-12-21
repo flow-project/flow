@@ -161,6 +161,9 @@ class WaveAttenuationEnv(Env):
         self.scenario = self.scenario.__class__(
             self.k.scenario.orig_name, deepcopy(self.scenario.vehicles),
             net_params, initial_config)
+        self.k.vehicle = deepcopy(self.initial_vehicles)
+        self.k.vehicle.kernel_api = self.k.kernel_api
+        self.k.vehicle.master_kernel = self.k
 
         # solve for the velocity upper bound of the ring
         def v_eq_max_function(v):
