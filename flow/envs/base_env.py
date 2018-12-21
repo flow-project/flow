@@ -199,6 +199,7 @@ class Env(*classdef):
             self.sumo_params.emission_path = sumo_params.emission_path
 
         self.k.scenario.generate_network(self.scenario)
+        self.k.vehicle.initialize(self.scenario.vehicles)
         self.traci_connection = self.k.simulation.start_simulation(
             scenario=self.k.scenario, sim_params=self.sumo_params)
         self.k.pass_api(self.traci_connection)
