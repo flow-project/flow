@@ -197,7 +197,7 @@ class Env(*classdef):
             scenario=self.k.scenario, sim_params=self.sumo_params)
         self.k.pass_api(self.traci_connection)
 
-        # self.setup_initial_state()
+        self.setup_initial_state()
 
     def setup_initial_state(self):
         """Return information on the initial state of vehicles in the network.
