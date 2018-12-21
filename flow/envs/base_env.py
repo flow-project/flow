@@ -109,7 +109,7 @@ class Env(*classdef):
         self.k.scenario.generate_network(scenario)
 
         # initial the vehicles kernel using the VehicleParams object
-        self.k.vehicle.initialize(scenario.vehicles)
+        self.k.vehicle.initialize(deepcopy(scenario.vehicles))
 
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
@@ -199,7 +199,7 @@ class Env(*classdef):
             self.sumo_params.emission_path = sumo_params.emission_path
 
         self.k.scenario.generate_network(self.scenario)
-        self.k.vehicle.initialize(self.scenario.vehicles)
+        self.k.vehicle.initialize(deepcopy(self.scenario.vehicles))
         self.traci_connection = self.k.simulation.start_simulation(
             scenario=self.k.scenario, sim_params=self.sumo_params)
         self.k.pass_api(self.traci_connection)
