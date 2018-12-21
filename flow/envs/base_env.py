@@ -97,9 +97,6 @@ class Env(*classdef):
             env_params.vehicle_arrangement_shuffle
         self.starting_position_shuffle = env_params.starting_position_shuffle
 
-        # store the initial state of the vehicles class (for restarting sumo)
-        self.initial_vehicles = deepcopy(scenario.vehicles)
-
         # the simulator used by this environment
         self.simulator = 'traci'
 
@@ -112,7 +109,7 @@ class Env(*classdef):
         self.k.scenario.generate_network(scenario)
 
         # initial the vehicles kernel using the VehicleParams object
-        self.k.vehicle.initialize(self.initial_vehicles)
+        self.k.vehicle.initialize(scenario.vehicles)
 
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
@@ -130,6 +127,13 @@ class Env(*classdef):
 
         # store the initial vehicle ids
         self.initial_ids = deepcopy(scenario.vehicles.ids)
+
+        # store the initial state of the vehicles class (for restarting sumo)
+        self.k.vehicle.kernel_api = None
+        self.k.vehicle.master_kernel = None
+        self.initial_vehicles = deepcopy(self.k.vehicle)
+        self.k.vehicle.kernel_api = self.traci_connection
+        self.k.vehicle.master_kernel = self.k
 
         self.setup_initial_state()
 
@@ -195,7 +199,6 @@ class Env(*classdef):
             self.sumo_params.emission_path = sumo_params.emission_path
 
         self.k.scenario.generate_network(self.scenario)
-        self.k.vehicle.initialize(self.initial_vehicles)
         self.traci_connection = self.k.simulation.start_simulation(
             scenario=self.k.scenario, sim_params=self.sumo_params)
         self.k.pass_api(self.traci_connection)
@@ -423,6 +426,9 @@ class Env(*classdef):
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sumo_params.seed = random.randint(0, 1e5)
+
+            self.k.vehicle = deepcopy(self.initial_vehicles)
+            self.k.vehicle.master_kernel = self.k
             # restart the sumo instance
             self.restart_sumo(self.sumo_params)
 
