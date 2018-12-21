@@ -13,7 +13,7 @@ from rllab.misc.instrument import run_experiment_lite
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 
 # use this to specify the environment to run
 from flow.benchmarks.grid1 import flow_params
@@ -37,7 +37,7 @@ def run_task(*_):
     env_params = flow_params["env"]
     net_params = flow_params["net"]
     initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    traffic_lights = flow_params.get("tls", TrafficLightParams())
 
     # import the scenario class
     module = __import__("flow.scenarios", fromlist=[flow_params["scenario"]])

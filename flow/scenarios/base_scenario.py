@@ -18,7 +18,7 @@ except ImportError:
     Serializable = object
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.core.util import makexml, printxml, ensure_dir
 
 E = etree.Element
@@ -85,7 +85,7 @@ class Scenario(Serializable):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Instantiate the base scenario class.
 
         Attributes
@@ -98,8 +98,8 @@ class Scenario(Serializable):
             see flow/core/params.py
         initial_config : InitialConfig type
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
-            see flow/core/traffic_lights.py
+        traffic_lights : flow.core.params.TrafficLightParams
+            see flow/core/params.py
         """
         # Invoke serializable if using rllab
         if Serializable is not object:
@@ -770,7 +770,7 @@ class Scenario(Serializable):
         net_params : flow.core.params.NetParams type
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
 
@@ -789,16 +789,24 @@ class Scenario(Serializable):
         # specify the attributes of the nodes
         nodes = self.specify_nodes(net_params)
 
+        tl_ids = list(traffic_lights.get_properties().keys())
+
         # add traffic lights to the nodes
-        for n_id in traffic_lights.get_ids():
+        for n_id in tl_ids:
             indx = next(i for i, nd in enumerate(nodes) if nd["id"] == n_id)
             nodes[indx]["type"] = "traffic_light"
 
-        # for nodes that have traffic lights that haven't been added
         for node in nodes:
-            if node["id"] not in traffic_lights.get_ids() \
+            # for nodes that have traffic lights that haven't been added
+            if node["id"] not in tl_ids \
                     and node.get("type", None) == "traffic_light":
                 traffic_lights.add(node["id"])
+
+            # modify the x and y values to be strings
+            node['x'] = str(node['x'])
+            node['y'] = str(node['y'])
+            if 'radius' in node:
+                node['radius'] = str(node['radius'])
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
@@ -809,6 +817,19 @@ class Scenario(Serializable):
 
         # collect the attributes of each edge
         edges = self.specify_edges(net_params)
+
+        # modify the length, shape, numLanes, and speed values
+        for edge in edges:
+            edge['length'] = str(edge['length'])
+            if 'priority' in edge:
+                edge['priority'] = str(edge['priority'])
+            if 'shape' in edge:
+                edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
+                                         for x, y in edge['shape'])
+            if 'numLanes' in edge:
+                edge['numLanes'] = str(edge['numLanes'])
+            if 'speed' in edge:
+                edge['speed'] = str(edge['speed'])
 
         # xml file for edges
         x = makexml("edges", "http://sumo.dlr.de/xsd/edges_file.xsd")
@@ -822,6 +843,13 @@ class Scenario(Serializable):
         # xml file for types: contains the the number of lanes and the speed
         # limit for the lanes
         if types is not None:
+            # modify the numLanes and speed values
+            for typ in types:
+                if 'numLanes' in typ:
+                    typ['numLanes'] = str(typ['numLanes'])
+                if 'speed' in typ:
+                    typ['speed'] = str(typ['speed'])
+
             x = makexml("types", "http://sumo.dlr.de/xsd/types_file.xsd")
             for type_attributes in types:
                 x.append(E("type", **type_attributes))
@@ -833,6 +861,13 @@ class Scenario(Serializable):
         # xml for connections: specifies which lanes connect to which in the
         # edges
         if connections is not None:
+            # modify the fromLane and toLane values
+            for connection in connections:
+                if 'fromLane' in connection:
+                    connection['fromLane'] = str(connection['fromLane'])
+                if 'toLane' in connection:
+                    connection['toLane'] = str(connection['toLane'])
+
             x = makexml("connections",
                         "http://sumo.dlr.de/xsd/connections_file.xsd")
             for connection_attributes in connections:
@@ -988,7 +1023,7 @@ class Scenario(Serializable):
         ----------
         net_params : NetParams type
             see flow/core/params.py
-        traffic_lights : flow.core.traffic_lights.TrafficLights type
+        traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
             treated as traffic lights
         """
@@ -1006,7 +1041,8 @@ class Scenario(Serializable):
             add.append(E("route", id="route%s" % edge, edges=" ".join(route)))
 
         # add (optionally) the traffic light properties to the .add.xml file
-        if traffic_lights.num_traffic_lights > 0:
+        num_traffic_lights = len(list(traffic_lights.get_properties().keys()))
+        if num_traffic_lights > 0:
             if traffic_lights.baseline:
                 tl_params = traffic_lights.actuated_default()
                 tl_type = str(tl_params["tl_type"])
@@ -1146,7 +1182,7 @@ class Scenario(Serializable):
 
         # add the initial positions of vehicles to the xml file
         for i, veh_id in enumerate(self.vehicle_ids):
-            veh_type = vehicles.get_state(veh_id, "type")
+            veh_type = vehicles.get_type(veh_id)
             edge, pos = positions[i]
             lane = lanes[i]
             type_depart_speed = vehicles.get_initial_speed(veh_id)

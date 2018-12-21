@@ -120,7 +120,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
 
     env = BayBridgeEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return SumoExperiment(env)
 
 
 if __name__ == "__main__":
