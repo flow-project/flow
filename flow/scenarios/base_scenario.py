@@ -927,7 +927,8 @@ class Scenario(Serializable):
         """Generate .net.xml files from OpenStreetMap files.
 
         This is accomplished by calling the sumo ``netconvert`` binary. Only
-        vehicle roads are included from the networks.
+        roadways (i.e. edges that can be traversed by vehicles) are included
+        from the networks.
 
         Parameters
         ----------
@@ -964,8 +965,8 @@ class Scenario(Serializable):
         # this removes edges that are not connected to a network (isolated)
         net_cmd += " --remove-edges.isolated"
 
-        # this removes internal links from the network (useful when the network
-        # becomes very large)
+        # if requested, this removes internal links from the network (useful
+        # when the network becomes very large)
         if net_params.no_internal_links:
             net_cmd += " --no_internal_links"
 
