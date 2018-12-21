@@ -1,5 +1,10 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
+from flow.core.kernel.simulation import TraCISimulation
+from flow.core.kernel.scenario import KernelScenario
+from flow.core.kernel.vehicle import KernelVehicle
+from flow.core.kernel.traffic_light import TraCITrafficLight
+
 
 class Kernel(object):
     """Kernel for abstract function calling across traffic simulator APIs.
@@ -37,13 +42,15 @@ class Kernel(object):
     traffic simulators, e.g. SUMO, AIMSUN, TruckSim, etc...
     """
 
-    def __init__(self, simulator):
+    def __init__(self, simulator, sim_params):
         """Instantiate a Flow kernel object.
 
         Parameters
         ----------
         simulator : str
             simulator type, must be one of {"traci"}
+        sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
+            simulation-specific parameters
 
         Raises
         ------
@@ -53,10 +60,10 @@ class Kernel(object):
         self.kernel_api = None
 
         if simulator == "traci":
-            self.simulation = None
-            self.scenario = None
-            self.vehicle = None
-            self.traffic_light = None
+            self.simulation = TraCISimulation(self)
+            self.scenario = KernelScenario(self)
+            self.vehicle = KernelVehicle(self, sim_params)
+            self.traffic_light = TraCITrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
@@ -83,9 +90,9 @@ class Kernel(object):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        self.scenario.update(reset)
+        # self.scenario.update(reset)
         self.simulation.update(reset)
-        self.vehicle.update(reset)
+        # self.vehicle.update(reset)
         self.traffic_light.update(reset)
 
     def close(self):

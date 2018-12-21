@@ -306,7 +306,7 @@ class Vehicles:
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
-                vtype = self.get_state(veh_id, "type")
+                vtype = self.get_type(veh_id)
                 min_gap = self.minGap[vtype]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
@@ -489,6 +489,10 @@ class Vehicles:
     def get_timedelta(self, veh_id):
         """Return the simulation time delta of the vehicle of veh_id."""
         return self.__vehicles[veh_id]["timedelta"]
+
+    def get_type(self, veh_id):
+        """Return the type of the vehicle of veh_id."""
+        return self.__vehicles[veh_id]["type"]
 
     def get_ids(self):
         """Return the names of all vehicles currently in the network."""

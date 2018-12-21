@@ -83,7 +83,7 @@ class TestLoopMerges(unittest.TestCase):
         self.env, scenario = two_loops_one_merging_exp_setup()
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, scenario)
+        self.exp = SumoExperiment(self.env)
 
     def tearDown(self):
         # terminate the traci instance
