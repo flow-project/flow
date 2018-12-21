@@ -65,9 +65,9 @@ class Env(*classdef):
 
     Attributes
     ----------
-    env_params: EnvParams type:
+    env_params : flow.core.params.EnvParams
        see flow/core/params.py
-    sumo_params: SumoParams type
+    sumo_params: flow.core.params.SumoParams
        see flow/core/params.py
     scenario: Scenario type
         see flow/scenarios/base_scenario.py
@@ -193,7 +193,7 @@ class Env(*classdef):
 
         Parameters
         ----------
-        sumo_params: SumoParams type
+        sumo_params : flow.core.params.SumoParams
             sumo-specific parameters
         render: bool, optional
             specifies whether to use sumo's gui
