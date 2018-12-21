@@ -119,7 +119,7 @@ class HighwayScenario(Scenario):
         ----------
         cls : flow.core.kernel.scenario.KernelScenario
             flow scenario kernel, with all the relevant methods implemented
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
