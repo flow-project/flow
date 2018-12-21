@@ -7,6 +7,8 @@ from flow.controllers import SumoLaneChangeController
 from flow.controllers import RLController
 import collections
 import warnings
+
+
 SPEED_MODES = {
     "aggressive": 0,
     "no_collide": 1,
@@ -57,6 +59,7 @@ class Vehicles:
             acceleration_controller=(SumoCarFollowingController, {}),
             lane_change_controller=(SumoLaneChangeController, {}),
             routing_controller=None,
+            initial_speed=0,
             num_vehicles=1,
             sumo_car_following_params=None,
             sumo_lc_params=None):
@@ -78,6 +81,8 @@ class Vehicles:
             1st element: flow-specified routing controller
             2nd element: controller parameters (may be set to None to maintain
             default parameters)
+        initial_speed : float, optional
+            initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
         sumo_car_following_params : flow.core.params.SumoCarFollowingParams
@@ -108,6 +113,7 @@ class Vehicles:
             {"acceleration_controller": acceleration_controller,
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
+             "initial_speed": initial_speed,
              "sumo_car_following_params": sumo_car_following_params,
              "sumo_lc_params": sumo_lc_params}
 
@@ -120,6 +126,8 @@ class Vehicles:
                 lane_change_controller,
             "routing_controller":
                 routing_controller,
+            "initial_speed":
+                initial_speed,
             "num_vehicles":
                 num_vehicles,
             "sumo_car_following_params":
@@ -144,8 +152,9 @@ class Vehicles:
             # specify the type
             self.__vehicles[v_id]["type"] = veh_id
 
-        # update the variables for the number of vehicles in the network
-        self.num_vehicles = len(self.ids)
+            # specify the speed of vehicles at the start of a rollout
+            self.__vehicles[v_id]["initial_speed"] = initial_speed
+            self.num_vehicles = len(self.ids)
 
         # increase the number of unique types of vehicles in the network, and
         # add the type to the list of types
@@ -155,8 +164,11 @@ class Vehicles:
     def get_type(self, veh_id):
         return self.__vehicles[veh_id]["type"]
 
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
 
-class TrafficLights:
+
+class TrafficLightParams:
     """Base traffic light.
 
     This class is used to place traffic lights in the network and describe

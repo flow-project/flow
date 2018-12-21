@@ -6,6 +6,7 @@ import logging
 import random
 import time
 import os
+import sys
 import subprocess
 import traceback
 import xml.etree.ElementTree as ElementTree
@@ -100,15 +101,26 @@ class TraCIScenario(KernelScenario):
         self.sumfn = '%s.sumo.cfg' % self.network.name
         self.guifn = '%s.gui.cfg' % self.network.name
 
+        # can only provide one of osm path or netfile path to the scenario
+        assert self.network.net_params.netfile is None \
+            or self.network.net_params.osm_path is None
+
         # create the network configuration files
-        self._edges, self._connections = self.generate_net(
-            self.network.net_params,
-            self.network.traffic_lights,
-            self.network.nodes,
-            self.network.edges,
-            self.network.types,
-            self.network.connections
-        )
+        if self.network.net_params.netfile is not None:
+            self._edges, self._connections = self.generate_net_from_netfile(
+                self.network.net_params)
+        elif self.network.net_params.osm_path is not None:
+            self._edges, self._connections = self.generate_net_from_osm(
+                self.network.net_params)
+        else:
+            self._edges, self._connections = self.generate_net(
+                self.network.net_params,
+                self.network.traffic_lights,
+                self.network.nodes,
+                self.network.edges,
+                self.network.types,
+                self.network.connections
+            )
 
         # list of edges and internal links (junctions)
         self._edge_list = [
@@ -127,9 +139,50 @@ class TraCIScenario(KernelScenario):
             self.edge_length(edge_id) for edge_id in self.get_edge_list()
         ])
 
+        # parameters to be specified under each unique subclass's
+        # __init__() function
+        self.edgestarts = self.network.edge_starts
+
+        # if no edge_starts are specified, generate default values to be used
+        # by the "get_x" method
+        if self.edgestarts is None:
+            length = 0
+            self.edgestarts = []
+            for edge_id in sorted(self._edge_list):
+                # the current edge starts where the last edge ended
+                self.edgestarts.append((edge_id, length))
+                # increment the total length of the network with the length of
+                # the current edge
+                length += self._edges[edge_id]['length']
+
+        # these optional parameters need only be used if "no-internal-links"
+        # is set to "false" while calling sumo's netconvert function
+        self.internal_edgestarts = self.network.internal_edge_starts
+        self.intersection_edgestarts = self.network.intersection_edge_starts
+
+        # in case the user did not write the intersection edge-starts in
+        # internal edge-starts as well (because of redundancy), merge the two
+        # together
+        self.internal_edgestarts += self.intersection_edgestarts
+        seen = set()
+        self.internal_edgestarts = \
+            [item for item in self.internal_edgestarts
+             if item[1] not in seen and not seen.add(item[1])]
+        self.internal_edgestarts_dict = dict(self.internal_edgestarts)
+
+        # total_edgestarts and total_edgestarts_dict contain all of the above
+        # edges, with the former being ordered by position
+        if self.network.net_params.no_internal_links:
+            self.total_edgestarts = self.edgestarts
+        else:
+            self.total_edgestarts = self.edgestarts + self.internal_edgestarts
+        self.total_edgestarts.sort(key=lambda tup: tup[1])
+
+        self.total_edgestarts_dict = dict(self.total_edgestarts)
+
         # generate starting position for vehicles in the network
         kwargs = self.network.initial_config.additional_params
-        positions, lanes, speeds = self.generate_starting_positions(
+        positions, lanes = self.generate_starting_positions(
             initial_config=self.network.initial_config,
             num_vehicles=self.network.vehicles.num_vehicles,
             **kwargs
@@ -144,7 +197,7 @@ class TraCIScenario(KernelScenario):
         self.rts = self.network.routes
 
         shuffle = self.network.initial_config.shuffle
-        self.make_routes(positions, lanes, speeds, shuffle)
+        self.make_routes(positions, lanes, shuffle)
 
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
@@ -157,28 +210,30 @@ class TraCIScenario(KernelScenario):
         """Close the scenario class.
 
         Deletes the xml files that were created by the scenario class. This
-        is to prevent them from building up in the debug folder.
+        is to prevent them from building up in the debug folder. Note that in
+        the case of import .net.xml files we do not want to delete them.
         """
-        os.remove(self.net_path + self.nodfn)
-        os.remove(self.net_path + self.edgfn)
-        os.remove(self.net_path + self.cfgfn)
-        os.remove(self.cfg_path + self.addfn)
-        os.remove(self.cfg_path + self.guifn)
-        os.remove(self.cfg_path + self.netfn)
-        os.remove(self.cfg_path + self.roufn)
-        os.remove(self.cfg_path + self.sumfn)
+        if self.network.net_params.netfile is None:
+            os.remove(self.net_path + self.nodfn)
+            os.remove(self.net_path + self.edgfn)
+            os.remove(self.net_path + self.cfgfn)
+            os.remove(self.cfg_path + self.addfn)
+            os.remove(self.cfg_path + self.guifn)
+            os.remove(self.cfg_path + self.netfn)
+            os.remove(self.cfg_path + self.roufn)
+            os.remove(self.cfg_path + self.sumfn)
 
-        # the connection file is not always created
-        try:
-            os.remove(self.net_path + self.confn)
-        except OSError:
-            pass
+            # the connection file is not always created
+            try:
+                os.remove(self.net_path + self.confn)
+            except OSError:
+                pass
 
-        # neither is the type file
-        try:
-            os.remove(self.net_path + self.typfn)
-        except OSError:
-            pass
+            # neither is the type file
+            try:
+                os.remove(self.net_path + self.typfn)
+            except OSError:
+                pass
 
     def get_edge(self, x):
         """Compute an edge and relative position from an absolute position.
@@ -194,7 +249,7 @@ class TraCIScenario(KernelScenario):
             1st element: edge name (such as bottom, right, etc.)
             2nd element: relative position on edge
         """
-        for (edge, start_pos) in reversed(self.network.total_edgestarts):
+        for (edge, start_pos) in reversed(self.total_edgestarts):
             if x >= start_pos:
                 return edge, x - start_pos
 
@@ -220,14 +275,14 @@ class TraCIScenario(KernelScenario):
 
         if edge[0] == ':':
             try:
-                return self.network.internal_edgestarts_dict[edge] + position
+                return self.internal_edgestarts_dict[edge] + position
             except KeyError:
                 # in case several internal links are being generalized for
                 # by a single element (for backwards compatibility)
-                edge_name = edge.rsplit("_", 1)[0]
-                return self.network.total_edgestarts_dict.get(edge_name, -1001)
+                edge_name = edge.rsplit('_', 1)[0]
+                return self.total_edgestarts_dict.get(edge_name, -1001)
         else:
-            return self.network.total_edgestarts_dict[edge] + position
+            return self.total_edgestarts_dict[edge] + position
 
     def edge_length(self, edge_id):
         """Return the length of a given edge/junction.
@@ -392,8 +447,10 @@ class TraCIScenario(KernelScenario):
                 traffic_lights.add(node['id'])
 
             # modify the x and y values to be strings
-            node['x'] = repr(node['x'])
-            node['y'] = repr(node['y'])
+            node['x'] = str(node['x'])
+            node['y'] = str(node['y'])
+            if 'radius' in node:
+                node['radius'] = str(node['radius'])
 
         # xml file for nodes; contains nodes for the boundary points with
         # respect to the x and y axes
@@ -404,14 +461,17 @@ class TraCIScenario(KernelScenario):
 
         # modify the length, shape, numLanes, and speed values
         for edge in edges:
-            edge['length'] = repr(edge['length'])
+            edge['length'] = str(edge['length'])
+            if 'priority' in edge:
+                edge['priority'] = str(edge['priority'])
             if 'shape' in edge:
-                edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
-                                         for x, y in edge['shape'])
+                if not isinstance(edge['shape'], str):
+                    edge['shape'] = ' '.join('%.2f,%.2f' % (x, y)
+                                             for x, y in edge['shape'])
             if 'numLanes' in edge:
-                edge['numLanes'] = repr(edge['numLanes'])
+                edge['numLanes'] = str(edge['numLanes'])
             if 'speed' in edge:
-                edge['speed'] = repr(edge['speed'])
+                edge['speed'] = str(edge['speed'])
 
         # xml file for edges
         x = makexml('edges', 'http://sumo.dlr.de/xsd/edges_file.xsd')
@@ -425,9 +485,9 @@ class TraCIScenario(KernelScenario):
             # modify the numLanes and speed values
             for typ in types:
                 if 'numLanes' in typ:
-                    typ['numLanes'] = repr(typ['numLanes'])
+                    typ['numLanes'] = str(typ['numLanes'])
                 if 'speed' in typ:
-                    typ['speed'] = repr(typ['speed'])
+                    typ['speed'] = str(typ['speed'])
 
             x = makexml('types', 'http://sumo.dlr.de/xsd/types_file.xsd')
             for type_attributes in types:
@@ -440,9 +500,9 @@ class TraCIScenario(KernelScenario):
             # modify the fromLane and toLane values
             for connection in connections:
                 if 'fromLane' in connection:
-                    connection['fromLane'] = repr(connection['fromLane'])
+                    connection['fromLane'] = str(connection['fromLane'])
                 if 'toLane' in connection:
-                    connection['toLane'] = repr(connection['toLane'])
+                    connection['toLane'] = str(connection['toLane'])
 
             x = makexml('connections',
                         'http://sumo.dlr.de/xsd/connections_file.xsd')
@@ -498,6 +558,94 @@ class TraCIScenario(KernelScenario):
                 print('Retrying in {} seconds...'.format(WAIT_ON_ERROR))
                 time.sleep(WAIT_ON_ERROR)
         raise error
+
+    def generate_net_from_osm(self, net_params):
+        """Generate .net.xml files from OpenStreetMap files.
+
+        This is accomplished by calling the sumo ``netconvert`` binary. Only
+        vehicle roads are included from the networks.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams type
+            network-specific parameters. Different networks require different
+            net_params; see the separate sub-classes for more information.
+
+        Returns
+        -------
+        edges : dict <dict>
+            Key = name of the edge
+            Elements = length, lanes, speed
+        connection_data : dict < dict < list<tup> > >
+            Key = name of the arriving edge
+                Key = lane index
+                Element = list of edge/lane pairs that a vehicle can traverse
+                from the arriving edge/lane pairs
+        """
+        # specify the location of the input osm file
+        osm_path = net_params.osm_path
+
+        # specify the location of the output file
+        netfn = "%s.net.xml" % self.name
+
+        # generate the network file with sumo
+        net_cmd = "netconvert --osm-files {0} --output-file {1}".\
+            format(osm_path, self.cfg_path + netfn)
+
+        # this handles removing all roads in the network that cannot be ridden
+        # by vehicles
+        net_cmd += \
+            " --remove-edges.by-vclass rail_slow,rail_fast,bicycle,pedestrian"
+
+        # this removes edges that are not connected to a network (isolated)
+        net_cmd += " --remove-edges.isolated"
+
+        # this removes internal links from the network (useful when the network
+        # becomes very large)
+        if net_params.no_internal_links:
+            net_cmd += " --no_internal_links"
+
+        subprocess.call(
+            net_cmd, stdout=sys.stdout, stderr=sys.stderr, shell=True)
+
+        # name of the .net.xml file (located in cfg_path)
+        self.netfn = netfn
+
+        # collect data from the generated network configuration file
+        edges_dict, conn_dict = self._import_edges_from_net()
+
+        return edges_dict, conn_dict
+
+    def generate_net_from_netfile(self, net_params):
+        """Pass relevant data from an already processed .net.xml file.
+
+        This method is used to collect the edges and connection data from a
+        netfile and pass it to the scenario class for later use.
+
+        Parameters
+        ----------
+        net_params : flow.core.params.NetParams type
+            network-specific parameters. Different networks require different
+            net_params; see the separate sub-classes for more information.
+
+        Returns
+        -------
+        edges : dict <dict>
+            Key = name of the edge
+            Elements = length, lanes, speed
+        connection_data : dict < dict < list<tup> > >
+            Key = name of the arriving edge
+                Key = lane index
+                Element = list of edge/lane pairs that a vehicle can traverse
+                from the arriving edge/lane pairs
+        """
+        # name of the .net.xml file (located in cfg_path)
+        self.netfn = net_params.netfile
+
+        # collect data from the generated network configuration file
+        edges_dict, conn_dict = self._import_edges_from_net()
+
+        return edges_dict, conn_dict
 
     def generate_cfg(self, net_params, traffic_lights, routes):
         """Generate .sumo.cfg files using net files and netconvert.
@@ -632,7 +780,7 @@ class TraCIScenario(KernelScenario):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, positions, lanes, speeds, shuffle):
+    def make_routes(self, positions, lanes, shuffle):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
@@ -646,8 +794,6 @@ class TraCIScenario(KernelScenario):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         lanes : list of float
             list of start lanes
-        speeds : list of float
-            list of start speeds
         shuffle : bool
             specifies whether the vehicle IDs should be shuffled before the
             vehicles are assigned starting positions
@@ -679,7 +825,7 @@ class TraCIScenario(KernelScenario):
                     depart='0',
                     id=veh_id,
                     color='1,1,1',
-                    departSpeed=str(speeds[i]),
+                    departSpeed=str(vehicles.get_initial_speed(veh_id)),
                     departPos=str(pos),
                     departLane=str(lanes[i])))
 

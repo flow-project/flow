@@ -5,7 +5,7 @@ from tests.setup_scripts import ring_road_exp_setup, grid_mxn_exp_setup
 from flow.core.params import Vehicles
 from flow.core.params import NetParams
 from flow.core.params import SumoCarFollowingParams
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.core.experiment import SumoExperiment
 from flow.controllers.routing_controllers import GridRouter
 from flow.controllers.car_following_models import IDMController
@@ -27,7 +27,7 @@ class TestUpdateGetState(unittest.TestCase):
 
     def test_single_lane(self):
         # add a traffic light to the top node
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
         traffic_lights.add("top")
 
         # create a ring road with one lane
@@ -52,7 +52,7 @@ class TestUpdateGetState(unittest.TestCase):
 
     def test_multi_lane(self):
         # add a traffic light to the top node
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
         traffic_lights.add("top")
 
         # create a ring road with two lanes
@@ -83,7 +83,7 @@ class TestSetState(unittest.TestCase):
 
     def setUp(self):
         # add a traffic light to the top node
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
         traffic_lights.add("top")
 
         # create a ring road with two lanes
@@ -236,12 +236,12 @@ class TestItRuns(unittest.TestCase):
 
 class TestIndividualLights(unittest.TestCase):
     """
-    Tests the functionality of the the TrafficLights class in allowing
+    Tests the functionality of the the TrafficLightParams class in allowing
     for customization of specific nodes
     """
 
     def setUp(self):
-        tl_logic = TrafficLights(baseline=False)
+        tl_logic = TrafficLightParams(baseline=False)
         phases = [{
             "duration": "31",
             "minDur": "8",
@@ -294,7 +294,7 @@ class TestIndividualLights(unittest.TestCase):
 class TestCustomization(unittest.TestCase):
     def setUp(self):
         # add a traffic light to the top node
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
         # Phase durations in seconds
         self.green = 4

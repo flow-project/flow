@@ -50,6 +50,7 @@ class TraCIVehicle(KernelVehicle):
         self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
+        self.initial_speeds = []  # speed of vehicles at the start of a rollout
 
         # contains the parameters associated with each type of vehicle
         self.type_parameters = vehicles.type_parameters
@@ -260,6 +261,10 @@ class TraCIVehicle(KernelVehicle):
 
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
+
+        # specify the initial speed
+        self.__vehicles[veh_id]["initial_speed"] = \
+            self.type_parameters[veh_type]["initial_speed"]
 
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][

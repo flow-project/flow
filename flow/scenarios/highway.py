@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.params import TrafficLights
+from flow.core.params import TrafficLightParams
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
@@ -25,7 +25,7 @@ class HighwayScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a highway scenario.
 
         Requires from net_params:
@@ -133,10 +133,5 @@ class HighwayScenario(Scenario):
             list of start positions [(edge0, pos0), (edge1, pos1), ...]
         list of int
             list of start lanes
-        list of float
-            list of start speeds
         """
-        # all vehicles start with an initial speed of 0 m/s
-        startvel = [0 for _ in range(len(kwargs["start_lanes"]))]
-
-        return kwargs["start_positions"], kwargs["start_lanes"], startvel
+        return kwargs["start_positions"], kwargs["start_lanes"]
