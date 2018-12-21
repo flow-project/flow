@@ -61,8 +61,8 @@ class BayBridgeEnv(Env):
     """
 
     def __init__(self, env_params, sumo_params, scenario):
-        self.num_rl = scenario.vehicles.num_rl_vehicles
         super().__init__(env_params, sumo_params, scenario)
+        self.num_rl = self.k.vehicle.num_rl_vehicles
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
         self.cars_before_ramp = dict()

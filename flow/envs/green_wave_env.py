@@ -384,11 +384,11 @@ class TrafficLightGridEnv(Env):
 
         if route_id is not None:
             route_id = "route" + route_id
+            type_id = self.k.vehicle.get_type(veh_id)
+            lane_index = self.k.vehicle.get_lane(veh_id)
             # remove the vehicle
             self.k.vehicle.remove(veh_id)
             # reintroduce it at the start of the network
-            type_id = self.k.vehicle.get_type(veh_id)
-            lane_index = self.k.vehicle.get_lane(veh_id)
             self.k.vehicle.add(
                 veh_id=veh_id,
                 route_id=route_id,
