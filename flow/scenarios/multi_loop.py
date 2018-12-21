@@ -76,7 +76,7 @@ class MultiLoopScenario(Scenario):
 
         Parameters
         ----------
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
