@@ -171,10 +171,7 @@ class TraCIVehicle(KernelVehicle):
 
         # update the "headway", "leader", and "follower" variables
         for veh_id in self.__ids:
-            try:
-                _position = vehicle_obs[veh_id][tc.VAR_POSITION]
-            except:
-                return
+            _position = vehicle_obs[veh_id][tc.VAR_POSITION]
             _angle = vehicle_obs[veh_id][tc.VAR_ANGLE]
             _time_step = sim_obs[tc.VAR_TIME_STEP]
             _time_delta = sim_obs[tc.VAR_DELTA_T]
