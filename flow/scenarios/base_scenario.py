@@ -96,7 +96,7 @@ class Scenario(Serializable):
             see flow/core/vehicles.py
         net_params : flow.core.params.NetParams
             see flow/core/params.py
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         traffic_lights : flow.core.params.TrafficLightParams
             see flow/core/params.py
@@ -377,7 +377,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
@@ -479,7 +479,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
@@ -556,7 +556,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
@@ -582,7 +582,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
@@ -603,7 +603,7 @@ class Scenario(Serializable):
         available_length : float
             total available free space for vehicle to be placed, over all lanes
             within the distributable lanes, in meters
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             modified version of the initial_config parameter
 
         Raises
@@ -767,7 +767,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
         traffic_lights : flow.core.params.TrafficLightParams
@@ -931,7 +931,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
 
@@ -988,7 +988,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params : flow.core.params.NetParams type
+        net_params : flow.core.params.NetParams
             network-specific parameters. Different networks require different
             net_params; see the separate sub-classes for more information.
 
@@ -1021,7 +1021,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params : NetParams type
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
         traffic_lights : flow.core.params.TrafficLightParams
             traffic light information, used to determine which nodes are
@@ -1213,7 +1213,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params : NetParams type
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
 
         Returns
@@ -1237,7 +1237,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params : NetParams type
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
 
         Returns
@@ -1270,7 +1270,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params: flow.core.params.NetParams
             see flow/core/params.py
 
         Returns
@@ -1293,7 +1293,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params: NetParams type
+        net_params: flow.core.params.NetParams
             see flow/core/params.py
 
         Returns
@@ -1318,7 +1318,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params : NetParams type
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
 
         Returns
