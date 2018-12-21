@@ -159,7 +159,7 @@ class WaveAttenuationEnv(Env):
         net_params = NetParams(additional_params=additional_net_params)
 
         self.scenario = self.scenario.__class__(
-            self.k.scenario.orig_name, deepcopy(self.initial_vehicles),
+            self.k.scenario.orig_name, deepcopy(self.scenario.vehicles),
             net_params, initial_config)
 
         # solve for the velocity upper bound of the ring
