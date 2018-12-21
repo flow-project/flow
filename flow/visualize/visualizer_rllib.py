@@ -168,13 +168,12 @@ def visualizer_rllib(args):
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
-        done = False
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
             ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.unwrapped.vehicles
+            vehicles = env.unwrapped.k.vehicle
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             if multiagent:
                 action = {}
