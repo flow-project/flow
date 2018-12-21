@@ -42,7 +42,7 @@ class Kernel(object):
     traffic simulators, e.g. SUMO, AIMSUN, TruckSim, etc...
     """
 
-    def __init__(self, simulator, sim_params, vehicles):
+    def __init__(self, simulator, sim_params):
         """Instantiate a Flow kernel object.
 
         Parameters
@@ -62,7 +62,7 @@ class Kernel(object):
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
             self.scenario = TraCIScenario(self)
-            self.vehicle = TraCIVehicle(self, sim_params, vehicles)
+            self.vehicle = TraCIVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
