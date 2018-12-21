@@ -202,7 +202,8 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertIsNone(error_state_rl)
 
         # ensure that the num_vehicles matches the actual number of vehicles
-        self.assertEqual(vehicles.num_vehicles, len(env.k.vehicle.get_ids()))
+        self.assertEqual(env.k.vehicle.num_vehicles,
+                         len(env.k.vehicle.get_ids()))
 
         # ensures that then num_rl_vehicles matches the actual number of rl veh
         self.assertEqual(env.k.vehicle.num_rl_vehicles,

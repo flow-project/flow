@@ -179,7 +179,7 @@ class TestRewards(unittest.TestCase):
 
         # set the headways to 0
         for veh_id in env.k.vehicle.get_rl_ids():
-            env.vehicles.set_headway(veh_id, 0)
+            env.k.vehicle.set_headway(veh_id, 0)
 
         # test penalty when headways of all vehicles are currently 0
         self.assertEqual(punish_small_rl_headways(env, headway_threshold=1),
@@ -229,19 +229,19 @@ class TestRewards(unittest.TestCase):
         # check the method for different tailways
         follower = env.k.vehicle.get_follower('test_rl_0')
 
-        env.vehicles.set_headway(follower, -10)
+        env.k.vehicle.set_headway(follower, -10)
         self.assertAlmostEqual(reward_rl_opening_headways(env), 0)
 
-        env.vehicles.set_headway(follower, 10)
+        env.k.vehicle.set_headway(follower, 10)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.1, 1), 1)
 
-        env.vehicles.set_headway(follower, 10)
+        env.k.vehicle.set_headway(follower, 10)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.1, 2), 10)
 
-        env.vehicles.set_headway(follower, 10)
+        env.k.vehicle.set_headway(follower, 10)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.5, 2), 50)
 
-        env.vehicles.set_follower('test_rl_0', None)
+        env.k.vehicle.set_follower('test_rl_0', None)
         self.assertAlmostEqual(reward_rl_opening_headways(env, 0.5, 2), 0)
 
 
