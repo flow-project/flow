@@ -49,7 +49,7 @@ class Kernel(object):
         ----------
         simulator : str
             simulator type, must be one of {"traci"}
-        sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
+        sim_params : flow.core.params.SimParams
             simulation-specific parameters
 
         Raises
