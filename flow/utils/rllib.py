@@ -105,8 +105,8 @@ def get_flow_params(config):
             **veh_params)
 
     # convert all parameters from dict to their object form
-    sumo = SumoParams()
-    sumo.__dict__ = flow_params["sumo"].copy()
+    sim = SumoParams()  # TODO: add check for simulation type
+    sim.__dict__ = flow_params["sim"].copy()
 
     net = NetParams()
     net.__dict__ = flow_params["net"].copy()
@@ -125,7 +125,7 @@ def get_flow_params(config):
     if "tls" in flow_params:
         tls.__dict__ = flow_params["tls"].copy()
 
-    flow_params["sumo"] = sumo
+    flow_params["sim"] = sim
     flow_params["env"] = env
     flow_params["initial"] = initial
     flow_params["net"] = net

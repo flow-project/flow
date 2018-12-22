@@ -1,6 +1,6 @@
 import unittest
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
 from flow.core.params import Vehicles
@@ -17,7 +17,7 @@ class TestCollisions(unittest.TestCase):
     def test_collide(self):
         """Tests collisions in the absence of inflows."""
         # create the environment and scenario classes for a ring road
-        sumo_params = SumoParams(sim_step=1, render=False)
+        sim_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 20
         vehicles = Vehicles()
         vehicles.add(
@@ -54,7 +54,7 @@ class TestCollisions(unittest.TestCase):
         env, scenario = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
-            sumo_params=sumo_params,
+            sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
@@ -64,13 +64,13 @@ class TestCollisions(unittest.TestCase):
                 node_id='center' + str(i), state="gggggggggggg")
 
         # instantiate an experiment class
-        exp = SumoExperiment(env)
+        exp = Experiment(env)
         exp.run(50, 50)
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
         # create the environment and scenario classes for a ring road
-        sumo_params = SumoParams(sim_step=1, render=False)
+        sim_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 12
         vehicles = Vehicles()
         vehicles.add(
@@ -113,7 +113,7 @@ class TestCollisions(unittest.TestCase):
         env, scenario = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
-            sumo_params=sumo_params,
+            sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
@@ -123,7 +123,7 @@ class TestCollisions(unittest.TestCase):
                 node_id='center' + str(i), state="gggggggggggg")
 
         # instantiate an experiment class
-        exp = SumoExperiment(env)
+        exp = Experiment(env)
         exp.run(50, 50)
 
 

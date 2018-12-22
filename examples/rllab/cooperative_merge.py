@@ -24,7 +24,7 @@ HORIZON = 300
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(sim_step=0.2, render=True)
+    sim_params = SumoParams(sim_step=0.2, render=True)
 
     # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
@@ -96,7 +96,7 @@ def run_task(*_):
         initial_config=initial_config)
 
     env_name = "TwoLoopsMergePOEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

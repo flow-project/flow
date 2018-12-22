@@ -89,7 +89,7 @@ PERIOD = 10.0
 
 
 class BottleneckEnv(Env):
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
         """Environment used as a simplified representation of the toll booth
         portion of the bay bridge. Contains ramp meters, and a toll both.
 
@@ -107,7 +107,7 @@ class BottleneckEnv(Env):
             if p not in scenario.net_params.additional_params:
                 raise KeyError('Net parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario)
         self.num_rl = deepcopy(self.k.vehicle.num_rl_vehicles)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
@@ -397,13 +397,13 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
        """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
 
     @property
@@ -611,8 +611,8 @@ class DesiredVelocityEnv(BottleneckEnv):
            for RL vehicles making forward progress
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
-        super().__init__(env_params, sumo_params, scenario)
+    def __init__(self, env_params, sim_params, scenario):
+        super().__init__(env_params, sim_params, scenario)
         for p in ADDITIONAL_VSL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -622,7 +622,7 @@ class DesiredVelocityEnv(BottleneckEnv):
         add_env_params = self.env_params.additional_params
         default = [("1", 1, True), ("2", 1, True), ("3", 1, True),
                    ("4", 1, True), ("5", 1, True)]
-        super(DesiredVelocityEnv, self).__init__(env_params, sumo_params,
+        super(DesiredVelocityEnv, self).__init__(env_params, sim_params,
                                                  scenario)
         self.segments = add_env_params.get("controlled_segments", default)
 
