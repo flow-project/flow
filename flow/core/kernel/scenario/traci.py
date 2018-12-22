@@ -2,7 +2,6 @@
 
 from flow.core.kernel.scenario import KernelScenario
 from flow.core.util import makexml, printxml, ensure_dir
-import logging
 import random
 import time
 import os
