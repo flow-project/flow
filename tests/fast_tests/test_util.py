@@ -106,7 +106,7 @@ class TestRegistry(unittest.TestCase):
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
             scenario="Figure8Scenario",
-            sumo=SumoParams(
+            sim=SumoParams(
                 sim_step=0.1,
                 render=False,
             ),
@@ -220,7 +220,7 @@ class TestRllib(unittest.TestCase):
             exp_tag="merge_0",
             env_name="WaveAttenuationMergePOEnv",
             scenario="MergeScenario",
-            sumo=SumoParams(
+            sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
                 render=False,
