@@ -191,8 +191,8 @@ class MultiEnv(MultiAgentEnv, Env):
             self.sim_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
             self.vehicles = deepcopy(self.initial_vehicles)
-            # restart the sumo instance
-            self.restart_sumo(self.sim_params)
+            # restart the simulation instance
+            self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
         if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:

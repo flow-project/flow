@@ -39,7 +39,7 @@ def visualizer_rllab(args):
         sim_params.render = False
     else:
         sim_params.render = True
-    unwrapped_env.restart_sumo(
+    unwrapped_env.restart_simulation(
         sim_params=sim_params, render=sim_params.render)
 
     # Load data into arrays
