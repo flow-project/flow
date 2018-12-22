@@ -271,7 +271,7 @@ class AimsunKernelVehicle(KernelVehicle):
                 aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
                 self.kernel_api.AKIVehTrackedModifySpeed(aimsun_id, next_vel)
 
-    def apply_lane_change(self, veh_ids, direction,time):
+    def apply_lane_change(self, veh_ids, direction):
         """Apply an instantaneous lane-change to a set of vehicles.
 
         This method also prevents vehicles from moving to lanes that do not
@@ -382,6 +382,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """Return the names of all non-rl vehicles currently in the network."""
         return self.__human_ids
 
+    # TODO: remove (maybe, test how much slower)
     def get_controlled_ids(self):
         """Return the names of all flow acceleration-controlled vehicles.
 
@@ -389,6 +390,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """
         return self.__controlled_ids
 
+    # TODO: remove (maybe, test how much slower)
     def get_controlled_lc_ids(self):
         """Return the names of all flow lane change-controlled vehicles.
 
@@ -456,6 +458,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         float
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         speeds = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -495,6 +498,7 @@ class AimsunKernelVehicle(KernelVehicle):
         float,
             The distance from the beginning of the section
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         positions = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -613,6 +617,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         float
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         lengths = []
         for veh in veh_id:
             lengths.append(self.__vehicles[veh]["length"])  # TODO double check
@@ -632,6 +637,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         str
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         leaders = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -653,6 +659,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         str
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         followers = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -674,6 +681,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         float
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         headways = []
         for veh in veh_id:
             leader_id = self.get_leader(veh, error)
