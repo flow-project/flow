@@ -106,7 +106,7 @@ class TestRegistry(unittest.TestCase):
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
             scenario="Figure8Scenario",
-            sumo=SumoParams(
+            sim=SumoParams(
                 sim_step=0.1,
                 render=False,
             ),
@@ -144,15 +144,15 @@ class TestRegistry(unittest.TestCase):
         # create the gym environment
         env = create_env()
 
-        # Note that we expect the port number in sumo_params to change, and
+        # Note that we expect the port number in sim_params to change, and
         # that this feature is in fact needed to avoid race conditions
-        flow_params["sumo"].port = env.sumo_params.port
+        flow_params["sim"].port = env.sim_params.port
 
         # check that each of the parameter match
         self.assertEqual(env.env_params.__dict__,
                          flow_params["env"].__dict__)
-        self.assertEqual(env.sumo_params.__dict__,
-                         flow_params["sumo"].__dict__)
+        self.assertEqual(env.sim_params.__dict__,
+                         flow_params["sim"].__dict__)
         self.assertEqual(env.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
         self.assertEqual(env.net_params.__dict__,
@@ -218,7 +218,7 @@ class TestRllib(unittest.TestCase):
             exp_tag="merge_0",
             env_name="WaveAttenuationMergePOEnv",
             scenario="MergeScenario",
-            sumo=SumoParams(
+            sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
                 render=False,
@@ -289,8 +289,8 @@ class TestRllib(unittest.TestCase):
                         flow_params["initial"].__dict__)
         self.assertTrue(imported_flow_params["tls"].__dict__ == flow_params[
             "tls"].__dict__)
-        self.assertTrue(imported_flow_params["sumo"].__dict__ == flow_params[
-            "sumo"].__dict__)
+        self.assertTrue(imported_flow_params["sim"].__dict__ == flow_params[
+            "sim"].__dict__)
         self.assertTrue(imported_flow_params["net"].__dict__ == flow_params[
             "net"].__dict__)
 

@@ -28,7 +28,7 @@ AV_FRAC = .1
 N_CPUS = 32
 i = 0
 
-sumo_params = SumoParams(
+sim_params = SumoParams(
     sim_step=0.5, render=False, restart_instance=True)
 
 vehicles = Vehicles()
@@ -131,7 +131,7 @@ scenario = BottleneckScenario(
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
