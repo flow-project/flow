@@ -48,7 +48,7 @@ def figure_eight_baseline(num_runs, render=True):
     vehicles.add(veh_id='human',
                  acceleration_controller=(IDMController, {'noise': 0.2}),
                  routing_controller=(ContinuousRouter, {}),
-                 sumo_car_following_params=SumoCarFollowingParams(
+                 car_following_params=SumoCarFollowingParams(
                      speed_mode='no_collide',
                  ),
                  num_vehicles=14)

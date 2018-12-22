@@ -50,14 +50,14 @@ def run_task(_):
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=5)
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=0)

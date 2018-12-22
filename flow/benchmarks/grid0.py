@@ -38,7 +38,7 @@ vehicles = Vehicles()
 vehicles.add(
     veh_id="human",
     acceleration_controller=(SimCarFollowingController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
         speed_mode="right_of_way",

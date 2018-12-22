@@ -75,7 +75,7 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            sumo_car_following_params=None,
+            car_following_params=None,
             sumo_lc_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
@@ -99,19 +99,21 @@ class Vehicles:
             initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
-        sumo_car_following_params : flow.core.params.SumoCarFollowingParams
+        car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
         sumo_lc_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
-        if sumo_car_following_params is None:
-            sumo_car_following_params = SumoCarFollowingParams()
+        if car_following_params is None:
+            # FIXME: depends on simulator
+            car_following_params = SumoCarFollowingParams()
 
         if sumo_lc_params is None:
+            # FIXME: depends on simulator
             sumo_lc_params = SumoLaneChangeParams()
 
         type_params = {}
-        type_params.update(sumo_car_following_params.controller_params)
+        type_params.update(car_following_params.controller_params)
         type_params.update(sumo_lc_params.controller_params)
 
         # If a vehicle is not sumo or RL, let the minGap be zero so that it
@@ -127,7 +129,7 @@ class Vehicles:
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,  # TODO: remove
-             "sumo_car_following_params": sumo_car_following_params,
+             "car_following_params": car_following_params,
              "sumo_lc_params": sumo_lc_params}
 
         self.initial.append({
@@ -143,8 +145,8 @@ class Vehicles:
                 initial_speed,
             "num_vehicles":
                 num_vehicles,
-            "sumo_car_following_params":
-                sumo_car_following_params,
+            "car_following_params":
+                car_following_params,
             "sumo_lc_params":
                 sumo_lc_params
         })
@@ -167,7 +169,7 @@ class Vehicles:
             self.__vehicles[v_id]["acc_controller"] = \
                 acceleration_controller[0](
                     v_id,
-                    sumo_cf_params=sumo_car_following_params,
+                    car_following_params=car_following_params,
                     **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -346,15 +348,15 @@ class Vehicles:
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
-        sumo_cf_params = \
-            self.type_parameters[veh_type]["sumo_car_following_params"]
+        car_following_params = \
+            self.type_parameters[veh_type]["car_following_params"]
 
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
             accel_controller[0](veh_id,
-                                sumo_cf_params=sumo_cf_params,
+                                car_following_params=car_following_params,
                                 **accel_controller[1])
 
         # specify the lane-changing controller class
@@ -406,7 +408,7 @@ class Vehicles:
 
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][
-            "sumo_car_following_params"].speed_mode
+            "car_following_params"].speed_mode
         env.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
         # set the lane changing mode for the vehicle

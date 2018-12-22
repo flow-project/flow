@@ -24,7 +24,7 @@ class TestCollisions(unittest.TestCase):
             veh_id="idm",
             acceleration_controller=(SimCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=0.1, carFollowModel="Krauss", minGap=2.5,
                 speed_mode=0b00000,
             ),
@@ -78,7 +78,7 @@ class TestCollisions(unittest.TestCase):
             veh_id="idm",
             acceleration_controller=(SimCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=0.1, carFollowModel="Krauss", minGap=2.5,
                 speed_mode=0b00000,
             ),

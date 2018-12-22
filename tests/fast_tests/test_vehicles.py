@@ -29,7 +29,7 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode='no_collide',
             ),
             sumo_lc_params=SumoLaneChangeParams(
@@ -38,14 +38,14 @@ class TestVehiclesClass(unittest.TestCase):
         )
 
         self.assertEqual(vehicles.type_parameters["typeA"][
-                             "sumo_car_following_params"].speed_mode, 1)
+                             "car_following_params"].speed_mode, 1)
         self.assertEqual(vehicles.type_parameters["typeA"][
                              "sumo_lc_params"].lane_change_mode, 512)
 
         vehicles.add(
             "typeB",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode='aggressive',
             ),
             sumo_lc_params=SumoLaneChangeParams(
@@ -54,14 +54,14 @@ class TestVehiclesClass(unittest.TestCase):
         )
 
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "sumo_car_following_params"].speed_mode, 0)
+                             "car_following_params"].speed_mode, 0)
         self.assertEqual(vehicles.type_parameters["typeB"][
                              "sumo_lc_params"].lane_change_mode, 1621)
 
         vehicles.add(
             "typeC",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode=31,
             ),
             sumo_lc_params=SumoLaneChangeParams(
@@ -70,7 +70,7 @@ class TestVehiclesClass(unittest.TestCase):
         )
 
         self.assertEqual(vehicles.type_parameters["typeC"][
-                             "sumo_car_following_params"].speed_mode, 31)
+                             "car_following_params"].speed_mode, 31)
         self.assertEqual(vehicles.type_parameters["typeC"][
                              "sumo_lc_params"].lane_change_mode, 277)
 
@@ -85,7 +85,7 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             sumo_lc_params=SumoLaneChangeParams(
@@ -99,7 +99,7 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(SimCarFollowingController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             sumo_lc_params=SumoLaneChangeParams(
