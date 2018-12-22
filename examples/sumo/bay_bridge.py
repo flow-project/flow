@@ -8,7 +8,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
 from flow.core.vehicles import Vehicles
 from flow.core.params import TrafficLightParams
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge import BayBridgeScenario, EDGES_DISTRIBUTION
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
@@ -34,7 +34,7 @@ def bay_bridge_example(render=None,
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles simulated by sumo on the Bay Bridge.
     """
@@ -192,7 +192,7 @@ def bay_bridge_example(render=None,
 
     env = BayBridgeEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":
