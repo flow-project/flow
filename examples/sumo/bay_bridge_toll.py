@@ -7,7 +7,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoLaneChangeParams, SumoCarFollowingParams, InFlows
 from flow.core.vehicles import Vehicles
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
 from flow.scenarios.bay_bridge_toll import EDGES_DISTRIBUTION
@@ -120,7 +120,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
 
     env = BayBridgeEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

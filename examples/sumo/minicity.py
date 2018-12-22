@@ -1,7 +1,7 @@
 """Example of modified minicity network with human-driven vehicles."""
 from flow.controllers import IDMController
 from flow.controllers import RLController
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
@@ -29,7 +29,7 @@ def minicity_example(render=None,
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on the minicity scenario.
     """
@@ -91,7 +91,7 @@ def minicity_example(render=None,
 
     env = AccelEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

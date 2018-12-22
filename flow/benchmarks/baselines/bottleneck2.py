@@ -4,7 +4,7 @@ Baseline is no AVs.
 """
 
 import numpy as np
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 from flow.core.params import SumoLaneChangeParams
@@ -29,7 +29,7 @@ def bottleneck2_baseline(num_runs, render=True):
 
     Returns
     -------
-        SumoExperiment
+        flow.core.experiment.Experiment
             class needed to run simulations
     """
     exp_tag = flow_params['exp_tag']
@@ -85,7 +85,7 @@ def bottleneck2_baseline(num_runs, render=True):
     # create the environment object
     env = env_class(env_params, sim_params, scenario)
 
-    exp = SumoExperiment(env)
+    exp = Experiment(env)
 
     results = exp.run(num_runs, env_params.horizon)
 

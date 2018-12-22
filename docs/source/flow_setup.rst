@@ -46,62 +46,45 @@ script. Be sure to run the below commands from ``/path/to/flow``.
     # install flow within the environment
     python setup.py develop
 
-Next, we install the necessary SUMO binaries and python tools. The below
-commands walk you through installing and building SUMO locally. Note that
-if this does not work, you are recommended to point an issue on the flow-dev
-message board or refer to SUMO's
-`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_ regarding
-installing their software. In additional, if you are interested in trying a
-simpler and faster set of experimental setup instructions involving installing
-pre-compiled binaries, we refer you to section 1.c.
+Next, we install the necessary SUMO binaries and python tools. In order to
+install everything you will need from SUMO, run one of the below scripts from
+the Flow main directory. Choose the script that matches the operating system
+you are running.
 
-We begin by downloading SUMO's github directory:
+For Ubuntu 14.04:
 
 ::
 
-    cd ~
-    git clone https://github.com/eclipse/sumo.git
-    cd sumo
-    git checkout 1d4338ab80
-    make -f Makefile.cvs
+    scripts/setup_sumo_ubuntu1404.sh
 
-If you have OSX, run the following commands. If you don't have brew
-you can find installation instructions at 
-<https://docs.brew.sh/Installation>
+For Ubuntu 16.04:
 
 ::
 
-    brew update
-    brew install Caskroom/cask/xquartz
-    brew install autoconf
-    brew install automake
-    brew install pkg-config
-    brew install libtool
-    brew install gdal
-    brew install proj
-    brew install xerces-c
-    brew install fox
-    export CPPFLAGS=-I/opt/X11/include
-    export LDFLAGS=-L/opt/X11/lib
-    ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
-    make -j$nproc
-    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bash_profile
-    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bash_profile
-    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bash_profile
-    source ~/.bash_profile
+    scripts/setup_sumo_ubuntu1604.sh
 
-If you have Ubuntu 14.04+, run the following command
+For Ubuntu 18.04:
 
 ::
 
-    ./configure
-    make -j$nproc
-    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
-    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
-    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
-    source ~/.bashrc
+    scripts/setup_sumo_ubuntu1804.sh
 
-Finally, test your SUMO install and version by running the following commands
+For Mac:
+
+::
+
+    scripts/setup_sumo_osx.sh
+
+If you are using an unsupported operating system (e.g. Arch Linux), or the
+binaries provided by the above scripts are no compatible with your machine, you
+will have to personally build the SUMO binary files. For more, please see
+section 1.e or refer to SUMO's
+`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_. **NOTE**:
+Flow is not currently compatible with the most up to date version of SUMO.
+
+Finally, test your SUMO install and version by running the following commands.
+Note that, if the below commands do not work, you may need to run
+``source ~/.bashrc``  or open a new terminal to update your $PATH variable.
 
 ::
 
@@ -196,46 +179,60 @@ If it does not fail, this means that you have Flow properly configured with
 rllab-multiagent.
 
 
-e. Easy Install SUMO (optional)
-===============================
+e. Installing SUMO from GitHub (optional)
+=========================================
 
-In this section, we present and faster and simpler method of installing the
-necessary SUMO binaries and python tools. These setup instructions are still
-experimental, so any and all feedback is greatly appreciated!
+The below commands walk you through installing and building SUMO locally. Note
+that if this does not work, you are recommended to point an issue on the
+flow-dev message board or refer to SUMO's
+`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_ regarding
+installing their software.
 
-In order to install everything you will need from SUMO, run one of the below
-scripts from the Flow main directory. Choose the script that matches the
-operating system you are running.
-
-For Ubuntu 14.04:
+We begin by downloading SUMO's github directory:
 
 ::
 
-    scripts/setup_sumo_ubuntu1404.sh
+    cd ~
+    git clone https://github.com/eclipse/sumo.git
+    cd sumo
+    git checkout 1d4338ab80
+    make -f Makefile.cvs
 
-For Ubuntu 16.04:
-
-::
-
-    scripts/setup_sumo_ubuntu1604.sh
-
-For Ubuntu 18.04:
-
-::
-
-    scripts/setup_sumo_ubuntu1804.sh
-
-For Mac:
+If you have OSX, run the following commands. If you don't have brew
+you can find installation instructions at
+<https://docs.brew.sh/Installation>
 
 ::
 
-    scripts/setup_sumo_osx.sh
+    brew update
+    brew install Caskroom/cask/xquartz
+    brew install autoconf
+    brew install automake
+    brew install pkg-config
+    brew install libtool
+    brew install gdal
+    brew install proj
+    brew install xerces-c
+    brew install fox
+    export CPPFLAGS=-I/opt/X11/include
+    export LDFLAGS=-L/opt/X11/lib
+    ./configure CXX=clang++ CXXFLAGS="-stdlib=libc++ -std=gnu++11" --with-xerces=/usr/local --with-proj-gdal=/usr/local
+    make -j$nproc
+    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bash_profile
+    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bash_profile
+    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bash_profile
+    source ~/.bash_profile
 
-If you are using an unsupported operating system (e.g. Arch Linux), or the
-binaries provided by the above scripts are no compatible with your machine, you
-will have to personally build the SUMO binary files. For more, please see
-section 1.a or refer to SUMO's
-`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
+If you have Ubuntu 14.04+, run the following command
+
+::
+
+    ./configure
+    make -j$nproc
+    echo 'export SUMO_HOME="$HOME/sumo"' >> ~/.bashrc
+    echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
+    echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
+    source ~/.bashrc
 
 
 f. Rllab-multiagent (optional)

@@ -6,7 +6,7 @@ flow/benchmarks, as well as method for importing neural network controllers
 from rllab and rllib.
 """
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 from flow.utils.rllib import get_flow_params, get_rllib_config
@@ -121,10 +121,10 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     env = env_class(
         env_params=env_params, sim_params=sim_params, scenario=scenario)
 
-    # create a SumoExperiment object with the "rl_actions" method as
+    # create a Experiment object with the "rl_actions" method as
     # described in the inputs. Note that the state may not be that which is
     # specified by the environment.
-    exp = SumoExperiment(env=env)
+    exp = Experiment(env=env)
 
     # run the experiment and return the reward
     res = exp.run(
