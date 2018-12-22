@@ -356,7 +356,7 @@ class Scenario(Serializable):
 
         return startpositions, startlanes
 
-    def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
+    def gen_even_start_pos(self, initial_config, num_vehicles):
         """Generate uniformly spaced starting positions.
 
         If the perturbation term in initial_config is set to some positive
