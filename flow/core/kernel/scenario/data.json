@@ -1,0 +1,131 @@
+{
+    "edges": [
+        {
+            "from": "inflow_highway",
+            "id": "inflow_highway",
+            "length": 100,
+            "to": "left",
+            "type": "highwayType"
+        },
+        {
+            "from": "left",
+            "id": "left",
+            "length": 500,
+            "to": "center",
+            "type": "highwayType"
+        },
+        {
+            "from": "inflow_merge",
+            "id": "inflow_merge",
+            "length": 100,
+            "to": "bottom",
+            "type": "mergeType"
+        },
+        {
+            "from": "bottom",
+            "id": "bottom",
+            "length": 100,
+            "to": "center",
+            "type": "mergeType"
+        },
+        {
+            "from": "center",
+            "id": "center",
+            "length": 100,
+            "to": "right",
+            "type": "highwayType"
+        }
+    ],
+    "net_params": {
+        "additional_params": {
+            "highway_lanes": 1,
+            "merge_lanes": 1,
+            "merge_length": 100,
+            "post_merge_length": 100,
+            "pre_merge_length": 500,
+            "speed_limit": 30
+        },
+        "inflows": {
+            "_InFlows__flows": [
+                {
+                    "begin": 1,
+                    "departLane": "free",
+                    "departSpeed": 10,
+                    "end": 2000000.0,
+                    "name": "flow_0",
+                    "route": "routeinflow_highway",
+                    "vehsPerHour": 1800.0,
+                    "vtype": "human"
+                },
+                {
+                    "begin": 1,
+                    "departLane": "free",
+                    "departSpeed": 10,
+                    "end": 2000000.0,
+                    "name": "flow_1",
+                    "route": "routeinflow_highway",
+                    "vehsPerHour": 200.0,
+                    "vtype": "rl"
+                },
+                {
+                    "begin": 1,
+                    "departLane": "free",
+                    "departSpeed": 7.5,
+                    "end": 2000000.0,
+                    "name": "flow_2",
+                    "route": "routeinflow_merge",
+                    "vehsPerHour": 100,
+                    "vtype": "human"
+                }
+            ],
+            "num_flows": 3
+        },
+        "netfile": null,
+        "no_internal_links": false,
+        "osm_path": null
+    },
+    "nodes": [
+        {
+            "id": "inflow_highway",
+            "x": -100,
+            "y": 0
+        },
+        {
+            "id": "left",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "id": "center",
+            "x": 500,
+            "y": 0
+        },
+        {
+            "id": "right",
+            "x": 600,
+            "y": 0
+        },
+        {
+            "id": "inflow_merge",
+            "x": 358.5786437626905,
+            "y": -141.42135623730948
+        },
+        {
+            "id": "bottom",
+            "x": 429.28932188134524,
+            "y": -70.71067811865474
+        }
+    ],
+    "types": [
+        {
+            "id": "highwayType",
+            "numLanes": 1,
+            "speed": 30
+        },
+        {
+            "id": "mergeType",
+            "numLanes": 1,
+            "speed": 30
+        }
+    ]
+}
