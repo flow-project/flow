@@ -696,7 +696,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
         for _ in range(500):
             env.step(rl_actions=None)
         self.assertAlmostEqual(
-            env.vehicles.get_inflow_rate(250)/expected_inflow, 1, 2)
+            env.vehicles.get_inflow_rate(250)/expected_inflow, 1, 1)
 
         # reset the environment and get a new inflow rate
         env.reset()
@@ -706,7 +706,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
         for _ in range(500):
             env.step(rl_actions=None)
         self.assertAlmostEqual(
-            env.vehicles.get_inflow_rate(250)/expected_inflow, 1, 2)
+            env.vehicles.get_inflow_rate(250)/expected_inflow, 1, 1)
 
 
 ###############################################################################
