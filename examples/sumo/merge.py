@@ -8,7 +8,7 @@ point before exiting the network.
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
 from flow.envs.merge import WaveAttenuationMergePOEnv, ADDITIONAL_ENV_PARAMS
@@ -28,7 +28,7 @@ def merge_example(render=None):
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a merge.
     """
@@ -90,7 +90,7 @@ def merge_example(render=None):
 
     env = WaveAttenuationMergePOEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

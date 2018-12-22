@@ -4,7 +4,7 @@ This example consists of 22 IDM cars on a ring creating shockwaves.
 """
 
 from flow.controllers import IDMController, ContinuousRouter
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
@@ -23,7 +23,7 @@ def sugiyama_example(render=None):
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a ring road.
     """
@@ -54,7 +54,7 @@ def sugiyama_example(render=None):
 
     env = AccelEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

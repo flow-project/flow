@@ -1,6 +1,6 @@
 import unittest
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
 from flow.core.vehicles import Vehicles
@@ -64,7 +64,7 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env)
+        self.exp = Experiment(self.env)
 
         self.exp.run(50, 50)
 
@@ -124,7 +124,7 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env)
+        self.exp = Experiment(self.env)
 
         self.exp.run(50, 50)
 
