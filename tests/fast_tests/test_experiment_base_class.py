@@ -103,8 +103,8 @@ class TestConvertToCSV(unittest.TestCase):
 
     def test_convert_to_csv(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        sumo_params = SumoParams(emission_path="{}/".format(dir_path))
-        env, scenario = ring_road_exp_setup(sumo_params=sumo_params)
+        sim_params = SumoParams(emission_path="{}/".format(dir_path))
+        env, scenario = ring_road_exp_setup(sim_params=sim_params)
         exp = SumoExperiment(env)
         exp.run(num_runs=1, num_steps=10, convert_to_csv=True)
 
