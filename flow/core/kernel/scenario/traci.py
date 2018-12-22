@@ -667,8 +667,6 @@ class TraCIScenario(KernelScenario):
             Element = list of edges a vehicle starting from this edge must
             traverse.
         """
-        start_time = 0
-
         # specify routes vehicles can take
         self.rts = routes
 
@@ -764,17 +762,14 @@ class TraCIScenario(KernelScenario):
         cfg = makexml('configuration',
                       'http://sumo.dlr.de/xsd/sumoConfiguration.xsd')
 
-        logging.debug(self.netfn)
-
         cfg.append(
             self._inputs(
-                self.network.name,
                 net=self.netfn,
                 add=self.addfn,
                 rou=self.roufn,
                 gui=self.guifn))
         t = E('time')
-        t.append(E('begin', value=repr(start_time)))
+        t.append(E('begin', value=repr(0)))
         cfg.append(t)
 
         printxml(cfg, self.cfg_path + self.sumfn)
@@ -857,28 +852,12 @@ class TraCIScenario(KernelScenario):
             departPos=departPos,
             **kwargs)
 
-    def _inputs(self, name, net=None, rou=None, add=None, gui=None):
-        inp = E('input')
-        if net is not False:
-            if net is None:
-                inp.append(E('net-file', value='%s.net.xml' % name))
-            else:
-                inp.append(E('net-file', value=net))
-        if rou is not False:
-            if rou is None:
-                inp.append(E('route-files', value='%s.rou.xml' % name))
-            else:
-                inp.append(E('route-files', value=rou))
-        if add is not False:
-            if add is None:
-                inp.append(E('additional-files', value='%s.add.xml' % name))
-            else:
-                inp.append(E('additional-files', value=add))
-        if gui is not False:
-            if gui is None:
-                inp.append(E('gui-settings-file', value='%s.gui.xml' % name))
-            else:
-                inp.append(E('gui-settings-file', value=gui))
+    def _inputs(self, net=None, rou=None, add=None, gui=None):
+        inp = E("input")
+        inp.append(E("net-file", value=net))
+        inp.append(E("route-files", value=rou))
+        inp.append(E("additional-files", value=add))
+        inp.append(E("gui-settings-file", value=gui))
         return inp
 
     def _import_edges_from_net(self):
