@@ -12,7 +12,7 @@ from rllab.misc.instrument import run_experiment_lite
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 from flow.controllers import RLController, IDMController, \
-    SumoLaneChangeController, ContinuousRouter
+    SimLaneChangeController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
@@ -35,7 +35,7 @@ def run_task(*_):
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=6,
         sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
@@ -45,7 +45,7 @@ def run_task(*_):
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=1,
         sumo_car_following_params=SumoCarFollowingParams(
@@ -61,7 +61,7 @@ def run_task(*_):
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=10,
         sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),

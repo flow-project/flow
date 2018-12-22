@@ -11,7 +11,7 @@ from flow.core.params import TrafficLightParams
 from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge import BayBridgeScenario, EDGES_DISTRIBUTION
-from flow.controllers import SumoCarFollowingController, BayBridgeRouter
+from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
 NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bay_bridge.net.xml")
@@ -59,7 +59,7 @@ def bay_bridge_example(render=None,
     vehicles = Vehicles()
     vehicles.add(
         veh_id="human",
-        acceleration_controller=(SumoCarFollowingController, {}),
+        acceleration_controller=(SimCarFollowingController, {}),
         routing_controller=(BayBridgeRouter, {}),
         sumo_car_following_params=sumo_car_following_params,
         sumo_lc_params=sumo_lc_params,
