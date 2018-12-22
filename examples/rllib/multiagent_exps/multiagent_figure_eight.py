@@ -67,7 +67,7 @@ flow_params = dict(
     scenario='Figure8Scenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),
