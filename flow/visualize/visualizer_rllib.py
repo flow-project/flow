@@ -78,16 +78,16 @@ def visualizer_rllib(args):
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
-    if (args.run and config_run):
-        if (args.run != config_run):
+    if args.run and config_run:
+        if args.run != config_run:
             print('visualizer_rllib.py: error: run argument '
                   + '\'{}\' passed in '.format(args.run)
                   + 'differs from the one stored in params.json '
                   + '\'{}\''.format(config_run))
             sys.exit(1)
-    if (args.run):
+    if args.run:
         agent_cls = get_agent_class(args.run)
-    elif (config_run):
+    elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
         print('visualizer_rllib.py: error: could not find flow parameter '
@@ -168,7 +168,6 @@ def visualizer_rllib(args):
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
-        done = False
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
