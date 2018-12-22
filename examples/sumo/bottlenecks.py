@@ -53,7 +53,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
         car_following_params=SumoCarFollowingParams(
             speed_mode=25,
         ),
-        sumo_lc_params=SumoLaneChangeParams(
+        lane_change_params=SumoLaneChangeParams(
             lane_change_mode=1621,
         ),
         num_vehicles=1)

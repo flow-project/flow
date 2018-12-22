@@ -52,7 +52,7 @@ vehicles.add(
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=6,
     car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
-    sumo_lc_params=SumoLaneChangeParams())
+    lane_change_params=SumoLaneChangeParams())
 # A single learning agent in the inner ring
 vehicles.add(
     veh_id='rl',
@@ -65,7 +65,7 @@ vehicles.add(
         tau=0.5,
         speed_mode="no_collide",
     ),
-    sumo_lc_params=SumoLaneChangeParams())
+    lane_change_params=SumoLaneChangeParams())
 # Outer ring vehicles
 vehicles.add(
     veh_id='merge-human',
@@ -76,7 +76,7 @@ vehicles.add(
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=10,
     car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
-    sumo_lc_params=SumoLaneChangeParams())
+    lane_change_params=SumoLaneChangeParams())
 
 flow_params = dict(
     # name of the experiment

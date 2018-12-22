@@ -76,7 +76,7 @@ class Vehicles:
             initial_speed=0,
             num_vehicles=1,
             car_following_params=None,
-            sumo_lc_params=None):
+            lane_change_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -101,20 +101,20 @@ class Vehicles:
             number of vehicles of this type to be added to the network
         car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
-        sumo_lc_params : flow.core.params.SumoLaneChangeParams
+        lane_change_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
         if car_following_params is None:
             # FIXME: depends on simulator
             car_following_params = SumoCarFollowingParams()
 
-        if sumo_lc_params is None:
+        if lane_change_params is None:
             # FIXME: depends on simulator
-            sumo_lc_params = SumoLaneChangeParams()
+            lane_change_params = SumoLaneChangeParams()
 
         type_params = {}
         type_params.update(car_following_params.controller_params)
-        type_params.update(sumo_lc_params.controller_params)
+        type_params.update(lane_change_params.controller_params)
 
         # If a vehicle is not sumo or RL, let the minGap be zero so that it
         # does not tamper with the dynamics of the controller
@@ -130,7 +130,7 @@ class Vehicles:
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,  # TODO: remove
              "car_following_params": car_following_params,
-             "sumo_lc_params": sumo_lc_params}
+             "lane_change_params": lane_change_params}
 
         self.initial.append({
             "veh_id":
@@ -147,8 +147,8 @@ class Vehicles:
                 num_vehicles,
             "car_following_params":
                 car_following_params,
-            "sumo_lc_params":
-                sumo_lc_params
+            "lane_change_params":
+                lane_change_params
         })
 
         # this is used to return the actual headways from the vehicles class
@@ -413,7 +413,7 @@ class Vehicles:
 
         # set the lane changing mode for the vehicle
         lc_mode = self.type_parameters[veh_type][
-            "sumo_lc_params"].lane_change_mode
+            "lane_change_params"].lane_change_mode
         env.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
         # make sure that the order of rl_ids is kept sorted

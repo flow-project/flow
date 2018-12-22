@@ -58,7 +58,7 @@ def minicity_example(render=None,
         car_following_params=SumoCarFollowingParams(
             speed_mode=1,
         ),
-        sumo_lc_params=SumoLaneChangeParams(
+        lane_change_params=SumoLaneChangeParams(
             lane_change_mode="no_lat_collide",
         ),
         initial_speed=0,

@@ -47,7 +47,7 @@ def bay_bridge_example(render=None,
         speedDev=0.2,
         speed_mode="all_checks",
     )
-    sumo_lc_params = SumoLaneChangeParams(
+    lane_change_params = SumoLaneChangeParams(
         lc_assertive=20,
         lc_pushy=0.8,
         lc_speed_gain=4.0,
@@ -62,7 +62,7 @@ def bay_bridge_example(render=None,
         acceleration_controller=(SimCarFollowingController, {}),
         routing_controller=(BayBridgeRouter, {}),
         car_following_params=car_following_params,
-        sumo_lc_params=sumo_lc_params,
+        lane_change_params=lane_change_params,
         num_vehicles=1400)
 
     additional_env_params = {}

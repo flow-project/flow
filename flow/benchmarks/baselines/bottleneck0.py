@@ -46,7 +46,7 @@ def bottleneck0_baseline(num_runs, render=True):
                      speed_mode=9,
                  ),
                  routing_controller=(ContinuousRouter, {}),
-                 sumo_lc_params=SumoLaneChangeParams(
+                 lane_change_params=SumoLaneChangeParams(
                      lane_change_mode=0,
                  ),
                  num_vehicles=1 * SCALING)

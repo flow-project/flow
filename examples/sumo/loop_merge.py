@@ -46,7 +46,7 @@ def loop_merge_example(render=None):
             tau=0.5,
             speed_mode="no_collide",
         ),
-        sumo_lc_params=SumoLaneChangeParams())
+        lane_change_params=SumoLaneChangeParams())
     vehicles.add(
         veh_id="merge-idm",
         acceleration_controller=(IDMController, {}),
@@ -58,7 +58,7 @@ def loop_merge_example(render=None):
             tau=0.5,
             speed_mode="no_collide",
         ),
-        sumo_lc_params=SumoLaneChangeParams())
+        lane_change_params=SumoLaneChangeParams())
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
