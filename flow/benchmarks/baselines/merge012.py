@@ -6,7 +6,7 @@ Baseline is no AVs.
 import numpy as np
 from flow.core.experiment import SumoExperiment
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.benchmarks.merge0 import flow_params
 
 
@@ -32,7 +32,7 @@ def merge_baseline(num_runs, render=True):
     env_params = flow_params['env']
     net_params = flow_params['net']
     initial_config = flow_params.get('initial', InitialConfig())
-    traffic_lights = flow_params.get('tls', TrafficLights())
+    traffic_lights = flow_params.get('tls', TrafficLightParams())
 
     # modify the rendering to match what is requested
     sumo_params.render = render
