@@ -199,32 +199,19 @@ class Env(*classdef):
         self.setup_initial_state()
 
     def setup_initial_state(self):
-        """Return information on the initial state of vehicles in the network.
+        """Store information on the initial state of vehicles in the network.
 
         This information is to be used upon reset. This method also adds this
         information to the self.vehicles class and starts a subscription with
         sumo to collect state information each step.
-
-        Returns
-        -------
-        initial_observations: dictionary
-            key = vehicles IDs
-            value = state describing car at the start of the rollout
-        initial_state: dictionary
-            key = vehicles IDs
-            value = sparse state information (only what is needed to add a
-            vehicle in a sumo network with traci)
         """
         # determine whether to shuffle the vehicles
         if self.scenario.initial_config.shuffle:
             random.shuffle(self.initial_ids)
 
         # generate starting position for vehicles in the network
-        kwargs = self.scenario.initial_config.additional_params
         start_pos, start_lanes = self.scenario.generate_starting_positions(
-            num_vehicles=self.scenario.vehicles.num_vehicles,
-            **kwargs
-        )
+            num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
         for i, veh_id in enumerate(self.initial_ids):
@@ -494,7 +481,7 @@ class Env(*classdef):
         self.update_vehicle_colors()
 
         # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) != self.vehicles.num_vehicles:
+        if len(self.initial_ids) < self.vehicles.num_vehicles:
             logging.error("Not enough vehicles have spawned! Bad start?")
             sys.exit()
 

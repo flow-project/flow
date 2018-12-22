@@ -327,7 +327,7 @@ class TestWarmUpSteps(unittest.TestCase):
         env, scenario = ring_road_exp_setup(env_params=env_params)
 
         # time before running a reset
-        t1 = env.time_counter
+        t1 = 0
         # perform a reset
         env.reset()
         # time after a reset

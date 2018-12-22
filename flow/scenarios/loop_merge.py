@@ -242,30 +242,21 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         return internal_edgestarts
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles):
         """See parent class.
 
         Vehicles with the prefix "merge" are placed in the merge ring,
         while all other vehicles are placed in the ring.
         """
         x0 = initial_config.x0
-        # changes to x0 in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
 
-        random_scale = \
-            self.initial_config.additional_params.get("gaussian_scale", 0)
+        random_scale = initial_config.additional_params.get(
+            "gaussian_scale", 0)
 
         bunching = initial_config.bunching
-        # changes to bunching in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "bunching" in kwargs:
-            bunching = kwargs["bunching"]
 
-        merge_bunching = 0
-        if "merge_bunching" in initial_config.additional_params:
-            merge_bunching = initial_config.additional_params["merge_bunching"]
+        merge_bunching = initial_config.additional_params.get(
+            "merge_bunching", 0)
 
         num_vehicles = self.vehicles.num_vehicles
         num_merge_vehicles = \
@@ -286,8 +277,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 / (num_vehicles - num_merge_vehicles)
 
             # x = [x0] * initial_config.lanes_distribution
-            if self.initial_config.additional_params.get(
-                    "ring_from_right", False):
+            if initial_config.additional_params.get("ring_from_right", False):
                 x = [dict(self.edgestarts)["right"]] * \
                     self.net_params.additional_params["inner_lanes"]
             else:
@@ -340,8 +330,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 (length_merge - merge_bunching) * \
                 initial_config.lanes_distribution / num_merge_vehicles
 
-            if self.initial_config.additional_params.get(
-                    "merge_from_top", False):
+            if initial_config.additional_params.get("merge_from_top", False):
                 x = [dict(self.edgestarts)["top"] - x0] * \
                     self.net_params.additional_params["outer_lanes"]
             else:
@@ -374,7 +363,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 startpositions.append(pos)
                 startlanes.append(lane_count)
 
-                if self.initial_config.additional_params.get(
+                if initial_config.additional_params.get(
                         "merge_from_top", False):
                     x[lane_count] = x[lane_count] - increment_merge + \
                         random_scale*np.random.randn()
