@@ -79,7 +79,8 @@ If you are using an unsupported operating system (e.g. Arch Linux), or the
 binaries provided by the above scripts are no compatible with your machine, you
 will have to personally build the SUMO binary files. For more, please see
 section 1.e or refer to SUMO's
-`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
+`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_. **NOTE**:
+Flow is not currently compatible with the most up to date version of SUMO.
 
 Finally, test your SUMO install and version by running the following commands.
 Note that, if the below commands do not work, you may need to run
