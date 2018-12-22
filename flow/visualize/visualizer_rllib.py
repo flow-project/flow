@@ -67,8 +67,8 @@ def visualizer_rllib(args):
 
     # hack for old pkl files
     # TODO(ev) remove eventually
-    sumo_params = flow_params['sumo']
-    setattr(sumo_params, 'num_clients', 1)
+    sim_params = flow_params['sim']
+    setattr(sim_params, 'num_clients', 1)
 
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(
@@ -97,26 +97,26 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    sumo_params.restart_instance = False
+    sim_params.restart_instance = False
 
-    sumo_params.emission_path = './test_time_rollout/'
+    sim_params.emission_path = './test_time_rollout/'
 
     # prepare for rendering
     if args.render_mode == 'sumo_web3d':
-        sumo_params.num_clients = 2
-        sumo_params.render = False
+        sim_params.num_clients = 2
+        sim_params.render = False
     elif args.render_mode == 'drgb':
-        sumo_params.render = 'drgb'
-        sumo_params.pxpm = 4
+        sim_params.render = 'drgb'
+        sim_params.pxpm = 4
     elif args.render_mode == 'sumo_gui':
-        sumo_params.render = True
+        sim_params.render = True
     elif args.render_mode == 'no_render':
-        sumo_params.render = False
+        sim_params.render = False
 
     if args.save_render:
-        sumo_params.render = 'drgb'
-        sumo_params.pxpm = 4
-        sumo_params.save_render = True
+        sim_params.render = 'drgb'
+        sim_params.pxpm = 4
+        sim_params.save_render = True
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -153,7 +153,7 @@ def visualizer_rllib(args):
     agent.restore(checkpoint)
 
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+        env_params=env_params, sim_params=sim_params, scenario=scenario))
 
     if multiagent:
         rets = {}

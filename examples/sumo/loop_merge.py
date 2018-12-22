@@ -18,7 +18,7 @@ def loop_merge_example(render=None):
     Parameters
     ----------
     render : bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -26,11 +26,11 @@ def loop_merge_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a loop merge.
     """
-    sumo_params = SumoParams(
+    sim_params = SumoParams(
         sim_step=0.1, emission_path="./data/", render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
     # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
@@ -79,7 +79,7 @@ def loop_merge_example(render=None):
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
     return SumoExperiment(env)
 

@@ -338,7 +338,7 @@ class TestCustomization(unittest.TestCase):
         self.env.reset()
 
         # Calculate multiplier, because phases are in seconds
-        sim_multiplier = int(1 / self.env.sumo_params.sim_step)
+        sim_multiplier = int(1 / self.env.sim_params.sim_step)
 
         # Check that the phases occur for the correct amount of time
         for i in range(self.green * sim_multiplier - 1):
