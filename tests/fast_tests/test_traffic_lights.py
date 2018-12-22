@@ -6,7 +6,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.params import NetParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.controllers.routing_controllers import GridRouter
 from flow.controllers.car_following_models import IDMController
 
@@ -224,7 +224,7 @@ class TestItRuns(unittest.TestCase):
         env, scenario = grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
-        self.exp = SumoExperiment(env)
+        self.exp = Experiment(env)
 
     def tearDown(self):
         # free data used by the class
@@ -281,7 +281,7 @@ class TestIndividualLights(unittest.TestCase):
         env, scenario = grid_mxn_exp_setup(
             row_num=1, col_num=4, tl_logic=tl_logic)
 
-        self.exp = SumoExperiment(env)
+        self.exp = Experiment(env)
 
     def tearDown(self):
         # free data used by the class

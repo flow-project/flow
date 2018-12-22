@@ -1,7 +1,7 @@
 """Example of an open multi-lane network with human-driven vehicles."""
 
 from flow.controllers import IDMController
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
 from flow.core.vehicles import Vehicles
@@ -21,7 +21,7 @@ def highway_example(render=None):
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
@@ -70,7 +70,7 @@ def highway_example(render=None):
 
     env = LaneChangeAccelEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":
