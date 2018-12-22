@@ -151,9 +151,11 @@ class AimsunKernelVehicle(KernelVehicle):
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[type_id]["acceleration_controller"]
+        sumo_cf_params = \
+            self.type_parameters[type_id]["sumo_car_following_params"]
         self.__vehicles[veh_id]["acc_controller"] = \
             accel_controller[0](veh_id,
-        #                        sumo_cf_params=sumo_cf_params,#TODO check this
+                                sumo_cf_params=sumo_cf_params,  # TODO check this
                                 **accel_controller[1])
 
         # specify the lane-changing controller class
@@ -176,9 +178,9 @@ class AimsunKernelVehicle(KernelVehicle):
             self.num_rl_vehicles += 1
         else:
             self.__human_ids.append(veh_id)
-            if accel_controller[0] != SumoCarFollowingController: #TODO maybe AimsunCarFollowingController
+            if accel_controller[0] != SumoCarFollowingController:  # TODO maybe AimsunCarFollowingController
                 self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SumoLaneChangeController: #TODO maybe AimsunLaneChangeController
+            if lc_controller[0] != SumoLaneChangeController:  # TODO maybe AimsunLaneChangeController
                 self.__controlled_lc_ids.append(veh_id)
 
         # add vehicle in Aimsun

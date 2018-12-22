@@ -2,6 +2,9 @@
 from flow.core.kernel.simulation.base import KernelSimulation
 import subprocess
 import os
+# import sys
+# sys.path.append('/home/yashar/Aimsun_Next_8_3_0/programming/Aimsun Next API/AAPIPython/Micro')
+
 
 try:
     # Load user config if exists, else load default config
@@ -73,6 +76,9 @@ class AimsunKernelSimulation(KernelSimulation):
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
         subprocess.Popen(aimsun_call)
+        
+        # import AAPI as aimsun_api
+        return 1001 #aimsun_api
 
     def simulation_step(self):
         """Advance the simulation by one step.
