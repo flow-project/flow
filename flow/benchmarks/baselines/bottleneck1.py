@@ -42,7 +42,7 @@ def bottleneck1_baseline(num_runs, render=True):
     # we want no autonomous vehicles in the simulation
     vehicles = Vehicles()
     vehicles.add(veh_id='human',
-                 sumo_car_following_params=SumoCarFollowingParams(
+                 car_following_params=SumoCarFollowingParams(
                      speed_mode=9,
                  ),
                  routing_controller=(ContinuousRouter, {}),

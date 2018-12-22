@@ -37,7 +37,7 @@ vehicles.add(
     veh_id="human",
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
     sumo_lc_params=SumoLaneChangeParams(
@@ -52,7 +52,7 @@ vehicles.add(
     }),
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
     sumo_lc_params=SumoLaneChangeParams(

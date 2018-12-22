@@ -39,14 +39,14 @@ vehicles = Vehicles()
 vehicles.add(
     veh_id="human",
     acceleration_controller=(SimCarFollowingController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=5)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=0)

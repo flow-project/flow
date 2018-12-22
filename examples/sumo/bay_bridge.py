@@ -43,7 +43,7 @@ def bay_bridge_example(render=None,
     if render is not None:
         sumo_params.render = render
 
-    sumo_car_following_params = SumoCarFollowingParams(
+    car_following_params = SumoCarFollowingParams(
         speedDev=0.2,
         speed_mode="all_checks",
     )
@@ -61,7 +61,7 @@ def bay_bridge_example(render=None,
         veh_id="human",
         acceleration_controller=(SimCarFollowingController, {}),
         routing_controller=(BayBridgeRouter, {}),
-        sumo_car_following_params=sumo_car_following_params,
+        car_following_params=car_following_params,
         sumo_lc_params=sumo_lc_params,
         num_vehicles=1400)
 

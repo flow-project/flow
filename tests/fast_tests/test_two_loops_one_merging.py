@@ -22,7 +22,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=1)
@@ -30,7 +30,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=5)
@@ -38,7 +38,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             veh_id="merge-idm",
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=5)

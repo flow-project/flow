@@ -95,7 +95,7 @@ def run_task(*_):
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(SimCarFollowingController, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             min_gap=2.5, tau=1.1, max_speed=v_enter, speed_mode="all_checks"),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)

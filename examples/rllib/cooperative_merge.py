@@ -51,7 +51,7 @@ vehicles.add(
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=6,
-    sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+    car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
     sumo_lc_params=SumoLaneChangeParams())
 # A single learning agent in the inner ring
 vehicles.add(
@@ -60,7 +60,7 @@ vehicles.add(
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=1,
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         minGap=0.01,
         tau=0.5,
         speed_mode="no_collide",
@@ -75,7 +75,7 @@ vehicles.add(
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=10,
-    sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+    car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
     sumo_lc_params=SumoLaneChangeParams())
 
 flow_params = dict(

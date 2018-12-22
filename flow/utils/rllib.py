@@ -84,13 +84,14 @@ def get_flow_params(config):
             rt_class = getattr(module, veh_params['routing_controller'][0])
             rt_controller = (rt_class, veh_params['routing_controller'][1])
 
-        sumo_cf_params = SumoCarFollowingParams()
-        sumo_cf_params.__dict__ = veh_params["sumo_car_following_params"]
+        # TODO: make ambiguous
+        car_following_params = SumoCarFollowingParams()
+        car_following_params.__dict__ = veh_params["car_following_params"]
 
         sumo_lc_params = SumoLaneChangeParams()
         sumo_lc_params.__dict__ = veh_params["sumo_lc_params"]
 
-        del veh_params["sumo_car_following_params"], \
+        del veh_params["car_following_params"], \
             veh_params["sumo_lc_params"], \
             veh_params["acceleration_controller"], \
             veh_params["lane_change_controller"], \
@@ -100,7 +101,7 @@ def get_flow_params(config):
             acceleration_controller=acc_controller,
             lane_change_controller=lc_controller,
             routing_controller=rt_controller,
-            sumo_car_following_params=sumo_cf_params,
+            car_following_params=car_following_params,
             sumo_lc_params=sumo_lc_params,
             **veh_params)
 
