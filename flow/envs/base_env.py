@@ -225,6 +225,7 @@ class Env(*classdef):
 
         # generate starting position for vehicles in the network
         start_pos, start_lanes = self.k.scenario.generate_starting_positions(
+            initial_config=self.scenario.initial_config,
             num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
