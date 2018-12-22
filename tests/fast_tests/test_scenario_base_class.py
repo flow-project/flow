@@ -224,7 +224,7 @@ class TestEvenStartPos(unittest.TestCase):
         )
 
         # get the positions of all vehicles
-        veh_pos = np.array([self.scenario.get_x(pos[0], pos[1])
+        veh_pos = np.array([self.env.k.scenario.get_x(pos[0], pos[1])
                             for pos in startpos])
 
         # difference in position between the nth vehicle and the vehicle ahead
