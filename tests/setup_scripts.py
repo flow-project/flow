@@ -200,6 +200,9 @@ def figure_eight_exp_setup(sumo_params=None,
     env = AccelEnv(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
+    # reset the environment
+    env.reset()
+
     return env, scenario
 
 
@@ -290,6 +293,9 @@ def highway_exp_setup(sumo_params=None,
     # create the environment
     env = AccelEnv(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+
+    # reset the environment
+    env.reset()
 
     return env, scenario
 
@@ -407,6 +413,9 @@ def grid_mxn_exp_setup(row_num=1,
     env = GreenWaveTestEnv(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
+    # reset the environment
+    env.reset()
+
     return env, scenario
 
 
@@ -499,6 +508,9 @@ def variable_lanes_exp_setup(sumo_params=None,
     # create the environment
     env = AccelEnv(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+
+    # reset the environment
+    env.reset()
 
     return env, scenario
 

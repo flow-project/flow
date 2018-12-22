@@ -166,7 +166,6 @@ class Env(*classdef):
         else:
             raise ValueError("Mode %s is not supported!" %
                              self.sumo_params.render)
-        self.reset()
 
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
