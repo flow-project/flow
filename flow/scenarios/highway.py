@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
@@ -25,7 +25,7 @@ class HighwayScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a highway scenario.
 
         Requires from net_params:
@@ -56,8 +56,8 @@ class HighwayScenario(Scenario):
         for i in range(num_edges+1):
             nodes += [{
                 "id": "edge_{}".format(i),
-                "x": repr(segment_lengths[i]),
-                "y": repr(0)
+                "x": segment_lengths[i],
+                "y": 0
             }]
 
         return nodes
@@ -75,7 +75,7 @@ class HighwayScenario(Scenario):
                 "type": "highwayType",
                 "from": "edge_{}".format(i),
                 "to": "edge_{}".format(i+1),
-                "length": repr(segment_length)
+                "length": segment_length
             }]
 
         return edges
@@ -87,8 +87,8 @@ class HighwayScenario(Scenario):
 
         types = [{
             "id": "highwayType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types
@@ -115,7 +115,7 @@ class HighwayScenario(Scenario):
 
         Parameters
         ----------
-        initial_config : InitialConfig type
+        initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network

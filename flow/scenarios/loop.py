@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace
 
 ADDITIONAL_NET_PARAMS = {
@@ -25,7 +25,7 @@ class LoopScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a loop scenario.
 
         Requires from net_params:
@@ -53,20 +53,20 @@ class LoopScenario(Scenario):
 
         nodes = [{
             "id": "bottom",
-            "x": repr(0),
-            "y": repr(-r)
+            "x": 0,
+            "y": -r
         }, {
             "id": "right",
-            "x": repr(r),
-            "y": repr(0)
+            "x": r,
+            "y": 0
         }, {
             "id": "top",
-            "x": repr(0),
-            "y": repr(r)
+            "x": 0,
+            "y": r
         }, {
             "id": "left",
-            "x": repr(-r),
-            "y": repr(0)
+            "x": -r,
+            "y": 0
         }]
 
         return nodes
@@ -88,12 +88,12 @@ class LoopScenario(Scenario):
             "to":
             "right",
             "length":
-            repr(edgelen),
+            edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(-pi / 2, 0, resolution)
-            ])
+            ]
         }, {
             "id":
             "right",
@@ -104,12 +104,12 @@ class LoopScenario(Scenario):
             "to":
             "top",
             "length":
-            repr(edgelen),
+            edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(0, pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
             "top",
@@ -120,12 +120,12 @@ class LoopScenario(Scenario):
             "to":
             "left",
             "length":
-            repr(edgelen),
+            edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(pi / 2, pi, resolution)
-            ])
+            ]
         }, {
             "id":
             "left",
@@ -136,12 +136,12 @@ class LoopScenario(Scenario):
             "to":
             "bottom",
             "length":
-            repr(edgelen),
+            edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(pi, 3 * pi / 2, resolution)
-            ])
+            ]
         }]
 
         return edges
@@ -153,8 +153,8 @@ class LoopScenario(Scenario):
 
         types = [{
             "id": "edgeType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types
