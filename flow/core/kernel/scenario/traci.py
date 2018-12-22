@@ -134,12 +134,12 @@ class TraCIScenario(KernelScenario):
         # TODO: delete?
         # length of the network, or the portion of the network in
         # which cars are meant to be distributed
-        self.__length = sum([
+        self.__length = sum(
             self.edge_length(edge_id) for edge_id in self.get_edge_list()
-        ])
+        )
 
         # parameters to be specified under each unique subclass's
-        # __init__() function
+        # __init__ function
         self.edgestarts = self.network.edge_starts
 
         # if no edge_starts are specified, generate default values to be used
