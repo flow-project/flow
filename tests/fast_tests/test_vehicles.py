@@ -293,7 +293,7 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -370,7 +370,7 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -440,8 +440,7 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo",
-                                   render=True),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -509,7 +508,7 @@ class TestMultiLaneData(unittest.TestCase):
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)

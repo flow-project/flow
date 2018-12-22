@@ -90,7 +90,7 @@ def run_task(*_):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=1, render=True)
+    sim_params = SumoParams(sim_step=1, render=True)
 
     vehicles = Vehicles()
     vehicles.add(
@@ -130,7 +130,7 @@ def run_task(*_):
         traffic_lights=tl_logic)
 
     env_name = "PO_TrafficLightGridEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

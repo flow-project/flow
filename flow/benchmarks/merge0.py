@@ -84,7 +84,7 @@ flow_params = dict(
     scenario="MergeScenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         restart_instance=True,
         sim_step=0.5,
         render=False,

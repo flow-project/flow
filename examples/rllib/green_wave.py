@@ -137,7 +137,7 @@ flow_params = dict(
     scenario='SimpleGridScenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=1,
         render=False,
     ),

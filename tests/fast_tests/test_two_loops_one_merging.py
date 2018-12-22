@@ -2,7 +2,7 @@ import os
 import unittest
 
 from flow.controllers import RLController, IDMController, StaticLaneChanger
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import Vehicles
@@ -14,7 +14,7 @@ os.environ["TEST_FLAG"] = "True"
 
 
 def two_loops_one_merging_exp_setup(vehicles=None):
-    sumo_params = SumoParams(sim_step=0.1, render=False)
+    sim_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         vehicles = Vehicles()
@@ -68,7 +68,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
         net_params,
         initial_config=initial_config)
 
-    env = TwoLoopsMergePOEnv(env_params, sumo_params, scenario)
+    env = TwoLoopsMergePOEnv(env_params, sim_params, scenario)
 
     return env, scenario
 
@@ -83,7 +83,7 @@ class TestLoopMerges(unittest.TestCase):
         self.env, scenario = two_loops_one_merging_exp_setup()
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env)
+        self.exp = Experiment(self.env)
 
     def tearDown(self):
         # terminate the traci instance

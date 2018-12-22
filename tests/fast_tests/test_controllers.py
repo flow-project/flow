@@ -1,6 +1,6 @@
 import unittest
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import EnvParams, InitialConfig, NetParams
 from flow.core.params import Vehicles
 from flow.core.params import SumoCarFollowingParams
@@ -317,7 +317,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
             initial_config=initial_config)
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(env)
+        self.exp = Experiment(env)
 
     def tearDown_failsafe(self):
         # free data used by the class
