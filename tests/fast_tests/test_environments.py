@@ -690,14 +690,19 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         env = DesiredVelocityEnv(env_params, sumo_params, scenario)
 
-        # check that the first inflow rate is approximately 1500
-        for _ in range(500):
-            env.step(rl_actions=None)
-        self.assertAlmostEqual(env.k.vehicle.get_inflow_rate(250)/1500, 1, 2)
-
         # reset the environment and get a new inflow rate
         env.reset()
         expected_inflow = 1353.6  # just from checking the new inflow
+
+        # check that the first inflow rate is approximately 1500
+        for _ in range(500):
+            env.step(rl_actions=None)
+        self.assertAlmostEqual(
+            env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 2)
+
+        # reset the environment and get a new inflow rate
+        env.reset()
+        expected_inflow = 1756.8  # just from checking the new inflow
 
         # check that the new inflow rate is approximately as expected
         for _ in range(500):
@@ -807,6 +812,7 @@ def test_observed(env_class,
     env = env_class(sumo_params=sumo_params,
                     scenario=scenario,
                     env_params=env_params)
+    env.reset()
     env.step(None)
     env.additional_command()
     test_mask = np.all(

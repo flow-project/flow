@@ -2,8 +2,6 @@
 
 from flow.core.kernel.scenario import KernelScenario
 from flow.core.util import makexml, printxml, ensure_dir
-import logging
-import random
 import time
 import os
 import sys
@@ -133,6 +131,7 @@ class TraCIScenario(KernelScenario):
         self.__max_speed = max(
             self.speed_limit(edge) for edge in self.get_edge_list())
 
+        # TODO: delete?
         # length of the network, or the portion of the network in
         # which cars are meant to be distributed
         self.__length = sum([
@@ -180,14 +179,6 @@ class TraCIScenario(KernelScenario):
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
-        # generate starting position for vehicles in the network
-        kwargs = self.network.initial_config.additional_params
-        positions, lanes = self.generate_starting_positions(
-            initial_config=self.network.initial_config,
-            num_vehicles=self.network.vehicles.num_vehicles,
-            **kwargs
-        )
-
         # create the sumo configuration files
         cfg_name = self.generate_cfg(self.network.net_params,
                                      self.network.traffic_lights,
@@ -196,8 +187,7 @@ class TraCIScenario(KernelScenario):
         # specify routes vehicles can take  # TODO: move into a method
         self.rts = self.network.routes
 
-        shuffle = self.network.initial_config.shuffle
-        self.make_routes(positions, lanes, shuffle)
+        self.make_routes()
 
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
@@ -667,8 +657,6 @@ class TraCIScenario(KernelScenario):
             Element = list of edges a vehicle starting from this edge must
             traverse.
         """
-        start_time = 0
-
         # specify routes vehicles can take
         self.rts = routes
 
@@ -764,39 +752,24 @@ class TraCIScenario(KernelScenario):
         cfg = makexml('configuration',
                       'http://sumo.dlr.de/xsd/sumoConfiguration.xsd')
 
-        logging.debug(self.netfn)
-
         cfg.append(
             self._inputs(
-                self.network.name,
                 net=self.netfn,
                 add=self.addfn,
                 rou=self.roufn,
                 gui=self.guifn))
         t = E('time')
-        t.append(E('begin', value=repr(start_time)))
+        t.append(E('begin', value=repr(0)))
         cfg.append(t)
 
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, positions, lanes, shuffle):
+    def make_routes(self):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
-        similar types, and well as the starting positions of vehicles. The
-        starting positions, however, may be modified in real-time (e.g. during
-        an environment reset).
-
-        Parameters
-        ----------
-        positions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        lanes : list of float
-            list of start lanes
-        shuffle : bool
-            specifies whether the vehicle IDs should be shuffled before the
-            vehicles are assigned starting positions
+        similar types, and well as the inflows of vehicles.
         """
         vehicles = self.network.vehicles
         routes = makexml('routes', 'http://sumo.dlr.de/xsd/routes_file.xsd')
@@ -809,30 +782,9 @@ class TraCIScenario(KernelScenario):
             }
             routes.append(E('vType', id=params['veh_id'], **type_params_str))
 
-        vehicle_ids = vehicles.ids
-
-        if shuffle:
-            random.shuffle(vehicle_ids)
-
-        # add the initial positions of vehicles to the xml file
-        for i, veh_id in enumerate(vehicle_ids):
-            veh_type = vehicles.get_type(veh_id)
-            edge, pos = positions[i]
-            routes.append(
-                self._vehicle(
-                    veh_type,
-                    'route' + edge,
-                    depart='0',
-                    id=veh_id,
-                    color='1,1,1',
-                    departSpeed=str(vehicles.get_initial_speed(veh_id)),
-                    departPos=str(pos),
-                    departLane=str(lanes[i])))
-
-        # add the in-flows from various edges to the xml file
-        inflows = self.network.net_params.inflows
-        if inflows is not None:
-            total_inflows = inflows.get()
+        # add the inflows from various edges to the xml file
+        if self.network.net_params.inflows is not None:
+            total_inflows = self.network.net_params.inflows.get()
             for inflow in total_inflows:
                 for key in inflow:
                     if not isinstance(inflow[key], str):
@@ -857,28 +809,12 @@ class TraCIScenario(KernelScenario):
             departPos=departPos,
             **kwargs)
 
-    def _inputs(self, name, net=None, rou=None, add=None, gui=None):
-        inp = E('input')
-        if net is not False:
-            if net is None:
-                inp.append(E('net-file', value='%s.net.xml' % name))
-            else:
-                inp.append(E('net-file', value=net))
-        if rou is not False:
-            if rou is None:
-                inp.append(E('route-files', value='%s.rou.xml' % name))
-            else:
-                inp.append(E('route-files', value=rou))
-        if add is not False:
-            if add is None:
-                inp.append(E('additional-files', value='%s.add.xml' % name))
-            else:
-                inp.append(E('additional-files', value=add))
-        if gui is not False:
-            if gui is None:
-                inp.append(E('gui-settings-file', value='%s.gui.xml' % name))
-            else:
-                inp.append(E('gui-settings-file', value=gui))
+    def _inputs(self, net=None, rou=None, add=None, gui=None):
+        inp = E("input")
+        inp.append(E("net-file", value=net))
+        inp.append(E("route-files", value=rou))
+        inp.append(E("additional-files", value=add))
+        inp.append(E("gui-settings-file", value=gui))
         return inp
 
     def _import_edges_from_net(self):
