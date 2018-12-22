@@ -40,7 +40,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         speed_mode="all_checks",
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
@@ -52,7 +52,7 @@ vehicles.add(
     car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)

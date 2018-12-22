@@ -32,7 +32,7 @@ class TestVehiclesClass(unittest.TestCase):
             car_following_params=SumoCarFollowingParams(
                 speed_mode='no_collide',
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             )
         )
@@ -40,7 +40,7 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertEqual(vehicles.type_parameters["typeA"][
                              "car_following_params"].speed_mode, 1)
         self.assertEqual(vehicles.type_parameters["typeA"][
-                             "sumo_lc_params"].lane_change_mode, 512)
+                             "lane_change_params"].lane_change_mode, 512)
 
         vehicles.add(
             "typeB",
@@ -48,7 +48,7 @@ class TestVehiclesClass(unittest.TestCase):
             car_following_params=SumoCarFollowingParams(
                 speed_mode='aggressive',
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="strategic",
             )
         )
@@ -56,7 +56,7 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertEqual(vehicles.type_parameters["typeB"][
                              "car_following_params"].speed_mode, 0)
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "sumo_lc_params"].lane_change_mode, 1621)
+                             "lane_change_params"].lane_change_mode, 1621)
 
         vehicles.add(
             "typeC",
@@ -64,7 +64,7 @@ class TestVehiclesClass(unittest.TestCase):
             car_following_params=SumoCarFollowingParams(
                 speed_mode=31,
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=277
             )
         )
@@ -72,7 +72,7 @@ class TestVehiclesClass(unittest.TestCase):
         self.assertEqual(vehicles.type_parameters["typeC"][
                              "car_following_params"].speed_mode, 31)
         self.assertEqual(vehicles.type_parameters["typeC"][
-                             "sumo_lc_params"].lane_change_mode, 277)
+                             "lane_change_params"].lane_change_mode, 277)
 
     def test_controlled_id_params(self):
         """
@@ -88,7 +88,7 @@ class TestVehiclesClass(unittest.TestCase):
             car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             ))
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
@@ -102,7 +102,7 @@ class TestVehiclesClass(unittest.TestCase):
             car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             ))
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]

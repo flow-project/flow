@@ -88,11 +88,12 @@ def get_flow_params(config):
         car_following_params = SumoCarFollowingParams()
         car_following_params.__dict__ = veh_params["car_following_params"]
 
-        sumo_lc_params = SumoLaneChangeParams()
-        sumo_lc_params.__dict__ = veh_params["sumo_lc_params"]
+        # TODO: make ambiguous
+        lane_change_params = SumoLaneChangeParams()
+        lane_change_params.__dict__ = veh_params["lane_change_params"]
 
         del veh_params["car_following_params"], \
-            veh_params["sumo_lc_params"], \
+            veh_params["lane_change_params"], \
             veh_params["acceleration_controller"], \
             veh_params["lane_change_controller"], \
             veh_params["routing_controller"]
@@ -102,7 +103,7 @@ def get_flow_params(config):
             lane_change_controller=lc_controller,
             routing_controller=rt_controller,
             car_following_params=car_following_params,
-            sumo_lc_params=sumo_lc_params,
+            lane_change_params=lane_change_params,
             **veh_params)
 
     # convert all parameters from dict to their object form

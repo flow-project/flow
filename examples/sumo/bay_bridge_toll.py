@@ -42,7 +42,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         speedDev=0.2,
         speed_mode="all_checks",
     )
-    sumo_lc_params = SumoLaneChangeParams(
+    lane_change_params = SumoLaneChangeParams(
         model="LC2013",
         lcCooperative=0.2,
         lcSpeedGain=15,
@@ -56,7 +56,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         acceleration_controller=(SimCarFollowingController, {}),
         routing_controller=(BayBridgeRouter, {}),
         car_following_params=car_following_params,
-        sumo_lc_params=sumo_lc_params,
+        lane_change_params=lane_change_params,
         num_vehicles=50)
 
     additional_env_params = {}
