@@ -1,6 +1,6 @@
 """Grid example."""
 from flow.controllers.routing_controllers import GridRouter
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
 from flow.core.params import TrafficLightParams
@@ -19,7 +19,7 @@ def grid_example(render=None):
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles and balanced traffic lights on a grid.
     """
@@ -106,7 +106,7 @@ def grid_example(render=None):
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":
