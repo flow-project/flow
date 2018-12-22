@@ -78,16 +78,16 @@ def visualizer_rllib(args):
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
-    if (args.run and config_run):
-        if (args.run != config_run):
+    if args.run and config_run:
+        if args.run != config_run:
             print('visualizer_rllib.py: error: run argument '
                   + '\'{}\' passed in '.format(args.run)
                   + 'differs from the one stored in params.json '
                   + '\'{}\''.format(config_run))
             sys.exit(1)
-    if (args.run):
+    if args.run:
         agent_cls = get_agent_class(args.run)
-    elif (config_run):
+    elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
         print('visualizer_rllib.py: error: could not find flow parameter '
@@ -101,16 +101,16 @@ def visualizer_rllib(args):
 
     sumo_params.emission_path = './test_time_rollout/'
 
-    # pick your rendering mode
-    if args.render_mode == 'sumo-web3d':
+    # prepare for rendering
+    if args.render_mode == 'sumo_web3d':
         sumo_params.num_clients = 2
         sumo_params.render = False
     elif args.render_mode == 'drgb':
         sumo_params.render = 'drgb'
         sumo_params.pxpm = 4
-    elif args.render_mode == 'sumo-gui':
+    elif args.render_mode == 'sumo_gui':
         sumo_params.render = True
-    elif args.render_mode == 'no-render':
+    elif args.render_mode == 'no_render':
         sumo_params.render = False
 
     if args.save_render:
@@ -168,7 +168,6 @@ def visualizer_rllib(args):
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
-        done = False
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
@@ -286,12 +285,11 @@ def create_parser():
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
     parser.add_argument(
-        '--render-mode',
+        '--render_mode',
         type=str,
-        default='sumo-gui',
-        help='Pick the render mode. Options include sumo-web3d, '
-             'rgbd, sumo-gui, and no-render. For more details'
-             'see the visualization tutorial.')
+        default='sumo_gui',
+        help='Pick the render mode. Options include sumo_web3d, '
+             'rgbd and sumo_gui')
     parser.add_argument(
         '--save_render',
         action='store_true',
