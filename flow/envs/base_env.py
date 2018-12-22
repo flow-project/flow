@@ -5,7 +5,6 @@ import os
 import sys
 from copy import deepcopy
 import time
-import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
@@ -93,10 +92,6 @@ class Env(*classdef):
         # simulation step size
         self.sim_step = sumo_params.sim_step
 
-        self.vehicle_arrangement_shuffle = \
-            env_params.vehicle_arrangement_shuffle
-        self.starting_position_shuffle = env_params.starting_position_shuffle
-
         # the simulator used by this environment
         self.simulator = 'aimsun'
 
@@ -180,7 +175,15 @@ class Env(*classdef):
 
         Parameters
         ----------
+<<<<<<< HEAD
         sumo_params : flow.core.params.SumoParams # TODO: make ambiguous
+=======
+<<<<<<< HEAD
+        sumo_params: SumoParams type  # TODO: make ambiguous
+=======
+        sumo_params : flow.core.params.SumoParams
+>>>>>>> kernel_scenario
+>>>>>>> kernel_vehicle
             sumo-specific parameters
         render: bool, optional
             specifies whether to use sumo's gui
@@ -207,38 +210,28 @@ class Env(*classdef):
         self.setup_initial_state()
 
     def setup_initial_state(self):
-        """Return information on the initial state of vehicles in the network.
+        """Store information on the initial state of vehicles in the network.
 
-        This information is to be used upon reset.
-
-        Returns
-        -------
-        initial_observations: dictionary
-            key = vehicles IDs
-            value = state describing car at the start of the rollout
-        initial_state: dictionary
-            key = vehicles IDs
-            value = sparse state information (only what is needed to add a
-            vehicle in a sumo network with traci)
+        This information is to be used upon reset. This method also adds this
+        information to the self.vehicles class and starts a subscription with
+        sumo to collect state information each step.
         """
-        # store new observations in the vehicles and traffic lights class
-        self.k.update(reset=True)
+        # determine whether to shuffle the vehicles
+        if self.scenario.initial_config.shuffle:
+            random.shuffle(self.initial_ids)
 
         # generate starting position for vehicles in the network
-        kwargs = self.scenario.initial_config.additional_params
-        positions, lanes = self.k.scenario.generate_starting_positions(
+        start_pos, start_lanes = self.k.scenario.generate_starting_positions(
             initial_config=self.scenario.initial_config,
-            num_vehicles=self.scenario.vehicles.num_vehicles,
-            **kwargs
-        )
+            num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
         for i, veh_id in enumerate(self.initial_ids):
             type_id = self.scenario.vehicles.get_type(veh_id)
-            pos = positions[i][1]
-            lane = lanes[i]
+            pos = start_pos[i][1]
+            lane = start_lanes[i]
             speed = self.scenario.vehicles.get_initial_speed(veh_id)
-            edge = positions[i][0]
+            edge = start_pos[i][0]
 
             self.initial_state[veh_id] = (type_id, edge, lane, pos, speed)
 
@@ -393,14 +386,8 @@ class Env(*classdef):
         the environment, and re-initializes the vehicles in their starting
         positions.
 
-        If "vehicle_arrangement_shuffle" is set to True in env_params, the
-        vehicles swap initial positions with one another. Also, if a
-        "starting_position_shuffle" is set to True, the initial position of
-        vehicles are redone.
-
-        If "warmup_steps" is set to a value greater than 0, then this method
-        also runs the necessary number of warmup steps before beginning
-        training, with actions to the agents being assigned by the simulator.
+        If "shuffle" is set to True in InitialConfig, the initial positions of
+        vehicles is recalculated and the vehicles are shuffled.
 
         Returns
         -------
@@ -437,41 +424,15 @@ class Env(*classdef):
             self.restart_sumo(self.sumo_params)
 
         # perform shuffling (if requested)
-        if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
-            if self.starting_position_shuffle:
-                x0 = np.random.uniform(0, self.k.scenario.length())
-            else:
-                x0 = self.initial_config.x0
-
-            veh_ids = deepcopy(self.initial_ids)
-            if self.vehicle_arrangement_shuffle:
-                random.shuffle(veh_ids)
-
-            initial_positions, initial_lanes = \
-                self.k.scenario.generate_starting_positions(
-                    initial_config=self.initial_config,
-                    num_vehicles=len(self.initial_ids), x0=x0)
-
-            initial_state = dict()
-            for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]
-
-                # replace initial routes, lanes, positions, and speeds to
-                # reflect new values
-                list_initial_state = list(self.initial_state[veh_id])
-                list_initial_state[1] = route_id
-                list_initial_state[2] = initial_lanes[i]
-                list_initial_state[3] = initial_positions[i][1]
-                initial_state[veh_id] = tuple(list_initial_state)
-
-            self.initial_state = deepcopy(initial_state)
+        elif self.scenario.initial_config.shuffle:
+            self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
         # for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
         #     try:
         #         self.k.vehicle.remove(veh_id)
         #     except (FatalTraCIError, TraCIException):
-        #         print("Error during start: {}".format(traceback.format_exc()))
+        #         pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -479,7 +440,7 @@ class Env(*classdef):
             try:
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+                pass
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -515,6 +476,11 @@ class Env(*classdef):
         # update the colors of vehicles
         if self.sumo_params.render:
             self.k.vehicle.update_vehicle_colors()
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) < self.k.vehicle.num_vehicles:
+            logging.error("Not enough vehicles have spawned! Bad start?")
+            sys.exit()
 
         # collect list of sorted vehicle ids
         self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
