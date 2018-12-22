@@ -306,7 +306,7 @@ class Scenario(Serializable):
         raise NotImplementedError
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         Parameters
@@ -317,9 +317,6 @@ class Scenario(Serializable):
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
 
         Returns
         -------
