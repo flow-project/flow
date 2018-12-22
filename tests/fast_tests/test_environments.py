@@ -692,7 +692,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1353.6  # just from checking the new inflow
+        expected_inflow = 1343.178  # just from checking the new inflow
 
         # check that the first inflow rate is approximately 1500
         for _ in range(500):
@@ -702,7 +702,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1756.8  # just from checking the new inflow
+        expected_inflow = 1729.050  # just from checking the new inflow
 
         # check that the new inflow rate is approximately as expected
         for _ in range(500):

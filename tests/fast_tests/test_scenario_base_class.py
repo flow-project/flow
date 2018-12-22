@@ -223,7 +223,8 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos(initial_config)
 
         startpos, _ = self.env.k.scenario.generate_starting_positions(
-            initial_config=initial_config)
+            initial_config=initial_config
+        )
 
         # get the positions of all vehicles
         veh_pos = np.array([self.env.k.scenario.get_x(pos[0], pos[1])
