@@ -109,6 +109,9 @@ def ring_road_exp_setup(sumo_params=None,
     env = AccelEnv(
         env_params=env_params, sumo_params=sumo_params, scenario=scenario)
 
+    # reset the environment
+    env.reset()
+
     return env, scenario
 
 

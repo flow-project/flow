@@ -103,14 +103,14 @@ class TrafficLightGridEnv(Env):
                     'center' + str(i), "GGGrrrGGGrrr")
                 self.last_change[i, 2] = 1
 
-        # Additional Information for Plotting
-        self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
-        for i, veh_id in enumerate(self.vehicles.get_ids()):
-            edge = self.vehicles.get_edge(veh_id)
-            for key in self.edge_mapping:
-                if key in edge:
-                    self.edge_mapping[key].append(i)
-                    break
+        # # Additional Information for Plotting
+        # self.edge_mapping = {"top": [], "bot": [], "right": [], "left": []}
+        # for i, veh_id in enumerate(self.vehicles.get_ids()):
+        #     edge = self.vehicles.get_edge(veh_id)
+        #     for key in self.edge_mapping:
+        #         if key in edge:
+        #             self.edge_mapping[key].append(i)
+        #             break
 
         # check whether the action space is meant to be discrete or continuous
         self.discrete = env_params.additional_params.get("discrete", False)

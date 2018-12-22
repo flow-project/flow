@@ -65,7 +65,7 @@ class MultiLoopScenario(Scenario):
 
         return edgestarts
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles):
         """Generate uniformly spaced starting positions.
 
         It is assumed that there are an equal number of vehicles per ring.
@@ -80,9 +80,6 @@ class MultiLoopScenario(Scenario):
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
 
         Returns
         -------
@@ -93,7 +90,7 @@ class MultiLoopScenario(Scenario):
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
-            self._get_start_pos_util(initial_config, num_vehicles, **kwargs)
+            self._get_start_pos_util(initial_config, num_vehicles)
 
         increment = available_length / num_vehicles
         vehs_per_ring = num_vehicles / self.num_rings

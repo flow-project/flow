@@ -109,7 +109,7 @@ class HighwayScenario(Scenario):
                       for i in range(self.num_edges)]
         return edgestarts
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
         This method is just used for testing.
 
@@ -119,9 +119,6 @@ class HighwayScenario(Scenario):
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
 
         Returns
         -------
@@ -130,4 +127,5 @@ class HighwayScenario(Scenario):
         startlanes : list of int
             list of start lanes
         """
-        return kwargs["start_positions"], kwargs["start_lanes"]
+        return initial_config.additional_params["start_positions"], \
+            initial_config.additional_params["start_lanes"]
