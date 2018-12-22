@@ -216,7 +216,7 @@ class SimParams(object):
             * "drgb": dynamic RGB rendering, which is good for visualization
 
         restart_instance: bool, optional
-            specifies whether to restart a sumo instance upon reset. Restarting
+            specifies whether to restart a simulation upon reset. Restarting
             the instance helps avoid slowdowns cause by excessive inflows over
             large experiment runtimes, but also require the gui to be started
             after every reset if "render" is set to True.

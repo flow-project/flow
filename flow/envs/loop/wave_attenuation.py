@@ -190,7 +190,7 @@ class WaveAttenuationEnv(Env):
         print('-----------------------')
 
         # restart the sumo instance
-        self.restart_sumo(
+        self.restart_simulation(
             sim_params=self.sim_params,
             render=self.sim_params.render)
 
