@@ -2,7 +2,6 @@
 
 from flow.core.kernel.scenario import KernelScenario
 from flow.core.util import makexml, printxml, ensure_dir
-import random
 import time
 import os
 import sys
@@ -132,6 +131,7 @@ class TraCIScenario(KernelScenario):
         self.__max_speed = max(
             self.speed_limit(edge) for edge in self.get_edge_list())
 
+        # TODO: delete?
         # length of the network, or the portion of the network in
         # which cars are meant to be distributed
         self.__length = sum([
@@ -179,14 +179,6 @@ class TraCIScenario(KernelScenario):
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
 
-        # generate starting position for vehicles in the network
-        kwargs = self.network.initial_config.additional_params
-        positions, lanes = self.generate_starting_positions(
-            initial_config=self.network.initial_config,
-            num_vehicles=self.network.vehicles.num_vehicles,
-            **kwargs
-        )
-
         # create the sumo configuration files
         cfg_name = self.generate_cfg(self.network.net_params,
                                      self.network.traffic_lights,
@@ -195,8 +187,7 @@ class TraCIScenario(KernelScenario):
         # specify routes vehicles can take  # TODO: move into a method
         self.rts = self.network.routes
 
-        shuffle = self.network.initial_config.shuffle
-        self.make_routes(positions, lanes, shuffle)
+        self.make_routes()
 
         # specify the location of the sumo configuration file
         self.cfg = self.cfg_path + cfg_name
@@ -774,23 +765,11 @@ class TraCIScenario(KernelScenario):
         printxml(cfg, self.cfg_path + self.sumfn)
         return self.sumfn
 
-    def make_routes(self, positions, lanes, shuffle):
+    def make_routes(self):
         """Generate .rou.xml files using net files and netconvert.
 
         This file specifies the sumo-specific properties of vehicles with
-        similar types, and well as the starting positions of vehicles. The
-        starting positions, however, may be modified in real-time (e.g. during
-        an environment reset).
-
-        Parameters
-        ----------
-        positions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        lanes : list of float
-            list of start lanes
-        shuffle : bool
-            specifies whether the vehicle IDs should be shuffled before the
-            vehicles are assigned starting positions
+        similar types, and well as the inflows of vehicles.
         """
         vehicles = self.network.vehicles
         routes = makexml('routes', 'http://sumo.dlr.de/xsd/routes_file.xsd')
@@ -803,30 +782,9 @@ class TraCIScenario(KernelScenario):
             }
             routes.append(E('vType', id=params['veh_id'], **type_params_str))
 
-        vehicle_ids = vehicles.get_ids()
-
-        if shuffle:
-            random.shuffle(vehicle_ids)
-
-        # add the initial positions of vehicles to the xml file
-        for i, veh_id in enumerate(vehicle_ids):
-            veh_type = vehicles.get_type(veh_id)
-            edge, pos = positions[i]
-            routes.append(
-                self._vehicle(
-                    veh_type,
-                    'route' + edge,
-                    depart='0',
-                    id=veh_id,
-                    color='1,1,1',
-                    departSpeed=str(vehicles.get_initial_speed(veh_id)),
-                    departPos=str(pos),
-                    departLane=str(lanes[i])))
-
-        # add the in-flows from various edges to the xml file
-        inflows = self.network.net_params.inflows
-        if inflows is not None:
-            total_inflows = inflows.get()
+        # add the inflows from various edges to the xml file
+        if self.network.net_params.inflows is not None:
+            total_inflows = self.network.net_params.inflows.get()
             for inflow in total_inflows:
                 for key in inflow:
                     if not isinstance(inflow[key], str):

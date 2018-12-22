@@ -202,10 +202,7 @@ class KernelScenario(object):
     #            Methods for generating initial vehicle positions.            #
     ###########################################################################
 
-    def generate_starting_positions(self,
-                                    initial_config,
-                                    num_vehicles=None,
-                                    **kwargs):
+    def generate_starting_positions(self, initial_config, num_vehicles=None):
         """Generate starting positions for vehicles in the network.
 
         Calls all other starting position generating classes.
@@ -217,9 +214,6 @@ class KernelScenario(object):
         num_vehicles : int, optional
             number of vehicles to be placed on the network. If no value is
             specified, the value is collected from the vehicles class
-        kwargs : dict
-            additional arguments that may be updated beyond initial
-            configurations, such as modifying the starting position
 
         Returns
         -------
@@ -232,20 +226,20 @@ class KernelScenario(object):
 
         if initial_config.spacing == "uniform":
             startpositions, startlanes = self.gen_even_start_pos(
-                initial_config, num_vehicles, **kwargs)
+                initial_config, num_vehicles)
         elif initial_config.spacing == "random":
             startpositions, startlanes = self.gen_random_start_pos(
-                initial_config, num_vehicles, **kwargs)
+                initial_config, num_vehicles)
         elif initial_config.spacing == "custom":
             startpositions, startlanes = self.gen_custom_start_pos(
-                initial_config, num_vehicles, **kwargs)
+                initial_config, num_vehicles)
         else:
             raise ValueError('"spacing" argument in initial_config does not '
                              'contain a valid option')
 
         return startpositions, startlanes
 
-    def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
+    def gen_even_start_pos(self, initial_config, num_vehicles):
         """Generate uniformly spaced starting positions.
 
         If the perturbation term in initial_config is set to some positive
@@ -259,9 +253,6 @@ class KernelScenario(object):
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
 
         Returns
         -------
@@ -272,7 +263,7 @@ class KernelScenario(object):
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
-            self._get_start_pos_util(initial_config, num_vehicles, **kwargs)
+            self._get_start_pos_util(initial_config, num_vehicles)
 
         # return an empty list of starting positions and lanes if there are no
         # vehicles to be placed
@@ -352,7 +343,7 @@ class KernelScenario(object):
 
         return startpositions, startlanes
 
-    def gen_random_start_pos(self, initial_config, num_vehicles, **kwargs):
+    def gen_random_start_pos(self, initial_config, num_vehicles):
         """Generate random starting positions.
 
         Parameters
@@ -361,9 +352,6 @@ class KernelScenario(object):
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
 
         Returns
         -------
@@ -374,7 +362,7 @@ class KernelScenario(object):
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = self._get_start_pos_util(
-            initial_config, num_vehicles, **kwargs)
+            initial_config, num_vehicles)
 
         # extra space a vehicle needs to cover from the start of an edge to be
         # fully in the edge and not risk having a gap with a vehicle behind it
@@ -429,7 +417,7 @@ class KernelScenario(object):
 
         return startpositions, startlanes
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(self, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         This is called straight from the scenario class.
@@ -440,9 +428,6 @@ class KernelScenario(object):
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
 
         Returns
         -------
@@ -455,10 +440,9 @@ class KernelScenario(object):
             cls=self,
             initial_config=initial_config,
             num_vehicles=num_vehicles,
-            **kwargs
         )
 
-    def _get_start_pos_util(self, initial_config, num_vehicles, **kwargs):
+    def _get_start_pos_util(self, initial_config, num_vehicles):
         """Prepare initial_config data for starting position methods.
 
         Performs some pre-processing to the initial_config and **kwargs terms,
@@ -471,9 +455,6 @@ class KernelScenario(object):
             see flow/core/params.py
         num_vehicles : int
             number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
 
         Returns
         -------
@@ -499,21 +480,11 @@ class KernelScenario(object):
         """
         min_gap = max(0, initial_config.min_gap)
 
-        x0 = initial_config.x0
-        # changes to x0 in kwargs suggests a switch in between rollouts, and so
-        # overwrites anything in initial_config
-        if "x0" in kwargs:
-            x0 = kwargs["x0"]
-
         bunching = initial_config.bunching
         # check if requested bunching value is not valid (negative)
-        if bunching < 0:
+        if initial_config.bunching < 0:
             logging.warning('"bunching" cannot be negative; setting to 0')
-            bunching = 0
-        # changes to bunching in kwargs suggests a switch in between rollouts,
-        #  and so overwrites anything in initial_config
-        if "bunching" in kwargs:
-            bunching = kwargs["bunching"]
+            initial_config.bunching = 0
 
         # compute the lanes distribution (adjust of edge cases)
         if initial_config.edges_distribution == "all":
@@ -563,5 +534,5 @@ class KernelScenario(object):
             raise ValueError("There is not enough space to place all vehicles "
                              "in the network.")
 
-        return (x0, min_gap, bunching, lanes_distribution, available_length,
-                available_edges, initial_config)
+        return (initial_config.x0, min_gap, bunching, lanes_distribution,
+                available_length, available_edges, initial_config)
