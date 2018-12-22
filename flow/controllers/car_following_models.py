@@ -400,26 +400,13 @@ class IDMController(BaseController):
         return self.a * (1 - (v / self.v0)**self.delta - (s_star / h)**2)
 
 
-class SumoCarFollowingController(BaseController):
-    """Controller whose actions are purely defined by sumo.
+class SimCarFollowingController(BaseController):
+    """Controller whose actions are purely defined by the simulator.
 
     Note that methods for implementing noise and failsafes through
     BaseController, are not available here. However, similar methods are
     available through sumo when initializing the parameters of the vehicle.
     """
-
-    def __init__(self, veh_id, sumo_cf_params):
-        """Instantiate a sumo controller.
-
-        Attributes
-        ----------
-        veh_id: str
-            name of the vehicle
-        sumo_cf_params: SumoCarFollowingParams
-            see parent class
-        """
-        super().__init__(veh_id, sumo_cf_params)
-        self.sumo_controller = True
 
     def get_accel(self, env):
         """See parent class."""

@@ -9,7 +9,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
 
@@ -35,7 +35,7 @@ vehicles = Vehicles()
 
 vehicles.add(
     veh_id="human",
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     sumo_car_following_params=SumoCarFollowingParams(
         speed_mode=9,
@@ -50,7 +50,7 @@ vehicles.add(
     acceleration_controller=(RLController, {
         "fail_safe": "instantaneous"
     }),
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     sumo_car_following_params=SumoCarFollowingParams(
         speed_mode=9,

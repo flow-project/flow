@@ -1,8 +1,8 @@
 """Contains the vehicles class."""
 
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 import collections
 from bisect import bisect_left
 import itertools
@@ -70,8 +70,8 @@ class Vehicles:
 
     def add(self,
             veh_id,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
+            lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
@@ -116,7 +116,7 @@ class Vehicles:
 
         # If a vehicle is not sumo or RL, let the minGap be zero so that it
         # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SumoCarFollowingController \
+        if acceleration_controller[0] != SimCarFollowingController \
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
 
@@ -195,9 +195,9 @@ class Vehicles:
 
                 # check if the vehicle's lane-changing / acceleration actions
                 # are controlled by sumo or not.
-                if acceleration_controller[0] != SumoCarFollowingController:
+                if acceleration_controller[0] != SimCarFollowingController:
                     self.__controlled_ids.append(v_id)
-                if lane_change_controller[0] != SumoLaneChangeController:
+                if lane_change_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(v_id)
 
         # update the variables for the number of vehicles in the network
@@ -377,9 +377,9 @@ class Vehicles:
             self.num_rl_vehicles += 1
         else:
             self.__human_ids.append(veh_id)
-            if accel_controller[0] != SumoCarFollowingController:
+            if accel_controller[0] != SimCarFollowingController:
                 self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SumoLaneChangeController:
+            if lc_controller[0] != SimLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle

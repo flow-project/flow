@@ -6,7 +6,7 @@ from flow.core.vehicles import Vehicles
 from flow.core.params import SumoCarFollowingParams, NetParams, \
     InitialConfig, SumoParams, SumoLaneChangeParams
 from flow.controllers.car_following_models import IDMController, \
-    SumoCarFollowingController
+    SimCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
@@ -79,7 +79,7 @@ class TestVehiclesClass(unittest.TestCase):
         Ensure that, if a vehicle is not a sumo vehicle, then minGap is set to
         zero so that all headway values are correct.
         """
-        # check that, if the vehicle is not a SumoCarFollowingController
+        # check that, if the vehicle is not a SimCarFollowingController
         # vehicle, then its minGap is equal to 0
         vehicles = Vehicles()
         vehicles.add(
@@ -93,12 +93,12 @@ class TestVehiclesClass(unittest.TestCase):
             ))
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
 
-        # check that, if the vehicle is a SumoCarFollowingController vehicle,
+        # check that, if the vehicle is a SimCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
         vehicles = Vehicles()
         vehicles.add(
             "typeA",
-            acceleration_controller=(SumoCarFollowingController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),

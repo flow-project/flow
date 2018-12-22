@@ -16,7 +16,7 @@ from ray.tune.registry import register_env
 from flow.controllers import RLController
 from flow.controllers import IDMController
 from flow.controllers import ContinuousRouter
-from flow.controllers import SumoLaneChangeController
+from flow.controllers import SimLaneChangeController
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoLaneChangeParams
 from flow.core.params import SumoParams
@@ -48,7 +48,7 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         'noise': 0.2
     }),
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=6,
     sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
@@ -57,7 +57,7 @@ vehicles.add(
 vehicles.add(
     veh_id='rl',
     acceleration_controller=(RLController, {}),
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=1,
     sumo_car_following_params=SumoCarFollowingParams(
@@ -72,7 +72,7 @@ vehicles.add(
     acceleration_controller=(IDMController, {
         'noise': 0.2
     }),
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     num_vehicles=10,
     sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),

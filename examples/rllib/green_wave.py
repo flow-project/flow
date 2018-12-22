@@ -12,7 +12,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.controllers import SimCarFollowingController, GridRouter
 
 # time horizon of a single rollout
 HORIZON = 200
@@ -113,7 +113,7 @@ additional_net_params = {
 vehicles = Vehicles()
 vehicles.add(
     veh_id='idm',
-    acceleration_controller=(SumoCarFollowingController, {}),
+    acceleration_controller=(SimCarFollowingController, {}),
     sumo_car_following_params=SumoCarFollowingParams(
         minGap=2.5,
         max_speed=v_enter,
