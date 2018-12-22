@@ -7,12 +7,10 @@ import logging
 import os
 import sys
 import time
-import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
-from traci import constants as tc
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
 
