@@ -30,10 +30,10 @@ vehicles = Vehicles()
 vehicles.add(
     veh_id="human",
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=1621,
     ),
     num_vehicles=1 * SCALING)
@@ -41,10 +41,10 @@ vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
@@ -107,7 +107,7 @@ flow_params = dict(
     scenario="BottleneckScenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.5,
         render=False,
         print_warnings=False,

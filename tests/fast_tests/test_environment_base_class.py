@@ -81,11 +81,11 @@ class TestEmissionPath(unittest.TestCase):
     """
 
     def setUp(self):
-        # set sumo_params to default
-        sumo_params = SumoParams()
+        # set sim_params to default
+        sim_params = SumoParams()
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sumo_params=sumo_params)
+        self.env, scenario = ring_road_exp_setup(sim_params=sim_params)
 
     def tearDown(self):
         # terminate the traci instance
@@ -95,7 +95,7 @@ class TestEmissionPath(unittest.TestCase):
         self.env = None
 
     def test_emission(self):
-        self.assertIsNone(self.env.sumo_params.emission_path)
+        self.assertIsNone(self.env.sim_params.emission_path)
 
 
 class TestApplyingActionsWithSumo(unittest.TestCase):
@@ -124,7 +124,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=1000, decel=1000),
             num_vehicles=5)
 
@@ -363,9 +363,9 @@ class TestAbstractMethods(unittest.TestCase):
 
     def setUp(self):
         env, scenario = ring_road_exp_setup()
-        sumo_params = SumoParams()
+        sim_params = SumoParams()  # FIXME: make ambiguous
         env_params = EnvParams()
-        self.env = Env(sumo_params=sumo_params,
+        self.env = Env(sim_params=sim_params,
                        env_params=env_params,
                        scenario=scenario)
 
@@ -423,7 +423,7 @@ class TestVehicleColoring(unittest.TestCase):
                 env.traci_connection.vehicle.getColor(veh_id), YELLOW)
 
         # a little hack to ensure the colors change
-        env.sumo_params.render = True
+        env.sim_params.render = True
 
         # set one vehicle as observed
         env.k.vehicle.set_observed("human_0")

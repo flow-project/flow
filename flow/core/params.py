@@ -2,8 +2,8 @@
 
 import logging
 from flow.utils.flow_warnings import deprecation_warning
-from flow.controllers import SumoCarFollowingController
-from flow.controllers import SumoLaneChangeController
+from flow.controllers import SimCarFollowingController
+from flow.controllers import SimLaneChangeController
 from flow.controllers import RLController
 import collections
 import warnings
@@ -56,13 +56,13 @@ class Vehicles:
 
     def add(self,
             veh_id,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
+            lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            sumo_car_following_params=None,
-            sumo_lc_params=None):
+            car_following_params=None,
+            lane_change_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -85,24 +85,26 @@ class Vehicles:
             initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
-        sumo_car_following_params : flow.core.params.SumoCarFollowingParams
+        car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
-        sumo_lc_params : flow.core.params.SumoLaneChangeParams
+        lane_change_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
-        if sumo_car_following_params is None:
-            sumo_car_following_params = SumoCarFollowingParams()
+        if car_following_params is None:
+            # FIXME: depends on simulator
+            car_following_params = SumoCarFollowingParams()
 
-        if sumo_lc_params is None:
-            sumo_lc_params = SumoLaneChangeParams()
+        if lane_change_params is None:
+            # FIXME: depends on simulator
+            lane_change_params = SumoLaneChangeParams()
 
         type_params = {}
-        type_params.update(sumo_car_following_params.controller_params)
-        type_params.update(sumo_lc_params.controller_params)
+        type_params.update(car_following_params.controller_params)
+        type_params.update(lane_change_params.controller_params)
 
         # If a vehicle is not sumo or RL, let the minGap be zero so that it
         # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SumoCarFollowingController \
+        if acceleration_controller[0] != SimCarFollowingController \
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
 
@@ -114,8 +116,8 @@ class Vehicles:
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
-             "sumo_car_following_params": sumo_car_following_params,
-             "sumo_lc_params": sumo_lc_params}
+             "car_following_params": car_following_params,
+             "lane_change_params": lane_change_params}
 
         self.initial.append({
             "veh_id":
@@ -130,10 +132,10 @@ class Vehicles:
                 initial_speed,
             "num_vehicles":
                 num_vehicles,
-            "sumo_car_following_params":
-                sumo_car_following_params,
-            "sumo_lc_params":
-                sumo_lc_params
+            "car_following_params":
+                car_following_params,
+            "lane_change_params":
+                lane_change_params
         })
 
         # This is used to return the actual headways from the vehicles class.
@@ -332,8 +334,68 @@ class TrafficLightParams:
         }
 
 
-class SumoParams:
-    """Sumo-specific parameters.
+class SimParams(object):
+    """Simulation-specific parameters.
+
+    All subsequent parameters of the same type must extend this.
+    """
+
+    def __init__(self,
+                 sim_step=0.1,
+                 render=False,
+                 restart_instance=False,
+                 emission_path=None,
+                 save_render=False,
+                 sight_radius=25,
+                 show_radius=False,
+                 pxpm=2):
+        """Instantiate SimParams.
+
+        Parameters
+        ----------
+        sim_step: float optional
+            seconds per simulation step; 0.1 by default
+        render: str or bool, optional
+            specifies whether to visualize the rollout(s)
+
+            * False: no rendering
+            * True: delegate rendering to sumo-gui for back-compatibility
+            * "gray": static grayscale rendering, which is good for training
+            * "dgray": dynamic grayscale rendering
+            * "rgb": static RGB rendering
+            * "drgb": dynamic RGB rendering, which is good for visualization
+
+        restart_instance: bool, optional
+            specifies whether to restart a simulation upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "render" is set to True.
+        emission_path: str, optional
+            Path to the folder in which to create the emissions output.
+            Emissions output is not generated if this value is not specified
+        save_render: bool, optional
+            specifies whether to save rendering data to disk
+        sight_radius: int, optional
+            sets the radius of observation for RL vehicles (meter)
+        show_radius: bool, optional
+            specifies whether to render the radius of RL observation
+        pxpm: int, optional
+            specifies rendering resolution (pixel / meter)
+        """
+        self.sim_step = sim_step
+        self.render = render
+        self.restart_instance = restart_instance
+        self.emission_path = emission_path
+        self.save_render = save_render
+        self.sight_radius = sight_radius
+        self.pxpm = pxpm
+        self.show_radius = show_radius
+
+
+class SumoParams(SimParams):
+    """Sumo-specific simulation parameters.
+
+    Extends SimParams.
 
     These parameters are used to customize a sumo simulation instance upon
     initialization. This includes passing the simulation step length,
@@ -417,27 +479,22 @@ class SumoParams:
             Number of clients that will connect to Traci
 
         """
+        super(SumoParams, self).__init__(
+            sim_step, render, restart_instance, emission_path, save_render,
+            sight_radius, show_radius, pxpm)
         self.port = port
-        self.sim_step = sim_step
-        self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
-        self.render = render
-        self.save_render = save_render
-        self.sight_radius = sight_radius
-        self.pxpm = pxpm
-        self.show_radius = show_radius
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
-        self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
         if sumo_binary is not None:
             warnings.simplefilter("always", PendingDeprecationWarning)
             warnings.warn(
-                "sumo_params will be deprecated in a future release, use "
+                "sumo_binary will be deprecated in a future release, use "
                 "render instead.",
                 PendingDeprecationWarning
             )

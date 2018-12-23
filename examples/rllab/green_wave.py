@@ -11,7 +11,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
 from flow.core.params import SumoCarFollowingParams
 
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.controllers import SimCarFollowingController, GridRouter
 
 from flow.scenarios.grid import SimpleGridScenario
 
@@ -90,13 +90,13 @@ def run_task(*_):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=1, render=True)
+    sim_params = SumoParams(sim_step=1, render=True)
 
     vehicles = Vehicles()
     vehicles.add(
         veh_id="idm",
-        acceleration_controller=(SumoCarFollowingController, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        acceleration_controller=(SimCarFollowingController, {}),
+        car_following_params=SumoCarFollowingParams(
             min_gap=2.5, tau=1.1, max_speed=v_enter, speed_mode="all_checks"),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)
@@ -130,7 +130,7 @@ def run_task(*_):
         traffic_lights=tl_logic)
 
     env_name = "PO_TrafficLightGridEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

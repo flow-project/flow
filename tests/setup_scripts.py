@@ -22,7 +22,7 @@ from flow.scenarios.highway import HighwayScenario
 from flow.scenarios.loop import LoopScenario
 
 
-def ring_road_exp_setup(sumo_params=None,
+def ring_road_exp_setup(sim_params=None,
                         vehicles=None,
                         env_params=None,
                         net_params=None,
@@ -33,7 +33,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params: flow.core.params.SumoParams
+    sim_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
     vehicles : Vehicles type
@@ -53,9 +53,9 @@ def ring_road_exp_setup(sumo_params=None,
     """
     logging.basicConfig(level=logging.WARNING)
 
-    if sumo_params is None:
-        # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, render=False)
+    if sim_params is None:
+        # set default sim_params configuration
+        sim_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -64,7 +64,7 @@ def ring_road_exp_setup(sumo_params=None,
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             num_vehicles=1)
@@ -107,7 +107,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
     # reset the environment
     env.reset()
@@ -115,7 +115,7 @@ def ring_road_exp_setup(sumo_params=None,
     return env, scenario
 
 
-def figure_eight_exp_setup(sumo_params=None,
+def figure_eight_exp_setup(sim_params=None,
                            vehicles=None,
                            env_params=None,
                            net_params=None,
@@ -126,7 +126,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params : flow.core.params.SumoParams
+    sim_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
     vehicles : Vehicles type
@@ -146,9 +146,9 @@ def figure_eight_exp_setup(sumo_params=None,
     """
     logging.basicConfig(level=logging.WARNING)
 
-    if sumo_params is None:
-        # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, render=False)
+    if sim_params is None:
+        # set default sim_params configuration
+        sim_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -156,7 +156,7 @@ def figure_eight_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),
@@ -201,7 +201,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
     # reset the environment
     env.reset()
@@ -209,7 +209,7 @@ def figure_eight_exp_setup(sumo_params=None,
     return env, scenario
 
 
-def highway_exp_setup(sumo_params=None,
+def highway_exp_setup(sim_params=None,
                       vehicles=None,
                       env_params=None,
                       net_params=None,
@@ -220,7 +220,7 @@ def highway_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params : flow.core.params.SumoParams
+    sim_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
     vehicles : Vehicles type
@@ -240,9 +240,9 @@ def highway_exp_setup(sumo_params=None,
     """
     logging.basicConfig(level=logging.WARNING)
 
-    if sumo_params is None:
-        # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, render=False)
+    if sim_params is None:
+        # set default sim_params configuration
+        sim_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -250,7 +250,7 @@ def highway_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),
@@ -295,7 +295,7 @@ def highway_exp_setup(sumo_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
     # reset the environment
     env.reset()
@@ -305,7 +305,7 @@ def highway_exp_setup(sumo_params=None,
 
 def grid_mxn_exp_setup(row_num=1,
                        col_num=1,
-                       sumo_params=None,
+                       sim_params=None,
                        vehicles=None,
                        env_params=None,
                        net_params=None,
@@ -320,7 +320,7 @@ def grid_mxn_exp_setup(row_num=1,
         number of horizontal rows of edges in the grid network
     col_num: int, optional
         number of vertical columns of edges in the grid network
-    sumo_params : flow.core.params.SumoParams
+    sim_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 1s
         and no sumo-imposed failsafe on human or rl vehicles
     vehicles : Vehicles type
@@ -344,9 +344,9 @@ def grid_mxn_exp_setup(row_num=1,
     if tl_logic is None:
         tl_logic = TrafficLightParams(baseline=False)
 
-    if sumo_params is None:
-        # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=1, render=False)
+    if sim_params is None:
+        # set default sim_params configuration
+        sim_params = SumoParams(sim_step=1, render=False)
 
     if vehicles is None:
         total_vehicles = 20
@@ -354,7 +354,7 @@ def grid_mxn_exp_setup(row_num=1,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1, max_speed=30),
             routing_controller=(GridRouter, {}),
             num_vehicles=total_vehicles)
@@ -414,7 +414,7 @@ def grid_mxn_exp_setup(row_num=1,
 
     # create the environment
     env = GreenWaveTestEnv(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
     # reset the environment
     env.reset()
@@ -422,7 +422,7 @@ def grid_mxn_exp_setup(row_num=1,
     return env, scenario
 
 
-def variable_lanes_exp_setup(sumo_params=None,
+def variable_lanes_exp_setup(sim_params=None,
                              vehicles=None,
                              env_params=None,
                              net_params=None,
@@ -436,7 +436,7 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params : flow.core.params.SumoParams
+    sim_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
     vehicles : Vehicles type
@@ -456,9 +456,9 @@ def variable_lanes_exp_setup(sumo_params=None,
     """
     logging.basicConfig(level=logging.WARNING)
 
-    if sumo_params is None:
-        # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, render=False)
+    if sim_params is None:
+        # set default sim_params configuration
+        sim_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
         # set default vehicles configuration
@@ -466,7 +466,7 @@ def variable_lanes_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),
@@ -510,7 +510,7 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     # create the environment
     env = AccelEnv(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
     # reset the environment
     env.reset()

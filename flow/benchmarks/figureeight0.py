@@ -29,7 +29,7 @@ vehicles.add(
         "noise": 0.2
     }),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=13)
@@ -37,7 +37,7 @@ vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=1)
@@ -53,7 +53,7 @@ flow_params = dict(
     scenario="Figure8Scenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),
