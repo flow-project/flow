@@ -1,8 +1,8 @@
 """Example of ring road with larger merging ring."""
 
-from flow.controllers import IDMController, SumoLaneChangeController, \
+from flow.controllers import IDMController, SimLaneChangeController, \
     ContinuousRouter
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import Vehicles
@@ -18,19 +18,19 @@ def loop_merge_example(render=None):
     Parameters
     ----------
     render : bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a loop merge.
     """
-    sumo_params = SumoParams(
+    sim_params = SumoParams(
         sim_step=0.1, emission_path="./data/", render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
     # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
@@ -38,27 +38,27 @@ def loop_merge_example(render=None):
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=7,
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             minGap=0.0,
             tau=0.5,
             speed_mode="no_collide",
         ),
-        sumo_lc_params=SumoLaneChangeParams())
+        lane_change_params=SumoLaneChangeParams())
     vehicles.add(
         veh_id="merge-idm",
         acceleration_controller=(IDMController, {}),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=10,
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             minGap=0.01,
             tau=0.5,
             speed_mode="no_collide",
         ),
-        sumo_lc_params=SumoLaneChangeParams())
+        lane_change_params=SumoLaneChangeParams())
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -79,9 +79,9 @@ def loop_merge_example(render=None):
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

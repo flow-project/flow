@@ -40,7 +40,7 @@ NUM_RL = [5, 13, 17][EXP_NUM]
 
 def run_task(_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(
+    sim_params = SumoParams(
         render=True, sim_step=0.2, restart_instance=True)
 
     # RL vehicles constitute 5% of the total number of vehicles
@@ -50,14 +50,14 @@ def run_task(_):
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=5)
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=0)
@@ -115,7 +115,7 @@ def run_task(_):
         initial_config=initial_config)
 
     env_name = "WaveAttenuationMergePOEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

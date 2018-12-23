@@ -84,14 +84,16 @@ def get_flow_params(config):
             rt_class = getattr(module, veh_params['routing_controller'][0])
             rt_controller = (rt_class, veh_params['routing_controller'][1])
 
-        sumo_cf_params = SumoCarFollowingParams()
-        sumo_cf_params.__dict__ = veh_params["sumo_car_following_params"]
+        # TODO: make ambiguous
+        car_following_params = SumoCarFollowingParams()
+        car_following_params.__dict__ = veh_params["car_following_params"]
 
-        sumo_lc_params = SumoLaneChangeParams()
-        sumo_lc_params.__dict__ = veh_params["sumo_lc_params"]
+        # TODO: make ambiguous
+        lane_change_params = SumoLaneChangeParams()
+        lane_change_params.__dict__ = veh_params["lane_change_params"]
 
-        del veh_params["sumo_car_following_params"], \
-            veh_params["sumo_lc_params"], \
+        del veh_params["car_following_params"], \
+            veh_params["lane_change_params"], \
             veh_params["acceleration_controller"], \
             veh_params["lane_change_controller"], \
             veh_params["routing_controller"]
@@ -100,13 +102,13 @@ def get_flow_params(config):
             acceleration_controller=acc_controller,
             lane_change_controller=lc_controller,
             routing_controller=rt_controller,
-            sumo_car_following_params=sumo_cf_params,
-            sumo_lc_params=sumo_lc_params,
+            car_following_params=car_following_params,
+            lane_change_params=lane_change_params,
             **veh_params)
 
     # convert all parameters from dict to their object form
-    sumo = SumoParams()
-    sumo.__dict__ = flow_params["sumo"].copy()
+    sim = SumoParams()  # TODO: add check for simulation type
+    sim.__dict__ = flow_params["sim"].copy()
 
     net = NetParams()
     net.__dict__ = flow_params["net"].copy()
@@ -125,7 +127,7 @@ def get_flow_params(config):
     if "tls" in flow_params:
         tls.__dict__ = flow_params["tls"].copy()
 
-    flow_params["sumo"] = sumo
+    flow_params["sim"] = sim
     flow_params["env"] = env
     flow_params["initial"] = initial
     flow_params["net"] = net
