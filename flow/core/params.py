@@ -2,8 +2,8 @@
 
 import logging
 from flow.utils.flow_warnings import deprecation_warning
-from flow.controllers import SumoCarFollowingController
-from flow.controllers import SumoLaneChangeController
+from flow.controllers import SimCarFollowingController
+from flow.controllers import SimLaneChangeController
 from flow.controllers import RLController
 import collections
 import warnings
@@ -56,8 +56,8 @@ class Vehicles:
 
     def add(self,
             veh_id,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
+            lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
@@ -104,7 +104,7 @@ class Vehicles:
 
         # If a vehicle is not sumo or RL, let the minGap be zero so that it
         # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SumoCarFollowingController \
+        if acceleration_controller[0] != SimCarFollowingController \
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
 
