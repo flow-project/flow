@@ -66,13 +66,24 @@ def generate_net(nodes, edges, connections):
             edge_aimsun.setSpeed(edge["speed"])
         else:
             new_point = GKPoint()
-            first_node = next(node for node in nodes if node["id"] == edge["from"])
+            first_node = next(node for node in nodes
+                              if node["id"] == edge["from"])
             new_point.set(first_node['x'], first_node['y'], 0)
             points.append(new_point)
             new_point = GKPoint()
             end_node = next(node for node in nodes if node["id"] == edge["to"])
             new_point.set(end_node['x'], end_node['y'], 0)
             points.append(new_point)
+
+            cmd = model.createNewCmd(model.getType("GKSection"))
+            cmd.setPoints(edge["numLanes"], lane_width, points)
+            model.getCommander().addCommand(cmd)
+            section = cmd.createdObject()
+            section.setName(edge["id"])
+            sectionType = model.getType("GKSection")
+            edge_aimsun = model.getCatalog().findByName(
+                edge["id"], sectionType)
+            edge_aimsun.setSpeed(edge["speed"])
 
     # Draw turnings
     sectionType = model.getType("GKSection")
@@ -92,6 +103,8 @@ def generate_net(nodes, edges, connections):
                 model.getCommander().addCommand(cmd)
                 # turn = cmd.createdObject()
                 # turn.setName("%s_to_%s" % (node["from"], node["to"]))
+    for connection in connections:
+        print ("connection", connection)
 
     # save doc
     gui.saveAs('flow.ang')
