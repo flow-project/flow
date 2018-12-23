@@ -61,8 +61,8 @@ class Vehicles:
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            sumo_car_following_params=None,
-            sumo_lc_params=None):
+            car_following_params=None,
+            lane_change_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -85,20 +85,22 @@ class Vehicles:
             initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
-        sumo_car_following_params : flow.core.params.SumoCarFollowingParams
+        car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
-        sumo_lc_params : flow.core.params.SumoLaneChangeParams
+        lane_change_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
-        if sumo_car_following_params is None:
-            sumo_car_following_params = SumoCarFollowingParams()
+        if car_following_params is None:
+            # FIXME: depends on simulator
+            car_following_params = SumoCarFollowingParams()
 
-        if sumo_lc_params is None:
-            sumo_lc_params = SumoLaneChangeParams()
+        if lane_change_params is None:
+            # FIXME: depends on simulator
+            lane_change_params = SumoLaneChangeParams()
 
         type_params = {}
-        type_params.update(sumo_car_following_params.controller_params)
-        type_params.update(sumo_lc_params.controller_params)
+        type_params.update(car_following_params.controller_params)
+        type_params.update(lane_change_params.controller_params)
 
         # If a vehicle is not sumo or RL, let the minGap be zero so that it
         # does not tamper with the dynamics of the controller
@@ -114,8 +116,8 @@ class Vehicles:
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
-             "sumo_car_following_params": sumo_car_following_params,
-             "sumo_lc_params": sumo_lc_params}
+             "car_following_params": car_following_params,
+             "lane_change_params": lane_change_params}
 
         self.initial.append({
             "veh_id":
@@ -130,10 +132,10 @@ class Vehicles:
                 initial_speed,
             "num_vehicles":
                 num_vehicles,
-            "sumo_car_following_params":
-                sumo_car_following_params,
-            "sumo_lc_params":
-                sumo_lc_params
+            "car_following_params":
+                car_following_params,
+            "lane_change_params":
+                lane_change_params
         })
 
         # This is used to return the actual headways from the vehicles class.

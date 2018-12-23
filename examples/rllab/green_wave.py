@@ -11,7 +11,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
 from flow.core.params import SumoCarFollowingParams
 
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.controllers import SimCarFollowingController, GridRouter
 
 from flow.scenarios.grid import SimpleGridScenario
 
@@ -95,8 +95,8 @@ def run_task(*_):
     vehicles = Vehicles()
     vehicles.add(
         veh_id="idm",
-        acceleration_controller=(SumoCarFollowingController, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        acceleration_controller=(SimCarFollowingController, {}),
+        car_following_params=SumoCarFollowingParams(
             min_gap=2.5, tau=1.1, max_speed=v_enter, speed_mode="all_checks"),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)

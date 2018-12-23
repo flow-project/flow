@@ -39,7 +39,7 @@ class TestCFMController(unittest.TestCase):
             veh_id="test_0",
             acceleration_controller=(CFMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=20, decel=5),
             num_vehicles=5)
 
@@ -88,7 +88,7 @@ class TestBCMController(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(BCMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -143,7 +143,7 @@ class TestOVMController(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(OVMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -193,7 +193,7 @@ class TestLinearOVM(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(LinearOVM, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -240,7 +240,7 @@ class TestIDMController(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=1, accel=1, decel=5),
             num_vehicles=5)
 
