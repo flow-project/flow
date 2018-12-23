@@ -3,9 +3,11 @@ from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
 import warnings
+import itertools
 from flow.controllers.car_following_models import SumoCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
+
 
 class AimsunKernelVehicle(KernelVehicle):
     """Flow vehicle kernel.
@@ -189,7 +191,7 @@ class AimsunKernelVehicle(KernelVehicle):
         id = self.kernel_api.AKIPutVehTrafficFlow(
             edge["aimsun_id"], lane, int(type_id),
             pos, speed, next_section, tracking
-            )
+        )
 
         # get vehicle information from API
         static_inf_veh = self.kernel_api.AKIVehGetStaticInf(id)
@@ -209,16 +211,6 @@ class AimsunKernelVehicle(KernelVehicle):
 
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
-
-        # # set the speed mode for the vehicle
-        # speed_mode = self.type_parameters[type_id][
-        #     "sumo_car_following_params"].speed_mode
-        # self.kernel_api.vehicle.setSpeedMode(veh_id, speed_mode)
-
-        # # set the lane changing mode for the vehicle
-        # lc_mode = self.type_parameters[type_id][
-        #     "sumo_lc_params"].lane_change_mode
-        # self.kernel_api.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
@@ -281,7 +273,7 @@ class AimsunKernelVehicle(KernelVehicle):
                 aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
                 self.kernel_api.AKIVehTrackedModifySpeed(aimsun_id, next_vel)
 
-    def apply_lane_change(self, veh_ids, direction,time):
+    def apply_lane_change(self, veh_ids, direction):
         """Apply an instantaneous lane-change to a set of vehicles.
 
         This method also prevents vehicles from moving to lanes that do not
@@ -293,7 +285,7 @@ class AimsunKernelVehicle(KernelVehicle):
         ----------
         veh_ids : list of str
             list of vehicle identifiers
-        direction : list of {-1, 0, 1}
+        direction : list of {-2, -1, 0, 1}
             -2: reset, gives back the control to the default simulation model
             -1: lane change to the right
              0: no lane change
@@ -336,8 +328,7 @@ class AimsunKernelVehicle(KernelVehicle):
 
                 # get simulation time
                 time = self.kernel_api.AKIGetCurrentSimulationTime()
-                self.__vehicles[veh_id]["last_lc"] = time #TODO this is missing in Tracy
-
+                self.__vehicles[veh_id]["last_lc"] = time  # TODO this is missing in Tracy
 
     def choose_routes(self, veh_ids, route_choices):
         """Update the route choice of vehicles in the network.
@@ -362,9 +353,10 @@ class AimsunKernelVehicle(KernelVehicle):
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
 
+    # FIXME: maybe add later?
     def update_vehicle_colors(self):
         """Modify the color of vehicles if rendering is active."""
-        raise NotImplementedError
+        pass
 
     def set_observed(self, veh_id):
         """Add a vehicle to the list of observed vehicles."""
@@ -392,6 +384,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """Return the names of all non-rl vehicles currently in the network."""
         return self.__human_ids
 
+    # TODO: remove (maybe, test how much slower)
     def get_controlled_ids(self):
         """Return the names of all flow acceleration-controlled vehicles.
 
@@ -399,6 +392,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """
         return self.__controlled_ids
 
+    # TODO: remove (maybe, test how much slower)
     def get_controlled_lc_ids(self):
         """Return the names of all flow lane change-controlled vehicles.
 
@@ -466,6 +460,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         float
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         speeds = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -488,7 +483,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         float
         """
-        raise NotImplementedError #TODO check
+        raise NotImplementedError  # TODO check
 
     def get_position(self, veh_id, error=-1001):
         """Return the position of the vehicle relative to its current edge.
@@ -505,6 +500,7 @@ class AimsunKernelVehicle(KernelVehicle):
         float,
             The distance from the beginning of the section
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         positions = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -623,9 +619,10 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         float
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         lengths = []
         for veh in veh_id:
-            lengths.append(self.__vehicles[veh]["length"]) #TODO double check
+            lengths.append(self.__vehicles[veh]["length"])  # TODO double check
         return lengths
 
     def get_leader(self, veh_id, error=""):
@@ -642,6 +639,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         str
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         leaders = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -663,6 +661,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         str
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         followers = []
         for veh in veh_id:
             aimsun_id = self.__vehicles[veh]["aimsun_id"]
@@ -684,6 +683,7 @@ class AimsunKernelVehicle(KernelVehicle):
         -------
         float
         """
+        # FIXME: do it the way we do, in case veh_id is not a list
         headways = []
         for veh in veh_id:
             leader_id = self.get_leader(veh, error)
