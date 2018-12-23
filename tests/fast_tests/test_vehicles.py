@@ -6,7 +6,7 @@ from flow.core.params import Vehicles
 from flow.core.params import SumoCarFollowingParams, NetParams, \
     InitialConfig, SumoParams, SumoLaneChangeParams
 from flow.controllers.car_following_models import IDMController, \
-    SumoCarFollowingController
+    SimCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
@@ -29,80 +29,80 @@ class TestVehiclesClass(unittest.TestCase):
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode='no_collide',
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             )
         )
 
         self.assertEqual(vehicles.type_parameters["typeA"][
-                             "sumo_car_following_params"].speed_mode, 1)
+                             "car_following_params"].speed_mode, 1)
         self.assertEqual(vehicles.type_parameters["typeA"][
-                             "sumo_lc_params"].lane_change_mode, 512)
+                             "lane_change_params"].lane_change_mode, 512)
 
         vehicles.add(
             "typeB",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode='aggressive',
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="strategic",
             )
         )
 
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "sumo_car_following_params"].speed_mode, 0)
+                             "car_following_params"].speed_mode, 0)
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "sumo_lc_params"].lane_change_mode, 1621)
+                             "lane_change_params"].lane_change_mode, 1621)
 
         vehicles.add(
             "typeC",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode=31,
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=277
             )
         )
 
         self.assertEqual(vehicles.type_parameters["typeC"][
-                             "sumo_car_following_params"].speed_mode, 31)
+                             "car_following_params"].speed_mode, 31)
         self.assertEqual(vehicles.type_parameters["typeC"][
-                             "sumo_lc_params"].lane_change_mode, 277)
+                             "lane_change_params"].lane_change_mode, 277)
 
     def test_controlled_id_params(self):
         """
         Ensure that, if a vehicle is not a sumo vehicle, then minGap is set to
         zero so that all headway values are correct.
         """
-        # check that, if the vehicle is not a SumoCarFollowingController
+        # check that, if the vehicle is not a SimCarFollowingController
         # vehicle, then its minGap is equal to 0
         vehicles = Vehicles()
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             ))
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
 
-        # check that, if the vehicle is a SumoCarFollowingController vehicle,
+        # check that, if the vehicle is a SimCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
         vehicles = Vehicles()
         vehicles.add(
             "typeA",
-            acceleration_controller=(SumoCarFollowingController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            acceleration_controller=(SimCarFollowingController, {}),
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             ))
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]

@@ -30,7 +30,7 @@ for i in range(7):
             "noise": 0.2
         }),
         routing_controller=(ContinuousRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=1)
@@ -38,7 +38,7 @@ for i in range(7):
         veh_id="rl{}".format(i),
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=1)

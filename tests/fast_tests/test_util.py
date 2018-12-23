@@ -89,7 +89,7 @@ class TestRegistry(unittest.TestCase):
                 "noise": 0.2
             }),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=13)
@@ -97,7 +97,7 @@ class TestRegistry(unittest.TestCase):
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=1)
@@ -180,7 +180,7 @@ class TestRllib(unittest.TestCase):
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             # for testing coverage purposes, we add a routing controller
@@ -189,7 +189,7 @@ class TestRllib(unittest.TestCase):
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=0)

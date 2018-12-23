@@ -10,7 +10,7 @@ Horizon: 400 steps
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.core.params import Vehicles
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.controllers import SimCarFollowingController, GridRouter
 
 # time horizon of a single rollout
 HORIZON = 400
@@ -37,8 +37,8 @@ N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 vehicles = Vehicles()
 vehicles.add(
     veh_id="human",
-    acceleration_controller=(SumoCarFollowingController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    acceleration_controller=(SimCarFollowingController, {}),
+    car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
         speed_mode="right_of_way",

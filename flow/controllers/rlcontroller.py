@@ -22,20 +22,15 @@ class RLController(BaseController):
         >>> rl_ids = env.k.vehicle.get_rl_ids()
     """
 
-    def __init__(self, veh_id, sumo_cf_params, time_delay=0, fail_safe=None):
+    def __init__(self, veh_id, car_following_params):
         """Instantiates an RL Controller.
 
         Attributes
         ----------
         veh_id: str
             Vehicle ID for SUMO identification
-        fail_safe: str, optional
-            type of flow-imposed failsafe the vehicle should posses, defaults
-            to no failsafe (None)
         """
         BaseController.__init__(
             self,
             veh_id,
-            sumo_cf_params,
-            delay=time_delay,
-            fail_safe=fail_safe)
+            car_following_params)
