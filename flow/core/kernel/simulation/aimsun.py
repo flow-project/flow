@@ -1,8 +1,8 @@
 """Script containing the base simulation kernel class."""
 from flow.core.kernel.simulation.base import KernelSimulation
+from flow.utils.aimsun.api import FlowAimsunAPI
 import subprocess
 import os
-import socket
 
 try:
     # Load user config if exists, else load default config
@@ -76,48 +76,16 @@ class AimsunKernelSimulation(KernelSimulation):
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
-
         # subprocess.Popen(aimsun_call)
 
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connected = False
-        num_tries = 0
-        while not connected and num_tries < 100:
-            num_tries += 1
-            try:
-                s.connect(('localhost', 9999))
-                connected = True
-            except Exception as e:
-                print(
-                    "Cannot connect to the server: {}".format(e))
-                import time
-                time.sleep(1)
-
-        data = None
-        while data is None:
-            data = s.recv(2048)
-        print(data.decode('utf-8'))
-
-        # wait for a short period of time for the connection to be finalized
-        import time
-        time.sleep(1)
-
-        # return conn
-        return s
+        return FlowAimsunAPI(port=9999)  # FIXME
 
     def simulation_step(self):
         """Advance the simulation by one step.
 
         This is done in most cases by calling a relevant simulator API method.
         """
-        order = 3  # 3: Stop simulation
-        when = int(self.kernel_api.AKIGetCurrentSimulationTime())  # sim time
-        self.kernel_api.ANGSetSimulationOrder(order, when)
-
-        order = 0
-        when = int(when + self.sim_step)
-        # TODO this is risky since "when" should be integer
-        self.kernel_api.ANGSetSimulationOrder(order, when)
+        self.kernel_api.simulation_step()
 
     def update(self, reset):
         """Update the internal attributes of the simulation kernel.
@@ -151,16 +119,4 @@ class AimsunKernelSimulation(KernelSimulation):
 
     def close(self):
         """Closes the current simulation instance."""
-        # Stop simulation
-        order = 1  # 1: Cancel simulation
-        when = int(self.kernel_api.AKIGetCurrentSimulationTime())  # sim time
-        self.kernel_api.ANGSetSimulationOrder(order, when)
-
-        # Save and close the network
-        gui = GKGUISystem.getGUISystem().getActiveGui()
-        model = gui.getActiveModel()
-        gui.save()  # TODO this can be saveAs depending on the template
-        gui.closeDocument(model)
-
-        # Quit the GUI
-        gui.forceQuit()
+        self.kernel_api.stop_simulation()
