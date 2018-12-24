@@ -46,7 +46,7 @@ script. Be sure to run the below commands from ``/path/to/flow``.
     # install flow within the environment
     python setup.py develop
 
-Next, we install the necessary SUMO binaries and python tools. In order to
+Next, we install the necessary pre-compiled SUMO binaries and python tools. In order to
 install everything you will need from SUMO, run one of the below scripts from
 the Flow main directory. Choose the script that matches the operating system
 you are running.
@@ -78,9 +78,11 @@ For Mac:
 If you are using an unsupported operating system (e.g. Arch Linux), or the
 binaries provided by the above scripts are not compatible with your machine, you
 will have to personally build the SUMO binary files. For more, please see
-section 1.e or refer to SUMO's
-`documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_. **NOTE**:
-Flow is not currently compatible with the most up to date version of SUMO.
+`(Optional) Direct install of SUMO from GitHub`_ or refer to `SUMO's
+documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_.
+
+**WARNING**:
+Flow is not currently compatible with the most up-to-date version of SUMO.
 
 Finally, test your SUMO install and version by running the following commands.
 
