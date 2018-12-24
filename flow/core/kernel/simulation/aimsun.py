@@ -2,16 +2,7 @@
 from flow.core.kernel.simulation.base import KernelSimulation
 import subprocess
 import os
-import sys
-
-# import aimsun api
-# sys.path.append('/home/yashar/Aimsun_Next_8_3_0/programming/Aimsun Next API/AAPIPython/Micro')
-#
-# import AAPI as aimsun_api
-# try:
-#     import AAPI as aimsun_api
-# except:
-#     pass
+import socket
 
 try:
     # Load user config if exists, else load default config
@@ -69,6 +60,9 @@ class AimsunKernelSimulation(KernelSimulation):
         sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
             simulation-specific parameters
         """
+        # FIXME: hack
+        sim_params.port = 50005
+
         # save the simulation step size (for later use)
         self.sim_step = sim_params.sim_step
 
@@ -82,12 +76,34 @@ class AimsunKernelSimulation(KernelSimulation):
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
-        subprocess.Popen(aimsun_call)
-        return None #aimsun_api TODO chech
-        # try:
-        #     return aimsun_api #TODO delete this
-        # except:
-        #     pass
+
+        # subprocess.Popen(aimsun_call)
+
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connected = False
+        num_tries = 0
+        while not connected and num_tries < 100:
+            num_tries += 1
+            try:
+                s.connect(('localhost', 9999))
+                connected = True
+            except Exception as e:
+                print(
+                    "Cannot connect to the server: {}".format(e))
+                import time
+                time.sleep(1)
+
+        data = None
+        while data is None:
+            data = s.recv(2048)
+        print(data.decode('utf-8'))
+
+        # wait for a short period of time for the connection to be finalized
+        import time
+        time.sleep(1)
+
+        # return conn
+        return s
 
     def simulation_step(self):
         """Advance the simulation by one step.
