@@ -76,15 +76,13 @@ For Mac:
     scripts/setup_sumo_osx.sh
 
 If you are using an unsupported operating system (e.g. Arch Linux), or the
-binaries provided by the above scripts are no compatible with your machine, you
+binaries provided by the above scripts are not compatible with your machine, you
 will have to personally build the SUMO binary files. For more, please see
 section 1.e or refer to SUMO's
 `documentation <http://sumo.dlr.de/wiki/Installing/Linux_Build>`_. **NOTE**:
 Flow is not currently compatible with the most up to date version of SUMO.
 
 Finally, test your SUMO install and version by running the following commands.
-Note that, if the below commands do not work, you may need to run
-``source ~/.bashrc``  or open a new terminal to update your $PATH variable.
 
 ::
 
@@ -92,7 +90,13 @@ Note that, if the below commands do not work, you may need to run
     sumo --version
     sumo-gui
 
-If you are a mac user and the above command gives you the error ``FXApp:openDisplay``: unable to open display :0.0 make sure to open the application XQuartz.
+
+*Troubleshooting*: 
+Note that, if the above commands did not work, you may need to run
+``source ~/.bashrc``  or open a new terminal to update your $PATH variable.
+
+*Troubleshooting*:
+If you are a Mac user and the above command gives you the error ``FXApp:openDisplay: unable to open display :0.0``, make sure to open the application XQuartz.
 
 b. Testing the Installation
 ===========================
