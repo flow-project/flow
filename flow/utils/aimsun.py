@@ -6,26 +6,23 @@ try:
 except ImportError:
     import flow.config_default as config
 
-#sys.path.append(config.AIMSUN_SITEPACKAGE)
-SITEPACKAGES = "/home/yashar/anaconda3/envs/aimsun/lib/python2.7/site-packages"
+# sys.path.append(config.AIMSUN_SITEPACKAGE)
+SITEPACKAGES = "/home/aboudy/anaconda2/envs/aimsun/lib/python2.7/site-packages"
 sys.path.append(SITEPACKAGES)
 
-sys.path.append('/home/yashar/Aimsun_Next_8_3_0/programming/Aimsun Next API/AAPIPython/Micro')
+sys.path.append('/home/aboudy/Aimsun_Next_8_3_0/programming/Aimsun Next API/AAPIPython/Micro')
 
 from copy import deepcopy
 import argparse
 import json
 import os
-
-
 import numpy
 from numpy import pi, sin, cos, linspace
 
 
 # Load an empty template
 gui = GKGUISystem.getGUISystem().getActiveGui()
-gui.newDoc("/home/yashar/Aimsun_Next_8_3_0/templates/Aimsun_Flow.ang",
-           "EPSG:32601")
+gui.newDoc("/home/aboudy/Downloads/Aimsun_Flow.ang", "EPSG:32601")
 model = gui.getActiveModel()
 
 
@@ -95,11 +92,13 @@ def generate_net(nodes, edges, connections):
 
     # save doc
     gui.saveAs('flow.ang')
-    import AAPI as aimsun_api
-    return aimsun_api
+
+    replication_name = "Replication 870"
+    replication = model.getCatalog().findByName(replication_name)
+    GKSystem.getSystem().executeAction("execute", replication, [], "")
 
 
-with open('/home/yashar/git_clone/flow/flow/core/kernel/scenario/data.json') as f:
+with open('/home/aboudy/Documents/flow/flow/core/kernel/scenario/data.json') as f:
     data = json.load(f)
 nodes = data['nodes']
 edges = data['edges']
@@ -115,4 +114,4 @@ for i in range(len(edges)):
             break
 connections = data['connections']
 
-kernel_api = generate_net(nodes, edges, connections)
+generate_net(nodes, edges, connections)

@@ -2,11 +2,10 @@
 from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
-import warnings
 import itertools
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 
 
 class AimsunKernelVehicle(KernelVehicle):
@@ -153,11 +152,11 @@ class AimsunKernelVehicle(KernelVehicle):
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[type_id]["acceleration_controller"]
-        sumo_cf_params = \
-            self.type_parameters[type_id]["sumo_car_following_params"]
+        car_following_params = \
+            self.type_parameters[type_id]["car_following_params"]
         self.__vehicles[veh_id]["acc_controller"] = \
             accel_controller[0](veh_id,
-                                sumo_cf_params=sumo_cf_params,  # TODO check this
+                                car_following_params=car_following_params,
                                 **accel_controller[1])
 
         # specify the lane-changing controller class
@@ -180,12 +179,17 @@ class AimsunKernelVehicle(KernelVehicle):
             self.num_rl_vehicles += 1
         else:
             self.__human_ids.append(veh_id)
-            if accel_controller[0] != SumoCarFollowingController:  # TODO maybe AimsunCarFollowingController
+            if accel_controller[0] != SimCarFollowingController:
                 self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SumoLaneChangeController:  # TODO maybe AimsunLaneChangeController
+            if lc_controller[0] != SimLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
         # add vehicle in Aimsun
+        self.kernel_api.send(str.encode('12345'))
+        data = None
+        while data is None:
+            data = self.kernel_api.recv(2048)
+        print(data)
         next_section = -1  # negative one means the first feasible turn #TODO get route
         tracking = 1  # 1 if tracked, 0 otherwise
         id = self.kernel_api.AKIPutVehTrafficFlow(
