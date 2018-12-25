@@ -931,14 +931,10 @@ class TraCIVehicle(KernelVehicle):
             except (FatalTraCIError, TraCIException):
                 pass
 
+        # color vehicles white if not observed and cyan if observed
         for veh_id in self.get_human_ids():
             try:
-                if veh_id in self.get_observed_ids():
-                    # color observed human-driven vehicles cyan
-                    color = CYAN
-                else:
-                    # color unobserved human-driven vehicles white
-                    color = WHITE
+                color = CYAN if veh_id in self.get_observed_ids() else WHITE
                 self.kernel_api.vehicle.setColor(vehID=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
                 pass
