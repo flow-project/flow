@@ -208,7 +208,8 @@ class FlowAimsunAPI(object):
         float
             status (should be 0)
         """
-        return self._send_command(ac.VEH_SET_COLOR, values=[veh_id, color])
+        r, g, b = color
+        return self._send_command(ac.VEH_SET_COLOR, values=[veh_id, r, g, b])
 
     def get_vehicle_ids(self):
         """Return the ids of all vehicles in the network."""

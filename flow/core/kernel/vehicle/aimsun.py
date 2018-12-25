@@ -7,6 +7,11 @@ from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 
+# colors for vehicles
+WHITE = (255, 255, 255)
+CYAN = (0, 255, 255)
+RED = (255, 0, 0)
+
 
 class AimsunKernelVehicle(KernelVehicle):
     """Flow vehicle kernel.
@@ -58,10 +63,6 @@ class AimsunKernelVehicle(KernelVehicle):
         # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
         # Ordered dictionary used to keep neural net inputs in order
         self.__vehicles = collections.OrderedDict()
-
-        # create a sumo_observations variable that will carry all information
-        # on the state of the vehicles for a given time step
-        self.__sumo_obs = {}
 
         # total number of vehicles in the network
         self.num_vehicles = 0
@@ -327,10 +328,20 @@ class AimsunKernelVehicle(KernelVehicle):
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
 
-    # FIXME: maybe add later?
     def update_vehicle_colors(self):
         """Modify the color of vehicles if rendering is active."""
-        pass
+        # color rl vehicles red
+        for veh_id in self.get_rl_ids():
+            self.kernel_api.vehicle.set_color(vehID=veh_id, color=RED)
+
+        # observed human-driven vehicles are cyan and unobserved are white
+        for veh_id in self.get_human_ids():
+            color = CYAN if veh_id in self.get_observed_ids() else WHITE
+            self.kernel_api.set_color(vehID=veh_id, color=color)
+
+        # clear the list of observed vehicles
+        for veh_id in self.get_observed_ids():
+            self.remove_observed(veh_id)
 
     def set_observed(self, veh_id):
         """Add a vehicle to the list of observed vehicles."""
@@ -405,12 +416,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
-        # FIXME: do it the way we do, in case veh_id is not a list
-        speeds = []
-        for veh in veh_id:
-            speed = self.__vehicles[veh]["tracking_info"].CurrentSpeed
-            speeds.append(speed)
-        return speeds
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_speed(veh, error) for veh in veh_id]
+        return self.__vehicles[veh_id]['tracking_info'].CurrentSpeed
 
     def get_absolute_position(self, veh_id, error=-1001):
         """See parent class."""
@@ -418,12 +426,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
-        # FIXME: do it the way we do, in case veh_id is not a list
-        positions = []
-        for veh in veh_id:
-            pos = self.__vehicles[veh]['tracking_info'].CurrentPos
-            positions.append(pos)
-        return positions
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_position(veh, error) for veh in veh_id]
+        return self.__vehicles[veh_id]['tracking_info'].CurrentPos
 
     def get_position_world(self, veh_id, error=-1001):
         """Return the position of the vehicle relative to its current edge.
@@ -450,23 +455,20 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_edge(self, veh_id, error=""):
         """See parent class."""
-        edges = []
-        for veh in veh_id:
-            aimsun_id = self.__vehicles[veh]["aimsun_id"]
-            inf_veh = self.kernel_api.AKIVehTrackedGetInf(aimsun_id)
-            edge_aimsun_id = inf_veh.idSection
-            edges.append(edge for edge in
-                         self.master_kernel.scenario.get_edge_list()
-                         if edge["aimsun_id"] == edge_aimsun_id)
-        return edges
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_edge(veh, error) for veh in veh_id]
+        edge_aimsun_id = self.__vehicles[veh_id]['tracking_info'].idSection
+        # TODO: convert edge to edge in Flow
+        # edges.append(edge for edge in
+        #              self.master_kernel.scenario.get_edge_list()
+        #              if edge['aimsun_id'] == edge_aimsun_id)
+        return edge_aimsun_id
 
     def get_lane(self, veh_id, error=-1001):
         """See parent class."""
-        lanes = []
-        for veh in veh_id:
-            lane = self.__vehicles[veh]['tracking_info'].numberLane
-            lanes.append(lane)
-        return lanes
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_lane(veh, error) for veh in veh_id]
+        return self.__vehicles[veh_id]['tracking_info'].numberLane
 
     def get_route(self, veh_id, error=list()):
         """See parent class."""
@@ -482,31 +484,25 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_length(self, veh_id, error=-1001):
         """See parent class."""
-        # FIXME: do it the way we do, in case veh_id is not a list
-        lengths = []
-        for veh in veh_id:
-            lengths.append(self.__vehicles[veh]["length"])  # TODO double check
-        return lengths
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_length(veh, error) for veh in veh_id]
+        return self.__vehicles[veh_id]['static_info'].length
 
     def get_leader(self, veh_id, error=""):
         """See parent class."""
-        # FIXME: do it the way we do, in case veh_id is not a list
-        leaders = []
-        for veh in veh_id:
-            aimsun_id = self.__vehicles[veh]["aimsun_id"]
-            leader_id = self.kernel_api.AKIVehGetLeaderId(aimsun_id)
-            leaders.append(self.__vehicles[leader_id]["vehicle_id"])
-        return leaders
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_leader(veh, error) for veh in veh_id]
+        aimsun_id = self.__vehicles[veh_id]['aimsun_id']
+        leader_id = self.kernel_api.get_leader(aimsun_id)
+        return self._aimsun_to_veh_id[leader_id]
 
     def get_follower(self, veh_id, error=""):
         """See parent class."""
-        # FIXME: do it the way we do, in case veh_id is not a list
-        followers = []
-        for veh in veh_id:
-            aimsun_id = self.__vehicles[veh]["aimsun_id"]
-            follower_id = self.kernel_api.AKIVehGetFollowerId(aimsun_id)
-            followers.append(self.__vehicles[follower_id]["vehicle_id"])
-        return followers
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_follower(veh, error) for veh in veh_id]
+        aimsun_id = self.__vehicles[veh_id]['aimsun_id']
+        follower_id = self.kernel_api.get_follower(aimsun_id)
+        return self._aimsun_to_veh_id[follower_id]
 
     def get_headway(self, veh_id, error=-1001):
         """See parent class."""
@@ -565,8 +561,8 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
-        # FIXME
-        raise NotImplementedError
+        return self.master_kernel.scenario.get_x(
+            self.get_edge(veh_id), self.get_position(veh_id))
 
     def set_lane_headways(self, veh_id, lane_headways):
         """Set the lane headways of the specified vehicle."""
