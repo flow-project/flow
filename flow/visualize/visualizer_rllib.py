@@ -148,8 +148,7 @@ def visualizer_rllib(args):
 
     # create the agent that will be used to compute the actions
     agent = agent_cls(env=env_name, config=config)
-    checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
-    checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
+    checkpoint = result_dir + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
     env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
