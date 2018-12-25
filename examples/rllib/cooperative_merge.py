@@ -26,7 +26,7 @@ from flow.core.params import NetParams
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 # time horizon of a single rollout
 HORIZON = 100
@@ -41,7 +41,7 @@ NUM_MERGE_RL = 1
 
 # note that the vehicles are added sequentially by the scenario,
 # so place the merging vehicles after the vehicles in the ring
-vehicles = Vehicles()
+vehicles = VehicleParams()
 # Inner ring vehicles
 vehicles.add(
     veh_id='human',

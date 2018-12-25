@@ -4,7 +4,7 @@ import os
 import json
 import collections
 
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
@@ -82,7 +82,7 @@ class TestRegistry(unittest.TestCase):
         """Tests that the make_create_env methods generates an environment with
         the expected flow parameters."""
         # use a flow_params dict derived from flow/benchmarks/figureeight0.py
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {
@@ -176,7 +176,7 @@ class TestRllib(unittest.TestCase):
         checked to match expected results.
         """
         # use a flow_params dict derived from flow/benchmarks/merge0.py
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {}),
