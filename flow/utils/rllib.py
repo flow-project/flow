@@ -10,7 +10,7 @@ from copy import deepcopy
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.params import TrafficLightParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 
 class FlowParamsEncoder(json.JSONEncoder):
@@ -68,7 +68,7 @@ def get_flow_params(config):
     flow_params = json.loads(config['env_config']['flow_params'])
 
     # reinitialize the vehicles class from stored data
-    veh = Vehicles()
+    veh = VehicleParams()
     for veh_params in flow_params["veh"]:
         module = __import__(
             "flow.controllers",

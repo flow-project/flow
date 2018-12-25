@@ -5,7 +5,7 @@ import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, InFlows
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
 from flow.core.experiment import Experiment
@@ -56,7 +56,7 @@ def bay_bridge_example(render=None,
         # lcKeepRight=0.8
     )
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
         acceleration_controller=(SumoCarFollowingController, {}),

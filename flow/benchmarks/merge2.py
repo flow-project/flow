@@ -15,7 +15,7 @@ from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import SumoCarFollowingController, RLController
 
 # time horizon of a single rollout
@@ -35,7 +35,7 @@ additional_net_params["highway_lanes"] = 1
 additional_net_params["pre_merge_length"] = 500
 
 # RL vehicles constitute 5% of the total number of vehicles
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
     acceleration_controller=(SumoCarFollowingController, {}),
