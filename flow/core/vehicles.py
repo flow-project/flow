@@ -1,4 +1,0 @@
-"""Contains the vehicles class."""
-
-
-
