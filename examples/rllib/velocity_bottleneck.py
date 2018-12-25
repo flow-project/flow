@@ -15,7 +15,7 @@ from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.params import TrafficLightParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter, \
     SumoLaneChangeController
 
@@ -32,7 +32,7 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
     lane_change_controller=(SumoLaneChangeController, {}),

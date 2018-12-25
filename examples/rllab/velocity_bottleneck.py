@@ -5,7 +5,7 @@ in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
@@ -31,7 +31,7 @@ i = 0
 sumo_params = SumoParams(
     sim_step=0.5, render=False, restart_instance=True)
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 
 vehicles.add(
     veh_id="human",

@@ -2,7 +2,7 @@ import random
 import numpy as np
 import unittest
 import os
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
 from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario, \
@@ -21,7 +21,7 @@ os.environ["TEST_FLAG"] = "True"
 class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
@@ -106,7 +106,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
@@ -186,7 +186,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 class TestAccelEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
@@ -264,7 +264,7 @@ class TestAccelEnv(unittest.TestCase):
 class TestTwoLoopsMergeEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
@@ -338,7 +338,7 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
 class TestWaveAttenuationEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
@@ -438,7 +438,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
@@ -513,7 +513,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 class TestWaveAttenuationMergePOEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
@@ -592,7 +592,7 @@ class TestTestEnv(unittest.TestCase):
     """Tests the TestEnv environment in flow/envs/test.py"""
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test")
         net_params = NetParams(additional_params=LOOP_PARAMS)
         env_params = EnvParams()
@@ -643,7 +643,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         sumo_params = SumoParams(sim_step=0.5, restart_instance=True)
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="human")
         vehicles.add(veh_id="followerstopper")
 

@@ -14,7 +14,7 @@ Horizon: 1000 steps
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter
 
 # time horizon of a single rollout
@@ -26,7 +26,7 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = .10
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
