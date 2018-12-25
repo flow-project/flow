@@ -316,8 +316,8 @@ class Env(*classdef):
                 self.apply_lane_change(
                     self.vehicles.get_controlled_lc_ids(), direction=direction)
 
-            # perform (optionally) routing actions for all vehicle in the
-            # network, including rl and sumo-controlled vehicles
+            # perform (optionally) routing actions for all vehicles in the
+            # network, including RL and SUMO-controlled vehicles
             routing_ids = []
             routing_actions = []
             for veh_id in self.vehicles.get_ids():
