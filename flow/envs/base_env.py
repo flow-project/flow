@@ -625,7 +625,7 @@ class Env(*classdef):
         """Specify the actions to be performed by the rl agent(s).
 
         If no actions are provided at any given step, the rl agents default to
-        performing actions specified by sumo.
+        performing actions specified by SUMO.
 
         Parameters
         ----------
@@ -643,9 +643,9 @@ class Env(*classdef):
         raise NotImplementedError
 
     def apply_acceleration(self, veh_ids, acc):
-        """Apply the acceleration requested by a vehicle in sumo.
+        """Apply the acceleration requested by a vehicle in SUMO.
 
-        Note that, if the sumo-specified speed mode of the vehicle is not
+        Note that, if the SUMO-specified speed mode of the vehicle is not
         "aggressive", the acceleration may be clipped by some safety velocity
         or maximum possible acceleration.
 
