@@ -2,6 +2,7 @@
 from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
+from bisect import bisect_left
 import itertools
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
@@ -117,8 +118,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
         # update all vehicles' tracking information
         for veh_id in self.__ids:
-            self.__vehicles['tracking_info'] = \
-                self.kernel_api.get_vehicle_tracking_info(veh_id)
+            aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
+            self.__vehicles[veh_id]['tracking_info'] = \
+                self.kernel_api.get_vehicle_tracking_info(aimsun_id)
 
     def add(self, veh_id, type_id, edge, pos, lane, speed):
         """See parent class."""
@@ -168,7 +170,9 @@ class AimsunKernelVehicle(KernelVehicle):
         # negative one means the first feasible turn TODO get route
         next_section = -1
         # TODO: edge in aimsun
+        edge = int(1)
         # TODO: type as aimsun wants it (i.e. int)
+        type_id = int(1)
         aimsun_id = self.kernel_api.add_vehicle(
             edge, lane, type_id, pos, speed, next_section
         )
@@ -178,7 +182,7 @@ class AimsunKernelVehicle(KernelVehicle):
         self.__vehicles[veh_id]["static_info"] = static_inf_veh
 
         # set Aimsun ID
-        self.__vehicles[veh_id]["aimsun_id"] = aimsun_id
+        self.__vehicles[veh_id]["aimsun_id"] = int(aimsun_id)
 
         # set veh_id to aimsun id
         self._aimsun_to_veh_id[aimsun_id] = veh_id
@@ -215,7 +219,6 @@ class AimsunKernelVehicle(KernelVehicle):
 
         # remove from the vehicles kernel
         del self.__vehicles[veh_id]
-        del self.__sumo_obs[veh_id]
         self.__ids.remove(veh_id)
         self.num_vehicles -= 1
 
@@ -332,12 +335,14 @@ class AimsunKernelVehicle(KernelVehicle):
         """Modify the color of vehicles if rendering is active."""
         # color rl vehicles red
         for veh_id in self.get_rl_ids():
-            self.kernel_api.vehicle.set_color(vehID=veh_id, color=RED)
+            aimsun_id = self.__vehicles[veh_id]['aimsun_id']
+            self.kernel_api.vehicle.set_color(veh_id=aimsun_id, color=RED)
 
         # observed human-driven vehicles are cyan and unobserved are white
         for veh_id in self.get_human_ids():
+            aimsun_id = self.__vehicles[veh_id]['aimsun_id']
             color = CYAN if veh_id in self.get_observed_ids() else WHITE
-            self.kernel_api.set_color(vehID=veh_id, color=color)
+            self.kernel_api.set_color(veh_id=aimsun_id, color=color)
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
@@ -383,15 +388,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_ids_by_edge(self, edges):
         """See parent class."""
-        veh_ids = []
-        num_vehs = self.kernel_api.AKIVehStateGetNbVehiclesSection(
-            edges["aimsun_id"], True)
-        for j in range(num_vehs):
-            inf_veh = self.kernel_api.AKIVehStateGetVehicleInfSection(
-                edge["aimsun_id"], j)
-            aimsun_id = inf_veh.idVeh
-            veh_ids.append(self._aimsun_to_veh_id[aimsun_id])
-        return veh_ids
+        if isinstance(edges, (list, np.ndarray)):
+            return sum([self.get_ids_by_edge(edge) for edge in edges], [])
+        return [veh for veh in self.__ids if self.get_edge(veh) == edges]
 
     def get_inflow_rate(self, time_span):
         """See parent class."""
@@ -509,8 +508,8 @@ class AimsunKernelVehicle(KernelVehicle):
         # FIXME: do it the way we do, in case veh_id is not a list
         headways = []
         for veh in veh_id:
-            leader_id = self.get_leader(veh, error)
-            if self.get_edge(leader_id, error) is self.get_edge(veh, error):
+            leader_id = self.get_leader(veh)
+            if self.get_edge(leader_id) == self.get_edge(veh):
                 gap = self.get_position(leader_id, error) \
                       - self.get_position(veh) \
                       - self.get_length(leader_id, error)

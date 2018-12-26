@@ -436,7 +436,7 @@ class Env(*classdef):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, pos, lane_index, edge, speed = \
+            type_id, edge, lane_index, pos, speed = \
                 self.initial_state[veh_id]
 
             try:
