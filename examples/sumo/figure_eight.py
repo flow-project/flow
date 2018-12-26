@@ -5,7 +5,7 @@ either side of the intersection, leading to a significant reduction in the
 average speed of vehicles in the network.
 """
 from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, NetParams, \
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
@@ -24,7 +24,7 @@ def figure_eight_example(render=None):
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
@@ -58,7 +58,7 @@ def figure_eight_example(render=None):
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":
