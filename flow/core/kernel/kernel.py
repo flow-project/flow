@@ -3,7 +3,7 @@
 from flow.core.kernel.simulation import TraCISimulation
 from flow.core.kernel.scenario import KernelScenario
 from flow.core.kernel.vehicle import KernelVehicle
-from flow.core.kernel.traffic_light import KernelTrafficLight
+from flow.core.kernel.traffic_light import TraCITrafficLight
 
 
 class Kernel(object):
@@ -63,7 +63,7 @@ class Kernel(object):
             self.simulation = TraCISimulation(self)
             self.scenario = KernelScenario(self)
             self.vehicle = KernelVehicle(self, sim_params)
-            self.traffic_light = KernelTrafficLight(self)
+            self.traffic_light = TraCITrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
@@ -90,9 +90,9 @@ class Kernel(object):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        self.scenario.update(reset)
+        # self.scenario.update(reset)
         self.simulation.update(reset)
-        self.vehicle.update(reset)
+        # self.vehicle.update(reset)
         self.traffic_light.update(reset)
 
     def close(self):

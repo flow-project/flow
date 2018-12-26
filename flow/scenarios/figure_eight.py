@@ -4,7 +4,7 @@ import numpy as np
 from numpy import pi, sin, cos, linspace
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.scenarios.base_scenario import Scenario
 
 ADDITIONAL_NET_PARAMS = {
@@ -27,7 +27,7 @@ class Figure8Scenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a figure 8 scenario.
 
         Requires from net_params:

@@ -2,12 +2,12 @@
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers import SumoLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 
 SCALING = 1
 DISABLE_TB = True
@@ -31,7 +31,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a bottleneck.
     """
@@ -78,7 +78,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
         departLane="random",
         departSpeed=10)
 
-    traffic_lights = TrafficLights()
+    traffic_lights = TrafficLightParams()
     if not DISABLE_TB:
         traffic_lights.add(node_id="2")
     if not DISABLE_RAMP_METER:
@@ -105,7 +105,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     env = BottleneckEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env)
+    return Experiment(env)
 
 
 if __name__ == "__main__":
