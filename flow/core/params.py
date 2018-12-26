@@ -1022,6 +1022,8 @@ class InFlows:
             in the Vehicles class.
         edge: str
             starting edge for vehicles in this inflow.
+        name : str, optional
+            prefix for inflow vehicles
         begin: float, optional
             see Note
         end: float, optional

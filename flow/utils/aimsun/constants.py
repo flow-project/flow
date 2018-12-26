@@ -51,13 +51,13 @@ VEH_GET_STATIC = 0x09
 VEH_GET_TRACKING = 0x0A
 
 # get vehicle leader
-VEH_GET_LEADER = None
+VEH_GET_LEADER = 0x0B
 
 # get vehicle follower
-VEH_GET_FOLLOWER = None
+VEH_GET_FOLLOWER = 0x0C
 
 # get vehicle route
-VEH_GET_ROUTE = None
+VEH_GET_ROUTE = 0x0D
 
 # get vehicle speed if no API command was submitted TODO: check
 VEH_GET_DEFAULT_SPEED = None
