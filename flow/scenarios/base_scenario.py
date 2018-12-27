@@ -92,8 +92,8 @@ class Scenario(Serializable):
         ----------
         name : str
             A tag associated with the scenario
-        vehicles : Vehicles type
-            see flow/core/vehicles.py
+        vehicles : flow.core.params.VehicleParams
+            see flow/core/params.py
         net_params : flow.core.params.NetParams
             see flow/core/params.py
         initial_config : flow.core.params.InitialConfig

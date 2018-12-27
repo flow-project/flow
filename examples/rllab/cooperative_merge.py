@@ -15,7 +15,7 @@ from flow.controllers import RLController, IDMController, \
     SimLaneChangeController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS
 
@@ -28,7 +28,7 @@ def run_task(*_):
 
     # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     # Inner ring vehicles
     vehicles.add(
         veh_id="human",
