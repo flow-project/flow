@@ -139,7 +139,7 @@ def get_flow_params(config):
 
 def get_rllib_config(path):
     """Return the data from the specified rllib configuration file."""
-    config_path = os.path.join(path, "/params.json")
+    config_path = os.path.join(path, "params.json")
     if not os.path.exists(config_path):
         config_path = os.path.join(path, "../params.json")
     if not os.path.exists(config_path):
@@ -153,13 +153,13 @@ def get_rllib_config(path):
 
 def get_rllib_pkl(path):
     """Return the data from the specified rllib configuration file."""
-    config_path = os.path.join(path, "/params.pkl")
+    config_path = os.path.join(path, "params.pkl")
     if not os.path.exists(config_path):
         config_path = os.path.join(path, "../params.pkl")
     if not os.path.exists(config_path):
         raise ValueError(
             "Could not find params.pkl in either the checkpoint dir or "
             "its parent directory.")
-    with open(config_path) as f:
+    with open(config_path, 'rb') as f:
         config = cloudpickle.load(f)
     return config
