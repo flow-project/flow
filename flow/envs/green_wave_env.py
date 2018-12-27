@@ -198,35 +198,32 @@ class TrafficLightGridEnv(Env):
                 self.last_change[i, 0] += self.sim_step
                 if self.last_change[i, 0] >= self.min_switch_time:
                     if self.last_change[i, 1] == 0:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state="GGGrrrGGGrrr",
-                            env=self)
+                            state="GGGrrrGGGrrr")
                     else:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state='rrrGGGrrrGGG',
-                            env=self)
+                            state='rrrGGGrrrGGG')
                     self.last_change[i, 2] = 1
             else:
                 if action:
                     if self.last_change[i, 1] == 0:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state='yyyrrryyyrrr',
-                            env=self)
+                            state='yyyrrryyyrrr')
                     else:
-                        self.traffic_lights.set_state(
+                        self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state='rrryyyrrryyy',
-                            env=self)
+                            state='rrryyyrrryyy')
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]
                     self.last_change[i, 2] = 0
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
+        # penalize traffic light changes for occurring
+        return - rewards.boolean_action_penalty(rl_actions >= 0.5, gain=1.0)
 
     # ===============================
     # ============ UTILS ============
@@ -389,7 +386,7 @@ class TrafficLightGridEnv(Env):
             # remove the vehicle
             self.traci_connection.vehicle.remove(veh_id)
             # reintroduce it at the start of the network
-            type_id = self.vehicles.get_state(veh_id, "type")
+            type_id = self.vehicles.get_type(veh_id)
             lane_index = self.vehicles.get_lane(veh_id)
             self.traci_connection.vehicle.addFull(
                 veh_id,
@@ -398,7 +395,8 @@ class TrafficLightGridEnv(Env):
                 departLane=str(lane_index),
                 departPos="0",
                 departSpeed="max")
-            speed_mode = self.vehicles.type_parameters[type_id]["speed_mode"]
+            speed_mode = self.vehicles.type_parameters[type_id][
+                "sumo_car_following_params"].speed_mode
             self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
     def k_closest_to_intersection(self, edges, k):

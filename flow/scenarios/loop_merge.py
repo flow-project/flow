@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace
 import numpy as np
 
@@ -30,7 +30,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a two loop scenario.
 
         Requires from net_params:
@@ -62,7 +62,7 @@ class TwoLoopsOneMergingScenario(Scenario):
             2 * self.intersection_length + 2 * self.junction_length
 
         num_vehicles = vehicles.num_vehicles
-        num_merge_vehicles = sum("merge" in vehicles.get_state(veh_id, "type")
+        num_merge_vehicles = sum("merge" in vehicles.get_type(veh_id)
                                  for veh_id in vehicles.get_ids())
         self.n_inner_vehicles = num_merge_vehicles
         self.n_outer_vehicles = num_vehicles - num_merge_vehicles
@@ -81,23 +81,23 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         nodes = [{
             "id": "top_left",
-            "x": repr(0),
-            "y": repr(r),
+            "x": 0,
+            "y": r,
             "type": "priority"
         }, {
             "id": "bottom_left",
-            "x": repr(0),
-            "y": repr(-r),
+            "x": 0,
+            "y": -r,
             "type": "priority"
         }, {
             "id": "top_right",
-            "x": repr(x),
-            "y": repr(r),
+            "x": x,
+            "y": r,
             "type": "priority"
         }, {
             "id": "bottom_right",
-            "x": repr(x),
-            "y": repr(-r),
+            "x": x,
+            "y": -r,
             "type": "priority"
         }]
 
@@ -121,31 +121,31 @@ class TwoLoopsOneMergingScenario(Scenario):
             "type":
             "edgeType",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "priority":
-            "46",
+            46,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(-pi / 2, pi / 2, resolution)
-            ]),
+            ],
             "numLanes":
-            str(self.inner_lanes)
+            self.inner_lanes
         }, {
             "id": "top",
             "from": "top_right",
             "to": "top_left",
             "type": "edgeType",
-            "length": repr(x),
-            "priority": "46",
-            "numLanes": str(self.outer_lanes)
+            "length": x,
+            "priority": 46,
+            "numLanes": self.outer_lanes
         }, {
             "id": "bottom",
             "from": "bottom_left",
             "to": "bottom_right",
             "type": "edgeType",
-            "length": repr(x),
-            "numLanes": str(self.outer_lanes)
+            "length": x,
+            "numLanes": self.outer_lanes
         }, {
             "id":
             "left",
@@ -156,14 +156,14 @@ class TwoLoopsOneMergingScenario(Scenario):
             "type":
             "edgeType",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(pi / 2, 3 * pi / 2, resolution)
-            ]),
+            ],
             "numLanes":
-            str(self.inner_lanes)
+            self.inner_lanes
         }, {
             "id":
             "right",
@@ -174,14 +174,14 @@ class TwoLoopsOneMergingScenario(Scenario):
             "type":
             "edgeType",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (x + r * cos(t), r * sin(t))
+            [
+                (x + r * cos(t), r * sin(t))
                 for t in linspace(-pi / 2, pi / 2, resolution)
-            ]),
+            ],
             "numLanes":
-            str(self.outer_lanes)
+            self.outer_lanes
         }]
 
         return edges
@@ -190,7 +190,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         """See parent class."""
         speed_limit = net_params.additional_params["speed_limit"]
 
-        types = [{"id": "edgeType", "speed": repr(speed_limit)}]
+        types = [{"id": "edgeType", "speed": speed_limit}]
         return types
 
     def specify_routes(self, net_params):
@@ -269,7 +269,7 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         num_vehicles = self.vehicles.num_vehicles
         num_merge_vehicles = \
-            sum("merge" in self.vehicles.get_state(veh_id, "type")
+            sum("merge" in self.vehicles.get_type(veh_id)
                 for veh_id in self.vehicles.get_ids())
 
         radius = self.net_params.additional_params["ring_radius"]

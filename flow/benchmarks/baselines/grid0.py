@@ -4,9 +4,9 @@ Baseline is an actuated traffic light provided by SUMO.
 """
 
 import numpy as np
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.benchmarks.grid0 import flow_params
 from flow.benchmarks.grid0 import N_ROWS
 from flow.benchmarks.grid0 import N_COLUMNS
@@ -25,7 +25,7 @@ def grid0_baseline(num_runs, render=True):
 
     Returns
     -------
-        SumoExperiment
+        flow.core.experiment.Experiment
             class needed to run simulations
     """
     exp_tag = flow_params['exp_tag']
@@ -36,7 +36,7 @@ def grid0_baseline(num_runs, render=True):
     initial_config = flow_params.get('initial', InitialConfig())
 
     # define the traffic light logic
-    tl_logic = TrafficLights(baseline=False)
+    tl_logic = TrafficLightParams(baseline=False)
 
     phases = [{'duration': '31', 'minDur': '5', 'maxDur': '45',
                'state': 'GGGrrrGGGrrr'},
@@ -77,7 +77,7 @@ def grid0_baseline(num_runs, render=True):
     # create the environment object
     env = env_class(env_params, sumo_params, scenario)
 
-    exp = SumoExperiment(env, scenario)
+    exp = Experiment(env)
 
     results = exp.run(num_runs, env_params.horizon)
     total_delay = np.mean(results['returns'])

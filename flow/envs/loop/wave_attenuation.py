@@ -153,7 +153,7 @@ class WaveAttenuationEnv(Env):
                 self.env_params.additional_params['ring_length'][0],
                 self.env_params.additional_params['ring_length'][1]),
             'lanes':
-            1,
+            self.scenario.lanes,
             'speed_limit':
             30,
             'resolution':

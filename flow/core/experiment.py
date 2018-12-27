@@ -8,15 +8,15 @@ import time
 from flow.core.util import emission_to_csv
 
 
-class SumoExperiment:
+class Experiment:
     """
-    Class for systematically running simulations in sumo.
+    Class for systematically running simulations in any supported simulator.
 
     This class acts as a runner for a scenario and environment. In order to use
     it to run an scenario and environment in the absence of a method specifying
     the actions of RL agents in the network, type the following:
 
-        >>> exp = SumoExperiment(env, scenario)  # for some env and scenario
+        >>> exp = Experiment(env)  # for some env and scenario
         >>> exp.run(num_runs=1, num_steps=1000)
 
     If you wish to specify the actions of RL agents in the network, this may be
@@ -36,8 +36,8 @@ class SumoExperiment:
         >>> from flow.core.params import SumoParams
         >>> sumo_params = SumoParams(emission_path="./data")
 
-    Once you have included this in your environment, run your SumoExperiment
-    object as follows:
+    Once you have included this in your environment, run your Experiment object
+    as follows:
 
         >>> exp.run(num_runs=1, num_steps=1000, convert_to_csv=True)
 
@@ -47,31 +47,23 @@ class SumoExperiment:
     Excel), and can be parsed using tools such as numpy and pandas.
     """
 
-    def __init__(self, env, scenario):
-        """
-        Instantiate SumoExperiment.
+    def __init__(self, env):
+        """Instantiate Experiment.
 
         Attributes
         ----------
-        env: Environment type
+        env: flow.envs.Env
             the environment object the simulator will run
-        scenario: Scenario type
-            the scenario object the simulator will run
         """
-        self.name = scenario.name
-        self.num_vehicles = env.vehicles.num_vehicles
         self.env = env
-        self.vehicles = scenario.vehicles
-        self.cfg = scenario.cfg
 
-        logging.info(" Starting experiment" + str(self.name) + " at " +
-                     str(datetime.datetime.utcnow()))
+        logging.info(" Starting experiment {} at {}".format(
+            env.scenario.name, str(datetime.datetime.utcnow())))
 
-        logging.info("initializing environment.")
+        logging.info("Initializing environment.")
 
     def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
-        """
-        Run the given scenario for a set number of runs and steps per run.
+        """Run the given scenario for a set number of runs and steps per run.
 
         Parameters
         ----------
@@ -85,6 +77,7 @@ class SumoExperiment:
             convert_to_csv: bool
                 Specifies whether to convert the emission file created by sumo
                 into a csv file
+
         Returns
         -------
             info_dict: dict

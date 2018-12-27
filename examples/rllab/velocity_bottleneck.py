@@ -4,9 +4,9 @@ Bottleneck in which the actions are specifying a desired velocity
 in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
 from flow.controllers.lane_change_controllers import SumoLaneChangeController
@@ -35,10 +35,15 @@ vehicles = Vehicles()
 
 vehicles.add(
     veh_id="human",
-    speed_mode=9,
     lane_change_controller=(SumoLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    lane_change_mode=0,  # 1621,#0b100000101,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=0,  # 1621,#0b100000101,
+
+    ),
     num_vehicles=1 * SCALING)
 vehicles.add(
     veh_id="av",
@@ -47,8 +52,12 @@ vehicles.add(
     }),
     lane_change_controller=(SumoLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode=9,
-    lane_change_mode=0,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 
 horizon = 1000
@@ -95,7 +104,7 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 
-traffic_lights = TrafficLights()
+traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
     traffic_lights.add(node_id="2")
 if not DISABLE_RAMP_METER:

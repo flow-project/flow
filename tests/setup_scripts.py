@@ -9,15 +9,13 @@ import logging
 from numpy import pi, sin, cos, linspace
 
 from flow.controllers.car_following_models import IDMController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams
-from flow.core.traffic_lights import TrafficLights
+    SumoCarFollowingParams
+from flow.core.params import TrafficLightParams
 from flow.core.vehicles import Vehicles
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
-from flow.scenarios.bottleneck import BottleneckScenario
 from flow.scenarios.figure_eight import Figure8Scenario
 from flow.scenarios.grid import SimpleGridScenario
 from flow.scenarios.highway import HighwayScenario
@@ -35,22 +33,22 @@ def ring_road_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params: SumoParams type
+    sumo_params: flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
-    vehicles: Vehicles type
+    vehicles : Vehicles type
         vehicles to be placed in the network, default is one vehicles with an
         IDM acceleration controller and ContinuousRouter routing controller.
-    env_params: EnvParams type
+    env_params : flow.core.params.EnvParams
         environment-specific parameters, defaults to a environment with no
         failsafes, where other parameters do not matter for non-rl runs
-    net_params: NetParams type
+    net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a single lane
         ring road of length 230 m
-    initial_config: InitialConfig type
+    initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights : flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -66,7 +64,9 @@ def ring_road_exp_setup(sumo_params=None,
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             num_vehicles=1)
 
     if env_params is None:
@@ -95,7 +95,7 @@ def ring_road_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = LoopScenario(
@@ -123,22 +123,22 @@ def figure_eight_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params: SumoParams type
+    sumo_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
-    vehicles: Vehicles type
+    vehicles : Vehicles type
         vehicles to be placed in the network, default is one vehicles with an
         IDM acceleration controller and ContinuousRouter routing controller.
-    env_params: EnvParams type
+    env_params : flow.core.params.EnvParams
         environment-specific parameters, defaults to a environment with no
         failsafes, where other parameters do not matter for non-rl runs
-    net_params: NetParams type
+    net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a figure eight
         with a 30 m radius and "no_internal_links" set to False
-    initial_config: InitialConfig type
+    initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights: flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -153,7 +153,9 @@ def figure_eight_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -184,7 +186,7 @@ def figure_eight_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = Figure8Scenario(
@@ -212,22 +214,22 @@ def highway_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params: SumoParams type
+    sumo_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
-    vehicles: Vehicles type
+    vehicles : Vehicles type
         vehicles to be placed in the network, default is one vehicles with an
         IDM acceleration controller and ContinuousRouter routing controller.
-    env_params: EnvParams type
+    env_params : flow.core.params.EnvParams
         environment-specific parameters, defaults to a environment with no
         failsafes, where other parameters do not matter for non-rl runs
-    net_params: NetParams type
+    net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a single lane
         highway of length 100 m
-    initial_config: InitialConfig type
+    initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights: flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -242,7 +244,9 @@ def highway_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -273,7 +277,7 @@ def highway_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = HighwayScenario(
@@ -307,29 +311,29 @@ def grid_mxn_exp_setup(row_num=1,
         number of horizontal rows of edges in the grid network
     col_num: int, optional
         number of vertical columns of edges in the grid network
-    sumo_params: SumoParams type
+    sumo_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 1s
         and no sumo-imposed failsafe on human or rl vehicles
-    vehicles: Vehicles type
+    vehicles : Vehicles type
         vehicles to be placed in the network, default is 5 vehicles per edge
         for a total of 20 vehicles with an IDM acceleration controller and
         GridRouter routing controller.
-    env_params: EnvParams type
+    env_params : flow.core.params.EnvParams
         environment-specific parameters, defaults to a environment with
         failsafes, where other parameters do not matter for non-rl runs
-    net_params: NetParams type
+    net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a 1x1 grid
         which traffic lights on and "no_internal_links" set to False
-    initial_config: InitialConfig type
+    initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    tl_logic: TrafficLights type
+    tl_logic: flow.core.params.TrafficLightParams
         specifies logic of any traffic lights added to the system
     """
     logging.basicConfig(level=logging.WARNING)
 
     if tl_logic is None:
-        tl_logic = TrafficLights(baseline=False)
+        tl_logic = TrafficLightParams(baseline=False)
 
     if sumo_params is None:
         # set default sumo_params configuration
@@ -420,22 +424,22 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     Parameters
     ----------
-    sumo_params: SumoParams type
+    sumo_params : flow.core.params.SumoParams
         sumo-related configuration parameters, defaults to a time step of 0.1s
         and no sumo-imposed failsafe on human or rl vehicles
-    vehicles: Vehicles type
+    vehicles : Vehicles type
         vehicles to be placed in the network, default is one vehicles with an
         IDM acceleration controller and ContinuousRouter routing controller.
-    env_params: EnvParams type
+    env_params : flow.core.params.EnvParams
         environment-specific parameters, defaults to a environment with no
         failsafes, where other parameters do not matter for non-rl runs
-    net_params: NetParams type
+    net_params : flow.core.params.NetParams
         network-specific configuration parameters, defaults to a figure eight
         with a 30 m radius and "no_internal_links" set to False
-    initial_config: InitialConfig type
+    initial_config : flow.core.params.InitialConfig
         specifies starting positions of vehicles, defaults to evenly
         distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
+    traffic_lights: flow.core.params.TrafficLightParams
         traffic light signals, defaults to no traffic lights in the network
     """
     logging.basicConfig(level=logging.WARNING)
@@ -450,7 +454,9 @@ def variable_lanes_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            speed_mode="aggressive",
+            sumo_car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=1)
 
@@ -480,113 +486,11 @@ def variable_lanes_exp_setup(sumo_params=None,
 
     if traffic_lights is None:
         # set default to no traffic lights
-        traffic_lights = TrafficLights()
+        traffic_lights = TrafficLightParams()
 
     # create the scenario
     scenario = VariableLanesScenario(
         name="VariableLaneRingRoadTest",
-        vehicles=vehicles,
-        net_params=net_params,
-        initial_config=initial_config,
-        traffic_lights=traffic_lights)
-
-    # create the environment
-    env = AccelEnv(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
-
-    return env, scenario
-
-
-def setup_bottlenecks(sumo_params=None,
-                      vehicles=None,
-                      env_params=None,
-                      net_params=None,
-                      initial_config=None,
-                      traffic_lights=None,
-                      inflow=None,
-                      scaling=1):
-    """
-    Create an environment and scenario pair for grid 1x1 test experiments.
-
-    Sumo-related configuration parameters, defaults to a time step of 1s
-    and no sumo-imposed failsafe on human or rl vehicles
-
-    Parameters
-    ----------
-    sumo_params: SumoParams type
-        sumo-related configuration parameters, defaults to a time step of 0.1s
-        and no sumo-imposed failsafe on human or rl vehicles
-    vehicles: Vehicles type
-        vehicles to be placed in the network, default is 5 vehicles per edge
-        for a total of 20 vehicles with an IDM acceleration controller and
-        GridRouter routing controller.
-    env_params: EnvParams type
-        environment-specific parameters, defaults to a environment with
-        failsafes, where other parameters do not matter for non-rl runs
-    net_params: NetParams type
-        network-specific configuration parameters, defaults to a 1x1 grid
-        which traffic lights on and "no_internal_links" set to False
-    initial_config: InitialConfig type
-        specifies starting positions of vehicles, defaults to evenly
-        distributed vehicles across the length of the network
-    traffic_lights: TrafficLights type
-        specifies logic of any traffic lights added to the system
-    """
-    if sumo_params is None:
-        # set default sumo_params configuration
-        sumo_params = SumoParams(sim_step=0.1, render=False)
-
-    if vehicles is None:
-        vehicles = Vehicles()
-
-        vehicles.add(
-            veh_id="human",
-            speed_mode=25,
-            lane_change_controller=(SumoLaneChangeController, {}),
-            routing_controller=(ContinuousRouter, {}),
-            lane_change_mode=1621,
-            num_vehicles=1 * scaling)
-
-    if env_params is None:
-        additional_env_params = {
-            "target_velocity": 40,
-            "max_accel": 1,
-            "max_decel": 1,
-            "lane_change_duration": 5,
-            "add_rl_if_exit": False,
-            "disable_tb": True,
-            "disable_ramp_metering": True
-        }
-        env_params = EnvParams(additional_params=additional_env_params)
-
-    if inflow is None:
-        inflow = InFlows()
-        inflow.add(
-            veh_type="human",
-            edge="1",
-            vehsPerHour=1000,
-            departLane="random",
-            departSpeed=10)
-
-    if traffic_lights is None:
-        traffic_lights = TrafficLights()
-
-    if net_params is None:
-        additional_net_params = {"scaling": scaling}
-        net_params = NetParams(
-            inflows=inflow,
-            no_internal_links=False,
-            additional_params=additional_net_params)
-
-    if initial_config is None:
-        initial_config = InitialConfig(
-            spacing="random",
-            min_gap=5,
-            lanes_distribution=float("inf"),
-            edges_distribution=["2", "3", "4", "5"])
-
-    scenario = BottleneckScenario(
-        name="bay_bridge_toll",
         vehicles=vehicles,
         net_params=net_params,
         initial_config=initial_config,
@@ -621,16 +525,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "right",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "1",
+            1,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(-pi / 2, 0, resolution)
-            ])
+            ]
         }, {
             "id":
             "right",
@@ -639,16 +543,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "top",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "3",
+            3,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(0, pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
             "top",
@@ -657,16 +561,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "left",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "2",
+            2,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(pi / 2, pi, resolution)
-            ])
+            ]
         }, {
             "id":
             "left",
@@ -675,16 +579,16 @@ class VariableLanesScenario(LoopScenario):
             "to":
             "bottom",
             "speed":
-            str(v),
+            v,
             "length":
-            repr(edgelen),
+            edgelen,
             "numLanes":
-            "4",
+            4,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * cos(t), r * sin(t))
+            [
+                (r * cos(t), r * sin(t))
                 for t in linspace(pi, 3 * pi / 2, resolution)
-            ])
+            ]
         }]
 
         return edges
