@@ -16,7 +16,7 @@ from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
 from flow.scenarios.merge import ADDITIONAL_NET_PARAMS
 from flow.core.params import VehicleParams
-from flow.controllers import SumoCarFollowingController, RLController
+from flow.controllers import SimCarFollowingController, RLController
 
 # time horizon of a single rollout
 HORIZON = 750
@@ -38,15 +38,15 @@ additional_net_params["pre_merge_length"] = 500
 vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
-    acceleration_controller=(SumoCarFollowingController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    acceleration_controller=(SimCarFollowingController, {}),
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=5)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=0)
