@@ -11,8 +11,8 @@ Horizon: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
-from flow.core.traffic_lights import TrafficLights
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
+from flow.core.params import TrafficLightParams
 from flow.core.vehicles import Vehicles
 from flow.controllers import RLController, ContinuousRouter
 
@@ -28,16 +28,24 @@ AV_FRAC = 0.10
 vehicles = Vehicles()
 vehicles.add(
     veh_id="human",
-    speed_mode=9,
     routing_controller=(ContinuousRouter, {}),
-    lane_change_mode=0,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode=9,
-    lane_change_mode=0,
+    sumo_car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    sumo_lc_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
@@ -75,7 +83,7 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 
-traffic_lights = TrafficLights()
+traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
     traffic_lights.add(node_id="2")
 if not DISABLE_RAMP_METER:
@@ -135,6 +143,6 @@ flow_params = dict(
     ),
 
     # traffic lights to be introduced to specific nodes (see
-    # flow.core.traffic_lights.TrafficLights)
+    # flow.core.params.TrafficLightParams)
     tls=traffic_lights,
 )

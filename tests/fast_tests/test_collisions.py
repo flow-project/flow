@@ -1,6 +1,6 @@
 import unittest
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
 from flow.core.vehicles import Vehicles
@@ -25,9 +25,10 @@ class TestCollisions(unittest.TestCase):
             acceleration_controller=(SumoCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
-                tau=0.1, carFollowModel="Krauss", minGap=2.5),
-            num_vehicles=total_vehicles,
-            speed_mode=0b00000)
+                tau=0.1, carFollowModel="Krauss", minGap=2.5,
+                speed_mode=0b00000,
+            ),
+            num_vehicles=total_vehicles)
         grid_array = {
             "short_length": 100,
             "inner_length": 100,
@@ -63,7 +64,7 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = Experiment(self.env)
 
         self.exp.run(50, 50)
 
@@ -78,9 +79,10 @@ class TestCollisions(unittest.TestCase):
             acceleration_controller=(SumoCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
             sumo_car_following_params=SumoCarFollowingParams(
-                tau=0.1, carFollowModel="Krauss", minGap=2.5),
-            num_vehicles=total_vehicles,
-            speed_mode=0b00000)
+                tau=0.1, carFollowModel="Krauss", minGap=2.5,
+                speed_mode=0b00000,
+            ),
+            num_vehicles=total_vehicles)
         grid_array = {
             "short_length": 100,
             "inner_length": 100,
@@ -122,7 +124,7 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = Experiment(self.env)
 
         self.exp.run(50, 50)
 

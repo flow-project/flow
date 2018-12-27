@@ -6,11 +6,11 @@ import urllib.request
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams, InFlows
 from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
-from flow.scenarios.bay_bridge import BayBridgeScenario
+from flow.scenarios.bay_bridge import BayBridgeScenario, EDGES_DISTRIBUTION
 from flow.controllers import SumoCarFollowingController, BayBridgeRouter
 
 NETFILE = os.path.join(
@@ -34,7 +34,7 @@ def bay_bridge_example(render=None,
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles simulated by sumo on the Bay Bridge.
     """
@@ -43,12 +43,16 @@ def bay_bridge_example(render=None,
     if render is not None:
         sumo_params.render = render
 
-    sumo_car_following_params = SumoCarFollowingParams(speedDev=0.2)
+    sumo_car_following_params = SumoCarFollowingParams(
+        speedDev=0.2,
+        speed_mode="all_checks",
+    )
     sumo_lc_params = SumoLaneChangeParams(
         lc_assertive=20,
         lc_pushy=0.8,
         lc_speed_gain=4.0,
         model="LC2013",
+        lane_change_mode="no_lat_collide",
         # lcKeepRight=0.8
     )
 
@@ -57,8 +61,6 @@ def bay_bridge_example(render=None,
         veh_id="human",
         acceleration_controller=(SumoCarFollowingController, {}),
         routing_controller=(BayBridgeRouter, {}),
-        speed_mode="all_checks",
-        lane_change_mode="no_lat_collide",
         sumo_car_following_params=sumo_car_following_params,
         sumo_lc_params=sumo_lc_params,
         num_vehicles=1400)
@@ -66,7 +68,7 @@ def bay_bridge_example(render=None,
     additional_env_params = {}
     env_params = EnvParams(additional_params=additional_env_params)
 
-    traffic_lights = TrafficLights()
+    traffic_lights = TrafficLightParams()
 
     inflow = InFlows()
 
@@ -176,7 +178,10 @@ def bay_bridge_example(render=None,
             "wb+") as f:
         f.write(data_to_write)
 
-    initial_config = InitialConfig(spacing="uniform", min_gap=15)
+    initial_config = InitialConfig(
+        spacing="uniform",
+        min_gap=15,
+        edges_distribution=EDGES_DISTRIBUTION.copy())
 
     scenario = BayBridgeScenario(
         name="bay_bridge",
@@ -187,7 +192,7 @@ def bay_bridge_example(render=None,
 
     env = BayBridgeEnv(env_params, sumo_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

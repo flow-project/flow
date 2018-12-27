@@ -24,7 +24,7 @@ class MultiEnv(MultiAgentEnv, Env):
         simulator by the number of time steps requested per environment step.
 
         Results from the simulations are processed through various classes,
-        such as the Vehicles and TrafficLights classes, to produce standardized
+        such as the Vehicle and TrafficLight kernels, to produce standardized
         methods for identifying specific network state features. Finally,
         results from the simulator are used to generate appropriate
         observations.
@@ -86,19 +86,20 @@ class MultiEnv(MultiAgentEnv, Env):
 
             self.additional_command()
 
-            self.traci_connection.simulationStep()
+            # advance the simulation in the simulator by one step
+            self.k.simulation.simulation_step()
 
             # collect subscription information from sumo
             vehicle_obs = \
                 self.traci_connection.vehicle.getSubscriptionResults()
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
-            self.traffic_lights.update(tls_obs)
+
+            # store new observations in the vehicles and traffic lights class
+            self.k.update(reset=False)
 
             # update the colors of vehicles
             self.update_vehicle_colors()
@@ -107,9 +108,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
             # crash encodes whether the simulator experienced a collision
-            crash = \
-                self.traci_connection.simulation.getStartingTeleportNumber() \
-                != 0
+            crash = self.k.simulation.check_collision()
 
             # stop collecting new simulation steps if there is a collision
             if crash:
@@ -141,7 +140,8 @@ class MultiEnv(MultiAgentEnv, Env):
                 done['__all__'] = False
             infos[key] = {}
 
-        reward = self.compute_reward(rl_actions, fail=crash)
+        clipped_actions = self.clip_actions(rl_actions)
+        reward = self.compute_reward(clipped_actions, fail=crash)
 
         return next_observation, reward, done, infos
 
@@ -268,16 +268,18 @@ class MultiEnv(MultiAgentEnv, Env):
                     departPos=str(pos),
                     departSpeed=str(speed))
 
-        self.traci_connection.simulationStep()
+        # advance the simulation in the simulator by one step
+        self.k.simulation.simulation_step()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # update the colors of vehicles
         self.update_vehicle_colors()
@@ -312,8 +314,8 @@ class MultiEnv(MultiAgentEnv, Env):
 
         return observation
 
-    def apply_rl_actions(self, rl_actions=None):
-        """Specify the actions to be performed by the rl agent(s).
+    def clip_actions(self, rl_actions=None):
+        """Clip the actions passed from the RL agent
 
         If no actions are provided at any given step, the rl agents default to
         performing actions specified by sumo.
@@ -322,10 +324,15 @@ class MultiEnv(MultiAgentEnv, Env):
         ----------
         rl_actions: list or numpy ndarray
             list of actions provided by the RL algorithm
+
+        Returns
+        -------
+        rl_clipped: np.ndarray (float)
+            The rl_actions clipped according to the box
         """
         # ignore if no actions are issued
         if rl_actions is None:
-            return
+            return None
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
@@ -334,5 +341,23 @@ class MultiEnv(MultiAgentEnv, Env):
                     action,
                     a_min=self.action_space.low,
                     a_max=self.action_space.high)
+        return rl_actions
 
-        self._apply_rl_actions(rl_actions)
+    def apply_rl_actions(self, rl_actions=None):
+        """Specify the actions to be performed by the rl agent(s).
+
+        If no actions are provided at any given step, the rl agents default to
+        performing actions specified by sumo.
+
+        Parameters
+        ----------
+        rl_actions: dict of list or numpy ndarray
+            dict of list of actions provided by the RL algorithm
+        """
+        # ignore if no actions are issued
+        if rl_actions is None:
+            return
+
+        # clip according to the action space requirements
+        clipped_actions = self.clip_actions(rl_actions)
+        self._apply_rl_actions(clipped_actions)

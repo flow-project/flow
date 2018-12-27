@@ -1,7 +1,7 @@
 """Contains the bottleneck scenario class."""
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.scenarios.base_scenario import Scenario
 import numpy as np
 from numpy import linspace, pi, sin, cos
@@ -18,7 +18,7 @@ class MiniCityScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Instantiate the scenario class.
 
         Requires from net_params:
@@ -107,8 +107,8 @@ class MiniCityScenario(Scenario):
                                                node['y'] * SCALING])
 
         for node in nodes:
-            node['x'] = str(node['x'] * SCALING)
-            node['y'] = str(node['y'] * SCALING)
+            node['x'] = node['x'] * SCALING
+            node['y'] = node['y'] * SCALING
 
         return nodes
 
@@ -415,19 +415,16 @@ class MiniCityScenario(Scenario):
                  ]
 
         for edge in edges:
-            edge['numLanes'] = str(edge['numLanes'])
             if 'shape' in edge:
                 edge['length'] = sum(
                     [np.sqrt((edge['shape'][i][0] - edge['shape'][i+1][0])**2 +
                              (edge['shape'][i][1] - edge['shape'][i+1][1])**2)
                      * SCALING for i in range(len(edge['shape'])-1)])
-                edge['length'] = str(edge['length'])
-                edge['shape'] = ' '.join('%.2f,%.2f' % (blip*SCALING,
-                                                        blop*SCALING)
-                                         for blip, blop in edge['shape'])
+                edge['shape'] = [(x * SCALING, y * SCALING)
+                                 for x, y in edge['shape']]
             else:
-                edge['length'] = str(np.linalg.norm(self.nodes[edge['to']] -
-                                                    self.nodes[edge['from']]))
+                edge['length'] = np.linalg.norm(self.nodes[edge['to']] -
+                                                self.nodes[edge['from']])
 
             # fix junction overlapping issue
             junctions = {'e_8_b': 2,
@@ -452,7 +449,7 @@ class MiniCityScenario(Scenario):
                          'e_53': 49
                          }
             if edge['id'] in junctions:
-                edge['length'] = str(junctions[edge['id']])
+                edge['length'] = junctions[edge['id']]
 
         return edges
 
@@ -468,8 +465,8 @@ class MiniCityScenario(Scenario):
                 conn += [{
                     'from': e_from,
                     'to': e_to,
-                    'fromLane': str(i),
-                    'toLane': str(int(np.floor(i / 2)))
+                    'fromLane': i,
+                    'toLane': int(np.floor(i / 2))
                 }]
         # connect lanes at roundabout (order matters)
         edges_from_r = ['e_66', 'e_66', 'e_7', 'e_7', 'e_9', 'e_9']
@@ -479,16 +476,16 @@ class MiniCityScenario(Scenario):
                 conn += [{
                     'from': r_from,
                     'to': r_to,
-                    'fromLane': str(i),
-                    'toLane': str(i)
+                    'fromLane': i,
+                    'toLane': i
                 }]
 
         # split one lane to two lanes from e_68 to e_66
         conn += [{
             'from': 'e_68',
             'to': 'e_66',
-            'fromLane': '0',
-            'toLane': '0'
+            'fromLane': 0,
+            'toLane': 0
         }]
 
         # remove u-turn connections at n_m4 and n_s7_l
@@ -499,15 +496,15 @@ class MiniCityScenario(Scenario):
                 conn += [{
                     'from': u_from,
                     'to': u_to,
-                    'fromLane': str(i),
-                    'toLane': str(i)
+                    'fromLane': i,
+                    'toLane': i
                 }]
 
         return conn
 
     def specify_types(self, net_params):
         """See parent class."""
-        types = [{'id': 'edgeType', 'speed': repr(30)}]
+        types = [{'id': 'edgeType', 'speed': 30}]
         return types
 
     def specify_routes(self, net_params):
