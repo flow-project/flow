@@ -7,7 +7,7 @@ Creates a set of stabilizing the ring experiments to test if
 import json
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
 from ray import tune
 from ray.tune.registry import register_env

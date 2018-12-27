@@ -8,7 +8,7 @@ import json
 import argparse
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+from ray.rllib.agents.registry import get_agent_class
 from ray.tune import run_experiments
 from flow.utils.registry import make_create_env
 from ray.tune.registry import register_env
@@ -48,7 +48,7 @@ parser.add_argument(
 parser.add_argument(
     '--num_cpus',
     type=int,
-    default=6,
+    default=2,
     help="The number of cpus to use.")
 
 if __name__ == "__main__":
