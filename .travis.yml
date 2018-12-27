@@ -30,7 +30,7 @@ before_install:
   # Copy over local rllib changes (testing branch)
   - pushd $HOME/build/flow-project
   -     git clone https://github.com/flow-project/ray.git
-  -     cd ray && git fetch && git checkout master && cd ..
+  -     cd ray && git fetch && git checkout master_merge && cd ..
   -     pushd ray
   -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
   -         rm -rf $RAY_SITE_DIR/rllib
