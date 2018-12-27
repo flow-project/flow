@@ -102,9 +102,15 @@ class FlowAimsunAPI(object):
 
         # send the command values
         if in_format is not None:
-            packer = struct.Struct(format=in_format)
-            packed_data = packer.pack(*values)
-            self.s.send(packed_data)
+            if in_format == 'str':
+                self.s.send(str.encode(values[0]))
+            else:
+                packer = struct.Struct(format=in_format)
+                packed_data = packer.pack(*values)
+                self.s.send(packed_data)
+        else:
+            # if no command is needed, just send a status response
+            self.s.send(str.encode('1'))
 
         # collect the return values
         if out_format is not None:
@@ -146,6 +152,22 @@ class FlowAimsunAPI(object):
 
         # terminate the connection
         self.s.close()
+
+    def get_edge_name(self, edge):
+        """Get the name of an edge in Aimsun.
+
+        Parameters
+        ----------
+        edge : str
+            name of the edge in Flow
+
+        Returns
+        -------
+        int
+            name of the edge in Aimsun
+        """
+        return self._send_command(
+            ac.GET_EDGE_NAME, in_format='str', values=(edge,), out_format='i')
 
     def add_vehicle(self, edge, lane, type_id, pos, speed, next_section):
         """Add a vehicle to the network.
@@ -260,12 +282,23 @@ class FlowAimsunAPI(object):
                                   values=(veh_id, r, g, b),
                                   out_format=None)
 
-    def get_vehicle_ids(self):
-        """Return the ids of all vehicles in the network."""
-        return self._send_command(ac.VEH_GET_IDS,
-                                  in_format=None,
-                                  values=None,
-                                  out_format='')  # TODO: lists...
+    def get_entered_ids(self):
+        """Return the ids of all vehicles that entered the network."""
+        veh_ids = self._send_command(ac.VEH_GET_ENTERED_IDS,
+                                     in_format=None,
+                                     values=None,
+                                     out_format='str')
+
+        return veh_ids.split(':')
+
+    def get_exited_ids(self):
+        """Return the ids of all vehicles that exited the network."""
+        veh_ids = self._send_command(ac.VEH_GET_EXITED_IDS,
+                                     in_format=None,
+                                     values=None,
+                                     out_format='str')
+
+        return veh_ids.split(':')
 
     def get_vehicle_static_info(self, veh_id):
         """Return the static information of the specified vehicle.
@@ -411,14 +444,17 @@ class FlowAimsunAPI(object):
         list of int
             list of edge names in Aimsun
         """
-        return self._send_command(ac.VEH_GET_ROUTE, values=[veh_id])
+        return self._send_command(ac.VEH_GET_ROUTE,
+                                  values=[veh_id])
 
     def get_traffic_light_ids(self):
         """Return the ids of all traffic lights in the network."""
-        return self._send_command(ac.TL_GET_IDS,
-                                  in_format=None,
-                                  values=None,
-                                  out_format='')  # TODO: list...
+        tl_ids = self._send_command(ac.TL_GET_IDS,
+                                    in_format=None,
+                                    values=None,
+                                    out_format='str')
+
+        return tl_ids.split(':')
 
     def get_traffic_light_state(self, tl_id):
         """Get the traffic light state of a specific set of traffic light(s).

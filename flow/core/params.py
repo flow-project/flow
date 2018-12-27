@@ -1057,7 +1057,7 @@ class InFlows:
         new_inflow = {
             "name": "%s_%d" % (name, self.num_flows),
             "vtype": veh_type,
-            "route": "route" + edge,
+            "route": "route" + edge,  # TODO: convert to edge
             "end": end
         }
 
@@ -1068,9 +1068,9 @@ class InFlows:
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
         if period is not None:
-            new_inflow["period"] = period
+            new_inflow["period"] = period  # TODO: specify sumo-specific
         if probability is not None:
-            new_inflow["probability"] = probability
+            new_inflow["probability"] = probability  # TODO: specify sumo-specific
         if number is not None:
             new_inflow["number"] = number
 
