@@ -13,7 +13,7 @@ from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
 from flow.scenarios.figure_eight import Figure8Scenario
@@ -59,12 +59,12 @@ def ring_road_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             num_vehicles=1)
@@ -149,11 +149,11 @@ def figure_eight_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),
@@ -240,11 +240,11 @@ def highway_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),
@@ -341,11 +341,11 @@ def grid_mxn_exp_setup(row_num=1,
 
     if vehicles is None:
         total_vehicles = 20
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1, max_speed=30),
             routing_controller=(GridRouter, {}),
             num_vehicles=total_vehicles)
@@ -450,11 +450,11 @@ def variable_lanes_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),

@@ -1,11 +1,11 @@
 """Example of ring road with larger merging ring."""
 
-from flow.controllers import IDMController, SumoLaneChangeController, \
+from flow.controllers import IDMController, SimLaneChangeController, \
     ContinuousRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS
@@ -34,31 +34,31 @@ def loop_merge_example(render=None):
 
     # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=7,
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             minGap=0.0,
             tau=0.5,
             speed_mode="no_collide",
         ),
-        sumo_lc_params=SumoLaneChangeParams())
+        lane_change_params=SumoLaneChangeParams())
     vehicles.add(
         veh_id="merge-idm",
         acceleration_controller=(IDMController, {}),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=10,
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             minGap=0.01,
             tau=0.5,
             speed_mode="no_collide",
         ),
-        sumo_lc_params=SumoLaneChangeParams())
+        lane_change_params=SumoLaneChangeParams())
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 

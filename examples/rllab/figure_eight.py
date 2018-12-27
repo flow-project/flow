@@ -8,7 +8,7 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 from flow.scenarios.figure_eight import Figure8Scenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams
 from rllab.envs.gym_env import GymEnv
@@ -20,12 +20,12 @@ def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
     sim_params = SumoParams(sim_step=0.1, render=True)
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=1)
@@ -35,7 +35,7 @@ def run_task(*_):
             "noise": 0.2
         }),
         routing_controller=(ContinuousRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=13)

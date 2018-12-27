@@ -7,7 +7,7 @@ point before exiting the network.
 
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.experiment import Experiment
 from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import IDMController
@@ -41,13 +41,13 @@ def merge_example(render=None):
     if render is not None:
         sim_params.render = render
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         num_vehicles=5)

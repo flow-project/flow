@@ -12,10 +12,10 @@ from rllab.misc.instrument import run_experiment_lite
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 from flow.controllers import RLController, IDMController, \
-    SumoLaneChangeController, ContinuousRouter
+    SimLaneChangeController, ContinuousRouter
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario, \
     ADDITIONAL_NET_PARAMS
 
@@ -28,32 +28,32 @@ def run_task(*_):
 
     # note that the vehicles are added sequentially by the scenario,
     # so place the merging vehicles after the vehicles in the ring
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     # Inner ring vehicles
     vehicles.add(
         veh_id="human",
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=6,
-        sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
-        sumo_lc_params=SumoLaneChangeParams())
+        car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+        lane_change_params=SumoLaneChangeParams())
 
     # A single learning agent in the inner ring
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=1,
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             minGap=0.01,
             tau=0.5,
             speed_mode="no_collide"
         ),
-        sumo_lc_params=SumoLaneChangeParams())
+        lane_change_params=SumoLaneChangeParams())
 
     # Outer ring vehicles
     vehicles.add(
@@ -61,11 +61,11 @@ def run_task(*_):
         acceleration_controller=(IDMController, {
             "noise": 0.2
         }),
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         num_vehicles=10,
-        sumo_car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
-        sumo_lc_params=SumoLaneChangeParams())
+        car_following_params=SumoCarFollowingParams(minGap=0.0, tau=0.5),
+        lane_change_params=SumoLaneChangeParams())
 
     env_params = EnvParams(
         horizon=HORIZON,

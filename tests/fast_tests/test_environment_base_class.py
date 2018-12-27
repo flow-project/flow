@@ -2,7 +2,7 @@ import unittest
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, \
     NetParams, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -35,7 +35,7 @@ class TestStartingPositionShuffle(unittest.TestCase):
             additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -92,7 +92,7 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
             additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -175,12 +175,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=1000, decel=1000),
             num_vehicles=5)
 
@@ -331,7 +331,7 @@ class TestSorting(unittest.TestCase):
         env_params = EnvParams(
             additional_params=additional_env_params, sort_vehicles=True)
         initial_config = InitialConfig(shuffle=True)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=5)
         self.env, scenario = ring_road_exp_setup(
             env_params=env_params,
@@ -355,7 +355,7 @@ class TestSorting(unittest.TestCase):
         env_params = EnvParams(
             additional_params=additional_env_params, sort_vehicles=True)
         initial_config = InitialConfig(shuffle=True)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=5)
         self.env, scenario = ring_road_exp_setup(
             env_params=env_params,
@@ -470,7 +470,7 @@ class TestAbstractMethods(unittest.TestCase):
 class TestVehicleColoring(unittest.TestCase):
 
     def test_all(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("human", num_vehicles=10)
         # add an RL vehicle to ensure that its color will be distinct
         vehicles.add("rl", acceleration_controller=(RLController, {}),
