@@ -10,7 +10,7 @@ from flow.controllers.lane_change_controllers import SimLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import InFlows, NetParams
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 
 from collections import defaultdict
 from copy import deepcopy
@@ -873,7 +873,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                         no_internal_links=False,
                         additional_params=additional_net_params)
 
-                    vehicles = Vehicles()
+                    vehicles = VehicleParams()
                     vehicles.add(
                         veh_id="human",
                         car_following_params=SumoCarFollowingParams(

@@ -7,7 +7,7 @@ import numpy as np
 from flow.core.experiment import Experiment
 from flow.core.params import InitialConfig
 from flow.core.params import SumoCarFollowingParams
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController
 from flow.controllers import ContinuousRouter
@@ -44,7 +44,7 @@ def figure_eight_baseline(num_runs, render=True):
     env_params.evaluate = True
 
     # we want no autonomous vehicles in the simulation
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(veh_id='human',
                  acceleration_controller=(IDMController, {'noise': 0.2}),
                  routing_controller=(ContinuousRouter, {}),
