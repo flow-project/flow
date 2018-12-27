@@ -14,6 +14,7 @@ parser : ArgumentParser
 
 import argparse
 from datetime import datetime
+import gym
 import numpy as np
 import os
 import sys
@@ -21,7 +22,6 @@ import sys
 import ray
 from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
-from ray.rllib.models import ModelCatalog
 
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
@@ -43,8 +43,6 @@ def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
-    # config = get_rllib_config(result_dir + '/..')
-    # pkl = get_rllib_pkl(result_dir + '/..')
     config = get_rllib_config(result_dir)
     # TODO(ev) backwards compatibility hack
     try:
@@ -135,7 +133,6 @@ def visualizer_rllib(args):
     # Start the environment with the gui turned on and a path for the
     # emission file
     module = __import__('flow.envs', fromlist=[flow_params['env_name']])
-    env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
     env_params.restart_instance = False
     if args.evaluate:
@@ -152,8 +149,10 @@ def visualizer_rllib(args):
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+    if hasattr(agent, "local_evaluator"):
+        env = agent.local_evaluator.env
+    else:
+        env = gym.make(env_name)
 
     if multiagent:
         rets = {}
@@ -163,6 +162,26 @@ def visualizer_rllib(args):
             rets[key] = []
     else:
         rets = []
+
+    if config['model']['use_lstm']:
+        use_lstm = True
+        if multiagent:
+            state_init = {}
+            # map the agent id to its policy
+            policy_map_fn = config['multiagent']['policy_mapping_fn'].func
+            size = config['model']['lstm_cell_size']
+            for key in config['multiagent']['policy_graphs'].keys():
+                state_init[key] = [np.zeros(size, np.float32),
+                                   np.zeros(size, np.float32)
+                                   ]
+        else:
+            state_init = [
+                np.zeros(config['model']['lstm_cell_size'], np.float32),
+                np.zeros(config['model']['lstm_cell_size'], np.float32)
+            ]
+    else:
+        use_lstm = False
+
     final_outflows = []
     mean_speed = []
     for i in range(args.num_rollouts):
@@ -178,8 +197,14 @@ def visualizer_rllib(args):
             if multiagent:
                 action = {}
                 for agent_id in state.keys():
-                    action[agent_id] = agent.compute_action(
-                        state[agent_id], policy_id=policy_map_fn(agent_id))
+                    if use_lstm:
+                        action[agent_id], state_init[agent_id], logits = \
+                            agent.compute_action(
+                            state[agent_id], state=state_init[agent_id],
+                            policy_id=policy_map_fn(agent_id))
+                    else:
+                        action[agent_id] = agent.compute_action(
+                            state[agent_id], policy_id=policy_map_fn(agent_id))
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
