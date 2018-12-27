@@ -1,8 +1,8 @@
 """Contains the vehicles class."""
 
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 import collections
 from bisect import bisect_left
 import itertools
@@ -70,13 +70,13 @@ class Vehicles:
 
     def add(self,
             veh_id,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
+            lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=None,
             initial_speed=0,
             num_vehicles=1,
-            sumo_car_following_params=None,
-            sumo_lc_params=None):
+            car_following_params=None,
+            lane_change_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
 
         Parameters
@@ -99,24 +99,26 @@ class Vehicles:
             initial speed of the vehicles being added (in m/s)
         num_vehicles : int, optional
             number of vehicles of this type to be added to the network
-        sumo_car_following_params : flow.core.params.SumoCarFollowingParams
+        car_following_params : flow.core.params.SumoCarFollowingParams
             Params object specifying attributes for Sumo car following model.
-        sumo_lc_params : flow.core.params.SumoLaneChangeParams
+        lane_change_params : flow.core.params.SumoLaneChangeParams
             Params object specifying attributes for Sumo lane changing model.
         """
-        if sumo_car_following_params is None:
-            sumo_car_following_params = SumoCarFollowingParams()
+        if car_following_params is None:
+            # FIXME: depends on simulator
+            car_following_params = SumoCarFollowingParams()
 
-        if sumo_lc_params is None:
-            sumo_lc_params = SumoLaneChangeParams()
+        if lane_change_params is None:
+            # FIXME: depends on simulator
+            lane_change_params = SumoLaneChangeParams()
 
         type_params = {}
-        type_params.update(sumo_car_following_params.controller_params)
-        type_params.update(sumo_lc_params.controller_params)
+        type_params.update(car_following_params.controller_params)
+        type_params.update(lane_change_params.controller_params)
 
         # If a vehicle is not sumo or RL, let the minGap be zero so that it
         # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SumoCarFollowingController \
+        if acceleration_controller[0] != SimCarFollowingController \
                 and acceleration_controller[0] != RLController:
             type_params["minGap"] = 0.0
 
@@ -127,8 +129,8 @@ class Vehicles:
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,  # TODO: remove
-             "sumo_car_following_params": sumo_car_following_params,
-             "sumo_lc_params": sumo_lc_params}
+             "car_following_params": car_following_params,
+             "lane_change_params": lane_change_params}
 
         self.initial.append({
             "veh_id":
@@ -143,10 +145,10 @@ class Vehicles:
                 initial_speed,
             "num_vehicles":
                 num_vehicles,
-            "sumo_car_following_params":
-                sumo_car_following_params,
-            "sumo_lc_params":
-                sumo_lc_params
+            "car_following_params":
+                car_following_params,
+            "lane_change_params":
+                lane_change_params
         })
 
         # this is used to return the actual headways from the vehicles class
@@ -167,7 +169,7 @@ class Vehicles:
             self.__vehicles[v_id]["acc_controller"] = \
                 acceleration_controller[0](
                     v_id,
-                    sumo_cf_params=sumo_car_following_params,
+                    car_following_params=car_following_params,
                     **acceleration_controller[1])
 
             # specify the lane-changing controller class
@@ -195,9 +197,9 @@ class Vehicles:
 
                 # check if the vehicle's lane-changing / acceleration actions
                 # are controlled by sumo or not.
-                if acceleration_controller[0] != SumoCarFollowingController:
+                if acceleration_controller[0] != SimCarFollowingController:
                     self.__controlled_ids.append(v_id)
-                if lane_change_controller[0] != SumoLaneChangeController:
+                if lane_change_controller[0] != SimLaneChangeController:
                     self.__controlled_lc_ids.append(v_id)
 
         # update the variables for the number of vehicles in the network
@@ -346,15 +348,15 @@ class Vehicles:
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
-        sumo_cf_params = \
-            self.type_parameters[veh_type]["sumo_car_following_params"]
+        car_following_params = \
+            self.type_parameters[veh_type]["car_following_params"]
 
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
             accel_controller[0](veh_id,
-                                sumo_cf_params=sumo_cf_params,
+                                car_following_params=car_following_params,
                                 **accel_controller[1])
 
         # specify the lane-changing controller class
@@ -377,9 +379,9 @@ class Vehicles:
             self.num_rl_vehicles += 1
         else:
             self.__human_ids.append(veh_id)
-            if accel_controller[0] != SumoCarFollowingController:
+            if accel_controller[0] != SimCarFollowingController:
                 self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SumoLaneChangeController:
+            if lc_controller[0] != SimLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle
@@ -406,12 +408,12 @@ class Vehicles:
 
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][
-            "sumo_car_following_params"].speed_mode
+            "car_following_params"].speed_mode
         env.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
         # set the lane changing mode for the vehicle
         lc_mode = self.type_parameters[veh_type][
-            "sumo_lc_params"].lane_change_mode
+            "lane_change_params"].lane_change_mode
         env.traci_connection.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
         # make sure that the order of rl_ids is kept sorted

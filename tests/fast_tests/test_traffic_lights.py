@@ -149,7 +149,7 @@ class TestPOEnv(unittest.TestCase):
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
@@ -217,7 +217,7 @@ class TestItRuns(unittest.TestCase):
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 

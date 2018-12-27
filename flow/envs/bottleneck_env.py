@@ -6,7 +6,7 @@ TODO(ak): add paper after it has been published.
 """
 
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import InFlows, NetParams
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
@@ -889,24 +889,24 @@ class DesiredVelocityEnv(BottleneckEnv):
                     vehicles = Vehicles()
                     vehicles.add(
                         veh_id="human",
-                        sumo_car_following_params=SumoCarFollowingParams(
+                        car_following_params=SumoCarFollowingParams(
                             speed_mode=9,
                         ),
-                        lane_change_controller=(SumoLaneChangeController, {}),
+                        lane_change_controller=(SimLaneChangeController, {}),
                         routing_controller=(ContinuousRouter, {}),
-                        sumo_lc_params=SumoLaneChangeParams(
+                        lane_change_params=SumoLaneChangeParams(
                             lane_change_mode=0,  # 1621,#0b100000101,
                         ),
                         num_vehicles=1 * self.scaling)
                     vehicles.add(
                         veh_id="followerstopper",
                         acceleration_controller=(RLController, {}),
-                        lane_change_controller=(SumoLaneChangeController, {}),
+                        lane_change_controller=(SimLaneChangeController, {}),
                         routing_controller=(ContinuousRouter, {}),
-                        sumo_car_following_params=SumoCarFollowingParams(
+                        car_following_params=SumoCarFollowingParams(
                             speed_mode=9,
                         ),
-                        sumo_lc_params=SumoLaneChangeParams(
+                        lane_change_params=SumoLaneChangeParams(
                             lane_change_mode=0,
                         ),
                         num_vehicles=1 * self.scaling)

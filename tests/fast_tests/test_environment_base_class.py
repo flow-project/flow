@@ -180,7 +180,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=1000, decel=1000),
             num_vehicles=5)
 
