@@ -294,16 +294,6 @@ If you have Ubuntu 14.04+, run the following command
     source ~/.bashrc
 
 
-Custom configuration
-----------
-
-You may define user-specific config parameters as follows
-
-::
-
-    cp flow/config_default.py flow/config.py  # Create template for users using pycharm
-
-
 Remote installation using docker
 ==========
 
