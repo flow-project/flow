@@ -6,6 +6,8 @@ import socket
 from thread import start_new_thread
 
 PORT = 9999
+entered_vehicles = []
+exited_vehicles = []
 
 
 def AAPILoad():
@@ -92,30 +94,30 @@ def AAPIManage(time, timeSta, timeTrans, acycle):
 
 
 def AAPIPostManage(time, timeSta, timeTrans, acycle):
-    aimsun_api.AKIPrintString("AAPIPostManage")
     return 0
 
 
 def AAPIFinish():
-    aimsun_api.AKIPrintString("AAPIFinish")
     return 0
 
 
 def AAPIUnLoad():
-    # AKIPrintString("AAPIUnLoad")
     return 0
 
 
 def AAPIPreRouteChoiceCalculation(time, timeSta):
-    # AKIPrintString("AAPIPreRouteChoiceCalculation")
     return 0
 
 
 def AAPIEnterVehicle(idveh, idsection):
+    global entered_vehicles
+    entered_vehicles.append(idveh)
     return 0
 
 
 def AAPIExitVehicle(idveh, idsection):
+    global exited_vehicles
+    exited_vehicles.append(idveh)
     return 0
 
 

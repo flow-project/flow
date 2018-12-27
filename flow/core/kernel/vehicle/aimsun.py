@@ -114,7 +114,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
         This is used to store an updated vehicle information object.
         """
-        # update the vehicle_ids object TODO
+        # collect the entered and exited vehicle_ids
+        added_vehicles = self.kernel_api.get_entered_ids()
+        exited_vehicles = self.kernel_api.get_exited_ids()
 
         # update all vehicles' tracking information
         for veh_id in self.__ids:

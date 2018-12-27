@@ -18,6 +18,9 @@ SIMULATION_COLLISION = None
 #                              Scenario Commands                              #
 ###############################################################################
 
+# get the edge name in aimsun
+GET_EDGE_NAME = 0x0E
+
 
 ###############################################################################
 #                               Vehicle Commands                              #
@@ -41,8 +44,11 @@ VEH_SET_ROUTE = 0x06
 # set color
 VEH_SET_COLOR = 0x07
 
-# get vehicle IDs
-VEH_GET_IDS = 0x08
+# get IDs of entering vehicles
+VEH_GET_ENTERED_IDS = 0x08
+
+# get IDs of exiting vehicles
+VEH_GET_EXITED_IDS = 0x0F
 
 # get vehicle static information
 VEH_GET_STATIC = 0x09
