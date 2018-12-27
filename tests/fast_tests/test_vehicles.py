@@ -2,7 +2,7 @@ import unittest
 import os
 import numpy as np
 
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import SumoCarFollowingParams, NetParams, \
     InitialConfig, SumoParams, SumoLaneChangeParams
 from flow.controllers.car_following_models import IDMController, \
@@ -25,7 +25,7 @@ class TestVehiclesClass(unittest.TestCase):
         Check to make sure vehicle class correctly specifies lane change and
         speed modes
         """
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
@@ -81,7 +81,7 @@ class TestVehiclesClass(unittest.TestCase):
         """
         # check that, if the vehicle is not a SimCarFollowingController
         # vehicle, then its minGap is equal to 0
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
@@ -95,7 +95,7 @@ class TestVehiclesClass(unittest.TestCase):
 
         # check that, if the vehicle is a SimCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "typeA",
             acceleration_controller=(SimCarFollowingController, {}),
@@ -115,7 +115,7 @@ class TestVehiclesClass(unittest.TestCase):
         IDs, and that the number of vehicles is correct.
         """
         # generate a vehicles class
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
 
         # vehicles whose acceleration and LC are controlled by sumo
         vehicles.add("test_1", num_vehicles=1)
@@ -146,7 +146,7 @@ class TestVehiclesClass(unittest.TestCase):
         Ensure that added rl vehicles are placed in the current vehicle IDs,
         and that the number of vehicles is correct.
         """
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "test_rl",
             num_vehicles=10,
@@ -167,7 +167,7 @@ class TestVehiclesClass(unittest.TestCase):
         be removed in the vehicles class.
         """
         # generate a vehicles class
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
         vehicles.add(
             "test_rl",
@@ -231,7 +231,7 @@ class TestMultiLaneData(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -275,7 +275,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 1
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -348,7 +348,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 1
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -422,7 +422,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 3
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -490,7 +490,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 3
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -562,7 +562,7 @@ class TestIdsByEdge(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=20)
 
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -583,7 +583,7 @@ class TestObservedIDs(unittest.TestCase):
     """Tests the observed_ids methods, which are used for visualization."""
 
     def test_obs_ids(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=10)
 
         env, _ = ring_road_exp_setup(vehicles=vehicles)

@@ -12,8 +12,8 @@ from flow.controllers.car_following_models import IDMController
 from flow.controllers.routing_controllers import ContinuousRouter, GridRouter
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
-from flow.core.params import Vehicles
 from flow.core.params import TrafficLightParams
+from flow.core.params import VehicleParams
 from flow.envs.green_wave_env import GreenWaveTestEnv
 from flow.envs.loop.loop_accel import AccelEnv
 from flow.scenarios.figure_eight import Figure8Scenario
@@ -59,7 +59,7 @@ def ring_road_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
@@ -152,7 +152,7 @@ def figure_eight_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
@@ -246,7 +246,7 @@ def highway_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
@@ -350,7 +350,7 @@ def grid_mxn_exp_setup(row_num=1,
 
     if vehicles is None:
         total_vehicles = 20
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
@@ -462,7 +462,7 @@ def variable_lanes_exp_setup(sim_params=None,
 
     if vehicles is None:
         # set default vehicles configuration
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
