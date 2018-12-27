@@ -25,7 +25,6 @@ before_install:
   # Requirements for Ray
   - pip install opencv-python
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.6.1-cp35-cp35m-manylinux1_x86_64.whl
 
   # Copy over local rllib changes (testing branch)
   - pushd $HOME/build/flow-project
