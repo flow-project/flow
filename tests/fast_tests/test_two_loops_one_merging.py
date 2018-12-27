@@ -5,7 +5,7 @@ from flow.controllers import RLController, IDMController, StaticLaneChanger
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.envs.loop.loop_merges import TwoLoopsMergePOEnv, \
     ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario
@@ -17,12 +17,12 @@ def two_loops_one_merging_exp_setup(vehicles=None):
     sim_params = SumoParams(sim_step=0.1, render=False)
 
     if vehicles is None:
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=1)
@@ -30,7 +30,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=5)
@@ -38,7 +38,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             veh_id="merge-idm",
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=5)

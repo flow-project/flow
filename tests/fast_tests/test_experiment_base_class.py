@@ -3,7 +3,7 @@ import os
 import time
 
 from flow.core.experiment import Experiment
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import SumoParams
@@ -74,12 +74,12 @@ class TestRLActions(unittest.TestCase):
             return [1]  # actions are always an acceleration of 1 for one veh
 
         # create an environment using AccelEnv with 1 RL vehicle
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             num_vehicles=1)

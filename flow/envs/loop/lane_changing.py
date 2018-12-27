@@ -164,7 +164,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
 
     States
         States are a list of rl vehicles speeds, as well as the speeds and
-        bumper-to-bumper headawys between the rl vehicles and their
+        bumper-to-bumper headways between the rl vehicles and their
         leaders/followers in all lanes. There is no assumption on the number of
         vehicles in the network, so long as the number of rl vehicles is
         static.

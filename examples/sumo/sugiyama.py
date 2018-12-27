@@ -7,7 +7,7 @@ from flow.controllers import IDMController, ContinuousRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, \
     InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.loop import LoopScenario, ADDITIONAL_NET_PARAMS
 
@@ -32,7 +32,7 @@ def sugiyama_example(render=None):
     if render is not None:
         sim_params.render = render
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),

@@ -4,7 +4,7 @@ import os
 import json
 import collections
 
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
@@ -82,14 +82,14 @@ class TestRegistry(unittest.TestCase):
         """Tests that the make_create_env methods generates an environment with
         the expected flow parameters."""
         # use a flow_params dict derived from flow/benchmarks/figureeight0.py
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {
                 "noise": 0.2
             }),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=13)
@@ -97,7 +97,7 @@ class TestRegistry(unittest.TestCase):
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=1)
@@ -178,11 +178,11 @@ class TestRllib(unittest.TestCase):
         checked to match expected results.
         """
         # use a flow_params dict derived from flow/benchmarks/merge0.py
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             # for testing coverage purposes, we add a routing controller
@@ -191,7 +191,7 @@ class TestRllib(unittest.TestCase):
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
             num_vehicles=0)

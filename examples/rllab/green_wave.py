@@ -5,13 +5,13 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
 from flow.core.params import SumoCarFollowingParams
 
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.controllers import SimCarFollowingController, GridRouter
 
 from flow.scenarios.grid import SimpleGridScenario
 
@@ -91,11 +91,11 @@ def run_task(*_):
 
     sim_params = SumoParams(sim_step=1, render=True)
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="idm",
-        acceleration_controller=(SumoCarFollowingController, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        acceleration_controller=(SimCarFollowingController, {}),
+        car_following_params=SumoCarFollowingParams(
             min_gap=2.5, tau=1.1, max_speed=v_enter, speed_mode="all_checks"),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)

@@ -2,7 +2,7 @@ import unittest
 import os
 
 from tests.setup_scripts import ring_road_exp_setup, grid_mxn_exp_setup
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import NetParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
@@ -144,12 +144,12 @@ class TestPOEnv(unittest.TestCase):
     """
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
@@ -212,12 +212,12 @@ class TestItRuns(unittest.TestCase):
     """
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
