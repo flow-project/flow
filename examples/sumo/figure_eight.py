@@ -39,7 +39,7 @@ def figure_eight_example(render=None):
         acceleration_controller=(IDMController, {}),
         lane_change_controller=(StaticLaneChanger, {}),
         routing_controller=(ContinuousRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         initial_speed=0,

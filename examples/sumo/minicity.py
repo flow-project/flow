@@ -55,10 +55,10 @@ def minicity_example(render=None,
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode=1,
         ),
-        sumo_lc_params=SumoLaneChangeParams(
+        lane_change_params=SumoLaneChangeParams(
             lane_change_mode="no_lat_collide",
         ),
         initial_speed=0,
@@ -67,7 +67,7 @@ def minicity_example(render=None,
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode="no_collide",
         ),
         initial_speed=0,

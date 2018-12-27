@@ -5,7 +5,7 @@ from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
-from flow.controllers import SumoLaneChangeController, ContinuousRouter
+from flow.controllers import SimLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import Experiment
 
@@ -48,12 +48,12 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     vehicles.add(
         veh_id="human",
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode=25,
         ),
-        sumo_lc_params=SumoLaneChangeParams(
+        lane_change_params=SumoLaneChangeParams(
             lane_change_mode=1621,
         ),
         num_vehicles=1)
