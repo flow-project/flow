@@ -64,7 +64,7 @@ def ring_road_exp_setup(sumo_params=None,
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             num_vehicles=1)
@@ -153,7 +153,7 @@ def figure_eight_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),
@@ -244,7 +244,7 @@ def highway_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),
@@ -345,7 +345,7 @@ def grid_mxn_exp_setup(row_num=1,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1, max_speed=30),
             routing_controller=(GridRouter, {}),
             num_vehicles=total_vehicles)
@@ -454,7 +454,7 @@ def variable_lanes_exp_setup(sumo_params=None,
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="aggressive",
             ),
             routing_controller=(ContinuousRouter, {}),

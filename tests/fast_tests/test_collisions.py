@@ -4,7 +4,7 @@ from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
 from flow.core.vehicles import Vehicles
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
 from tests.setup_scripts import grid_mxn_exp_setup
@@ -22,9 +22,9 @@ class TestCollisions(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add(
             veh_id="idm",
-            acceleration_controller=(SumoCarFollowingController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=0.1, carFollowModel="Krauss", minGap=2.5,
                 speed_mode=0b00000,
             ),
@@ -76,9 +76,9 @@ class TestCollisions(unittest.TestCase):
         vehicles = Vehicles()
         vehicles.add(
             veh_id="idm",
-            acceleration_controller=(SumoCarFollowingController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=0.1, carFollowModel="Krauss", minGap=2.5,
                 speed_mode=0b00000,
             ),

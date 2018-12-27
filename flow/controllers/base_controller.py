@@ -14,7 +14,7 @@ class BaseController:
 
     def __init__(self,
                  veh_id,
-                 sumo_cf_params,
+                 car_following_params,
                  delay=0,
                  fail_safe=None,
                  noise=0):
@@ -24,7 +24,7 @@ class BaseController:
         ----------
         veh_id: string
             ID of the vehicle this controller is used for
-        sumo_cf_params: SumoCarFollowingParams
+        car_following_params: SumoCarFollowingParams
             The underlying sumo model for car that will be overwritten. A Flow
             controller will override the behavior this sumo car following
             model; however, if control is ceded back to sumo, the vehicle will
@@ -49,11 +49,11 @@ class BaseController:
         # longitudinal failsafe used by the vehicle
         self.fail_safe = fail_safe
 
-        self.max_accel = sumo_cf_params.controller_params['accel']
+        self.max_accel = car_following_params.controller_params['accel']
         # max deaccel should always be a positive
-        self.max_deaccel = abs(sumo_cf_params.controller_params['decel'])
+        self.max_deaccel = abs(car_following_params.controller_params['decel'])
 
-        self.sumo_cf_params = sumo_cf_params
+        self.car_following_params = car_following_params
 
     def uses_sumo(self):
         """Specify whether the controller uses sumo's default accelerations."""
