@@ -279,15 +279,14 @@ class TestMultiLaneData(unittest.TestCase):
         # find one leader and one follower for the central vehicle
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_0', 20),
-                                          ('highway_0', 30),
-                                          ('highway_0', 10)]
-        initial_pos["start_lanes"] = [1, 2, 0]
+        initial_pos = {"start_positions": [('highway_0', 20),
+                                           ('highway_0', 30),
+                                           ('highway_0', 10)],
+                       "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -348,22 +347,21 @@ class TestMultiLaneData(unittest.TestCase):
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_0', 50),
-                                          ('highway_0', 60),
-                                          ('highway_0', 40),
-                                          ('highway_0', 40),
-                                          ('highway_0', 30),
-                                          ('highway_0', 60),
-                                          ('highway_0', 70),
-                                          ('highway_0', 60),
-                                          ('highway_0', 40),
-                                          ]
-        initial_pos["start_lanes"] = [0, 0, 0, 1, 1, 2, 2, 3, 3]
+        initial_pos = {"start_positions": [('highway_0', 50),
+                                           ('highway_0', 60),
+                                           ('highway_0', 40),
+                                           ('highway_0', 40),
+                                           ('highway_0', 30),
+                                           ('highway_0', 60),
+                                           ('highway_0', 70),
+                                           ('highway_0', 60),
+                                           ('highway_0', 40),
+                                           ],
+                       "start_lanes": [0, 0, 0, 1, 1, 2, 2, 3, 3]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -419,16 +417,14 @@ class TestMultiLaneData(unittest.TestCase):
         # find one leader and one follower for the central vehicle
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
-                                          ('highway_2', 75 - (2 * 100 / 3.0)),
-                                          ('highway_0', 25)]
-        initial_pos["start_lanes"] = [1, 2, 0]
+        initial_pos = {"start_positions": [('highway_1', 50 - (100 / 3.0)),
+                                           ('highway_2', 75 - (2 * 100 / 3.0)),
+                                           ('highway_0', 25)],
+                       "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo",
-                                   render=True),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -487,15 +483,14 @@ class TestMultiLaneData(unittest.TestCase):
         # find one leader and one follower for the central vehicle
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
-                                          ('highway_2', 75 - (2 * 100 / 3.0)),
-                                          ('highway_0', 25)]
-        initial_pos["start_lanes"] = [0, 0, 0]
+        initial_pos = {"start_positions": [('highway_1', 50 - (100 / 3.0)),
+                                           ('highway_2', 75 - (2 * 100 / 3.0)),
+                                           ('highway_0', 25)],
+                       "start_lanes": [0, 0, 0]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)

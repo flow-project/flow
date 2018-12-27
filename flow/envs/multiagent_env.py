@@ -172,7 +172,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # warn about not using restart_instance when using inflows
         if len(self.scenario.net_params.inflows.get()) > 0 and \
-                not self.sumo_params.restart_instance:
+                not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
                 "**********************************************************\n"
@@ -185,14 +185,14 @@ class MultiEnv(MultiAgentEnv, Env):
                 "**********************************************************"
             )
 
-        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+        if self.sim_params.restart_instance or self.step_counter > 2e6:
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
-            self.sumo_params.seed = random.randint(0, 1e5)
+            self.sim_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
             self.vehicles = deepcopy(self.initial_vehicles)
-            # restart the sumo instance
-            self.restart_sumo(self.sumo_params)
+            # restart the simulation instance
+            self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
         if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:

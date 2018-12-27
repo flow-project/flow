@@ -27,14 +27,14 @@ class Experiment:
 
     Finally, if you would like to like to plot and visualize your results, this
     class can generate csv files from emission files produced by sumo. These
-    files will contain the speeds, possitions, edges, etc... of every vehicle
+    files will contain the speeds, positions, edges, etc... of every vehicle
     in the network at every time step.
 
-    In order to ensure that sumo constructs an emission file, set the
-    ``emission_path`` attribute in ``SumoParams`` to some path.
+    In order to ensure that the simulator constructs an emission file, set the
+    ``emission_path`` attribute in ``SimParams`` to some path.
 
-        >>> from flow.core.params import SumoParams
-        >>> sumo_params = SumoParams(emission_path="./data")
+        >>> from flow.core.params import SimParams
+        >>> sim_params = SimParams(emission_path="./data")
 
     Once you have included this in your environment, run your Experiment object
     as follows:
@@ -133,7 +133,7 @@ class Experiment:
             time.sleep(0.1)
 
             # collect the location of the emission file
-            dir_path = self.env.sumo_params.emission_path
+            dir_path = self.env.sim_params.emission_path
             emission_filename = \
                 "{0}-emission.xml".format(self.env.scenario.name)
             emission_path = \

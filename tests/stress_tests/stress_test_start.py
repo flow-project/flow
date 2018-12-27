@@ -11,7 +11,7 @@ import ray
 @ray.remote
 def start():
     """Start a environment object with ray."""
-    sumo_params = SumoParams(sim_step=0.1, render=False)
+    sim_params = SumoParams(sim_step=0.1, render=False)
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -33,7 +33,7 @@ def start():
         net_params=net_params,
         initial_config=initial_config)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
     env._close()
 
 

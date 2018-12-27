@@ -107,7 +107,7 @@ flow_params = dict(
     scenario="BottleneckScenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.5,
         render=False,
         print_warnings=False,

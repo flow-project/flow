@@ -17,7 +17,7 @@ HORIZON = 1500
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(sim_step=0.1, render=False, seed=0)
+    sim_params = SumoParams(sim_step=0.1, render=False, seed=0)
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -60,7 +60,7 @@ def run_task(*_):
         initial_config=initial_config)
 
     env_name = "WaveAttenuationPOEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

@@ -25,7 +25,7 @@ def minicity_example(render=None,
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -33,22 +33,22 @@ def minicity_example(render=None,
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on the minicity scenario.
     """
-    sumo_params = SumoParams(sim_step=0.25)
+    sim_params = SumoParams(sim_step=0.25)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
     if save_render is not None:
-        sumo_params.save_render = save_render
+        sim_params.save_render = save_render
 
     if sight_radius is not None:
-        sumo_params.sight_radius = sight_radius
+        sim_params.sight_radius = sight_radius
 
     if pxpm is not None:
-        sumo_params.pxpm = pxpm
+        sim_params.pxpm = pxpm
 
     if show_radius is not None:
-        sumo_params.show_radius = show_radius
+        sim_params.show_radius = show_radius
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -89,7 +89,7 @@ def minicity_example(render=None,
         initial_config=initial_config,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 
