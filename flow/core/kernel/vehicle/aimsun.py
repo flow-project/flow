@@ -118,20 +118,41 @@ class AimsunKernelVehicle(KernelVehicle):
         added_vehicles = self.kernel_api.get_entered_ids()
         exited_vehicles = self.kernel_api.get_exited_ids()
 
+        for aimsun_id in added_vehicles:
+            self._add_departed(aimsun_id)
+
+        for veh_id in exited_vehicles:
+            self.remove(veh_id)
+
         # update all vehicles' tracking information
         for veh_id in self.__ids:
             aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
             self.__vehicles[veh_id]['tracking_info'] = \
                 self.kernel_api.get_vehicle_tracking_info(aimsun_id)
 
-    def add(self, veh_id, type_id, edge, pos, lane, speed):
+    def _add_departed(self, aimsun_id):
         """See parent class."""
-        self.num_vehicles += 1
-        self.__ids.append(veh_id)
-        self.__vehicles[veh_id] = {}
+        # get vehicle information from API
+        static_inf_veh = self.kernel_api.get_vehicle_static_info(aimsun_id)
 
-        # specify the type
-        self.__vehicles[veh_id]["type"] = type_id
+        # get the vehicle's type
+        aimsun_type = static_inf_veh.type
+
+        # convert the type to a Flow-specific type
+        # TODO
+
+        # get the vehicle ID, or create a new vehicle ID if one doesn't exist
+        # for the vehicle
+        # TODO
+
+        # store the static info
+        self.__vehicles[veh_id]["static_info"] = static_inf_veh
+
+        # set Aimsun ID
+        self.__vehicles[veh_id]["aimsun_id"] = int(aimsun_id)
+
+        # set veh_id to aimsun id
+        self._aimsun_to_veh_id[aimsun_id] = veh_id
 
         # specify the acceleration controller class
         accel_controller = \
@@ -168,27 +189,6 @@ class AimsunKernelVehicle(KernelVehicle):
             if lc_controller[0] != SimLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
-        # add vehicle in Aimsun
-        # negative one means the first feasible turn TODO get route
-        next_section = -1
-        # TODO: edge in aimsun
-        edge = int(1)
-        # TODO: type as aimsun wants it (i.e. int)
-        type_id = int(1)
-        aimsun_id = self.kernel_api.add_vehicle(
-            edge, lane, type_id, pos, speed, next_section
-        )
-
-        # get vehicle information from API
-        static_inf_veh = self.kernel_api.get_vehicle_static_info(aimsun_id)
-        self.__vehicles[veh_id]["static_info"] = static_inf_veh
-
-        # set Aimsun ID
-        self.__vehicles[veh_id]["aimsun_id"] = int(aimsun_id)
-
-        # set veh_id to aimsun id
-        self._aimsun_to_veh_id[aimsun_id] = veh_id
-
         # set the absolute position of the vehicle
         self.__vehicles[veh_id]["absolute_position"] = 0
 
@@ -198,21 +198,32 @@ class AimsunKernelVehicle(KernelVehicle):
         # make sure that the order of rl_ids is kept sorted
         self.__rl_ids.sort()
 
+    def add(self, veh_id, type_id, edge, pos, lane, speed):
+        """See parent class."""
+        self.num_vehicles += 1
+        self.__ids.append(veh_id)
+        self.__vehicles[veh_id] = {}
+
+        # specify the type
+        self.__vehicles[veh_id]["type"] = type_id
+
+        # add vehicle in Aimsun
+        # negative one means the first feasible turn TODO get route
+        next_section = -1
+        # TODO: type as aimsun wants it (i.e. int)
+        type_id = int(1)
+        aimsun_id = self.kernel_api.add_vehicle(
+            self.master_kernel.scenario.edge_name(edge), lane, type_id, pos,
+            speed, next_section)
+
+        # set Aimsun ID
+        self.__vehicles[veh_id]["aimsun_id"] = int(aimsun_id)
+
+        # set veh_id to aimsun id
+        self._aimsun_to_veh_id[aimsun_id] = veh_id
+
     def remove(self, veh_id):
-        """Remove a vehicle.
-
-        This method removes all traces of the vehicle from the vehicles kernel
-        and all valid ID lists, and decrements the total number of vehicles in
-        this class.
-
-        In addition, if the vehicle is still in the network, this method calls
-        the necessary simulator-specific commands to remove it.
-
-        Parameters
-        ----------
-        veh_id : str
-            unique identifier of the vehicle to be removed
-        """
+        """See parent class."""
         try:
             aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
             self.kernel_api.remove_vehicle(aimsun_id)
@@ -276,7 +287,7 @@ class AimsunKernelVehicle(KernelVehicle):
         Raises
         ------
         ValueError
-            If any of the direction values are not -1, 0, or 1.
+            If any of the direction values are not -2, -1, 0, or 1.
         """
         # if any of the directions are not -1, 0, or 1, raise a ValueError
         if any(d not in [-2, -1, 0, 1] for d in direction):
@@ -306,9 +317,7 @@ class AimsunKernelVehicle(KernelVehicle):
                     self.prev_last_lc[veh_id] = \
                         self.__vehicles[veh_id]["last_lc"]
 
-                # get simulation time
-                time = self.kernel_api.AKIGetCurrentSimulationTime()
-                self.__vehicles[veh_id]["last_lc"] = time  # TODO this is missing in Tracy
+                    self.__vehicles[veh_id]["last_lc"] = time  # TODO this is missing in Tracy
 
     def choose_routes(self, veh_ids, route_choices):
         """Update the route choice of vehicles in the network.
