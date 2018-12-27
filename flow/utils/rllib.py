@@ -23,12 +23,12 @@ class FlowParamsEncoder(json.JSONEncoder):
     def default(self, obj):
         """See parent class.
 
-        Extended to support the Vehicles object in flow/core/vehicles.py.
+        Extended to support the VehicleParams object in flow/core/params.py.
         """
         allowed_types = [dict, list, tuple, str, int, float, bool, type(None)]
 
         if obj not in allowed_types:
-            if isinstance(obj, Vehicles):
+            if isinstance(obj, VehicleParams):
                 res = deepcopy(obj.initial)
                 for res_i in res:
                     res_i["acceleration_controller"] = \
