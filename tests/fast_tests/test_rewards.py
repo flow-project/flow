@@ -3,7 +3,7 @@ import os
 import numpy as np
 from tests.setup_scripts import ring_road_exp_setup
 from flow.core.params import EnvParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import RLController
 from flow.core.rewards import average_velocity, total_velocity, min_delay
 from flow.core.rewards import desired_velocity, reward_rl_opening_headways
@@ -18,7 +18,7 @@ class TestRewards(unittest.TestCase):
 
     def test_desired_velocity(self):
         """Test the desired_velocity method."""
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
 
         env_params = EnvParams(additional_params={
@@ -59,7 +59,7 @@ class TestRewards(unittest.TestCase):
 
     def test_average_velocity(self):
         """Test the average_velocity method."""
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -77,7 +77,7 @@ class TestRewards(unittest.TestCase):
         self.assertEqual(average_velocity(env, fail=False), 1)
 
         # recreate the environment with no vehicles
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the reward function return 0 in the case of no vehicles
@@ -85,7 +85,7 @@ class TestRewards(unittest.TestCase):
 
     def test_total_velocity(self):
         """Test the average_velocity method."""
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -105,14 +105,14 @@ class TestRewards(unittest.TestCase):
     def test_min_delay(self):
         """Test the min_delay method."""
         # try the case of an environment with no vehicles
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
         # check that the reward function return 0 in the case of no vehicles
         self.assertEqual(min_delay(env), 0)
 
         # try the case of multiple vehicles
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
@@ -127,7 +127,7 @@ class TestRewards(unittest.TestCase):
 
     def test_penalize_standstill(self):
         """Test the penalize_standstill method."""
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
 
         env_params = EnvParams(additional_params={
@@ -149,7 +149,7 @@ class TestRewards(unittest.TestCase):
 
     def test_penalize_near_standstill(self):
         """Test the penalize_near_standstill method."""
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
 
         env_params = EnvParams(additional_params={
@@ -171,7 +171,7 @@ class TestRewards(unittest.TestCase):
 
     def test_punish_small_rl_headways(self):
         """Test the punish_small_rl_headways method."""
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", acceleration_controller=(RLController, {}),
                      num_vehicles=10)
 
@@ -213,7 +213,7 @@ class TestRewards(unittest.TestCase):
     def test_reward_rl_opening_headways(self):
         """Test the reward_rl_opening_headways method."""
         # check that the reward returns 0 if there are no RL vehicles.
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add('test', num_vehicles=10)
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles)

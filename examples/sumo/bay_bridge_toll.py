@@ -5,7 +5,7 @@ import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoLaneChangeParams, SumoCarFollowingParams, InFlows
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
@@ -49,7 +49,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         lane_change_mode="no_lat_collide",
     )
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
 
     vehicles.add(
         veh_id="human",

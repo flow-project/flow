@@ -5,7 +5,7 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
@@ -91,7 +91,7 @@ def run_task(*_):
 
     sumo_params = SumoParams(sim_step=1, render=True)
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(SimCarFollowingController, {}),

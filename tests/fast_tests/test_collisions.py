@@ -3,7 +3,7 @@ import unittest
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
@@ -19,7 +19,7 @@ class TestCollisions(unittest.TestCase):
         # create the environment and scenario classes for a ring road
         sumo_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 20
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(SimCarFollowingController, {}),
@@ -73,7 +73,7 @@ class TestCollisions(unittest.TestCase):
         # create the environment and scenario classes for a ring road
         sumo_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 12
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(SimCarFollowingController, {}),
