@@ -66,13 +66,13 @@ class InfVeh(object):
     idJunction : int
         The junction identifier
     idSectionFrom : int
-        Origin section identifier when the vehicle is in a node        
+        Origin section identifier when the vehicle is in a node
     idLaneFrom : int
         Origin section´s lane where the vehicle enters the junction from. 1
         being the rightmost lane and N the leftmost lane, being N the number of
         lanes in the origin section
     idSectionTo : int
-        Destination section identifier when the vehicle is in a node 
+        Destination section identifier when the vehicle is in a node
     idLaneTo : int
         Destination section´s lane where the vehicle exits the junction to. 1
         being the rightmost lane and N the leftmost lane, being N the number of
