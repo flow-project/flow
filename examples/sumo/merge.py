@@ -24,7 +24,7 @@ def merge_example(render=None):
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -32,14 +32,14 @@ def merge_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a merge.
     """
-    sumo_params = SumoParams(
+    sim_params = SumoParams(
         render=True,
         emission_path="./data/",
         sim_step=0.2,
         restart_instance=False)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -88,7 +88,7 @@ def merge_example(render=None):
         net_params=net_params,
         initial_config=initial_config)
 
-    env = WaveAttenuationMergePOEnv(env_params, sumo_params, scenario)
+    env = WaveAttenuationMergePOEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 

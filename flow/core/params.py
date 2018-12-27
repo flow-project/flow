@@ -1449,8 +1449,68 @@ class VehicleParams:
         return tailway, follower
 
 
-class SumoParams:
-    """Sumo-specific parameters.
+class SimParams(object):
+    """Simulation-specific parameters.
+
+    All subsequent parameters of the same type must extend this.
+    """
+
+    def __init__(self,
+                 sim_step=0.1,
+                 render=False,
+                 restart_instance=False,
+                 emission_path=None,
+                 save_render=False,
+                 sight_radius=25,
+                 show_radius=False,
+                 pxpm=2):
+        """Instantiate SimParams.
+
+        Parameters
+        ----------
+        sim_step: float optional
+            seconds per simulation step; 0.1 by default
+        render: str or bool, optional
+            specifies whether to visualize the rollout(s)
+
+            * False: no rendering
+            * True: delegate rendering to sumo-gui for back-compatibility
+            * "gray": static grayscale rendering, which is good for training
+            * "dgray": dynamic grayscale rendering
+            * "rgb": static RGB rendering
+            * "drgb": dynamic RGB rendering, which is good for visualization
+
+        restart_instance: bool, optional
+            specifies whether to restart a simulation upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "render" is set to True.
+        emission_path: str, optional
+            Path to the folder in which to create the emissions output.
+            Emissions output is not generated if this value is not specified
+        save_render: bool, optional
+            specifies whether to save rendering data to disk
+        sight_radius: int, optional
+            sets the radius of observation for RL vehicles (meter)
+        show_radius: bool, optional
+            specifies whether to render the radius of RL observation
+        pxpm: int, optional
+            specifies rendering resolution (pixel / meter)
+        """
+        self.sim_step = sim_step
+        self.render = render
+        self.restart_instance = restart_instance
+        self.emission_path = emission_path
+        self.save_render = save_render
+        self.sight_radius = sight_radius
+        self.pxpm = pxpm
+        self.show_radius = show_radius
+
+
+class SumoParams(SimParams):
+    """Sumo-specific simulation parameters.
+
+    Extends SimParams.
 
     These parameters are used to customize a sumo simulation instance upon
     initialization. This includes passing the simulation step length,
@@ -1534,27 +1594,22 @@ class SumoParams:
             Number of clients that will connect to Traci
 
         """
+        super(SumoParams, self).__init__(
+            sim_step, render, restart_instance, emission_path, save_render,
+            sight_radius, show_radius, pxpm)
         self.port = port
-        self.sim_step = sim_step
-        self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
-        self.render = render
-        self.save_render = save_render
-        self.sight_radius = sight_radius
-        self.pxpm = pxpm
-        self.show_radius = show_radius
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
-        self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
         if sumo_binary is not None:
             warnings.simplefilter("always", PendingDeprecationWarning)
             warnings.warn(
-                "sumo_params will be deprecated in a future release, use "
+                "sumo_binary will be deprecated in a future release, use "
                 "render instead.",
                 PendingDeprecationWarning
             )

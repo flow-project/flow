@@ -20,7 +20,7 @@ def figure_eight_example(render=None):
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -28,10 +28,10 @@ def figure_eight_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
-    sumo_params = SumoParams(render=True)
+    sim_params = SumoParams(render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -56,7 +56,7 @@ def figure_eight_example(render=None):
         vehicles=vehicles,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 

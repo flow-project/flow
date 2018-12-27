@@ -86,7 +86,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     flow_params = AVAILABLE_BENCHMARKS[benchmark]
 
     exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
+    sim_params = flow_params["sim"]
     vehicles = flow_params["veh"]
     env_params = flow_params["env"]
     env_params.evaluate = True  # Set to true to get evaluation returns
@@ -119,7 +119,7 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
         env_class = _env_class
 
     env = env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
     # create a Experiment object with the "rl_actions" method as
     # described in the inputs. Note that the state may not be that which is

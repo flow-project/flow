@@ -15,7 +15,7 @@ def grid_example(render=None):
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -47,10 +47,10 @@ def grid_example(render=None):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = SumoParams(sim_step=0.1, render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
     vehicles = VehicleParams()
     vehicles.add(
@@ -104,7 +104,7 @@ def grid_example(render=None):
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 
