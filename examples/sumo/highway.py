@@ -4,7 +4,7 @@ from flow.controllers import IDMController
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
     ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
@@ -30,7 +30,7 @@ def highway_example(render=None):
     if render is not None:
         sim_params.render = render
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
         acceleration_controller=(IDMController, {}),

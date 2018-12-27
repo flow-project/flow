@@ -282,8 +282,8 @@ class Env(*classdef):
                     self.k.vehicle.get_controlled_lc_ids(),
                     direction=direction)
 
-            # perform (optionally) routing actions for all vehicle in the
-            # network, including rl and sumo-controlled vehicles
+            # perform (optionally) routing actions for all vehicles in the
+            # network, including RL and SUMO-controlled vehicles
             routing_ids = []
             routing_actions = []
             for veh_id in self.k.vehicle.get_ids():
@@ -544,7 +544,7 @@ class Env(*classdef):
         """Specify the actions to be performed by the rl agent(s).
 
         If no actions are provided at any given step, the rl agents default to
-        performing actions specified by sumo.
+        performing actions specified by SUMO.
 
         Parameters
         ----------

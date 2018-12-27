@@ -13,7 +13,7 @@ from rllab.envs.gym_env import GymEnv
 
 from flow.scenarios.merge import MergeScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers import RLController, IDMController
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import SumoParams, InFlows, EnvParams, NetParams, \
     InitialConfig, SumoCarFollowingParams
 
@@ -44,7 +44,7 @@ def run_task(_):
         render=True, sim_step=0.2, restart_instance=True)
 
     # RL vehicles constitute 5% of the total number of vehicles
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
         acceleration_controller=(IDMController, {
