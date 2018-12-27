@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -94,7 +94,7 @@ class TestEvenStartPos(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -393,7 +393,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
 
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -466,7 +466,7 @@ class TestRandomStartPos(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -521,7 +521,7 @@ class TestRandomStartPos(unittest.TestCase):
 class TestEvenStartPosVariableLanes(unittest.TestCase):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -562,7 +562,7 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
 class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),

@@ -11,7 +11,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import SimCarFollowingController, GridRouter
 
 # time horizon of a single rollout
@@ -111,7 +111,7 @@ additional_net_params = {
     'vertical_lanes': 1
 }
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id='idm',
     acceleration_controller=(SimCarFollowingController, {}),

@@ -9,7 +9,7 @@ from flow.core.params import InitialConfig
 from flow.core.params import InFlows
 from flow.core.params import SumoLaneChangeParams
 from flow.core.params import SumoCarFollowingParams
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import ContinuousRouter
 from flow.benchmarks.bottleneck0 import flow_params
@@ -40,7 +40,7 @@ def bottleneck0_baseline(num_runs, render=True):
     traffic_lights = flow_params.get('tls', TrafficLightParams())
 
     # we want no autonomous vehicles in the simulation
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(veh_id='human',
                  car_following_params=SumoCarFollowingParams(
                      speed_mode=9,

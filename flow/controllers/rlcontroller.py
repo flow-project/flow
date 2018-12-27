@@ -11,8 +11,8 @@ class RLController(BaseController):
 
     Usage:
 
-        >>> from flow.core.params import Vehicles
-        >>> vehicles = Vehicles()
+        >>> from flow.core.params import VehicleParams
+        >>> vehicles = VehicleParams()
         >>> vehicles.add(acceleration_controller=(RLController, {}))
 
     In order to collect the list of all RL vehicles in the next, run:
