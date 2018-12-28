@@ -1,6 +1,6 @@
 """Script containing the base simulation kernel class."""
 from flow.core.kernel.simulation.base import KernelSimulation
-from flow.utils.aimsun.api import FlowAimsunAPI
+# from flow.utils.aimsun.api import FlowAimsunAPI
 import subprocess
 import os.path as osp
 
@@ -57,13 +57,14 @@ class AimsunKernelSimulation(KernelSimulation):
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
         cur_dir = osp.dirname(__file__)
-        script_path = osp.join(cur_dir, "../../../utils/generate.py")
+        script_path = "/home/yashar/git_clone/flow/flow/utils/aimsun/generate.py"
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
-        # self.aimsun_proc = subprocess.Popen(aimsun_call)
+        self.aimsun_proc = subprocess.Popen(aimsun_call)
 
-        return FlowAimsunAPI(port=sim_params.port)
+        return  None
+        # return FlowAimsunAPI(port=sim_params.port)
 
     def simulation_step(self):
         """See parent class."""
