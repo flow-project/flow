@@ -166,8 +166,10 @@ class FlowAimsunAPI(object):
         int
             name of the edge in Aimsun
         """
-        return self._send_command(
-            ac.GET_EDGE_NAME, in_format='str', values=(edge,), out_format='i')
+        return self._send_command(ac.GET_EDGE_NAME,
+                                  in_format='str',
+                                  values=(edge,),
+                                  out_format='i')[0]
 
     def add_vehicle(self, edge, lane, type_id, pos, speed, next_section):
         """Add a vehicle to the network.
@@ -192,11 +194,13 @@ class FlowAimsunAPI(object):
         int
             name of the new vehicle in Aimsun
         """
+        print(edge, lane, type_id, pos, speed, next_section)
         veh_id, = self._send_command(
             ac.ADD_VEHICLE,
             in_format='i i i f f i',
             values=(edge, lane, type_id, pos, speed, next_section),
             out_format='i')
+        print(veh_id)
 
         return veh_id
 
@@ -316,7 +320,7 @@ class FlowAimsunAPI(object):
         return self._send_command(ac.VEH_GET_TYPE_ID,
                                   in_format='str',
                                   values=(flow_id,),
-                                  out_format='i')
+                                  out_format='i')[0]
 
     def get_vehicle_static_info(self, veh_id):
         """Return the static information of the specified vehicle.

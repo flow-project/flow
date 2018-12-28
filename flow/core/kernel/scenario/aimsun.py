@@ -266,6 +266,6 @@ class AimsunKernelScenario(KernelScenario):
         except KeyError:
             return []
 
-    def edge_name(self, edge):
+    def aimsun_edge_name(self, edge):
         """Returns the edge name in Aimsun."""
         return self._edge_mapping[edge]

@@ -41,7 +41,7 @@ class AimsunKernelVehicle(KernelVehicle):
 
         >>> from flow.envs.base_env import Env
         >>> env = Env(...)
-        >>> veh_id = "test_car"  # name of the vehicle #TODO veh_ids should be numbers
+        >>> veh_id = "test_car"  # name of the vehicle  # TODO veh_ids should be numbers
         >>> speed = env.k.vehicle.get_speed(veh_id)
 
     All methods in this class are abstract, and must be filled in by the child
@@ -119,14 +119,13 @@ class AimsunKernelVehicle(KernelVehicle):
 
         self._type_aimsun2flow = {}
         self._type_flow2aimsun = {}
-        for veh_type in self.type_parameters:
+        for flow_type in self.type_parameters:
             # initialize the dictionary of number of types with zeros for each
             # type
-            self.num_type[veh_type] = 0
+            self.num_type[flow_type] = 0
 
             # create the dictionaries that are used to convert Aimsun vehicle
             # types to Flow vehicle types and vice versa
-            flow_type = veh_type['veh_id']
             aimsun_type = self.kernel_api.get_vehicle_type_id(flow_type)
             self._type_aimsun2flow[aimsun_type] = flow_type
             self._type_flow2aimsun[flow_type] = aimsun_type
@@ -240,7 +239,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # negative one means the first feasible turn TODO get route
         next_section = -1
         aimsun_id = self.kernel_api.add_vehicle(
-            edge=self.master_kernel.scenario.edge_name(edge),
+            edge=self.master_kernel.scenario.aimsun_edge_name(edge),
             lane=lane,
             type_id=self._type_flow2aimsun[type_id],
             pos=pos,
