@@ -73,6 +73,7 @@ class Figure8Scenario(Scenario):
             "id": "center_intersection",
             "x": 0,
             "y": 0,
+            "radius": (2.9 + 3.3 * net_params.additional_params["lanes"])/2,
             "type": "priority"
         }, {
             "id": "top_upper_ring",
@@ -124,7 +125,6 @@ class Figure8Scenario(Scenario):
         resolution = net_params.additional_params["resolution"]
         ring_edgelen = r * pi / 2.
         intersection_edgelen = 2 * r
-        radius = 5
 
         # intersection edges
         edges = [{
@@ -133,7 +133,6 @@ class Figure8Scenario(Scenario):
             "priority": "78",
             "from": "right_lower_ring_in",
             "to": "center_intersection",
-            "radius": [0, 0, 0, -radius],
             "length": intersection_edgelen / 2
         }, {
             "id": "right_lower_ring_out",
@@ -141,7 +140,6 @@ class Figure8Scenario(Scenario):
             "priority": 78,
             "from": "center_intersection",
             "to": "left_upper_ring",
-            "radius": [0, radius, 0, 0],
             "length": intersection_edgelen / 2
         }, {
             "id": "bottom_upper_ring_in",
@@ -149,7 +147,6 @@ class Figure8Scenario(Scenario):
             "priority": 46,
             "from": "bottom_upper_ring_in",
             "to": "center_intersection",
-            "radius": [0, 0, radius, 0],
             "length": intersection_edgelen / 2
         }, {
             "id": "bottom_upper_ring_out",
@@ -157,7 +154,6 @@ class Figure8Scenario(Scenario):
             "priority": 46,
             "from": "center_intersection",
             "to": "top_lower_ring",
-            "radius": [-radius, 0, 0, 0],
             "length": intersection_edgelen / 2
         }]
 
