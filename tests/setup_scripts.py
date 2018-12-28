@@ -393,7 +393,7 @@ def grid_mxn_exp_setup(row_num=1,
     if initial_config is None:
         # set default initial_config configuration
         initial_config = InitialConfig(
-            spacing="uniform", additional_params={"enter_speed": 30})
+            spacing="custom", additional_params={"enter_speed": 30})
 
     # create the scenario
     scenario = SimpleGridScenario(
