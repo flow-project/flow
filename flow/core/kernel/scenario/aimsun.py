@@ -67,8 +67,13 @@ class AimsunKernelScenario(KernelScenario):
             "edges": scenario.edges,
             "nodes": scenario.nodes,
             "types": scenario.types,
-            "connections": scenario.connections
+            "connections": scenario.connections,
+            "inflows": None,
+            "vehicle_types": scenario.vehicles.types
         }
+
+        if scenario.net_params.inflows is not None:
+            output["inflows"] = scenario.net_params.inflows.__dict__
 
         cur_dir = os.path.dirname(__file__)
         # TODO: add current time
@@ -83,7 +88,7 @@ class AimsunKernelScenario(KernelScenario):
                         new_dict = deepcopy(typ)
                         new_dict.pop("id")
                         scenario.edges[i].update(new_dict)
-                    break
+                        break
 
         self._edges = {}
         for edge in scenario.edges:

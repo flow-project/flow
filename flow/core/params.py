@@ -1059,6 +1059,7 @@ class InFlows:
             "name": "%s_%d" % (name, self.num_flows),
             "vtype": veh_type,
             "route": "route" + edge,  # TODO: convert to edge
+            "edge": edge,
             "end": end
         }
 

@@ -73,6 +73,7 @@ class Figure8Scenario(Scenario):
             "id": "center_intersection",
             "x": 0,
             "y": 0,
+            "radius": (2.9 + 3.3 * net_params.additional_params["lanes"])/2,
             "type": "priority"
         }, {
             "id": "top_upper_ring",
@@ -335,6 +336,23 @@ class Figure8Scenario(Scenario):
         }
 
         return rts
+
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes = net_params.additional_params["lanes"]
+        conn = []
+        con_dict = {}
+        for i in range(lanes):
+            conn += [{"from": "right_lower_ring_in",
+                      "to": "right_lower_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+            conn += [{"from": "bottom_upper_ring_in",
+                      "to": "bottom_upper_ring_out",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+        con_dict["center_intersection"] = conn
+        return conn
 
     def specify_edge_starts(self):
         """See base class."""
