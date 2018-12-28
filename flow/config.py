@@ -18,8 +18,9 @@ AWS_ACCESS_SECRET = os.environ.get("AWS_ACCESS_SECRET", None)
 
 AWS_S3_PATH = "s3://bucket_name"
 
-# path to the Aimsun_Next binary
-AIMSUN_NEXT_PATH = "~/Aimsun_Next_8_3_0/Aimsun_Next"
+# path to the Aimsun_Next main directory (required for Aimsun simulations)
+AIMSUN_NEXT_PATH = "/home/user/Aimsun_Next_XXX"
 
-# path to the Python 2.7.4 conda environment
-AIMSUN_SITEPACKAGE = "~/anaconda3/envs/aimsun/lib/python2.7/site-packages"
+# path to the aimsun_flow environment's main directory (required for Aimsun
+# simulations)
+AIMSUN_SITEPACKAGES = "/path/to/envs/aimsun_flow"
