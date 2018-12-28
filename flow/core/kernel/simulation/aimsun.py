@@ -1,6 +1,6 @@
 """Script containing the base simulation kernel class."""
 from flow.core.kernel.simulation.base import KernelSimulation
-from flow.utils.aimsun.api import FlowAimsunAPI
+# from flow.utils.aimsun.api import FlowAimsunAPI
 import subprocess
 import os.path as osp
 
