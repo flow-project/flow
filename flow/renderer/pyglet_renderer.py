@@ -96,12 +96,8 @@ class PygletRenderer():
                               for x in lane_poly[::2]]
             lane_poly[1::2] = [(y-self.y_shift)*self.y_scale*self.pxpm
                                for y in lane_poly[1::2]]
-            if "d" in self.mode:
-                color = [c for _ in range(int(len(lane_poly)/2))
-                         for c in [224, 224, 224]]
-            else:
-                color = [c for _ in range(int(len(lane_poly)/2))
-                         for c in [200, 200, 0]]
+            color = [c for _ in range(int(len(lane_poly)/2))
+                     for c in [224, 224, 224]]
             self.lane_colors.append(color)
 
         try:
@@ -192,18 +188,30 @@ class PygletRenderer():
         self.add_lane_polys()
         self.lane_batch.draw()
         self.vehicle_batch = pyglet.graphics.Batch()
-        if "d" in self.mode:
-            red_cmap = truncate_colormap(cm.Greens, 0.2, 0.8)
+        if "drgb" in self.mode:
+            human_cmap = truncate_colormap(cm.Greens, 0.2, 0.8)
             human_conditions = [
-                (255*np.array(red_cmap(d)[:3])).astype(np.uint8).tolist()
+                (255*np.array(human_cmap(d)[:3])).astype(np.uint8).tolist()
                 for d in human_dynamics]
-            blue_cmap = truncate_colormap(cm.Blues, 0.2, 0.8)
+            machine_cmap = truncate_colormap(cm.Blues, 0.2, 0.8)
             machine_conditions = [
-                (255*np.array(blue_cmap(d)[:3])).astype(np.uint8).tolist()
+                (255*np.array(machine_cmap(d)[:3])).astype(np.uint8).tolist()
                 for d in machine_dynamics]
-        else:
-            human_conditions = [[0, 128, 128] for d in human_dynamics]
-            machine_conditions = [[255, 255, 255] for d in machine_dynamics]
+        if "dgray" in self.mode:
+            human_cmap = truncate_colormap(cm.binary, 0.05, 0.45)
+            human_conditions = [
+                (255*np.array(human_cmap(d)[:3])).astype(np.uint8).tolist()
+                for d in human_dynamics]
+            machine_cmap = truncate_colormap(cm.binary, 0.55, 0.95)
+            machine_conditions = [
+                (255*np.array(machine_cmap(d)[:3])).astype(np.uint8).tolist()
+                for d in machine_dynamics]
+        elif "rgb" in self.mode:
+            human_conditions = [[0, 200, 0] for d in human_dynamics]
+            machine_conditions = [[0, 100, 200] for d in machine_dynamics]
+        elif "gray" in self.mode:
+            human_conditions = [[64, 64, 64] for d in human_dynamics]
+            machine_conditions = [[128, 128, 128] for d in machine_dynamics]
         self.add_vehicle_polys(human_orientations,
                                human_conditions, 0)
         if show_radius:
@@ -222,17 +230,13 @@ class PygletRenderer():
         self.frame = frame[::-1, :, 0:3][..., ::-1]
         self.window.flip()
 
-        if "gray" in self.mode:
-            _frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-        else:
-            _frame = self.frame
         if save_render:
             cv2.imwrite("%s/frame_%06d.png" %
-                        (self.path, self.time), _frame)
+                        (self.path, self.time), frame)
             self.data.append([_human_orientations, _machine_orientations,
                               _human_dynamics, _machine_dynamics,
                               _human_logs, _machine_logs])
-        return _frame
+        return frame
 
     def get_sight(self, orientation, id, sight_radius=None, save_render=None):
         """Return the local observation of a vehicle.
@@ -272,15 +276,12 @@ class PygletRenderer():
                    int(sight_radius), (255, 255, 255), thickness=-1)
         rotated_sight = cv2.bitwise_and(fixed_sight, fixed_sight, mask=mask)
         rotated_sight = imutils.rotate(rotated_sight, ang)
-        if "gray" in self.mode:
-            _rotated_sight = cv2.cvtColor(rotated_sight, cv2.COLOR_BGR2GRAY)
-        else:
-            _rotated_sight = rotated_sight
+
         if save_render:
             cv2.imwrite("%s/sight_%s_%06d.png" %
                         (self.path, id, self.time),
-                        _rotated_sight)
-        return _rotated_sight
+                        rotated_sight)
+        return rotated_sight
 
     def close(self):
         """Terminate the renderer.
