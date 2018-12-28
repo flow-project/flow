@@ -300,6 +300,24 @@ class FlowAimsunAPI(object):
 
         return veh_ids.split(':')
 
+    def get_vehicle_type_id(self, flow_id):
+        """Get's the Aimsun type number of a Flow vehicle types.
+
+        Parameters
+        ----------
+        flow_id : str
+            Flow-specific vehicle type
+
+        Returns
+        -------
+        int
+            Aimsun-specific vehicle type
+        """
+        return self._send_command(ac.VEH_GET_TYPE_ID,
+                                  in_format='str',
+                                  values=(flow_id,),
+                                  out_format='i')
+
     def get_vehicle_static_info(self, veh_id):
         """Return the static information of the specified vehicle.
 

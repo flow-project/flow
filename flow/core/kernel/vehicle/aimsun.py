@@ -87,8 +87,16 @@ class AimsunKernelVehicle(KernelVehicle):
         self._num_arrived = []
         self._arrived_ids = []
 
-        # contains the Flow IDs of all vehicle based on their Aimsun IDs
-        self._aimsun_to_veh_id = {}
+        # contains conversion from Flow-ID to Aimsun-ID
+        self._id_aimsun2flow = {}
+        self._id_flow2aimsun = {}
+
+        # contains conversion from Flow-type to Aimsun-type
+        self._type_aimsun2flow = {}
+        self._type_flow2aimsun = {}
+
+        # number of vehicles of each type
+        self.num_type = {}
 
     def initialize(self, vehicles):
         """
@@ -102,8 +110,26 @@ class AimsunKernelVehicle(KernelVehicle):
         self.num_rl_vehicles = 0
 
     def pass_api(self, kernel_api):
-        """See parent class."""
+        """See parent class.
+
+        This is also used to store conversions from Aimsun type to Flow type,
+        and vise versa.
+        """
         self.kernel_api = kernel_api
+
+        self._type_aimsun2flow = {}
+        self._type_flow2aimsun = {}
+        for veh_type in self.type_parameters:
+            # initialize the dictionary of number of types with zeros for each
+            # type
+            self.num_type[veh_type] = 0
+
+            # create the dictionaries that are used to convert Aimsun vehicle
+            # types to Flow vehicle types and vice versa
+            flow_type = veh_type['veh_id']
+            aimsun_type = self.kernel_api.get_vehicle_type_id(flow_type)
+            self._type_aimsun2flow[aimsun_type] = flow_type
+            self._type_flow2aimsun[flow_type] = aimsun_type
 
     ###########################################################################
     #               Methods for interacting with the simulator                #
@@ -139,20 +165,23 @@ class AimsunKernelVehicle(KernelVehicle):
         aimsun_type = static_inf_veh.type
 
         # convert the type to a Flow-specific type
-        # TODO
+        type_id = self._type_aimsun2flow[aimsun_type]
 
         # get the vehicle ID, or create a new vehicle ID if one doesn't exist
         # for the vehicle
-        # TODO
+        if aimsun_id not in self._id_aimsun2flow.keys():
+            # get a new name for this vehicle
+            veh_id = '{}_{}'.format(type_id, self.num_type[type_id])
+            self.num_type[type_id] += 1
+            self.__ids.append(veh_id)  # FIXME: numbers and whatever.....
+            # set the Aimsun/Flow vehicle ID converters
+            self._id_aimsun2flow[aimsun_id] = veh_id
+            self._id_flow2aimsun[veh_id] = aimsun_id
+        else:
+            veh_id = self._id_aimsun2flow[aimsun_id]
 
         # store the static info
         self.__vehicles[veh_id]["static_info"] = static_inf_veh
-
-        # set Aimsun ID
-        self.__vehicles[veh_id]["aimsun_id"] = int(aimsun_id)
-
-        # set veh_id to aimsun id
-        self._aimsun_to_veh_id[aimsun_id] = veh_id
 
         # specify the acceleration controller class
         accel_controller = \
@@ -204,23 +233,26 @@ class AimsunKernelVehicle(KernelVehicle):
         self.__ids.append(veh_id)
         self.__vehicles[veh_id] = {}
 
-        # specify the type
+        # specify the type TODO: do we need this?
         self.__vehicles[veh_id]["type"] = type_id
 
         # add vehicle in Aimsun
         # negative one means the first feasible turn TODO get route
         next_section = -1
-        # TODO: type as aimsun wants it (i.e. int)
-        type_id = int(1)
         aimsun_id = self.kernel_api.add_vehicle(
-            self.master_kernel.scenario.edge_name(edge), lane, type_id, pos,
-            speed, next_section)
+            edge=self.master_kernel.scenario.edge_name(edge),
+            lane=lane,
+            type_id=self._type_flow2aimsun[type_id],
+            pos=pos,
+            speed=speed,
+            next_section=next_section)
 
-        # set Aimsun ID
-        self.__vehicles[veh_id]["aimsun_id"] = int(aimsun_id)
+        # set the Aimsun/Flow vehicle ID converters
+        self._id_aimsun2flow[aimsun_id] = veh_id
+        self._id_flow2aimsun[veh_id] = aimsun_id
 
-        # set veh_id to aimsun id
-        self._aimsun_to_veh_id[aimsun_id] = veh_id
+        # increment the number of vehicles of this type
+        self.num_type[type_id] += 1
 
     def remove(self, veh_id):
         """See parent class."""
@@ -316,8 +348,6 @@ class AimsunKernelVehicle(KernelVehicle):
                 if veh_id in self.get_rl_ids():
                     self.prev_last_lc[veh_id] = \
                         self.__vehicles[veh_id]["last_lc"]
-
-                    self.__vehicles[veh_id]["last_lc"] = time  # TODO this is missing in Tracy
 
     def choose_routes(self, veh_ids, route_choices):
         """Update the route choice of vehicles in the network.
@@ -667,6 +697,10 @@ class AimsunKernelVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_lane_followers(vehID, error) for vehID in veh_id]
         return self.__vehicles.get(veh_id, {}).get("lane_followers", error)
+
+    ###########################################################################
+    #                            Auxiliary Methods                            #
+    ###########################################################################
 
     def _multi_lane_headways(self):
         """Compute multi-lane data for all vehicles.

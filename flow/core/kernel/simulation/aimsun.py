@@ -57,7 +57,7 @@ class AimsunKernelSimulation(KernelSimulation):
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
         cur_dir = osp.dirname(__file__)
-        script_path = osp.join(cur_dir, "../../../utils/aimsun_generate.py")
+        script_path = osp.join(cur_dir, "../../../utils/generate.py")
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]

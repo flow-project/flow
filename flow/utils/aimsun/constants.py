@@ -50,6 +50,9 @@ VEH_GET_ENTERED_IDS = 0x08
 # get IDs of exiting vehicles
 VEH_GET_EXITED_IDS = 0x0F
 
+# get vehicle type in Aimsun
+VEH_GET_TYPE_ID = 0x10
+
 # get vehicle static information
 VEH_GET_STATIC = 0x09
 
