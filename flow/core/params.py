@@ -1,12 +1,13 @@
 """Objects that define the various meta-parameters of an experiment."""
 
 import logging
-from flow.utils.flow_warnings import deprecation_warning
-from flow.controllers import SumoCarFollowingController
-from flow.controllers import SumoLaneChangeController
-from flow.controllers import RLController
-import collections
 import warnings
+import collections
+
+from flow.utils.flow_warnings import deprecation_warning
+from flow.controllers.car_following_models import SimCarFollowingController
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 
 
 SPEED_MODES = {
@@ -23,149 +24,6 @@ PROGRAM_ID = 1
 MAX_GAP = 3.0
 DETECTOR_GAP = 0.6
 SHOW_DETECTORS = True
-
-
-class Vehicles:
-    """Base vehicle class.
-
-    This is used to describe the state of all vehicles in the network.
-    State information on the vehicles for a given time step can be set or
-    retrieved from this class.
-    """
-
-    def __init__(self):
-        """Instantiate the base vehicle class."""
-        self.ids = []  # ids of all vehicles
-
-        # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
-        # Ordered dictionary used to keep neural net inputs in order
-        self.__vehicles = collections.OrderedDict()
-
-        self.num_vehicles = 0  # total number of vehicles in the network
-        self.num_types = 0  # number of unique types of vehicles in the network
-        self.types = []  # types of vehicles in the network
-
-        # contains the parameters associated with each type of vehicle
-        self.type_parameters = dict()
-
-        # contain the minGap attribute of each type of vehicle
-        self.minGap = dict()
-
-        # initial state of the vehicles class, used for serialization purposes
-        self.initial = []
-
-    def add(self,
-            veh_id,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
-            routing_controller=None,
-            initial_speed=0,
-            num_vehicles=1,
-            sumo_car_following_params=None,
-            sumo_lc_params=None):
-        """Add a sequence of vehicles to the list of vehicles in the network.
-
-        Parameters
-        ----------
-        veh_id : str
-            base vehicle ID for the vehicles (will be appended by a number)
-        acceleration_controller : tup, optional
-            1st element: flow-specified acceleration controller
-            2nd element: controller parameters (may be set to None to maintain
-            default parameters)
-        lane_change_controller : tup, optional
-            1st element: flow-specified lane-changer controller
-            2nd element: controller parameters (may be set to None to maintain
-            default parameters)
-        routing_controller : tup, optional
-            1st element: flow-specified routing controller
-            2nd element: controller parameters (may be set to None to maintain
-            default parameters)
-        initial_speed : float, optional
-            initial speed of the vehicles being added (in m/s)
-        num_vehicles : int, optional
-            number of vehicles of this type to be added to the network
-        sumo_car_following_params : flow.core.params.SumoCarFollowingParams
-            Params object specifying attributes for Sumo car following model.
-        sumo_lc_params : flow.core.params.SumoLaneChangeParams
-            Params object specifying attributes for Sumo lane changing model.
-        """
-        if sumo_car_following_params is None:
-            sumo_car_following_params = SumoCarFollowingParams()
-
-        if sumo_lc_params is None:
-            sumo_lc_params = SumoLaneChangeParams()
-
-        type_params = {}
-        type_params.update(sumo_car_following_params.controller_params)
-        type_params.update(sumo_lc_params.controller_params)
-
-        # If a vehicle is not sumo or RL, let the minGap be zero so that it
-        # does not tamper with the dynamics of the controller
-        if acceleration_controller[0] != SumoCarFollowingController \
-                and acceleration_controller[0] != RLController:
-            type_params["minGap"] = 0.0
-
-        # This dict will be used when trying to introduce new vehicles into
-        # the network via a Flow. It is passed to the vehicle kernel object
-        # during environment instantiation.
-        self.type_parameters[veh_id] = \
-            {"acceleration_controller": acceleration_controller,
-             "lane_change_controller": lane_change_controller,
-             "routing_controller": routing_controller,
-             "initial_speed": initial_speed,
-             "sumo_car_following_params": sumo_car_following_params,
-             "sumo_lc_params": sumo_lc_params}
-
-        self.initial.append({
-            "veh_id":
-                veh_id,
-            "acceleration_controller":
-                acceleration_controller,
-            "lane_change_controller":
-                lane_change_controller,
-            "routing_controller":
-                routing_controller,
-            "initial_speed":
-                initial_speed,
-            "num_vehicles":
-                num_vehicles,
-            "sumo_car_following_params":
-                sumo_car_following_params,
-            "sumo_lc_params":
-                sumo_lc_params
-        })
-
-        # This is used to return the actual headways from the vehicles class.
-        # It is passed to the vehicle kernel class during environment
-        # instantiation.
-        self.minGap[veh_id] = type_params["minGap"]
-
-        for i in range(num_vehicles):
-            v_id = veh_id + '_%d' % i
-
-            # add the vehicle to the list of vehicle ids
-            self.ids.append(v_id)
-
-            self.__vehicles[v_id] = dict()
-
-            # specify the type
-            self.__vehicles[v_id]["type"] = veh_id
-
-            # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[v_id]["initial_speed"] = initial_speed
-            self.num_vehicles = len(self.ids)
-
-        # increase the number of unique types of vehicles in the network, and
-        # add the type to the list of types
-        self.num_types += 1
-        self.types.append({"veh_id": veh_id, "type_params": type_params})
-
-    def get_type(self, veh_id):
-        return self.__vehicles[veh_id]["type"]
-
-    def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
 
 
 class TrafficLightParams:
@@ -332,8 +190,213 @@ class TrafficLightParams:
         }
 
 
-class SumoParams:
-    """Sumo-specific parameters.
+class VehicleParams:
+    """Base vehicle class.
+
+    This is used to describe the state of all vehicles in the network.
+    State information on the vehicles for a given time step can be set or
+    retrieved from this class.
+    """
+
+    def __init__(self):
+        """Instantiate the base vehicle class."""
+        self.ids = []  # ids of all vehicles
+
+        # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
+        # Ordered dictionary used to keep neural net inputs in order
+        self.__vehicles = collections.OrderedDict()
+
+        self.num_vehicles = 0  # total number of vehicles in the network
+        self.num_types = 0  # number of unique types of vehicles in the network
+        self.types = []  # types of vehicles in the network
+
+        # contains the parameters associated with each type of vehicle
+        self.type_parameters = dict()
+
+        # contain the minGap attribute of each type of vehicle
+        self.minGap = dict()
+
+        # initial state of the vehicles class, used for serialization purposes
+        self.initial = []
+
+    def add(self,
+            veh_id,
+            acceleration_controller=(SimCarFollowingController, {}),
+            lane_change_controller=(SimLaneChangeController, {}),
+            routing_controller=None,
+            initial_speed=0,
+            num_vehicles=1,
+            car_following_params=None,
+            lane_change_params=None):
+        """Add a sequence of vehicles to the list of vehicles in the network.
+
+        Parameters
+        ----------
+        veh_id : str
+            base vehicle ID for the vehicles (will be appended by a number)
+        acceleration_controller : tup, optional
+            1st element: flow-specified acceleration controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        lane_change_controller : tup, optional
+            1st element: flow-specified lane-changer controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        routing_controller : tup, optional
+            1st element: flow-specified routing controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        initial_speed : float, optional
+            initial speed of the vehicles being added (in m/s)
+        num_vehicles : int, optional
+            number of vehicles of this type to be added to the network
+        car_following_params : flow.core.params.SumoCarFollowingParams
+            Params object specifying attributes for Sumo car following model.
+        lane_change_params : flow.core.params.SumoLaneChangeParams
+            Params object specifying attributes for Sumo lane changing model.
+        """
+        if car_following_params is None:
+            # FIXME: depends on simulator
+            car_following_params = SumoCarFollowingParams()
+
+        if lane_change_params is None:
+            # FIXME: depends on simulator
+            lane_change_params = SumoLaneChangeParams()
+
+        type_params = {}
+        type_params.update(car_following_params.controller_params)
+        type_params.update(lane_change_params.controller_params)
+
+        # If a vehicle is not sumo or RL, let the minGap be zero so that it
+        # does not tamper with the dynamics of the controller
+        if acceleration_controller[0] != SimCarFollowingController \
+                and acceleration_controller[0] != RLController:
+            type_params["minGap"] = 0.0
+
+        # This dict will be used when trying to introduce new vehicles into
+        # the network via a Flow. It is passed to the vehicle kernel object
+        # during environment instantiation.
+        self.type_parameters[veh_id] = \
+            {"acceleration_controller": acceleration_controller,
+             "lane_change_controller": lane_change_controller,
+             "routing_controller": routing_controller,
+             "initial_speed": initial_speed,
+             "car_following_params": car_following_params,
+             "lane_change_params": lane_change_params}
+
+        self.initial.append({
+            "veh_id":
+                veh_id,
+            "acceleration_controller":
+                acceleration_controller,
+            "lane_change_controller":
+                lane_change_controller,
+            "routing_controller":
+                routing_controller,
+            "initial_speed":
+                initial_speed,
+            "num_vehicles":
+                num_vehicles,
+            "car_following_params":
+                car_following_params,
+            "lane_change_params":
+                lane_change_params
+        })
+
+        # This is used to return the actual headways from the vehicles class.
+        # It is passed to the vehicle kernel class during environment
+        # instantiation.
+        self.minGap[veh_id] = type_params["minGap"]
+
+        for i in range(num_vehicles):
+            v_id = veh_id + '_%d' % i
+
+            # add the vehicle to the list of vehicle ids
+            self.ids.append(v_id)
+
+            self.__vehicles[v_id] = dict()
+
+            # specify the type
+            self.__vehicles[v_id]["type"] = veh_id
+
+            # specify the speed of vehicles at the start of a rollout
+            self.__vehicles[v_id]["initial_speed"] = initial_speed
+            self.num_vehicles = len(self.ids)
+
+        # increase the number of unique types of vehicles in the network, and
+        # add the type to the list of types
+        self.num_types += 1
+        self.types.append({"veh_id": veh_id, "type_params": type_params})
+
+    def get_type(self, veh_id):
+        return self.__vehicles[veh_id]["type"]
+
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
+
+
+class SimParams(object):
+    """Simulation-specific parameters.
+
+    All subsequent parameters of the same type must extend this.
+    """
+
+    def __init__(self,
+                 sim_step=0.1,
+                 render=False,
+                 restart_instance=False,
+                 emission_path=None,
+                 save_render=False,
+                 sight_radius=25,
+                 show_radius=False,
+                 pxpm=2):
+        """Instantiate SimParams.
+
+        Parameters
+        ----------
+        sim_step: float optional
+            seconds per simulation step; 0.1 by default
+        render: str or bool, optional
+            specifies whether to visualize the rollout(s)
+
+            * False: no rendering
+            * True: delegate rendering to sumo-gui for back-compatibility
+            * "gray": static grayscale rendering, which is good for training
+            * "dgray": dynamic grayscale rendering
+            * "rgb": static RGB rendering
+            * "drgb": dynamic RGB rendering, which is good for visualization
+
+        restart_instance: bool, optional
+            specifies whether to restart a simulation upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "render" is set to True.
+        emission_path: str, optional
+            Path to the folder in which to create the emissions output.
+            Emissions output is not generated if this value is not specified
+        save_render: bool, optional
+            specifies whether to save rendering data to disk
+        sight_radius: int, optional
+            sets the radius of observation for RL vehicles (meter)
+        show_radius: bool, optional
+            specifies whether to render the radius of RL observation
+        pxpm: int, optional
+            specifies rendering resolution (pixel / meter)
+        """
+        self.sim_step = sim_step
+        self.render = render
+        self.restart_instance = restart_instance
+        self.emission_path = emission_path
+        self.save_render = save_render
+        self.sight_radius = sight_radius
+        self.pxpm = pxpm
+        self.show_radius = show_radius
+
+
+class SumoParams(SimParams):
+    """Sumo-specific simulation parameters.
+
+    Extends SimParams.
 
     These parameters are used to customize a sumo simulation instance upon
     initialization. This includes passing the simulation step length,
@@ -417,27 +480,22 @@ class SumoParams:
             Number of clients that will connect to Traci
 
         """
+        super(SumoParams, self).__init__(
+            sim_step, render, restart_instance, emission_path, save_render,
+            sight_radius, show_radius, pxpm)
         self.port = port
-        self.sim_step = sim_step
-        self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
-        self.render = render
-        self.save_render = save_render
-        self.sight_radius = sight_radius
-        self.pxpm = pxpm
-        self.show_radius = show_radius
         self.seed = seed
         self.ballistic = ballistic
         self.overtake_right = overtake_right
-        self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
         if sumo_binary is not None:
             warnings.simplefilter("always", PendingDeprecationWarning)
             warnings.warn(
-                "sumo_params will be deprecated in a future release, use "
+                "sumo_binary will be deprecated in a future release, use "
                 "render instead.",
                 PendingDeprecationWarning
             )
@@ -965,6 +1023,8 @@ class InFlows:
             in the Vehicles class.
         edge: str
             starting edge for vehicles in this inflow.
+        name : str, optional
+            prefix for inflow vehicles
         begin: float, optional
             see Note
         end: float, optional
@@ -998,6 +1058,7 @@ class InFlows:
         new_inflow = {
             "name": "%s_%d" % (name, self.num_flows),
             "vtype": veh_type,
+            "route": "route" + edge,  # TODO: convert to edge
             "edge": edge,
             "end": end
         }
@@ -1009,9 +1070,9 @@ class InFlows:
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
         if period is not None:
-            new_inflow["period"] = period
+            new_inflow["period"] = period  # TODO: specify sumo-specific
         if probability is not None:
-            new_inflow["probability"] = probability
+            new_inflow["probability"] = probability  # TODO: specify sumo-specific
         if number is not None:
             new_inflow["number"] = number
 

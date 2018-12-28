@@ -2,7 +2,7 @@ import random
 import numpy as np
 import unittest
 import os
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
 from flow.scenarios import LoopScenario, MergeScenario, BottleneckScenario, \
@@ -21,11 +21,11 @@ os.environ["TEST_FLAG"] = "True"
 class TestLaneChangeAccelEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams()
+        self.sim_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
             vehicles=vehicles,
@@ -41,7 +41,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         )
 
     def tearDown(self):
-        self.sumo_params = None
+        self.sim_params = None
         self.scenario = None
         self.env_params = None
 
@@ -50,7 +50,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         self.assertTrue(
             test_additional_params(
                 env_class=LaneChangeAccelEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
                     "max_accel": 1,
@@ -65,7 +65,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         """Tests the observation and action spaces upon initialization."""
         # create the environment
         env = LaneChangeAccelEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -95,7 +95,7 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
         self.assertTrue(
             test_observed(
                 env_class=LaneChangeAccelEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
@@ -106,11 +106,11 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
 class TestLaneChangeAccelPOEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams()
+        self.sim_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
             vehicles=vehicles,
@@ -126,7 +126,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
         )
 
     def tearDown(self):
-        self.sumo_params = None
+        self.sim_params = None
         self.scenario = None
         self.env_params = None
 
@@ -135,7 +135,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
         self.assertTrue(
             test_additional_params(
                 env_class=LaneChangeAccelPOEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
                     "max_accel": 1,
@@ -150,7 +150,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
         """Tests the observation and action spaces upon initialization."""
         # create the environment
         env = LaneChangeAccelPOEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -175,7 +175,7 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
         self.assertTrue(
             test_observed(
                 env_class=LaneChangeAccelPOEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
@@ -186,11 +186,11 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
 class TestAccelEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams()
+        self.sim_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
             vehicles=vehicles,
@@ -205,7 +205,7 @@ class TestAccelEnv(unittest.TestCase):
         )
 
     def tearDown(self):
-        self.sumo_params = None
+        self.sim_params = None
         self.scenario = None
         self.env_params = None
 
@@ -214,7 +214,7 @@ class TestAccelEnv(unittest.TestCase):
         self.assertTrue(
             test_additional_params(
                 env_class=AccelEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
                     "max_accel": 1,
@@ -227,7 +227,7 @@ class TestAccelEnv(unittest.TestCase):
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         env = AccelEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -253,7 +253,7 @@ class TestAccelEnv(unittest.TestCase):
         self.assertTrue(
             test_observed(
                 env_class=AccelEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
@@ -264,11 +264,11 @@ class TestAccelEnv(unittest.TestCase):
 class TestTwoLoopsMergeEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams()
+        self.sim_params = SumoParams()
         self.scenario = TwoLoopsOneMergingScenario(
             name="test_merge",
             vehicles=vehicles,
@@ -289,7 +289,7 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
         )
 
     def tearDown(self):
-        self.sumo_params = None
+        self.sim_params = None
         self.scenario = None
         self.env_params = None
 
@@ -298,7 +298,7 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
         self.assertTrue(
             test_additional_params(
                 env_class=TwoLoopsMergePOEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
                     "max_accel": 1,
@@ -314,7 +314,7 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         env = TwoLoopsMergePOEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -338,11 +338,11 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
 class TestWaveAttenuationEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams(
+        self.sim_params = SumoParams(
             restart_instance=True
         )
         self.scenario = LoopScenario(
@@ -358,7 +358,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.env_params = EnvParams(additional_params=params)
 
     def tearDown(self):
-        self.sumo_params = None
+        self.sim_params = None
         self.scenario = None
         self.env_params = None
 
@@ -367,7 +367,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.assertTrue(
             test_additional_params(
                 env_class=WaveAttenuationEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
                     "max_accel": 1,
@@ -380,7 +380,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
     def test_observation_action_space(self):
         """Tests the observation and action spaces upon initialization."""
         env = WaveAttenuationEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -406,7 +406,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.assertTrue(
             test_observed(
                 env_class=WaveAttenuationEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
@@ -424,7 +424,7 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 
         # create the environment
         env = WaveAttenuationEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -440,11 +440,11 @@ class TestWaveAttenuationEnv(unittest.TestCase):
 class TestWaveAttenuationPOEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams()
+        self.sim_params = SumoParams()
         self.scenario = LoopScenario(
             name="test_merge",
             vehicles=vehicles,
@@ -459,7 +459,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         )
 
     def tearDown(self):
-        self.sumo_params = None
+        self.sim_params = None
         self.scenario = None
         self.env_params = None
 
@@ -468,7 +468,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         self.assertTrue(
             test_additional_params(
                 env_class=WaveAttenuationPOEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
                     "max_accel": 1,
@@ -482,7 +482,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         """Tests the observation and action spaces upon initialization."""
         # create the environment
         env = WaveAttenuationPOEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -504,7 +504,7 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
         self.assertTrue(
             test_observed(
                 env_class=WaveAttenuationPOEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
@@ -515,11 +515,11 @@ class TestWaveAttenuationPOEnv(unittest.TestCase):
 class TestWaveAttenuationMergePOEnv(unittest.TestCase):
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("rl", acceleration_controller=(RLController, {}))
         vehicles.add("human", acceleration_controller=(IDMController, {}))
 
-        self.sumo_params = SumoParams()
+        self.sim_params = SumoParams()
         self.scenario = MergeScenario(
             name="test_merge",
             vehicles=vehicles,
@@ -535,7 +535,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         )
 
     def tearDown(self):
-        self.sumo_params = None
+        self.sim_params = None
         self.scenario = None
         self.env_params = None
 
@@ -544,7 +544,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         self.assertTrue(
             test_additional_params(
                 env_class=WaveAttenuationMergePOEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 additional_params={
                     "max_accel": 1,
@@ -559,7 +559,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         """Tests the observation and action spaces upon initialization."""
         # create the environment
         env = WaveAttenuationMergePOEnv(
-            sumo_params=self.sumo_params,
+            sim_params=self.sim_params,
             scenario=self.scenario,
             env_params=self.env_params
         )
@@ -581,7 +581,7 @@ class TestWaveAttenuationMergePOEnv(unittest.TestCase):
         self.assertTrue(
             test_observed(
                 env_class=WaveAttenuationMergePOEnv,
-                sumo_params=self.sumo_params,
+                sim_params=self.sim_params,
                 scenario=self.scenario,
                 env_params=self.env_params,
                 expected_observed=["human_0"]
@@ -594,15 +594,15 @@ class TestTestEnv(unittest.TestCase):
     """Tests the TestEnv environment in flow/envs/test.py"""
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test")
         net_params = NetParams(additional_params=LOOP_PARAMS)
         env_params = EnvParams()
-        sumo_params = SumoParams()
+        sim_params = SumoParams()
         scenario = LoopScenario("test_loop",
                                 vehicles=vehicles,
                                 net_params=net_params)
-        self.env = TestEnv(env_params, sumo_params, scenario)
+        self.env = TestEnv(env_params, sim_params, scenario)
 
     def tearDown(self):
         self.env.terminate()
@@ -643,9 +643,9 @@ class TestDesiredVelocityEnv(unittest.TestCase):
         # set a random seed for inflows to be the same every time
         np.random.seed(seed=123)
 
-        sumo_params = SumoParams(sim_step=0.5, restart_instance=True)
+        sim_params = SumoParams(sim_step=0.5, restart_instance=True)
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="human")
         vehicles.add(veh_id="followerstopper")
 
@@ -688,7 +688,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
             vehicles=vehicles,
             net_params=net_params)
 
-        env = DesiredVelocityEnv(env_params, sumo_params, scenario)
+        env = DesiredVelocityEnv(env_params, sim_params, scenario)
 
         # reset the environment and get a new inflow rate
         env.reset()
@@ -698,7 +698,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
         for _ in range(500):
             env.step(rl_actions=None)
         self.assertAlmostEqual(
-            env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 2)
+            env.vehicles.get_inflow_rate(250)/expected_inflow, 1, 1)
 
         # reset the environment and get a new inflow rate
         env.reset()
@@ -708,7 +708,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
         for _ in range(500):
             env.step(rl_actions=None)
         self.assertAlmostEqual(
-            env.k.vehicle.get_inflow_rate(250)/expected_inflow, 1, 2)
+            env.vehicles.get_inflow_rate(250)/expected_inflow, 1, 1)
 
 
 ###############################################################################
@@ -716,7 +716,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 ###############################################################################
 
 def test_additional_params(env_class,
-                           sumo_params,
+                           sim_params,
                            scenario,
                            additional_params):
     """Test that the environment raises an Error in any param is missing.
@@ -725,9 +725,9 @@ def test_additional_params(env_class,
     ----------
     env_class : flow.envs.Env type
         blank
-    sumo_params : flow.scenarios.Scenario
+    sim_params : flow.core.params.SumoParams
         sumo-specific parameters
-    scenario : flow.core.params.SumoParams
+    scenario : flow.scenarios.Scenario
         scenario that works for the environment
     additional_params : dict
         the valid and required additional parameters for the environment in
@@ -745,7 +745,7 @@ def test_additional_params(env_class,
 
         try:
             env_class(
-                sumo_params=sumo_params,
+                sim_params=sim_params,
                 scenario=scenario,
                 env_params=EnvParams(additional_params=new_add)
             )
@@ -785,7 +785,7 @@ def test_space(gym_space, expected_size, expected_min, expected_max):
 
 
 def test_observed(env_class,
-                  sumo_params,
+                  sim_params,
                   scenario,
                   env_params,
                   expected_observed):
@@ -795,9 +795,9 @@ def test_observed(env_class,
     ----------
     env_class : flow.envs.Env type
         blank
-    sumo_params : flow.scenarios.Scenario
+    sim_params : flow.core.params.SumoParams
         sumo-specific parameters
-    scenario : flow.core.params.SumoParams
+    scenario : flow.scenarios.Scenario
         scenario that works for the environment
     env_params : flow.core.params.EnvParams
         environment-specific parameters
@@ -809,7 +809,7 @@ def test_observed(env_class,
     bool
         True if the test passed, False otherwise
     """
-    env = env_class(sumo_params=sumo_params,
+    env = env_class(sim_params=sim_params,
                     scenario=scenario,
                     env_params=env_params)
     env.reset()

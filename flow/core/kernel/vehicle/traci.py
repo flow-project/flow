@@ -6,9 +6,9 @@ from traci.exceptions import FatalTraCIError, TraCIException
 import numpy as np
 import collections
 import warnings
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 from bisect import bisect_left
 import itertools
 
@@ -230,15 +230,15 @@ class TraCIVehicle(KernelVehicle):
         # specify the type
         self.__vehicles[veh_id]["type"] = veh_type
 
-        sumo_cf_params = \
-            self.type_parameters[veh_type]["sumo_car_following_params"]
+        car_following_params = \
+            self.type_parameters[veh_type]["car_following_params"]
 
         # specify the acceleration controller class
         accel_controller = \
             self.type_parameters[veh_type]["acceleration_controller"]
         self.__vehicles[veh_id]["acc_controller"] = \
             accel_controller[0](veh_id,
-                                sumo_cf_params=sumo_cf_params,
+                                car_following_params=car_following_params,
                                 **accel_controller[1])
 
         # specify the lane-changing controller class
@@ -261,9 +261,9 @@ class TraCIVehicle(KernelVehicle):
             self.num_rl_vehicles += 1
         else:
             self.__human_ids.append(veh_id)
-            if accel_controller[0] != SumoCarFollowingController:
+            if accel_controller[0] != SimCarFollowingController:
                 self.__controlled_ids.append(veh_id)
-            if lc_controller[0] != SumoLaneChangeController:
+            if lc_controller[0] != SimLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
         # subscribe the new vehicle
@@ -290,12 +290,12 @@ class TraCIVehicle(KernelVehicle):
 
         # set the speed mode for the vehicle
         speed_mode = self.type_parameters[veh_type][
-            "sumo_car_following_params"].speed_mode
+            "car_following_params"].speed_mode
         self.kernel_api.vehicle.setSpeedMode(veh_id, speed_mode)
 
         # set the lane changing mode for the vehicle
         lc_mode = self.type_parameters[veh_type][
-            "sumo_lc_params"].lane_change_mode
+            "lane_change_params"].lane_change_mode
         self.kernel_api.vehicle.setLaneChangeMode(veh_id, lc_mode)
 
         # get initial state info
@@ -931,14 +931,10 @@ class TraCIVehicle(KernelVehicle):
             except (FatalTraCIError, TraCIException):
                 pass
 
+        # color vehicles white if not observed and cyan if observed
         for veh_id in self.get_human_ids():
             try:
-                if veh_id in self.get_observed_ids():
-                    # color observed human-driven vehicles cyan
-                    color = CYAN
-                else:
-                    # color unobserved human-driven vehicles white
-                    color = WHITE
+                color = CYAN if veh_id in self.get_observed_ids() else WHITE
                 self.kernel_api.vehicle.setColor(vehID=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
                 pass

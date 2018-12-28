@@ -2,11 +2,11 @@ import unittest
 import os
 
 from tests.setup_scripts import ring_road_exp_setup, grid_mxn_exp_setup
-from flow.core.params import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import NetParams
 from flow.core.params import SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.controllers.routing_controllers import GridRouter
 from flow.controllers.car_following_models import IDMController
 
@@ -144,12 +144,12 @@ class TestPOEnv(unittest.TestCase):
     """
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
@@ -212,19 +212,19 @@ class TestItRuns(unittest.TestCase):
     """
 
     def setUp(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
             acceleration_controller=(IDMController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 min_gap=2.5, tau=1.1),
             num_vehicles=16)
 
         env, scenario = grid_mxn_exp_setup(
             row_num=1, col_num=3, vehicles=vehicles)
 
-        self.exp = SumoExperiment(env)
+        self.exp = Experiment(env)
 
     def tearDown(self):
         # free data used by the class
@@ -281,7 +281,7 @@ class TestIndividualLights(unittest.TestCase):
         env, scenario = grid_mxn_exp_setup(
             row_num=1, col_num=4, tl_logic=tl_logic)
 
-        self.exp = SumoExperiment(env)
+        self.exp = Experiment(env)
 
     def tearDown(self):
         # free data used by the class
@@ -338,7 +338,7 @@ class TestCustomization(unittest.TestCase):
         self.env.reset()
 
         # Calculate multiplier, because phases are in seconds
-        sim_multiplier = int(1 / self.env.sumo_params.sim_step)
+        sim_multiplier = int(1 / self.env.sim_params.sim_step)
 
         # Check that the phases occur for the correct amount of time
         for i in range(self.green * sim_multiplier - 2):
