@@ -52,18 +52,20 @@ class AimsunKernelSimulation(KernelSimulation):
         self.sim_step = sim_params.sim_step
 
         # path to the Aimsun_Next binary
-        aimsun_path = osp.expanduser(config.AIMSUN_NEXT_PATH)
+        aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
+                               'Aimsun_Next')
 
         # path to the supplementary file that is used to generate an aimsun
         # network from a template
-        cur_dir = osp.dirname(__file__)
-        script_path = osp.join(cur_dir, "../../../utils/generate.py")
+        script_path = osp.join(config.PROJECT_PATH,
+                               'flow/utils/aimsun/generate.py')
 
         # start the aimsun process
         aimsun_call = [aimsun_path, "-script", script_path]
-        # self.aimsun_proc = subprocess.Popen(aimsun_call)
+        self.aimsun_proc = subprocess.Popen(aimsun_call)
 
-        return FlowAimsunAPI(port=sim_params.port)
+        return None
+        # return FlowAimsunAPI(port=sim_params.port)
 
     def simulation_step(self):
         """See parent class."""

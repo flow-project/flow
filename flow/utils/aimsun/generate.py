@@ -1,21 +1,15 @@
 import sys
-#sys.path.append(config.AIMSUN_SITEPACKAGE)
-SITEPACKAGES = "/home/yashar/anaconda3/envs/aimsun/lib/python2.7/site-packages"
+import os
+import flow.config as config
+
+SITEPACKAGES = os.path.join(config.AIMSUN_SITEPACKAGES,
+                            "lib/python2.7/site-packages")
 sys.path.append(SITEPACKAGES)
-sys.path.append('/home/yashar/Aimsun_Next_8_3_0/programming/Aimsun Next API/AAPIPython/Micro')
+
+sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
+                             'programming/Aimsun Next API/AAPIPython/Micro'))
 
 from flow.core.params import InFlows
-try:
-    # Load user config if exists, else load default config
-    import flow.config as config
-except ImportError:
-    import flow.config_default as config
-
-SITEPACKAGES = "/home/aboudy/anaconda2/envs/aimsun/lib/python2.7/site-packages"
-sys.path.append(SITEPACKAGES)
-
-sys.path.append('/home/aboudy/Aimsun_Next_8_3_0/programming/Aimsun Next API/AAPIPython/Micro')
-
 from copy import deepcopy
 import argparse
 import json
@@ -356,8 +350,12 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     gui.saveAs('flow.ang')
 
 
-with open('/home/aboudy/Documents/flow/flow/core/kernel/scenario/data.json') as f:
+# collect the scenario-specific data
+data_file = 'flow/core/kernel/scenario/data.json'
+with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
     data = json.load(f)
+
+# export the data from the dictionary
 nodes = data['nodes']
 edges = data['edges']
 types = data['types']
@@ -379,4 +377,5 @@ if data['inflows'] is not None:
 else:
     inflows = None
 
-kernel_api = generate_net(nodes, edges, connections, inflows, veh_types)
+# generate the network
+generate_net(nodes, edges, connections, inflows, veh_types)
