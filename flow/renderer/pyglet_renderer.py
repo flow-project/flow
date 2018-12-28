@@ -197,7 +197,7 @@ class PygletRenderer():
             machine_conditions = [
                 (255*np.array(machine_cmap(d)[:3])).astype(np.uint8).tolist()
                 for d in machine_dynamics]
-        if "dgray" in self.mode:
+        elif "dgray" in self.mode:
             human_cmap = truncate_colormap(cm.binary, 0.05, 0.45)
             human_conditions = [
                 (255*np.array(human_cmap(d)[:3])).astype(np.uint8).tolist()
@@ -236,7 +236,10 @@ class PygletRenderer():
             self.data.append([_human_orientations, _machine_orientations,
                               _human_dynamics, _machine_dynamics,
                               _human_logs, _machine_logs])
-        return frame
+        if "gray" in self.mode:
+            return frame[:, :, 0]
+        else:
+            return frame
 
     def get_sight(self, orientation, id, sight_radius=None, save_render=None):
         """Return the local observation of a vehicle.
@@ -281,7 +284,10 @@ class PygletRenderer():
             cv2.imwrite("%s/sight_%s_%06d.png" %
                         (self.path, id, self.time),
                         rotated_sight)
-        return rotated_sight
+        if "gray" in self.mode:
+            return rotated_sight[:, :, 0]
+        else:
+            return rotated_sight
 
     def close(self):
         """Terminate the renderer.

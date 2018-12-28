@@ -424,3 +424,23 @@ class SumoCarFollowingController(BaseController):
     def get_accel(self, env):
         """See parent class."""
         return None
+
+class ConstAccController(BaseController):
+    """Constantly accelerate vehicles until reaching speed limit.
+    """
+    def __init__(self, veh_id, sumo_cf_params):
+        """Instantiate a constant acceleration controller.
+
+        Attributes
+        ----------
+        veh_id: str
+            name of the vehicle
+        sumo_cf_params: SumoCarFollowingParams
+            see parent class
+        """
+        super().__init__(veh_id, sumo_cf_params)
+        self.const_acc = 5
+
+    def get_accel(self, env):
+        """See parent class."""
+        return self.const_acc
