@@ -512,21 +512,22 @@ class SimpleGridScenario(Scenario):
             [(":center", 0)]
         return intersection_edgestarts
 
-    def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
+    @staticmethod
+    def gen_custom_start_pos(cls, initial_config, num_vehicles, **kwargs):
         """See parent class."""
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
+        row_num = cls.grid_array["row_num"]
+        col_num = cls.grid_array["col_num"]
         per_edge = int(num_vehicles / (2 * (row_num + col_num)))
         start_positions = []
         d_inc = 10
-        for i in range(self.col_num):
+        for i in range(cls.col_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("right0_{}".format(i), x))
                 start_positions.append(("left{}_{}".format(row_num, i), x))
                 x += d_inc
 
-        for i in range(self.row_num):
+        for i in range(cls.row_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("bot{}_0".format(i), x))

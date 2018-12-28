@@ -95,7 +95,7 @@ def grid_example(render=None):
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
-    initial_config = InitialConfig()
+    initial_config = InitialConfig(spacing='custom')
 
     scenario = SimpleGridScenario(
         name="grid-intersection",

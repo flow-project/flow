@@ -38,7 +38,7 @@ def gen_edges(row_num, col_num):
 
 def get_flow_params(col_num, row_num, additional_net_params):
     initial_config = InitialConfig(
-        spacing='uniform', lanes_distribution=float('inf'), shuffle=True)
+        spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
@@ -60,7 +60,8 @@ def get_flow_params(col_num, row_num, additional_net_params):
 
 def get_non_flow_params(enter_speed, additional_net_params):
     additional_init_params = {'enter_speed': enter_speed}
-    initial_config = InitialConfig(additional_params=additional_init_params)
+    initial_config = InitialConfig(
+        spacing='custom', additional_params=additional_init_params)
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
