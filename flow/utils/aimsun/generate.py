@@ -10,18 +10,21 @@ try:
     import flow.config as config
 except ImportError:
     import flow.config_default as config
+
+SITEPACKAGES = "/home/aboudy/anaconda2/envs/aimsun/lib/python2.7/site-packages"
+sys.path.append(SITEPACKAGES)
+
+sys.path.append('/home/aboudy/Aimsun_Next_8_3_0/programming/Aimsun Next API/AAPIPython/Micro')
+
 from copy import deepcopy
 import argparse
 import json
 import numpy as np
-import os
-from numpy import pi, sin, cos, linspace
 
 
 # Load an empty template
 gui = GKGUISystem.getGUISystem().getActiveGui()
-gui.newDoc("/home/yashar/Aimsun_Next_8_3_0/templates/Aimsun_Flow.ang",
-           "EPSG:32601")
+gui.newDoc("/home/aboudy/Downloads/Aimsun_Flow.ang", "EPSG:32601")
 model = gui.getActiveModel()
 
 
@@ -353,7 +356,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     gui.saveAs('flow.ang')
 
 
-with open('/home/yashar/git_clone/flow/flow/core/kernel/scenario/data.json') as f:
+with open('/home/aboudy/Documents/flow/flow/core/kernel/scenario/data.json') as f:
     data = json.load(f)
 nodes = data['nodes']
 edges = data['edges']

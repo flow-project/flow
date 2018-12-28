@@ -1,4 +1,3 @@
-from copy import deepcopy
 import numpy as np
 import random
 import traceback
@@ -92,7 +91,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.k.update(reset=False)
 
             # update the colors of vehicles
-            if self.sumo_params.render:
+            if self.sim_params.render:
                 self.k.vehicle.update_vehicle_colors()
 
             # collect list of sorted vehicle ids
@@ -156,8 +155,8 @@ class MultiEnv(MultiAgentEnv, Env):
         self.time_counter = 0
 
         # warn about not using restart_instance when using inflows
-        if len(self.net_params.inflows.get()) > 0 and \
-                not self.sumo_params.restart_instance:
+        if len(self.scenario.net_params.inflows.get()) > 0 and \
+                not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
                 "**********************************************************\n"
@@ -170,12 +169,12 @@ class MultiEnv(MultiAgentEnv, Env):
                 "**********************************************************"
             )
 
-        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+        if self.sim_params.restart_instance or self.step_counter > 2e6:
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
-            self.sumo_params.seed = random.randint(0, 1e5)
+            self.sim_params.seed = random.randint(0, 1e5)
             # restart the sumo instance
-            self.restart_sumo(self.sumo_params)
+            self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
         if self.scenario.initial_config.shuffle:
@@ -228,7 +227,7 @@ class MultiEnv(MultiAgentEnv, Env):
         self.k.update(reset=True)
 
         # update the colors of vehicles
-        if self.sumo_params.render:
+        if self.sim_params.render:
             self.k.vehicle.update_vehicle_colors()
 
         # collect list of sorted vehicle ids
