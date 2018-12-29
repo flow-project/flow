@@ -266,6 +266,12 @@ class Env(gym.Env, Serializable):
                 sumo_call.append("--time-to-teleport")
                 sumo_call.append(str(int(self.sumo_params.teleport_time)))
 
+                # tolerate a collision
+                sumo_call.append("--collision.action")
+                sumo_call.append("none")
+                sumo_call.append("--collision.check-junctions")
+                sumo_call.append("false")
+
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(self.scenario.cfg))
                 logging.debug(" Emission file: " + str(emission_out))
