@@ -1,6 +1,7 @@
 """Example of modified intersection network with human-driven vehicles."""
 from flow.controllers import IDMController
-from flow.controllers import RLController, IDMController, ConstAccController
+from flow.controllers import RLController, IDMController, ConstAccController,\
+    RandomConstAccController, RandomLaneChanger
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
@@ -71,6 +72,7 @@ def intersection_example(render=None,
             veh_id=v_type,
             acceleration_controller=(ConstAccController, {}),
             routing_controller=(IntersectionRouter, {}),
+            lane_change_controller=(RandomLaneChanger, {}),
             sumo_car_following_params=SumoCarFollowingParams(
                 min_gap=0,
             ),
@@ -100,11 +102,11 @@ def intersection_example(render=None,
 
 
 if __name__ == "__main__":
-    exp = intersection_example(render='drgb',
-                           save_render=False,
-                           sight_radius=20,
-                           pxpm=3,
-                           show_radius=False)
+    exp = intersection_example(render='gray',
+                               save_render=False,
+                               sight_radius=20,
+                               pxpm=4,
+                               show_radius=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 1500)

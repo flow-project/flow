@@ -439,7 +439,29 @@ class ConstAccController(BaseController):
             see parent class
         """
         super().__init__(veh_id, sumo_cf_params)
-        self.const_acc = 5
+        self.const_acc = 1
+
+    def get_accel(self, env):
+        """See parent class."""
+        return self.const_acc
+
+class RandomConstAccController(BaseController):
+    """Constantly accelerate vehicles until reaching speed limit.
+    """
+    def __init__(self, veh_id, sumo_cf_params):
+        """Instantiate a binary constant acceleration controller.
+        This is useful to check the fail-safe behavior along the longitudinal
+        direction of the traffic.
+
+        Attributes
+        ----------
+        veh_id: str
+            name of the vehicle
+        sumo_cf_params: SumoCarFollowingParams
+            see parent class
+        """
+        super().__init__(veh_id, sumo_cf_params)
+        self.const_acc = np.random.randint(2, size=1)[0]
 
     def get_accel(self, env):
         """See parent class."""
