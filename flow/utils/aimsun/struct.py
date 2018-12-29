@@ -17,7 +17,7 @@ class InfVeh(object):
         the units defined in the network) from the beginning of the section or
         position inside the junction given as the distance from the entrance to
         the junction
-    distnace2End : float
+    distance2End : float
         Distance to end of the section (metres or feet, depending on the units
         defined in the network) when the vehicle is located in a section or the
         distance to the end of the turn when the vehicle is in a junction
@@ -85,7 +85,7 @@ class InfVeh(object):
         self.idVeh = None
         self.type = None
         self.CurrentPos = None
-        self.distnace2End = None
+        self.distance2End = None
         self.xCurrentPos = None
         self.yCurrentPos = None
         self.zCurrentPos = None

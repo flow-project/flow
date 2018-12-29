@@ -58,7 +58,8 @@ class AimsunKernelScenario(KernelScenario):
         self.__max_speed = None
         self.__length = None
         self.rts = None
-        self._edge_mapping = {}
+        self._edge_flow2aimsun = {}
+        self._edge_aimsun2flow = {}
 
     def generate_network(self, scenario):
         self.network = scenario
@@ -165,9 +166,14 @@ class AimsunKernelScenario(KernelScenario):
         """See parent class."""
         self.kernel_api = kernel_api
 
-        # create the edge mapping from edges names in Flow to Aimsun
+        # create the edge mapping from edges names in Flow to Aimsun and vice
+        # versa
+        self._edge_flow2aimsun = {}
+        self._edge_aimsun2flow = {}
         for edge in self.get_edge_list():
-            self._edge_mapping[edge] = self.kernel_api.get_edge_name(edge)
+            aimsun_edge = self.kernel_api.get_edge_name(edge)
+            self._edge_flow2aimsun[edge] = aimsun_edge
+            self._edge_aimsun2flow[aimsun_edge] = edge
 
     def update(self, reset):
         """See parent class."""
@@ -241,7 +247,7 @@ class AimsunKernelScenario(KernelScenario):
         if len(edge) == 0:
             return -1001
 
-        if edge[0] == ":":
+        if edge[0] == ":" or '_to_' in edge:
             try:
                 return self.internal_edgestarts_dict[edge] + position
             except KeyError:
@@ -268,4 +274,12 @@ class AimsunKernelScenario(KernelScenario):
 
     def aimsun_edge_name(self, edge):
         """Returns the edge name in Aimsun."""
-        return self._edge_mapping[edge]
+        return self._edge_flow2aimsun[edge]
+
+    def flow_edge_name(self, edge):
+        """Returns the edge name in Aimsun."""
+        if edge not in self._edge_aimsun2flow:
+            print("aimsun edge unknown: {}".format(edge))
+            return ''
+        else:
+            return self._edge_aimsun2flow[edge]

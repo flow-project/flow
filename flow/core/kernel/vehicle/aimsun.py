@@ -2,8 +2,7 @@
 from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
-from bisect import bisect_left
-import itertools
+from copy import deepcopy
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
@@ -41,7 +40,7 @@ class AimsunKernelVehicle(KernelVehicle):
 
         >>> from flow.envs.base_env import Env
         >>> env = Env(...)
-        >>> veh_id = "test_car"  # name of the vehicle  # TODO veh_ids should be numbers
+        >>> veh_id = "test_car"  # name of the vehicle
         >>> speed = env.k.vehicle.get_speed(veh_id)
 
     All methods in this class are abstract, and must be filled in by the child
@@ -73,9 +72,6 @@ class AimsunKernelVehicle(KernelVehicle):
         # contains the parameters associated with each type of vehicle
         self.type_parameters = {}
 
-        # contain the minGap attribute of each type of vehicle
-        self.minGap = {}
-
         # list of vehicle ids located in each edge in the network
         self._ids_by_edge = dict()
 
@@ -105,7 +101,6 @@ class AimsunKernelVehicle(KernelVehicle):
         :return:
         """
         self.type_parameters = vehicles.type_parameters
-        self.minGap = vehicles.minGap
         self.num_vehicles = 0
         self.num_rl_vehicles = 0
 
@@ -143,17 +138,25 @@ class AimsunKernelVehicle(KernelVehicle):
         added_vehicles = self.kernel_api.get_entered_ids()
         exited_vehicles = self.kernel_api.get_exited_ids()
 
+        # add the new vehicles
         for aimsun_id in added_vehicles:
             self._add_departed(aimsun_id)
 
-        for veh_id in exited_vehicles:
-            self.remove(veh_id)
+        # remove the exited vehicles
+        if not reset:
+            for veh_id in exited_vehicles:
+                self.remove(veh_id)
 
         # update all vehicles' tracking information
         for veh_id in self.__ids:
-            aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
+            aimsun_id = self._id_flow2aimsun[veh_id]
             self.__vehicles[veh_id]['tracking_info'] = \
                 self.kernel_api.get_vehicle_tracking_info(aimsun_id)
+            self.__vehicles[veh_id]['headway'] = \
+                self.kernel_api.get_vehicle_headway(aimsun_id)
+
+        # update the tailways of all vehicles TODO
+        # for veh_id in self.__ids:
 
     def _add_departed(self, aimsun_id):
         """See parent class."""
@@ -172,7 +175,8 @@ class AimsunKernelVehicle(KernelVehicle):
             # get a new name for this vehicle
             veh_id = '{}_{}'.format(type_id, self.num_type[type_id])
             self.num_type[type_id] += 1
-            self.__ids.append(veh_id)  # FIXME: numbers and whatever.....
+            self.__ids.append(veh_id)
+            self.__vehicles[veh_id] = {}
             # set the Aimsun/Flow vehicle ID converters
             self._id_aimsun2flow[aimsun_id] = veh_id
             self._id_flow2aimsun[veh_id] = aimsun_id
@@ -217,9 +221,6 @@ class AimsunKernelVehicle(KernelVehicle):
             if lc_controller[0] != SimLaneChangeController:
                 self.__controlled_lc_ids.append(veh_id)
 
-        # set the absolute position of the vehicle
-        self.__vehicles[veh_id]["absolute_position"] = 0
-
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
 
@@ -231,9 +232,6 @@ class AimsunKernelVehicle(KernelVehicle):
         self.num_vehicles += 1
         self.__ids.append(veh_id)
         self.__vehicles[veh_id] = {}
-
-        # specify the type TODO: do we need this?
-        self.__vehicles[veh_id]["type"] = type_id
 
         # add vehicle in Aimsun
         # negative one means the first feasible turn TODO get route
@@ -256,45 +254,39 @@ class AimsunKernelVehicle(KernelVehicle):
     def remove(self, veh_id):
         """See parent class."""
         try:
-            aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
+            aimsun_id = deepcopy(self._id_flow2aimsun[veh_id])
             self.kernel_api.remove_vehicle(aimsun_id)
-        except ValueError:
+
+            # remove from the vehicles kernel
+            del self.__vehicles[veh_id]
+            del self._id_aimsun2flow[aimsun_id]
+            del self._id_flow2aimsun[veh_id]
+            self.__ids.remove(veh_id)
+            self.num_vehicles -= 1
+
+            # remove it from all other ids (if it is there)
+            if veh_id in self.__human_ids:
+                self.__human_ids.remove(veh_id)
+                if veh_id in self.__controlled_ids:
+                    self.__controlled_ids.remove(veh_id)
+                if veh_id in self.__controlled_lc_ids:
+                    self.__controlled_lc_ids.remove(veh_id)
+            else:
+                self.__rl_ids.remove(veh_id)
+                self.num_rl_vehicles -= 1
+        except (KeyError, ValueError):
             print("Invalid vehicle ID to be removed")
-
-        # remove from the vehicles kernel
-        del self.__vehicles[veh_id]
-        self.__ids.remove(veh_id)
-        self.num_vehicles -= 1
-
-        # remove it from all other ids (if it is there)
-        if veh_id in self.__human_ids:
-            self.__human_ids.remove(veh_id)
-            if veh_id in self.__controlled_ids:
-                self.__controlled_ids.remove(veh_id)
-            if veh_id in self.__controlled_lc_ids:
-                self.__controlled_lc_ids.remove(veh_id)
-        else:
-            self.__rl_ids.remove(veh_id)
-            self.num_rl_vehicles -= 1
 
         # make sure that the rl ids remain sorted
         self.__rl_ids.sort()
 
     def apply_acceleration(self, veh_ids, acc):
-        """Apply the acceleration requested by a vehicle in the simulator.
-
-        Parameters
-        ----------
-        veh_ids : list of str
-            list of vehicle identifiers
-        acc : numpy ndarray or list of float
-            requested accelerations from the vehicles
-        """
+        """See parent class."""
         for i, veh_id in enumerate(veh_ids):
             if acc[i] is not None:
                 this_vel = self.get_speed(veh_id)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
-                aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
+                aimsun_id = self._id_flow2aimsun[veh_id]
                 self.kernel_api.set_speed(aimsun_id, next_vel)
 
     def apply_lane_change(self, veh_ids, direction):
@@ -341,7 +333,7 @@ class AimsunKernelVehicle(KernelVehicle):
 
             # perform the requested lane action action in Aimsun
             if target_lane != this_lane:
-                aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
+                aimsun_id = self._id_flow2aimsun[veh_id]
                 self.kernel_api.apply_lane_change(aimsun_id, int(target_lane))
 
                 if veh_id in self.get_rl_ids():
@@ -360,12 +352,13 @@ class AimsunKernelVehicle(KernelVehicle):
             edge the vehicle is currently on. If a value of None is provided,
             the vehicle does not update its route
         """
-        for i, veh_id in enumerate(veh_ids):
-            if route_choices[i] is not None:
-                aimsun_id = self.__vehicles[veh_id]["aimsun_id"]
-                size_next_sections = len(route_choices[i])
-                self.kernel_api.AKIVehTrackedModifyNextSections(
-                    aimsun_id, size_next_sections, route_choices[i])
+        pass  # FIXME
+        # for i, veh_id in enumerate(veh_ids):
+        #     if route_choices[i] is not None:
+        #         aimsun_id = self._id_flow2aimsun[veh_id]
+        #         size_next_sections = len(route_choices[i])
+        #         self.kernel_api.AKIVehTrackedModifyNextSections(
+        #             aimsun_id, size_next_sections, route_choices[i])
 
     ###########################################################################
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
@@ -375,12 +368,12 @@ class AimsunKernelVehicle(KernelVehicle):
         """Modify the color of vehicles if rendering is active."""
         # color rl vehicles red
         for veh_id in self.get_rl_ids():
-            aimsun_id = self.__vehicles[veh_id]['aimsun_id']
+            aimsun_id = self._id_flow2aimsun[veh_id]
             self.kernel_api.vehicle.set_color(veh_id=aimsun_id, color=RED)
 
         # observed human-driven vehicles are cyan and unobserved are white
         for veh_id in self.get_human_ids():
-            aimsun_id = self.__vehicles[veh_id]['aimsun_id']
+            aimsun_id = self._id_flow2aimsun[veh_id]
             color = CYAN if veh_id in self.get_observed_ids() else WHITE
             self.kernel_api.set_color(veh_id=aimsun_id, color=color)
 
@@ -453,6 +446,13 @@ class AimsunKernelVehicle(KernelVehicle):
         else:
             return 0
 
+    def get_type(self, veh_id):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_type(veh) for veh in veh_id]
+        aimsun_type = self.__vehicles[veh_id]['static_info'].type
+        return self._type_aimsun2flow[aimsun_type]
+
     def get_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
@@ -484,24 +484,27 @@ class AimsunKernelVehicle(KernelVehicle):
         float,
             The distance from the beginning of the section
         """
-        positions = []
-        for veh in veh_id:
-            x_pos = self.__vehicles[veh]['tracking_info'].xCurrentPos
-            y_pos = self.__vehicles[veh]['tracking_info'].yCurrentPos
-            z_pos = self.__vehicles[veh]['tracking_info'].zCurrentPos
-            positions.append([x_pos, y_pos, z_pos])
-        return positions
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_position_world(veh, error) for veh in veh_id]
+        x_pos = self.__vehicles[veh_id]['tracking_info'].xCurrentPos
+        y_pos = self.__vehicles[veh_id]['tracking_info'].yCurrentPos
+        z_pos = self.__vehicles[veh_id]['tracking_info'].zCurrentPos
+        return [x_pos, y_pos, z_pos]
 
     def get_edge(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_edge(veh, error) for veh in veh_id]
         edge_aimsun_id = self.__vehicles[veh_id]['tracking_info'].idSection
-        # TODO: convert edge to edge in Flow
-        # edges.append(edge for edge in
-        #              self.master_kernel.scenario.get_edge_list()
-        #              if edge['aimsun_id'] == edge_aimsun_id)
-        return edge_aimsun_id
+        if edge_aimsun_id < 0:
+            # TODO: add from and to lanes in junctions
+            from_edge = self.master_kernel.scenario.flow_edge_name(
+                self.__vehicles[veh_id]['tracking_info'].idSectionFrom)
+            to_edge = self.master_kernel.scenario.flow_edge_name(
+                self.__vehicles[veh_id]['tracking_info'].idSectionTo)
+            return '{}_to_{}'.format(from_edge, to_edge)
+        else:
+            return self.master_kernel.scenario.flow_edge_name(edge_aimsun_id)
 
     def get_lane(self, veh_id, error=-1001):
         """See parent class."""
@@ -509,17 +512,16 @@ class AimsunKernelVehicle(KernelVehicle):
             return [self.get_lane(veh, error) for veh in veh_id]
         return self.__vehicles[veh_id]['tracking_info'].numberLane
 
-    def get_route(self, veh_id, error=list()):
+    def get_route(self, veh_id, error=None):
         """See parent class."""
-        routes = []
-        for veh in veh_id:
-            aimsun_id = self.__vehicles[veh]["aimsun_id"]
-            num_secs = self.kernel_api.AKIVehTrackedGetNbSectionsVehiclePath(
-                aimsun_id)
-            route = self.kernel_api.AKIVehTrackedGetIdSectionVehiclePath(
-                aimsun_id, num_secs)
-            routes.append(route)
-        return routes
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_route(veh) for veh in veh_id]
+        return []  # FIXME
+        # aimsun_id = self._id_flow2aimsun[veh_id]
+        # num_secs = self.kernel_api.AKIVehTrackedGetNbSectionsVehiclePath(
+        #     aimsun_id)
+        # return self.kernel_api.AKIVehTrackedGetIdSectionVehiclePath(
+        #     aimsun_id, num_secs)
 
     def get_length(self, veh_id, error=-1001):
         """See parent class."""
@@ -531,56 +533,26 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_leader(veh, error) for veh in veh_id]
-        aimsun_id = self.__vehicles[veh_id]['aimsun_id']
-        leader_id = self.kernel_api.get_leader(aimsun_id)
-        return self._aimsun_to_veh_id[leader_id]
+        aimsun_id = self._id_flow2aimsun[veh_id]
+        leader_id = self.kernel_api.get_vehicle_leader(aimsun_id)
+        if leader_id < 0:
+            return error
+        else:
+            return self._id_aimsun2flow[leader_id]
 
     def get_follower(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_follower(veh, error) for veh in veh_id]
-        aimsun_id = self.__vehicles[veh_id]['aimsun_id']
-        follower_id = self.kernel_api.get_follower(aimsun_id)
-        return self._aimsun_to_veh_id[follower_id]
+        aimsun_id = self._id_flow2aimsun[veh_id]
+        follower_id = self.kernel_api.get_vehicle_follower(aimsun_id)
+        return self._id_aimsun2flow[follower_id]
 
     def get_headway(self, veh_id, error=-1001):
         """See parent class."""
-        # FIXME: do it the way we do, in case veh_id is not a list
-        headways = []
-        for veh in veh_id:
-            leader_id = self.get_leader(veh)
-            if self.get_edge(leader_id) == self.get_edge(veh):
-                gap = self.get_position(leader_id, error) \
-                      - self.get_position(veh) \
-                      - self.get_length(leader_id, error)
-                headways.append(gap)
-            else:
-                # assume Euclidean distance
-                leader_pos = self.get_position_world(leader_id, error)
-                veh_pos = self.get_position_world(veh, error)
-                dist = np.linalg.norm(
-                    np.array(leader_pos)-np.array(veh_pos))
-                gap = dist - self.get_length(leader_id, error)
-                headways.append(gap)
-        # TODO check this for the better way
-        # if inf_leader.idSection != inf_veh.idSection:
-        #     num_secs = self.kernel_api.AKIInfNetGetShortestPathNbSections(
-        #         inf_veh.idSection, inf_leader.idSection, sectionCostColumn
-        #     )
-        #
-        #     if num_secs > 0:
-        #         path = intArray(num_secs)
-        #         result = self.kernel_api.AKIInfNetGetShortestPath(
-        #             inf_veh.idSection, inf_leader.idSection, sectionCostColumn,
-        #             path
-        #         )
-        #         for index in range(0, num_secs):
-        #             AKIPrintString( "%d"%path[index] )
-        #             #dist_in_between +=
-        #
-        # gap = inf_leader.CurrentPos - lead_veh_length - inf_veh.CurrentPos \
-        #     + dist_in_between
-        return headways
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_headway(veh, error) for veh in veh_id]
+        return self.__vehicles[veh_id]['headway']
 
     def get_last_lc(self, veh_id, error=-1001):
         """See parent class."""
@@ -600,336 +572,45 @@ class AimsunKernelVehicle(KernelVehicle):
 
     def get_x_by_id(self, veh_id):
         """See parent class."""
-        return self.master_kernel.scenario.get_x(
-            self.get_edge(veh_id), self.get_position(veh_id))
+        return self.master_kernel.scenario.get_x(self.get_edge(veh_id),
+                                                 self.get_position(veh_id))
 
     def set_lane_headways(self, veh_id, lane_headways):
-        """Set the lane headways of the specified vehicle."""
-        self.__vehicles[veh_id]["lane_headways"] = lane_headways
+        """See parent class."""
+        raise NotImplementedError
 
-    def get_lane_headways(self, veh_id, error=list()):
-        """Return the lane headways of the specified vehicles.
-
-        This includes the headways between the specified vehicle and the
-        vehicle immediately ahead of it in all lanes.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        list of float
-        """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_headways(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("lane_headways", error)
+    def get_lane_headways(self, veh_id, error=None):
+        """See parent class."""
+        raise NotImplementedError
 
     def set_lane_leaders(self, veh_id, lane_leaders):
-        """Set the lane leaders of the specified vehicle."""
-        self.__vehicles[veh_id]["lane_leaders"] = lane_leaders
+        """See parent class."""
+        raise NotImplementedError
 
-    def get_lane_leaders(self, veh_id, error=list()):
-        """Return the leaders for the specified vehicle in all lanes.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        lis of str
-        """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_leaders(vehID, error) for vehID in veh_id]
-        return self.__vehicles[veh_id]["lane_leaders"]
+    def get_lane_leaders(self, veh_id, error=None):
+        """See parent class."""
+        raise NotImplementedError
 
     def set_lane_tailways(self, veh_id, lane_tailways):
-        """Set the lane tailways of the specified vehicle."""
-        self.__vehicles[veh_id]["lane_tailways"] = lane_tailways
+        """See parent class."""
+        raise NotImplementedError
 
-    def get_lane_tailways(self, veh_id, error=list()):
-        """Return the lane tailways of the specified vehicle.
-
-        This includes the headways between the specified vehicle and the
-        vehicle immediately behind it in all lanes.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        list of float
-        """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_tailways(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("lane_tailways", error)
+    def get_lane_tailways(self, veh_id, error=None):
+        """See parent class."""
+        raise NotImplementedError
 
     def set_lane_followers(self, veh_id, lane_followers):
-        """Set the lane followers of the specified vehicle."""
-        self.__vehicles[veh_id]["lane_followers"] = lane_followers
+        """See parent class."""
+        raise NotImplementedError
 
-    def get_lane_followers(self, veh_id, error=list()):
-        """Return the followers for the specified vehicle in all lanes.
+    def get_lane_followers(self, veh_id, error=None):
+        """See parent class."""
+        raise NotImplementedError
 
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : list, optional
-            value that is returned if the vehicle is not found
+    def get_lane_followers_speed(self, veh_id, error=None):
+        """See parent class."""
+        raise NotImplementedError
 
-        Returns
-        -------
-        list of str
-        """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [self.get_lane_followers(vehID, error) for vehID in veh_id]
-        return self.__vehicles.get(veh_id, {}).get("lane_followers", error)
-
-    ###########################################################################
-    #                            Auxiliary Methods                            #
-    ###########################################################################
-
-    def _multi_lane_headways(self):
-        """Compute multi-lane data for all vehicles.
-
-        This includes the lane leaders/followers/headways/tailways for all
-        vehicles in the network.
-        """
-        edge_list = self.master_kernel.scenario.get_edge_list()
-        junction_list = self.master_kernel.scenario.get_junction_list()
-        tot_list = edge_list + junction_list
-        num_edges = (len(self.master_kernel.scenario.get_edge_list()) + len(
-            self.master_kernel.scenario.get_junction_list()))
-
-        # maximum number of lanes in the network
-        max_lanes = max([self.master_kernel.scenario.num_lanes(edge_id)
-                         for edge_id in tot_list])
-
-        # Key = edge id
-        # Element = list, with the ith element containing tuples with the name
-        #           and position of all vehicles in lane i
-        edge_dict = dict.fromkeys(tot_list)
-
-        # add the vehicles to the edge_dict element
-        for veh_id in self.get_ids():
-            edge = self.get_edge(veh_id)
-            lane = self.get_lane(veh_id)
-            pos = self.get_position(veh_id)
-            if edge:
-                if edge_dict[edge] is None:
-                    edge_dict[edge] = [[] for _ in range(max_lanes)]
-                edge_dict[edge][lane].append((veh_id, pos))
-
-        # sort all lanes in each edge by position
-        for edge in tot_list:
-            if edge_dict[edge] is None:
-                del edge_dict[edge]
-            else:
-                for lane in range(max_lanes):
-                    edge_dict[edge][lane].sort(key=lambda x: x[1])
-
-        for veh_id in self.get_rl_ids():
-            # collect the lane leaders, followers, headways, and tailways for
-            # each vehicle
-            edge = self.get_edge(veh_id)
-            if edge:
-                headways, tailways, leaders, followers = \
-                    self._multi_lane_headways_util(veh_id, edge_dict,
-                                                   num_edges)
-
-                # add the above values to the vehicles class
-                self.set_lane_headways(veh_id, headways)
-                self.set_lane_tailways(veh_id, tailways)
-                self.set_lane_leaders(veh_id, leaders)
-                self.set_lane_followers(veh_id, followers)
-
-        self._ids_by_edge = dict().fromkeys(edge_list)
-
-        for edge_id in edge_dict:
-            edges = list(itertools.chain.from_iterable(edge_dict[edge_id]))
-            # check for edges with no vehicles
-            if len(edges) > 0:
-                edges, _ = zip(*edges)
-                self._ids_by_edge[edge_id] = list(edges)
-            else:
-                self._ids_by_edge[edge_id] = []
-
-    def _multi_lane_headways_util(self, veh_id, edge_dict, num_edges):
-        """Compute multi-lane data for the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str
-            name of the vehicle
-        edge_dict : dict < list<tuple> >
-            Key = Edge name
-                Index = lane index
-                Element = list sorted by position of (vehicle id, position)
-
-        Returns
-        -------
-        headway : list<float>
-            Index = lane index
-            Element = headway at this lane
-        tailway : list<float>
-            Index = lane index
-            Element = tailway at this lane
-        leader : list<str>
-            Index = lane index
-            Element = leader at this lane
-        follower : list<str>
-            Index = lane index
-            Element = follower at this lane
-        """
-        this_pos = self.get_position(veh_id)
-        this_edge = self.get_edge(veh_id)
-        this_lane = self.get_lane(veh_id)
-        num_lanes = self.master_kernel.scenario.num_lanes(this_edge)
-
-        # set default values for all output values
-        headway = [1000] * num_lanes
-        tailway = [1000] * num_lanes
-        leader = [""] * num_lanes
-        follower = [""] * num_lanes
-
-        for lane in range(num_lanes):
-            # check the vehicle's current  edge for lane leaders and followers
-            if len(edge_dict[this_edge][lane]) > 0:
-                ids, positions = zip(*edge_dict[this_edge][lane])
-                ids = list(ids)
-                positions = list(positions)
-                index = bisect_left(positions, this_pos)
-
-                # if you are at the end or the front of the edge, the lane
-                # leader is in the edges in front of you
-                if (lane == this_lane and index < len(positions) - 1) \
-                        or (lane != this_lane and index < len(positions)):
-                    # check if the index does not correspond to the current
-                    # vehicle
-                    if ids[index] == veh_id:
-                        leader[lane] = ids[index + 1]
-                        headway[lane] = (positions[index + 1] - this_pos -
-                                         self.get_length(leader[lane]))
-                    else:
-                        leader[lane] = ids[index]
-                        headway[lane] = (positions[index] - this_pos
-                                         - self.get_length(leader[lane]))
-
-                # you are in the back of the queue, the lane follower is in the
-                # edges behind you
-                if index > 0:
-                    follower[lane] = ids[index - 1]
-                    tailway[lane] = (this_pos - positions[index - 1]
-                                     - self.get_length(veh_id))
-
-            # if lane leader not found, check next edges
-            if leader[lane] == "":
-                headway[lane], leader[lane] = self._next_edge_leaders(
-                    veh_id, edge_dict, lane, num_edges)
-
-            # if lane follower not found, check previous edges
-            if follower[lane] == "":
-                tailway[lane], follower[lane] = self._prev_edge_followers(
-                    veh_id, edge_dict, lane, num_edges)
-
-        return headway, tailway, leader, follower
-
-    def _next_edge_leaders(self, veh_id, edge_dict, lane, num_edges):
-        """Search for leaders in the next edge.
-
-        Looks to the edges/junctions in front of the vehicle's current edge
-        for potential leaders. This is currently done by only looking one
-        edge/junction forwards.
-
-        Returns
-        -------
-        headway : float
-            lane headway for the specified lane
-        leader : str
-            lane leader for the specified lane
-        """
-        pos = self.get_position(veh_id)
-        edge = self.get_edge(veh_id)
-
-        headway = 1000  # env.scenario.length
-        leader = ""
-        add_length = 0  # length increment in headway
-
-        for _ in range(num_edges):
-            # break if there are no edge/lane pairs behind the current one
-            if len(self.master_kernel.scenario.next_edge(edge, lane)) == 0:
-                break
-
-            add_length += self.master_kernel.scenario.edge_length(edge)
-            edge, lane = self.master_kernel.scenario.next_edge(edge, lane)[0]
-
-            try:
-                if len(edge_dict[edge][lane]) > 0:
-                    leader = edge_dict[edge][lane][0][0]
-                    headway = edge_dict[edge][lane][0][1] - pos + add_length \
-                        - self.get_length(leader)
-            except KeyError:
-                # current edge has no vehicles, so move on
-                continue
-
-            # stop if a lane follower is found
-            if leader != "":
-                break
-
-        return headway, leader
-
-    def _prev_edge_followers(self, veh_id, edge_dict, lane, num_edges):
-        """Search for followers in the previous edge.
-
-        Looks to the edges/junctions behind the vehicle's current edge for
-        potential followers. This is currently done by only looking one
-        edge/junction backwards.
-
-        Returns
-        -------
-        tailway : float
-            lane tailway for the specified lane
-        follower : str
-            lane follower for the specified lane
-        """
-        pos = self.get_position(veh_id)
-        edge = self.get_edge(veh_id)
-
-        tailway = 1000  # env.scenario.length
-        follower = ""
-        add_length = 0  # length increment in headway
-
-        for _ in range(num_edges):
-            # break if there are no edge/lane pairs behind the current one
-            if len(self.master_kernel.scenario.prev_edge(edge, lane)) == 0:
-                break
-
-            edge, lane = self.master_kernel.scenario.prev_edge(edge, lane)[0]
-            add_length += self.master_kernel.scenario.edge_length(edge)
-
-            try:
-                if len(edge_dict[edge][lane]) > 0:
-                    tailway = pos - edge_dict[edge][lane][-1][1] + add_length \
-                              - self.get_length(veh_id)
-                    follower = edge_dict[edge][lane][-1][0]
-            except KeyError:
-                # current edge has no vehicles, so move on
-                continue
-
-            # stop if a lane follower is found
-            if follower != "":
-                break
-
-        return tailway, follower
+    def get_lane_leaders_speed(self, veh_id, error=None):
+        """See parent class."""
+        raise NotImplementedError

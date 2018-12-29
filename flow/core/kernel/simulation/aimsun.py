@@ -1,6 +1,6 @@
 """Script containing the base simulation kernel class."""
 from flow.core.kernel.simulation.base import KernelSimulation
-# from flow.utils.aimsun.api import FlowAimsunAPI
+from flow.utils.aimsun.api import FlowAimsunAPI
 import subprocess
 import os.path as osp
 
@@ -64,8 +64,7 @@ class AimsunKernelSimulation(KernelSimulation):
         aimsun_call = [aimsun_path, "-script", script_path]
         self.aimsun_proc = subprocess.Popen(aimsun_call)
 
-        return None
-        # return FlowAimsunAPI(port=sim_params.port)
+        return FlowAimsunAPI(port=sim_params.port)
 
     def simulation_step(self):
         """See parent class."""
