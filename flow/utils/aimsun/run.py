@@ -12,6 +12,7 @@ from PyANGKernel import *
 import socket
 import struct
 from thread import start_new_thread
+import numpy as np
 
 PORT = 9999
 entered_vehicles = []
@@ -66,7 +67,7 @@ def threaded_client(conn):
     done = False
     while not done:
         # receive the next message
-        data = conn.recv(2048)
+        data = conn.recv(256)
 
         if data is not None:
             # if the message is empty, search for the next message
@@ -79,41 +80,17 @@ def threaded_client(conn):
             # if the simulation step is over, terminate the loop and let
             # the step be executed
             if data == ac.SIMULATION_STEP:
-                conn.send('Simulation step.')
+                send_message(conn, in_format='i', values=(0,))
                 done = True
-
-                # TODO: is this right?
-                # order = 3  # 3: Stop simulation
-                # when = int(aimsun_api.AKIGetCurrentSimulationTime())
-                # aimsun_api.ANGSetSimulationOrder(order, when)
-                #
-                # order = 0
-                # when = int(when + self.sim_step)
-                # # TODO this is risky since "when" should be integer
-                # aimsun_api.ANGSetSimulationOrder(order, when)
 
             # Note that alongside this, the process is closed in Flow,
             # thereby terminating the socket connection as well.
             elif data == ac.SIMULATION_TERMINATE:
-                conn.send('Terminate simulation.')
-
-                # # Stop simulation
-                # order = 1  # 1: Cancel simulation
-                # when = int(aimsun_api.AKIGetCurrentSimulationTime())
-                # aimsun_api.ANGSetSimulationOrder(order, when)
-                #
-                # # Save and close the network
-                # gui = GKGUISystem.getGUISystem().getActiveGui()
-                # model = gui.getActiveModel()
-                # # TODO this can be saveAs depending on the template
-                # gui.save()
-                # gui.closeDocument(model)
-                #
-                # # Quit the GUI
-                # gui.forceQuit()
+                send_message(conn, in_format='i', values=(0,))
+                done = True
 
             elif data == ac.ADD_VEHICLE:
-                conn.send('Add vehicle')
+                send_message(conn, in_format='i', values=(0,))
 
                 edge, lane, type_id, pos, speed, next_section = \
                     retrieve_message(conn, 'i i i f f i')
@@ -129,36 +106,80 @@ def threaded_client(conn):
                 send_message(conn, in_format='i', values=(veh_id,))
 
             elif data == ac.REMOVE_VEHICLE:
-                conn.send('Remove vehicle')
+                send_message(conn, in_format='i', values=(0,))
                 veh_id, = retrieve_message(conn, 'i')
                 aimsun_api.AKIVehTrackedRemove(veh_id)
+                send_message(conn, in_format='i', values=(0,))
 
             elif data == ac.VEH_SET_SPEED:
-                conn.send('Set vehicle speed.')
+                send_message(conn, in_format='i', values=(0,))
                 veh_id, speed = retrieve_message(conn, 'i f')
                 aimsun_api.AKIVehTrackedModifySpeed(veh_id, speed)
+                send_message(conn, in_format='i', values=(0,))
 
             elif data == ac.VEH_SET_LANE:
                 conn.send('Set vehicle lane.')
                 veh_id, target_lane = retrieve_message(conn, 'i i')
                 aimsun_api.AKIVehTrackedModifyLane(veh_id, target_lane)
+                send_message(conn, in_format='i', values=(0,))
 
             elif data == ac.VEH_SET_ROUTE:
-                conn.send('Set vehicle route.')
+                send_message(conn, in_format='i', values=(0,))
                 # TODO
 
             elif data == ac.VEH_SET_COLOR:
-                conn.send('Set vehicle color.')
+                send_message(conn, in_format='i', values=(0,))
                 veh_id, r, g, b = retrieve_message(conn, 'i i i i')
                 # TODO
+                send_message(conn, in_format='i', values=(0,))
+
+            elif data == ac.VEH_GET_ENTERED_IDS:
+                send_message(conn, in_format='i', values=(0,))
+
+                # wait for a response
+                data = None
+                while data is None:
+                    data = conn.recv(256)
+
+                # send the entered vehicle IDs
+                global entered_vehicles
+
+                if len(entered_vehicles) == 0:
+                    output = '-1'
+                else:
+                    output = ':'.join([str(e) for e in entered_vehicles])
+                conn.send(output)
+
+                # clear the list
+                entered_vehicles = []
+
+            elif data == ac.VEH_GET_EXITED_IDS:
+                send_message(conn, in_format='i', values=(0,))
+
+                # wait for a response
+                data = None
+                while data is None:
+                    data = conn.recv(256)
+
+                # send the entered vehicle IDs
+                global exited_vehicles
+
+                if len(exited_vehicles) == 0:
+                    output = '-1'
+                else:
+                    output = ':'.join([str(e) for e in exited_vehicles])
+                conn.send(output)
+
+                # clear the list
+                exited_vehicles = []
 
             elif data == ac.VEH_GET_TYPE_ID:
-                conn.send('Get vehicle type.')
+                send_message(conn, in_format='i', values=(0,))
 
                 # get the type ID in flow
                 type_id = None
                 while type_id is None:
-                    type_id = conn.recv(2048)
+                    type_id = conn.recv(256)
 
                 # convert the edge name to an edge name in Aimsun
                 model = GKSystem.getSystem().getActiveModel()
@@ -171,7 +192,7 @@ def threaded_client(conn):
                 send_message(conn, in_format='i', values=(aimsun_type_pos,))
 
             elif data == ac.VEH_GET_STATIC:
-                conn.send('Get vehicle static info.')
+                send_message(conn, in_format='i', values=(0,))
                 veh_id, = retrieve_message(conn, 'i')
 
                 static_info = aimsun_api.AKIVehGetStaticInf(veh_id)
@@ -208,7 +229,7 @@ def threaded_client(conn):
                              values=output)
 
             elif data == ac.VEH_GET_TRACKING:
-                conn.send('Get vehicle tracking info.')
+                send_message(conn, in_format='i', values=(0,))
 
                 veh_id, = retrieve_message(conn, 'i')
 
@@ -217,7 +238,7 @@ def threaded_client(conn):
                           tracking_info.idVeh,
                           tracking_info.type,
                           tracking_info.CurrentPos,
-                          tracking_info.distnace2End,
+                          tracking_info.distance2End,
                           tracking_info.xCurrentPos,
                           tracking_info.yCurrentPos,
                           tracking_info.zCurrentPos,
@@ -242,47 +263,79 @@ def threaded_client(conn):
                           tracking_info.idLaneTo)
 
                 send_message(conn,
-                             in_format='i i i f f f f f f f f f f f f f f '
-                                       'f f i i i i i i i i',
+                             in_format='i i i f f f f f f f f f f f f f f f f '
+                                       'i i i i i i i i',
                              values=output)
 
             elif data == ac.VEH_GET_LEADER:
-                conn.send('Get vehicle leader.')
+                send_message(conn, in_format='i', values=(0,))
                 veh_id, = retrieve_message(conn, 'i')
                 leader = aimsun_api.AKIVehGetLeaderId(veh_id)
                 send_message(conn, in_format='i', values=(leader,))
 
             elif data == ac.VEH_GET_FOLLOWER:
-                conn.send('Get vehicle follower.')
+                send_message(conn, in_format='i', values=(0,))
                 veh_id, = retrieve_message(conn, 'i')
                 follower = aimsun_api.AKIVehGetFollowerId(veh_id)
                 send_message(conn, in_format='i', values=(follower,))
 
+            elif data == ac.VEH_GET_HEADWAY:
+                send_message(conn, in_format='i', values=(0,))
+                veh_id, = retrieve_message(conn, 'i')
+
+                inf_veh = AKIVehTrackedGetInf(veh_id)
+                next_section = AKIVehInfPathGetNextSection(veh_id,
+                                                           inf_veh.idSection)
+                leader_id = AKIVehGetLeaderId(veh_id)
+                inf_veh_leader = AKIVehTrackedGetInf(leader_id)
+                static_inf_veh_leader = AKIVehTrackedGetStaticInf(leader_id)
+
+                if inf_veh.idSection == inf_veh_leader.idSection:
+                    gap = inf_veh_leader.CurrentPos - \
+                          static_inf_veh_leader.length - \
+                          inf_veh.CurrentPos
+                elif inf_veh_leader.idSection == next_section:
+                    gap = inf_veh_leader.CurrentPos - \
+                          static_inf_veh_leader.length + \
+                          inf_veh.distance2End
+                else:
+                    # assume Euclidean distance
+                    leader_pos = [inf_veh.xCurrentPos, inf_veh.yCurrentPos,
+                                  inf_veh.zCurrentPos]
+                    veh_pos = [inf_veh_leader.xCurrentPos,
+                               inf_veh_leader.yCurrentPos,
+                               inf_veh_leader.zCurrentPos]
+                    dist = np.linalg.norm(np.array(leader_pos) -
+                                          np.array(veh_pos))
+                    gap = dist - static_inf_veh_leader.length
+
+                send_message(conn, in_format='f', values=(gap,))
+
             elif data == ac.VEH_GET_ROUTE:
-                conn.send('Get vehicle route.')
+                send_message(conn, in_format='i', values=(0,))
                 veh_id, = retrieve_message(conn, 'i')
                 # TODO
 
             elif data == ac.TL_GET_IDS:
-                conn.send('Get traffic light ids')
+                send_message(conn, in_format='i', values=(0,))
                 # TODO
 
             elif data == ac.TL_SET_STATE:
-                conn.send('Set traffic light state')
+                send_message(conn, in_format='i', values=(0,))
                 # TODO
 
             elif data == ac.TL_GET_STATE:
-                conn.send('Get traffic light state')
+                send_message(conn, in_format='i', values=(0,))
                 tl_id, = retrieve_message(conn, 'i')
                 # TODO
 
             elif data == ac.GET_EDGE_NAME:
-                conn.send('Get edge name.')
+                send_message(conn, in_format='i', values=(0,))
 
                 # get the edge ID in flow
                 edge = None
                 while edge is None:
-                    edge = conn.recv(2048)
+                    edge = conn.recv(256)
 
                 model = GKSystem.getSystem().getActiveModel()
                 edge_aimsun = model.getCatalog().findByName(
@@ -290,9 +343,9 @@ def threaded_client(conn):
 
                 send_message(conn, in_format='i', values=(edge_aimsun.getId(),))
 
-            # in case the message is an error message or unknown
+            # in case the message is unknown, return -1001
             else:
-                conn.send('Failure.')
+                send_message(conn, in_format='i', values=(-1001,))
 
     # close the connection
     conn.close()
@@ -307,30 +360,17 @@ def AAPIInit():
 
 
 def AAPIManage(time, timeSta, timeTrans, acycle):
-    # # tcp/ip connection from the aimsun process
-    # server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # server_socket.bind(('localhost', PORT))
-    #
-    # # connect to the Flow instance
-    # server_socket.listen(10)
-    # c, address = server_socket.accept()
-    #
-    # # start the threaded process
-    # start_new_thread(threaded_client, (c,))
+    # tcp/ip connection from the aimsun process
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind(('localhost', PORT))
 
-    type_id = 'idm'
-    model = GKSystem.getSystem().getActiveModel()
-    type_vehicle = model.getType("GKVehicle")
-    vehicle = model.getCatalog().findByName(
-        type_id, type_vehicle)
-    aimsun_type = vehicle.getId()
+    # connect to the Flow instance
+    server_socket.listen(10)
+    c, address = server_socket.accept()
 
-    idVeh = ANGConnGetObjectIdByType(AKIConvertFromAsciiString("Car"), None,
-                                     False)
-    vehPos = AKIVehGetVehTypeInternalPosition(idVeh)
-    print ("veh pos", vehPos)
-    aimsun_type_pos = AKIVehGetVehTypeInternalPosition(aimsun_type)
+    # start the threaded process
+    start_new_thread(threaded_client, (c,))
 
     return 0
 
@@ -353,6 +393,7 @@ def AAPIPreRouteChoiceCalculation(time, timeSta):
 
 def AAPIEnterVehicle(idveh, idsection):
     global entered_vehicles
+    print(idveh, idsection)
     entered_vehicles.append(idveh)
     return 0
 

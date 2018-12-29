@@ -8,7 +8,7 @@ import flow.utils.aimsun.constants as ac
 import flow.utils.aimsun.struct as aimsun_struct
 
 
-def create_client(port):
+def create_client(port, print_status=False):
     """Create a socket connection with the server.
 
     Parameters
@@ -22,7 +22,8 @@ def create_client(port):
         socket for client connection
     """
     # create a socket connection
-    print('Listening for connection...', end=' ')
+    if print_status:
+        print('Listening for connection...', end=' ')
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connected = False
     num_tries = 0
@@ -38,8 +39,9 @@ def create_client(port):
     # check the connection
     data = None
     while data is None:
-        data = s.recv(2048)
-    print(data.decode('utf-8'))
+        data = s.recv(256)
+    if print_status:
+        print(data.decode('utf-8'))
 
     return s
 
@@ -62,7 +64,7 @@ class FlowAimsunAPI(object):
             the port number of the socket connection
         """
         self.port = port
-        self.s = create_client(port)
+        self.s = create_client(port, print_status=True)
 
     def _send_command(self, command_type, in_format, values, out_format):
         """Send an arbitrary command via the connection.
@@ -95,10 +97,10 @@ class FlowAimsunAPI(object):
         self.s.send(str(command_type).encode())
 
         # wait for a response
+        unpacker = struct.Struct(format='i')
         data = None
         while data is None:
-            data = self.s.recv(2048)
-        print(data.decode('utf-8'))
+            data = self.s.recv(unpacker.size)
 
         # send the command values
         if in_format is not None:
@@ -117,7 +119,7 @@ class FlowAimsunAPI(object):
             if out_format == 'str':
                 data = None
                 while data is None:
-                    data = self.s.recv(2048)
+                    data = self.s.recv(256)
                 unpacked_data = data.decode('utf-8')
             else:
                 unpacker = struct.Struct(format=out_format)
@@ -194,13 +196,11 @@ class FlowAimsunAPI(object):
         int
             name of the new vehicle in Aimsun
         """
-        print(edge, lane, type_id, pos, speed, next_section)
         veh_id, = self._send_command(
             ac.ADD_VEHICLE,
             in_format='i i i f f i',
             values=(edge, lane, type_id, pos, speed, next_section),
             out_format='i')
-        print(veh_id)
 
         return veh_id
 
@@ -215,7 +215,7 @@ class FlowAimsunAPI(object):
         self._send_command(ac.REMOVE_VEHICLE,
                            in_format='i',
                            values=(veh_id,),
-                           out_format=None)
+                           out_format='i')
 
     def set_speed(self, veh_id, speed):
         """Set the speed of a specific vehicle.
@@ -230,7 +230,7 @@ class FlowAimsunAPI(object):
         self._send_command(ac.VEH_SET_SPEED,
                            in_format='i f',
                            values=(veh_id, speed),
-                           out_format=None)
+                           out_format='i')
 
     def apply_lane_change(self, veh_id, direction):
         """Set the lane change action of a specific vehicle.
@@ -284,7 +284,7 @@ class FlowAimsunAPI(object):
         return self._send_command(ac.VEH_SET_COLOR,
                                   in_format='i i i i',
                                   values=(veh_id, r, g, b),
-                                  out_format=None)
+                                  out_format='i')
 
     def get_entered_ids(self):
         """Return the ids of all vehicles that entered the network."""
@@ -293,7 +293,11 @@ class FlowAimsunAPI(object):
                                      values=None,
                                      out_format='str')
 
-        return veh_ids.split(':')
+        if veh_ids == '-1':
+            return []
+        else:
+            veh_ids = veh_ids.split(':')
+            return [int(v) for v in veh_ids]
 
     def get_exited_ids(self):
         """Return the ids of all vehicles that exited the network."""
@@ -302,7 +306,11 @@ class FlowAimsunAPI(object):
                                      values=None,
                                      out_format='str')
 
-        return veh_ids.split(':')
+        if veh_ids == '-1':
+            return []
+        else:
+            veh_ids = veh_ids.split(':')
+            return [int(v) for v in veh_ids]
 
     def get_vehicle_type_id(self, flow_id):
         """Get's the Aimsun type number of a Flow vehicle types.
@@ -368,6 +376,8 @@ class FlowAimsunAPI(object):
             values=(veh_id,),
             out_format='i i i f f f f f f f f f f i i i ? f f f f f i i i i')
 
+        return static_info
+
     def get_vehicle_tracking_info(self, veh_id):
         """Return the tracking information of the specified vehicle.
 
@@ -387,7 +397,7 @@ class FlowAimsunAPI(object):
          tracking_info.idVeh,
          tracking_info.type,
          tracking_info.CurrentPos,
-         tracking_info.distnace2End,
+         tracking_info.distance2End,
          tracking_info.xCurrentPos,
          tracking_info.yCurrentPos,
          tracking_info.zCurrentPos,
@@ -433,7 +443,7 @@ class FlowAimsunAPI(object):
         return self._send_command(ac.VEH_GET_LEADER,
                                   in_format='i',
                                   values=(veh_id,),
-                                  out_format='i')
+                                  out_format='i')[0]
 
     def get_vehicle_follower(self, veh_id):
         """Return the follower of a specific vehicle.
@@ -451,7 +461,25 @@ class FlowAimsunAPI(object):
         return self._send_command(ac.VEH_GET_FOLLOWER,
                                   in_format='i',
                                   values=(veh_id,),
-                                  out_format='i')
+                                  out_format='i')[0]
+
+    def get_vehicle_headway(self, veh_id):
+        """Return the headway of a specific vehicle.
+
+        Parameters
+        ----------
+        veh_id : int
+            name of the vehicle in Aimsun
+
+        Returns
+        -------
+        float
+            headway
+        """
+        return self._send_command(ac.VEH_GET_HEADWAY,
+                                  in_format='i',
+                                  values=(veh_id,),
+                                  out_format='f')[0]
 
     def get_route(self, veh_id):
         """Return the route of a specific vehicle.
@@ -476,7 +504,8 @@ class FlowAimsunAPI(object):
                                     values=None,
                                     out_format='str')
 
-        return tl_ids.split(':')
+        tl_ids = tl_ids.split(':')
+        return [str(t) for t in tl_ids]
 
     def get_traffic_light_state(self, tl_id):
         """Get the traffic light state of a specific set of traffic light(s).
@@ -491,7 +520,7 @@ class FlowAimsunAPI(object):
         str
             traffic light state of each light on that node
         """
-        return self._send_command(ac.TL_GET_STATE, values=[tl_id])
+        return self._send_command(ac.TL_GET_STATE, values=(tl_id,))
 
     def set_traffic_light_state(self, tl_id, link_index, state):
         """Set the state of the specified traffic light(s).

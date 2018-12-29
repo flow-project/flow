@@ -10,9 +10,6 @@ SIMULATION_STEP = 0x00
 # terminate the simulation
 SIMULATION_TERMINATE = 0x01
 
-# check for collision in simulation TODO: check
-SIMULATION_COLLISION = None
-
 
 ###############################################################################
 #                              Scenario Commands                              #
@@ -64,6 +61,9 @@ VEH_GET_LEADER = 0x0B
 
 # get vehicle follower
 VEH_GET_FOLLOWER = 0x0C
+
+# get vehicle headway
+VEH_GET_HEADWAY = 0x11
 
 # get vehicle route
 VEH_GET_ROUTE = 0x0D
