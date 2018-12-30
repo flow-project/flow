@@ -155,7 +155,8 @@ jobs from there.
 
 ::
 
-    ray create_or_update scripts/ray_autoscale.yaml
+    pip install boto3
+    ray create-or-update scripts/ray_autoscale.yaml
     ray teardown scripts/ray_autoscale.yaml
 
 
