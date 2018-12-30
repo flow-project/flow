@@ -33,14 +33,14 @@ def visualizer_rllab(args):
     num_obs_var = flat_obs / tot_cars
 
     # Set sumo to make a video
-    sumo_params = unwrapped_env.sumo_params
-    sumo_params.emission_path = './test_time_rollout/'
+    sim_params = unwrapped_env.sim_params
+    sim_params.emission_path = './test_time_rollout/'
     if args.no_render:
-        sumo_params.render = False
+        sim_params.render = False
     else:
-        sumo_params.render = True
-    unwrapped_env.restart_sumo(
-        sumo_params=sumo_params, render=sumo_params.render)
+        sim_params.render = True
+    unwrapped_env.restart_simulation(
+        sim_params=sim_params, render=sim_params.render)
 
     # Load data into arrays
     all_obs = np.zeros((args.num_rollouts, max_path_length, flat_obs))
@@ -69,7 +69,7 @@ def visualizer_rllab(args):
         os.makedirs('plots')
 
     # create an array of time
-    sim_step = unwrapped_env.sumo_params.sim_step
+    sim_step = unwrapped_env.sim_params.sim_step
     t = np.arange(max_path_length) * sim_step
 
     for obs_var_idx in range(int(num_obs_var)):

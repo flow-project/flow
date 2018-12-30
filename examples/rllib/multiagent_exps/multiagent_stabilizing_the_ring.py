@@ -20,7 +20,7 @@ from flow.core.params import EnvParams
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
@@ -35,7 +35,7 @@ N_ROLLOUTS = 20  # int(20/NUM_RINGS)
 N_CPUS = 2  # int(20/NUM_RINGS)
 
 # We place one autonomous vehicle and 21 human-driven vehicles in the network
-vehicles = Vehicles()
+vehicles = VehicleParams()
 for i in range(NUM_RINGS):
     vehicles.add(
         veh_id='human_{}'.format(i),
@@ -61,7 +61,7 @@ flow_params = dict(
     scenario='MultiLoopScenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),

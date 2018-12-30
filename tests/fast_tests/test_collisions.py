@@ -1,10 +1,10 @@
 import unittest
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, SumoCarFollowingParams, NetParams, \
     InFlows
-from flow.core.vehicles import Vehicles
-from flow.controllers.car_following_models import SumoCarFollowingController
+from flow.core.params import VehicleParams
+from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.routing_controllers import GridRouter
 
 from tests.setup_scripts import grid_mxn_exp_setup
@@ -17,14 +17,14 @@ class TestCollisions(unittest.TestCase):
     def test_collide(self):
         """Tests collisions in the absence of inflows."""
         # create the environment and scenario classes for a ring road
-        sumo_params = SumoParams(sim_step=1, render=False)
+        sim_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 20
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
-            acceleration_controller=(SumoCarFollowingController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=0.1, carFollowModel="Krauss", minGap=2.5,
                 speed_mode=0b00000,
             ),
@@ -54,7 +54,7 @@ class TestCollisions(unittest.TestCase):
         self.env, self.scenario = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
-            sumo_params=sumo_params,
+            sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
@@ -64,21 +64,21 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env)
+        self.exp = Experiment(self.env)
 
         self.exp.run(50, 50)
 
     def test_collide_inflows(self):
         """Tests collisions in the presence of inflows."""
         # create the environment and scenario classes for a ring road
-        sumo_params = SumoParams(sim_step=1, render=False)
+        sim_params = SumoParams(sim_step=1, render=False)
         total_vehicles = 12
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
-            acceleration_controller=(SumoCarFollowingController, {}),
+            acceleration_controller=(SimCarFollowingController, {}),
             routing_controller=(GridRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=0.1, carFollowModel="Krauss", minGap=2.5,
                 speed_mode=0b00000,
             ),
@@ -114,7 +114,7 @@ class TestCollisions(unittest.TestCase):
         self.env, self.scenario = grid_mxn_exp_setup(
             row_num=1,
             col_num=1,
-            sumo_params=sumo_params,
+            sim_params=sim_params,
             vehicles=vehicles,
             net_params=net_params)
 
@@ -124,7 +124,7 @@ class TestCollisions(unittest.TestCase):
                 'center' + str(i), "gggggggggggg")
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env)
+        self.exp = Experiment(self.env)
 
         self.exp.run(50, 50)
 

@@ -14,7 +14,7 @@ Horizon: 1500 steps
 from copy import deepcopy
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import ContinuousRouter, RLController
 from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 
@@ -22,12 +22,12 @@ from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 HORIZON = 1500
 
 # We place 16 autonomous vehicle and 0 human-driven vehicles in the network
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=14)
@@ -43,7 +43,7 @@ flow_params = dict(
     scenario="Figure8Scenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),

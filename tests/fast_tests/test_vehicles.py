@@ -2,11 +2,11 @@ import unittest
 import os
 import numpy as np
 
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import SumoCarFollowingParams, NetParams, \
     InitialConfig, SumoParams, SumoLaneChangeParams
 from flow.controllers.car_following_models import IDMController, \
-    SumoCarFollowingController
+    SimCarFollowingController
 from flow.controllers.lane_change_controllers import StaticLaneChanger
 from flow.controllers.rlcontroller import RLController
 
@@ -25,84 +25,84 @@ class TestVehiclesClass(unittest.TestCase):
         Check to make sure vehicle class correctly specifies lane change and
         speed modes
         """
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode='no_collide',
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             )
         )
 
         self.assertEqual(vehicles.type_parameters["typeA"][
-                             "sumo_car_following_params"].speed_mode, 1)
+                             "car_following_params"].speed_mode, 1)
         self.assertEqual(vehicles.type_parameters["typeA"][
-                             "sumo_lc_params"].lane_change_mode, 512)
+                             "lane_change_params"].lane_change_mode, 512)
 
         vehicles.add(
             "typeB",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode='aggressive',
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="strategic",
             )
         )
 
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "sumo_car_following_params"].speed_mode, 0)
+                             "car_following_params"].speed_mode, 0)
         self.assertEqual(vehicles.type_parameters["typeB"][
-                             "sumo_lc_params"].lane_change_mode, 1621)
+                             "lane_change_params"].lane_change_mode, 1621)
 
         vehicles.add(
             "typeC",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode=31,
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode=277
             )
         )
 
         self.assertEqual(vehicles.type_parameters["typeC"][
-                             "sumo_car_following_params"].speed_mode, 31)
+                             "car_following_params"].speed_mode, 31)
         self.assertEqual(vehicles.type_parameters["typeC"][
-                             "sumo_lc_params"].lane_change_mode, 277)
+                             "lane_change_params"].lane_change_mode, 277)
 
     def test_controlled_id_params(self):
         """
         Ensure that, if a vehicle is not a sumo vehicle, then minGap is set to
         zero so that all headway values are correct.
         """
-        # check that, if the vehicle is not a SumoCarFollowingController
+        # check that, if the vehicle is not a SimCarFollowingController
         # vehicle, then its minGap is equal to 0
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "typeA",
             acceleration_controller=(IDMController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             ))
         self.assertEqual(vehicles.types[0]["type_params"]["minGap"], 0)
 
-        # check that, if the vehicle is a SumoCarFollowingController vehicle,
+        # check that, if the vehicle is a SimCarFollowingController vehicle,
         # then its minGap, accel, and decel are set to default
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "typeA",
-            acceleration_controller=(SumoCarFollowingController, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            acceleration_controller=(SimCarFollowingController, {}),
+            car_following_params=SumoCarFollowingParams(
                 speed_mode="no_collide",
             ),
-            sumo_lc_params=SumoLaneChangeParams(
+            lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
             ))
         default_mingap = SumoCarFollowingParams().controller_params["minGap"]
@@ -115,7 +115,7 @@ class TestVehiclesClass(unittest.TestCase):
         IDs, and that the number of vehicles is correct.
         """
         # generate a vehicles class
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
 
         # vehicles whose acceleration and LC are controlled by sumo
         vehicles.add("test_1", num_vehicles=1)
@@ -144,7 +144,7 @@ class TestVehiclesClass(unittest.TestCase):
         Ensure that added rl vehicles are placed in the current vehicle IDs,
         and that the number of vehicles is correct.
         """
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             "test_rl",
             num_vehicles=10,
@@ -163,7 +163,7 @@ class TestVehiclesClass(unittest.TestCase):
         be removed in the vehicles class.
         """
         # generate a vehicles class
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("test", num_vehicles=10)
         vehicles.add(
             "test_rl",
@@ -223,7 +223,7 @@ class TestMultiLaneData(unittest.TestCase):
         }
         net_params = NetParams(additional_params=additional_net_params)
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -267,7 +267,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 1
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -279,15 +279,14 @@ class TestMultiLaneData(unittest.TestCase):
         # find one leader and one follower for the central vehicle
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_0', 20),
-                                          ('highway_0', 30),
-                                          ('highway_0', 10)]
-        initial_pos["start_lanes"] = [1, 2, 0]
+        initial_pos = {"start_positions": [('highway_0', 20),
+                                           ('highway_0', 30),
+                                           ('highway_0', 10)],
+                       "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -339,7 +338,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 1
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -348,22 +347,21 @@ class TestMultiLaneData(unittest.TestCase):
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_0', 50),
-                                          ('highway_0', 60),
-                                          ('highway_0', 40),
-                                          ('highway_0', 40),
-                                          ('highway_0', 30),
-                                          ('highway_0', 60),
-                                          ('highway_0', 70),
-                                          ('highway_0', 60),
-                                          ('highway_0', 40),
-                                          ]
-        initial_pos["start_lanes"] = [0, 0, 0, 1, 1, 2, 2, 3, 3]
+        initial_pos = {"start_positions": [('highway_0', 50),
+                                           ('highway_0', 60),
+                                           ('highway_0', 40),
+                                           ('highway_0', 40),
+                                           ('highway_0', 30),
+                                           ('highway_0', 60),
+                                           ('highway_0', 70),
+                                           ('highway_0', 60),
+                                           ('highway_0', 40),
+                                           ],
+                       "start_lanes": [0, 0, 0, 1, 1, 2, 2, 3, 3]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -407,7 +405,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 3
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -419,16 +417,14 @@ class TestMultiLaneData(unittest.TestCase):
         # find one leader and one follower for the central vehicle
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
-                                          ('highway_2', 75 - (2 * 100 / 3.0)),
-                                          ('highway_0', 25)]
-        initial_pos["start_lanes"] = [1, 2, 0]
+        initial_pos = {"start_positions": [('highway_1', 50 - (100 / 3.0)),
+                                           ('highway_2', 75 - (2 * 100 / 3.0)),
+                                           ('highway_0', 25)],
+                       "start_lanes": [1, 2, 0]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo",
-                                   render=True),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -475,7 +471,7 @@ class TestMultiLaneData(unittest.TestCase):
             "num_edges": 3
         }
         net_params = NetParams(additional_params=additional_net_params)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
@@ -487,15 +483,14 @@ class TestMultiLaneData(unittest.TestCase):
         # find one leader and one follower for the central vehicle
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
-        initial_pos = {}
-        initial_pos["start_positions"] = [('highway_1', 50 - (100 / 3.0)),
-                                          ('highway_2', 75 - (2 * 100 / 3.0)),
-                                          ('highway_0', 25)]
-        initial_pos["start_lanes"] = [0, 0, 0]
+        initial_pos = {"start_positions": [('highway_1', 50 - (100 / 3.0)),
+                                           ('highway_2', 75 - (2 * 100 / 3.0)),
+                                           ('highway_0', 25)],
+                       "start_lanes": [0, 0, 0]}
         initial_config.additional_params = initial_pos
 
         env, scenario = highway_exp_setup(
-            sumo_params=SumoParams(sim_step=0.1, sumo_binary="sumo"),
+            sim_params=SumoParams(sim_step=0.1, render=False),
             net_params=net_params,
             vehicles=vehicles,
             initial_config=initial_config)
@@ -546,7 +541,7 @@ class TestIdsByEdge(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=20)
 
         self.env, scenario = ring_road_exp_setup(vehicles=vehicles)
@@ -567,7 +562,7 @@ class TestObservedIDs(unittest.TestCase):
     """Tests the observed_ids methods, which are used for visualization."""
 
     def test_obs_ids(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=10)
 
         # test setting new observed values

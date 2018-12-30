@@ -14,7 +14,7 @@ from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, IDMController, ContinuousRouter
 
 # time horizon of a single rollout
@@ -25,7 +25,7 @@ N_ROLLOUTS = 20
 N_CPUS = 2
 
 # We place one autonomous vehicle and 22 human-driven vehicles in the network
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
     acceleration_controller=(IDMController, {
@@ -50,7 +50,7 @@ flow_params = dict(
     scenario="LoopScenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),

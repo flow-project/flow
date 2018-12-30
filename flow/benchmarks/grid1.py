@@ -9,8 +9,8 @@ Horizon: 400 steps
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.core.params import VehicleParams
+from flow.controllers import SimCarFollowingController, GridRouter
 
 # time horizon of a single rollout
 HORIZON = 400
@@ -34,11 +34,11 @@ N_LEFT, N_RIGHT, N_TOP, N_BOTTOM = 1, 1, 1, 1
 # we place a sufficient number of vehicles to ensure they confirm with the
 # total number specified above. We also use a "right_of_way" speed mode to
 # support traffic light compliance
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
-    acceleration_controller=(SumoCarFollowingController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    acceleration_controller=(SimCarFollowingController, {}),
+    car_following_params=SumoCarFollowingParams(
         min_gap=2.5,
         max_speed=V_ENTER,
         speed_mode="right_of_way",
@@ -74,7 +74,7 @@ flow_params = dict(
     scenario="SimpleGridScenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         restart_instance=True,
         sim_step=1,
         render=False,
@@ -121,5 +121,8 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(shuffle=True),
+    initial=InitialConfig(
+        spacing='custom',
+        shuffle=True,
+    ),
 )

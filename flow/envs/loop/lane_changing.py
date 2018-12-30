@@ -60,13 +60,13 @@ class LaneChangeAccelEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario)
 
     @property
     def action_space(self):
@@ -164,7 +164,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
 
     States
         States are a list of rl vehicles speeds, as well as the speeds and
-        bumper-to-bumper headawys between the rl vehicles and their
+        bumper-to-bumper headways between the rl vehicles and their
         leaders/followers in all lanes. There is no assumption on the number of
         vehicles in the network, so long as the number of rl vehicles is
         static.
@@ -179,7 +179,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         See parent class.
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
         # maximum number of lanes on any edge in the network
         self.num_lanes = max(
             scenario.num_lanes(edge) for edge in scenario.get_edge_list())
@@ -187,7 +187,7 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         # lists of visible vehicles, used for visualization purposes
         self.visible = []
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario)
 
     @property
     def observation_space(self):

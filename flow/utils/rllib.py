@@ -10,7 +10,7 @@ from copy import deepcopy
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.params import TrafficLightParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 
 class FlowParamsEncoder(json.JSONEncoder):
@@ -23,12 +23,12 @@ class FlowParamsEncoder(json.JSONEncoder):
     def default(self, obj):
         """See parent class.
 
-        Extended to support the Vehicles object in flow/core/vehicles.py.
+        Extended to support the VehicleParams object in flow/core/params.py.
         """
         allowed_types = [dict, list, tuple, str, int, float, bool, type(None)]
 
         if obj not in allowed_types:
-            if isinstance(obj, Vehicles):
+            if isinstance(obj, VehicleParams):
                 res = deepcopy(obj.initial)
                 for res_i in res:
                     res_i["acceleration_controller"] = \
@@ -68,7 +68,7 @@ def get_flow_params(config):
     flow_params = json.loads(config['env_config']['flow_params'])
 
     # reinitialize the vehicles class from stored data
-    veh = Vehicles()
+    veh = VehicleParams()
     for veh_params in flow_params["veh"]:
         module = __import__(
             "flow.controllers",
@@ -84,14 +84,16 @@ def get_flow_params(config):
             rt_class = getattr(module, veh_params['routing_controller'][0])
             rt_controller = (rt_class, veh_params['routing_controller'][1])
 
-        sumo_cf_params = SumoCarFollowingParams()
-        sumo_cf_params.__dict__ = veh_params["sumo_car_following_params"]
+        # TODO: make ambiguous
+        car_following_params = SumoCarFollowingParams()
+        car_following_params.__dict__ = veh_params["car_following_params"]
 
-        sumo_lc_params = SumoLaneChangeParams()
-        sumo_lc_params.__dict__ = veh_params["sumo_lc_params"]
+        # TODO: make ambiguous
+        lane_change_params = SumoLaneChangeParams()
+        lane_change_params.__dict__ = veh_params["lane_change_params"]
 
-        del veh_params["sumo_car_following_params"], \
-            veh_params["sumo_lc_params"], \
+        del veh_params["car_following_params"], \
+            veh_params["lane_change_params"], \
             veh_params["acceleration_controller"], \
             veh_params["lane_change_controller"], \
             veh_params["routing_controller"]
@@ -100,13 +102,13 @@ def get_flow_params(config):
             acceleration_controller=acc_controller,
             lane_change_controller=lc_controller,
             routing_controller=rt_controller,
-            sumo_car_following_params=sumo_cf_params,
-            sumo_lc_params=sumo_lc_params,
+            car_following_params=car_following_params,
+            lane_change_params=lane_change_params,
             **veh_params)
 
     # convert all parameters from dict to their object form
-    sumo = SumoParams()
-    sumo.__dict__ = flow_params["sumo"].copy()
+    sim = SumoParams()  # TODO: add check for simulation type
+    sim.__dict__ = flow_params["sim"].copy()
 
     net = NetParams()
     net.__dict__ = flow_params["net"].copy()
@@ -125,7 +127,7 @@ def get_flow_params(config):
     if "tls" in flow_params:
         tls.__dict__ = flow_params["tls"].copy()
 
-    flow_params["sumo"] = sumo
+    flow_params["sim"] = sim
     flow_params["env"] = env
     flow_params["initial"] = initial
     flow_params["net"] = net
