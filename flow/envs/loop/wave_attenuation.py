@@ -60,13 +60,13 @@ class WaveAttenuationEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter \'{}\' not supplied'.format(p))
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario)
 
     @property
     def action_space(self):
@@ -190,9 +190,9 @@ class WaveAttenuationEnv(Env):
         print('-----------------------')
 
         # restart the sumo instance
-        self.restart_sumo(
-            sumo_params=self.sumo_params,
-            render=self.sumo_params.render)
+        self.restart_simulation(
+            sim_params=self.sim_params,
+            render=self.sim_params.render)
 
         # perform the generic reset function
         observation = super().reset()

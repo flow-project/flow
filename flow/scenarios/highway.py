@@ -109,23 +109,11 @@ class HighwayScenario(Scenario):
                       for i in range(self.num_edges)]
         return edgestarts
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles):
+    @staticmethod
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
+
         This method is just used for testing.
-
-        Parameters
-        ----------
-        initial_config : flow.core.params.InitialConfig
-            see flow/core/params.py
-        num_vehicles : int
-            number of vehicles to be placed on the network
-
-        Returns
-        -------
-        startpositions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
-            list of start lanes
         """
         return initial_config.additional_params["start_positions"], \
             initial_config.additional_params["start_lanes"]

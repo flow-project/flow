@@ -65,13 +65,13 @@ class Env(*classdef):
     ----------
     env_params : flow.core.params.EnvParams
        see flow/core/params.py
-    sumo_params: flow.core.params.SumoParams
+    sim_params: flow.core.params.SimParams
        see flow/core/params.py
     scenario: Scenario type
         see flow/scenarios/base_scenario.py
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
         # Invoke serializable if using rllab
 
         if serializable_flag:
@@ -79,12 +79,13 @@ class Env(*classdef):
 
         self.env_params = env_params
         self.scenario = scenario
-        self.sumo_params = sumo_params
+        self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
             time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
-        self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
+        # FIXME: this is sumo-specific
+        self.sim_params.port = sumolib.miscutils.getFreeSocketPort()
         self.vehicles = scenario.vehicles
         self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
@@ -99,7 +100,7 @@ class Env(*classdef):
         self.obs_var_labels = []
 
         # simulation step size
-        self.sim_step = sumo_params.sim_step
+        self.sim_step = sim_params.sim_step
 
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
@@ -123,13 +124,13 @@ class Env(*classdef):
         self.colors = {}
 
         # create the Flow kernel
-        self.k = Kernel(simulator="traci", sim_params=sumo_params)
+        self.k = Kernel(simulator="traci", sim_params=sim_params)
 
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=sumo_params)
+            scenario=self.scenario, sim_params=sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(self.traci_connection)
@@ -137,11 +138,11 @@ class Env(*classdef):
         self.setup_initial_state()
 
         # use pyglet to render the simulation
-        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
-            save_render = self.sumo_params.save_render
-            sight_radius = self.sumo_params.sight_radius
-            pxpm = self.sumo_params.pxpm
-            show_radius = self.sumo_params.show_radius
+        if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+            save_render = self.sim_params.save_render
+            sight_radius = self.sim_params.sight_radius
+            pxpm = self.sim_params.pxpm
+            show_radius = self.sim_params.show_radius
 
             # get network polygons
             network = []
@@ -153,7 +154,7 @@ class Env(*classdef):
             # instantiate a pyglet renderer
             self.renderer = Renderer(
                 network,
-                self.sumo_params.render,
+                self.sim_params.render,
                 save_render,
                 sight_radius=sight_radius,
                 pxpm=pxpm,
@@ -161,14 +162,14 @@ class Env(*classdef):
 
             # render a frame
             self.render(reset=True)
-        elif self.sumo_params.render in [True, False]:
+        elif self.sim_params.render in [True, False]:
             pass  # default to sumo-gui (if True) or sumo (if False)
         else:
             raise ValueError("Mode %s is not supported!" %
-                             self.sumo_params.render)
+                             self.sim_params.render)
 
-    def restart_sumo(self, sumo_params, render=None):
-        """Restart an already initialized sumo instance.
+    def restart_simulation(self, sim_params, render=None):
+        """Restart an already initialized simulation instance.
 
         This is used when visualizing a rollout, in order to update the
         rendering with potentially a gui and export emission data from sumo.
@@ -178,23 +179,23 @@ class Env(*classdef):
 
         Parameters
         ----------
-        sumo_params : flow.core.params.SumoParams
+        sim_params : flow.core.params.SimParams
             sumo-specific parameters
         render: bool, optional
-            specifies whether to use sumo's gui
+            specifies whether to use the gui
         """
         self.traci_connection.close(False)
         self.k.simulation.sumo_proc.kill()
 
         if render is not None:
-            self.sumo_params.render = render
+            self.sim_params.render = render
 
-        if sumo_params.emission_path is not None:
-            ensure_dir(sumo_params.emission_path)
-            self.sumo_params.emission_path = sumo_params.emission_path
+        if sim_params.emission_path is not None:
+            ensure_dir(sim_params.emission_path)
+            self.sim_params.emission_path = sim_params.emission_path
 
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=self.sumo_params)
+            scenario=self.scenario, sim_params=self.sim_params)
         self.k.pass_api(self.traci_connection)
         self.setup_initial_state()
 
@@ -278,8 +279,8 @@ class Env(*classdef):
                 self.apply_lane_change(
                     self.vehicles.get_controlled_lc_ids(), direction=direction)
 
-            # perform (optionally) routing actions for all vehicle in the
-            # network, including rl and sumo-controlled vehicles
+            # perform (optionally) routing actions for all vehicles in the
+            # network, including RL and SUMO-controlled vehicles
             routing_ids = []
             routing_actions = []
             for veh_id in self.vehicles.get_ids():
@@ -394,7 +395,7 @@ class Env(*classdef):
 
         # warn about not using restart_instance when using inflows
         if len(self.scenario.net_params.inflows.get()) > 0 and \
-                not self.sumo_params.restart_instance:
+                not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
                 "**********************************************************\n"
@@ -407,14 +408,14 @@ class Env(*classdef):
                 "**********************************************************"
             )
 
-        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+        if self.sim_params.restart_instance or self.step_counter > 2e6:
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
-            self.sumo_params.seed = random.randint(0, 1e5)
+            self.sim_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
             self.vehicles = deepcopy(self.initial_vehicles)
-            # restart the sumo instance
-            self.restart_sumo(self.sumo_params)
+            # restart the simulation instance
+            self.restart_simulation(self.sim_params)
 
         elif self.scenario.initial_config.shuffle:
             # perform shuffling (if requested)
@@ -560,7 +561,7 @@ class Env(*classdef):
         """Specify the actions to be performed by the rl agent(s).
 
         If no actions are provided at any given step, the rl agents default to
-        performing actions specified by sumo.
+        performing actions specified by SUMO.
 
         Parameters
         ----------
@@ -578,9 +579,9 @@ class Env(*classdef):
         raise NotImplementedError
 
     def apply_acceleration(self, veh_ids, acc):
-        """Apply the acceleration requested by a vehicle in sumo.
+        """Apply the acceleration requested by a vehicle in SUMO.
 
-        Note that, if the sumo-specified speed mode of the vehicle is not
+        Note that, if the SUMO-specified speed mode of the vehicle is not
         "aggressive", the acceleration may be clipped by some safety velocity
         or maximum possible acceleration.
 
@@ -719,7 +720,7 @@ class Env(*classdef):
         """
         # do not change the colors of vehicles if the sumo-gui is not active
         # (in order to avoid slow downs)
-        if self.sumo_params.render is not True:
+        if self.sim_params.render is not True:
             return
 
         for veh_id in self.vehicles.get_rl_ids():
@@ -821,7 +822,7 @@ class Env(*classdef):
         self.scenario.close()
 
         # close pyglet renderer
-        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+        if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             self.renderer.close()
 
     def render(self, reset=False, buffer_length=5):
@@ -834,7 +835,7 @@ class Env(*classdef):
         buffer_length: int
             length of the buffer
         """
-        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+        if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             # render a frame
             self.pyglet_render()
 

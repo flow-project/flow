@@ -11,7 +11,7 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.scenarios.figure_eight import ADDITIONAL_NET_PARAMS
 
@@ -23,14 +23,14 @@ N_ROLLOUTS = 20
 N_CPUS = 2
 
 # We place one autonomous vehicle and 13 human-driven vehicles in the network
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id='human',
     acceleration_controller=(IDMController, {
         'noise': 0.2
     }),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=13)
@@ -38,7 +38,7 @@ vehicles.add(
     veh_id='rl',
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode="no_collide",
     ),
     num_vehicles=1)
@@ -54,7 +54,7 @@ flow_params = dict(
     scenario='Figure8Scenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),

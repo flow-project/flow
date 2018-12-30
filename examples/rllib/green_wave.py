@@ -11,8 +11,8 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.core.params import VehicleParams
+from flow.controllers import SimCarFollowingController, GridRouter
 
 # time horizon of a single rollout
 HORIZON = 200
@@ -38,7 +38,7 @@ def gen_edges(row_num, col_num):
 
 def get_flow_params(col_num, row_num, additional_net_params):
     initial_config = InitialConfig(
-        spacing='uniform', lanes_distribution=float('inf'), shuffle=True)
+        spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
@@ -60,7 +60,8 @@ def get_flow_params(col_num, row_num, additional_net_params):
 
 def get_non_flow_params(enter_speed, additional_net_params):
     additional_init_params = {'enter_speed': enter_speed}
-    initial_config = InitialConfig(additional_params=additional_init_params)
+    initial_config = InitialConfig(
+        spacing='custom', additional_params=additional_init_params)
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
@@ -110,11 +111,11 @@ additional_net_params = {
     'vertical_lanes': 1
 }
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id='idm',
-    acceleration_controller=(SumoCarFollowingController, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    acceleration_controller=(SimCarFollowingController, {}),
+    car_following_params=SumoCarFollowingParams(
         minGap=2.5,
         max_speed=v_enter,
         speed_mode="all_checks",
@@ -136,7 +137,7 @@ flow_params = dict(
     scenario='SimpleGridScenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=1,
         render=False,
     ),

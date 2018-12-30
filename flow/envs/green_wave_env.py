@@ -63,7 +63,7 @@ class TrafficLightGridEnv(Env):
         vehicles.
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
 
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -77,7 +77,7 @@ class TrafficLightGridEnv(Env):
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario)
 
         # Saving env variables for plotting
         self.steps = env_params.horizon
@@ -396,7 +396,7 @@ class TrafficLightGridEnv(Env):
                 departPos="0",
                 departSpeed="max")
             speed_mode = self.vehicles.type_parameters[type_id][
-                "sumo_car_following_params"].speed_mode
+                "car_following_params"].speed_mode
             self.traci_connection.vehicle.setSpeedMode(veh_id, speed_mode)
 
     def k_closest_to_intersection(self, edges, k):
@@ -466,8 +466,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
-        super().__init__(env_params, sumo_params, scenario)
+    def __init__(self, env_params, sim_params, scenario):
+        super().__init__(env_params, sim_params, scenario)
 
         for p in ADDITIONAL_PO_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
