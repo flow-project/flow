@@ -1,3 +1,5 @@
+import logging
+import sys
 from copy import deepcopy
 import numpy as np
 import random
@@ -206,11 +208,15 @@ class MultiEnv(MultiAgentEnv, Env):
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
+            # do not try to remove the vehicles from the network in the first
+            # step after initializing the network, as there will be no vehicles
+            if self.step_counter == 0:
+                continue
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
             except (FatalTraCIError, TraCIException):
-                pass
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -252,6 +258,17 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # update the colors of vehicles
         self.update_vehicle_colors()
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) < self.vehicles.num_vehicles:
+            missing_vehicles = list(
+                set(self.initial_ids) - set(self.vehicles.get_ids()))
+            logging.error('Not enough vehicles have spawned! Bad start?')
+            logging.error('Missing vehicles / initial state:')
+            for veh_id in missing_vehicles:
+                logging.error('- {}:'.format(veh_id),
+                              self.initial_state[veh_id])
+            sys.exit()
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():

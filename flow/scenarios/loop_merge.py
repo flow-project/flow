@@ -248,25 +248,6 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         Vehicles with the prefix "merge" are placed in the merge ring,
         while all other vehicles are placed in the ring.
-
-        Parameters
-        ----------
-        cls : flow.core.kernel.scenario.KernelScenario
-            flow scenario kernel, with all the relevant methods implemented
-        initial_config : InitialConfig type
-            see flow/core/params.py
-        num_vehicles : int
-            number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
-
-        Returns
-        -------
-        list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        list of int
-            list of start lanes
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
