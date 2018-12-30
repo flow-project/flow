@@ -356,6 +356,8 @@ def AAPILoad():
 
 
 def AAPIInit():
+    # set the simulation time to be very large
+    AKISetEndSimTime(2e6)
     return 0
 
 
@@ -393,7 +395,6 @@ def AAPIPreRouteChoiceCalculation(time, timeSta):
 
 def AAPIEnterVehicle(idveh, idsection):
     global entered_vehicles
-    print(idveh, idsection)
     entered_vehicles.append(idveh)
     return 0
 
