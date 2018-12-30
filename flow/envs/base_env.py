@@ -429,7 +429,7 @@ class Env(*classdef):
                 self.traci_connection.vehicle.unsubscribe(veh_id)
                 self.vehicles.remove(veh_id)
             except (FatalTraCIError, TraCIException):
-                pass
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
