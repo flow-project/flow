@@ -2,6 +2,7 @@
 
 from flow.core.kernel.simulation import KernelSimulation
 from flow.core.util import ensure_dir
+import flow.config as config
 import traci.constants as tc
 import traci
 import sumolib
@@ -12,11 +13,6 @@ import logging
 import subprocess
 import signal
 
-try:
-    # Load user config if exists, else load default config
-    import flow.config as config
-except ImportError:
-    import flow.config_default as config
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
