@@ -112,11 +112,20 @@ class PygletRenderer():
         try:
             self.window = pyglet.window.Window(width=self.width,
                                                height=self.height)
+            self._enable_alpha(self.enable_alpha)
+            pyglet.gl.glClearColor(0.125, 0.125, 0.125, 1)
+            self.window.clear()
+            self.window.switch_to()
+            self.window.dispatch_events()
+            self.lane_batch = pyglet.graphics.Batch()
+            self.add_lane_polys()
+            self.lane_batch.draw()
             buffer = pyglet.image.get_buffer_manager().get_color_buffer()
             image_data = buffer.get_image_data()
             frame = np.fromstring(image_data.data, dtype=np.uint8, sep='')
             frame = frame.reshape(buffer.height, buffer.width, 4)
             self.frame = frame[::-1, :, 0:3][..., ::-1]
+            self.network = self.frame.copy()
             print("Rendering with Pyglet with frame size",
                   (self.width, self.height))
         except ImportError:
@@ -198,9 +207,6 @@ class PygletRenderer():
         self.window.switch_to()
         self.window.dispatch_events()
 
-        self.lane_batch = pyglet.graphics.Batch()
-        self.add_lane_polys()
-        self.lane_batch.draw()
         self.vehicle_batch = pyglet.graphics.Batch()
         if "drgb" in self.mode:
             human_cmap = truncate_colormap(cm.Greens, 0.2, 0.8)
@@ -286,10 +292,6 @@ class PygletRenderer():
         frame = np.fromstring(image_data.data, dtype=np.uint8, sep='')
         frame = frame.reshape(buffer.height, buffer.width, 4)
         self.frame = frame[::-1, :, 0:3][..., ::-1]
-        fig = plt.figure()
-        plt.imshow(self.frame[:, :, 0], cmap=plt.get_cmap("tab20"))
-        plt.title("RGBA")
-        plt.show()
         self.window.flip()
 
         if save_render:
@@ -297,9 +299,9 @@ class PygletRenderer():
                               _human_dynamics, _machine_dynamics,
                               _human_logs, _machine_logs])
         if "gray" in self.mode:
-            return frame[:, :, 0]
+            return self.frame[:, :, 0]
         else:
-            return frame
+            return self.frame
 
     def get_sight(self, orientation, id, sight_radius=None, save_render=None):
         """Return the local observation of a vehicle.
