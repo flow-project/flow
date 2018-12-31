@@ -266,11 +266,13 @@ class Env(gym.Env, Serializable):
                 sumo_call.append("--time-to-teleport")
                 sumo_call.append(str(int(self.sumo_params.teleport_time)))
 
-                # tolerate a collision
+                # tolerate collisions
                 sumo_call.append("--collision.action")
                 sumo_call.append("none")
+
+                # check for collisions at junctions
                 sumo_call.append("--collision.check-junctions")
-                sumo_call.append("false")
+                sumo_call.append("true")
 
                 logging.info(" Starting SUMO on port " + str(port))
                 logging.debug(" Cfg file: " + str(self.scenario.cfg))
@@ -731,7 +733,7 @@ class Env(gym.Env, Serializable):
                 this_vel = self.vehicles.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
                 speed_mode = self.traci_connection.vehicle.getSpeedMode(vid)
-                if speed_mode == 0:
+                if speed_mode in [0b00110, 0b00100, 0b00010, 0b00000]:
                     self.traci_connection.vehicle.setSpeed(vid, next_vel)
                 else:
                     self.traci_connection.vehicle.slowDown(vid, next_vel, 1)
