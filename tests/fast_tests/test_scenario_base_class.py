@@ -101,7 +101,7 @@ class TestEvenStartPos(unittest.TestCase):
             num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        self.env, self.scenario = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -218,9 +218,11 @@ class TestEvenStartPos(unittest.TestCase):
         # create the environment
         self.setUp_gen_start_pos(initial_config)
 
+        startpos, _ = self.scenario.generate_starting_positions()
+
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        veh_pos = np.array([self.scenario.get_x(pos[0], pos[1])
+                            for pos in startpos])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it

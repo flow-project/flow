@@ -110,9 +110,10 @@ class HighwayScenario(Scenario):
         return edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         This method is just used for testing.
         """
-        return kwargs["start_positions"], kwargs["start_lanes"]
+        return initial_config.additional_params["start_positions"], \
+            initial_config.additional_params["start_lanes"]

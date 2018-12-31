@@ -243,7 +243,7 @@ class TwoLoopsOneMergingScenario(Scenario):
         return internal_edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """See parent class.
 
         Vehicles with the prefix "merge" are placed in the merge ring,
@@ -251,14 +251,13 @@ class TwoLoopsOneMergingScenario(Scenario):
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
-            cls._get_start_pos_util(initial_config, num_vehicles, **kwargs)
+            cls._get_start_pos_util(initial_config, num_vehicles)
 
         random_scale = \
             initial_config.additional_params.get("gaussian_scale", 0)
 
-        merge_bunching = 0
-        if "merge_bunching" in initial_config.additional_params:
-            merge_bunching = initial_config.additional_params["merge_bunching"]
+        merge_bunching = initial_config.additional_params.get(
+            "merge_bunching", 0)
 
         num_merge_vehicles = \
             sum("merge" in cls.vehicles.get_type(veh_id)
@@ -331,8 +330,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 (length_merge - merge_bunching) * \
                 initial_config.lanes_distribution / num_merge_vehicles
 
-            if initial_config.additional_params.get(
-                    "merge_from_top", False):
+            if initial_config.additional_params.get("merge_from_top", False):
                 x = [dict(cls.edgestarts)["top"] - x0] * \
                     cls.net_params.additional_params["outer_lanes"]
             else:
