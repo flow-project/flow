@@ -75,7 +75,6 @@ class AccelEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        self.obs_var_labels = ["Velocity", "Absolute_pos"]
         obs_space = Box(
             low=0,
             high=1,
