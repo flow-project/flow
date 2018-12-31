@@ -97,5 +97,4 @@ ENV/
 Makefile
 data/
 debug/
-flow/config.py
 .vs/**

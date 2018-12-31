@@ -444,7 +444,7 @@ class Env(*classdef):
                 self.traci_connection.vehicle.unsubscribe(veh_id)
                 self.vehicles.remove(veh_id)
             except (FatalTraCIError, TraCIException):
-                pass
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -502,14 +502,14 @@ class Env(*classdef):
         self.update_vehicle_colors()
 
         # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) < self.vehicles.num_vehicles:
+        if len(self.initial_ids) > self.vehicles.num_vehicles:
             missing_vehicles = list(
                 set(self.initial_ids) - set(self.vehicles.get_ids()))
             logging.error('Not enough vehicles have spawned! Bad start?')
             logging.error('Missing vehicles / initial state:')
             for veh_id in missing_vehicles:
-                logging.error('- {}:'.format(veh_id),
-                              self.initial_state[veh_id])
+                logging.error('- {}: {}'.format(veh_id,
+                                                self.initial_state[veh_id]))
             sys.exit()
 
         self.prev_last_lc = dict()
