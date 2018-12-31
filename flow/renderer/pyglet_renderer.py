@@ -31,7 +31,8 @@ class PygletRenderer():
                  path=HOME+"/flow_rendering",
                  sight_radius=50,
                  show_radius=False,
-                 pxpm=2):
+                 pxpm=2,
+                 alpha=1.0):
         """Instantiate a pyglet renderer class.
 
             Parameters
@@ -55,6 +56,9 @@ class PygletRenderer():
                 Specify whether to render the radius of RL observation
             pxpm: int
                 Specify rendering resolution (pixel / meter)
+            alpha: int
+                Specify opacity of the alpha channel.
+                1.0 is fully opaque; 0.0 is fully transparent.
         """
         self.mode = mode
         if self.mode not in [True, False, "rgb", "drgb", "gray", "dgray"]:
@@ -69,6 +73,8 @@ class PygletRenderer():
         self.sight_radius = sight_radius
         self.pxpm = pxpm  # Pixel per meter
         self.show_radius = show_radius
+        self.alpha = alpha
+        self.enable_alpha()
         self.time = 0
 
         self.lane_polys = copy.deepcopy(network)
@@ -96,22 +102,27 @@ class PygletRenderer():
                               for x in lane_poly[::2]]
             lane_poly[1::2] = [(y-self.y_shift)*self.y_scale*self.pxpm
                                for y in lane_poly[1::2]]
-            if "d" in self.mode:
-                color = [c for _ in range(int(len(lane_poly)/2))
-                         for c in [224, 224, 224]]
-            else:
-                color = [c for _ in range(int(len(lane_poly)/2))
-                         for c in [200, 200, 0]]
+            color = [c for _ in range(int(len(lane_poly)/2))
+                     for c in [224, 224, 224, int(self.alpha*255)]]
             self.lane_colors.append(color)
 
         try:
             self.window = pyglet.window.Window(width=self.width,
                                                height=self.height)
+            self.enable_alpha()
+            pyglet.gl.glClearColor(0.125, 0.125, 0.125, self.alpha)
+            self.window.clear()
+            self.window.switch_to()
+            self.window.dispatch_events()
+            self.lane_batch = pyglet.graphics.Batch()
+            self.add_lane_polys()
+            self.lane_batch.draw()
             buffer = pyglet.image.get_buffer_manager().get_color_buffer()
             image_data = buffer.get_image_data()
             frame = np.fromstring(image_data.data, dtype=np.uint8, sep='')
             frame = frame.reshape(buffer.height, buffer.width, 4)
             self.frame = frame[::-1, :, 0:3][..., ::-1]
+            self.network = self.frame.copy()
             print("Rendering with Pyglet with frame size",
                   (self.width, self.height))
         except ImportError:
@@ -128,7 +139,8 @@ class PygletRenderer():
                machine_logs,
                save_render=None,
                sight_radius=None,
-               show_radius=None):
+               show_radius=None,
+               sleep=0):
         """Update the rendering frame.
 
             Parameters
@@ -162,6 +174,8 @@ class PygletRenderer():
                 Set the radius of observation for RL vehicles (meter)
             show_radius: bool
                 Specify whether to render the radius of RL observation
+            sleep: float
+                Specify the rendering delay in second
         """
 
         if save_render is None:
@@ -182,8 +196,10 @@ class PygletRenderer():
             _machine_logs = copy.deepcopy(machine_logs)
 
         self.time += 1
+        time.sleep(sleep)
 
-        pyglet.gl.glClearColor(0.125, 0.125, 0.125, 1)
+        self.enable_alpha()
+        pyglet.gl.glClearColor(0.125, 0.125, 0.125, self.alpha)
         self.window.clear()
         self.window.switch_to()
         self.window.dispatch_events()
@@ -192,18 +208,42 @@ class PygletRenderer():
         self.add_lane_polys()
         self.lane_batch.draw()
         self.vehicle_batch = pyglet.graphics.Batch()
-        if "d" in self.mode:
-            red_cmap = truncate_colormap(cm.Greens, 0.2, 0.8)
+        if "drgb" in self.mode:
+            human_cmap = truncate_colormap(cm.Greens, 0.2, 0.8)
+            machine_cmap = truncate_colormap(cm.Blues, 0.2, 0.8)
             human_conditions = [
-                (255*np.array(red_cmap(d)[:3])).astype(np.uint8).tolist()
+                (255*np.array(human_cmap(d)[:3]+(self.alpha,)))\
+                .astype(np.uint8).tolist()
                 for d in human_dynamics]
-            blue_cmap = truncate_colormap(cm.Blues, 0.2, 0.8)
             machine_conditions = [
-                (255*np.array(blue_cmap(d)[:3])).astype(np.uint8).tolist()
+                (255*np.array(machine_cmap(d)[:3]+(self.alpha,)))\
+                .astype(np.uint8).tolist()
                 for d in machine_dynamics]
-        else:
-            human_conditions = [[0, 128, 128] for d in human_dynamics]
-            machine_conditions = [[255, 255, 255] for d in machine_dynamics]
+
+        elif "dgray" in self.mode:
+            human_cmap = truncate_colormap(cm.binary, 0.55, 0.95)
+            machine_cmap = truncate_colormap(cm.binary, 0.05, 0.45)
+            human_conditions = [
+                (255*np.array(human_cmap(d)[:3]+(self.alpha,)))\
+                .astype(np.uint8).tolist()
+                for d in human_dynamics]
+            machine_conditions = [
+                (255*np.array(machine_cmap(d)[:3]+(self.alpha,)))\
+                .astype(np.uint8).tolist()
+                for d in machine_dynamics]
+
+        elif "rgb" in self.mode:
+            human_conditions = [
+                [0, 225, 0, int(255*self.alpha)] for d in human_dynamics]
+            machine_conditions = [
+                [0, 150, 200, int(255*self.alpha)] for d in machine_dynamics]
+
+        elif "gray" in self.mode:
+            human_conditions = [
+                [100, 100, 100, int(255*self.alpha)] for d in human_dynamics]
+            machine_conditions = [
+                [150, 150, 150, int(255*self.alpha)] for d in machine_dynamics]
+
         self.add_vehicle_polys(human_orientations,
                                human_conditions, 0)
         if show_radius:
@@ -222,17 +262,16 @@ class PygletRenderer():
         self.frame = frame[::-1, :, 0:3][..., ::-1]
         self.window.flip()
 
-        if "gray" in self.mode:
-            _frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-        else:
-            _frame = self.frame
         if save_render:
             cv2.imwrite("%s/frame_%06d.png" %
-                        (self.path, self.time), _frame)
+                        (self.path, self.time), self.frame)
             self.data.append([_human_orientations, _machine_orientations,
                               _human_dynamics, _machine_dynamics,
                               _human_logs, _machine_logs])
-        return _frame
+        if "gray" in self.mode:
+            return self.frame[:, :, 0]
+        else:
+            return self.frame
 
     def get_sight(self, orientation, id, sight_radius=None, save_render=None):
         """Return the local observation of a vehicle.
@@ -272,15 +311,15 @@ class PygletRenderer():
                    int(sight_radius), (255, 255, 255), thickness=-1)
         rotated_sight = cv2.bitwise_and(fixed_sight, fixed_sight, mask=mask)
         rotated_sight = imutils.rotate(rotated_sight, ang)
-        if "gray" in self.mode:
-            _rotated_sight = cv2.cvtColor(rotated_sight, cv2.COLOR_BGR2GRAY)
-        else:
-            _rotated_sight = rotated_sight
+
         if save_render:
             cv2.imwrite("%s/sight_%s_%06d.png" %
                         (self.path, id, self.time),
-                        _rotated_sight)
-        return _rotated_sight
+                        rotated_sight)
+        if "gray" in self.mode:
+            return rotated_sight[:, :, 0]
+        else:
+            return rotated_sight
 
     def close(self):
         """Terminate the renderer.
@@ -309,8 +348,9 @@ class PygletRenderer():
         num = int(len(lane_poly)/2)
         index = [x for x in range(num)]
         group = pyglet.graphics.Group()
-        self.lane_batch.add_indexed(num, pyglet.gl.GL_LINE_STRIP, group, index,
-                                    ("v2f", lane_poly), ("c3B", lane_color))
+        self.lane_batch.add_indexed(
+            num, pyglet.gl.GL_LINE_STRIP, group, index,
+            ("v2f", lane_poly), ("c4B", lane_color))
 
     def add_vehicle_polys(self, orientations, colors, sight_radius):
         """Render vehicle polygons.
@@ -329,7 +369,7 @@ class PygletRenderer():
             x, y, ang = orientation
             x = (x-self.x_shift)*self.x_scale*self.pxpm
             y = (y-self.y_shift)*self.y_scale*self.pxpm
-            self._add_vehicle_poly_triangle((x, y), ang, 4.5, color)
+            self._add_vehicle_poly_triangle((x, y), ang, 5, color)
             self._add_vehicle_poly_circle((x, y), sight_radius, color)
 
     def _add_vehicle_poly_triangle(self, center, angle, size, color):
@@ -363,10 +403,9 @@ class PygletRenderer():
             vertex_color += color
         index = [x for x in range(3)]
         group = pyglet.graphics.Group()
-        self.vehicle_batch.add_indexed(3, pyglet.gl.GL_POLYGON,
-                                       group, index,
-                                       ("v2f", vertex_list),
-                                       ("c3B", vertex_color))
+        self.vehicle_batch.add_indexed(
+            3, pyglet.gl.GL_POLYGON, group, index,
+            ("v2f", vertex_list), ("c4B", vertex_color))
 
     def _add_vehicle_poly_circle(self, center, radius, color):
         """Internal pyglet method to render a vehicle as a circle or to render
@@ -396,7 +435,17 @@ class PygletRenderer():
             vertex_color += color
         index = [x for x in range(pxpm)]
         group = pyglet.graphics.Group()
-        self.vehicle_batch.add_indexed(pxpm, pyglet.gl.GL_LINE_LOOP,
-                                       group, index,
-                                       ("v2f", vertex_list),
-                                       ("c3B", vertex_color))
+        self.vehicle_batch.add_indexed(
+            pxpm, pyglet.gl.GL_LINE_LOOP, group, index,
+            ("v2f", vertex_list), ("c4B", vertex_color))
+
+    def enable_alpha(self, enable=True):
+        """Enable alpha channel for coloring.
+        """
+        if enable:
+            pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
+            pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA,
+                pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
+            return True
+        else:
+            return False
