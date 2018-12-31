@@ -5,7 +5,9 @@ Local Installation
 
 To get Flow running, you need three things: Flow,
 SUMO, and (recommended to explore the full suite of Flow's capabilities) 
-a reinforcement learning library (RLlib/rllab).
+a reinforcement learning library (RLlib/rllab). If you wish to use Flow with
+the traffic simulator Aimsun, this can be achieved by following the setup
+instructions under the "Installing Aimsun" subsection.
 If you choose not to install a reinforcement learning library, you will 
 still be able to build and run SUMO-only traffic tasks, but will not be
 able to run experiments which require learning agents. Once
@@ -121,6 +123,56 @@ Running the following should result in the loading of the SUMO GUI.
 Click the run button and you should see unstable traffic form after a
 few seconds, a la (Sugiyama et al, 2008). This means that you have Flow
 properly configured with SUMO and Flow!
+
+
+Installing Aimsun
+-----------------
+
+In addition to SUMO, Flow supports the use of the traffic simulator "Aimsun".
+In order setup Flow with Aimsun, you will first need to install Aimsun. This
+can be achieved by following the installation instructions located in:
+https://www.aimsun.com/aimsun-next/download/.
+
+Once Aimsun has been installed, copy the path to the `Aimsun_Next` main
+directory and place it in under the `AIMSUN_NEXT_PATH` variable in the
+"flow/config.py" folder. This will allow Flow to locate and use this binary
+during the execution of various tasks. The path should look something like:
+
+::
+
+    /home/user/Aimsun_Next_X_Y_Z/
+
+Finally, being that Aimsun's python API is written to support Python 2.7.4,
+we will need to create a Python 2.7.4 conda environment that Aimsun can refer
+to when executing commands. In order to do so, run the following script from
+the Flow main directory:
+
+::
+
+    scripts/setup_aimsun.sh
+
+You can then verify that the above command has successfully installed the
+required conda env by typing:
+
+::
+
+    source activate aimsun_flow
+    which python
+
+The latter command should return an output similar to:
+
+::
+
+    /path/to/envs/aimsun_flow/bin/python
+
+Copy the path up until right before /bin (i.e. /path/to/envs/aimsun_flow) and
+place it under the `AIMSUN_SITEPACKAGES` variable in flow/config.py.
+
+
+Testing your installation
+~~~~~~~~~~
+
+TODO
 
 
 (Optional) Install Ray RLlib
@@ -292,16 +344,6 @@ If you have Ubuntu 14.04+, run the following command
     echo 'export PATH="$HOME/sumo/bin:$PATH"' >> ~/.bashrc
     echo 'export PYTHONPATH="$HOME/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     source ~/.bashrc
-
-
-Custom configuration
-----------
-
-You may define user-specific config parameters as follows
-
-::
-
-    cp flow/config_default.py flow/config.py  # Create template for users using pycharm
 
 
 Remote installation using docker
