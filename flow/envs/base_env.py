@@ -894,8 +894,7 @@ class Env(*classdef):
                 self.renderer.close()
         except FileNotFoundError:
             print("Skip automatic termination. "
-                  "Connection is probably already closed."
-            )
+                  "Connection is probably already closed.")
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.
