@@ -79,8 +79,6 @@ class Env(*classdef):
 
         self.env_params = env_params
         self.scenario = scenario
-        self.net_params = scenario.net_params
-        self.initial_config = scenario.initial_config
         self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):

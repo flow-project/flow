@@ -142,7 +142,7 @@ def visualizer_rllab(args):
     if args.emission_to_csv:
         dir_path = os.path.dirname(os.path.realpath(__file__))
         emission_filename = '{0}-emission.xml'.format(
-            unwrapped_env.k.scenario.name)
+            unwrapped_env.scenario.name)
 
         emission_path = \
             '{0}/test_time_rollout/{1}'.format(dir_path, emission_filename)
