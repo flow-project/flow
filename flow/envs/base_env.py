@@ -487,7 +487,7 @@ class Env(*classdef):
         self.update_vehicle_colors()
 
         # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) < self.vehicles.num_vehicles:
+        if len(self.initial_ids) > self.vehicles.num_vehicles:
             missing_vehicles = list(
                 set(self.initial_ids) - set(self.vehicles.get_ids()))
             logging.error('Not enough vehicles have spawned! Bad start?')
