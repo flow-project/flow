@@ -16,6 +16,7 @@ class IntersectionScenario(Scenario):
                  name,
                  vehicles,
                  net_params,
+                 junction_type,
                  initial_config=InitialConfig()):
         """Instantiate the scenario class.
 
@@ -32,6 +33,7 @@ class IntersectionScenario(Scenario):
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
 
         self.nodes = dict()
+        self.junction_type = junction_type
 
         super().__init__(name, vehicles, net_params,initial_config)
 
@@ -56,7 +58,7 @@ class IntersectionScenario(Scenario):
                  {'id': 'n_2', 'x': 0, 'y': 10},
                  {'id': 'n_3', 'x': 10, 'y': 0},
                  {'id': 'n_4', 'x': 0, 'y': -10},
-                 {'id': 'n_5', 'x': 0, 'y': 0}]
+                 {'id': 'n_5', 'x': 0, 'y': 0, 'type': self.junction_type}]
 
         for node in nodes:
             self.nodes[node['id']] = np.array([node['x'] * SCALING,
@@ -108,7 +110,8 @@ class IntersectionScenario(Scenario):
 
     def specify_types(self, net_params):
         """See parent class."""
-        types = [{'id': 'edgeType', 'speed': repr(12)}]
+        # speed limit 25 mph
+        types = [{'id': 'edgeType', 'speed': repr(11.176)}]
         return types
 
     def specify_routes(self, net_params):
