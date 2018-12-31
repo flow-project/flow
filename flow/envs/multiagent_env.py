@@ -266,8 +266,8 @@ class MultiEnv(MultiAgentEnv, Env):
             logging.error('Not enough vehicles have spawned! Bad start?')
             logging.error('Missing vehicles / initial state:')
             for veh_id in missing_vehicles:
-                logging.error('- {}:'.format(veh_id),
-                              self.initial_state[veh_id])
+                logging.error('- {}: {}'.format(veh_id,
+                                                self.initial_state[veh_id]))
             sys.exit()
 
         self.prev_last_lc = dict()
