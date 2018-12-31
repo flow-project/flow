@@ -66,7 +66,7 @@ class MultiLoopScenario(Scenario):
         return edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """Generate uniformly spaced starting positions.
 
         It is assumed that there are an equal number of vehicles per ring.
@@ -77,7 +77,7 @@ class MultiLoopScenario(Scenario):
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
-            cls._get_start_pos_util(initial_config, num_vehicles, **kwargs)
+            cls._get_start_pos_util(initial_config, num_vehicles)
 
         increment = available_length / num_vehicles
         vehs_per_ring = num_vehicles / cls.num_rings

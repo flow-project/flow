@@ -341,7 +341,7 @@ class TestCustomization(unittest.TestCase):
         sim_multiplier = int(1 / self.env.sim_params.sim_step)
 
         # Check that the phases occur for the correct amount of time
-        for i in range(self.green * sim_multiplier - 1):
+        for i in range(self.green * sim_multiplier - 2):
             # This is because env.reset() takes 1 step
             self.assertEqual(self.env.k.traffic_light.get_state("top"), "G")
             self.env.step([])
