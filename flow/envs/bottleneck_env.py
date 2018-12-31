@@ -911,11 +911,11 @@ class DesiredVelocityEnv(BottleneckEnv):
                     self.vehicles = vehicles
 
                     self.scenario = self.scenario.__class__(
-                        name=self.k.scenario.orig_name,
+                        name=self.scenario.orig_name,
                         vehicles=vehicles,
                         net_params=net_params,
-                        initial_config=self.initial_config,
-                        traffic_lights=self.traffic_lights)
+                        initial_config=self.scenario.initial_config,
+                        traffic_lights=self.scenario.traffic_lights)
                     observation = super().reset()
 
                     # reset the timer to zero

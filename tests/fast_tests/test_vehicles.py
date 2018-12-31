@@ -271,7 +271,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3)
+            num_vehicles=3,
+            initial_speed=1.0)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -312,13 +313,11 @@ class TestMultiLaneData(unittest.TestCase):
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
-        env.vehicles.test_set_speed("test_1", 1)
         expected_leader_speed = [0.0, 0.0, 1.0]
         actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
 
-        env.vehicles.test_set_speed("test_2", 1)
         expected_follower_speed = [1.0, 0.0, 0.0]
         actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,
@@ -343,7 +342,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=9)
+            num_vehicles=9,
+            initial_speed=1.0)
 
         initial_config = InitialConfig(lanes_distribution=float("inf"))
         initial_config.spacing = "custom"
@@ -386,17 +386,10 @@ class TestMultiLaneData(unittest.TestCase):
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
-        env.vehicles.test_set_speed("test_1", 1)
-        env.vehicles.test_set_speed("test_5", 1)
-        env.vehicles.test_set_speed("test_7", 1)
         expected_leader_speed = [1.0, 0.0, 1.0, 1.0]
         actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
-
-        env.vehicles.test_set_speed("test_2", 1)
-        env.vehicles.test_set_speed("test_3", 1)
-        env.vehicles.test_set_speed("test_8", 1)
         expected_follower_speed = [1.0, 1.0, 0.0, 1.0]
         actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,
@@ -416,7 +409,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3)
+            num_vehicles=3,
+            initial_speed=1.0)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -458,12 +452,10 @@ class TestMultiLaneData(unittest.TestCase):
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
-        env.vehicles.test_set_speed("test_1", 1)
         expected_leader_speed = [0.0, 0.0, 1.0]
         actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
-        env.vehicles.test_set_speed("test_2", 1)
         expected_follower_speed = [1.0, 0.0, 0.0]
         actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,
@@ -483,7 +475,8 @@ class TestMultiLaneData(unittest.TestCase):
         vehicles.add(
             veh_id="test",
             acceleration_controller=(RLController, {}),
-            num_vehicles=3)
+            num_vehicles=3,
+            initial_speed=1.0)
 
         # Test Cases
         # 1. If there's only one vehicle in each lane, we should still
@@ -524,12 +517,10 @@ class TestMultiLaneData(unittest.TestCase):
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
-        env.vehicles.test_set_speed("test_1", 1)
         expected_leader_speed = [1.0, 0.0, 0.0]
         actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
-        env.vehicles.test_set_speed("test_2", 1)
         expected_follower_speed = [1.0, 0.0, 0.0]
         actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,

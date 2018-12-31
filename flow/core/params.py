@@ -252,8 +252,8 @@ class VehicleParams:
             acceleration_controller=(SimCarFollowingController, {}),
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=None,
-            num_vehicles=1,
             initial_speed=0,
+            num_vehicles=1,
             car_following_params=None,
             lane_change_params=None):
         """Add a sequence of vehicles to the list of vehicles in the network.
