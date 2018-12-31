@@ -15,7 +15,6 @@ from flow.envs.multiagent_env import MultiEnv
 
 from gym.spaces.box import Box
 
-from copy import deepcopy
 import numpy as np
 import random
 from scipy.optimize import fsolve
