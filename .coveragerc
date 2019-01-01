@@ -5,6 +5,7 @@ omit =
     *__init__*
     */setup.py
     *rllab*
+    *dummy_server.py
 
 exclude_lines =
     if __name__ == .__main__.:
