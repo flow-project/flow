@@ -1,9 +1,10 @@
 .. contents:: Table of contents
 
-Local Installation 
+Local Installation
 ==================
 
 To get Flow running, you need three things: Flow,
+
 SUMO, and (recommended to explore the full suite of Flow's capabilities) 
 a reinforcement learning library (RLlib/rllab). If you wish to use Flow with
 the traffic simulator Aimsun, this can be achieved by following the setup
@@ -13,7 +14,7 @@ still be able to build and run SUMO-only traffic tasks, but will not be
 able to run experiments which require learning agents. Once
 each component is installed successfully, you might get some missing
 module bugs from Python. Just install the missing module using
-your OS-specific package manager / installation tool. Follow the 
+your OS-specific package manager / installation tool. Follow the
 shell commands below to get started.
 
 **It is highly recommended that users install**
@@ -46,7 +47,7 @@ script. Be sure to run the below commands from ``/path/to/flow``.
     conda env create -f environment.yml
     source activate flow
     # install flow within the environment
-    python setup.py develop
+    pip install -e .
 
 Next, we install the necessary pre-compiled SUMO binaries and python tools. In order to
 install everything you will need from SUMO, run one of the below scripts from
@@ -95,7 +96,7 @@ Finally, test your SUMO install and version by running the following commands.
     sumo-gui
 
 
-*Troubleshooting*: 
+*Troubleshooting*:
 Note that, if the above commands did not work, you may need to run
 ``source ~/.bashrc``  or open a new terminal to update your $PATH variable.
 
@@ -194,8 +195,8 @@ The installation process for this library is as follows:
     cd ray/python/
     python setup.py develop
 
-If missing libraries cause errors, please also install additional 
-required libraries as specified at 
+If missing libraries cause errors, please also install additional
+required libraries as specified at
 <http://ray.readthedocs.io/en/latest/installation.html> and
 then follow the setup instructions.
 
@@ -226,7 +227,7 @@ To visualize the training progress:
 
     tensorboard --logdir=~/ray_results
 
-If tensorboard is not installed, you can install with pip: 
+If tensorboard is not installed, you can install with pip:
 
 ::
 
@@ -279,7 +280,7 @@ To run any of the RL examples, make sure to run
 ::
 
     source activate flow
-    
+
 In order to test run an Flow experiment in rllab-multiagent, try the following
 command:
 
@@ -363,7 +364,7 @@ In terminal
 
     1° docker pull lucasfischerberkeley/flowdesktop
     2° docker run -d -p 5901:5901 -p 6901:6901 -p 8888:8888 lucasfischerberkeley/flowdesktop
-    
+
 Go into your browser ( Firefox, Chrome, Safari)
 
 ::
@@ -373,7 +374,7 @@ Go into your browser ( Firefox, Chrome, Safari)
     3° For SUMO: Write python flow/examples/sumo/sugiyama.py and run it
     4° For rllib : Write python flow/examples/rllib/stabilizing_the_ring.py and run it
     5° For rllab : source activate flow-rllab and python flow/examples/rllab/figure_eight.py ( first time, run it twice)
-    
+
 
 Notebooks and tutorial
 ----------
