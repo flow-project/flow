@@ -78,7 +78,7 @@ class TestUtils(unittest.TestCase):
             self.env.k.vehicle.get_ids_by_edge(e) for e in self.gen_edges(1, 1)
         ]
         dists = [self.env.get_distance_to_intersection(v) for v in veh_ids]
-        grid = self.env.net_params.additional_params['grid_array']
+        grid = self.env.scenario.net_params.additional_params['grid_array']
         short_length = grid['short_length']
 
         # The first check asserts all the lists are equal. With the default

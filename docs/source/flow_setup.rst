@@ -143,9 +143,9 @@ during the execution of various tasks. The path should look something like:
     /home/user/Aimsun_Next_X_Y_Z/
 
 Finally, being that Aimsun's python API is written to support Python 2.7.4,
-while Flow is designed for Python 3, we will need to create a Python 2.7.4
-conda environment that Aimsun can refer to when executing commands. In order to
-do so, run the following script from the Flow main directory:
+we will need to create a Python 2.7.4 conda environment that Aimsun can refer
+to when executing commands. In order to do so, run the following script from
+the Flow main directory:
 
 ::
 
