@@ -5,6 +5,7 @@ from gym.envs.registration import register
 
 from copy import deepcopy
 
+import flow.envs
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 
@@ -80,10 +81,20 @@ def make_create_env(params, version=0, render=None):
         if render is not None:
             sim_params.render = render
 
+        # check if the environment is a single or multiagent environment, and
+        # get the right address accordingly
+        single_agent_envs = [env for env in dir(flow.envs)
+                             if not env.startswith('__')]
+
+        if params['env_name'] in single_agent_envs:
+            env_loc = 'flow.envs'
+        else:
+            env_loc = 'flow.multiagent_envs'
+
         try:
             register(
                 id=env_name,
-                entry_point='flow.envs:' + params["env_name"],
+                entry_point=env_loc + ':{}'.format(params["env_name"]),
                 kwargs={
                     "env_params": env_params,
                     "sim_params": sim_params,
