@@ -106,9 +106,6 @@ class MultiEnv(MultiAgentEnv, Env):
             # update the colors of vehicles
             self.update_vehicle_colors()
 
-            # collect list of sorted vehicle ids
-            self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
-
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
 
@@ -272,16 +269,8 @@ class MultiEnv(MultiAgentEnv, Env):
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
-            # re-initialize the vehicles class with the states of the vehicles
-            # at the start of a rollout
-            self.vehicles.set_absolute_position(veh_id,
-                                                self.get_x_by_id(veh_id))
-
             # re-initialize memory on last lc
             self.prev_last_lc[veh_id] = -float("inf")
-
-        # collect list of sorted vehicle ids
-        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         states = self.get_state()
         self.state = {}

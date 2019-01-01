@@ -181,16 +181,6 @@ class WaveAttenuationMergePOEnv(Env):
 
             return max(eta1 * cost1 + eta2 * cost2, 0)
 
-    def sort_by_position(self):
-        """See parent class.
-
-        Sorting occurs by the ``get_x_by_id`` method instead of
-        ``get_absolute_position``.
-        """
-        # vehicles are sorted by their get_x_by_id value
-        sorted_ids = sorted(self.vehicles.get_ids(), key=self.get_x_by_id)
-        return sorted_ids, None
-
     def additional_command(self):
         """See parent class.
 
