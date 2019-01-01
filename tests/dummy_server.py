@@ -13,6 +13,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import flow.utils.aimsun.constants as ac  # noqa
 
 PORT = 9999
+entered_vehicles = [1, 2, 3, 4, 5]
+exited_vehicles = [6, 7, 8, 9, 10]
 
 
 def send_message(conn, in_format, values):
@@ -73,7 +75,33 @@ def threaded_client(conn):
             # convert to integer
             data = int(data)
 
-            if data == ac.VEH_GET_STATIC:
+            if data == ac.VEH_GET_ENTERED_IDS:
+                send_message(conn, in_format='i', values=(0,))
+                data = None
+                while data is None:
+                    data = conn.recv(256)
+                global entered_vehicles
+                if len(entered_vehicles) == 0:
+                    output = '-1'
+                else:
+                    output = ':'.join([str(e) for e in entered_vehicles])
+                conn.send(output)
+                entered_vehicles = []
+
+            elif data == ac.VEH_GET_EXITED_IDS:
+                send_message(conn, in_format='i', values=(0,))
+                data = None
+                while data is None:
+                    data = conn.recv(256)
+                global exited_vehicles
+                if len(exited_vehicles) == 0:
+                    output = '-1'
+                else:
+                    output = ':'.join([str(e) for e in exited_vehicles])
+                conn.send(output)
+                exited_vehicles = []
+
+            elif data == ac.VEH_GET_STATIC:
                 send_message(conn, in_format='i', values=(0,))
                 retrieve_message(conn, 'i')
                 output = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,

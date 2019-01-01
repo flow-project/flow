@@ -1,4 +1,4 @@
-import flow.config as cofig
+import flow.config as config
 import flow.utils.aimsun.constants
 from flow.utils.aimsun.api import FlowAimsunAPI
 import unittest
@@ -37,17 +37,38 @@ class TestDummyAPI(unittest.TestCase):
     functionality of the API-side of things.
     """
 
-    def test_getter_methods(self):
+    def setUp(self):
         # start the server's process
-        subprocess.Popen([
-            os.path.join(cofig.AIMSUN_SITEPACKAGES, "bin/python"),
-            os.path.join(cofig.PROJECT_PATH, 'tests/dummy_server.py')])
+        self.proc = subprocess.Popen([
+            os.path.join(config.AIMSUN_SITEPACKAGES, "bin/python"),
+            os.path.join(config.PROJECT_PATH, 'tests/dummy_server.py')])
 
         # create the FlowAimsunKernel object
-        kernel_api = FlowAimsunAPI(port=9999)
+        self.kernel_api = FlowAimsunAPI(port=9999)
+
+    def tearDown(self):
+        # kill the process
+        self.proc.kill()
+
+    def test_getter_methods(self):
+        # test the get entered IDs method when the list is not empty
+        entered_ids = self.kernel_api.get_entered_ids()
+        self.assertListEqual(entered_ids, [1, 2, 3, 4, 5])
+
+        # test the get entered IDs method when the list is empty
+        entered_ids = self.kernel_api.get_entered_ids()
+        self.assertEqual(len(entered_ids), 0)
+
+        # test the get exited IDs method when the list is not empty
+        exited_ids = self.kernel_api.get_exited_ids()
+        self.assertListEqual(exited_ids, [6, 7, 8, 9, 10])
+
+        # test the get exited IDs method when the list is empty
+        exited_ids = self.kernel_api.get_exited_ids()
+        self.assertEqual(len(exited_ids), 0)
 
         # test the get_vehicle_static_info method
-        static_info = kernel_api.get_vehicle_static_info(veh_id=1)
+        static_info = self.kernel_api.get_vehicle_static_info(veh_id=1)
         self.assertEqual(static_info.report, 1)
         self.assertEqual(static_info.idVeh, 2)
         self.assertEqual(static_info.type, 3)
@@ -76,7 +97,7 @@ class TestDummyAPI(unittest.TestCase):
         self.assertEqual(static_info.idLine, 26)
 
         # test the get_vehicle_tracking_info method
-        tracking_info = kernel_api.get_vehicle_tracking_info(veh_id=1)
+        tracking_info = self.kernel_api.get_vehicle_tracking_info(veh_id=1)
         self.assertEqual(tracking_info.report, 1)
         self.assertEqual(tracking_info.idVeh, 2)
         self.assertEqual(tracking_info.type, 3)
