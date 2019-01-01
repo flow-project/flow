@@ -413,7 +413,7 @@ class FlowAimsunAPI(object):
          tracking_info.PreviousSpeed,
          tracking_info.TotalDistance,
          tracking_info.SystemGenerationT,
-         tracking_info.SectionEntranceT,
+         tracking_info.SystemEntranceT,
          tracking_info.SectionEntranceT,
          tracking_info.CurrentStopTime,
          tracking_info.stopped,
