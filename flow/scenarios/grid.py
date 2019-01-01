@@ -513,7 +513,7 @@ class SimpleGridScenario(Scenario):
         return intersection_edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles, **kwargs):
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """See parent class."""
         row_num = cls.grid_array["row_num"]
         col_num = cls.grid_array["col_num"]

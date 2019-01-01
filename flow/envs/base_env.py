@@ -12,7 +12,6 @@ import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
-from traci import constants as tc
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
 
@@ -103,10 +102,6 @@ class Env(*classdef):
 
         # simulation step size
         self.sim_step = sim_params.sim_step
-
-        self.vehicle_arrangement_shuffle = \
-            env_params.vehicle_arrangement_shuffle
-        self.starting_position_shuffle = env_params.starting_position_shuffle
 
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
@@ -206,59 +201,27 @@ class Env(*classdef):
         self.setup_initial_state()
 
     def setup_initial_state(self):
-        """Return information on the initial state of vehicles in the network.
+        """Store information on the initial state of vehicles in the network.
 
         This information is to be used upon reset. This method also adds this
         information to the self.vehicles class and starts a subscription with
         sumo to collect state information each step.
-
-        Returns
-        -------
-        initial_observations: dictionary
-            key = vehicles IDs
-            value = state describing car at the start of the rollout
-        initial_state: dictionary
-            key = vehicles IDs
-            value = sparse state information (only what is needed to add a
-            vehicle in a sumo network with traci)
         """
-        # subscribe the requested states for traci-related speedups
-        for veh_id in self.vehicles.get_ids():
-            self.traci_connection.vehicle.subscribe(veh_id, [
-                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-                tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
-                tc.VAR_SPEED_WITHOUT_TRACI
-            ])
-            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+        # determine whether to shuffle the vehicles
+        if self.scenario.initial_config.shuffle:
+            random.shuffle(self.initial_ids)
 
-        # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        id_lists = {
-            tc.VAR_DEPARTED_VEHICLES_IDS: [],
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
-            tc.VAR_ARRIVED_VEHICLES_IDS: [],
-            tc.VAR_TIME_STEP: [],
-            tc.VAR_DELTA_T: []
-        }
-
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-
-        # store new observations in the vehicles and traffic lights class
-        self.k.update(reset=True)
-
-        # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) < self.vehicles.num_vehicles:
-            logging.error("Not enough vehicles have spawned! Bad start?")
-            sys.exit()
+        # generate starting position for vehicles in the network
+        start_pos, start_lanes = self.scenario.generate_starting_positions(
+            num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
-        for veh_id in self.vehicles.get_ids():
-            type_id = self.vehicles.get_type(veh_id)
-            pos = self.vehicles.get_position(veh_id)
-            lane = self.vehicles.get_lane(veh_id)
-            speed = self.vehicles.get_speed(veh_id)
-            route_id = "route" + self.vehicles.get_edge(veh_id)
+        for i, veh_id in enumerate(self.initial_ids):
+            type_id = self.scenario.vehicles.get_type(veh_id)
+            pos = start_pos[i][1]
+            lane = start_lanes[i]
+            speed = self.scenario.vehicles.get_initial_speed(veh_id)
+            route_id = "route" + start_pos[i][0]
 
             self.initial_state[veh_id] = (type_id, route_id, lane, pos, speed)
 
@@ -419,14 +382,8 @@ class Env(*classdef):
         the environment, and re-initializes the vehicles in their starting
         positions.
 
-        If "vehicle_arrangement_shuffle" is set to True in env_params, the
-        vehicles swap initial positions with one another. Also, if a
-        "starting_position_shuffle" is set to True, the initial position of
-        vehicles are redone.
-
-        If "warmup_steps" is set to a value greater than 0, then this method
-        also runs the necessary number of warmup steps before beginning
-        training, with actions to the agents being assigned by the simulator.
+        If "shuffle" is set to True in InitialConfig, the initial positions of
+        vehicles is recalculated and the vehicles are shuffled.
 
         Returns
         -------
@@ -461,34 +418,9 @@ class Env(*classdef):
             # restart the simulation instance
             self.restart_simulation(self.sim_params)
 
-        # perform shuffling (if requested)
-        if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
-            if self.starting_position_shuffle:
-                x0 = np.random.uniform(0, self.scenario.length)
-            else:
-                x0 = self.scenario.initial_config.x0
-
-            veh_ids = deepcopy(self.initial_ids)
-            if self.vehicle_arrangement_shuffle:
-                random.shuffle(veh_ids)
-
-            initial_positions, initial_lanes = \
-                self.scenario.generate_starting_positions(
-                    num_vehicles=len(self.initial_ids), x0=x0)
-
-            initial_state = dict()
-            for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]
-
-                # replace initial routes, lanes, and positions to reflect
-                # new values
-                list_initial_state = list(self.initial_state[veh_id])
-                list_initial_state[1] = route_id
-                list_initial_state[2] = initial_lanes[i]
-                list_initial_state[3] = initial_positions[i][1]
-                initial_state[veh_id] = tuple(list_initial_state)
-
-            self.initial_state = deepcopy(initial_state)
+        elif self.scenario.initial_config.shuffle:
+            # perform shuffling (if requested)
+            self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList():
@@ -498,12 +430,15 @@ class Env(*classdef):
                 self.vehicles.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
-                pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
+            # do not try to remove the vehicles from the network in the first
+            # step after initializing the network, as there will be no vehicles
+            if self.step_counter == 0:
+                continue
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
@@ -550,6 +485,17 @@ class Env(*classdef):
 
         # update the colors of vehicles
         self.update_vehicle_colors()
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) > self.vehicles.num_vehicles:
+            missing_vehicles = list(
+                set(self.initial_ids) - set(self.vehicles.get_ids()))
+            logging.error('Not enough vehicles have spawned! Bad start?')
+            logging.error('Missing vehicles / initial state:')
+            for veh_id in missing_vehicles:
+                logging.error('- {}: {}'.format(veh_id,
+                                                self.initial_state[veh_id]))
+            sys.exit()
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
