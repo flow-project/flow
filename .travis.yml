@@ -46,7 +46,10 @@ before_install:
   - source ~/.bashrc
 
   # [aimsun] install the conda env and update the path to the env
-  - ./flow/scripts/setup_aimsun.sh
+  - pushd $HOME/build/flow-project
+  -     ./flow/scripts/setup_aimsun.sh
+  - popd
+  - source ~/.bashrc
   - sed -i 's/\/path\/to\/envs\/aimsun_flow/\/home\/travis\/miniconda\/envs\/aimsun_flow/g' flow/config.py
 
   - ls ../
