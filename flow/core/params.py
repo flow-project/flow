@@ -1625,8 +1625,6 @@ class EnvParams:
     """
 
     def __init__(self,
-                 vehicle_arrangement_shuffle=False,
-                 starting_position_shuffle=False,
                  additional_params=None,
                  horizon=500,
                  sort_vehicles=False,
@@ -1637,12 +1635,6 @@ class EnvParams:
 
         Attributes
         ----------
-            vehicle_arrangement_shuffle: bool, optional
-                determines if initial conditions of vehicles are shuffled at
-                reset; False by default
-            starting_position_shuffle: bool, optional
-                determines if starting position of vehicles should be updated
-                between rollouts; False by default
             additional_params: dict, optional
                 Specify additional environment params for a specific
                 environment configuration
@@ -1668,8 +1660,6 @@ class EnvParams:
                 normal reward
 
         """
-        self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
-        self.starting_position_shuffle = starting_position_shuffle
         self.additional_params = \
             additional_params if additional_params is not None else {}
         self.horizon = horizon

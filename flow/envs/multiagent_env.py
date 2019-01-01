@@ -1,3 +1,5 @@
+import logging
+import sys
 from copy import deepcopy
 import numpy as np
 import random
@@ -152,14 +154,8 @@ class MultiEnv(MultiAgentEnv, Env):
         the environment, and re-initializes the vehicles in their starting
         positions.
 
-        If "vehicle_arrangement_shuffle" is set to True in env_params, the
-        vehicles swap initial positions with one another. Also, if a
-        "starting_position_shuffle" is set to True, the initial position of
-        vehicles are redone.
-
-        If "warmup_steps" is set to a value greater than 0, then this method
-        also runs the necessary number of warmup steps before beginning
-        training, with actions to the agents being assigned by the simulator.
+        If "shuffle" is set to True in InitialConfig, the initial positions of
+        vehicles is recalculated and the vehicles are shuffled.
 
         Returns
         -------
@@ -195,33 +191,8 @@ class MultiEnv(MultiAgentEnv, Env):
             self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
-        if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
-            if self.starting_position_shuffle:
-                x0 = np.random.uniform(0, self.scenario.length)
-            else:
-                x0 = self.scenario.initial_config.x0
-
-            veh_ids = deepcopy(self.initial_ids)
-            if self.vehicle_arrangement_shuffle:
-                random.shuffle(veh_ids)
-
-            initial_positions, initial_lanes = \
-                self.scenario.generate_starting_positions(
-                    num_vehicles=len(self.initial_ids), x0=x0)
-
-            initial_state = dict()
-            for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]
-
-                # replace initial routes, lanes, and positions to reflect
-                # new values
-                list_initial_state = list(self.initial_state[veh_id])
-                list_initial_state[1] = route_id
-                list_initial_state[2] = initial_lanes[i]
-                list_initial_state[3] = initial_positions[i][1]
-                initial_state[veh_id] = tuple(list_initial_state)
-
-            self.initial_state = deepcopy(initial_state)
+        if self.scenario.initial_config.shuffle:
+            self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList():
@@ -237,6 +208,10 @@ class MultiEnv(MultiAgentEnv, Env):
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
+            # do not try to remove the vehicles from the network in the first
+            # step after initializing the network, as there will be no vehicles
+            if self.step_counter == 0:
+                continue
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
@@ -283,6 +258,17 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # update the colors of vehicles
         self.update_vehicle_colors()
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) > self.vehicles.num_vehicles:
+            missing_vehicles = list(
+                set(self.initial_ids) - set(self.vehicles.get_ids()))
+            logging.error('Not enough vehicles have spawned! Bad start?')
+            logging.error('Missing vehicles / initial state:')
+            for veh_id in missing_vehicles:
+                logging.error('- {}: {}'.format(veh_id,
+                                                self.initial_state[veh_id]))
+            sys.exit()
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
