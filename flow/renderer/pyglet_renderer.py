@@ -212,11 +212,11 @@ class PygletRenderer():
             human_cmap = truncate_colormap(cm.Greens, 0.2, 0.8)
             machine_cmap = truncate_colormap(cm.Blues, 0.2, 0.8)
             human_conditions = [
-                (255*np.array(human_cmap(d)[:3]+(self.alpha,)))\
+                (255*np.array(human_cmap(d)[:3]+(self.alpha,)))
                 .astype(np.uint8).tolist()
                 for d in human_dynamics]
             machine_conditions = [
-                (255*np.array(machine_cmap(d)[:3]+(self.alpha,)))\
+                (255*np.array(machine_cmap(d)[:3]+(self.alpha,)))
                 .astype(np.uint8).tolist()
                 for d in machine_dynamics]
 
@@ -224,11 +224,11 @@ class PygletRenderer():
             human_cmap = truncate_colormap(cm.binary, 0.55, 0.95)
             machine_cmap = truncate_colormap(cm.binary, 0.05, 0.45)
             human_conditions = [
-                (255*np.array(human_cmap(d)[:3]+(self.alpha,)))\
+                (255*np.array(human_cmap(d)[:3]+(self.alpha,)))
                 .astype(np.uint8).tolist()
                 for d in human_dynamics]
             machine_conditions = [
-                (255*np.array(machine_cmap(d)[:3]+(self.alpha,)))\
+                (255*np.array(machine_cmap(d)[:3]+(self.alpha,)))
                 .astype(np.uint8).tolist()
                 for d in machine_dynamics]
 
@@ -444,8 +444,8 @@ class PygletRenderer():
         """
         if enable:
             pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
-            pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA,
-                pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
+            pyglet.gl.glBlendFunc(
+                pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
             return True
         else:
             return False
