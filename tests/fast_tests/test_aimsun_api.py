@@ -1,6 +1,9 @@
+import flow.config as cofig
 import flow.utils.aimsun.constants
 from flow.utils.aimsun.api import FlowAimsunAPI
 import unittest
+import os
+import subprocess
 import numpy as np
 
 
@@ -36,6 +39,9 @@ class TestDummyAPI(unittest.TestCase):
 
     def test_getter_methods(self):
         # start the server's process
+        subprocess.Popen([
+            os.path.join(cofig.AIMSUN_SITEPACKAGES, "bin/python2.7"),
+            os.path.join(cofig.PROJECT_PATH, 'tests/dummy_server.py')])
 
         # create the FlowAimsunKernel object
         kernel_api = FlowAimsunAPI(port=9999)
@@ -86,7 +92,7 @@ class TestDummyAPI(unittest.TestCase):
         self.assertEqual(tracking_info.PreviousSpeed, 13)
         self.assertEqual(tracking_info.TotalDistance, 14)
         self.assertEqual(tracking_info.SystemGenerationT, 15)
-        self.assertEqual(tracking_info.SectionEntranceT, 16)
+        self.assertEqual(tracking_info.SystemEntranceT, 16)
         self.assertEqual(tracking_info.SectionEntranceT, 17)
         self.assertEqual(tracking_info.CurrentStopTime, 18)
         self.assertEqual(tracking_info.stopped, 19)
