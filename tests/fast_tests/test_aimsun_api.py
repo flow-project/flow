@@ -40,7 +40,7 @@ class TestDummyAPI(unittest.TestCase):
     def test_getter_methods(self):
         # start the server's process
         subprocess.Popen([
-            os.path.join(cofig.AIMSUN_SITEPACKAGES, "bin/python2.7"),
+            os.path.join(cofig.AIMSUN_SITEPACKAGES, "bin/python"),
             os.path.join(cofig.PROJECT_PATH, 'tests/dummy_server.py')])
 
         # create the FlowAimsunKernel object
