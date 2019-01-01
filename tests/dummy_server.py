@@ -3,10 +3,14 @@
 This script creates a dummy server mimicking the functionality in the Aimsun
 runner script. Used for testing purposes.
 """
-import flow.utils.aimsun.constants as ac
+import flow.config as config
 from thread import start_new_thread
 import socket
 import struct
+import sys
+
+sys.path.append(config.PROJECT_PATH)
+import flow.utils.aimsun.constants as ac  # noqa
 
 PORT = 9999
 
