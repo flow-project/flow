@@ -72,7 +72,7 @@ class TestCollisions(unittest.TestCase):
         """Tests collisions in the presence of inflows."""
         # create the environment and scenario classes for a ring road
         sim_params = SumoParams(sim_step=1, render=False)
-        total_vehicles = 12
+        total_vehicles = 0
         vehicles = VehicleParams()
         vehicles.add(
             veh_id="idm",
@@ -89,10 +89,10 @@ class TestCollisions(unittest.TestCase):
             "long_length": 100,
             "row_num": 1,
             "col_num": 1,
-            "cars_left": 3,
-            "cars_right": 3,
-            "cars_top": 3,
-            "cars_bot": 3
+            "cars_left": 0,
+            "cars_right": 0,
+            "cars_top": 0,
+            "cars_bot": 0
         }
 
         additional_net_params = {
@@ -105,6 +105,8 @@ class TestCollisions(unittest.TestCase):
         inflows = InFlows()
         inflows.add(veh_type="idm", edge="bot0_0", vehs_per_hour=1000)
         inflows.add(veh_type="idm", edge="top0_1", vehs_per_hour=1000)
+        inflows.add(veh_type="idm", edge="left1_0", vehs_per_hour=1000)
+        inflows.add(veh_type="idm", edge="right0_0", vehs_per_hour=1000)
 
         net_params = NetParams(
             no_internal_links=False,
