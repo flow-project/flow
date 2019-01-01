@@ -314,9 +314,6 @@ class Env(*classdef):
             # update the colors of vehicles
             self.update_vehicle_colors()
 
-            # collect list of sorted vehicle ids
-            self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
-
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
 
@@ -499,16 +496,8 @@ class Env(*classdef):
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
-            # re-initialize the vehicles class with the states of the vehicles
-            # at the start of a rollout
-            self.vehicles.set_absolute_position(veh_id,
-                                                self.get_x_by_id(veh_id))
-
             # re-initialize memory on last lc
             self.prev_last_lc[veh_id] = -float("inf")
-
-        # collect list of sorted vehicle ids
-        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         states = self.get_state()
         if isinstance(states, dict):
@@ -697,29 +686,6 @@ class Env(*classdef):
             return 0.
         return self.scenario.get_x(
             self.vehicles.get_edge(veh_id), self.vehicles.get_position(veh_id))
-
-    def sort_by_position(self):
-        """Sort the vehicle ids of vehicles in the network by position.
-
-        The base environment does this by sorting vehicles by their absolute
-        position.
-
-        Returns
-        -------
-        sorted_ids: list <str>
-            a list of all vehicle IDs sorted by position
-        sorted_extra_data: list or tuple
-            an extra component (list, tuple, etc...) containing extra sorted
-            data, such as positions. If no extra component is needed, a value
-            of None should be returned
-        """
-        if self.env_params.sort_vehicles:
-            sorted_ids = sorted(
-                self.vehicles.get_ids(),
-                key=self.vehicles.get_absolute_position)
-            return sorted_ids, None
-        else:
-            return self.vehicles.get_ids(), None
 
     def update_vehicle_colors(self):
         """Modify the color of vehicles if rendering is active.

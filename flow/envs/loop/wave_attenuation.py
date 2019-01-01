@@ -89,11 +89,7 @@ class WaveAttenuationEnv(Env):
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
-        sorted_rl_ids = [
-            veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
-        ]
-        self.apply_acceleration(sorted_rl_ids, rl_actions)
+        self.apply_acceleration(self.vehicles.get_rl_ids(), rl_actions)
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
@@ -126,9 +122,9 @@ class WaveAttenuationEnv(Env):
     def get_state(self):
         """See class definition."""
         speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
-                 for veh_id in self.sorted_ids]
+                 for veh_id in self.vehicles.get_ids()]
         pos = [self.get_x_by_id(veh_id) / self.scenario.length
-               for veh_id in self.sorted_ids]
+               for veh_id in self.vehicles.get_ids()]
 
         return np.array(speed + pos)
 
