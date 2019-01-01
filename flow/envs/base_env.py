@@ -5,6 +5,7 @@ import os
 import sys
 from copy import deepcopy
 import time
+import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
@@ -70,8 +71,6 @@ class Env(*classdef):
 
         self.env_params = env_params
         self.scenario = scenario
-        self.net_params = scenario.net_params
-        self.initial_config = scenario.initial_config
         self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -257,6 +256,7 @@ class Env(*classdef):
         info: dict
             contains other diagnostic information from the previous action
         """
+        print(self.k.vehicle.num_vehicles)
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
@@ -424,15 +424,19 @@ class Env(*classdef):
             try:
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
-                pass
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.k.vehicle.get_ids()):
+            # do not try to remove the vehicles from the network in the first
+            # step after initializing the network, as there will be no vehicles
+            if self.step_counter == 0:
+                continue
             try:
                 self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
-                pass
+                print("Error during start: {}".format(traceback.format_exc()))
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
@@ -470,8 +474,14 @@ class Env(*classdef):
             self.k.vehicle.update_vehicle_colors()
 
         # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) < self.k.vehicle.num_vehicles:
-            logging.error("Not enough vehicles have spawned! Bad start?")
+        if len(self.initial_ids) > self.k.vehicle.num_vehicles:
+            missing_vehicles = list(
+                set(self.initial_ids) - set(self.k.vehicle.get_ids()))
+            logging.error('Not enough vehicles have spawned! Bad start?')
+            logging.error('Missing vehicles / initial state:')
+            for veh_id in missing_vehicles:
+                logging.error('- {}: {}'.format(veh_id,
+                                                self.initial_state[veh_id]))
             sys.exit()
 
         # collect list of sorted vehicle ids

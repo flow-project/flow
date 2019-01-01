@@ -6,7 +6,6 @@ import time
 import os
 import sys
 import subprocess
-import traceback
 import xml.etree.ElementTree as ElementTree
 from lxml import etree
 
@@ -16,6 +15,33 @@ E = etree.Element
 RETRIES_ON_ERROR = 10
 # number of seconds to wait before trying to access the .net.xml file again
 WAIT_ON_ERROR = 1
+
+
+def _flow(name, vtype, route, **kwargs):
+    return E('flow', id=name, route=route, type=vtype, **kwargs)
+
+
+def _vehicle(type, route, departPos, number=0, id=None, **kwargs):
+    if not id and not number:
+        raise ValueError('Supply either ID or Number')
+    if not id:
+        id = type + "_" + str(number)
+    return E(
+        'vehicle',
+        type=type,
+        id=id,
+        route=route,
+        departPos=departPos,
+        **kwargs)
+
+
+def _inputs(net=None, rou=None, add=None, gui=None):
+    inp = E("input")
+    inp.append(E("net-file", value=net))
+    inp.append(E("route-files", value=rou))
+    inp.append(E("additional-files", value=add))
+    inp.append(E("gui-settings-file", value=gui))
+    return inp
 
 
 class TraCIScenario(KernelScenario):
@@ -131,12 +157,11 @@ class TraCIScenario(KernelScenario):
         self.__max_speed = max(
             self.speed_limit(edge) for edge in self.get_edge_list())
 
-        # TODO: delete?
         # length of the network, or the portion of the network in
         # which cars are meant to be distributed
-        self.__length = sum([
+        self.__length = sum(
             self.edge_length(edge_id) for edge_id in self.get_edge_list()
-        ])
+        )
 
         # parameters to be specified under each unique subclass's
         # __init__() function
@@ -543,8 +568,8 @@ class TraCIScenario(KernelScenario):
             try:
                 edges_dict, conn_dict = self._import_edges_from_net()
                 return edges_dict, conn_dict
-            except Exception:
-                print('Error during start: {}'.format(traceback.format_exc()))
+            except Exception as e:
+                print('Error during start: {}'.format(e))
                 print('Retrying in {} seconds...'.format(WAIT_ON_ERROR))
                 time.sleep(WAIT_ON_ERROR)
         raise error
@@ -753,7 +778,7 @@ class TraCIScenario(KernelScenario):
                       'http://sumo.dlr.de/xsd/sumoConfiguration.xsd')
 
         cfg.append(
-            self._inputs(
+            _inputs(
                 net=self.netfn,
                 add=self.addfn,
                 rou=self.roufn,
@@ -789,33 +814,9 @@ class TraCIScenario(KernelScenario):
                 for key in inflow:
                     if not isinstance(inflow[key], str):
                         inflow[key] = repr(inflow[key])
-                routes.append(self._flow(**inflow))
+                routes.append(_flow(**inflow))
 
         printxml(routes, self.cfg_path + self.roufn)
-
-    def _flow(self, name, vtype, route, **kwargs):
-        return E('flow', id=name, route=route, type=vtype, **kwargs)
-
-    def _vehicle(self, type, route, departPos, number=0, id=None, **kwargs):
-        if not id and not number:
-            raise ValueError('Supply either ID or Number')
-        if not id:
-            id = type + "_" + str(number)
-        return E(
-            'vehicle',
-            type=type,
-            id=id,
-            route=route,
-            departPos=departPos,
-            **kwargs)
-
-    def _inputs(self, net=None, rou=None, add=None, gui=None):
-        inp = E("input")
-        inp.append(E("net-file", value=net))
-        inp.append(E("route-files", value=rou))
-        inp.append(E("additional-files", value=add))
-        inp.append(E("gui-settings-file", value=gui))
-        return inp
 
     def _import_edges_from_net(self):
         """Import edges from a configuration file.

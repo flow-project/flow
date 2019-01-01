@@ -146,20 +146,27 @@ class WaveAttenuationEnv(Env):
         The sumo instance is reset with a new ring length, and a number of
         steps are performed with the rl vehicle acting as a human vehicle.
         """
+        # reset the step counter
+        self.step_counter = 0
+
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {
-            'length': random.randint(
-                self.env_params.additional_params['ring_length'][0],
-                self.env_params.additional_params['ring_length'][1]),
-            'lanes': self.net_params.additional_params['lanes'],
-            'speed_limit': self.net_params.additional_params['speed_limit'],
-            'resolution': self.net_params.additional_params['resolution']
+            'length':
+                random.randint(
+                    self.env_params.additional_params['ring_length'][0],
+                    self.env_params.additional_params['ring_length'][1]),
+            'lanes':
+                self.scenario.net_params.additional_params['lanes'],
+            'speed_limit':
+                self.scenario.net_params.additional_params['speed_limit'],
+            'resolution':
+                self.scenario.net_params.additional_params['resolution']
         }
         net_params = NetParams(additional_params=additional_net_params)
 
         self.scenario = self.scenario.__class__(
-            self.k.scenario.orig_name, deepcopy(self.scenario.vehicles),
+            self.scenario.orig_name, self.scenario.vehicles,
             net_params, initial_config)
         self.k.vehicle = deepcopy(self.initial_vehicles)
         self.k.vehicle.kernel_api = self.k.kernel_api
@@ -294,7 +301,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
     @property
     def action_space(self):
         """See class definition."""
-        add_params = self.net_params.additional_params
+        add_params = self.scenario.net_params.additional_params
         num_rings = add_params['num_rings']
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),

@@ -114,22 +114,6 @@ class HighwayScenario(Scenario):
         """Generate a user defined set of starting positions.
 
         This method is just used for testing.
-
-        Parameters
-        ----------
-        cls : flow.core.kernel.scenario.KernelScenario
-            flow scenario kernel, with all the relevant methods implemented
-        initial_config : flow.core.params.InitialConfig
-            see flow/core/params.py
-        num_vehicles : int
-            number of vehicles to be placed on the network
-
-        Returns
-        -------
-        list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        list of int
-            list of start lanes
         """
         return initial_config.additional_params["start_positions"], \
             initial_config.additional_params["start_lanes"]
