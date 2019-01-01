@@ -7,6 +7,7 @@ import subprocess
 from copy import deepcopy
 import time
 import traceback
+import atexit
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
@@ -162,6 +163,7 @@ class Env(gym.Env, Serializable):
         else:
             raise ValueError("Mode %s is not supported!" %
                              self.sumo_params.render)
+        atexit.register(self.terminate)
 
     def restart_sumo(self, sumo_params, render=None):
         """Restart an already initialized sumo instance.
@@ -954,19 +956,20 @@ class Env(gym.Env, Serializable):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
-        print(
-            "Closing connection to TraCI and stopping simulation.\n"
-            "Note, this may print an error message when it closes."
-        )
-        self._close()
+        try:
+            print(
+                "Closing connection to TraCI and stopping simulation.\n"
+                "Note, this may print an error message when it closes."
+            )
+            self.traci_connection.close()
+            self.scenario.close()
 
-    def _close(self):
-        self.traci_connection.close()
-        self.scenario.close()
-
-        # close pyglet renderer
-        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
-            self.renderer.close()
+            # close pyglet renderer
+            if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+                self.renderer.close()
+        except FileNotFoundError:
+            print("Skip automatic termination. "
+                  "Connection is probably already closed.")
 
     def teardown_sumo(self):
         """Kill the sumo subprocess instance."""
