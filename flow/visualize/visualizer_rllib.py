@@ -19,7 +19,6 @@ import os
 import sys
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
 from ray.tune.registry import register_env
 from ray.rllib.models import ModelCatalog
 
@@ -85,17 +84,18 @@ def visualizer_rllib(args):
                   + 'differs from the one stored in params.json '
                   + '\'{}\''.format(config_run))
             sys.exit(1)
-    if args.run:
-        agent_cls = get_agent_class(args.run)
-    elif config_run:
-        agent_cls = get_agent_class(config_run)
     else:
-        print('visualizer_rllib.py: error: could not find flow parameter '
-              '\'run\' in params.json, '
-              'add argument --run to provide the algorithm or model used '
-              'to train the results\n e.g. '
-              'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
-        sys.exit(1)
+        if args.run:
+            alg_run = args.run
+        elif config_run:
+            alg_run = config_run
+        else:
+            print('visualizer_rllib.py: error: could not find flow parameter '
+                  '\'run\' in params.json, '
+                  'add argument --run to provide the algorithm or model used '
+                  'to train the results\n e.g. '
+                  'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
+            sys.exit(1)
 
     sim_params.restart_instance = False
 
@@ -147,13 +147,19 @@ def visualizer_rllib(args):
         env_params.horizon = args.horizon
 
     # create the agent that will be used to compute the actions
-    agent = agent_cls(env=env_name, config=config)
+    if alg_run == "PPO":
+        from ray.rllib.agents.ppo import ppo as agent_cls
+        agent = agent_cls.PPOAgent(env=env_name, config=config)
+    else:
+        raise (
+        NotImplementedError, "Missing support for algorithm {}".format(alg_run))
+
     checkpoint = result_dir + '/checkpoint_' + args.checkpoint_num
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-        env_params=env_params, sim_params=sim_params, scenario=scenario))
+    env = env_class(env_params=env_params, sim_params=sim_params,
+                    scenario=scenario)
 
     if multiagent:
         rets = {}
