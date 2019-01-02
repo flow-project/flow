@@ -251,59 +251,6 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
 
 
-class TestSorting(unittest.TestCase):
-    """
-    Tests that the sorting method returns a list of ids sorted by the
-    get_absolute_position() method when sorting is requested, and does nothing
-    if it is not requested
-    """
-
-    def test_sorting(self):
-        # setup a environment with the "sort_vehicles" attribute set to True
-        additional_env_params = ADDITIONAL_ENV_PARAMS
-        env_params = EnvParams(
-            additional_params=additional_env_params, sort_vehicles=True)
-        initial_config = InitialConfig(shuffle=True)
-        vehicles = VehicleParams()
-        vehicles.add(veh_id="test", num_vehicles=5)
-        self.env, scenario = ring_road_exp_setup(
-            env_params=env_params,
-            initial_config=initial_config,
-            vehicles=vehicles)
-
-        self.env.reset()
-
-        sorted_ids = self.env.sorted_ids
-        positions = self.env.k.vehicle.get_absolute_position(sorted_ids)
-
-        # ensure vehicles ids are in sorted order by positions
-        self.assertTrue(
-            all(positions[i] <= positions[i + 1]
-                for i in range(len(positions) - 1)))
-
-    def test_no_sorting(self):
-        # setup a environment with the "sort_vehicles" attribute set to False,
-        # and shuffling so that the vehicles are not sorted by their ids
-        additional_env_params = ADDITIONAL_ENV_PARAMS
-        env_params = EnvParams(
-            additional_params=additional_env_params, sort_vehicles=False)
-        initial_config = InitialConfig(shuffle=True)
-        vehicles = VehicleParams()
-        vehicles.add(veh_id="test", num_vehicles=5)
-        self.env, scenario = ring_road_exp_setup(
-            env_params=env_params,
-            initial_config=initial_config,
-            vehicles=vehicles)
-
-        self.env.reset()
-
-        sorted_ids = list(self.env.sorted_ids)
-        ids = self.env.k.vehicle.get_ids()
-
-        # ensure that the list of ids did not change
-        self.assertListEqual(sorted_ids, ids)
-
-
 class TestWarmUpSteps(unittest.TestCase):
     """Ensures that the appropriate number of warmup steps are run when using
     flow.core.params.EnvParams.warmup_steps"""

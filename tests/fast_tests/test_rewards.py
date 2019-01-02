@@ -22,7 +22,8 @@ class TestRewards(unittest.TestCase):
         vehicles.add("test", num_vehicles=10)
 
         env_params = EnvParams(additional_params={
-            "target_velocity": np.sqrt(10), "max_accel": 1, "max_decel": 1})
+            "target_velocity": np.sqrt(10), "max_accel": 1, "max_decel": 1,
+            "sort_vehicles": False})
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles,
                                             env_params=env_params)
@@ -131,7 +132,8 @@ class TestRewards(unittest.TestCase):
         vehicles.add("test", num_vehicles=10)
 
         env_params = EnvParams(additional_params={
-            "target_velocity": 10, "max_accel": 1, "max_decel": 1})
+            "target_velocity": 10, "max_accel": 1, "max_decel": 1,
+            "sort_vehicles": False})
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles,
                                             env_params=env_params)
@@ -153,7 +155,8 @@ class TestRewards(unittest.TestCase):
         vehicles.add("test", num_vehicles=10)
 
         env_params = EnvParams(additional_params={
-            "target_velocity": 10, "max_accel": 1, "max_decel": 1})
+            "target_velocity": 10, "max_accel": 1, "max_decel": 1,
+            "sort_vehicles": False})
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles,
                                             env_params=env_params)
