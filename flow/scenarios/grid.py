@@ -222,6 +222,7 @@ class SimpleGridScenario(Scenario):
                     "id": "center" + str(index),
                     "x": x_center,
                     "y": y_center,
+                    "radius": (2.9 + 3.3 * self.net_params.additional_params["horizontal_lanes"]),
                     "type": node_type
                 })
         return nodes
