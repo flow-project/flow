@@ -16,7 +16,7 @@ SIMULATION_TERMINATE = 0x01
 ###############################################################################
 
 # get the edge name in aimsun
-GET_EDGE_NAME = 0x0E
+GET_EDGE_NAME = 0x02
 
 
 ###############################################################################
@@ -24,61 +24,61 @@ GET_EDGE_NAME = 0x0E
 ###############################################################################
 
 # add a vehicle
-ADD_VEHICLE = 0x02
+ADD_VEHICLE = 0x03
 
 # remove a vehicle
-REMOVE_VEHICLE = 0x03
+REMOVE_VEHICLE = 0x04
 
 # set vehicle speed
-VEH_SET_SPEED = 0x04
+VEH_SET_SPEED = 0x05
 
 # apply vehicle lane change
-VEH_SET_LANE = 0x05
+VEH_SET_LANE = 0x06
 
 # set vehicle route
-VEH_SET_ROUTE = 0x06
+VEH_SET_ROUTE = 0x07
 
 # set color
-VEH_SET_COLOR = 0x07
+VEH_SET_COLOR = 0x08
 
 # get IDs of entering vehicles
-VEH_GET_ENTERED_IDS = 0x08
+VEH_GET_ENTERED_IDS = 0x09
 
 # get IDs of exiting vehicles
-VEH_GET_EXITED_IDS = 0x0F
+VEH_GET_EXITED_IDS = 0x0A
 
 # get vehicle type in Aimsun
-VEH_GET_TYPE_ID = 0x10
+VEH_GET_TYPE_ID = 0x0B
 
 # get vehicle static information
-VEH_GET_STATIC = 0x09
+VEH_GET_STATIC = 0x0C
 
 # get vehicle tracking information
-VEH_GET_TRACKING = 0x0A
+VEH_GET_TRACKING = 0x0D
 
 # get vehicle leader
-VEH_GET_LEADER = 0x0B
+VEH_GET_LEADER = 0x0E
 
 # get vehicle follower
-VEH_GET_FOLLOWER = 0x0C
+VEH_GET_FOLLOWER = 0x0F
 
 # get vehicle headway
-VEH_GET_HEADWAY = 0x11
+VEH_GET_HEADWAY = 0x10
 
 # get vehicle route
-VEH_GET_ROUTE = 0x0D
+VEH_GET_ROUTE = 0x11
 
-# get vehicle speed if no API command was submitted TODO: check
-VEH_GET_DEFAULT_SPEED = None
+# get vehicle speed if no API command was submitted
+VEH_GET_DEFAULT_SPEED = 0x12
 
-# TODO: not 100% sure what this is...
-VEH_GET_ORIENTATION = None
-
-# TODO: not 100% sure what this is...
-VEH_GET_TIMESTEP = None
+# get vehicle angle
+VEH_GET_ORIENTATION = 0x13
 
 # TODO: not 100% sure what this is...
-VEH_GET_TIMEDELTA = None
+VEH_GET_TIMESTEP = 0x14
+
+# TODO: not 100% sure what this is...
+VEH_GET_TIMEDELTA = 0x15
 
 
 ###############################################################################
@@ -86,10 +86,10 @@ VEH_GET_TIMEDELTA = None
 ###############################################################################
 
 # get traffic light IDs
-TL_GET_IDS = None
+TL_GET_IDS = 0x16
 
 # set traffic light state
-TL_SET_STATE = None
+TL_SET_STATE = 0x17
 
 # get traffic light state
-TL_GET_STATE = None
+TL_GET_STATE = 0x18
