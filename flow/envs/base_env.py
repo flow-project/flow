@@ -256,7 +256,6 @@ class Env(*classdef):
         info: dict
             contains other diagnostic information from the previous action
         """
-        print(self.k.vehicle.num_vehicles)
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
