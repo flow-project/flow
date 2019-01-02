@@ -527,14 +527,6 @@ class BottleNeckAccelEnv(BottleneckEnv):
             self, gain=0.1) - rewards.boolean_action_penalty(
                 lane_change_acts, gain=1.0))
 
-    def sort_by_position(self):
-        if self.env_params.sort_vehicles:
-            sorted_ids = sorted(self.k.vehicle.get_ids(),
-                                key=self.k.vehicle.get_x_by_id)
-            return sorted_ids, None
-        else:
-            return self.k.vehicle.get_ids(), None
-
     def _apply_rl_actions(self, actions):
         """
         See parent class.
@@ -550,10 +542,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
         direction = np.round(actions[1::2])[:num_rl]
 
         # re-arrange actions according to mapping in observation space
-        sorted_rl_ids = [
-            veh_id for veh_id in self.sorted_ids
-            if veh_id in self.k.vehicle.get_rl_ids()
-        ]
+        sorted_rl_ids = sorted(self.vehicles.get_rl_ids(),
+                               key=self.get_x_by_id)
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \

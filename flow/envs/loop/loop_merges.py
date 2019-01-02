@@ -77,6 +77,9 @@ class TwoLoopsMergePOEnv(Env):
 
         super().__init__(env_params, sim_params, scenario)
 
+        self.sorted_ids = np.asarray(self.initial_ids)
+        self.sorted_extra_data = np.asarray(self.initial_ids)
+
     @property
     def observation_space(self):
         """See class definition."""
@@ -197,6 +200,16 @@ class TwoLoopsMergePOEnv(Env):
 
         return np.concatenate(
             (normalized_vel, normalized_pos, queue_length, vel_stats))
+
+    def additional_command(self):
+        # collect list of sorted vehicle ids
+        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
+
+    def reset(self):
+        super().reset()
+
+        # collect list of sorted vehicle ids
+        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
     def sort_by_position(self):
         """
