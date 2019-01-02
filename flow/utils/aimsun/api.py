@@ -15,6 +15,9 @@ def create_client(port, print_status=False):
     ----------
     port : int
         the port number of the socket connection
+    print_status : bool, optional
+        specifies whether to print a status check while waiting for connection
+        between the server and client
 
     Returns
     -------
@@ -189,7 +192,9 @@ class FlowAimsunAPI(object):
         speed : float
             starting speed
         next_section : int
-            TODO
+            the edge number the vehicle should move towards after the current
+            edge it is one. If set to -1, the vehicle takes the next feasible
+            route
 
         Returns
         -------
@@ -408,7 +413,7 @@ class FlowAimsunAPI(object):
          tracking_info.PreviousSpeed,
          tracking_info.TotalDistance,
          tracking_info.SystemGenerationT,
-         tracking_info.SectionEntranceT,
+         tracking_info.SystemEntranceT,
          tracking_info.SectionEntranceT,
          tracking_info.CurrentStopTime,
          tracking_info.stopped,
