@@ -21,20 +21,6 @@ def _flow(name, vtype, route, **kwargs):
     return E('flow', id=name, route=route, type=vtype, **kwargs)
 
 
-def _vehicle(type, route, departPos, number=0, id=None, **kwargs):
-    if not id and not number:
-        raise ValueError('Supply either ID or Number')
-    if not id:
-        id = type + "_" + str(number)
-    return E(
-        'vehicle',
-        type=type,
-        id=id,
-        route=route,
-        departPos=departPos,
-        **kwargs)
-
-
 def _inputs(net=None, rou=None, add=None, gui=None):
     inp = E("input")
     inp.append(E("net-file", value=net))
@@ -251,38 +237,13 @@ class TraCIScenario(KernelScenario):
                 pass
 
     def get_edge(self, x):
-        """Compute an edge and relative position from an absolute position.
-
-        Parameters
-        ----------
-        x : float
-            absolute position in network
-
-        Returns
-        -------
-        edge position : tup
-            1st element: edge name (such as bottom, right, etc.)
-            2nd element: relative position on edge
-        """
+        """See parent class."""
         for (edge, start_pos) in reversed(self.total_edgestarts):
             if x >= start_pos:
                 return edge, x - start_pos
 
     def get_x(self, edge, position):
-        """Return the absolute position on the track.
-
-        Parameters
-        ----------
-        edge : str
-            name of the edge
-        position : float
-            relative position on the edge
-
-        Returns
-        -------
-        absolute_position : float
-            position with respect to some global reference
-        """
+        """See parent class."""
         # if there was a collision which caused the vehicle to disappear,
         # return an x value of -1001
         if len(edge) == 0:
@@ -300,10 +261,7 @@ class TraCIScenario(KernelScenario):
             return self.total_edgestarts_dict[edge] + position
 
     def edge_length(self, edge_id):
-        """Return the length of a given edge/junction.
-
-        Return -1001 if edge not found.
-        """
+        """See parent class."""
         try:
             return self._edges[edge_id]['length']
         except KeyError:
@@ -315,10 +273,7 @@ class TraCIScenario(KernelScenario):
         return self.__length
 
     def speed_limit(self, edge_id):
-        """Return the speed limit of a given edge/junction.
-
-        Return -1001 if edge not found.
-        """
+        """See parent class."""
         try:
             return self._edges[edge_id]['speed']
         except KeyError:
@@ -326,10 +281,7 @@ class TraCIScenario(KernelScenario):
             return -1001
 
     def num_lanes(self, edge_id):
-        """Return the number of lanes of a given edge/junction.
-
-        Return -1001 if edge not found.
-        """
+        """See parent class."""
         try:
             return self._edges[edge_id]['lanes']
         except KeyError:
@@ -341,30 +293,22 @@ class TraCIScenario(KernelScenario):
         return self.__max_speed
 
     def get_edge_list(self):
-        """Return the names of all edges in the network."""
+        """See parent class."""
         return self._edge_list
 
     def get_junction_list(self):
-        """Return the names of all junctions in the network."""
+        """See parent class."""
         return self._junction_list
 
     def next_edge(self, edge, lane):
-        """Return the next edge/lane pair from the given edge/lane.
-
-        These edges may also be internal links (junctions). Returns an empty
-        list if there are no edge/lane pairs in front.
-        """
+        """See parent class."""
         try:
             return self._connections['next'][edge][lane]
         except KeyError:
             return []
 
     def prev_edge(self, edge, lane):
-        """Return the edge/lane pair right before this edge/lane.
-
-        These edges may also be internal links (junctions). Returns an empty
-        list if there are no edge/lane pairs behind.
-        """
+        """See parent class."""
         try:
             return self._connections['prev'][edge][lane]
         except KeyError:
