@@ -157,10 +157,7 @@ class AccelEnv(Env):
             a list of all vehicle IDs sorted by position
         """
         if self.env_params.additional_params['sort_vehicles']:
-            sorted_ids = sorted(
-                self.vehicles.get_ids(),
-                key=self.get_abs_position)
-            return sorted_ids
+            return sorted(self.vehicles.get_ids(), key=self.get_abs_position)
         else:
             return self.vehicles.get_ids()
 
