@@ -6,6 +6,7 @@ omit =
     */scripts/*
     */setup.py
     *rllab*
+    */flow/utils/shflags
 
 exclude_lines =
     if __name__ == .__main__.:
