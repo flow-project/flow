@@ -509,8 +509,11 @@ class FlowAimsunAPI(object):
                                     values=None,
                                     out_format='str')
 
-        tl_ids = tl_ids.split(':')
-        return [str(t) for t in tl_ids]
+        if tl_ids == '-1':
+            return []
+        else:
+            tl_ids = tl_ids.split(':')
+            return [int(t) for t in tl_ids]
 
     def get_traffic_light_state(self, tl_id):
         """Get the traffic light state of a specific set of traffic light(s).
