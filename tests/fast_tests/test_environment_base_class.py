@@ -2,7 +2,7 @@ import unittest
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, \
     NetParams, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -20,66 +20,10 @@ os.environ["TEST_FLAG"] = "True"
 WHITE = (255, 255, 255, 255)
 CYAN = (0, 255, 255, 255)
 RED = (255, 0, 0, 255)
+YELLOW = (255, 255, 0, 255)
 
 
-class TestStartingPositionShuffle(unittest.TestCase):
-    """
-    Tests that, at resets, the starting position of vehicles changes while
-    keeping the ordering and relative spacing between vehicles.
-    """
-
-    def setUp(self):
-        # turn on starting position shuffle
-        env_params = EnvParams(
-            starting_position_shuffle=True,
-            additional_params=ADDITIONAL_ENV_PARAMS)
-
-        # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
-        vehicles.add(
-            veh_id="test",
-            acceleration_controller=(IDMController, {}),
-            routing_controller=(ContinuousRouter, {}),
-            num_vehicles=5)
-
-        initial_config = InitialConfig(x0=5)
-
-        # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
-            env_params=env_params,
-            initial_config=initial_config,
-            vehicles=vehicles)
-
-    def tearDown(self):
-        # terminate the traci instance
-        self.env.terminate()
-
-        # free data used by the class
-        self.env = None
-
-    def test_starting_pos(self):
-        ids = self.env.vehicles.get_ids()
-
-        # position of vehicles before reset
-        before_reset = \
-            np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
-
-        # reset the environment
-        self.env.reset()
-
-        # position of vehicles after reset
-        after_reset = \
-            np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
-
-        offset = after_reset[0] - before_reset[0]
-
-        # remove the new offset from the original positions after reset
-        after_reset = np.mod(after_reset - offset, self.env.scenario.length)
-
-        np.testing.assert_array_almost_equal(before_reset, after_reset)
-
-
-class TestVehicleArrangementShuffle(unittest.TestCase):
+class TestShuffle(unittest.TestCase):
     """
     Tests that, at resets, the ordering of vehicles changes while the starting
     position values stay the same.
@@ -88,18 +32,17 @@ class TestVehicleArrangementShuffle(unittest.TestCase):
     def setUp(self):
         # turn on vehicle arrangement shuffle
         env_params = EnvParams(
-            vehicle_arrangement_shuffle=True,
             additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
             num_vehicles=5)
 
-        initial_config = InitialConfig(x0=5)
+        initial_config = InitialConfig(x0=5, shuffle=True)
 
         # create the environment and scenario classes for a ring road
         self.env, scenario = ring_road_exp_setup(
@@ -136,11 +79,11 @@ class TestEmissionPath(unittest.TestCase):
     """
 
     def setUp(self):
-        # set sumo_params to default
-        sumo_params = SumoParams()
+        # set sim_params to default
+        sim_params = SumoParams()
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(sumo_params=sumo_params)
+        self.env, scenario = ring_road_exp_setup(sim_params=sim_params)
 
     def tearDown(self):
         # terminate the traci instance
@@ -150,7 +93,7 @@ class TestEmissionPath(unittest.TestCase):
         self.env = None
 
     def test_emission(self):
-        self.assertIsNone(self.env.sumo_params.emission_path)
+        self.assertIsNone(self.env.sim_params.emission_path)
 
 
 class TestApplyingActionsWithSumo(unittest.TestCase):
@@ -171,16 +114,15 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         # turn on starting position shuffle
         env_params = EnvParams(
-            starting_position_shuffle=True,
             additional_params=ADDITIONAL_ENV_PARAMS)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=1000, decel=1000),
             num_vehicles=5)
 
@@ -210,7 +152,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # apply a certain set of accelerations to the vehicles in the network
         accel_step0 = np.array([0, 1, 4, 9, 16])
         self.env.apply_acceleration(veh_ids=ids, acc=accel_step0)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # compare the new velocity of the vehicles to the expected velocity
         # given the accelerations
@@ -234,7 +176,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
         self.env.apply_acceleration(veh_ids=ids, acc=accel_step1)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # this time, some vehicles should be at 0 velocity (NOT less), and sum
         # are a result of the accelerations that took place
@@ -278,7 +220,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
         self.env.apply_lane_change(ids, direction=direction0)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
@@ -304,7 +246,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         # time to test lane changes to the right
         direction1 = np.array([-1, -1, -1, -1, -1])
         self.env.apply_lane_change(ids, direction=direction1)
-        self.env.traci_connection.simulationStep()
+        self.env.k.simulation.simulation_step()
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
@@ -331,7 +273,7 @@ class TestSorting(unittest.TestCase):
         env_params = EnvParams(
             additional_params=additional_env_params, sort_vehicles=True)
         initial_config = InitialConfig(shuffle=True)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=5)
         self.env, scenario = ring_road_exp_setup(
             env_params=env_params,
@@ -355,7 +297,7 @@ class TestSorting(unittest.TestCase):
         env_params = EnvParams(
             additional_params=additional_env_params, sort_vehicles=True)
         initial_config = InitialConfig(shuffle=True)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=5)
         self.env, scenario = ring_road_exp_setup(
             env_params=env_params,
@@ -385,7 +327,7 @@ class TestWarmUpSteps(unittest.TestCase):
         env, scenario = ring_road_exp_setup(env_params=env_params)
 
         # time before running a reset
-        t1 = env.time_counter
+        t1 = 0
         # perform a reset
         env.reset()
         # time after a reset
@@ -430,9 +372,9 @@ class TestAbstractMethods(unittest.TestCase):
 
     def setUp(self):
         env, scenario = ring_road_exp_setup()
-        sumo_params = SumoParams()
+        sim_params = SumoParams()  # FIXME: make ambiguous
         env_params = EnvParams()
-        self.env = Env(sumo_params=sumo_params,
+        self.env = Env(sim_params=sim_params,
                        env_params=env_params,
                        scenario=scenario)
 
@@ -442,11 +384,7 @@ class TestAbstractMethods(unittest.TestCase):
 
     def test_get_state(self):
         """Checks that get_state raises an error."""
-        try:
-            self.env.get_state()
-            raise AssertionError
-        except NotImplementedError:
-            return
+        self.assertRaises(NotImplementedError, self.env.get_state)
 
     def test_action_space(self):
         try:
@@ -467,53 +405,42 @@ class TestAbstractMethods(unittest.TestCase):
         self.assertEqual(self.env.compute_reward([]), 0)
 
     def test__apply_rl_actions(self):
-        try:
-            self.env._apply_rl_actions(None)
-            raise AssertionError
-        except NotImplementedError:
-            return
+        self.assertRaises(NotImplementedError, self.env._apply_rl_actions,
+                          rl_actions=None)
 
 
 class TestVehicleColoring(unittest.TestCase):
 
     def test_all(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add("human", num_vehicles=10)
         # add an RL vehicle to ensure that its color will be distinct
         vehicles.add("rl", acceleration_controller=(RLController, {}),
                      num_vehicles=1)
-        _, scenario = ring_road_exp_setup(vehicles=vehicles)
-
-        # we will use the generic environment to ensure this applies to all
-        # environments
-        sumo_params = SumoParams()
-        env_params = EnvParams()
-        env = Env(sumo_params=sumo_params,
-                  env_params=env_params,
-                  scenario=scenario)
+        env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
         # set one vehicle as observed
         env.vehicles.set_observed("human_0")
 
         # update the colors of all vehicles
         env.update_vehicle_colors()
-        env.traci_connection.simulationStep()
+        env.k.simulation.simulation_step()
 
         # check that, when rendering is off, the colors don't change (this
         # avoids unnecessary API calls)
         for veh_id in env.vehicles.get_ids():
             self.assertEqual(
-                env.traci_connection.vehicle.getColor(veh_id), WHITE)
+                env.traci_connection.vehicle.getColor(veh_id), YELLOW)
 
         # a little hack to ensure the colors change
-        env.sumo_params.render = True
+        env.sim_params.render = True
 
         # set one vehicle as observed
         env.vehicles.set_observed("human_0")
 
         # update the colors of all vehicles
         env.update_vehicle_colors()
-        env.traci_connection.simulationStep()
+        env.k.simulation.simulation_step()
 
         # check the colors of all vehicles
         for veh_id in env.vehicles.get_ids():

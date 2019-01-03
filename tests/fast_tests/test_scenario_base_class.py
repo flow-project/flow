@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from flow.core.params import InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
@@ -93,7 +93,7 @@ class TestEvenStartPos(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -101,7 +101,7 @@ class TestEvenStartPos(unittest.TestCase):
             num_vehicles=15)
 
         # create the environment and scenario classes for a ring road
-        self.env, scenario = ring_road_exp_setup(
+        self.env, self.scenario = ring_road_exp_setup(
             net_params=net_params,
             initial_config=initial_config,
             vehicles=vehicles)
@@ -218,9 +218,11 @@ class TestEvenStartPos(unittest.TestCase):
         # create the environment
         self.setUp_gen_start_pos(initial_config)
 
+        startpos, _ = self.scenario.generate_starting_positions()
+
         # get the positions of all vehicles
-        ids = self.env.vehicles.get_ids()
-        veh_pos = np.array([self.env.get_x_by_id(veh_id) for veh_id in ids])
+        veh_pos = np.array([self.scenario.get_x(pos[0], pos[1])
+                            for pos in startpos])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
@@ -348,8 +350,7 @@ class TestEvenStartPos(unittest.TestCase):
         # check that all vehicles are only placed in edges specified in the
         # edges_distribution term
         for veh_id in self.env.vehicles.get_ids():
-            if self.env.vehicles.get_edge(veh_id) not in edges:
-                raise AssertionError
+            self.assertTrue(self.env.vehicles.get_edge(veh_id) in edges)
 
     def test_num_vehicles(self):
         """
@@ -385,7 +386,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
 
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -457,7 +458,7 @@ class TestRandomStartPos(unittest.TestCase):
         net_params = NetParams(additional_params=additional_net_params)
 
         # place 5 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -487,9 +488,8 @@ class TestRandomStartPos(unittest.TestCase):
 
         # verify that all vehicles are located in the number of allocated lanes
         for veh_id in self.env.vehicles.get_ids():
-            if self.env.vehicles.get_lane(veh_id) >= \
-                    initial_config.lanes_distribution:
-                raise AssertionError
+            self.assertLess(self.env.vehicles.get_lane(veh_id),
+                            initial_config.lanes_distribution)
 
     def test_edges_distribution(self):
         """
@@ -507,14 +507,13 @@ class TestRandomStartPos(unittest.TestCase):
         # check that all vehicles are only placed in edges specified in the
         # edges_distribution term
         for veh_id in self.env.vehicles.get_ids():
-            if self.env.vehicles.get_edge(veh_id) not in edges:
-                raise AssertionError
+            self.assertTrue(self.env.vehicles.get_edge(veh_id) in edges)
 
 
 class TestEvenStartPosVariableLanes(unittest.TestCase):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),
@@ -549,14 +548,13 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
 
         # check that all possible lanes are covered
         lanes = self.env.vehicles.get_lane(self.env.vehicles.get_ids())
-        if any(i not in lanes for i in range(4)):
-            raise AssertionError
+        self.assertFalse(any(i not in lanes for i in range(4)))
 
 
 class TestRandomStartPosVariableLanes(TestEvenStartPosVariableLanes):
     def setUp(self):
         # place 15 vehicles in the network (we need at least more than 1)
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, {}),

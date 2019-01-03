@@ -1,3 +1,5 @@
+import logging
+import sys
 from copy import deepcopy
 import numpy as np
 import random
@@ -24,7 +26,7 @@ class MultiEnv(MultiAgentEnv, Env):
         simulator by the number of time steps requested per environment step.
 
         Results from the simulations are processed through various classes,
-        such as the Vehicles and TrafficLights classes, to produce standardized
+        such as the Vehicle and TrafficLight kernels, to produce standardized
         methods for identifying specific network state features. Finally,
         results from the simulator are used to generate appropriate
         observations.
@@ -86,19 +88,20 @@ class MultiEnv(MultiAgentEnv, Env):
 
             self.additional_command()
 
-            self.traci_connection.simulationStep()
+            # advance the simulation in the simulator by one step
+            self.k.simulation.simulation_step()
 
             # collect subscription information from sumo
             vehicle_obs = \
                 self.traci_connection.vehicle.getSubscriptionResults()
             id_lists = \
                 self.traci_connection.simulation.getSubscriptionResults()
-            tls_obs = \
-                self.traci_connection.trafficlight.getSubscriptionResults()
 
             # store new observations in the vehicles and traffic lights class
             self.vehicles.update(vehicle_obs, id_lists, self)
-            self.traffic_lights.update(tls_obs)
+
+            # store new observations in the vehicles and traffic lights class
+            self.k.update(reset=False)
 
             # update the colors of vehicles
             self.update_vehicle_colors()
@@ -107,9 +110,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
             # crash encodes whether the simulator experienced a collision
-            crash = \
-                self.traci_connection.simulation.getStartingTeleportNumber() \
-                != 0
+            crash = self.k.simulation.check_collision()
 
             # stop collecting new simulation steps if there is a collision
             if crash:
@@ -141,7 +142,8 @@ class MultiEnv(MultiAgentEnv, Env):
                 done['__all__'] = False
             infos[key] = {}
 
-        reward = self.compute_reward(rl_actions, fail=crash)
+        clipped_actions = self.clip_actions(rl_actions)
+        reward = self.compute_reward(clipped_actions, fail=crash)
 
         return next_observation, reward, done, infos
 
@@ -152,14 +154,8 @@ class MultiEnv(MultiAgentEnv, Env):
         the environment, and re-initializes the vehicles in their starting
         positions.
 
-        If "vehicle_arrangement_shuffle" is set to True in env_params, the
-        vehicles swap initial positions with one another. Also, if a
-        "starting_position_shuffle" is set to True, the initial position of
-        vehicles are redone.
-
-        If "warmup_steps" is set to a value greater than 0, then this method
-        also runs the necessary number of warmup steps before beginning
-        training, with actions to the agents being assigned by the simulator.
+        If "shuffle" is set to True in InitialConfig, the initial positions of
+        vehicles is recalculated and the vehicles are shuffled.
 
         Returns
         -------
@@ -172,7 +168,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # warn about not using restart_instance when using inflows
         if len(self.scenario.net_params.inflows.get()) > 0 and \
-                not self.sumo_params.restart_instance:
+                not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
                 "**********************************************************\n"
@@ -185,52 +181,20 @@ class MultiEnv(MultiAgentEnv, Env):
                 "**********************************************************"
             )
 
-        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+        if self.sim_params.restart_instance or self.step_counter > 2e6:
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
-            self.sumo_params.seed = random.randint(0, 1e5)
+            self.sim_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
             self.vehicles = deepcopy(self.initial_vehicles)
-            # restart the sumo instance
-            self.restart_sumo(self.sumo_params)
+            # restart the simulation instance
+            self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
-        if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
-            if self.starting_position_shuffle:
-                x0 = np.random.uniform(0, self.scenario.length)
-            else:
-                x0 = self.scenario.initial_config.x0
+        if self.scenario.initial_config.shuffle:
+            self.setup_initial_state()
 
-            veh_ids = deepcopy(self.initial_ids)
-            if self.vehicle_arrangement_shuffle:
-                random.shuffle(veh_ids)
-
-            initial_positions, initial_lanes = \
-                self.scenario.generate_starting_positions(
-                    num_vehicles=len(self.initial_ids), x0=x0)
-
-            initial_state = dict()
-            for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]
-
-                # replace initial routes, lanes, and positions to reflect
-                # new values
-                list_initial_state = list(self.initial_state[veh_id])
-                list_initial_state[1] = route_id
-                list_initial_state[2] = initial_lanes[i]
-                list_initial_state[3] = initial_positions[i][1]
-                initial_state[veh_id] = tuple(list_initial_state)
-
-                # replace initial positions in initial observations
-                self.initial_observations[veh_id]["edge"] = \
-                    initial_positions[i][0]
-                self.initial_observations[veh_id]["position"] = \
-                    initial_positions[i][1]
-
-            self.initial_state = deepcopy(initial_state)
-
-        # # clear all vehicles from the network and the vehicles class
-
+        # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList():
             try:
                 self.traci_connection.vehicle.remove(veh_id)
@@ -244,6 +208,10 @@ class MultiEnv(MultiAgentEnv, Env):
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
+            # do not try to remove the vehicles from the network in the first
+            # step after initializing the network, as there will be no vehicles
+            if self.step_counter == 0:
+                continue
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
@@ -252,7 +220,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, lane_pos, speed, pos = \
+            type_id, route_id, lane_index, pos, speed = \
                 self.initial_state[veh_id]
 
             try:
@@ -261,7 +229,7 @@ class MultiEnv(MultiAgentEnv, Env):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
@@ -272,22 +240,35 @@ class MultiEnv(MultiAgentEnv, Env):
                     route_id,
                     typeID=str(type_id),
                     departLane=str(lane_index),
-                    departPos=str(lane_pos),
+                    departPos=str(pos),
                     departSpeed=str(speed))
 
-        self.traci_connection.simulationStep()
+        # advance the simulation in the simulator by one step
+        self.k.simulation.simulation_step()
 
         # collect subscription information from sumo
         vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
         id_lists = self.traci_connection.simulation.getSubscriptionResults()
-        tls_obs = self.traci_connection.trafficlight.getSubscriptionResults()
 
         # store new observations in the vehicles and traffic lights class
         self.vehicles.update(vehicle_obs, id_lists, self)
-        self.traffic_lights.update(tls_obs)
+
+        # store new observations in the vehicles and traffic lights class
+        self.k.update(reset=True)
 
         # update the colors of vehicles
         self.update_vehicle_colors()
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) > self.vehicles.num_vehicles:
+            missing_vehicles = list(
+                set(self.initial_ids) - set(self.vehicles.get_ids()))
+            logging.error('Not enough vehicles have spawned! Bad start?')
+            logging.error('Missing vehicles / initial state:')
+            for veh_id in missing_vehicles:
+                logging.error('- {}: {}'.format(veh_id,
+                                                self.initial_state[veh_id]))
+            sys.exit()
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
@@ -319,8 +300,8 @@ class MultiEnv(MultiAgentEnv, Env):
 
         return observation
 
-    def apply_rl_actions(self, rl_actions=None):
-        """Specify the actions to be performed by the rl agent(s).
+    def clip_actions(self, rl_actions=None):
+        """Clip the actions passed from the RL agent
 
         If no actions are provided at any given step, the rl agents default to
         performing actions specified by sumo.
@@ -329,10 +310,15 @@ class MultiEnv(MultiAgentEnv, Env):
         ----------
         rl_actions: list or numpy ndarray
             list of actions provided by the RL algorithm
+
+        Returns
+        -------
+        rl_clipped: np.ndarray (float)
+            The rl_actions clipped according to the box
         """
         # ignore if no actions are issued
         if rl_actions is None:
-            return
+            return None
 
         # clip according to the action space requirements
         if isinstance(self.action_space, Box):
@@ -341,5 +327,23 @@ class MultiEnv(MultiAgentEnv, Env):
                     action,
                     a_min=self.action_space.low,
                     a_max=self.action_space.high)
+        return rl_actions
 
-        self._apply_rl_actions(rl_actions)
+    def apply_rl_actions(self, rl_actions=None):
+        """Specify the actions to be performed by the rl agent(s).
+
+        If no actions are provided at any given step, the rl agents default to
+        performing actions specified by sumo.
+
+        Parameters
+        ----------
+        rl_actions: dict of list or numpy ndarray
+            dict of list of actions provided by the RL algorithm
+        """
+        # ignore if no actions are issued
+        if rl_actions is None:
+            return
+
+        # clip according to the action space requirements
+        clipped_actions = self.clip_actions(rl_actions)
+        self._apply_rl_actions(clipped_actions)

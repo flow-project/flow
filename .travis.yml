@@ -13,17 +13,10 @@ sudo: required
 
 before_install:
   # Setup conda (needed for opencv, ray dependency)
-  # WARNING: enforces py3.6
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export TEST_FLAG="True"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda info -a
-  - conda install python=3.5.2
-  - python -V
 
   # Set up requirements for flow
   - conda env create -f environment.yml
@@ -33,7 +26,6 @@ before_install:
   - pip install opencv-python
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
   - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.5.3-cp35-cp35m-manylinux1_x86_64.whl
-  - pip install redis~=2.10.6
 
   # Copy over local rllib changes (testing branch)
   - pushd $HOME/build/flow-project
