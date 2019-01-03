@@ -71,7 +71,7 @@ class BottleneckDensityExperiment(Experiment):
                 ret += reward
                 ret_list.append(reward)
 
-                step_outflow = self.env.get_bottleneck_outflow(20)
+                step_outflow = self.env.get_bottleneck_outflow_vehicles_per_hour(20)
                 density = self.env.get_bottleneck_density()
 
                 step_outflows.append(step_outflow)
@@ -82,7 +82,7 @@ class BottleneckDensityExperiment(Experiment):
             vels.append(vel)
             mean_densities.append(sum(step_densities[100:]) /
                                   (num_steps - 100))
-            outflow = self.env.get_bottleneck_outflow(10000)
+            outflow = self.env.get_bottleneck_outflow_vehicles_per_hour(10000)
             mean_outflows.append(outflow)
             mean_rets.append(np.mean(ret_list))
             ret_lists.append(ret_list)
