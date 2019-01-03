@@ -306,13 +306,15 @@ class Scenario(Serializable):
         raise NotImplementedError
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         Parameters
         ----------
         cls : flow.core.kernel.scenario.KernelScenario
             flow scenario kernel, with all the relevant methods implemented
+        net_params : flow.core.params.NetParams
+            network-specific parameters
         initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int

@@ -110,7 +110,7 @@ class HighwayScenario(Scenario):
         return edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         This method is just used for testing.
