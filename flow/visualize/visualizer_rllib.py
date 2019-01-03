@@ -112,7 +112,6 @@ def visualizer_rllib(args):
         sim_params.render = True
     elif args.render_mode == 'no_render':
         sim_params.render = False
-
     if args.save_render:
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
@@ -295,11 +294,12 @@ def create_parser():
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
     parser.add_argument(
-        '--render_mode',
+        '--render-mode',
         type=str,
-        default='sumo_gui',
-        help='Pick the render mode. Options include sumo_web3d, '
-             'rgbd, sumo_gui, and no_render')
+        default='sumo-gui',
+        help='Pick the render mode. Options include sumo-web3d, '
+             'rgbd, sumo-gui, and no-render. For more details'
+             'see the visualization tutorial.')
     parser.add_argument(
         '--save_render',
         action='store_true',
