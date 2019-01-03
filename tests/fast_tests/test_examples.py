@@ -125,6 +125,9 @@ class TestRllibExamples(unittest.TestCase):
     and confirming that it completes one rollout with two workers.
     # FIXME(ev) this test adds several minutes to the testing scheme
     """
+    def setUp(self):
+        if not ray.is_initialized():
+            ray.init(num_cpus=1)
 
     def test_coop_merge(self):
         alg_run, env_name, config = coop_setup()
@@ -186,5 +189,9 @@ class TestRllibExamples(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    ray.init(num_cpus=1)  # , redis_address="localhost:6379")
+    try:
+        ray.init(num_cpus=1)
+    except Exception:
+        pass  # , redis_address="localhost:6379")
     unittest.main()
+    ray.shutdown()

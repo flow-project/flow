@@ -149,7 +149,8 @@ def visualizer_rllib(args):
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    if hasattr(agent, "local_evaluator"):
+    # TODO(ev) we shouldn't need to do this, but we can't reuse the envs in tests
+    if hasattr(agent, "local_evaluator") and os.environ["TEST_FLAG"] != 'True':
         env = agent.local_evaluator.env
     else:
         env = gym.make(env_name)

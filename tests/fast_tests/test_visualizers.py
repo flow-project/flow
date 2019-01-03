@@ -65,3 +65,4 @@ class TestVisualizerRLlib(unittest.TestCase):
 if __name__ == '__main__':
     ray.init(num_cpus=1)
     unittest.main()
+    ray.shutdown()
