@@ -18,10 +18,10 @@ def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
     info_dict = exp.run(num_trials, num_steps)
 
     return info_dict['average_outflow'], \
-           np.mean(info_dict['velocities']), \
-           np.mean(info_dict['average_rollout_density_outflow']), \
-           info_dict['per_rollout_outflows'], \
-           flow_rate
+        np.mean(info_dict['velocities']), \
+        np.mean(info_dict['average_rollout_density_outflow']), \
+        info_dict['per_rollout_outflows'], \
+        flow_rate
 
 
 if __name__ == '__main__':
@@ -44,7 +44,7 @@ if __name__ == '__main__':
                           for d in densities]
     for output in ray.get(bottleneck_outputs):
         outflow, velocity, bottleneckdensity, \
-        per_rollout_outflows, flow_rate = output
+            per_rollout_outflows, flow_rate = output
         for i, _ in enumerate(per_rollout_outflows):
             rollout_outflows.append(per_rollout_outflows[i])
             rollout_inflows.append(flow_rate)

@@ -108,7 +108,8 @@ class BottleneckDensityExperiment(Experiment):
         return info_dict
 
 
-def bottleneck_example(flow_rate, horizon, restart_instance=False, render=None):
+def bottleneck_example(flow_rate, horizon, restart_instance=False,
+                       render=None):
     """
     Perform a simulation of vehicles on a bottleneck.
 
@@ -118,6 +119,8 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False, render=None):
         total inflow rate of vehicles into the bottleneck
     horizon : int
         time horizon
+    restart_instance: bool, optional
+        whether to restart the instance
     render: bool, optional
         specifies whether to use the gui during execution
 
