@@ -126,11 +126,6 @@ class AimsunKernelSimulation(KernelSimulation):
 
     def check_collision(self):
         """See parent class."""
-        veh_ids = self.master_kernel.vehicle.get_ids()
-        for veh in veh_ids:
-            headway = self.master_kernel.vehicle.get_headway(veh)
-            if headway <= 0:
-                return True
         return False
 
     def close(self):
