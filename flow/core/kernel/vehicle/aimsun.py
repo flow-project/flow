@@ -369,7 +369,7 @@ class AimsunKernelVehicle(KernelVehicle):
         # color rl vehicles red
         for veh_id in self.get_rl_ids():
             aimsun_id = self._id_flow2aimsun[veh_id]
-            self.kernel_api.vehicle.set_color(veh_id=aimsun_id, color=RED)
+            self.kernel_api.set_color(veh_id=aimsun_id, color=RED)
 
         # observed human-driven vehicles are cyan and unobserved are white
         for veh_id in self.get_human_ids():
@@ -458,10 +458,6 @@ class AimsunKernelVehicle(KernelVehicle):
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(veh, error) for veh in veh_id]
         return self.__vehicles[veh_id]['tracking_info'].CurrentSpeed
-
-    def get_absolute_position(self, veh_id, error=-1001):
-        """See parent class."""
-        raise NotImplementedError  # TODO check
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
