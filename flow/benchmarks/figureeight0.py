@@ -65,6 +65,7 @@ flow_params = dict(
             "target_velocity": 20,
             "max_accel": 3,
             "max_decel": 3,
+            "sort_vehicles": False
         },
     ),
 
