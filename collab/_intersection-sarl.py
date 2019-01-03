@@ -2,12 +2,12 @@
 from flow.controllers import IDMController
 from flow.controllers import RLController, IDMController, ConstAccController,\
     SumoCarFollowingController, SumoLaneChangeController,\
-    RandomConstAccController, RandomLaneChanger
+    RandomConstAccController, RandomLaneChanger, StaticLaneChanger
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection import IntersectionEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRouter
 import numpy as np
@@ -56,10 +56,10 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1': [('rl', 10)],
-                  'e_3': [('rl', 10)],
-                  'e_5': [('rl', 10)],
-                  'e_7': [('rl', 10)]}
+    experiment = {'e_1_sbc+': [('autonomous', 10)],
+                  'e_3_sbc+': [('autonomous', 10)],
+                  'e_5_sbc+': [('autonomous', 10)],
+                  'e_7_sbc+': [('autonomous', 10)]}
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
@@ -71,25 +71,28 @@ def intersection_example(render=None,
     for veh_id, veh_num in vehicle_data.items():
         vehicles.add(
             veh_id=veh_id,
-            speed_mode=0b01111,
-            lane_change_mode=0b011001010101,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
+            speed_mode=0b00110,
+            lane_change_mode=0b000100000000,
+            acceleration_controller=(ConstAccController, {}),
+            lane_change_controller=(StaticLaneChanger, {}),
             routing_controller=(IntersectionRouter, {}),
             num_vehicles=veh_num)
 
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
+    env_params = EnvParams(
+        additional_params=ADDITIONAL_ENV_PARAMS,
+    )
 
     net_params = NetParams(
         no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS.copy()
-        junction_type='allway_stop'
+        junction_type='traffic_light',
+        additional_params=ADDITIONAL_NET_PARAMS.copy(),
     )
 
     initial_config = InitialConfig(
         spacing='uniform',
         edges_distribution=experiment,
     )
+
     scenario = IntersectionScenario(
         name='intersection',
         vehicles=vehicles,
@@ -97,7 +100,7 @@ def intersection_example(render=None,
         net_params=net_params,
     )
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = IntersectionEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 
@@ -110,4 +113,4 @@ if __name__ == "__main__":
                                show_radius=False)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1000)
+    exp.run(1, 1500)

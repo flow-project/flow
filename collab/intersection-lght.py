@@ -86,6 +86,7 @@ def intersection_example(render=None,
 
     initial_config = InitialConfig(
         spacing='uniform',
+        junction_type='traffic_light',
         edges_distribution=experiment,
     )
     scenario = IntersectionScenario(
@@ -93,7 +94,7 @@ def intersection_example(render=None,
         vehicles=vehicles,
         initial_config=initial_config,
         net_params=net_params,
-        junction_type='traffic_light')
+    )
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
@@ -108,4 +109,4 @@ if __name__ == "__main__":
                                show_radius=False)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 1000)

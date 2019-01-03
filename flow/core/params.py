@@ -195,6 +195,7 @@ class NetParams:
 
     def __init__(self,
                  no_internal_links=True,
+                 junction_type=None,
                  inflows=None,
                  in_flows=None,
                  osm_path=None,
@@ -228,6 +229,7 @@ class NetParams:
             self.inflows = InFlows()
         else:
             self.inflows = inflows
+        self.junction_type = junction_type
         self.osm_path = osm_path
         self.netfile = netfile
         self.additional_params = additional_params or {}
