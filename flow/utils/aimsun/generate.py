@@ -186,9 +186,9 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     # determine junctions
     junctions = get_junctions(nodes)
     # add meters for all nodes in junctions
-    for node_id in junctions:
+    for node in junctions:
         node = model.getCatalog().findByName(
-            node_id, model.getType("GKNode"))
+            node['id'], model.getType("GKNode"))
         meters = create_node_meters(model, control_plan, node)
 
 
@@ -257,12 +257,16 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
 def get_junctions(nodes):
     junctions = []  # TODO check
     for node in nodes:
-        from_edges = [
-            edge['id'] for edge in edges if edge['from'] == node['id']]
-        to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
-        if len(to_edges) > 1 and len(from_edges) > 1:
-            junctions.append(node['id'])
+        if node["type"] == "traffic_light":
+            junctions.append(node)
+        # from_edges = [
+        #     edge['id'] for edge in edges if edge['from'] == node['id']]
+        # to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
+        # if len(to_edges) > 1 and len(from_edges) > 1:
+        #     junctions.append(node['id'])
     return junctions
+
+
 
 
 # get first and last nodes of an edge
