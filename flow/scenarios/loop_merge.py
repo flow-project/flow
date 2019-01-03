@@ -271,7 +271,7 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         try:
             increment_loop = \
-                (cls.network.length_loop - bunching) \
+                (length_loop - bunching) \
                 * net_params.additional_params["inner_lanes"] \
                 / (num_vehicles - num_merge_vehicles)
 
@@ -330,10 +330,10 @@ class TwoLoopsOneMergingScenario(Scenario):
 
             if initial_config.additional_params.get("merge_from_top", False):
                 x = [dict(cls.edgestarts)["top"] - x0] * \
-                    cls.network.net_params.additional_params["outer_lanes"]
+                    net_params.additional_params["outer_lanes"]
             else:
                 x = [dict(cls.edgestarts)["bottom"] - x0] * \
-                    cls.network.net_params.additional_params["outer_lanes"]
+                    net_params.additional_params["outer_lanes"]
             car_count = 0
             lane_count = 0
             while car_count < num_merge_vehicles:
