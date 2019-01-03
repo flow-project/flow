@@ -17,7 +17,7 @@ script_path=$(pwd)
 
 # define a 'name' command-line string flag
 DEFINE_string 'filepath' 'no_flag' 'path to outer folder with pkl files' 'f'
-DEFINE_boolean 'bmmode' false 'whether to check if benchmarks satisfy metrics' 'b'
+DEFINE_boolean 'bmmode' true 'whether to check if benchmarks satisfy metrics' 'b'
 
 # parse the command-line
 FLAGS "$@" || exit $?
