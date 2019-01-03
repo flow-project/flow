@@ -257,8 +257,9 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
 def get_junctions(nodes):
     junctions = []  # TODO check
     for node in nodes:
-        if node["type"] == "traffic_light":
-            junctions.append(node)
+        if "type" in node:
+            if node["type"] == "traffic_light":
+                junctions.append(node)
         # from_edges = [
         #     edge['id'] for edge in edges if edge['from'] == node['id']]
         # to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
