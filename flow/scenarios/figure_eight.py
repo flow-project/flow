@@ -4,7 +4,7 @@ import numpy as np
 from numpy import pi, sin, cos, linspace
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.scenarios.base_scenario import Scenario
 
 ADDITIONAL_NET_PARAMS = {
@@ -27,7 +27,7 @@ class Figure8Scenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a figure 8 scenario.
 
         Requires from net_params:
@@ -71,48 +71,48 @@ class Figure8Scenario(Scenario):
 
         nodes = [{
             "id": "center_intersection",
-            "x": repr(0),
-            "y": repr(0),
+            "x": 0,
+            "y": 0,
             "type": "priority"
         }, {
             "id": "top_upper_ring",
-            "x": repr(r),
-            "y": repr(2 * r),
+            "x": r,
+            "y": 2 * r,
             "type": "priority"
         }, {
             "id": "bottom_upper_ring_in",
-            "x": repr(r),
-            "y": repr(0),
+            "x": r,
+            "y": 0,
             "type": "priority"
         }, {
             "id": "left_upper_ring",
-            "x": repr(0),
-            "y": repr(r),
+            "x": 0,
+            "y": r,
             "type": "priority"
         }, {
             "id": "right_upper_ring",
-            "x": repr(2 * r),
-            "y": repr(r),
+            "x": 2 * r,
+            "y": r,
             "type": "priority"
         }, {
             "id": "top_lower_ring",
-            "x": repr(-r),
-            "y": repr(0),
+            "x": -r,
+            "y": 0,
             "type": "priority"
         }, {
             "id": "bottom_lower_ring",
-            "x": repr(-r),
-            "y": repr(-2 * r),
+            "x": -r,
+            "y": -2 * r,
             "type": "priority"
         }, {
             "id": "left_lower_ring",
-            "x": repr(-2 * r),
-            "y": repr(-r),
+            "x": -2 * r,
+            "y": -r,
             "type": "priority"
         }, {
             "id": "right_lower_ring_in",
-            "x": repr(0),
-            "y": repr(-r),
+            "x": 0,
+            "y": -r,
             "type": "priority"
         }]
 
@@ -132,28 +132,28 @@ class Figure8Scenario(Scenario):
             "priority": "78",
             "from": "right_lower_ring_in",
             "to": "center_intersection",
-            "length": repr(intersection_edgelen / 2)
+            "length": intersection_edgelen / 2
         }, {
             "id": "right_lower_ring_out",
             "type": "edgeType",
-            "priority": "78",
+            "priority": 78,
             "from": "center_intersection",
             "to": "left_upper_ring",
-            "length": repr(intersection_edgelen / 2)
+            "length": intersection_edgelen / 2
         }, {
             "id": "bottom_upper_ring_in",
             "type": "edgeType",
-            "priority": "46",
+            "priority": 46,
             "from": "bottom_upper_ring_in",
             "to": "center_intersection",
-            "length": repr(intersection_edgelen / 2)
+            "length": intersection_edgelen / 2
         }, {
             "id": "bottom_upper_ring_out",
             "type": "edgeType",
-            "priority": "46",
+            "priority": 46,
             "from": "center_intersection",
             "to": "top_lower_ring",
-            "length": repr(intersection_edgelen / 2)
+            "length": intersection_edgelen / 2
         }]
 
         # ring edges
@@ -167,12 +167,12 @@ class Figure8Scenario(Scenario):
             "to":
             "top_upper_ring",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * (1 - cos(t)), r * (1 + sin(t)))
+            [
+                (r * (1 - cos(t)), r * (1 + sin(t)))
                 for t in linspace(0, pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
             "top_upper_ring",
@@ -183,12 +183,12 @@ class Figure8Scenario(Scenario):
             "to":
             "right_upper_ring",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * (1 + sin(t)), r * (1 + cos(t)))
+            [
+                (r * (1 + sin(t)), r * (1 + cos(t)))
                 for t in linspace(0, pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
             "right_upper_ring",
@@ -199,12 +199,12 @@ class Figure8Scenario(Scenario):
             "to":
             "bottom_upper_ring_in",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (r * (1 + cos(t)), r * (1 - sin(t)))
+            [
+                (r * (1 + cos(t)), r * (1 - sin(t)))
                 for t in linspace(0, pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
             "top_lower_ring",
@@ -215,12 +215,12 @@ class Figure8Scenario(Scenario):
             "to":
             "left_lower_ring",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (-r + r * cos(t), -r + r * sin(t))
+            [
+                (-r + r * cos(t), -r + r * sin(t))
                 for t in linspace(pi / 2, pi, resolution)
-            ])
+            ]
         }, {
             "id":
             "left_lower_ring",
@@ -231,12 +231,12 @@ class Figure8Scenario(Scenario):
             "to":
             "bottom_lower_ring",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (-r + r * cos(t), -r + r * sin(t))
+            [
+                (-r + r * cos(t), -r + r * sin(t))
                 for t in linspace(pi, 3 * pi / 2, resolution)
-            ])
+            ]
         }, {
             "id":
             "bottom_lower_ring",
@@ -247,12 +247,12 @@ class Figure8Scenario(Scenario):
             "to":
             "right_lower_ring_in",
             "length":
-            repr(ring_edgelen),
+            ring_edgelen,
             "shape":
-            " ".join([
-                "%.2f,%.2f" % (-r + r * cos(t), -r + r * sin(t))
+            [
+                (-r + r * cos(t), -r + r * sin(t))
                 for t in linspace(-pi / 2, 0, resolution)
-            ])
+            ]
         }]
 
         return edges
@@ -263,8 +263,8 @@ class Figure8Scenario(Scenario):
         speed_limit = net_params.additional_params["speed_limit"]
         types = [{
             "id": "edgeType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types

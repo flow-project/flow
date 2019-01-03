@@ -4,12 +4,8 @@ from flow.controllers.base_lane_changing_controller import \
     BaseLaneChangeController
 
 
-class SumoLaneChangeController(BaseLaneChangeController):
+class SimLaneChangeController(BaseLaneChangeController):
     """A controller used to enforce sumo lane-change dynamics on a vehicle."""
-
-    def __init__(self, veh_id):
-        super().__init__(veh_id, lane_change_params={})
-        self.SumoController = True
 
     def get_lane_change_action(self, env):
         """See parent class."""

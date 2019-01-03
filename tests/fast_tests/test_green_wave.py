@@ -1,6 +1,6 @@
 import unittest
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 
 from tests.setup_scripts import grid_mxn_exp_setup
 
@@ -9,9 +9,10 @@ class TestEnvironment(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
         self.env, self.scenario = grid_mxn_exp_setup()
+        self.env.reset()
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = Experiment(self.env)
 
     def tearDown(self):
         # terminate the traci instance
@@ -49,9 +50,10 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
         self.env, self.scenario = grid_mxn_exp_setup()
+        self.env.reset()
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(self.env, self.scenario)
+        self.exp = Experiment(self.env)
 
     def gen_edges(self, row_num, col_num):
         edges = []

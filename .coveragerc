@@ -4,3 +4,9 @@ omit =
     */site-packages/nose/*
     *__init__*
     */scripts/*
+    */setup.py
+    *rllab*
+
+exclude_lines =
+    if __name__ == .__main__.:
+    raise NotImplementedError

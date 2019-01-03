@@ -8,8 +8,9 @@ from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 
 from flow.scenarios.figure_eight import Figure8Scenario
 from flow.controllers import RLController, IDMController, ContinuousRouter
-from flow.core.vehicles import Vehicles
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import VehicleParams
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
+    SumoCarFollowingParams
 from rllab.envs.gym_env import GymEnv
 
 HORIZON = 1500
@@ -17,14 +18,16 @@ HORIZON = 1500
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    sumo_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = SumoParams(sim_step=0.1, render=True)
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(ContinuousRouter, {}),
-        speed_mode="no_collide",
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         num_vehicles=1)
     vehicles.add(
         veh_id="idm",
@@ -32,7 +35,9 @@ def run_task(*_):
             "noise": 0.2
         }),
         routing_controller=(ContinuousRouter, {}),
-        speed_mode="no_collide",
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         num_vehicles=13)
 
     additional_env_params = {
@@ -62,7 +67,7 @@ def run_task(*_):
         initial_config=initial_config)
 
     env_name = "AccelEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

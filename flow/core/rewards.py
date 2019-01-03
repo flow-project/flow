@@ -3,7 +3,7 @@
 import numpy as np
 
 
-def desired_velocity(env, fail=False):
+def desired_velocity(env, fail=False, edge_list=None):
     """Encourage proximity to a desired velocity.
 
     This function measures the deviation of a system of vehicles from a
@@ -21,14 +21,22 @@ def desired_velocity(env, fail=False):
 
     Parameters
     ----------
-    env: flow.envs.Env type
+    env : flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
-    fail: bool
+    fail : bool, optional
         specifies if any crash or other failure occurred in the system
+    edge_list : list  of str, optional
+        list of edges the reward is computed over. If no edge_list is defined,
+        the reward is computed over all edges
     """
-    vel = np.array(env.vehicles.get_speed(env.vehicles.get_ids()))
-    num_vehicles = env.vehicles.num_vehicles
+    if edge_list is None:
+        veh_ids = env.vehicles.get_ids()
+    else:
+        veh_ids = env.vehicles.get_ids_by_edge(edge_list)
+
+    vel = np.array(env.vehicles.get_speed(veh_ids))
+    num_vehicles = len(veh_ids)
 
     if any(vel < -100) or fail:
         return 0.
@@ -50,7 +58,6 @@ def average_velocity(env, fail=False):
         return 0.
     if len(vel) == 0:
         return 0.
-    # return sum(vel) / 3 #just cuz
 
     return np.mean(vel)
 
@@ -68,42 +75,12 @@ def reward_density(env):
     return env.vehicles.get_num_arrived() / env.sim_step
 
 
-def max_edge_velocity(env, edge_list, fail=False):
-    """Reward desired velocity on a restricted set of edges.
-
-    Parameters
-    ----------
-    env: flow.envs.Env type
-        the environment variable, which contains information on the current
-        state of the system.
-    edge_list: list <str>
-        list of edges the reward is computed over
-    fail: bool
-        specifies if any crash or other failure occurred in the system
-    """
-    veh_ids = env.vehicles.get_ids_by_edge(edge_list)
-    vel = np.array(env.vehicles.get_speed(veh_ids))
-    num_vehicles = len(veh_ids)
-
-    if any(vel < -100) or fail:
-        return 0.
-
-    target_vel = env.env_params.additional_params['target_velocity']
-    max_cost = np.array([target_vel] * num_vehicles)
-    max_cost = np.linalg.norm(max_cost)
-
-    cost = vel - target_vel
-    cost = np.linalg.norm(cost)
-
-    return max(max_cost - cost, 0)
-
-
 def rl_forward_progress(env, gain=0.1):
     """A reward function used to reward the RL vehicles travelling forward.
 
     Parameters
     ----------
-    env: flow.envs.Env type
+    env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
     gain: float
@@ -124,9 +101,10 @@ def min_delay(env):
 
     This function measures the deviation of a system of vehicles from all the
     vehicles smoothly travelling at a fixed speed to their destinations.
+
     Parameters
     ----------
-    env: flow.envs.Env type
+    env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
     """
@@ -152,7 +130,7 @@ def min_delay_unscaled(env):
 
     Parameters
     ----------
-    env: flow.envs.Env type
+    env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
     """
@@ -169,17 +147,6 @@ def min_delay_unscaled(env):
     return cost / len(env.vehicles.get_ids())
 
 
-def penalize_tl_changes(actions, gain=1):
-    """A reward function that penalizes delay and traffic light switches.
-
-    :param actions: {list of booleans} - indicates whether a switch is desired
-    :param gain: float} - multiplicative factor on the action penalty
-    :return: a penalty on vehicle delays and traffic light switches
-    """
-    action_penalty = gain * np.sum(np.round(actions))
-    return -action_penalty
-
-
 def penalize_standstill(env, gain=1):
     """A reward function that penalizes vehicle standstill
 
@@ -189,8 +156,11 @@ def penalize_standstill(env, gain=1):
 
     Parameters
     ----------
-    actions:{list of booleans} - indicates whether a switch is desired
-    gain:{float} - multiplicative factor on the action penalty
+    env: flow.envs.Env
+        the environment variable, which contains information on the current
+        state of the system.
+    gain : float
+        multiplicative factor on the action penalty
     """
     veh_ids = env.vehicles.get_ids()
     vel = np.array(env.vehicles.get_speed(veh_ids))
@@ -202,14 +172,9 @@ def penalize_standstill(env, gain=1):
 def penalize_near_standstill(env, thresh=0.3, gain=1):
     veh_ids = env.vehicles.get_ids()
     vel = np.array(env.vehicles.get_speed(veh_ids))
-    penalize = len(vel[vel < 0.3])
+    penalize = len(vel[vel < thresh])
     penalty = gain * penalize
     return -penalty
-
-
-def penalize_jerkiness(env, gain=1):
-    """A penalty function the penalizes jerky driving"""
-    pass
 
 
 def penalize_headway_variance(vehicles,
@@ -221,10 +186,10 @@ def penalize_headway_variance(vehicles,
 
     Parameters
     ----------
-    vehicles: flow.core.vehicles.Vehicles type
+    vehicles: flow.core.vehicles.Vehicles
         contains the state of all vehicles in the network (generally
         self.vehicles)
-    vids: list <str>
+    vids: list of str
         list of ids for vehicles
     normalization: float, optional
         constant for scaling (down) the headways
@@ -241,7 +206,7 @@ def penalize_headway_variance(vehicles,
 
 
 def punish_small_rl_headways(env,
-                             headway_threshold,
+                             headway_threshold=5,
                              penalty_gain=1,
                              penalty_exponent=1):
     """A reward function used to train rl vehicles to avoid small headways.
@@ -251,7 +216,7 @@ def punish_small_rl_headways(env,
 
     Parameters
     ----------
-    env: flow.envs.Env type
+    env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
     headway_threshold: float
@@ -268,7 +233,6 @@ def punish_small_rl_headways(env,
                 (((headway_threshold - env.vehicles.get_headway(veh_id)) /
                   headway_threshold) ** penalty_exponent) * penalty_gain
 
-    # return max_headway_penalty - headway_penalty
     return -np.abs(headway_penalty)
 
 
@@ -280,7 +244,7 @@ def punish_rl_lane_changes(env, penalty=1):
 
     Parameters
     ----------
-    env: flow.envs.Env type
+    env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
     penalty : float, optional
@@ -301,8 +265,8 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
 
     Parameters
     ----------
-    env : Environment
-        Contains the state of the environment at a time-step
+    env : flow.envs.Env
+        contains the state of the environment at a time-step
     edge: str
         The edge on which to penalize queues
     lane : int
@@ -314,9 +278,9 @@ def punish_queues_in_lane(env, edge, lane, penalty_gain=1, penalty_exponent=1):
 
     Returns
     -------
-    int
-        total reward (in this case a negative cost) corresponding
-        to the queues in the lane in question
+    float
+        total reward (in this case a negative cost) corresponding to the queues
+        in the lane in question
     """
     # IDs of all vehicles in passed-in lane
     lane_ids = [
@@ -332,8 +296,8 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
 
     Parameters
     ----------
-    env : Environment
-        SUMO environment
+    env : flow.envs.Env
+        contains the state of the environment at a time-step
     reward_gain : int, optional
         Multiplicative gain on reward
     reward_exponent : int, optional
@@ -341,7 +305,7 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
 
     Returns
     -------
-    int
+    float
         Reward value
     """
     total_reward = 0
@@ -351,12 +315,7 @@ def reward_rl_opening_headways(env, reward_gain=0.1, reward_exponent=1):
             continue
         follower_headway = env.vehicles.get_headway(follower_id)
         if follower_headway < 0:
-            print('negative follower headway of:', follower_headway)
-            print('rl id:', rl_id)
-            print('follower id:', follower_id)
             continue
         total_reward += follower_headway ** reward_exponent
-    # print(total_reward)
-    if total_reward < 0:
-        print('negative total reward of:', total_reward)
+
     return total_reward * reward_gain

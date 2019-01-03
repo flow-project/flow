@@ -43,4 +43,4 @@ A brief example of a multiagent env:
 
 
 For further details look at our
-`Multiagent examples <https://github.com/flow-project/flow/examples/rllib/multiagent_exps>`_
+`Multiagent examples <https://github.com/flow-project/flow/tree/master/examples/rllib/multiagent_exps>`_
