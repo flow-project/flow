@@ -178,30 +178,18 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                     # add the turning to the node
                     new_node.addTurning(turn, False, True)
 
-    # create a new control plan
-    control_plan = create_control_plan(model, "New Control Plan")
+    # get the control plan
+    control_plan = model.getCatalog().findByName(
+            "Control Plan", model.getType("GKControlPlan"))
 
     # add traffic lights
     # determine junctions
-    junctions = [] # TODO get this
-    for node in nodes:
-        from_edges = [
-            edge['id'] for edge in edges if edge['from'] == node['id']]
-        to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
-        if len(to_edges) > 1 and len(from_edges) > 1:
-            junctions.append(node['id'])
-            # junctions[node['id']] = {}
-            # junctions[node['id']]["from_edges"] = from_edges
-            # junctions[node['id']]["to_edges"] = to_edges
-
-    # add meters for all nodes in juctions
+    junctions = get_junctions(nodes)
+    # add meters for all nodes in junctions
     for node_id in junctions:
         node = model.getCatalog().findByName(
             node_id, model.getType("GKNode"))
-        enter_sections = node.getEntranceSections()
-        for section in enter_sections:
-            print(section.getId())
-            create_meters(model, section)
+        meters = create_node_meters(model, control_plan, node)
 
 
     # set vehicle types
@@ -264,6 +252,17 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
 
     # save
     gui.saveAs('flow.ang')
+
+
+def get_junctions(nodes):
+    junctions = []  # TODO check
+    for node in nodes:
+        from_edges = [
+            edge['id'] for edge in edges if edge['from'] == node['id']]
+        to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
+        if len(to_edges) > 1 and len(from_edges) > 1:
+            junctions.append(node['id'])
+    return junctions
 
 
 # get first and last nodes of an edge
@@ -461,37 +460,49 @@ def set_signal_times(cp, node, signal_groups):  #TODO generalize
         from_time = from_time + 20
 
 
-def create_meters(model, section):
+def create_meter(model, section):
     meter_length = 2
     pos = section.getLanesLength2D() - meter_length
     type = model.getType("GKMetering")
-    print("pos: ", pos)
     cmd = model.createNewCmd(model.getType("GKSectionObject"))
-    cmd.init(type, section, 0, 0, pos,
-             meter_length)  # TODO double check the zeros
+    cmd.init(type, section, 0, 0, pos, meter_length)  # TODO double check the zeros
     model.getCommander().addCommand(cmd)
-    res = cmd.createdObject()
-    print(res.getId())
+    meter = cmd.createdObject()
+    meter.setName("meter_{}".format(section.getName()))
+    return meter
 
 
-def set_metering_times(cp, node, signal_groups):  #TODO generalize
-    cp_node = cp.createControlJunction(node)
-    cp_node.setCycle(40)
-    cp_node.setControlJunctionType(GKControlJunction.eFixedControl)
-    from_time = 0;
-    # add phases
-    for signal in signal_groups:
-        phase1 = cp_node.createPhase()
-        phase1.setFrom(from_time)
-        phase1.setDuration(15)
-        phase1.addSignal(signal.getId())
+def set_metering_times(
+        cp, meter, cycle, green, yellow, offset, min_green, max_green):
+    cp_meter = cp.createControlMetering(meter)
+    cp_meter.setControlMeteringType(GKControlMetering.eExternal)
+    cp_meter.setCycle(cycle)
+    cp_meter.setGreen(green)
+    cp_meter.setYellowTime(yellow)
+    cp_meter.setOffset(offset)
+    cp_meter.setMinGreen(min_green)
+    cp_meter.setMaxGreen(max_green)
 
-        phase2 = cp_node.createPhase()
-        phase2.setFrom(from_time + 15)
-        phase2.setDuration(5)
-        phase2.setInterphase(True)
-        from_time = from_time + 20
 
+def create_node_meters(model, cp, node):
+    meters = []
+    enter_sections = node.getEntranceSections()
+    for section in enter_sections:
+        meter = create_meter(model, section)
+        # default light params
+        cycle = 40
+        green = 17
+        yellow = 3
+        min_green = 5
+        max_green = 40
+        # offset for vertical edges is 20 and for horizontal edges is 0
+        if "bot" in meter.getName() or "top" in meter.getName():
+            offset = 0
+        elif "left" in meter.getName() or "right" in meter.getName():
+            offset = 20
+        set_metering_times(cp, meter, cycle, green, yellow, offset, min_green,
+                           max_green)
+        meters.append(meter)
 
 
 with open('/home/yashar/git_clone/flow/flow/core/kernel/scenario/data.json') as f:
