@@ -18,8 +18,8 @@ from examples.rllib.green_wave import setup_exps as green_wave_setup
 from examples.rllib.stabilizing_highway import setup_exps as highway_setup
 from examples.rllib.stabilizing_the_ring import setup_exps as ring_setup
 from examples.rllib.velocity_bottleneck import setup_exps as bottleneck_setup
-from examples.rllib.multiagent_exps.multiagent_figure_eight \
-    import setup_exps as multi_figure_eight_setup
+# from examples.rllib.multiagent_exps.multiagent_figure_eight \
+#    import setup_exps as multi_figure_eight_setup
 from examples.rllib.multiagent_exps.multiagent_stabilizing_the_ring \
     import setup_exps as multi_ring_setup
 
