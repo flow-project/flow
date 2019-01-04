@@ -62,9 +62,6 @@ class AccelEnv(Env):
                 raise KeyError(
                     'Environment parameter \'{}\' not supplied'.format(p))
 
-        # initialize the list of sorted vehicle IDs
-        self.sorted_ids = scenario.vehicles.get_ids()
-
         # variables used to sort vehicles by their initial position plus
         # distance traveled
         self.prev_pos = dict()
@@ -141,10 +138,8 @@ class AccelEnv(Env):
                     % self.scenario.length
                 self.prev_pos[veh_id] = this_pos
 
-        # collect list of sorted vehicle ids
-        self.sorted_ids = self.sort_by_position()
-
-    def sort_by_position(self):
+    @property
+    def sorted_ids(self):
         """Sort the vehicle ids of vehicles in the network by position.
 
         This environment does this by sorting vehicles by their absolute
@@ -156,13 +151,13 @@ class AccelEnv(Env):
             a list of all vehicle IDs sorted by position
         """
         if self.env_params.additional_params['sort_vehicles']:
-            return sorted(self.vehicles.get_ids(), key=self.get_abs_position)
+            return sorted(self.vehicles.get_ids(), key=self._get_abs_position)
         else:
             return self.vehicles.get_ids()
 
-    def get_abs_position(self, veh_id):
-        """Returns the absolute position of a vehicle."""
-        return self.absolute_position[veh_id]
+    def _get_abs_position(self, veh_id):
+        """Return the absolute position of a vehicle."""
+        return self.absolute_position.get(veh_id, -1001)
 
     def reset(self):
         """See parent class.
