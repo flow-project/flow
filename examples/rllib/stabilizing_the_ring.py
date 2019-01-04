@@ -7,7 +7,10 @@ vehicles in a variable length ring road.
 import json
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 

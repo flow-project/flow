@@ -2,7 +2,6 @@
 
 from flow.core import rewards
 from flow.envs.base_env import Env
-from flow.envs.multiagent_env import MultiEnv
 
 from gym.spaces.box import Box
 
@@ -62,9 +61,6 @@ class AccelEnv(Env):
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter \'{}\' not supplied'.format(p))
-
-        # initialize the list of sorted vehicle IDs
-        self.sorted_ids = scenario.vehicles.get_ids()
 
         # variables used to sort vehicles by their initial position plus
         # distance traveled
@@ -128,23 +124,21 @@ class AccelEnv(Env):
                 self.k.vehicle.set_observed(veh_id)
 
         # update the "absolute_position" variable
-        for veh_id in self.vehicles.get_ids():
-            this_pos = self.get_x_by_id(veh_id)
+        for veh_id in self.k.vehicle.get_ids():
+            this_pos = self.k.vehicle.get_x_by_id(veh_id)
 
             if this_pos == -1001:
                 # in case the vehicle isn't in the network
                 self.absolute_position[veh_id] = -1001
             else:
-                change = this_pos - self.prev_pos[veh_id]
+                change = this_pos - self.prev_pos.get(veh_id, this_pos)
                 self.absolute_position[veh_id] = \
-                    (self.absolute_position[veh_id] + change) \
-                    % self.scenario.length
+                    (self.absolute_position.get(veh_id, this_pos) + change) \
+                    % self.k.scenario.length()
                 self.prev_pos[veh_id] = this_pos
 
-        # collect list of sorted vehicle ids
-        self.sorted_ids = self.sort_by_position()
-
-    def sort_by_position(self):
+    @property
+    def sorted_ids(self):
         """Sort the vehicle ids of vehicles in the network by position.
 
         This environment does this by sorting vehicles by their absolute
@@ -156,16 +150,13 @@ class AccelEnv(Env):
             a list of all vehicle IDs sorted by position
         """
         if self.env_params.additional_params['sort_vehicles']:
-            sorted_ids = sorted(
-                self.vehicles.get_ids(),
-                key=self.get_abs_position)
-            return sorted_ids
+            return sorted(self.k.vehicle.get_ids(), key=self._get_abs_position)
         else:
-            return self.vehicles.get_ids()
+            return self.k.vehicle.get_ids()
 
-    def get_abs_position(self, veh_id):
-        """Returns the absolute position of a vehicle."""
-        return self.absolute_position[veh_id]
+    def _get_abs_position(self, veh_id):
+        """Return the absolute position of a vehicle."""
+        return self.absolute_position.get(veh_id, -1001)
 
     def reset(self):
         """See parent class.
@@ -173,53 +164,10 @@ class AccelEnv(Env):
         This also includes updating the initial absolute position and previous
         position.
         """
-        super().reset()
+        obs = super().reset()
 
-        for veh_id in self.vehicles.get_ids():
-            self.absolute_position[veh_id] = self.get_x_by_id(veh_id)
-            self.prev_pos[veh_id] = self.get_x_by_id(veh_id)
+        for veh_id in self.k.vehicle.get_ids():
+            self.absolute_position[veh_id] = self.k.vehicle.get_x_by_id(veh_id)
+            self.prev_pos[veh_id] = self.k.vehicle.get_x_by_id(veh_id)
 
-
-class MultiAgentAccelEnv(AccelEnv, MultiEnv):
-    """Adversarial multi-agent env.
-
-    Multi-agent env with an adversarial agent perturbing
-    the accelerations of the autonomous vehicle
-    """
-    def _apply_rl_actions(self, rl_actions):
-        """See class definition."""
-        sorted_rl_ids = [
-            veh_id for veh_id in self.sorted_ids
-            if veh_id in self.k.vehicle.get_rl_ids()
-        ]
-        av_action = rl_actions['av']
-        adv_action = rl_actions['adversary']
-        perturb_weight = self.env_params.additional_params['perturb_weight']
-        rl_action = av_action + perturb_weight * adv_action
-        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_action)
-
-    def compute_reward(self, rl_actions, **kwargs):
-        """The agents receives opposing speed rewards.
-
-        The agent receives the class definition reward,
-        the adversary receives the negative of the agent reward
-        """
-        if self.env_params.evaluate:
-            reward = np.mean(
-                self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
-            return {'av': reward, 'adversary': -reward}
-        else:
-            reward = rewards.desired_velocity(self, fail=kwargs['fail'])
-            return {'av': reward, 'adversary': -reward}
-
-    def get_state(self, **kwargs):
-        """See class definition for the state.
-
-        The adversary state and the agent state are identical.
-        """
-        state = np.array([[
-            self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed(),
-            self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
-        ] for veh_id in self.sorted_ids])
-        state = np.ndarray.flatten(state)
-        return {'av': state, 'adversary': state}
+        return obs

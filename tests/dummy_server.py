@@ -15,6 +15,7 @@ import flow.utils.aimsun.constants as ac  # noqa
 PORT = 9999
 entered_vehicles = [1, 2, 3, 4, 5]
 exited_vehicles = [6, 7, 8, 9, 10]
+tl_ids = [1, 2, 3, 4, 5]
 
 
 def send_message(conn, in_format, values):
@@ -120,6 +121,19 @@ def threaded_client(conn):
                              in_format='i i i f f f f f f f f f f f f f f f f '
                                        'i i i i i i i i',
                              values=output)
+
+            elif data == ac.TL_GET_IDS:
+                send_message(conn, in_format='i', values=(0,))
+                data = None
+                while data is None:
+                    data = conn.recv(256)
+                global tl_ids
+                if len(tl_ids) == 0:
+                    output = '-1'
+                else:
+                    output = ':'.join([str(e) for e in tl_ids])
+                conn.send(output)
+                tl_ids = []
 
             # in case the message is unknown, return -1001
             else:
