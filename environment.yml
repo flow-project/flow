@@ -8,7 +8,7 @@ dependencies:
     - six==1.11.0
     - path.py
     - python-dateutil==2.7.3
-    - tensorflow==1.10.0
+    - tensorflow==1.9.0
     - cloudpickle==0.5.3
     - setuptools==39.1.0
     - pip:
@@ -21,6 +21,7 @@ dependencies:
         - lz4
         - ray==0.6.1
         - setproctitle
+        - psutil
         - opencv-python
         - redis~=2.10.6
         - git+https://github.com/Theano/Theano.git@adfe319ce6b781083d8dc3200fb4481b00853791#egg=Theano
