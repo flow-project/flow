@@ -9,7 +9,7 @@ A few points of clarification:
 
 * Occasionally we describe environments as *fully observed*. By this we mean that all relevant pieces of information (speed, relative positions, traffic light states) of the system are available to the controller. *Partially observed* refers to only a subset being available. This is the default configuration of the environment and the set of observations can be customized.
 
-* Each environment has customizable environment/networks parameters that can be used to configure it beyond what is described here. Particularly pertinent parameters are described. Additional parameters can be found by examining the documentation in the relevant scenario and environment files.
+* Each environment has customizable environment/network parameters that can be used to configure it beyond what is described here. Particularly pertinent parameters are described. Additional parameters can be found by examining the documentation in the relevant scenario and environment files.
 
 * In the figures below, the following key is used for vehicle colors, where AV stands for autonomous vehicle.
 
