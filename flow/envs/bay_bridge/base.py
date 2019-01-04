@@ -113,7 +113,7 @@ class BayBridgeEnv(Env):
                 lane_change_mode = self.cars_before_ramp[veh_id][
                     "lane_change_mode"]
                 color = self.cars_before_ramp[veh_id]["color"]
-                self.traci_connection.vehicle.setColor(veh_id, color)
+                self.k.vehicle.set_color(veh_id, color)
                 self.traci_connection.vehicle.setLaneChangeMode(
                     veh_id, lane_change_mode)
 
@@ -132,15 +132,14 @@ class BayBridgeEnv(Env):
                         # Disable lane changes inside Toll Area
                         lane_change_mode = self.traci_connection.vehicle.\
                             getLaneChangeMode(veh_id)
-                        color = self.traci_connection.vehicle.getColor(veh_id)
+                        color = self.k.vehicle.get_color(veh_id)
                         self.cars_before_ramp[veh_id] = {
                             "lane_change_mode": lane_change_mode,
                             "color": color
                         }
                         self.traci_connection.vehicle.setLaneChangeMode(
                             veh_id, 512)
-                        self.traci_connection.vehicle.setColor(
-                            veh_id, (0, 255, 255, 0))
+                        self.k.vehicle.set_color(veh_id, (0, 255, 255))
 
     def apply_toll_bridge_control(self):
         cars_that_have_left = []
@@ -150,7 +149,7 @@ class BayBridgeEnv(Env):
                 lane_change_mode = \
                     self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
                 color = self.cars_waiting_for_toll[veh_id]["color"]
-                self.traci_connection.vehicle.setColor(veh_id, color)
+                self.k.vehicle.set_color(veh_id, color)
                 self.traci_connection.vehicle.setLaneChangeMode(
                     veh_id, lane_change_mode)
                 if lane not in FAST_TRACK_ON:
@@ -184,15 +183,14 @@ class BayBridgeEnv(Env):
                         # Disable lane changes inside Toll Area
                         lc_mode = self.traci_connection.vehicle.\
                             getLaneChangeMode(veh_id)
-                        color = self.traci_connection.vehicle.getColor(veh_id)
+                        color = self.k.vehicle.get_color(veh_id)
                         self.cars_waiting_for_toll[veh_id] = {
                             "lane_change_mode": lc_mode,
                             "color": color
                         }
                         self.traci_connection.vehicle.setLaneChangeMode(
                             veh_id, 512)
-                        self.traci_connection.vehicle.setColor(
-                            veh_id, (255, 0, 255, 0))
+                        self.k.vehicle.set_color(veh_id, (255, 0, 255))
                     else:
                         if pos > 120:
                             if self.toll_wait_time[lane] < 0:

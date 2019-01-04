@@ -65,8 +65,8 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
     def get_state(self):
         """See class definition."""
         obs = {}
-        for rl_id in self.vehicles.get_rl_ids():
-            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+        for rl_id in self.k.vehicle.get_rl_ids():
+            lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
 
             # normalizers
             max_speed = 15.

@@ -187,6 +187,14 @@ class KernelVehicle(object):
         """Return the list of observed vehicles."""
         raise NotImplementedError
 
+    def get_color(self, veh_id):
+        """Return and RGB tuple of the color of the specified vehicle."""
+        raise NotImplementedError
+
+    def set_color(self, veh_id, color):
+        """Set the color of the specified vehicle with the RGB tuple."""
+        raise NotImplementedError
+
     ###########################################################################
     #                        State acquisition methods                        #
     ###########################################################################
