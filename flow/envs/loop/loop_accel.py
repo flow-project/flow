@@ -106,9 +106,9 @@ class AccelEnv(Env):
     def get_state(self):
         """See class definition."""
         speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
-                 for veh_id in self.sorted_ids]
+                 for veh_id in self.vehicles.get_ids()]
         pos = [self.get_x_by_id(veh_id) / self.scenario.length
-               for veh_id in self.sorted_ids]
+               for veh_id in self.vehicles.get_ids()]
 
         return np.array(speed + pos)
 
@@ -165,8 +165,10 @@ class AccelEnv(Env):
         This also includes updating the initial absolute position and previous
         position.
         """
-        super().reset()
+        obs = super().reset()
 
         for veh_id in self.vehicles.get_ids():
             self.absolute_position[veh_id] = self.get_x_by_id(veh_id)
             self.prev_pos[veh_id] = self.get_x_by_id(veh_id)
+
+        return obs
