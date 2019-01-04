@@ -13,9 +13,9 @@ from bisect import bisect_left
 import itertools
 
 # colors for vehicles
-WHITE = (255, 255, 255, 255)
-CYAN = (0, 255, 255, 255)
-RED = (255, 0, 0, 255)
+WHITE = (255, 255, 255)
+CYAN = (0, 255, 255)
+RED = (255, 0, 0)
 
 
 class TraCIVehicle(KernelVehicle):
@@ -891,7 +891,7 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_rl_ids():
             try:
                 # color rl vehicles red
-                self.kernel_api.vehicle.setColor(vehID=veh_id, color=RED)
+                self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException):
                 pass
 
@@ -899,13 +899,29 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                self.kernel_api.vehicle.setColor(vehID=veh_id, color=color)
+                self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
                 pass
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
             self.remove_observed(veh_id)
+
+    def get_color(self, veh_id):
+        """See parent class.
+
+        This does not pass the last term (i.e. transparency).
+        """
+        r, g, b, t = self.kernel_api.vehicle.getColor(veh_id)
+        return r, g, b
+
+    def set_color(self, veh_id, color):
+        """See parent class.
+
+        The last term for sumo (transparency) is set to 255.
+        """
+        r, g, b = color
+        self.kernel_api.vehicle.setColor(vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, route_id, pos, lane, speed):
         """See parent class."""

@@ -17,10 +17,10 @@ import numpy as np
 os.environ["TEST_FLAG"] = "True"
 
 # colors for vehicles
-WHITE = (255, 255, 255, 255)
-CYAN = (0, 255, 255, 255)
-RED = (255, 0, 0, 255)
-YELLOW = (255, 255, 0, 255)
+WHITE = (255, 255, 255)
+CYAN = (0, 255, 255)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
 
 
 class TestShuffle(unittest.TestCase):
@@ -367,7 +367,7 @@ class TestVehicleColoring(unittest.TestCase):
         # avoids unnecessary API calls)
         for veh_id in env.k.vehicle.get_ids():
             self.assertEqual(
-                env.traci_connection.vehicle.getColor(veh_id), YELLOW)
+                env.k.vehicle.get_color(veh_id), YELLOW)
 
         # a little hack to ensure the colors change
         env.sim_params.render = True
@@ -382,13 +382,13 @@ class TestVehicleColoring(unittest.TestCase):
         for veh_id in env.k.vehicle.get_ids():
             if veh_id == "human_0":
                 self.assertEqual(
-                    env.traci_connection.vehicle.getColor(veh_id), CYAN)
+                    env.k.vehicle.get_color(veh_id), CYAN)
             elif veh_id == "rl_0":
                 self.assertEqual(
-                    env.traci_connection.vehicle.getColor(veh_id), RED)
+                    env.k.vehicle.get_color(veh_id), RED)
             else:
                 self.assertEqual(
-                    env.traci_connection.vehicle.getColor(veh_id), WHITE)
+                    env.k.vehicle.get_color(veh_id), WHITE)
 
 
 if __name__ == '__main__':
