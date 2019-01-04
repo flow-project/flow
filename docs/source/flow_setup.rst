@@ -186,13 +186,10 @@ RLlib is one such library.
 First visit <https://github.com/flow-project/ray/blob/master/doc/source/installation.rst> and
 install the required packages.
 
-If you are not intending to develop RL algorithms or customize rllib run
+If you are not intending to develop RL algorithms or customize rllib you don't need to do anything,
+Ray was installed when you created the conda environment. 
 
-::
-
-    pip install ray==0.6.1
-
-If you are intended to modify Ray, the installation process for this library is as follows:
+If you are intending to modify Ray, the installation process for this library is as follows:
 
 ::
 
