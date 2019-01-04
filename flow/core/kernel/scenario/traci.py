@@ -387,7 +387,7 @@ class TraCIScenario(KernelScenario):
         edges : dict <dict>
             Key = name of the edge
             Elements = length, lanes, speed
-        connection_data : dict < dict < list<tup> > >
+        connection_data : dict < dict < list < (edge, pos) > > >
             Key = name of the arriving edge
                 Key = lane index
                 Element = list of edge/lane pairs that a vehicle can traverse
@@ -592,7 +592,7 @@ class TraCIScenario(KernelScenario):
         edges : dict <dict>
             Key = name of the edge
             Elements = length, lanes, speed
-        connection_data : dict < dict < list<tup> > >
+        connection_data : dict < dict < list < (edge, pos) > > >
             Key = name of the arriving edge
                 Key = lane index
                 Element = list of edge/lane pairs that a vehicle can traverse
@@ -774,7 +774,7 @@ class TraCIScenario(KernelScenario):
         net_data : dict <dict>
             Key = name of the edge/junction
             Element = lanes, speed, length
-        connection_data : dict < dict < dict < list<tup> > > >
+        connection_data : dict < dict < list < (edge, pos) > > >
             Key = "prev" or "next", indicating coming from or to this
             edge/lane pair
                 Key = name of the edge
