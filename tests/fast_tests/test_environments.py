@@ -269,7 +269,7 @@ class TestAccelEnv(unittest.TestCase):
     def test_sorting(self):
         """
         Tests that the sorting method returns a list of ids sorted by the
-        get_absolute_position() method when sorting is requested, and does
+        absolute_position variable when sorting is requested, and does
         nothing if it is not requested.
         """
         env_params = self.env_params
@@ -310,7 +310,7 @@ class TestAccelEnv(unittest.TestCase):
         env.additional_command()
 
         sorted_ids = list(env.sorted_ids)
-        ids = env.vehicles.get_ids()
+        ids = env.k.vehicle.get_ids()
 
         # ensure that the list of ids did not change
         self.assertListEqual(sorted_ids, ids)

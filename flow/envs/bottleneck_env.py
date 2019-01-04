@@ -542,8 +542,8 @@ class BottleNeckAccelEnv(BottleneckEnv):
         direction = np.round(actions[1::2])[:num_rl]
 
         # re-arrange actions according to mapping in observation space
-        sorted_rl_ids = sorted(self.vehicles.get_rl_ids(),
-                               key=self.get_x_by_id)
+        sorted_rl_ids = sorted(self.k.vehicle.get_rl_ids(),
+                               key=self.k.vehicle.get_x_by_id)
 
         # represents vehicles that are allowed to change lanes
         non_lane_changing_veh = \

@@ -59,7 +59,7 @@ class Experiment:
         self.env = env
 
         logging.info(" Starting experiment {} at {}".format(
-            env.k.scenario.name, str(datetime.datetime.utcnow())))
+            env.scenario.name, str(datetime.datetime.utcnow())))
 
         logging.info("Initializing environment.")
 

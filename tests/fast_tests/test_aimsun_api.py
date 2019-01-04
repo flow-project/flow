@@ -125,3 +125,11 @@ class TestDummyAPI(unittest.TestCase):
         self.assertEqual(tracking_info.idLaneFrom, 25)
         self.assertEqual(tracking_info.idSectionTo, 26)
         self.assertEqual(tracking_info.idLaneTo, 27)
+
+        # test the get traffic light IDs method when the list is not empty
+        tl_ids = self.kernel_api.get_traffic_light_ids()
+        self.assertListEqual(tl_ids, [1, 2, 3, 4, 5])
+
+        # test the get traffic light IDs method when the list is empty
+        tl_ids = self.kernel_api.get_traffic_light_ids()
+        self.assertEqual(len(tl_ids), 0)

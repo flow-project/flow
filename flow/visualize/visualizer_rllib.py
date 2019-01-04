@@ -19,10 +19,14 @@ import os
 import sys
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 from ray.rllib.models import ModelCatalog
 
+import flow.envs
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -132,9 +136,19 @@ def visualizer_rllib(args):
         net_params=net_params,
         initial_config=initial_config)
 
+    # check if the environment is a single or multiagent environment, and
+    # get the right address accordingly
+    single_agent_envs = [env for env in dir(flow.envs)
+                         if not env.startswith('__')]
+
+    if flow_params['env_name'] in single_agent_envs:
+        env_loc = 'flow.envs'
+    else:
+        env_loc = 'flow.multiagent_envs'
+
     # Start the environment with the gui turned on and a path for the
     # emission file
-    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
+    module = __import__(env_loc, fromlist=[flow_params['env_name']])
     env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
     env_params.restart_instance = False

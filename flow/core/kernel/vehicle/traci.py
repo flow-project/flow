@@ -85,7 +85,7 @@ class TraCIVehicle(KernelVehicle):
 
         * The state of all vehicles is modified to match their state at the
           current time step. This includes states specified by sumo, and states
-          explicitly defined by flow, e.g. "absolute_position".
+          explicitly defined by flow, e.g. "num_arrived".
         * If vehicles exit the network, they are removed from the vehicles
           class, and newly departed vehicles are introduced to the class.
 
@@ -125,9 +125,6 @@ class TraCIVehicle(KernelVehicle):
 
             # reset all necessary values
             self.prev_last_lc = dict()
-            for veh_id in self.get_ids():
-                self.__vehicles[veh_id]["absolute_position"] = \
-                    self.get_x_by_id(veh_id)
             for veh_id in self.__rl_ids:
                 self.__vehicles[veh_id]["last_lc"] = -float("inf")
                 self.prev_last_lc[veh_id] = -float("inf")
@@ -143,24 +140,6 @@ class TraCIVehicle(KernelVehicle):
                 if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
                         prev_lane and veh_id in self.__rl_ids:
                     self.__vehicles[veh_id]["last_lc"] = self.time_counter
-
-            # update the "absolute_position" variable
-            for veh_id in self.__ids:
-                prev_pos = self.get_x_by_id(veh_id)
-                this_edge = vehicle_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, "")
-                this_pos = vehicle_obs.get(veh_id, {}).get(
-                    tc.VAR_LANEPOSITION, -1001)
-
-                # in case the vehicle isn't in the network
-                if this_edge == "":
-                    self.__vehicles[veh_id]["absolute_position"] = -1001
-                else:
-                    change = self.master_kernel.scenario.get_x(
-                        this_edge, this_pos) - prev_pos
-                    new_abs_pos = \
-                        (self.get_absolute_position(veh_id) +
-                         change) % self.master_kernel.scenario.length()
-                    self.__vehicles[veh_id]["absolute_position"] = new_abs_pos
 
             # updated the list of departed and arrived vehicles
             self._num_departed.append(
@@ -278,9 +257,6 @@ class TraCIVehicle(KernelVehicle):
         self.__vehicles[veh_id]["length"] = self.kernel_api.vehicle.getLength(
             veh_id)
 
-        # set the absolute position of the vehicle
-        self.__vehicles[veh_id]["absolute_position"] = 0
-
         # set the "last_lc" parameter of the vehicle
         self.__vehicles[veh_id]["last_lc"] = -float("inf")
 
@@ -347,10 +323,6 @@ class TraCIVehicle(KernelVehicle):
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
-
-    def set_absolute_position(self, veh_id, absolute_position):
-        """Set the absolute position of the specified vehicle."""
-        self.__vehicles[veh_id]["absolute_position"] = absolute_position
 
     def test_set_position(self, veh_id, position):
         """Set the relative position of the specified vehicle."""
@@ -479,14 +451,6 @@ class TraCIVehicle(KernelVehicle):
             return [self.get_default_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
                                                    error)
-
-    def get_absolute_position(self, veh_id, error=-1001):
-        """See parent class."""
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [
-                self.get_absolute_position(vehID, error) for vehID in veh_id
-            ]
-        return self.__vehicles.get(veh_id, {}).get("absolute_position", error)
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""
