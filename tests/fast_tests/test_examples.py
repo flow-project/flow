@@ -153,9 +153,9 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = bottleneck_setup()
         self.run_exp(alg_run, env_name, config)
 
-    def test_multi_figure_eight(self):
-        alg_run, env_name, config = multi_figure_eight_setup()
-        self.run_exp(alg_run, env_name, config)
+    # def test_multi_figure_eight(self):
+    #     alg_run, env_name, config = multi_figure_eight_setup()
+    #     self.run_exp(alg_run, env_name, config)
 
     def test_multi_ring(self):
         alg_run, env_name, config = multi_ring_setup()
@@ -192,6 +192,6 @@ if __name__ == '__main__':
     try:
         ray.init(num_cpus=1)
     except Exception:
-        pass  # , redis_address="localhost:6379")
+        pass
     unittest.main()
     ray.shutdown()
