@@ -2,7 +2,7 @@
 from flow.controllers.routing_controllers import GridRouter
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.grid import SimpleGridScenario
@@ -15,7 +15,7 @@ def grid_example(render=None):
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -47,12 +47,12 @@ def grid_example(render=None):
         "cars_bot": num_cars_bot
     }
 
-    sumo_params = SumoParams(sim_step=0.1, render=True)
+    sim_params = SumoParams(sim_step=0.1, render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
         routing_controller=(GridRouter, {}),
@@ -95,7 +95,7 @@ def grid_example(render=None):
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
-    initial_config = InitialConfig()
+    initial_config = InitialConfig(spacing='custom')
 
     scenario = SimpleGridScenario(
         name="grid-intersection",
@@ -104,7 +104,7 @@ def grid_example(render=None):
         initial_config=initial_config,
         traffic_lights=tl_logic)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 

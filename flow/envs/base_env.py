@@ -6,13 +6,13 @@ from gym.spaces import Box
 import logging
 import os
 import sys
+import atexit
 import time
 import traceback
 import numpy as np
 import random
 from flow.renderer.pyglet_renderer import PygletRenderer as Renderer
 
-from traci import constants as tc
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
 
@@ -67,13 +67,13 @@ class Env(*classdef):
     ----------
     env_params : flow.core.params.EnvParams
        see flow/core/params.py
-    sumo_params: flow.core.params.SumoParams
+    sim_params: flow.core.params.SimParams
        see flow/core/params.py
     scenario: Scenario type
         see flow/scenarios/base_scenario.py
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario):
         # Invoke serializable if using rllab
 
         if serializable_flag:
@@ -81,12 +81,13 @@ class Env(*classdef):
 
         self.env_params = env_params
         self.scenario = scenario
-        self.sumo_params = sumo_params
+        self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
             # 1.0 works with stress_test_start 10k times
             time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
-        self.sumo_params.port = sumolib.miscutils.getFreeSocketPort()
+        # FIXME: this is sumo-specific
+        self.sim_params.port = sumolib.miscutils.getFreeSocketPort()
         self.vehicles = scenario.vehicles
         self.traffic_lights = scenario.traffic_lights
         # time_counter: number of steps taken since the start of a rollout
@@ -101,11 +102,7 @@ class Env(*classdef):
         self.obs_var_labels = []
 
         # simulation step size
-        self.sim_step = sumo_params.sim_step
-
-        self.vehicle_arrangement_shuffle = \
-            env_params.vehicle_arrangement_shuffle
-        self.starting_position_shuffle = env_params.starting_position_shuffle
+        self.sim_step = sim_params.sim_step
 
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
@@ -129,13 +126,13 @@ class Env(*classdef):
         self.colors = {}
 
         # create the Flow kernel
-        self.k = Kernel(simulator="traci", sim_params=sumo_params)
+        self.k = Kernel(simulator="traci", sim_params=sim_params)
 
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=sumo_params)
+            scenario=self.scenario, sim_params=sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(self.traci_connection)
@@ -143,11 +140,11 @@ class Env(*classdef):
         self.setup_initial_state()
 
         # use pyglet to render the simulation
-        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
-            save_render = self.sumo_params.save_render
-            sight_radius = self.sumo_params.sight_radius
-            pxpm = self.sumo_params.pxpm
-            show_radius = self.sumo_params.show_radius
+        if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+            save_render = self.sim_params.save_render
+            sight_radius = self.sim_params.sight_radius
+            pxpm = self.sim_params.pxpm
+            show_radius = self.sim_params.show_radius
 
             # get network polygons
             network = []
@@ -159,7 +156,7 @@ class Env(*classdef):
             # instantiate a pyglet renderer
             self.renderer = Renderer(
                 network,
-                self.sumo_params.render,
+                self.sim_params.render,
                 save_render,
                 sight_radius=sight_radius,
                 pxpm=pxpm,
@@ -167,14 +164,15 @@ class Env(*classdef):
 
             # render a frame
             self.render(reset=True)
-        elif self.sumo_params.render in [True, False]:
+        elif self.sim_params.render in [True, False]:
             pass  # default to sumo-gui (if True) or sumo (if False)
         else:
             raise ValueError("Mode %s is not supported!" %
-                             self.sumo_params.render)
+                             self.sim_params.render)
+        atexit.register(self.terminate)
 
-    def restart_sumo(self, sumo_params, render=None):
-        """Restart an already initialized sumo instance.
+    def restart_simulation(self, sim_params, render=None):
+        """Restart an already initialized simulation instance.
 
         This is used when visualizing a rollout, in order to update the
         rendering with potentially a gui and export emission data from sumo.
@@ -184,80 +182,48 @@ class Env(*classdef):
 
         Parameters
         ----------
-        sumo_params : flow.core.params.SumoParams
+        sim_params : flow.core.params.SimParams
             sumo-specific parameters
         render: bool, optional
-            specifies whether to use sumo's gui
+            specifies whether to use the gui
         """
         self.traci_connection.close(False)
         self.k.simulation.sumo_proc.kill()
 
         if render is not None:
-            self.sumo_params.render = render
+            self.sim_params.render = render
 
-        if sumo_params.emission_path is not None:
-            ensure_dir(sumo_params.emission_path)
-            self.sumo_params.emission_path = sumo_params.emission_path
+        if sim_params.emission_path is not None:
+            ensure_dir(sim_params.emission_path)
+            self.sim_params.emission_path = sim_params.emission_path
 
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=self.sumo_params)
+            scenario=self.scenario, sim_params=self.sim_params)
         self.k.pass_api(self.traci_connection)
         self.setup_initial_state()
 
     def setup_initial_state(self):
-        """Return information on the initial state of vehicles in the network.
+        """Store information on the initial state of vehicles in the network.
 
         This information is to be used upon reset. This method also adds this
         information to the self.vehicles class and starts a subscription with
         sumo to collect state information each step.
-
-        Returns
-        -------
-        initial_observations: dictionary
-            key = vehicles IDs
-            value = state describing car at the start of the rollout
-        initial_state: dictionary
-            key = vehicles IDs
-            value = sparse state information (only what is needed to add a
-            vehicle in a sumo network with traci)
         """
-        # subscribe the requested states for traci-related speedups
-        for veh_id in self.vehicles.get_ids():
-            self.traci_connection.vehicle.subscribe(veh_id, [
-                tc.VAR_LANE_INDEX, tc.VAR_LANEPOSITION, tc.VAR_ROAD_ID,
-                tc.VAR_SPEED, tc.VAR_EDGES, tc.VAR_POSITION, tc.VAR_ANGLE,
-                tc.VAR_SPEED_WITHOUT_TRACI
-            ])
-            self.traci_connection.vehicle.subscribeLeader(veh_id, 2000)
+        # determine whether to shuffle the vehicles
+        if self.scenario.initial_config.shuffle:
+            random.shuffle(self.initial_ids)
 
-        # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        id_lists = {
-            tc.VAR_DEPARTED_VEHICLES_IDS: [],
-            tc.VAR_TELEPORT_STARTING_VEHICLES_IDS: [],
-            tc.VAR_ARRIVED_VEHICLES_IDS: [],
-            tc.VAR_TIME_STEP: [],
-            tc.VAR_DELTA_T: []
-        }
-
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-
-        # store new observations in the vehicles and traffic lights class
-        self.k.update(reset=True)
-
-        # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) < self.vehicles.num_vehicles:
-            logging.error("Not enough vehicles have spawned! Bad start?")
-            sys.exit()
+        # generate starting position for vehicles in the network
+        start_pos, start_lanes = self.scenario.generate_starting_positions(
+            num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
-        for veh_id in self.vehicles.get_ids():
-            type_id = self.vehicles.get_type(veh_id)
-            pos = self.vehicles.get_position(veh_id)
-            lane = self.vehicles.get_lane(veh_id)
-            speed = self.vehicles.get_speed(veh_id)
-            route_id = "route" + self.vehicles.get_edge(veh_id)
+        for i, veh_id in enumerate(self.initial_ids):
+            type_id = self.scenario.vehicles.get_type(veh_id)
+            pos = start_pos[i][1]
+            lane = start_lanes[i]
+            speed = self.scenario.vehicles.get_initial_speed(veh_id)
+            route_id = "route" + start_pos[i][0]
 
             self.initial_state[veh_id] = (type_id, route_id, lane, pos, speed)
 
@@ -418,14 +384,8 @@ class Env(*classdef):
         the environment, and re-initializes the vehicles in their starting
         positions.
 
-        If "vehicle_arrangement_shuffle" is set to True in env_params, the
-        vehicles swap initial positions with one another. Also, if a
-        "starting_position_shuffle" is set to True, the initial position of
-        vehicles are redone.
-
-        If "warmup_steps" is set to a value greater than 0, then this method
-        also runs the necessary number of warmup steps before beginning
-        training, with actions to the agents being assigned by the simulator.
+        If "shuffle" is set to True in InitialConfig, the initial positions of
+        vehicles is recalculated and the vehicles are shuffled.
 
         Returns
         -------
@@ -438,7 +398,7 @@ class Env(*classdef):
 
         # warn about not using restart_instance when using inflows
         if len(self.scenario.net_params.inflows.get()) > 0 and \
-                not self.sumo_params.restart_instance:
+                not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
                 "**********************************************************\n"
@@ -451,43 +411,18 @@ class Env(*classdef):
                 "**********************************************************"
             )
 
-        if self.sumo_params.restart_instance or self.step_counter > 2e6:
+        if self.sim_params.restart_instance or self.step_counter > 2e6:
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
-            self.sumo_params.seed = random.randint(0, 1e5)
+            self.sim_params.seed = random.randint(0, 1e5)
             # modify the vehicles class to match initial data
             self.vehicles = deepcopy(self.initial_vehicles)
-            # restart the sumo instance
-            self.restart_sumo(self.sumo_params)
+            # restart the simulation instance
+            self.restart_simulation(self.sim_params)
 
-        # perform shuffling (if requested)
-        if self.starting_position_shuffle or self.vehicle_arrangement_shuffle:
-            if self.starting_position_shuffle:
-                x0 = np.random.uniform(0, self.scenario.length)
-            else:
-                x0 = self.scenario.initial_config.x0
-
-            veh_ids = deepcopy(self.initial_ids)
-            if self.vehicle_arrangement_shuffle:
-                random.shuffle(veh_ids)
-
-            initial_positions, initial_lanes = \
-                self.scenario.generate_starting_positions(
-                    num_vehicles=len(self.initial_ids), x0=x0)
-
-            initial_state = dict()
-            for i, veh_id in enumerate(veh_ids):
-                route_id = "route" + initial_positions[i][0]
-
-                # replace initial routes, lanes, and positions to reflect
-                # new values
-                list_initial_state = list(self.initial_state[veh_id])
-                list_initial_state[1] = route_id
-                list_initial_state[2] = initial_lanes[i]
-                list_initial_state[3] = initial_positions[i][1]
-                initial_state[veh_id] = tuple(list_initial_state)
-
-            self.initial_state = deepcopy(initial_state)
+        elif self.scenario.initial_config.shuffle:
+            # perform shuffling (if requested)
+            self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
         for veh_id in self.traci_connection.vehicle.getIDList():
@@ -497,12 +432,15 @@ class Env(*classdef):
                 self.vehicles.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
-                pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
         for veh_id in list(self.vehicles.get_ids()):
             self.vehicles.remove(veh_id)
+            # do not try to remove the vehicles from the network in the first
+            # step after initializing the network, as there will be no vehicles
+            if self.step_counter == 0:
+                continue
             try:
                 self.traci_connection.vehicle.remove(veh_id)
                 self.traci_connection.vehicle.unsubscribe(veh_id)
@@ -549,6 +487,17 @@ class Env(*classdef):
 
         # update the colors of vehicles
         self.update_vehicle_colors()
+
+        # check to make sure all vehicles have been spawned
+        if len(self.initial_ids) > self.vehicles.num_vehicles:
+            missing_vehicles = list(
+                set(self.initial_ids) - set(self.vehicles.get_ids()))
+            logging.error('Not enough vehicles have spawned! Bad start?')
+            logging.error('Missing vehicles / initial state:')
+            for veh_id in missing_vehicles:
+                logging.error('- {}: {}'.format(veh_id,
+                                                self.initial_state[veh_id]))
+            sys.exit()
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
@@ -784,7 +733,7 @@ class Env(*classdef):
         """
         # do not change the colors of vehicles if the sumo-gui is not active
         # (in order to avoid slow downs)
-        if self.sumo_params.render is not True:
+        if self.sim_params.render is not True:
             return
 
         for veh_id in self.vehicles.get_rl_ids():
@@ -878,16 +827,20 @@ class Env(*classdef):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
-        print(
-            "Closing connection to TraCI and stopping simulation.\n"
-            "Note, this may print an error message when it closes."
-        )
-        self.traci_connection.close()
-        self.scenario.close()
+        try:
+            print(
+                "Closing connection to TraCI and stopping simulation.\n"
+                "Note, this may print an error message when it closes."
+            )
+            self.traci_connection.close()
+            self.scenario.close()
 
-        # close pyglet renderer
-        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
-            self.renderer.close()
+            # close pyglet renderer
+            if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+                self.renderer.close()
+        except FileNotFoundError:
+            print("Skip automatic termination. "
+                  "Connection is probably already closed.")
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.
@@ -899,7 +852,7 @@ class Env(*classdef):
         buffer_length: int
             length of the buffer
         """
-        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+        if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             # render a frame
             self.pyglet_render()
 

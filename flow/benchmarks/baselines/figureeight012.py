@@ -7,7 +7,7 @@ import numpy as np
 from flow.core.experiment import Experiment
 from flow.core.params import InitialConfig
 from flow.core.params import SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController
 from flow.controllers import ContinuousRouter
@@ -23,7 +23,7 @@ def figure_eight_baseline(num_runs, render=True):
             number of rollouts the performance of the environment is evaluated
             over
         render : bool, optional
-            specifies whether to use sumo's gui during execution
+            specifies whether to use the gui during execution
 
     Returns
     -------
@@ -31,24 +31,24 @@ def figure_eight_baseline(num_runs, render=True):
             class needed to run simulations
     """
     exp_tag = flow_params['exp_tag']
-    sumo_params = flow_params['sumo']
+    sim_params = flow_params['sim']
     env_params = flow_params['env']
     net_params = flow_params['net']
     initial_config = flow_params.get('initial', InitialConfig())
     traffic_lights = flow_params.get('tls', TrafficLightParams())
 
     # modify the rendering to match what is requested
-    sumo_params.render = render
+    sim_params.render = render
 
     # set the evaluation flag to True
     env_params.evaluate = True
 
     # we want no autonomous vehicles in the simulation
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(veh_id='human',
                  acceleration_controller=(IDMController, {'noise': 0.2}),
                  routing_controller=(ContinuousRouter, {}),
-                 sumo_car_following_params=SumoCarFollowingParams(
+                 car_following_params=SumoCarFollowingParams(
                      speed_mode='no_collide',
                  ),
                  num_vehicles=14)
@@ -71,7 +71,7 @@ def figure_eight_baseline(num_runs, render=True):
     env_class = getattr(module, flow_params['env_name'])
 
     # create the environment object
-    env = env_class(env_params, sumo_params, scenario)
+    env = env_class(env_params, sim_params, scenario)
 
     exp = Experiment(env)
 
