@@ -24,22 +24,22 @@ class TestGetX(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        env, self.scenario = figure_eight_exp_setup()
+        self.env, _ = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
-        self.scenario = None
+        self.env = None
 
     def test_getx(self):
         # test for an edge in the lanes
         edge_1 = "bottom_lower_ring"
         pos_1 = 4.72
-        self.assertAlmostEqual(self.scenario.get_x(edge_1, pos_1), 5)
+        self.assertAlmostEqual(self.env.k.scenario.get_x(edge_1, pos_1), 5)
 
         # test for an edge in the internal links
         edge_2 = ":bottom_lower_ring"
         pos_2 = 0.1
-        self.assertAlmostEqual(self.scenario.get_x(edge_2, pos_2), 0.1)
+        self.assertAlmostEqual(self.env.k.scenario.get_x(edge_2, pos_2), 0.1)
 
 
 class TestGetEdge(unittest.TestCase):
@@ -51,22 +51,23 @@ class TestGetEdge(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        env, self.scenario = figure_eight_exp_setup()
+        self.env, scenario = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
-        self.scenario = None
+        self.env.terminate()
+        self.env = None
 
     def test_get_edge(self):
         # test for a position in the lanes
         x1 = 5
         self.assertTupleEqual(
-            self.scenario.get_edge(x1), ("bottom_lower_ring", 4.72))
+            self.env.k.scenario.get_edge(x1), ("bottom_lower_ring", 4.72))
 
         # test for a position in the internal links
         x2 = 0.1
         self.assertTupleEqual(
-            self.scenario.get_edge(x2), (":bottom_lower_ring", 0.1))
+            self.env.k.scenario.get_edge(x2), (":bottom_lower_ring", 0.1))
 
 
 class TestEvenStartPos(unittest.TestCase):
@@ -133,7 +134,7 @@ class TestEvenStartPos(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.scenario.length)
+            self.env.k.scenario.length())
 
         # check that the position of the first vehicle is at 0
         self.assertEqual(veh_pos[0], 0)
@@ -165,10 +166,10 @@ class TestEvenStartPos(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.scenario.length)
+            self.env.k.scenario.length())
 
         # check that the position of the first vehicle is at 0
-        self.assertEqual(veh_pos[0], x0 % self.env.scenario.length)
+        self.assertEqual(veh_pos[0], x0 % self.env.k.scenario.length())
 
         # if all element are equal, there should only be one unique value
         self.assertEqual(np.unique(np.around(nth_headway, 2)).size, 1)
@@ -195,7 +196,7 @@ class TestEvenStartPos(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.scenario.length)
+            self.env.k.scenario.length())
 
         # check that all vehicles except the last vehicle have the same spacing
         self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
@@ -218,17 +219,19 @@ class TestEvenStartPos(unittest.TestCase):
         # create the environment
         self.setUp_gen_start_pos(initial_config)
 
-        startpos, _ = self.scenario.generate_starting_positions()
+        startpos, _ = self.env.k.scenario.generate_starting_positions(
+            initial_config=initial_config
+        )
 
         # get the positions of all vehicles
-        veh_pos = np.array([self.scenario.get_x(pos[0], pos[1])
+        veh_pos = np.array([self.env.k.scenario.get_x(pos[0], pos[1])
                             for pos in startpos])
 
         # difference in position between the nth vehicle and the vehicle ahead
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.scenario.length)
+            self.env.k.scenario.length())
 
         # check that all vehicles, including the last vehicle, have the same
         # spacing
@@ -250,11 +253,12 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
+        lanes = self.env.scenario.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.vehicles.get_ids()
         veh_pos = []
-        for i in range(self.env.scenario.lanes):
+        for i in range(lanes):
             veh_pos.append([
                 self.env.get_x_by_id(veh_id) for veh_id in ids
                 if self.env.vehicles.get_lane(veh_id) == i
@@ -267,12 +271,12 @@ class TestEvenStartPos(unittest.TestCase):
             # ahead of it
             nth_headway = \
                 np.mod(np.append(veh_pos[i][1:], veh_pos[i][0]) - veh_pos[i],
-                       self.env.scenario.length)
+                       self.env.k.scenario.length())
 
             self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
 
         # check that there are no vehicles in the remaining lanes
-        for i in range(self.env.scenario.lanes - lanes_distribution):
+        for i in range(lanes - lanes_distribution):
             self.assertEqual(len(veh_pos[i + lanes_distribution]), 0)
 
         # delete the created environment
@@ -310,11 +314,12 @@ class TestEvenStartPos(unittest.TestCase):
 
         # create the environment
         self.setUp_gen_start_pos(initial_config)
+        lanes = self.env.scenario.net_params.additional_params['lanes']
 
         # get the positions of all vehicles
         ids = self.env.vehicles.get_ids()
         veh_pos = []
-        for i in range(self.env.scenario.lanes):
+        for i in range(lanes):
             veh_pos.append([
                 self.env.get_x_by_id(veh_id) for veh_id in ids
                 if self.env.vehicles.get_lane(veh_id) == i
@@ -322,12 +327,12 @@ class TestEvenStartPos(unittest.TestCase):
 
         # check that the vehicles are uniformly distributed in the number of
         # requested lanes lanes
-        for i in range(self.env.scenario.lanes):
+        for i in range(lanes):
             # difference in position between the nth vehicle and the vehicle
             # ahead of it
             nth_headway = \
                 np.mod(np.append(veh_pos[i][1:], veh_pos[i][0]) - veh_pos[i],
-                       self.env.scenario.length)
+                       self.env.k.scenario.length())
 
             self.assertEqual(np.unique(np.around(nth_headway[:-1], 2)).size, 1)
 
@@ -363,17 +368,16 @@ class TestEvenStartPos(unittest.TestCase):
         self.setUp_gen_start_pos()
 
         # check when "num_vehicles" is not specified
-        startpos, startlanes = self.env.scenario.generate_starting_positions()
-        self.assertEqual(
-            len(startpos), self.env.scenario.vehicles.num_vehicles)
-        self.assertEqual(
-            len(startlanes), self.env.scenario.vehicles.num_vehicles)
+        pos, lanes = self.env.k.scenario.generate_starting_positions(
+            initial_config=InitialConfig())
+        self.assertEqual(len(pos), self.env.vehicles.num_vehicles)
+        self.assertEqual(len(lanes), self.env.vehicles.num_vehicles)
 
         # check when "num_vehicles" is specified
-        startpos, startlanes = self.env.scenario.generate_starting_positions(
-            num_vehicles=10)
-        self.assertEqual(len(startpos), 10)
-        self.assertEqual(len(startlanes), 10)
+        pos, lanes = self.env.k.scenario.generate_starting_positions(
+            initial_config=InitialConfig(), num_vehicles=10)
+        self.assertEqual(len(pos), 10)
+        self.assertEqual(len(lanes), 10)
 
 
 class TestEvenStartPosInternalLinks(unittest.TestCase):
@@ -415,7 +419,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
         # of it
         nth_headway = np.mod(
             np.append(veh_pos[1:], veh_pos[0]) - veh_pos,
-            self.env.scenario.length)
+            self.env.k.scenario.length())
 
         try:
             # if all element are equal, there should only be one unique value
@@ -433,7 +437,7 @@ class TestEvenStartPosInternalLinks(unittest.TestCase):
                         for veh_id in [ids[i + 1], ids[i]]
                     ]
                     rel_pos = [
-                        self.env.scenario.get_edge(pos_i)[1] for pos_i in pos
+                        self.env.k.scenario.get_edge(pos_i)[1] for pos_i in pos
                     ]
 
                     self.assertTrue(np.any(np.array(rel_pos) == 0))
@@ -589,7 +593,7 @@ class TestEdgeLength(unittest.TestCase):
         # create the environment and scenario classes for a figure eight
         env, scenario = ring_road_exp_setup(net_params=net_params)
 
-        self.assertEqual(scenario.edge_length("top"), 250)
+        self.assertEqual(env.k.scenario.edge_length("top"), 250)
 
     def test_edge_length_junctions(self):
         """
@@ -607,9 +611,9 @@ class TestEdgeLength(unittest.TestCase):
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_0"), 5.00)
+            env.k.scenario.edge_length(":center_intersection_0"), 5.00)
         self.assertAlmostEqual(
-            scenario.edge_length(":center_intersection_1"), 6.20)
+            env.k.scenario.edge_length(":center_intersection_1"), 6.20)
 
 
 class TestSpeedLimit(unittest.TestCase):
@@ -632,7 +636,7 @@ class TestSpeedLimit(unittest.TestCase):
         # create the environment and scenario classes for a figure eight
         env, scenario = ring_road_exp_setup(net_params=net_params)
 
-        self.assertAlmostEqual(scenario.speed_limit("top"), 60)
+        self.assertAlmostEqual(env.k.scenario.speed_limit("top"), 60)
 
     def test_speed_limit_junctions(self):
         """
@@ -650,8 +654,9 @@ class TestSpeedLimit(unittest.TestCase):
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
-            scenario.speed_limit("bottom_upper_ring_in"), 60)
-        self.assertAlmostEqual(scenario.speed_limit(":top_upper_ring_0"), 60)
+            env.k.scenario.speed_limit("bottom_upper_ring_in"), 60)
+        self.assertAlmostEqual(
+            env.k.scenario.speed_limit(":top_upper_ring_0"), 60)
 
 
 class TestNumLanes(unittest.TestCase):
@@ -674,7 +679,7 @@ class TestNumLanes(unittest.TestCase):
         # create the environment and scenario classes for a figure eight
         env, scenario = ring_road_exp_setup(net_params=net_params)
 
-        self.assertEqual(scenario.num_lanes("top"), 2)
+        self.assertEqual(env.k.scenario.num_lanes("top"), 2)
 
     def test_num_lanes_junctions(self):
         """
@@ -691,8 +696,8 @@ class TestNumLanes(unittest.TestCase):
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
-        self.assertEqual(scenario.num_lanes("bottom_upper_ring_in"), 3)
-        self.assertEqual(scenario.num_lanes(":top_upper_ring_0"), 3)
+        self.assertEqual(env.k.scenario.num_lanes("bottom_upper_ring_in"), 3)
+        self.assertEqual(env.k.scenario.num_lanes(":top_upper_ring_0"), 3)
 
 
 class TestGetEdgeList(unittest.TestCase):
@@ -703,14 +708,15 @@ class TestGetEdgeList(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        env, self.scenario = figure_eight_exp_setup()
+        self.env, scenario = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
-        self.scenario = None
+        self.env.terminate()
+        self.env = None
 
     def test_get_edge_list(self):
-        edge_list = self.scenario.get_edge_list()
+        edge_list = self.env.k.scenario.get_edge_list()
         expected_edge_list = [
             "bottom_lower_ring", "right_lower_ring_in", "right_lower_ring_out",
             "left_upper_ring", "top_upper_ring", "right_upper_ring",
@@ -729,14 +735,15 @@ class TestGetJunctionList(unittest.TestCase):
 
     def setUp(self):
         # create the environment and scenario classes for a figure eight
-        env, self.scenario = figure_eight_exp_setup()
+        self.env, scenario = figure_eight_exp_setup()
 
     def tearDown(self):
         # free data used by the class
-        self.scenario = None
+        self.env.terminate()
+        self.env = None
 
     def test_get_junction_list(self):
-        junction_list = self.scenario.get_junction_list()
+        junction_list = self.env.k.scenario.get_junction_list()
         expected_junction_list = \
             [':right_upper_ring_0', ':right_lower_ring_in_0',
              ':center_intersection_1', ':bottom_upper_ring_in_0',
@@ -761,7 +768,7 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests the next_edge() method in the presence of internal links.
         """
         env, scenario = figure_eight_exp_setup()
-        next_edge = scenario.next_edge("bottom_upper_ring_in", 0)
+        next_edge = env.k.scenario.next_edge("bottom_upper_ring_in", 0)
         expected_next_edge = [(':center_intersection_0', 0),
                               (':center_intersection_1', 0)]
 
@@ -772,7 +779,7 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests the prev_edge() method in the presence of internal links.
         """
         env, scenario = figure_eight_exp_setup()
-        prev_edge = scenario.prev_edge("bottom_upper_ring_in", 0)
+        prev_edge = env.k.scenario.prev_edge("bottom_upper_ring_in", 0)
         expected_prev_edge = [(':bottom_upper_ring_in_0', 0)]
 
         self.assertCountEqual(prev_edge, expected_prev_edge)
@@ -782,7 +789,7 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests the next_edge() method in the absence of internal links.
         """
         env, scenario = ring_road_exp_setup()
-        next_edge = scenario.next_edge("top", 0)
+        next_edge = env.k.scenario.next_edge("top", 0)
         expected_next_edge = [("left", 0)]
 
         self.assertCountEqual(next_edge, expected_next_edge)
@@ -792,7 +799,7 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests the prev_edge() method in the absence of internal links.
         """
         env, scenario = ring_road_exp_setup()
-        prev_edge = scenario.prev_edge("top", 0)
+        prev_edge = env.k.scenario.prev_edge("top", 0)
         expected_prev_edge = [("right", 0)]
 
         self.assertCountEqual(prev_edge, expected_prev_edge)
@@ -803,7 +810,8 @@ class TestNextPrevEdge(unittest.TestCase):
         empty list
         """
         env, scenario = highway_exp_setup()
-        next_edge = scenario.next_edge(env.scenario.get_edge_list()[0], 0)
+        next_edge = env.k.scenario.next_edge(
+            env.k.scenario.get_edge_list()[0], 0)
         self.assertTrue(len(next_edge) == 0)
 
     def test_no_edge_behind(self):
@@ -812,7 +820,8 @@ class TestNextPrevEdge(unittest.TestCase):
         empty list
         """
         env, scenario = highway_exp_setup()
-        prev_edge = scenario.prev_edge(env.scenario.get_edge_list()[0], 0)
+        prev_edge = env.k.scenario.prev_edge(
+            env.k.scenario.get_edge_list()[0], 0)
         self.assertTrue(len(prev_edge) == 0)
 
 

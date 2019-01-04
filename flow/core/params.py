@@ -458,9 +458,10 @@ class VehicleParams:
                 if this_edge == "":
                     self.set_absolute_position(veh_id, -1001)
                 else:
-                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
+                    change = env.k.scenario.get_x(this_edge, this_pos) \
+                        - prev_pos
                     new_abs_pos = (self.get_absolute_position(veh_id) +
-                                   change) % env.scenario.length
+                                   change) % env.k.scenario.length()
                     self.set_absolute_position(veh_id, new_abs_pos)
 
             # updated the list of departed and arrived vehicles
@@ -772,6 +773,7 @@ class VehicleParams:
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
+
         Returns
         -------
         float
@@ -1213,15 +1215,15 @@ class VehicleParams:
         leader velocity/follower velocity for all
         vehicles in the network.
         """
-        edge_list = env.scenario.get_edge_list()
-        junction_list = env.scenario.get_junction_list()
+        edge_list = env.k.scenario.get_edge_list()
+        junction_list = env.k.scenario.get_junction_list()
         tot_list = edge_list + junction_list
-        num_edges = (len(env.scenario.get_edge_list()) + len(
-            env.scenario.get_junction_list()))
+        num_edges = (len(env.k.scenario.get_edge_list()) + len(
+            env.k.scenario.get_junction_list()))
 
         # maximum number of lanes in the network
         max_lanes = max(
-            [env.scenario.num_lanes(edge_id) for edge_id in tot_list])
+            [env.k.scenario.num_lanes(edge_id) for edge_id in tot_list])
 
         # Key = edge id
         # Element = list, with the ith element containing tuples with the name
@@ -1308,7 +1310,7 @@ class VehicleParams:
         this_pos = self.get_position(veh_id)
         this_edge = self.get_edge(veh_id)
         this_lane = self.get_lane(veh_id)
-        num_lanes = env.scenario.num_lanes(this_edge)
+        num_lanes = env.k.scenario.num_lanes(this_edge)
 
         # set default values for all output values
         headway = [1000] * num_lanes
@@ -1377,17 +1379,17 @@ class VehicleParams:
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        headway = 1000  # env.scenario.length
+        headway = 1000
         leader = ""
         add_length = 0  # length increment in headway
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(env.scenario.next_edge(edge, lane)) == 0:
+            if len(env.k.scenario.next_edge(edge, lane)) == 0:
                 break
 
-            add_length += env.scenario.edge_length(edge)
-            edge, lane = env.scenario.next_edge(edge, lane)[0]
+            add_length += env.k.scenario.edge_length(edge)
+            edge, lane = env.k.scenario.next_edge(edge, lane)[0]
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
@@ -1421,17 +1423,17 @@ class VehicleParams:
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        tailway = 1000  # env.scenario.length
+        tailway = 1000
         follower = ""
         add_length = 0  # length increment in headway
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(env.scenario.prev_edge(edge, lane)) == 0:
+            if len(env.k.scenario.prev_edge(edge, lane)) == 0:
                 break
 
-            edge, lane = env.scenario.prev_edge(edge, lane)[0]
-            add_length += env.scenario.edge_length(edge)
+            edge, lane = env.k.scenario.prev_edge(edge, lane)[0]
+            add_length += env.k.scenario.edge_length(edge)
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
