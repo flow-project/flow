@@ -122,7 +122,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     horizon : int
         time horizon
     restart_instance: bool, optional
-        whether to restart the instance
+        whether to restart the instance upon reset
     render: bool, optional
         specifies whether to use the gui during execution
 
