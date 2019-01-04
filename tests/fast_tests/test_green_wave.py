@@ -9,6 +9,7 @@ class TestEnvironment(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
         self.env, self.scenario = grid_mxn_exp_setup()
+        self.env.reset()
 
         # instantiate an experiment class
         self.exp = Experiment(self.env)
@@ -49,6 +50,7 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         # create the environment and scenario classes for a ring road
         self.env, self.scenario = grid_mxn_exp_setup()
+        self.env.reset()
 
         # instantiate an experiment class
         self.exp = Experiment(self.env)

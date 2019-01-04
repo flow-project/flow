@@ -2,7 +2,7 @@ import unittest
 
 from flow.core.experiment import Experiment
 from flow.core.params import EnvParams, InitialConfig, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import SumoCarFollowingParams
 
 from flow.controllers.routing_controllers import ContinuousRouter
@@ -34,12 +34,12 @@ class TestCFMController(unittest.TestCase):
             "noise": 0
         }
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test_0",
             acceleration_controller=(CFMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=20, decel=5),
             num_vehicles=5)
 
@@ -83,12 +83,12 @@ class TestBCMController(unittest.TestCase):
             {"time_delay": 0, "k_d": 1, "k_v": 1, "k_c": 1, "d_des": 1,
              "v_des": 8, "noise": 0}
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(BCMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -138,12 +138,12 @@ class TestOVMController(unittest.TestCase):
             "noise": 0
         }
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -188,12 +188,12 @@ class TestLinearOVM(unittest.TestCase):
             {"time_delay": 0, "v_max": 30, "adaptation": 0.65,
              "h_st": 5, "noise": 0}
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 accel=15, decel=5),
             num_vehicles=5)
 
@@ -235,12 +235,12 @@ class TestIDMController(unittest.TestCase):
         # also make sure that the input params are what is expected
         contr_params = {"v0": 30, "b": 1.5, "delta": 4, "s0": 2, "noise": 0}
 
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(IDMController, contr_params),
             routing_controller=(ContinuousRouter, {}),
-            sumo_car_following_params=SumoCarFollowingParams(
+            car_following_params=SumoCarFollowingParams(
                 tau=1, accel=1, decel=5),
             num_vehicles=5)
 
@@ -324,7 +324,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         self.exp = None
 
     def test_no_crash_OVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, {
@@ -342,7 +342,7 @@ class TestInstantaneousFailsafe(unittest.TestCase):
         self.tearDown_failsafe()
 
     def test_no_crash_LinearOVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, {
@@ -366,7 +366,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
     """
 
     def test_no_crash_OVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(OVMController, {
@@ -384,7 +384,7 @@ class TestSafeVelocityFailsafe(TestInstantaneousFailsafe):
         self.tearDown_failsafe()
 
     def test_no_crash_LinearOVM(self):
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="test",
             acceleration_controller=(LinearOVM, {

@@ -14,7 +14,7 @@ Horizon: 1000 steps
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.params import TrafficLightParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter
 
 # time horizon of a single rollout
@@ -26,25 +26,25 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = .10
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
 vehicles.add(
     veh_id="human",
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
@@ -107,7 +107,7 @@ flow_params = dict(
     scenario="BottleneckScenario",
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.5,
         render=False,
         print_warnings=False,

@@ -5,6 +5,7 @@ from gym.envs.registration import register
 
 from copy import deepcopy
 
+import flow.envs
 from flow.core.params import InitialConfig
 from flow.core.params import TrafficLightParams
 
@@ -30,7 +31,7 @@ def make_create_env(params, version=0, render=None):
          - exp_tag: name of the experiment
          - env_name: name of the flow environment the experiment is running on
          - scenario: name of the scenario class the experiment uses
-         - sumo: sumo-related parameters (see flow.core.params.SumoParams)
+         - sim: simulation-related parameters (see flow.core.params.SimParams)
          - env: environment related parameters (see flow.core.params.EnvParams)
          - net: network-related parameters (see flow.core.params.NetParams and
            the scenario's documentation or ADDITIONAL_NET_PARAMS component)
@@ -43,7 +44,7 @@ def make_create_env(params, version=0, render=None):
     version : int, optional
         environment version number
     render : bool, optional
-        specifies whether to use sumo's gui during execution. This overrides
+        specifies whether to use the gui during execution. This overrides
         the render attribute in SumoParams
 
     Returns
@@ -66,7 +67,7 @@ def make_create_env(params, version=0, render=None):
     traffic_lights = params.get("tls", TrafficLightParams())
 
     def create_env(*_):
-        sumo_params = deepcopy(params['sumo'])
+        sim_params = deepcopy(params['sim'])
         vehicles = deepcopy(params['veh'])
 
         scenario = scenario_class(
@@ -78,15 +79,25 @@ def make_create_env(params, version=0, render=None):
         )
 
         if render is not None:
-            sumo_params.render = render
+            sim_params.render = render
+
+        # check if the environment is a single or multiagent environment, and
+        # get the right address accordingly
+        single_agent_envs = [env for env in dir(flow.envs)
+                             if not env.startswith('__')]
+
+        if params['env_name'] in single_agent_envs:
+            env_loc = 'flow.envs'
+        else:
+            env_loc = 'flow.multiagent_envs'
 
         try:
             register(
                 id=env_name,
-                entry_point='flow.envs:' + params["env_name"],
+                entry_point=env_loc + ':{}'.format(params["env_name"]),
                 kwargs={
                     "env_params": env_params,
-                    "sumo_params": sumo_params,
+                    "sim_params": sim_params,
                     "scenario": scenario
                 })
         except Exception:
