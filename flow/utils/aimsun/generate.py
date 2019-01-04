@@ -33,9 +33,6 @@ def create_parser():
 
 def generate_net(nodes, edges, connections, inflows, veh_types):
     inflows = inflows.get()
-    # Aimsun GUI
-    gui = GKGUISystem.getGUISystem().getActiveGui()
-
     lane_width = 3.6  # TODO additional params??
     type_section = model.getType("GKSection")
     type_node = model.getType("GKNode")
@@ -137,9 +134,10 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
 
         #if the node is a junction with a list of connections
         if len(to_edges) > 1 and len(from_edges) > 1 \
-                and connections is not None: # TODO change this to connecctions[node['id']]
+                and connections[node['id']] is not None:
             # add connections
-            for connection in connections:
+            for connection in connections[node['id']]:
+                print (connection)
                 cmd = model.createNewCmd(type_turn)
                 from_section = model.getCatalog().findByName(
                     connection["from"], type_section, True)
@@ -260,14 +258,7 @@ def get_junctions(nodes):
         if "type" in node:
             if node["type"] == "traffic_light":
                 junctions.append(node)
-        # from_edges = [
-        #     edge['id'] for edge in edges if edge['from'] == node['id']]
-        # to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
-        # if len(to_edges) > 1 and len(from_edges) > 1:
-        #     junctions.append(node['id'])
     return junctions
-
-
 
 
 # get first and last nodes of an edge
@@ -533,4 +524,12 @@ if data['inflows'] is not None:
 else:
     inflows = None
 
+# generate net
 kernel_api = generate_net(nodes, edges, connections, inflows, veh_types)
+
+# run the simulation
+# find the replication
+replication_name = "Replication 870"
+replication = model.getCatalog().findByName(replication_name)
+# execute, "play": run with GUI, "execute": run in batch mode
+GKSystem.getSystem().executeAction("execute", replication, [], "")
