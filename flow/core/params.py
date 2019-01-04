@@ -328,12 +328,6 @@ class VehicleParams:
         self.num_types += 1
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 
-    def get_type(self, veh_id):
-        return self.__vehicles[veh_id]["type"]
-
-    def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
-
 
 class SimParams(object):
     """Simulation-specific parameters.
@@ -513,7 +507,6 @@ class EnvParams:
     def __init__(self,
                  additional_params=None,
                  horizon=500,
-                 sort_vehicles=False,
                  warmup_steps=0,
                  sims_per_step=1,
                  evaluate=False):
@@ -526,11 +519,6 @@ class EnvParams:
                 environment configuration
             horizon: int, optional
                 number of steps per rollouts
-            sort_vehicles: bool, optional
-                specifies whether vehicles are to be sorted by position during
-                a simulation step. If set to True, the environment parameter
-                self.sorted_ids will return a list of all vehicles ideas sorted
-                by their absolute position.
             warmup_steps: int, optional
                 number of steps performed before the initialization of training
                 during a rollout. These warmup steps are not added as steps
@@ -549,7 +537,6 @@ class EnvParams:
         self.additional_params = \
             additional_params if additional_params is not None else {}
         self.horizon = horizon
-        self.sort_vehicles = sort_vehicles
         self.warmup_steps = warmup_steps
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate

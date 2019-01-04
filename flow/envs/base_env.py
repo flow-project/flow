@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from copy import deepcopy
+import atexit
 import time
 import traceback
 import numpy as np
@@ -162,6 +163,7 @@ class Env(*classdef):
         else:
             raise ValueError('Mode %s is not supported!' %
                              self.sim_params.render)
+        atexit.register(self.terminate)
 
     def restart_simulation(self, sim_params, render=None):
         """Restart an already initialized simulation instance.
@@ -256,7 +258,6 @@ class Env(*classdef):
         info: dict
             contains other diagnostic information from the previous action
         """
-        print(self.k.vehicle.num_vehicles)
         for _ in range(self.env_params.sims_per_step):
             self.time_counter += 1
             self.step_counter += 1
@@ -309,9 +310,6 @@ class Env(*classdef):
             # update the colors of vehicles
             if self.sim_params.render:
                 self.k.vehicle.update_vehicle_colors()
-
-            # collect list of sorted vehicle ids
-            self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
@@ -484,9 +482,6 @@ class Env(*classdef):
                                                 self.initial_state[veh_id]))
             sys.exit()
 
-        # collect list of sorted vehicle ids
-        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
-
         states = self.get_state()
         if isinstance(states, dict):
             self.state = {}
@@ -566,29 +561,6 @@ class Env(*classdef):
     def _apply_rl_actions(self, rl_actions):
         raise NotImplementedError
 
-    def sort_by_position(self):
-        """Sort the vehicle ids of vehicles in the network by position.
-
-        The base environment does this by sorting vehicles by their absolute
-        position.
-
-        Returns
-        -------
-        sorted_ids: list <str>
-            a list of all vehicle IDs sorted by position
-        sorted_extra_data: list or tuple
-            an extra component (list, tuple, etc...) containing extra sorted
-            data, such as positions. If no extra component is needed, a value
-            of None should be returned
-        """
-        if self.env_params.sort_vehicles:
-            sorted_ids = sorted(
-                self.k.vehicle.get_ids(),
-                key=self.k.vehicle.get_absolute_position)
-            return sorted_ids, None
-        else:
-            return self.k.vehicle.get_ids(), None
-
     def get_state(self):
         """Return the state of the simulation as perceived by the RL agent.
 
@@ -655,15 +627,19 @@ class Env(*classdef):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
-        print(
-            "Closing connection to TraCI and stopping simulation.\n"
-            "Note, this may print an error message when it closes."
-        )
-        self.k.close()
+        try:
+            print(
+                "Closing connection to TraCI and stopping simulation.\n"
+                "Note, this may print an error message when it closes."
+            )
+            self.k.close()
 
-        # close pyglet renderer
-        if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
-            self.renderer.close()
+            # close pyglet renderer
+            if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+                self.renderer.close()
+        except FileNotFoundError:
+            print("Skip automatic termination. "
+                  "Connection is probably already closed.")
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.

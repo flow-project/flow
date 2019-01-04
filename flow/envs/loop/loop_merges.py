@@ -198,9 +198,9 @@ class TwoLoopsMergePOEnv(Env):
         return np.concatenate(
             (normalized_vel, normalized_pos, queue_length, vel_stats))
 
-    def sort_by_position(self):
-        """
-        See parent class.
+    @property
+    def sorted_ids(self):
+        """Sort vehicle IDs with separated humans and AVs.
 
         Instead of being sorted by a global reference, vehicles in this
         environment are sorted with regards to which ring this currently
@@ -211,16 +211,27 @@ class TwoLoopsMergePOEnv(Env):
         sorted_indx = np.argsort(pos)
         sorted_ids = np.array(self.k.vehicle.get_ids())[sorted_indx]
 
-        sorted_human_ids = [
-            veh_id for veh_id in sorted_ids
-            if veh_id not in self.k.vehicle.get_rl_ids()
-        ]
+        sorted_human_ids = [veh_id for veh_id in sorted_ids
+                            if veh_id not in self.k.vehicle.get_rl_ids()]
 
-        sorted_rl_ids = [
-            veh_id for veh_id in sorted_ids
-            if veh_id in self.k.vehicle.get_rl_ids()
-        ]
+        sorted_rl_ids = [veh_id for veh_id in sorted_ids
+                         if veh_id in self.k.vehicle.get_rl_ids()]
 
         sorted_separated_ids = sorted_human_ids + sorted_rl_ids
 
-        return sorted_separated_ids, sorted_ids
+        return sorted_separated_ids
+
+    @property
+    def sorted_extra_data(self):
+        """Sort vehicle IDs.
+
+        Instead of being sorted by a global reference, vehicles in this
+        environment are sorted with regards to which ring this currently
+        reside on.
+        """
+        pos = [self.k.vehicle.get_x_by_id(veh_id)
+               for veh_id in self.k.vehicle.get_ids()]
+        sorted_indx = np.argsort(pos)
+        sorted_ids = np.array(self.k.vehicle.get_ids())[sorted_indx]
+
+        return sorted_ids

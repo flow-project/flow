@@ -9,7 +9,10 @@ from copy import deepcopy
 import json
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
 from ray import tune
 from ray.tune.registry import register_env
@@ -79,7 +82,8 @@ flow_params = dict(
             'target_velocity': 20,
             'max_accel': 3,
             'max_decel': 3,
-            'perturb_weight': 0.03
+            'perturb_weight': 0.03,
+            'sort_vehicles': False
         },
     ),
 
