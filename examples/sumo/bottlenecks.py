@@ -1,11 +1,11 @@
 """File demonstrating formation of congestion in bottleneck."""
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
-from flow.controllers import SumoLaneChangeController, ContinuousRouter
+from flow.controllers import SimLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import Experiment
 
@@ -23,11 +23,11 @@ def bottleneck_example(flow_rate, horizon, render=None):
     Parameters
     ----------
     flow_rate : float
-        total inflow rate of vehicles into the bottlneck
+        total inflow rate of vehicles into the bottleneck
     horizon : int
         time horizon
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -38,22 +38,22 @@ def bottleneck_example(flow_rate, horizon, render=None):
     if render is None:
         render = False
 
-    sumo_params = SumoParams(
+    sim_params = SumoParams(
         sim_step=0.5,
         render=render,
         overtake_right=False,
         restart_instance=False)
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
 
     vehicles.add(
         veh_id="human",
-        lane_change_controller=(SumoLaneChangeController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        car_following_params=SumoCarFollowingParams(
             speed_mode=25,
         ),
-        sumo_lc_params=SumoLaneChangeParams(
+        lane_change_params=SumoLaneChangeParams(
             lane_change_mode=1621,
         ),
         num_vehicles=1)
@@ -103,7 +103,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
         initial_config=initial_config,
         traffic_lights=traffic_lights)
 
-    env = BottleneckEnv(env_params, sumo_params, scenario)
+    env = BottleneckEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 

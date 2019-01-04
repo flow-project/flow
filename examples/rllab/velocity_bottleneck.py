@@ -5,11 +5,11 @@ in a segment of space
 """
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.core.params import TrafficLightParams
 
 from flow.scenarios.bottleneck import BottleneckScenario
-from flow.controllers.lane_change_controllers import SumoLaneChangeController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.rlcontroller import RLController
 
@@ -28,19 +28,19 @@ AV_FRAC = .1
 N_CPUS = 32
 i = 0
 
-sumo_params = SumoParams(
+sim_params = SumoParams(
     sim_step=0.5, render=False, restart_instance=True)
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 
 vehicles.add(
     veh_id="human",
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,  # 1621,#0b100000101,
 
     ),
@@ -50,12 +50,12 @@ vehicles.add(
     acceleration_controller=(RLController, {
         "fail_safe": "instantaneous"
     }),
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    sumo_car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
         speed_mode=9,
     ),
-    sumo_lc_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
@@ -131,7 +131,7 @@ scenario = BottleneckScenario(
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)
