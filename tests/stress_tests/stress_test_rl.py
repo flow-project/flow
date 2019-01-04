@@ -46,7 +46,10 @@ if __name__ == "__main__":
 
     create_env, env_name = make_create_env(params=flow_params, version=0)
 
-    from ray.rllib.agents.agent import get_agent_class
+    try:
+        from ray.rllib.agents.agent import get_agent_class
+    except ImportError:
+        from ray.rllib.agents.registry import get_agent_class
     if alg == 'ARS':
         agent_cls = get_agent_class(alg)
         config = agent_cls._default_config.copy()
