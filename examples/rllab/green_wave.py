@@ -69,21 +69,21 @@ def run_task(*_):
     inner_length = 300
     long_length = 100
     short_length = 300
-    n = 3
-    m = 3
+    N_ROWS = 3
+    N_COLUMNS = 3
     num_cars_left = 1
     num_cars_right = 1
     num_cars_top = 1
     num_cars_bot = 1
-    tot_cars = (num_cars_left + num_cars_right) * m \
-        + (num_cars_bot + num_cars_top) * n
+    tot_cars = (num_cars_left + num_cars_right) * N_COLUMNS \
+        + (num_cars_bot + num_cars_top) * N_ROWS
 
     grid_array = {
         "short_length": short_length,
         "inner_length": inner_length,
         "long_length": long_length,
-        "row_num": n,
-        "col_num": m,
+        "row_num": N_ROWS,
+        "col_num": N_COLUMNS,
         "cars_left": num_cars_left,
         "cars_right": num_cars_right,
         "cars_top": num_cars_top,

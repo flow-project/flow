@@ -26,8 +26,8 @@ def grid_example(render=None):
     inner_length = 300
     long_length = 500
     short_length = 300
-    n = 2
-    m = 3
+    N_ROWS = 2
+    N_COLUMNS = 3
     num_cars_left = 20
     num_cars_right = 20
     num_cars_top = 20
@@ -39,8 +39,8 @@ def grid_example(render=None):
         "short_length": short_length,
         "inner_length": inner_length,
         "long_length": long_length,
-        "row_num": n,
-        "col_num": m,
+        "row_num": N_ROWS,
+        "col_num": N_COLUMNS,
         "cars_left": num_cars_left,
         "cars_right": num_cars_right,
         "cars_top": num_cars_top,
