@@ -153,6 +153,7 @@ class TestRllibExamples(unittest.TestCase):
         alg_run, env_name, config = bottleneck_setup()
         self.run_exp(alg_run, env_name, config)
 
+    # TODO(ev) re-enable this test
     # def test_multi_figure_eight(self):
     #     alg_run, env_name, config = multi_figure_eight_setup()
     #     self.run_exp(alg_run, env_name, config)
