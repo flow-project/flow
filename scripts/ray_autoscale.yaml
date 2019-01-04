@@ -39,8 +39,8 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: m4.16xlarge #c4.4xlarge
-    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
+    InstanceType: c4.4xlarge
+    ImageId: ami-082a5535a684b1962 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -54,8 +54,8 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: m4.16xlarge #c4.4xlarge
-    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
+    InstanceType: c4.4xlarge
+    ImageId: ami-082a5535a684b1962 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -68,13 +68,26 @@ worker_nodes:
 
 file_mounts: {
 # path to your repo and the desired branch name
-"/tmp/path": "<PATH TO FLOW>.git/refs/heads/<BRANCH NAME>",
+#"/tmp/path": "<PATH TO FLOW>.git/refs/heads/<BRANCH NAME>",
+"/tmp/path": "/Users/eugenevinitsky/Desktop/Research/Bayen/Code/flow/.git/refs/heads/autoscaler_fix"
 }
 
 setup_commands:
     # checkout your desired branch on all worker nodes
     - cd flow && git fetch && git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git checkout eugene_upstream/master && git pull eugene_upstream master
+    # set up ray by pip installing and copying over rllib folder
+    - pip install ray==0.6.1
+    - pushd $HOME
+    -     git clone https://github.com/flow-project/ray.git
+    -     cd ray && git fetch && git checkout master && cd ..
+    -     pushd ray
+    -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
+    -         rm -rf $RAY_SITE_DIR/rllib
+    -         ls $RAY_SITE_DIR
+    -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
+    -     popd
+    - popd
+    # - cd ray && git fetch origin && git checkout master && git pull origin master
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
