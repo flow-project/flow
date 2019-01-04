@@ -4,7 +4,7 @@ from flow.controllers import IDMController
 from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, \
     NetParams, InitialConfig, InFlows
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
     ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
@@ -17,7 +17,7 @@ def highway_example(render=None):
     Parameters
     ----------
     render : bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
@@ -25,12 +25,12 @@ def highway_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
-    sumo_params = SumoParams(render=True)
+    sim_params = SumoParams(render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
         acceleration_controller=(IDMController, {}),
@@ -68,7 +68,7 @@ def highway_example(render=None):
         net_params=net_params,
         initial_config=initial_config)
 
-    env = LaneChangeAccelEnv(env_params, sumo_params, scenario)
+    env = LaneChangeAccelEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 

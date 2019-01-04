@@ -5,13 +5,13 @@ import urllib.request
 
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     SumoLaneChangeParams, SumoCarFollowingParams, InFlows
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 
 from flow.core.experiment import Experiment
 from flow.envs.bay_bridge.base import BayBridgeEnv
 from flow.scenarios.bay_bridge_toll import BayBridgeTollScenario
 from flow.scenarios.bay_bridge_toll import EDGES_DISTRIBUTION
-from flow.controllers import SumoCarFollowingController, BayBridgeRouter
+from flow.controllers import SimCarFollowingController, BayBridgeRouter
 
 NETFILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "bottleneck.net.xml")
@@ -25,7 +25,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
     Parameters
     ----------
     render : bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
     use_traffic_lights: bool, optional
         whether to activate the traffic lights in the scenario
 
@@ -33,30 +33,30 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
     ----
     Unlike the bay_bridge_example, inflows are always activated here.
     """
-    sumo_params = SumoParams(sim_step=0.4, overtake_right=True)
+    sim_params = SumoParams(sim_step=0.4, overtake_right=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
-    sumo_car_following_params = SumoCarFollowingParams(
+    car_following_params = SumoCarFollowingParams(
         speedDev=0.2,
         speed_mode="all_checks",
     )
-    sumo_lc_params = SumoLaneChangeParams(
+    lane_change_params = SumoLaneChangeParams(
         model="LC2013",
         lcCooperative=0.2,
         lcSpeedGain=15,
         lane_change_mode="no_lat_collide",
     )
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
 
     vehicles.add(
         veh_id="human",
-        acceleration_controller=(SumoCarFollowingController, {}),
+        acceleration_controller=(SimCarFollowingController, {}),
         routing_controller=(BayBridgeRouter, {}),
-        sumo_car_following_params=sumo_car_following_params,
-        sumo_lc_params=sumo_lc_params,
+        car_following_params=car_following_params,
+        lane_change_params=lane_change_params,
         num_vehicles=50)
 
     additional_env_params = {}
@@ -118,7 +118,7 @@ def bay_bridge_toll_example(render=None, use_traffic_lights=False):
         net_params=net_params,
         initial_config=initial_config)
 
-    env = BayBridgeEnv(env_params, sumo_params, scenario)
+    env = BayBridgeEnv(env_params, sim_params, scenario)
 
     return Experiment(env)
 

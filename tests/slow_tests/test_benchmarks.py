@@ -6,7 +6,11 @@ import shutil
 import ray
 import ray.rllib.agents.ppo as ppo
 
-from ray.rllib.agents.registry import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
+>>>>>> master
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
