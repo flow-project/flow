@@ -328,6 +328,12 @@ class VehicleParams:
         self.num_types += 1
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 
+    def get_type(self, veh_id):
+        return self.__vehicles[veh_id]["type"]
+
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
+
 
 class SimParams(object):
     """Simulation-specific parameters.
