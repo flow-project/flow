@@ -26,22 +26,6 @@ class BottleneckDensityExperiment(Experiment):
         super().__init__(env)
 
     def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
-        """Runs the given scenario for num_runs and num_steps per run.
-
-        Parameters
-        ----------
-        num_runs: int
-            number of runs the experiment should perform
-        num_steps: int
-            number of steps to be performs in each run of the experiment
-        rl_actions: list or numpy ndarray, optional
-            actions to be performed by rl vehicles in the network (if there are
-            any)
-        convert_to_csv: bool
-            Specifies whether to convert the emission file created by sumo into
-            a csv file
-        """
-
         info_dict = {}
         if rl_actions is None:
 
@@ -122,7 +106,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     horizon : int
         time horizon
     restart_instance: bool, optional
-        whether to restart the instance
+        whether to restart the instance upon reset
     render: bool, optional
         specifies whether to use the gui during execution
 
