@@ -352,7 +352,7 @@ class Figure8Scenario(Scenario):
                       "fromLane": str(i),
                       "toLane": str(i)}]
         con_dict["center_intersection"] = conn
-        return conn
+        return con_dict
 
     def specify_edge_starts(self):
         """See base class."""
