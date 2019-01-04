@@ -96,9 +96,6 @@ class MultiEnv(MultiAgentEnv, Env):
             if self.sim_params.render:
                 self.k.vehicle.update_vehicle_colors()
 
-            # collect list of sorted vehicle ids
-            self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
-
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
 
@@ -246,9 +243,6 @@ class MultiEnv(MultiAgentEnv, Env):
                 logging.error('- {}: {}'.format(veh_id,
                                                 self.initial_state[veh_id]))
             sys.exit()
-
-        # collect list of sorted vehicle ids
-        self.sorted_ids, self.sorted_extra_data = self.sort_by_position()
 
         states = self.get_state()
         self.state = {}
