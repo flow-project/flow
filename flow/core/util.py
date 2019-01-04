@@ -55,7 +55,6 @@ def emission_to_csv(emission_path, output_path=None):
         path to the csv file that will be generated, default is the same
         directory as the emission file, with the same name
     """
-    print(emission_path)
     parser = etree.XMLParser(recover=True)
     tree = ElementTree.parse(emission_path, parser=parser)
     root = tree.getroot()
