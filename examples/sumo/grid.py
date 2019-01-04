@@ -32,8 +32,8 @@ def grid_example(render=None):
     num_cars_right = 20
     num_cars_top = 20
     num_cars_bot = 20
-    tot_cars = (num_cars_left + num_cars_right) * m \
-        + (num_cars_top + num_cars_bot) * n
+    tot_cars = (num_cars_left + num_cars_right) * N_COLUMNS \
+        + (num_cars_top + num_cars_bot) * N_ROWS
 
     grid_array = {
         "short_length": short_length,

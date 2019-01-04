@@ -119,7 +119,7 @@ def run_task(*_):
         "vertical_lanes": 1
     }
 
-    initial_config, net_params = get_flow_params(10, 300, n, m,
+    initial_config, net_params = get_flow_params(10, 300, N_ROWS, N_COLUMNS,
                                                  additional_net_params)
 
     scenario = SimpleGridScenario(
