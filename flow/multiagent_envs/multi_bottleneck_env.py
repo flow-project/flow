@@ -9,8 +9,8 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from flow.multiagent_envs.multiagent_env import MultiEnv
 from flow.envs.bottleneck_env import BottleneckEnv
-from flow.core.params import InFlows, NetParams, VehicleParams, SumoCarFollowingParams, \
-    SumoLaneChangeParams
+from flow.core.params import InFlows, NetParams, VehicleParams, \
+    SumoCarFollowingParams, SumoLaneChangeParams
 
 import numpy as np
 from gym.spaces.box import Box
@@ -21,38 +21,6 @@ import os
 import glob
 
 MAX_LANES = 4  # base number of largest number of lanes in the network
-EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
-EDGE_BEFORE_TOLL = "1"
-TB_TL_ID = "2"
-EDGE_AFTER_TOLL = "2"
-NUM_TOLL_LANES = MAX_LANES
-
-TOLL_BOOTH_AREA = 10  # how far into the edge lane changing is disabled
-RED_LIGHT_DIST = 50  # how close for the ramp meter to start going off
-
-EDGE_BEFORE_RAMP_METER = "2"
-EDGE_AFTER_RAMP_METER = "3"
-NUM_RAMP_METERS = MAX_LANES
-
-RAMP_METER_AREA = 80
-
-MEAN_NUM_SECONDS_WAIT_AT_FAST_TRACK = 3
-MEAN_NUM_SECONDS_WAIT_AT_TOLL = 15
-
-ADDITIONAL_ENV_PARAMS = {
-    # maximum acceleration for autonomous vehicles, in m/s^2
-    "max_accel": 3,
-    # maximum deceleration for autonomous vehicles, in m/s^2
-    "max_decel": 3,
-    # lane change duration for autonomous vehicles, in s. Autonomous vehicles
-    # reject new lane changing commands for this duration after successfully
-    # changing lanes.
-    "lane_change_duration": 5,
-    # whether the toll booth should be active
-    "disable_tb": True,
-    # whether the ramp meter is active
-    "disable_ramp_metering": True,
-}
 
 # Keys for RL experiments
 ADDITIONAL_RL_ENV_PARAMS = {
@@ -60,31 +28,12 @@ ADDITIONAL_RL_ENV_PARAMS = {
     "target_velocity": 30,
     # if an RL vehicle exits, place it back at the front
     "add_rl_if_exit": True,
+    # whether communication between vehicles is on
+    "communicate": False,
+    # whether the observation space is aggregate counts or local observations
+    "decentralized_obs": False
 }
 
-# Keys for VSL style experiments
-ADDITIONAL_VSL_ENV_PARAMS = {
-    # number of controlled regions for velocity bottleneck controller
-    "controlled_segments": [("1", 1, True), ("2", 1, True), ("3", 1, True),
-                            ("4", 1, True), ("5", 1, True)],
-    # whether lanes in a segment have the same action or not
-    "symmetric":
-    False,
-    # which edges are observed
-    "observed_segments": [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)],
-    # whether the inflow should be reset on each rollout
-    "reset_inflow":
-    False,
-    # the range of inflows to reset on
-    "inflow_range": [1000, 2000]
-}
-
-ADDITIONAL_NET_PARAMS = {
-    "scaling": 1  # the factor multiplying number of lanes.
-}
-
-START_RECORD_TIME = 0.0
-PERIOD = 10.0
 
 class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
     """Environment used to train decentralized vehicles to effectively pass
@@ -113,15 +62,19 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
         # the outflow over the last 10 seconds
         # the number of vehicles in the congested section
         # the average velocity on each edge 3,4,5
-        if self.env_params.additional_params.get('communicate', False):
-            # eight possible signals if above
-            return Box(low=-1.0, high=1.0,
-                       shape=(6 * MAX_LANES * self.scaling + 17,),
-                       dtype=np.float32)
+        add_params = self.env_params.additional_params
+        if add_params.get('decentralized_obs', False):
+            return super().observation_space
         else:
-            return Box(low=-1.0, high=1.0,
-                       shape=(6 * MAX_LANES * self.scaling + 9,),
-                       dtype=np.float32)
+            if self.env_params.additional_params.get('communicate', False):
+                # eight possible signals if above
+                return Box(low=-1.0, high=1.0,
+                           shape=(6 * MAX_LANES * self.scaling + 17,),
+                           dtype=np.float32)
+            else:
+                return Box(low=-1.0, high=1.0,
+                           shape=(6 * MAX_LANES * self.scaling + 9,),
+                           dtype=np.float32)
 
     @property
     def action_space(self):
@@ -139,21 +92,27 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
         """See class definition."""
         # action space is speed and velocity of leading and following
         # vehicles for all of the avs
-        veh = self.vehicles
-        if self.env_params.additional_params.get('communicate', False):
-            veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
-                                               self.veh_statistics(rl_id),
-                                               self.get_signal(rl_id, rl_actions)))
-                        for rl_id in self.vehicles.get_rl_ids()}
+        add_params = self.env_params.additional_params
+        if add_params.get('decentralized_obs', False):
+            super().get_state()
         else:
-            veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
-                                                self.veh_statistics(rl_id)))
-                                for rl_id in self.vehicles.get_rl_ids()}
-        agg_statistics = self.aggregate_statistics()
-        lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
-                             for rl_id, val in veh_info.items()}
+            if self.env_params.additional_params.get('communicate', False):
+                veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
+                                                   self.veh_statistics(rl_id),
+                                                   self.get_signal(rl_id,
+                                                                   rl_actions)
+                                                   )
+                                                  )
+                            for rl_id in self.vehicles.get_rl_ids()}
+            else:
+                veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
+                                                   self.veh_statistics(rl_id)))
+                            for rl_id in self.vehicles.get_rl_ids()}
+            agg_statistics = self.aggregate_statistics()
+            lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
+                                 for rl_id, val in veh_info.items()}
 
-        return lead_follow_final
+            return lead_follow_final
 
     def _apply_rl_actions(self, rl_actions):
         """
@@ -273,8 +232,8 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
 
                 except Exception as e:
                     print('error on reset ', e)
-                    # perform the generic reset function
 
+        # perform the generic reset function
         observation = super().reset()
 
         # reset the timer to zero
@@ -292,7 +251,6 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
         else:
             edge_id = - 1/10.0
         return np.array([speed, edge_id, lane])
-
 
     def state_util(self, rl_id):
         ''' Returns an array of headway, tailway, leader speed, follower speed
@@ -341,7 +299,8 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
         for i, edge in enumerate(valid_edges):
             edge_veh = self.vehicles.get_ids_by_edge(edge)
             if len(edge_veh) > 0:
-                avg_speeds[i] = np.mean(self.vehicles.get_speed(edge_veh))/100.0
+                veh = self.vehicles
+                avg_speeds[i] = np.mean(veh.get_speed(edge_veh))/100.0
         return np.concatenate(([time_step], [outflow],
                                [congest_number], avg_speeds))
 
@@ -354,7 +313,7 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
         comm_ids = lead_ids + follow_ids
         if rl_actions:
             signals = [rl_actions[av_id][1]/4.0 if av_id in
-                        rl_actions.keys() else -1/4.0 for av_id in comm_ids]
+                       rl_actions.keys() else -1/4.0 for av_id in comm_ids]
             if len(signals) < 8:
                 # the -2 disambiguates missing cars from missing lanes
                 signals += (8-len(signals)) * [-2/4.0]

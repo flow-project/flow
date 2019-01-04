@@ -3,7 +3,6 @@ In this example, the actions are accelerations for all of the agents.
 The agents all share a single model.
 """
 import json
-import os
 
 import ray
 import ray.rllib.agents.ppo as ppo
@@ -39,10 +38,10 @@ vehicles.add(
     veh_id='human',
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-car_following_params=SumoCarFollowingParams(
+    car_following_params=SumoCarFollowingParams(
                             speed_mode=9,
                         ),
-                        lane_change_params=SumoLaneChangeParams(
+    lane_change_params=SumoLaneChangeParams(
                             lane_change_mode=0,
                         ),
     num_vehicles=1 * SCALING)
@@ -213,9 +212,10 @@ def setup_exps():
     })
     return alg_run, env_name, config
 
+
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    #ray.init(redis_address='localhost:6379')
+    # ray.init(redis_address='localhost:6379')
     ray.init(num_cpus=3, redirect_output=False)
     run_experiments({
         flow_params['exp_tag']: {
@@ -226,7 +226,8 @@ if __name__ == '__main__':
                 'training_iteration': 400
             },
             'config': config,
-            #'upload_dir': "s3://eugene.experiments/bottleneck_exps/12-9-18-nocommunicate-lstm",
+            # 'upload_dir': "s3://eugene.experiments/bottlen
+            # eck_exps/12-9-18-nocommunicate-lstm",
             'num_samples': 1
         },
     })
