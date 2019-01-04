@@ -272,8 +272,9 @@ class KernelScenario(object):
 
         increment = available_length / num_vehicles
 
-        # if not all lanes are equal, then we must ensure that vehicles are in
-        # two edges at the same time
+        # when consecutive edges do not have the same number of lanes, vehicles
+        # are not allowed to be in between edges (as a lane might not exist on
+        # the other side)
         flag = False
         lanes = [self.num_lanes(edge) for edge in self.get_edge_list()]
         if any(lanes[0] != lanes[i] for i in range(1, len(lanes))):
@@ -373,11 +374,8 @@ class KernelScenario(object):
             available_length -= efs * min([self.num_lanes(edge), lanes_distr])
 
         # choose random positions for each vehicle
-        init_absolute_pos = \
-            [random.random() * available_length
-             for _ in range(num_vehicles)]
-
-        # sort the positions of vehicles, for simplicity in using
+        init_absolute_pos = [random.random() * available_length
+                             for _ in range(num_vehicles)]
         init_absolute_pos.sort()
 
         # these positions do not include the length of the vehicle, which need
