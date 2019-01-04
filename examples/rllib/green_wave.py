@@ -73,15 +73,15 @@ v_enter = 30
 inner_length = 800
 long_length = 100
 short_length = 800
-n = 1
-m = 5
+N_ROWS = 1
+N_COLUMNS = 5
 num_cars_left = 3
 num_cars_right = 3
 num_cars_top = 15
 num_cars_bot = 15
 rl_veh = 0
-tot_cars = (num_cars_left + num_cars_right) * m \
-           + (num_cars_bot + num_cars_top) * n
+tot_cars = (num_cars_left + num_cars_right) * N_ROWS \
+           + (num_cars_bot + num_cars_top) * N_COLUMNS
 
 grid_array = {
     'short_length': short_length,
