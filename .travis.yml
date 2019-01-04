@@ -23,21 +23,21 @@ before_install:
   - source activate flow
 
   # Requirements for Ray
-  - pip install opencv-python
+  # - pip install opencv-python
   # Setup ray from https://s3-us-west-2.amazonaws.com/ray-wheels/
-  - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.6.1-cp35-cp35m-manylinux1_x86_64.whl
+  # - pip install https://s3-us-west-1.amazonaws.com/flow.utils/ray-0.6.1-cp35-cp35m-manylinux1_x86_64.whl
 
-  # Copy over local rllib changes (testing branch)
-  - pushd $HOME/build/flow-project
-  -     git clone https://github.com/flow-project/ray.git
-  -     cd ray && git fetch && git checkout master && cd ..
-  -     pushd ray
-  -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
-  -         rm -rf $RAY_SITE_DIR/rllib
-  -         ls $RAY_SITE_DIR
-  -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
-  -     popd
-  - popd
+#  # Copy over local rllib changes (testing branch)
+#  - pushd $HOME/build/flow-project
+#  -     git clone https://github.com/flow-project/ray.git
+#  -     cd ray && git fetch && git checkout master && cd ..
+#  -     pushd ray
+#  -         RAY_SITE_DIR=`python -c "import ray; print(ray.__path__[0])"`
+#  -         rm -rf $RAY_SITE_DIR/rllib
+#  -         ls $RAY_SITE_DIR
+#  -         cp -r python/ray/rllib $RAY_SITE_DIR/rllib
+#  -     popd
+#  - popd
 
   # [sumo] dependencies and binaries
   - pushd $HOME/build/flow-project
