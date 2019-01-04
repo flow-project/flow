@@ -75,7 +75,6 @@ class Env(*classdef):
 
     def __init__(self, env_params, sim_params, scenario):
         # Invoke serializable if using rllab
-
         if serializable_flag:
             Serializable.quick_init(self, locals())
 
@@ -104,11 +103,6 @@ class Env(*classdef):
         # simulation step size
         self.sim_step = sim_params.sim_step
 
-        # the available_routes variable contains a dictionary of routes
-        # vehicles can traverse; to be used when routes need to be chosen
-        # dynamically
-        self.available_routes = self.scenario.rts
-
         # TraCI connection used to communicate with sumo
         self.traci_connection = None
 
@@ -125,17 +119,30 @@ class Env(*classdef):
         # colors used to distinguish between types of vehicles in the network
         self.colors = {}
 
+        # the simulator used by this environment
+        self.simulator = 'traci'
+
         # create the Flow kernel
-        self.k = Kernel(simulator="traci", sim_params=sim_params)
+        self.k = Kernel(simulator=self.simulator,
+                        sim_params=sim_params)
+
+        # use the scenario class's network parameters to generate the necessary
+        # scenario components within the scenario kernel
+        self.k.scenario.generate_network(scenario)
 
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=sim_params)
+            scenario=self.k.scenario, sim_params=sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(self.traci_connection)
+
+        # the available_routes variable contains a dictionary of routes
+        # vehicles can traverse; to be used when routes need to be chosen
+        # dynamically
+        self.available_routes = self.k.scenario.rts
 
         self.setup_initial_state()
 
@@ -187,8 +194,11 @@ class Env(*classdef):
         render: bool, optional
             specifies whether to use the gui
         """
-        self.traci_connection.close(False)
-        self.k.simulation.sumo_proc.kill()
+        self.k.close()
+
+        # killed the sumo process if using sumo/TraCI
+        if self.simulator == 'traci':
+            self.k.simulation.sumo_proc.kill()
 
         if render is not None:
             self.sim_params.render = render
@@ -197,9 +207,11 @@ class Env(*classdef):
             ensure_dir(sim_params.emission_path)
             self.sim_params.emission_path = sim_params.emission_path
 
+        self.k.scenario.generate_network(self.scenario)
         self.traci_connection = self.k.simulation.start_simulation(
-            scenario=self.scenario, sim_params=self.sim_params)
+            scenario=self.k.scenario, sim_params=self.sim_params)
         self.k.pass_api(self.traci_connection)
+
         self.setup_initial_state()
 
     def setup_initial_state(self):
@@ -214,7 +226,8 @@ class Env(*classdef):
             random.shuffle(self.initial_ids)
 
         # generate starting position for vehicles in the network
-        start_pos, start_lanes = self.scenario.generate_starting_positions(
+        start_pos, start_lanes = self.k.scenario.generate_starting_positions(
+            initial_config=self.scenario.initial_config,
             num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
@@ -649,7 +662,7 @@ class Env(*classdef):
             this_edge = self.vehicles.get_edge(veh_id)
             target_lane = min(
                 max(this_lane + direction[i], 0),
-                self.scenario.num_lanes(this_edge) - 1)
+                self.k.scenario.num_lanes(this_edge) - 1)
 
             # perform the requested lane action action in TraCI
             if target_lane != this_lane:
@@ -697,7 +710,7 @@ class Env(*classdef):
         if self.vehicles.get_edge(veh_id) == '':
             # occurs when a vehicle crashes is teleported for some other reason
             return 0.
-        return self.scenario.get_x(
+        return self.k.scenario.get_x(
             self.vehicles.get_edge(veh_id), self.vehicles.get_position(veh_id))
 
     def sort_by_position(self):
@@ -832,8 +845,7 @@ class Env(*classdef):
                 "Closing connection to TraCI and stopping simulation.\n"
                 "Note, this may print an error message when it closes."
             )
-            self.traci_connection.close()
-            self.scenario.close()
+            self.k.close()
 
             # close pyglet renderer
             if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
@@ -880,7 +892,7 @@ class Env(*classdef):
         machine_logs = []
         machine_orientations = []
         machine_dynamics = []
-        max_speed = self.scenario.max_speed
+        max_speed = self.k.scenario.max_speed()
         for id in human_idlist:
             # Force tracking human vehicles by adding "track" in vehicle id.
             # The tracked human vehicles will be treated as machine vehicles.
