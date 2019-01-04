@@ -330,6 +330,7 @@ class BottleneckEnv(Env):
             return -1
 
     def get_bottleneck_outflow_vehicles_per_hour(self, sample_period):
+        """Return the vehs/hour based on sample_period."""
         return self.vehicles.get_outflow_rate(sample_period)
 
     def get_bottleneck_density(self, lanes=None):

@@ -6,6 +6,7 @@ from gym.spaces import Box
 import logging
 import os
 import sys
+import atexit
 import time
 import traceback
 import numpy as np
@@ -175,6 +176,7 @@ class Env(*classdef):
         else:
             raise ValueError("Mode %s is not supported!" %
                              self.sim_params.render)
+        atexit.register(self.terminate)
 
     def restart_simulation(self, sim_params, render=None):
         """Restart an already initialized simulation instance.
@@ -838,15 +840,19 @@ class Env(*classdef):
         Should be done at end of every experiment. Must be in Env because the
         environment opens the TraCI connection.
         """
-        print(
-            "Closing connection to TraCI and stopping simulation.\n"
-            "Note, this may print an error message when it closes."
-        )
-        self.k.close()
+        try:
+            print(
+                "Closing connection to TraCI and stopping simulation.\n"
+                "Note, this may print an error message when it closes."
+            )
+            self.k.close()
 
-        # close pyglet renderer
-        if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
-            self.renderer.close()
+            # close pyglet renderer
+            if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+                self.renderer.close()
+        except FileNotFoundError:
+            print("Skip automatic termination. "
+                  "Connection is probably already closed.")
 
     def render(self, reset=False, buffer_length=5):
         """Render a frame.
