@@ -146,8 +146,6 @@ def visualizer_rllib(args):
 
     # Start the environment with the gui turned on and a path for the
     # emission file
-    module = __import__(env_loc, fromlist=[flow_params['env_name']])
-    env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
     env_params.restart_instance = False
     if args.evaluate:

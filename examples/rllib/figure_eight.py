@@ -7,7 +7,6 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
->>>>>> master
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
