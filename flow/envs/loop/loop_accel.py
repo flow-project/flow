@@ -131,10 +131,9 @@ class AccelEnv(Env):
                 # in case the vehicle isn't in the network
                 self.absolute_position[veh_id] = -1001
             else:
-                change = this_pos - self.prev_pos.get(
-                    veh_id, self.k.vehicle.get_x_by_id(veh_id))
+                change = this_pos - self.prev_pos.get(veh_id, this_pos)
                 self.absolute_position[veh_id] = \
-                    (self.absolute_position[veh_id] + change) \
+                    (self.absolute_position.get(veh_id, this_pos) + change) \
                     % self.k.scenario.length()
                 self.prev_pos[veh_id] = this_pos
 
