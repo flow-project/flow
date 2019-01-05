@@ -14,9 +14,10 @@ from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams
 from flow.core.vehicles import Vehicles
-from flow.controllers import IDMController, ContinuousRouter, RLController
+from flow.controllers import IDMController, ContinuousRouter,\
+    SumoCarFollowingController, SumoLaneChangeController
 from flow.controllers.routing_controllers import IntersectionRouter
-from flow.envs import IntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import \
     IntersectionScenario, ADDITIONAL_NET_PARAMS
 
@@ -29,10 +30,10 @@ N_CPUS = 2
 
 # We place 40 autonomous vehicles in the network
 vehicles = Vehicles()
-experiment = {'e_1': [('rl', 10)],
-              'e_3': [('rl', 10)],
-              'e_5': [('rl', 10)],
-              'e_7': [('rl', 10)]}
+experiment = {'e_1_sbc+': [('autonomous', 10)],
+              'e_3_sbc+': [('autonomous', 10)],
+              'e_5_sbc+': [('autonomous', 10)],
+              'e_7_sbc+': [('autonomous', 10)]}
 vehicle_data = {}
 
 # get all different vehicle types
@@ -45,10 +46,10 @@ for _, pairs in experiment.items():
 for veh_id, veh_num in vehicle_data.items():
     vehicles.add(
         veh_id=veh_id,
-        speed_mode=0b00110,
-        lane_change_mode=0b000100000000,
-        acceleration_controller=(RLController, {}),
-        lane_change_controller=(StaticLaneChanger, {}),
+        speed_mode=0b11111,
+        lane_change_mode=0b011001010101,
+        acceleration_controller=(SumoCarFollowingController, {}),
+        lane_change_controller=(SumoLaneChangeController, {}),
         routing_controller=(IntersectionRouter, {}),
         num_vehicles=veh_num)
 

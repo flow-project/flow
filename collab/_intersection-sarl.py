@@ -1,5 +1,4 @@
 """Example of modified intersection network with human-driven vehicles."""
-from flow.controllers import IDMController
 from flow.controllers import RLController, IDMController, ConstAccController,\
     SumoCarFollowingController, SumoLaneChangeController,\
     RandomConstAccController, RandomLaneChanger, StaticLaneChanger
@@ -71,10 +70,10 @@ def intersection_example(render=None,
     for veh_id, veh_num in vehicle_data.items():
         vehicles.add(
             veh_id=veh_id,
-            speed_mode=0b00110,
-            lane_change_mode=0b000100000000,
-            acceleration_controller=(ConstAccController, {}),
-            lane_change_controller=(StaticLaneChanger, {}),
+            speed_mode=0b11111,
+            lane_change_mode=0b011001010101,
+            acceleration_controller=(SumoCarFollowingController, {}),
+            lane_change_controller=(SumoLaneChangeController, {}),
             routing_controller=(IntersectionRouter, {}),
             num_vehicles=veh_num)
 
@@ -113,4 +112,4 @@ if __name__ == "__main__":
                                show_radius=False)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1500)
+    exp.run(1, 1000)

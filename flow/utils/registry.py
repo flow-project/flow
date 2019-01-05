@@ -64,15 +64,13 @@ def make_create_env(params, version=0, render=None):
     net_params = params['net']
     vehicles = params['veh']
     initial_config = params.get('initial', InitialConfig())
-    traffic_lights = params.get("tls", TrafficLights())
 
     def create_env(*_):
         scenario = scenario_class(
             name=exp_tag,
             vehicles=vehicles,
-            net_params=net_params,
             initial_config=initial_config,
-            traffic_lights=traffic_lights,
+            net_params=net_params,
         )
 
         sumo_params = deepcopy(params['sumo'])

@@ -70,7 +70,7 @@ class IntersectionEnv(Env):
             "e_7_sbc+_0", "e_7_sbc+_1",  # north bound
         ]
         self.inflow_values = {
-            loc: np.nan
+            loc: 0
             for loc in self.inflow_locations
         }
         self.outflow_locations = [
@@ -80,7 +80,7 @@ class IntersectionEnv(Env):
             "e_8_sbc-_0", "e_8_sbc-_1",  # north bound
         ]
         self.outflow_values = {
-            loc: np.nan
+            loc: 0
             for loc in self.outflow_locations
         }
         self.alpha = 0.5
@@ -90,14 +90,14 @@ class IntersectionEnv(Env):
     @property
     def action_space(self):
         return Box(
-            low=-abs(self.env_params.additional_params["max_decel"]),
-            high=self.env_params.additional_params["max_accel"],
-            shape=9,
+            low=0,
+            high=max(self.scenario.max_speed, self.tls_phase_count-1),
+            shape=(9,),
             dtype=np.float32)
 
     def set_action(self, action):
         self.sbc_reference = {
-            loc: action[idx]
+            loc: np.clip(action[idx], 0, np.inf)
             for idx, loc in enumerate(self.sbc_locations)
         }
         self._set_reference(self.sbc_reference)
@@ -109,9 +109,9 @@ class IntersectionEnv(Env):
     def observation_space(self):
         """See class definition."""
         return Box(
-            low=0,
-            high=1,
-            shape=16,
+            low=0.,
+            high=np.inf,
+            shape=(16,),
             dtype=np.float32)
 
     def get_observation(self, **kwargs):
@@ -123,7 +123,8 @@ class IntersectionEnv(Env):
             self.outflow_values[loc]
             for loc in self.outflow_locations
         ]
-        return np.asarray(_inflow + _outflow)
+        observation = np.asarray(_inflow + _outflow)
+        return observation
 
     # REWARD FUNCTION GOES HERE
     def compute_reward(self, actions, **kwargs):
@@ -218,4 +219,4 @@ class IntersectionEnv(Env):
         self.set_action(rl_actions)
 
     def get_state(self, **kwargs):
-        self.get_observation(**kwargs)
+        return self.get_observation(**kwargs)
