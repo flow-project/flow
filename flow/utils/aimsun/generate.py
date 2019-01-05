@@ -36,9 +36,6 @@ def create_parser():
 
 def generate_net(nodes, edges, connections, inflows, veh_types):
     inflows = inflows.get()
-    # Aimsun GUI
-    gui = GKGUISystem.getGUISystem().getActiveGui()
-
     lane_width = 3.6  # TODO additional params??
     type_section = model.getType("GKSection")
     type_node = model.getType("GKNode")
@@ -46,24 +43,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     type_traffic_state = model.getType("GKTrafficState")
     type_vehicle = model.getType("GKVehicle")
     type_demand = model.getType("GKTrafficDemand")
-
-    # # determine junctions
-    # junctions = {}
-    # for node in nodes:
-    #     from_edges = [
-    #         edge['id'] for edge in edges if edge['from'] == node['id']]
-    #     to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
-    #     if len(to_edges) > 1 and len(from_edges) > 1:
-    #         junctions[node['id']]["from_edges"] = from_edges
-    #         junctions[node['id']]["to_edges"] = to_edges
-
-    # double_edges = []
-    # for i in range(len(edges)):
-    #     for j in range(i, len(edges)):
-    #         if edges[i]["from"] == edges[j]["to"] and edges[i]["to"] == edges[j]["from"]:
-    #             double_edges.append(i)
-    #             break
-    # edges = [edges[i] for i in range(len(edges)) if i not in double_edges]
 
     # draw edges
     for edge in edges:
@@ -83,35 +62,32 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                 edge["id"], type_section)
             edge_aimsun.setSpeed(edge["speed"])
         else:
-            first_node = next(node for node in nodes
-                              if node["id"] == edge["from"])
-            last_node = next(node for node in nodes
-                             if node["id"] == edge["to"])
+            first_node, last_node = get_edge_nodes(edge, nodes)
+            theta = get_edge_angle(first_node, last_node)
             first_node_offset = [0, 0]  # x, and y offset
             last_node_offset = [0, 0] # x, and y offset
+
+            # offset edge ends if there is a radius in the node
             if "radius" in first_node:
-                del_x = np.array([last_node['x'] - first_node['x']])
-                del_y = np.array([last_node['y'] - first_node['y']])
-                theta = np.arctan2(del_y, del_x) * 180 / np.pi
-                first_node_offset[0] = first_node["radius"] *\
+                first_node_offset[0] = first_node["radius"] * \
                                        np.cos(theta*np.pi/180)
                 first_node_offset[1] = first_node["radius"] * \
                                        np.sin(theta*np.pi/180)
-
             if "radius" in last_node:
-                del_x = np.array([last_node['x'] - first_node['x']])
-                del_y = np.array([last_node['y'] - first_node['y']])
-                theta = np.arctan2(del_y, del_x) * 180 / np.pi
                 last_node_offset[0] = - last_node["radius"] * \
                                       np.cos(theta*np.pi/180)
                 last_node_offset[1] = - last_node["radius"] * \
                                       np.sin(theta*np.pi/180)
-            for edg in edges:
-                if edg["from"] == edge["to"] and edg["to"] == edge["from"]:
-                    print (edge)
-                    del_x = np.array([last_node['x'] - first_node['x']])
-                    del_y = np.array([last_node['y'] - first_node['y']])
-                    theta = np.arctan2(del_y, del_x) * 180 / np.pi
+
+            # offset edge ends if there are multiple edges between nodes
+            # find the edges that share the first node
+            edges_shared_node = [edg for edg in edges
+                                 if first_node["id"] == edg["to"]
+                                 or last_node["id"] == edg["from"]]
+            for new_edge in edges_shared_node:
+                new_first_node, new_last_node = get_edge_nodes(new_edge, nodes)
+                new_theta = get_edge_angle(new_first_node, new_last_node)
+                if new_theta == theta - 180 or new_theta == theta + 180:
                     first_node_offset[0] += lane_width * 0.5 *\
                                           np.sin(theta * np.pi / 180)
                     first_node_offset[1] -= lane_width * 0.5 * \
@@ -120,6 +96,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                                           np.sin(theta * np.pi / 180)
                     last_node_offset[1] -= lane_width * 0.5 *\
                                           np.cos(theta * np.pi / 180)
+                    break
 
             new_point = GKPoint()
             new_point.set(first_node['x'] + first_node_offset[0],
@@ -160,9 +137,10 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
 
         #if the node is a junction with a list of connections
         if len(to_edges) > 1 and len(from_edges) > 1 \
-                and connections is not None: # TODO change this to connecctions[node['id']]
+                and connections[node['id']] is not None:
             # add connections
-            for connection in connections:
+            for connection in connections[node['id']]:
+                print (connection)
                 cmd = model.createNewCmd(type_turn)
                 from_section = model.getCatalog().findByName(
                     connection["from"], type_section, True)
@@ -201,6 +179,20 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                     # add the turning to the node
                     new_node.addTurning(turn, False, True)
 
+    # get the control plan
+    control_plan = model.getCatalog().findByName(
+            "Control Plan", model.getType("GKControlPlan"))
+
+    # add traffic lights
+    # determine junctions
+    junctions = get_junctions(nodes)
+    # add meters for all nodes in junctions
+    for node in junctions:
+        node = model.getCatalog().findByName(
+            node['id'], model.getType("GKNode"))
+        meters = create_node_meters(model, control_plan, node)
+
+
     # set vehicle types
     vehicles = model.getCatalog().getObjectsByType(type_vehicle)
     if vehicles is not None:
@@ -208,7 +200,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             name = vehicle.getName()
             if name == "Car":
                 for veh_type in veh_types:
-                    print (veh_type)
                     cmd = GKObjectDuplicateCmd()
                     cmd.init(vehicle)
                     model.getCommander().addCommand(cmd)
@@ -228,7 +219,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
 
     # add traffic inflows to traffic states
     for inflow in inflows:
-        print (inflow)
         traffic_state_aimsun = model.getCatalog().findByName(
             inflow["vtype"], type_traffic_state)
         edge_aimsun = model.getCatalog().findByName(
@@ -263,6 +253,32 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
 
     # save
     gui.saveAs('flow.ang')
+
+
+def get_junctions(nodes):
+    junctions = []  # TODO check
+    for node in nodes:
+        if "type" in node:
+            if node["type"] == "traffic_light":
+                junctions.append(node)
+    return junctions
+
+
+# get first and last nodes of an edge
+def get_edge_nodes(edge, nodes):
+    first_node = next(node for node in nodes
+                      if node["id"] == edge["from"])
+    last_node = next(node for node in nodes
+                     if node["id"] == edge["to"])
+    return first_node, last_node
+
+
+# compute the edge angle
+def get_edge_angle(first_node, last_node):
+    del_x = np.array([last_node['x'] - first_node['x']])
+    del_y = np.array([last_node['y'] - first_node['y']])
+    theta = np.arctan2(del_y, del_x) * 180 / np.pi
+    return theta
 
 
 def get_state_folder(model):
@@ -360,6 +376,135 @@ def set_vehicles_color(model):
     viewMode.addStyle(viewStyle)
 
 
+# Returns (and creates if needed) the folder for the control plan
+def get_control_plan_folder(model):
+    folder_name = "GKModel::controlPlans"
+    folder = model.getCreateRootFolder().findFolder(folder_name)
+    if folder == None:
+        folder = GKSystem.getSystem().createFolder(model.getCreateRootFolder(),
+                                                   folder_name)
+    return folder
+
+
+# Creates a new control plan
+def create_control_plan(model, name):
+    control_plan = GKSystem.getSystem().newObject("GKControlPlan", model)
+    control_plan.setName(name)
+    folder = get_control_plan_folder(model)
+    folder.append(control_plan)
+    return control_plan
+
+
+# Finds an object using its identifier and checks if it is really a node
+def find_node(model, entry):
+    node = model.getCatalog().find(int(entry))
+    if node != None:
+        if node.isA("GKNode") == False:
+            node = None
+    return node
+
+
+# Finds an object using its identifier and checks if it is really a turn
+def find_turn(model, entry):
+    turn = model.getCatalog().find(int(entry))
+    if turn != None:
+        if turn.isA("GKTurning") == False:
+            turn = None
+    return turn
+
+
+# Returns (and creates if needed) the signals list.
+#
+def create_signal_groups(model, node):  #TODO generalize
+    signals = []
+
+    if len(node.getSignals()) == 0:
+        signal = GKSystem.getSystem().newObject("GKControlPlanSignal", model)
+        signal.addTurning(findTurn(model, 970))
+        signal.addTurning(findTurn(model, 979))
+        node.addSignal(signal)
+        signals.append(signal)
+
+        signal = GKSystem.getSystem().newObject("GKControlPlanSignal", model)
+        signal.addTurning(findTurn(model, 973))
+        signal.addTurning(findTurn(model, 976))
+        node.addSignal(signal)
+        signals.append(signal)
+    else:
+        for signal in node.getSignals():
+            signals.append(signal)
+
+    return signals
+
+
+# Creates the phases, set the cycle time and sets the phases times
+def set_signal_times(cp, node, signal_groups):  #TODO generalize
+    cp_node = cp.createControlJunction(node)
+    cp_node.setCycle(40)
+    cp_node.setControlJunctionType(GKControlJunction.eFixedControl)
+
+    from_time = 0;
+
+    # add phases
+    for signal in signal_groups:
+        phase1 = cp_node.createPhase()
+        phase1.setFrom(from_time)
+        phase1.setDuration(15)
+        phase1.addSignal(signal.getId())
+
+        phase2 = cp_node.createPhase()
+        phase2.setFrom(from_time + 15)
+        phase2.setDuration(5)
+        phase2.setInterphase(True)
+
+        from_time = from_time + 20
+
+
+def create_meter(model, section):
+    meter_length = 2
+    pos = section.getLanesLength2D() - meter_length
+    type = model.getType("GKMetering")
+    cmd = model.createNewCmd(model.getType("GKSectionObject"))
+    cmd.init(type, section, 0, 0, pos, meter_length)  # TODO double check the zeros
+    model.getCommander().addCommand(cmd)
+    meter = cmd.createdObject()
+    meter.setName("meter_{}".format(section.getName()))
+    return meter
+
+
+def set_metering_times(
+        cp, meter, cycle, green, yellow, offset, min_green, max_green):
+    cp_meter = cp.createControlMetering(meter)
+    cp_meter.setControlMeteringType(GKControlMetering.eExternal)
+    cp_meter.setCycle(cycle)
+    cp_meter.setGreen(green)
+    cp_meter.setYellowTime(yellow)
+    cp_meter.setOffset(offset)
+    cp_meter.setMinGreen(min_green)
+    cp_meter.setMaxGreen(max_green)
+
+
+def create_node_meters(model, cp, node):
+    meters = []
+    enter_sections = node.getEntranceSections()
+    for section in enter_sections:
+        meter = create_meter(model, section)
+        # default light params
+        cycle = 40
+        green = 17
+        yellow = 3
+        min_green = 5
+        max_green = 40
+        # offset for vertical edges is 20 and for horizontal edges is 0
+        if "bot" in meter.getName() or "top" in meter.getName():
+            offset = 0
+        elif "left" in meter.getName() or "right" in meter.getName():
+            offset = 20
+        set_metering_times(cp, meter, cycle, green, yellow, offset, min_green,
+                           max_green)
+        meters.append(meter)
+
+
 # collect the scenario-specific data
 data_file = 'flow/core/kernel/scenario/data.json'
 with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
@@ -389,3 +534,10 @@ else:
 
 # generate the network
 generate_net(nodes, edges, connections, inflows, veh_types)
+
+# run the simulation
+# find the replication
+replication_name = "Replication 870"
+replication = model.getCatalog().findByName(replication_name)
+# execute, "play": run with GUI, "execute": run in batch mode
+GKSystem.getSystem().executeAction("execute", replication, [], "")
