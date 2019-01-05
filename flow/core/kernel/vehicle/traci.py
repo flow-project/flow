@@ -169,10 +169,7 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
-                veh_type = self.get_type(veh_id)
-                if '@' in veh_type:
-                    veh_type = veh_type.split('@')[0]
-                min_gap = self.minGap[veh_type]
+                min_gap = self.minGap[self.get_type(veh_id)]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
                 try:
@@ -323,22 +320,6 @@ class TraCIVehicle(KernelVehicle):
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
-
-    def test_set_position(self, veh_id, position):
-        """Set the relative position of the specified vehicle."""
-        self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = position
-
-    def test_set_edge(self, veh_id, edge):
-        """Set the edge of the specified vehicle."""
-        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
-
-    def test_set_lane(self, veh_id, lane):
-        """Set the lane index of the specified vehicle."""
-        self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = lane
-
-    def set_leader(self, veh_id, leader):
-        """Set the leader of the specified vehicle."""
-        self.__vehicles[veh_id]["leader"] = leader
 
     def set_follower(self, veh_id, follower):
         """Set the follower of the specified vehicle."""
