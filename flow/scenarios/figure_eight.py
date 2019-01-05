@@ -192,6 +192,7 @@ class Figure8Scenario(Scenario):
     def specify_connections(self, net_params):
         """See parent class."""
         lanes = net_params.additional_params["lanes"]
+        conn_dict = {}
         conn = []
         for i in range(lanes):
             conn += [{"from": "bottom",
@@ -202,7 +203,8 @@ class Figure8Scenario(Scenario):
                       "to": "left",
                       "fromLane": str(i),
                       "toLane": str(i)}]
-        return conn
+        conn_dict["center"] = conn
+        return conn_dict
 
     def specify_edge_starts(self):
         """See base class."""

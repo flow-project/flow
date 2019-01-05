@@ -222,6 +222,7 @@ class SimpleGridScenario(Scenario):
                     "id": "center" + str(index),
                     "x": x_center,
                     "y": y_center,
+                    "radius": (2.9 + 3.3 * self.net_params.additional_params["horizontal_lanes"]),
                     "type": node_type
                 })
         return nodes
@@ -369,6 +370,49 @@ class SimpleGridScenario(Scenario):
                 }]
 
         return edges
+
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes = 1  # #TODO change it to net_params.additional_params["lanes"]
+        row_num = self.grid_array["row_num"]
+        col_num = self.grid_array["col_num"]
+        con_dict = {}
+
+        # build connections
+        for i in range(row_num):
+            for j in range(col_num):
+                conn = []
+                node_index = i * col_num + j
+                node_id = "center{}".format(node_index)
+                index = "{}_{}".format(i, j)
+                for l in range(lanes):
+                    conn += [
+                        {"from": "bot" + index,
+                         "to": "bot" + "{}_{}".format(i, j + 1),
+                         "fromLane": str(l),
+                         "toLane": str(l)}
+                    ]
+                    conn += [
+                        {"from": "top" + "{}_{}".format(i, j + 1),
+                         "to": "top" + index,
+                         "fromLane": str(l),
+                         "toLane": str(l)}
+                        ]
+                    conn += [
+                        {"from": "right" + index,
+                         "to": "right" + "{}_{}".format(i + 1, j),
+                         "fromLane": str(l),
+                         "toLane": str(l)}
+                    ]
+                    conn += [
+                        {"from": "left" + "{}_{}".format(i + 1, j),
+                         "to": "left" + index,
+                         "fromLane": str(l),
+                         "toLane": str(l)}
+                    ]
+                con_dict[node_id] = conn
+
+        return con_dict
 
     def _build_outer_edges(self):
         """Build the outer edges.
