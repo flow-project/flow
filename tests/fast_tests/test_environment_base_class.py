@@ -8,7 +8,7 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.envs import Env
+from flow.envs import Env, TestEnv
 
 from tests.setup_scripts import ring_road_exp_setup
 import os
@@ -155,29 +155,28 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         accel_step0 = np.array([0, 1, 4, 9, 16])
         self.env.k.vehicle.apply_acceleration(veh_ids=ids, acc=accel_step0)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # compare the new velocity of the vehicles to the expected velocity
         # given the accelerations
         vel1 = np.array([
-            self.env.traci_connection.vehicle.getSpeed(veh_id)
+            self.env.k.vehicle.get_speed(veh_id)
             for veh_id in ids
         ])
         expected_vel1 = (vel0 + accel_step0 * 0.1).clip(min=0)
 
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
-        # store the network observations in the vehicles class
-        self.env.k.vehicle.update(False)
-
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
         self.env.k.vehicle.apply_acceleration(veh_ids=ids, acc=accel_step1)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # this time, some vehicles should be at 0 velocity (NOT less), and sum
         # are a result of the accelerations that took place
         vel2 = np.array([
-            self.env.traci_connection.vehicle.getSpeed(veh_id)
+            self.env.k.vehicle.get_speed(veh_id)
             for veh_id in ids
         ])
         expected_vel2 = (vel1 + accel_step1 * 0.1).clip(min=0)
@@ -218,11 +217,12 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         direction0 = np.array([0, 1, 0, 1, -1])
         self.env.k.vehicle.apply_lane_change(ids, direction=direction0)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
         lane1 = np.array([
-            self.env.traci_connection.vehicle.getLaneIndex(veh_id)
+            self.env.k.vehicle.get_lane(veh_id)
             for veh_id in ids
         ])
         expected_lane1 = (lane0 + np.sign(direction0)).clip(
@@ -230,19 +230,17 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # store the network observations in the vehicles class
-        self.env.k.vehicle.update(False)
-
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
         direction1 = np.array([-1, -1, -1, -1, -1])
         self.env.k.vehicle.apply_lane_change(ids, direction=direction1)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
         lane2 = np.array([
-            self.env.traci_connection.vehicle.getLaneIndex(veh_id)
+            self.env.k.vehicle.get_lane(veh_id)
             for veh_id in ids
         ])
         expected_lane2 = (lane1 + np.sign(direction1)).clip(
@@ -355,7 +353,9 @@ class TestVehicleColoring(unittest.TestCase):
         # add an RL vehicle to ensure that its color will be distinct
         vehicles.add("rl", acceleration_controller=(RLController, {}),
                      num_vehicles=1)
-        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        _, scenario = ring_road_exp_setup(vehicles=vehicles)
+        env = TestEnv(EnvParams(), SumoParams(), scenario)
+        env.reset()
 
         # set one vehicle as observed
         env.k.vehicle.set_observed("human_0")
@@ -366,8 +366,7 @@ class TestVehicleColoring(unittest.TestCase):
         # check that, when rendering is off, the colors don't change (this
         # avoids unnecessary API calls)
         for veh_id in env.k.vehicle.get_ids():
-            self.assertEqual(
-                env.k.vehicle.get_color(veh_id), YELLOW)
+            self.assertEqual(env.k.vehicle.get_color(veh_id), YELLOW)
 
         # a little hack to ensure the colors change
         env.sim_params.render = True
@@ -380,15 +379,12 @@ class TestVehicleColoring(unittest.TestCase):
 
         # check the colors of all vehicles
         for veh_id in env.k.vehicle.get_ids():
-            if veh_id == "human_0":
-                self.assertEqual(
-                    env.k.vehicle.get_color(veh_id), CYAN)
+            if veh_id in ["human_0"]:
+                self.assertEqual(env.k.vehicle.get_color(veh_id), CYAN)
             elif veh_id == "rl_0":
-                self.assertEqual(
-                    env.k.vehicle.get_color(veh_id), RED)
+                self.assertEqual(env.k.vehicle.get_color(veh_id), RED)
             else:
-                self.assertEqual(
-                    env.k.vehicle.get_color(veh_id), WHITE)
+                self.assertEqual(env.k.vehicle.get_color(veh_id), WHITE)
 
 
 if __name__ == '__main__':

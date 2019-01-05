@@ -110,11 +110,11 @@ class Env(*classdef):
         # initialize the simulation using the simulation kernel. This will use
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
-        self.traci_connection = self.k.simulation.start_simulation(
+        kernel_api = self.k.simulation.start_simulation(
             scenario=self.k.scenario, sim_params=sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
-        self.k.pass_api(self.traci_connection)
+        self.k.pass_api(kernel_api)
 
         # the available_routes variable contains a dictionary of routes
         # vehicles can traverse; to be used when routes need to be chosen
@@ -124,11 +124,12 @@ class Env(*classdef):
         # store the initial vehicle ids
         self.initial_ids = deepcopy(scenario.vehicles.ids)
 
-        # store the initial state of the vehicles class (for restarting sumo)
+        # store the initial state of the vehicles kernel (needed for restarting
+        # the simulation)
         self.k.vehicle.kernel_api = None
         self.k.vehicle.master_kernel = None
         self.initial_vehicles = deepcopy(self.k.vehicle)
-        self.k.vehicle.kernel_api = self.traci_connection
+        self.k.vehicle.kernel_api = self.k.kernel_api
         self.k.vehicle.master_kernel = self.k
 
         self.setup_initial_state()
@@ -142,8 +143,9 @@ class Env(*classdef):
 
             # get network polygons
             network = []
-            for lane_id in self.traci_connection.lane.getIDList():
-                _lane_poly = self.traci_connection.lane.getShape(lane_id)
+            # FIXME: add to scenario kernel instead of hack
+            for lane_id in self.k.kernel_api.lane.getIDList():
+                _lane_poly = self.k.kernel_api.lane.getShape(lane_id)
                 lane_poly = [i for pt in _lane_poly for i in pt]
                 network.append(lane_poly)
 
@@ -196,9 +198,9 @@ class Env(*classdef):
 
         self.k.scenario.generate_network(self.scenario)
         self.k.vehicle.initialize(deepcopy(self.scenario.vehicles))
-        self.traci_connection = self.k.simulation.start_simulation(
+        kernel_api = self.k.simulation.start_simulation(
             scenario=self.k.scenario, sim_params=self.sim_params)
-        self.k.pass_api(self.traci_connection)
+        self.k.pass_api(kernel_api)
 
         self.setup_initial_state()
 

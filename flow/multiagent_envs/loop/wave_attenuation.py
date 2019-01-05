@@ -59,7 +59,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(int(self.k.vehicle.num_rl_vehicles/num_rings), ),
+            shape=(int(self.scenario.vehicles.num_rl_vehicles / num_rings), ),
             dtype=np.float32)
 
     def get_state(self):

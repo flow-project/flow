@@ -169,7 +169,7 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
-                veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
+                veh_type = self.get_type(veh_id)
                 if '@' in veh_type:
                     veh_type = veh_type.split('@')[0]
                 min_gap = self.minGap[veh_type]
@@ -292,8 +292,8 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         # remove from sumo
         try:
-            self.kernel_api.vehicle.remove(veh_id)
             self.kernel_api.vehicle.unsubscribe(veh_id)
+            self.kernel_api.vehicle.remove(veh_id)
         except (FatalTraCIError, TraCIException):
             pass
 
@@ -932,3 +932,13 @@ class TraCIVehicle(KernelVehicle):
             departLane=str(lane),
             departPos=str(pos),
             departSpeed=str(speed))
+
+    def get_max_speed(self, veh_id, error):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_max_speed(vehID, error) for vehID in veh_id]
+        return self.kernel_api.vehicle.getMaxSpeed(veh_id)
+
+    def set_max_speed(self, veh_id, max_speed):
+        """See parent class."""
+        self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)
