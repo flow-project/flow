@@ -98,3 +98,8 @@ Makefile
 data/
 debug/
 .vs/**
+
+# Custom for Aimsun
+*flow.ang
+*flow.ang.lck
+*flow.sqlite
