@@ -15,7 +15,7 @@ from flow.envs.loop.wave_attenuation import WaveAttenuationEnv, \
     WaveAttenuationPOEnv, WaveAttenuationCNNDebugEnv, WaveAttenuationCNNEnv, \
     WaveAttenuationCNNIDMEnv
 from flow.envs.merge import WaveAttenuationMergePOEnv
-from flow.envs.intersection import IntersectionEnv
+from flow.envs.intersection_env import IntersectionEnv
 from flow.envs.test import TestEnv
 
 __all__ = [

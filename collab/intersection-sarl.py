@@ -17,7 +17,8 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.controllers.routing_controllers import IntersectionRouter
 from flow.envs import IntersectionEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
+from flow.scenarios.intersection import \
+    IntersectionScenario, ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1000

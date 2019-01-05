@@ -7,7 +7,7 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.envs.intersection import IntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRouter
 import numpy as np
