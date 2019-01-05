@@ -3,6 +3,7 @@ from flow.core.kernel.vehicle.base import KernelVehicle
 import collections
 import numpy as np
 from copy import deepcopy
+from flow.utils.aimsun.struct import InfVeh
 from flow.controllers.car_following_models import SimCarFollowingController
 from flow.controllers.rlcontroller import RLController
 from flow.controllers.lane_change_controllers import SimLaneChangeController
@@ -147,11 +148,43 @@ class AimsunKernelVehicle(KernelVehicle):
             for veh_id in exited_vehicles:
                 self.remove(veh_id)
 
-        # update all vehicles' tracking information
         for veh_id in self.__ids:
             aimsun_id = self._id_flow2aimsun[veh_id]
-            self.__vehicles[veh_id]['tracking_info'] = \
+
+            # update the vehicle's tracking information
+            tracking_info = self.__vehicles[veh_id]['tracking_info']
+            (tracking_info.CurrentPos,
+             tracking_info.distance2End,
+             tracking_info.xCurrentPos,
+             tracking_info.yCurrentPos,
+             tracking_info.zCurrentPos,
+             tracking_info.CurrentSpeed,
+             tracking_info.TotalDistance,
+             tracking_info.SectionEntranceT,
+             tracking_info.CurrentStopTime,
+             tracking_info.stopped,
+             tracking_info.idSection,
+             tracking_info.segment,
+             tracking_info.numberLane,
+             tracking_info.idJunction,
+             tracking_info.idSectionFrom,
+             tracking_info.idLaneFrom,
+             tracking_info.idSectionTo,
+             tracking_info.idLaneTo) = \
                 self.kernel_api.get_vehicle_tracking_info(aimsun_id)
+
+            # get the leader and followers
+            lead_id = self.kernel_api.get_vehicle_leader(aimsun_id)
+            if lead_id < -1:
+                self.__vehicles[veh_id]['leader'] = None
+            else:
+                lead_id = self._id_aimsun2flow[lead_id]
+                self.__vehicles[veh_id]['leader'] = lead_id
+                self.__vehicles[lead_id]['follower'] = veh_id
+
+        # update the headways and tailways
+        for veh_id in self.__ids:
+            aimsun_id = self._id_flow2aimsun[veh_id]
             self.__vehicles[veh_id]['headway'] = \
                 self.kernel_api.get_vehicle_headway(aimsun_id)
 
@@ -185,6 +218,9 @@ class AimsunKernelVehicle(KernelVehicle):
 
         # store the static info
         self.__vehicles[veh_id]["static_info"] = static_inf_veh
+
+        # store an empty tracking info object
+        self.__vehicles[veh_id]['tracking_info'] = InfVeh()
 
         # specify the acceleration controller class
         accel_controller = \
@@ -529,20 +565,13 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_leader(veh, error) for veh in veh_id]
-        aimsun_id = self._id_flow2aimsun[veh_id]
-        leader_id = self.kernel_api.get_vehicle_leader(aimsun_id)
-        if leader_id < 0:
-            return error
-        else:
-            return self._id_aimsun2flow[leader_id]
+        return self.__vehicles[veh_id]['leader'] or error
 
     def get_follower(self, veh_id, error=""):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_follower(veh, error) for veh in veh_id]
-        aimsun_id = self._id_flow2aimsun[veh_id]
-        follower_id = self.kernel_api.get_vehicle_follower(aimsun_id)
-        return self._id_aimsun2flow[follower_id]
+        return self.__vehicles[veh_id]['follower']
 
     def get_headway(self, veh_id, error=-1001):
         """See parent class."""
