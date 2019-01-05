@@ -98,17 +98,11 @@ flow_params = dict(
 
 def setup_exps():
 
-    alg_run = 'PPO'
+    alg_run = 'ES' # TODO: Make this an argument
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
-    config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [32, 32]})
-    config['use_gae'] = True
-    config['lambda'] = 0.97
-    config['kl_target'] = 0.02
-    config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
 
     # save the flow params for replay
