@@ -113,8 +113,8 @@ def min_delay(env):
 
     vel = vel[vel >= -1e-6]
     v_top = max(
-        env.scenario.speed_limit(edge)
-        for edge in env.scenario.get_edge_list())
+        env.k.scenario.speed_limit(edge)
+        for edge in env.k.scenario.get_edge_list())
     time_step = env.sim_step
 
     max_cost = time_step * sum(vel.shape)
@@ -139,8 +139,8 @@ def min_delay_unscaled(env):
 
     vel = vel[vel >= -1e-6]
     v_top = max(
-        env.scenario.speed_limit(edge)
-        for edge in env.scenario.get_edge_list())
+        env.k.scenario.speed_limit(edge)
+        for edge in env.k.scenario.get_edge_list())
     time_step = env.sim_step
 
     cost = time_step * sum((v_top - vel) / v_top)

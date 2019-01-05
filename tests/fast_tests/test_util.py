@@ -158,8 +158,6 @@ class TestRegistry(unittest.TestCase):
                          flow_params["tls"].__dict__)
         self.assertEqual(env.scenario.net_params.__dict__,
                          flow_params["net"].__dict__)
-        self.assertEqual(env.scenario.net_params.__dict__,
-                         flow_params["net"].__dict__)
         self.assertEqual(env.scenario.initial_config.__dict__,
                          flow_params["initial"].__dict__)
         self.assertEqual(env.__class__.__name__, flow_params["env_name"])
