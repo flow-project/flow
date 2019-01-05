@@ -84,6 +84,7 @@ class IntersectionEnv(Env):
             for loc in self.outflow_locations
         }
         self.alpha = 0.5
+        self.rewards = 0
 
     # ACTION GOES HERE
     @property
@@ -126,39 +127,39 @@ class IntersectionEnv(Env):
 
     # REWARD FUNCTION GOES HERE
     def compute_reward(self, actions, **kwargs):
-        if np.nan in list(self.inflow_values.values()) or \
-           np.nan in list(self.outflow_values.values()):
-            return 0
-        else:
-            _inflow = np.asarray([
-                self.inflow_values[loc]
-                for loc in self.inflow_locations
-            ])
-            _outflow = np.asarray([
-                self.outflow_values[loc]
-                for loc in self.outflow_locations
-            ])
-            _delay = _inflow - _outflow
-            latency = -np.std(_delay)
-            throughput = -np.mean(_delay)
-            return self.alpha*throughput + (1 - self.alpha)*latency
+        _inflow = np.asarray([
+            self.inflow_values[loc]
+            for loc in self.inflow_locations
+        ])
+        _outflow = np.asarray([
+            self.outflow_values[loc]
+            for loc in self.outflow_locations
+        ])
+        _delay = _inflow - _outflow
+        latency = -np.std(_delay)
+        throughput = -np.mean(_delay)
+        return self.alpha*throughput + (1 - self.alpha)*latency
 
     # UTILITY FUNCTION GOES HERE
     def additional_command(self):
         # update inflow statistics
+        _inflow_stats = []
         for idx, loc in enumerate(self.inflow_locations):
             _speed = self.traci_connection.lane.getLastStepMeanSpeed(loc)
             _count = self.traci_connection.lane.getLastStepVehicleNumber(loc)
             _length = self.traci_connection.lane.getLength(loc)
             _density = _count / _length
+            _inflow_stats.append([_speed, _count, _length, _density])
             self.inflow_values[loc] = _speed * _density
 
         # update outflow statistics
+        _outflow_stats = []
         for idx, loc in enumerate(self.outflow_locations):
             _speed = self.traci_connection.lane.getLastStepMeanSpeed(loc)
             _count = self.traci_connection.lane.getLastStepVehicleNumber(loc)
             _length = self.traci_connection.lane.getLength(loc)
             _density = _count / _length
+            _outflow_stats.append([_speed, _count, _length, _density])
             self.outflow_values[loc] = _speed * _density
 
         # update traffic lights state
@@ -169,6 +170,8 @@ class IntersectionEnv(Env):
         # disable skip to test traci tls and sbc setter methods
         self.test_sbc(skip=True)
         self.test_tls(skip=True)
+        self.test_ioflow(_inflow_stats, _outflow_stats, skip=True)
+        self.test_reward(skip=True)
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:
@@ -186,8 +189,19 @@ class IntersectionEnv(Env):
             print("New phase:", self.tls_phase)
             self._set_phase(self.tls_phase)
 
-    def test_ioflow(self, skip=False):
-        # TODO: test inflow outflow calculations are accurate
+    def test_ioflow(self, inflow_stats, outflow_stats, skip=False):
+        if not skip:
+            print(inflow_stats)
+            print(self.inflow_values)
+            print(outflow_stats)
+            print(self.outflow_values)
+
+    def test_reward(self, skip=True):
+        if not skip:
+            _reward = self.compute_reward(None)
+            print('Reward this step:', _reward)
+            self.rewards += _reward
+            print('Total rewards:', self.rewards)
 
     def _set_reference(self, sbc_reference):
         for sbc, reference in sbc_reference.items():
