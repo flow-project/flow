@@ -120,9 +120,9 @@ class WaveAttenuationEnv(Env):
 
     def get_state(self):
         """See class definition."""
-        speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
+        speed = [self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
                  for veh_id in self.vehicles.get_ids()]
-        pos = [self.get_x_by_id(veh_id) / self.scenario.length
+        pos = [self.get_x_by_id(veh_id) / self.k.scenario.length()
                for veh_id in self.vehicles.get_ids()]
 
         return np.array(speed + pos)
@@ -140,19 +140,22 @@ class WaveAttenuationEnv(Env):
         The sumo instance is reset with a new ring length, and a number of
         steps are performed with the rl vehicle acting as a human vehicle.
         """
+        # reset the step counter
+        self.step_counter = 0
+
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
         additional_net_params = {
             'length':
-            random.randint(
-                self.env_params.additional_params['ring_length'][0],
-                self.env_params.additional_params['ring_length'][1]),
+                random.randint(
+                    self.env_params.additional_params['ring_length'][0],
+                    self.env_params.additional_params['ring_length'][1]),
             'lanes':
-            self.scenario.lanes,
+                self.scenario.net_params.additional_params['lanes'],
             'speed_limit':
-            30,
+                self.scenario.net_params.additional_params['speed_limit'],
             'resolution':
-            40
+                self.scenario.net_params.additional_params['resolution']
         }
         net_params = NetParams(additional_params=additional_net_params)
 
@@ -164,7 +167,7 @@ class WaveAttenuationEnv(Env):
         def v_eq_max_function(v):
             num_veh = self.vehicles.num_vehicles - 1
             # maximum gap in the presence of one rl vehicle
-            s_eq_max = (self.scenario.length -
+            s_eq_max = (self.k.scenario.length() -
                         self.vehicles.num_vehicles * 5) / num_veh
 
             v0 = 30

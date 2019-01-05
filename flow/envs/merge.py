@@ -116,8 +116,8 @@ class WaveAttenuationMergePOEnv(Env):
         self.follower = []
 
         # normalizing constants
-        max_speed = self.scenario.max_speed
-        max_length = self.scenario.length
+        max_speed = self.k.scenario.max_speed()
+        max_length = self.k.scenario.length()
 
         observation = [0 for _ in range(5 * self.num_rl)]
         for i, rl_id in enumerate(self.rl_veh):

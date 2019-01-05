@@ -216,6 +216,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
         lane0 = np.array(
             [self.env.vehicles.get_lane(veh_id) for veh_id in ids])
+        max_lanes = self.env.scenario.net_params.additional_params['lanes']
 
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
@@ -229,7 +230,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             for veh_id in ids
         ])
         expected_lane1 = (lane0 + np.sign(direction0)).clip(
-            min=0, max=self.env.scenario.lanes - 1)
+            min=0, max=max_lanes - 1)
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
@@ -255,7 +256,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             for veh_id in ids
         ])
         expected_lane2 = (lane1 + np.sign(direction1)).clip(
-            min=0, max=self.env.scenario.lanes - 1)
+            min=0, max=max_lanes - 1)
 
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
 

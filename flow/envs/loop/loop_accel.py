@@ -105,10 +105,10 @@ class AccelEnv(Env):
 
     def get_state(self):
         """See class definition."""
-        speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
-                 for veh_id in self.vehicles.get_ids()]
-        pos = [self.get_x_by_id(veh_id) / self.scenario.length
-               for veh_id in self.vehicles.get_ids()]
+        speed = [self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
+                 for veh_id in self.sorted_ids]
+        pos = [self.get_x_by_id(veh_id) / self.k.scenario.length()
+               for veh_id in self.sorted_ids]
 
         return np.array(speed + pos)
 

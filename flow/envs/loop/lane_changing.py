@@ -114,11 +114,11 @@ class LaneChangeAccelEnv(AccelEnv):
     def get_state(self):
         """See class definition."""
         # normalizers
-        max_speed = self.scenario.max_speed
-        length = self.scenario.length
+        max_speed = self.k.scenario.max_speed()
+        length = self.k.scenario.length()
         max_lanes = max(
-            self.scenario.num_lanes(edge)
-            for edge in self.scenario.get_edge_list())
+            self.k.scenario.num_lanes(edge)
+            for edge in self.k.scenario.get_edge_list())
 
         speed = [self.vehicles.get_speed(veh_id) / max_speed
                  for veh_id in self.sorted_ids]
@@ -189,14 +189,14 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
     """
 
     def __init__(self, env_params, sim_params, scenario):
+        super().__init__(env_params, sim_params, scenario)
+
         # maximum number of lanes on any edge in the network
-        self.num_lanes = max(
-            scenario.num_lanes(edge) for edge in scenario.get_edge_list())
+        self.num_lanes = max(self.k.scenario.num_lanes(edge)
+                             for edge in self.k.scenario.get_edge_list())
 
         # lists of visible vehicles, used for visualization purposes
         self.visible = []
-
-        super().__init__(env_params, sim_params, scenario)
 
     @property
     def observation_space(self):
@@ -218,8 +218,8 @@ class LaneChangeAccelPOEnv(LaneChangeAccelEnv):
         self.visible = []
         for i, rl_id in enumerate(self.vehicles.get_rl_ids()):
             # normalizers
-            max_length = self.scenario.length
-            max_speed = self.scenario.max_speed
+            max_length = self.k.scenario.length()
+            max_speed = self.k.scenario.max_speed()
 
             # set to 1000 since the absence of a vehicle implies a large
             # headway
