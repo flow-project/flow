@@ -18,7 +18,9 @@ import numpy as np
 
 # Load an empty template
 gui = GKGUISystem.getGUISystem().getActiveGui()
-gui.newDoc("/home/aboudy/Downloads/Aimsun_Flow.ang", "EPSG:32601")
+gui.newDoc(os.path.join(config.PROJECT_PATH,
+                        "flow/utils/aimsun/Aimsun_Flow.ang"),
+           "EPSG:32601")
 model = gui.getActiveModel()
 
 
