@@ -24,7 +24,7 @@ from flow.scenarios.intersection import \
 # time horizon of a single rollout
 HORIZON = 1000
 # number of rollouts per training iteration
-N_ROLLOUTS = 6
+N_ROLLOUTS = 18
 # number of parallel workers
 N_CPUS = 6
 

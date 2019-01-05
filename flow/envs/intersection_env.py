@@ -83,7 +83,7 @@ class IntersectionEnv(Env):
             loc: 0
             for loc in self.outflow_locations
         }
-        self.alpha = 0.5
+        self.alpha = 0.8
         self.rewards = 0
 
     # ACTION GOES HERE
@@ -127,7 +127,10 @@ class IntersectionEnv(Env):
         return observation
 
     # REWARD FUNCTION GOES HERE
-    def compute_reward(self, actions, **kwargs):
+    def get_reward(self, **kwargs):
+        return -np.power(self.vehicles.num_vehicles, 0.9)
+
+    def get_reward_deprecated(self, **kwargs):
         _inflow = np.asarray([
             self.inflow_values[loc]
             for loc in self.inflow_locations
@@ -136,10 +139,11 @@ class IntersectionEnv(Env):
             self.outflow_values[loc]
             for loc in self.outflow_locations
         ])
-        _delay = _inflow - _outflow
-        latency = -np.std(_delay)
-        throughput = -np.mean(_delay)
-        return self.alpha*throughput + (1 - self.alpha)*latency
+        input_efficiency = \
+            self.alpha*np.mean(_inflow) + (1 - self.alpha)*(-np.std(_inflow))
+        output_efficiency = \
+            self.alpha*np.mean(_outflow) + (1 - self.alpha)*(-np.std(_outflow))
+        return input_efficiency + output_efficiency
 
     # UTILITY FUNCTION GOES HERE
     def additional_command(self):
@@ -199,7 +203,7 @@ class IntersectionEnv(Env):
 
     def test_reward(self, skip=True):
         if not skip:
-            _reward = self.compute_reward(None)
+            _reward = self.get_reward()
             print('Reward this step:', _reward)
             self.rewards += _reward
             print('Total rewards:', self.rewards)
@@ -220,3 +224,6 @@ class IntersectionEnv(Env):
 
     def get_state(self, **kwargs):
         return self.get_observation(**kwargs)
+
+    def compute_reward(self, actions, **kwargs):
+        return self.get_reward(**kwargs)
