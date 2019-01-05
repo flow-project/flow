@@ -13,9 +13,9 @@ from bisect import bisect_left
 import itertools
 
 # colors for vehicles
-WHITE = (255, 255, 255, 255)
-CYAN = (0, 255, 255, 255)
-RED = (255, 0, 0, 255)
+WHITE = (255, 255, 255)
+CYAN = (0, 255, 255)
+RED = (255, 0, 0)
 
 
 class TraCIVehicle(KernelVehicle):
@@ -169,10 +169,7 @@ class TraCIVehicle(KernelVehicle):
                 self.__vehicles[veh_id]["follower"] = None
                 self.__vehicles[veh_id]["headway"] = 1e+3
             else:
-                veh_type = self.kernel_api.vehicle.getTypeID(veh_id)
-                if '@' in veh_type:
-                    veh_type = veh_type.split('@')[0]
-                min_gap = self.minGap[veh_type]
+                min_gap = self.minGap[self.get_type(veh_id)]
                 self.__vehicles[veh_id]["headway"] = headway[1] + min_gap
                 self.__vehicles[veh_id]["leader"] = headway[0]
                 try:
@@ -292,8 +289,8 @@ class TraCIVehicle(KernelVehicle):
         """See parent class."""
         # remove from sumo
         try:
-            self.kernel_api.vehicle.remove(veh_id)
             self.kernel_api.vehicle.unsubscribe(veh_id)
+            self.kernel_api.vehicle.remove(veh_id)
         except (FatalTraCIError, TraCIException):
             pass
 
@@ -323,22 +320,6 @@ class TraCIVehicle(KernelVehicle):
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
-
-    def test_set_position(self, veh_id, position):
-        """Set the relative position of the specified vehicle."""
-        self.__sumo_obs[veh_id][tc.VAR_LANEPOSITION] = position
-
-    def test_set_edge(self, veh_id, edge):
-        """Set the edge of the specified vehicle."""
-        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
-
-    def test_set_lane(self, veh_id, lane):
-        """Set the lane index of the specified vehicle."""
-        self.__sumo_obs[veh_id][tc.VAR_LANE_INDEX] = lane
-
-    def set_leader(self, veh_id, leader):
-        """Set the leader of the specified vehicle."""
-        self.__vehicles[veh_id]["leader"] = leader
 
     def set_follower(self, veh_id, follower):
         """Set the follower of the specified vehicle."""
@@ -891,7 +872,7 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_rl_ids():
             try:
                 # color rl vehicles red
-                self.kernel_api.vehicle.setColor(vehID=veh_id, color=RED)
+                self.set_color(veh_id=veh_id, color=RED)
             except (FatalTraCIError, TraCIException):
                 pass
 
@@ -899,13 +880,29 @@ class TraCIVehicle(KernelVehicle):
         for veh_id in self.get_human_ids():
             try:
                 color = CYAN if veh_id in self.get_observed_ids() else WHITE
-                self.kernel_api.vehicle.setColor(vehID=veh_id, color=color)
+                self.set_color(veh_id=veh_id, color=color)
             except (FatalTraCIError, TraCIException):
                 pass
 
         # clear the list of observed vehicles
         for veh_id in self.get_observed_ids():
             self.remove_observed(veh_id)
+
+    def get_color(self, veh_id):
+        """See parent class.
+
+        This does not pass the last term (i.e. transparency).
+        """
+        r, g, b, t = self.kernel_api.vehicle.getColor(veh_id)
+        return r, g, b
+
+    def set_color(self, veh_id, color):
+        """See parent class.
+
+        The last term for sumo (transparency) is set to 255.
+        """
+        r, g, b = color
+        self.kernel_api.vehicle.setColor(vehID=veh_id, color=(r, g, b, 255))
 
     def add(self, veh_id, type_id, route_id, pos, lane, speed):
         """See parent class."""
@@ -916,3 +913,13 @@ class TraCIVehicle(KernelVehicle):
             departLane=str(lane),
             departPos=str(pos),
             departSpeed=str(speed))
+
+    def get_max_speed(self, veh_id, error=-1001):
+        """See parent class."""
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_max_speed(vehID, error) for vehID in veh_id]
+        return self.kernel_api.vehicle.getMaxSpeed(veh_id)
+
+    def set_max_speed(self, veh_id, max_speed):
+        """See parent class."""
+        self.kernel_api.vehicle.setMaxSpeed(veh_id, max_speed)

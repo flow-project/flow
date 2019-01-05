@@ -71,32 +71,29 @@ def get_non_flow_params(enter_speed, additional_net_params):
     return initial_config, net_params
 
 
-v_enter = 30
-
-inner_length = 800
-long_length = 100
-short_length = 800
-n = 1
-m = 5
-num_cars_left = 3
-num_cars_right = 3
-num_cars_top = 15
-num_cars_bot = 15
-rl_veh = 0
-tot_cars = (num_cars_left + num_cars_right) * m \
-           + (num_cars_bot + num_cars_top) * n
+V_ENTER = 30
+INNER_LENGTH = 300
+LONG_LENGTH = 100
+SHORT_LENGTH = 300
+N_ROWS = 3
+N_COLUMNS = 3
+NUM_CARS_LEFT = 1
+NUM_CARS_RIGHT = 1
+NUM_CARS_TOP = 1
+NUM_CARS_BOT = 1
+tot_cars = (NUM_CARS_LEFT + NUM_CARS_RIGHT) * N_COLUMNS \
+           + (NUM_CARS_BOT + NUM_CARS_TOP) * N_ROWS
 
 grid_array = {
-    'short_length': short_length,
-    'inner_length': inner_length,
-    'long_length': long_length,
-    'row_num': n,
-    'col_num': m,
-    'cars_left': num_cars_left,
-    'cars_right': num_cars_right,
-    'cars_top': num_cars_top,
-    'cars_bot': num_cars_bot,
-    'rl_veh': rl_veh
+    "short_length": SHORT_LENGTH,
+    "inner_length": INNER_LENGTH,
+    "long_length": LONG_LENGTH,
+    "row_num": N_ROWS,
+    "col_num": N_COLUMNS,
+    "cars_left": NUM_CARS_LEFT,
+    "cars_right": NUM_CARS_RIGHT,
+    "cars_top": NUM_CARS_TOP,
+    "cars_bot": NUM_CARS_BOT
 }
 
 additional_env_params = {
@@ -120,14 +117,14 @@ vehicles.add(
     acceleration_controller=(SimCarFollowingController, {}),
     car_following_params=SumoCarFollowingParams(
         minGap=2.5,
-        max_speed=v_enter,
+        max_speed=V_ENTER,
         speed_mode="all_checks",
     ),
     routing_controller=(GridRouter, {}),
     num_vehicles=tot_cars)
 
 initial_config, net_params = \
-    get_non_flow_params(v_enter, additional_net_params)
+    get_non_flow_params(V_ENTER, additional_net_params)
 
 flow_params = dict(
     # name of the experiment
