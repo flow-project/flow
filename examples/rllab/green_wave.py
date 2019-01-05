@@ -65,29 +65,29 @@ def get_non_flow_params(enter_speed, additional_net_params):
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    v_enter = 10
-    inner_length = 300
-    long_length = 100
-    short_length = 300
-    n = 3
-    m = 3
-    num_cars_left = 1
-    num_cars_right = 1
-    num_cars_top = 1
-    num_cars_bot = 1
-    tot_cars = (num_cars_left + num_cars_right) * m \
-        + (num_cars_bot + num_cars_top) * n
+    V_ENTER = 30
+    INNER_LENGTH = 300
+    LONG_LENGTH = 100
+    SHORT_LENGTH = 300
+    N_ROWS = 3
+    N_COLUMNS = 3
+    NUM_CARS_LEFT = 1
+    NUM_CARS_RIGHT = 1
+    NUM_CARS_TOP = 1
+    NUM_CARS_BOT = 1
+    tot_cars = (NUM_CARS_LEFT + NUM_CARS_RIGHT) * N_COLUMNS \
+        + (NUM_CARS_BOT + NUM_CARS_TOP) * N_ROWS
 
     grid_array = {
-        "short_length": short_length,
-        "inner_length": inner_length,
-        "long_length": long_length,
-        "row_num": n,
-        "col_num": m,
-        "cars_left": num_cars_left,
-        "cars_right": num_cars_right,
-        "cars_top": num_cars_top,
-        "cars_bot": num_cars_bot
+        "short_length": SHORT_LENGTH,
+        "inner_length": INNER_LENGTH,
+        "long_length": LONG_LENGTH,
+        "row_num": N_ROWS,
+        "col_num": N_COLUMNS,
+        "cars_left": NUM_CARS_LEFT,
+        "cars_right": NUM_CARS_RIGHT,
+        "cars_top": NUM_CARS_TOP,
+        "cars_bot": NUM_CARS_BOT
     }
 
     sim_params = SumoParams(sim_step=1, render=True)
@@ -97,7 +97,7 @@ def run_task(*_):
         veh_id="idm",
         acceleration_controller=(SimCarFollowingController, {}),
         car_following_params=SumoCarFollowingParams(
-            min_gap=2.5, tau=1.1, max_speed=v_enter, speed_mode="all_checks"),
+            min_gap=2.5, tau=1.1, max_speed=V_ENTER, speed_mode="all_checks"),
         routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)
 
@@ -119,7 +119,7 @@ def run_task(*_):
         "vertical_lanes": 1
     }
 
-    initial_config, net_params = get_flow_params(10, 300, n, m,
+    initial_config, net_params = get_flow_params(10, 300, N_ROWS, N_COLUMNS,
                                                  additional_net_params)
 
     scenario = SimpleGridScenario(
