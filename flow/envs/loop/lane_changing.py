@@ -1,6 +1,6 @@
 """Environments that can train both lane change and acceleration behaviors."""
 
-from flow.envs.base_env import Env
+from flow.envs.loop.loop_accel import AccelEnv
 from flow.core import rewards
 
 from gym.spaces.box import Box
@@ -17,10 +17,15 @@ ADDITIONAL_ENV_PARAMS = {
     "lane_change_duration": 5,
     # desired velocity for all vehicles in the network, in m/s
     "target_velocity": 10,
+    # specifies whether vehicles are to be sorted by position during a
+    # simulation step. If set to True, the environment parameter
+    # self.sorted_ids will return a list of all vehicles sorted in accordance
+    # with the environment
+    'sort_vehicles': False
 }
 
 
-class LaneChangeAccelEnv(Env):
+class LaneChangeAccelEnv(AccelEnv):
     """Fully observable lane change and acceleration environment.
 
     This environment is used to train autonomous vehicles to improve traffic
@@ -33,6 +38,10 @@ class LaneChangeAccelEnv(Env):
     * max_decel: maximum deceleration for autonomous vehicles, in m/s^2
     * lane_change_duration: lane change duration for autonomous vehicles, in s
     * target_velocity: desired velocity for all vehicles in the network, in m/s
+    * sort_vehicles: specifies whether vehicles are to be sorted by position
+      during a simulation step. If set to True, the environment parameter
+      self.sorted_ids will return a list of all vehicles sorted in accordance
+      with the environment
 
     States
         The state consists of the velocities, absolute position, and lane index
