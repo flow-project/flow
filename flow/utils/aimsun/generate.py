@@ -253,6 +253,14 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     # set view mode, each vehicle type with different color
     set_vehicles_color(model)
 
+    # set API
+    scenario_name = "Dynamic Scenario 866"
+    scenario = model.getCatalog().findByName(
+        scenario_name, model.getType("GKScenario"))  # find scenario
+    scenario_data = scenario.getInputData ()
+    scenario_data.addExtension(os.path.join(
+        config.PROJECT_PATH,"flow/utils/aimsun/run.py"), True)
+
     # save
     gui.saveAs('flow.ang')
 
@@ -542,4 +550,4 @@ generate_net(nodes, edges, connections, inflows, veh_types)
 replication_name = "Replication 870"
 replication = model.getCatalog().findByName(replication_name)
 # execute, "play": run with GUI, "execute": run in batch mode
-GKSystem.getSystem().executeAction("execute", replication, [], "")
+GKSystem.getSystem().executeAction("play", replication, [], "")
