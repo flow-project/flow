@@ -134,7 +134,7 @@ class AccelEnv(Env):
                 change = this_pos - self.prev_pos.get(veh_id, this_pos)
                 self.absolute_position[veh_id] = \
                     (self.absolute_position.get(veh_id, this_pos) + change) \
-                    % self.scenario.length
+                    % self.k.scenario.length()
                 self.prev_pos[veh_id] = this_pos
 
     @property
