@@ -24,9 +24,9 @@ from flow.scenarios.intersection import \
 # time horizon of a single rollout
 HORIZON = 1000
 # number of rollouts per training iteration
-N_ROLLOUTS = 2
+N_ROLLOUTS = 6
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 6
 
 # We place 40 autonomous vehicles in the network
 vehicles = Vehicles()
@@ -134,10 +134,10 @@ if __name__ == '__main__':
             'config': {
                 **config
             },
-            'checkpoint_freq': 20,
+            'checkpoint_freq': 50,
             'max_failures': 999,
             'stop': {
-                'training_iteration': 200,
+                'training_iteration': 1000,
             },
         }
     })
