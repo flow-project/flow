@@ -167,6 +167,18 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
+    def set_max_speed(self, veh_id, max_speed):
+        """Update the maximum allowable speed by a vehicles in the network.
+
+        Parameters
+        ----------
+        veh_id : list
+            vehicle identifier
+        max_speed : float
+            desired max speed by the vehicle
+        """
+        raise NotImplementedError
+
     ###########################################################################
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
@@ -625,6 +637,22 @@ class KernelVehicle(object):
         ----------
         veh_id : str
             vehicle identifier
+
+        Returns
+        -------
+        float
+        """
+        raise NotImplementedError
+
+    def get_max_speed(self, veh_id, error):
+        """Return the max speed of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
 
         Returns
         -------

@@ -544,17 +544,8 @@ class TestEvenStartPosVariableLanes(unittest.TestCase):
 
     def test_even_start_pos_coverage(self):
         """
-        Ensure that enough vehicles are placed in the network, and they cover
-        all possible lanes.
+        Ensure that the vehicles cover all possible lanes.
         """
-        expected_num_vehicles = self.env.k.vehicle.num_vehicles
-        actual_num_vehicles = \
-            len(self.env.traci_connection.vehicle.getIDList())
-
-        # check that enough vehicles are in the network
-        self.assertEqual(expected_num_vehicles, actual_num_vehicles)
-
-        # check that all possible lanes are covered
         lanes = self.env.k.vehicle.get_lane(self.env.k.vehicle.get_ids())
         self.assertFalse(any(i not in lanes for i in range(4)))
 
