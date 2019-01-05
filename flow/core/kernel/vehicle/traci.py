@@ -933,7 +933,7 @@ class TraCIVehicle(KernelVehicle):
             departPos=str(pos),
             departSpeed=str(speed))
 
-    def get_max_speed(self, veh_id, error):
+    def get_max_speed(self, veh_id, error=-1001):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_max_speed(vehID, error) for vehID in veh_id]
