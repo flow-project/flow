@@ -41,6 +41,11 @@ class TestGetX(unittest.TestCase):
         pos_2 = 0.1
         self.assertAlmostEqual(self.env.k.scenario.get_x(edge_2, pos_2), 0.1)
 
+    def test_error(self):
+        edge = ''
+        pos = 4.72
+        self.assertAlmostEqual(self.env.k.scenario.get_x(edge, pos), -1001)
+
 
 class TestGetEdge(unittest.TestCase):
     """
@@ -595,6 +600,9 @@ class TestEdgeLength(unittest.TestCase):
 
         self.assertEqual(env.k.scenario.edge_length("top"), 250)
 
+        # test for errors as well
+        self.assertAlmostEqual(env.k.scenario.edge_length("wrong_name"), -1001)
+
     def test_edge_length_junctions(self):
         """
         Tests the speed_limit() method when called on junctions
@@ -638,6 +646,9 @@ class TestSpeedLimit(unittest.TestCase):
 
         self.assertAlmostEqual(env.k.scenario.speed_limit("top"), 60)
 
+        # test for errors as well
+        self.assertAlmostEqual(env.k.scenario.speed_limit("wrong_name"), -1001)
+
     def test_speed_limit_junctions(self):
         """
         Tests the speed_limit() method when called on junctions
@@ -680,6 +691,9 @@ class TestNumLanes(unittest.TestCase):
         env, scenario = ring_road_exp_setup(net_params=net_params)
 
         self.assertEqual(env.k.scenario.num_lanes("top"), 2)
+
+        # test for errors as well
+        self.assertAlmostEqual(env.k.scenario.num_lanes("wrong_name"), -1001)
 
     def test_num_lanes_junctions(self):
         """
