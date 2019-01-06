@@ -50,7 +50,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     for edge in edges:
         points = GKPoints()
         if "shape" in edge:
-            for p in edge["shape"]: #TODO add x, y offset (radius)
+            for p in edge["shape"]:  # TODO add x, y offset (radius)
                 new_point = GKPoint()
                 new_point.set(p[0], p[1], 0)
                 points.append(new_point)
@@ -72,14 +72,14 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             # offset edge ends if there is a radius in the node
             if "radius" in first_node:
                 first_node_offset[0] = first_node["radius"] * \
-                                       np.cos(theta*np.pi/180)
+                    np.cos(theta*np.pi/180)
                 first_node_offset[1] = first_node["radius"] * \
-                                       np.sin(theta*np.pi/180)
+                    np.sin(theta*np.pi/180)
             if "radius" in last_node:
                 last_node_offset[0] = - last_node["radius"] * \
-                                      np.cos(theta*np.pi/180)
+                    np.cos(theta*np.pi/180)
                 last_node_offset[1] = - last_node["radius"] * \
-                                      np.sin(theta*np.pi/180)
+                    np.sin(theta*np.pi/180)
 
             # offset edge ends if there are multiple edges between nodes
             # find the edges that share the first node
@@ -91,13 +91,13 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                 new_theta = get_edge_angle(new_first_node, new_last_node)
                 if new_theta == theta - 180 or new_theta == theta + 180:
                     first_node_offset[0] += lane_width * 0.5 *\
-                                          np.sin(theta * np.pi / 180)
+                        np.sin(theta * np.pi / 180)
                     first_node_offset[1] -= lane_width * 0.5 * \
-                                          np.cos(theta * np.pi / 180)
+                        np.cos(theta * np.pi / 180)
                     last_node_offset[0] += lane_width * 0.5 *\
-                                          np.sin(theta * np.pi / 180)
+                        np.sin(theta * np.pi / 180)
                     last_node_offset[1] -= lane_width * 0.5 *\
-                                          np.cos(theta * np.pi / 180)
+                        np.cos(theta * np.pi / 180)
                     break
 
             new_point = GKPoint()
@@ -130,14 +130,13 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
         model.getCommander().addCommand(cmd)
         new_node = cmd.createdObject()
         new_node.setName(node["id"])
-        node_aimsun = model.getCatalog().findByName(
-            node["id"], type_node)
-        # # list of edges from and to the node
+        node_aimsun = model.getCatalog().findByName(node["id"], type_node)
+        # list of edges from and to the node
         from_edges = [
             edge['id'] for edge in edges if edge['from'] == node['id']]
         to_edges = [edge['id'] for edge in edges if edge['to'] == node['id']]
 
-        #if the node is a junction with a list of connections
+        # if the node is a junction with a list of connections
         if len(to_edges) > 1 and len(from_edges) > 1 \
                 and connections[node['id']] is not None:
             # add connections
@@ -192,8 +191,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     for node in junctions:
         node = model.getCatalog().findByName(
             node['id'], model.getType("GKNode"))
-        meters = create_node_meters(model, control_plan, node)
-
+        create_node_meters(model, control_plan, node)
 
     # set vehicle types
     vehicles = model.getCatalog().getObjectsByType(type_vehicle)
@@ -216,7 +214,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             veh_type["veh_id"], model.getType("GKVehicle"))
         # set state vehicles
         new_state.setVehicle(veh_type)
-        #set_state_vehicle(model, new_state, veh_type["veh_id"])
+        # set_state_vehicle(model, new_state, veh_type["veh_id"])
         # set_state_vehicle(model, veh_type["veh_id"], veh_type["veh_id"])
 
     # add traffic inflows to traffic states
@@ -239,7 +237,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             # clear the demand of any previous item
             demand.removeSchedule()
             # Add the state
-            if state_car != None and state_car.isA("GKTrafficState"):
+            if state_car is not None and state_car.isA("GKTrafficState"):
                 set_demand_item(model, demand, state_car)
             model.getCommander().addCommand(None)
         else:
@@ -259,7 +257,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
         scenario_name, model.getType("GKScenario"))  # find scenario
     scenario_data = scenario.getInputData ()
     scenario_data.addExtension(os.path.join(
-        config.PROJECT_PATH,"flow/utils/aimsun/run.py"), True)
+        config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
     gui.saveAs('flow.ang')
@@ -294,7 +292,7 @@ def get_edge_angle(first_node, last_node):
 def get_state_folder(model):
     folder_name = "GKModel::trafficStates"
     folder = model.getCreateRootFolder().findFolder(folder_name)
-    if folder == None:
+    if folder is None:
         folder = GKSystem.getSystem().createFolder(
             model.getCreateRootFolder(), folder_name)
     return folder
@@ -311,7 +309,7 @@ def create_state(model, name):
 def get_demand_folder(model):
     folder_name = "GKModel::trafficDemands"
     folder = model.getCreateRootFolder().findFolder(folder_name)
-    if folder == None:
+    if folder is None:
         folder = GKSystem.getSystem().createFolder(
             model.getCreateRootFolder(), folder_name)
     return folder
@@ -326,7 +324,7 @@ def create_traffic_demand(model, name):
 
 
 def set_demand_item(model, demand, item):
-    if item.getVehicle() == None:
+    if item.getVehicle() is None:
         model.getLog().addError("Invalid Demand Item: no vehicle")
     else:
         schedule = GKScheduleDemandItem()
@@ -377,11 +375,9 @@ def set_vehicles_color(model):
             model.getType("GKVehicle"))
         if vehicles is not None:
             ramp.lines(len(vehicles))
-            i = 0
-            for vehicle in vehicles.itervalues():
+            for i, vehicle in enumerate(vehicles.itervalues()):
                 color_range = viewStyle.addRange(vehicle.getName())
                 color_range.color = ramp.getColor(i)
-                i = i + 1
         model.getGeoModel().addStyle(viewStyle)
     viewMode.addStyle(viewStyle)
 
@@ -390,7 +386,7 @@ def set_vehicles_color(model):
 def get_control_plan_folder(model):
     folder_name = "GKModel::controlPlans"
     folder = model.getCreateRootFolder().findFolder(folder_name)
-    if folder == None:
+    if folder is None:
         folder = GKSystem.getSystem().createFolder(model.getCreateRootFolder(),
                                                    folder_name)
     return folder
@@ -408,8 +404,8 @@ def create_control_plan(model, name):
 # Finds an object using its identifier and checks if it is really a node
 def find_node(model, entry):
     node = model.getCatalog().find(int(entry))
-    if node != None:
-        if node.isA("GKNode") == False:
+    if node is not None:
+        if not node.isA("GKNode"):
             node = None
     return node
 
@@ -417,15 +413,15 @@ def find_node(model, entry):
 # Finds an object using its identifier and checks if it is really a turn
 def find_turn(model, entry):
     turn = model.getCatalog().find(int(entry))
-    if turn != None:
-        if turn.isA("GKTurning") == False:
+    if turn is not None:
+        if not turn.isA("GKTurning"):
             turn = None
     return turn
 
 
 # Returns (and creates if needed) the signals list.
 #
-def create_signal_groups(model, node):  #TODO generalize
+def create_signal_groups(model, node):  # TODO generalize
     signals = []
 
     if len(node.getSignals()) == 0:
@@ -448,12 +444,12 @@ def create_signal_groups(model, node):  #TODO generalize
 
 
 # Creates the phases, set the cycle time and sets the phases times
-def set_signal_times(cp, node, signal_groups):  #TODO generalize
+def set_signal_times(cp, node, signal_groups):  # TODO generalize
     cp_node = cp.createControlJunction(node)
     cp_node.setCycle(40)
     cp_node.setControlJunctionType(GKControlJunction.eFixedControl)
 
-    from_time = 0;
+    from_time = 0
 
     # add phases
     for signal in signal_groups:

@@ -152,44 +152,66 @@ class AimsunKernelVehicle(KernelVehicle):
             aimsun_id = self._id_flow2aimsun[veh_id]
 
             # update the vehicle's tracking information
-            tracking_info = self.__vehicles[veh_id]['tracking_info']
-            (tracking_info.CurrentPos,
-             tracking_info.distance2End,
-             tracking_info.xCurrentPos,
-             tracking_info.yCurrentPos,
-             tracking_info.zCurrentPos,
-             tracking_info.CurrentSpeed,
-             tracking_info.TotalDistance,
-             tracking_info.SectionEntranceT,
-             tracking_info.CurrentStopTime,
-             tracking_info.stopped,
-             tracking_info.idSection,
-             tracking_info.segment,
-             tracking_info.numberLane,
-             tracking_info.idJunction,
-             tracking_info.idSectionFrom,
-             tracking_info.idLaneFrom,
-             tracking_info.idSectionTo,
-             tracking_info.idLaneTo) = \
+            (self.__vehicles[veh_id]['tracking_info'].CurrentPos,
+             self.__vehicles[veh_id]['tracking_info'].distance2End,
+             self.__vehicles[veh_id]['tracking_info'].xCurrentPos,
+             self.__vehicles[veh_id]['tracking_info'].yCurrentPos,
+             self.__vehicles[veh_id]['tracking_info'].zCurrentPos,
+             self.__vehicles[veh_id]['tracking_info'].CurrentSpeed,
+             self.__vehicles[veh_id]['tracking_info'].TotalDistance,
+             self.__vehicles[veh_id]['tracking_info'].SectionEntranceT,
+             self.__vehicles[veh_id]['tracking_info'].CurrentStopTime,
+             self.__vehicles[veh_id]['tracking_info'].stopped,
+             self.__vehicles[veh_id]['tracking_info'].idSection,
+             self.__vehicles[veh_id]['tracking_info'].segment,
+             self.__vehicles[veh_id]['tracking_info'].numberLane,
+             self.__vehicles[veh_id]['tracking_info'].idJunction,
+             self.__vehicles[veh_id]['tracking_info'].idSectionFrom,
+             self.__vehicles[veh_id]['tracking_info'].idLaneFrom,
+             self.__vehicles[veh_id]['tracking_info'].idSectionTo,
+             self.__vehicles[veh_id]['tracking_info'].idLaneTo) = \
                 self.kernel_api.get_vehicle_tracking_info(aimsun_id)
 
-            # get the leader and followers
+            # get the leader, follower, and headway for each vehicle
             lead_id = self.kernel_api.get_vehicle_leader(aimsun_id)
             if lead_id < -1:
                 self.__vehicles[veh_id]['leader'] = None
+                self.__vehicles[veh_id]['headway'] = 1000
             else:
                 lead_id = self._id_aimsun2flow[lead_id]
                 self.__vehicles[veh_id]['leader'] = lead_id
                 self.__vehicles[lead_id]['follower'] = veh_id
 
-        # update the headways and tailways
-        for veh_id in self.__ids:
-            aimsun_id = self._id_flow2aimsun[veh_id]
-            self.__vehicles[veh_id]['headway'] = \
-                self.kernel_api.get_vehicle_headway(aimsun_id)
+                inf_veh = self.__vehicles[veh_id]['tracking_info']
+                next_section = self.kernel_api.get_next_section(
+                    aimsun_id, inf_veh.idSection)
+                inf_veh_leader = self.__vehicles[lead_id]['tracking_info']
+                static_inf_veh_leader = self.__vehicles[lead_id]['static_info']
 
-        # update the tailways of all vehicles TODO
-        # for veh_id in self.__ids:
+                if inf_veh.idSection == inf_veh_leader.idSection:
+                    gap = inf_veh_leader.CurrentPos - \
+                          static_inf_veh_leader.length - \
+                          inf_veh.CurrentPos
+                elif inf_veh_leader.idSection == next_section:
+                    gap = inf_veh_leader.CurrentPos - \
+                          static_inf_veh_leader.length + \
+                          inf_veh.distance2End
+                else:
+                    try:
+                        # assume Euclidean distance
+                        leader_pos = [inf_veh.xCurrentPos, inf_veh.yCurrentPos,
+                                      inf_veh.zCurrentPos]
+                        veh_pos = [inf_veh_leader.xCurrentPos,
+                                   inf_veh_leader.yCurrentPos,
+                                   inf_veh_leader.zCurrentPos]
+                        dist = np.linalg.norm(np.array(leader_pos) -
+                                              np.array(veh_pos))
+                        gap = dist - static_inf_veh_leader.length
+                    except TypeError:
+                        # tends to happy during reset
+                        gap = 1000
+
+                self.__vehicles[veh_id]['headway'] = gap
 
     def _add_departed(self, aimsun_id):
         """See parent class."""
@@ -321,7 +343,7 @@ class AimsunKernelVehicle(KernelVehicle):
         for i, veh_id in enumerate(veh_ids):
             if acc[i] is not None:
                 this_vel = self.get_speed(veh_id)
-                next_vel = max([this_vel + acc[i] * self.sim_step, 0])
+                next_vel = max(this_vel + acc[i] * self.sim_step, 0)
                 aimsun_id = self._id_flow2aimsun[veh_id]
                 self.kernel_api.set_speed(aimsun_id, next_vel)
 

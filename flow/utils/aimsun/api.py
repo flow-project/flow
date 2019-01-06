@@ -438,23 +438,25 @@ class FlowAimsunAPI(object):
                                   values=(veh_id,),
                                   out_format='i')[0]
 
-    def get_vehicle_headway(self, veh_id):
+    def get_next_section(self, veh_id, section):
         """Return the headway of a specific vehicle.
 
         Parameters
         ----------
         veh_id : int
             name of the vehicle in Aimsun
+        section : int
+            name of the section the vehicle resides on
 
         Returns
         -------
-        float
-            headway
+        int
+            next section
         """
-        return self._send_command(ac.VEH_GET_HEADWAY,
-                                  in_format='i',
-                                  values=(veh_id,),
-                                  out_format='f')[0]
+        return self._send_command(ac.VEH_GET_NEXT_SECTION,
+                                  in_format='i i',
+                                  values=(veh_id, section),
+                                  out_format='i')[0]
 
     def get_route(self, veh_id):
         """Return the route of a specific vehicle.

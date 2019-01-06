@@ -279,37 +279,11 @@ def threaded_client(conn):
                 follower = aimsun_api.AKIVehGetFollowerId(veh_id)
                 send_message(conn, in_format='i', values=(follower,))
 
-            elif data == ac.VEH_GET_HEADWAY:
+            elif data == ac.VEH_GET_NEXT_SECTION:
                 send_message(conn, in_format='i', values=(0,))
-                veh_id, = retrieve_message(conn, 'i')
-
-                inf_veh = AKIVehTrackedGetInf(veh_id)
-                next_section = AKIVehInfPathGetNextSection(veh_id,
-                                                           inf_veh.idSection)
-                leader_id = AKIVehGetLeaderId(veh_id)
-                inf_veh_leader = AKIVehTrackedGetInf(leader_id)
-                static_inf_veh_leader = AKIVehTrackedGetStaticInf(leader_id)
-
-                if inf_veh.idSection == inf_veh_leader.idSection:
-                    gap = inf_veh_leader.CurrentPos - \
-                          static_inf_veh_leader.length - \
-                          inf_veh.CurrentPos
-                elif inf_veh_leader.idSection == next_section:
-                    gap = inf_veh_leader.CurrentPos - \
-                          static_inf_veh_leader.length + \
-                          inf_veh.distance2End
-                else:
-                    # assume Euclidean distance
-                    leader_pos = [inf_veh.xCurrentPos, inf_veh.yCurrentPos,
-                                  inf_veh.zCurrentPos]
-                    veh_pos = [inf_veh_leader.xCurrentPos,
-                               inf_veh_leader.yCurrentPos,
-                               inf_veh_leader.zCurrentPos]
-                    dist = np.linalg.norm(np.array(leader_pos) -
-                                          np.array(veh_pos))
-                    gap = dist - static_inf_veh_leader.length
-
-                send_message(conn, in_format='f', values=(gap,))
+                veh_id, section = retrieve_message(conn, 'i i')
+                next_section = AKIVehInfPathGetNextSection(veh_id, section)
+                send_message(conn, in_format='i', values=(next_section,))
 
             elif data == ac.VEH_GET_ROUTE:
                 send_message(conn, in_format='i', values=(0,))
