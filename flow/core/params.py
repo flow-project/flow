@@ -1488,7 +1488,6 @@ class SumoParams(SimParams):
                  show_radius=False,
                  pxpm=2,
                  overtake_right=False,
-                 ballistic=False,
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
@@ -1532,10 +1531,6 @@ class SumoParams(SimParams):
         overtake_right: bool, optional
             whether vehicles are allowed to overtake on the right as well as
             the left
-        ballistic: bool, optional
-            specifies whether to use ballistic step updates. This is somewhat
-            more realistic, but increases the possibility of collisions.
-            Defaults to False
         seed: int, optional
             seed for sumo instance
         restart_instance: bool, optional
@@ -1559,7 +1554,6 @@ class SumoParams(SimParams):
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
         self.seed = seed
-        self.ballistic = ballistic
         self.overtake_right = overtake_right
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time

@@ -5,7 +5,6 @@ from flow.core.util import ensure_dir
 import flow.config as config
 import traci.constants as tc
 import traci
-import sumolib
 import traceback
 import os
 import time
@@ -79,16 +78,7 @@ class TraCISimulation(KernelSimulation):
         for _ in range(RETRIES_ON_ERROR):
             try:
                 # port number the sumo instance will be run on
-                if sim_params.port is not None:
-                    port = sim_params.port
-                else:
-                    # Don't do backoff when testing
-                    if os.environ.get("TEST_FLAG", 0):
-                        # backoff to decrease likelihood of race condition
-                        time_stamp = ''.join(str(time.time()).split('.'))
-                        # 1.0 for consistency w/ above
-                        time.sleep(1.0 * int(time_stamp[-6:]) / 1e6)
-                        port = sumolib.miscutils.getFreeSocketPort()
+                port = sim_params.port
 
                 sumo_binary = "sumo-gui" if sim_params.render is True \
                     else "sumo"
@@ -96,7 +86,7 @@ class TraCISimulation(KernelSimulation):
                 # command used to start sumo
                 sumo_call = [
                     sumo_binary, "-c", scenario.cfg,
-                    "--remote-port", str(port),
+                    "--remote-port", str(sim_params.port),
                     "--num-clients", str(sim_params.num_clients),
                     "--step-length", str(sim_params.sim_step)
                 ]
@@ -122,10 +112,6 @@ class TraCISimulation(KernelSimulation):
 
                 if sim_params.overtake_right:
                     sumo_call.append("--lanechange.overtake-right")
-                    sumo_call.append("true")
-
-                if sim_params.ballistic:
-                    sumo_call.append("--step-method.ballistic")
                     sumo_call.append("true")
 
                 # specify a simulation seed (if requested)
@@ -179,5 +165,5 @@ class TraCISimulation(KernelSimulation):
         """Kill the sumo subprocess instance."""
         try:
             os.killpg(self.sumo_proc.pid, signal.SIGTERM)
-        except Exception:
-            print("Error during teardown: {}".format(traceback.format_exc()))
+        except Exception as e:
+            print("Error during teardown: {}".format(e))
