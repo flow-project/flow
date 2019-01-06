@@ -1743,10 +1743,6 @@ class InitialConfig:
         self.edges_distribution = edges_distribution
         self.additional_params = additional_params or dict()
 
-    def get_additional_params(self, key):
-        """Return a variable from additional_params."""
-        return self.additional_params[key]
-
 
 class SumoCarFollowingParams:
     """Parameters for sumo-controlled acceleration behavior."""
@@ -2069,9 +2065,7 @@ class InFlows:
             begin=1,
             end=2e6,
             vehs_per_hour=None,
-            period=None,
             probability=None,
-            number=None,
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 
@@ -2088,11 +2082,7 @@ class InFlows:
             see Note
         vehs_per_hour: float, optional
             see vehsPerHour in Note
-        period: float, optional
-            see Note
         probability: float, optional
-            see Note
-        number: int, optional
             see Note
         kwargs: dict, optional
             see Note
@@ -2125,12 +2115,8 @@ class InFlows:
             new_inflow["begin"] = begin
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
-        if period is not None:
-            new_inflow["period"] = period
         if probability is not None:
             new_inflow["probability"] = probability
-        if number is not None:
-            new_inflow["number"] = number
 
         self.__flows.append(new_inflow)
 
