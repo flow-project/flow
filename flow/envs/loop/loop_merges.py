@@ -115,7 +115,7 @@ class TwoLoopsMergePOEnv(Env):
         max_cost = np.linalg.norm(max_cost)
         normalization = self.k.scenario.length() / self.vehicles.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
-            self.vehicles, self.sorted_extra_data, normalization)
+            self.vehicles, self.sorted_ids, normalization)
         return vel_reward + headway_reward
 
     def get_state(self, **kwargs):
@@ -123,7 +123,7 @@ class TwoLoopsMergePOEnv(Env):
         vel = np.zeros(self.n_obs_vehicles)
         pos = np.zeros(self.n_obs_vehicles)
 
-        sorted = self.sorted_extra_data
+        sorted = self.sorted_ids
         merge_len = self.k.scenario.network.intersection_length
 
         # Merge stretch is pos 0.0-25.5 (ish), so actively merging vehicles
@@ -199,28 +199,6 @@ class TwoLoopsMergePOEnv(Env):
 
     @property
     def sorted_ids(self):
-        """Sort vehicle IDs with separated humans and AVs.
-
-        Instead of being sorted by a global reference, vehicles in this
-        environment are sorted with regards to which ring this currently
-        reside on.
-        """
-        pos = [self.get_x_by_id(veh_id) for veh_id in self.vehicles.get_ids()]
-        sorted_indx = np.argsort(pos)
-        sorted_ids = np.array(self.vehicles.get_ids())[sorted_indx]
-
-        sorted_human_ids = [veh_id for veh_id in sorted_ids
-                            if veh_id not in self.vehicles.get_rl_ids()]
-
-        sorted_rl_ids = [veh_id for veh_id in sorted_ids
-                         if veh_id in self.vehicles.get_rl_ids()]
-
-        sorted_separated_ids = sorted_human_ids + sorted_rl_ids
-
-        return sorted_separated_ids
-
-    @property
-    def sorted_extra_data(self):
         """Sort vehicle IDs.
 
         Instead of being sorted by a global reference, vehicles in this

@@ -3,9 +3,7 @@
 from copy import deepcopy
 import gym
 from gym.spaces import Box
-import logging
 import os
-import sys
 import atexit
 import time
 import traceback
@@ -27,6 +25,7 @@ except ImportError:
 
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
+from flow.utils.flow_warnings import FatalFlowError
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
@@ -502,12 +501,11 @@ class Env(*classdef):
         if len(self.initial_ids) > self.vehicles.num_vehicles:
             missing_vehicles = list(
                 set(self.initial_ids) - set(self.vehicles.get_ids()))
-            logging.error('Not enough vehicles have spawned! Bad start?')
-            logging.error('Missing vehicles / initial state:')
+            msg = '\nNot enough vehicles have spawned! Bad start?\n' \
+                  'Missing vehicles / initial state:\n'
             for veh_id in missing_vehicles:
-                logging.error('- {}: {}'.format(veh_id,
-                                                self.initial_state[veh_id]))
-            sys.exit()
+                msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
+            raise FatalFlowError(msg=msg)
 
         self.prev_last_lc = dict()
         for veh_id in self.vehicles.get_ids():
