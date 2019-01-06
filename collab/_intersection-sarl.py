@@ -1,4 +1,5 @@
-"""Example of modified intersection network with human-driven vehicles."""
+"""Implementation of MIT slot-based framework BATCH for two-lanes scenario
+as the intersection's state-of-art baseline."""
 from flow.controllers import RLController, IDMController, ConstAccController,\
     SumoCarFollowingController, SumoLaneChangeController,\
     RandomConstAccController, RandomLaneChanger, StaticLaneChanger
@@ -6,13 +7,12 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection_baseline import IntersectionBaseline, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRouter
 import numpy as np
 seed=204
 np.random.seed(seed)
-
 
 def intersection_example(render=None,
                      save_render=None,
@@ -20,8 +20,7 @@ def intersection_example(render=None,
                      pxpm=None,
                      show_radius=None):
     """
-    Perform a simulation of vehicles on modified minicity of University of
-    Delaware.
+    Perform a simulation of vehicles on the two-lane intersection scenario.
 
     Parameters
     ----------
@@ -31,8 +30,8 @@ def intersection_example(render=None,
     Returns
     -------
     exp: flow.core.SumoExperiment type
-        A non-rl experiment demonstrating the performance of human-driven
-        vehicles on the minicity scenario.
+        A non-rl experiment demonstrating the performance of BATCH as the
+        baseline performance on the intersection scenario.
     """
     sumo_params = SumoParams(render=False,seed=seed)
 
@@ -83,7 +82,6 @@ def intersection_example(render=None,
 
     net_params = NetParams(
         no_internal_links=False,
-        junction_type='traffic_light',
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
     )
 
@@ -99,7 +97,7 @@ def intersection_example(render=None,
         net_params=net_params,
     )
 
-    env = IntersectionEnv(env_params, sumo_params, scenario)
+    env = IntersectionBaseline(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 

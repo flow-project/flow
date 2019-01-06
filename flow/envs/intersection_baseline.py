@@ -25,7 +25,7 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
-class IntersectionEnv(Env):
+class IntersectionBaseline(Env):
     def __init__(self, env_params, sumo_params, scenario):
         print("Starting IntersectionEnv...")
         for p in ADDITIONAL_ENV_PARAMS.keys():
@@ -36,18 +36,18 @@ class IntersectionEnv(Env):
         super().__init__(env_params, sumo_params, scenario)
 
         # setup traffic lights
-        self.tls_id = self.traci_connection.trafficlight.getIDList()[0]
-        self.tls_state =\
-            self.traci_connection.trafficlight.\
-            getRedYellowGreenState(self.tls_id)
-        self.tls_definition =\
-            self.traci_connection.trafficlight.\
-            getCompleteRedYellowGreenDefinition(self.tls_id)
-        self.tls_phase = 0
-        self.tls_phase_count = 0
-        for logic in self.tls_definition:
-            for phase in logic._phases:
-                self.tls_phase_count += 1
+        # self.tls_id = self.traci_connection.trafficlight.getIDList()[0]
+        # self.tls_state =\
+        #     self.traci_connection.trafficlight.\
+        #     getRedYellowGreenState(self.tls_id)
+        # self.tls_definition =\
+        #     self.traci_connection.trafficlight.\
+        #     getCompleteRedYellowGreenDefinition(self.tls_id)
+        # self.tls_phase = 0
+        # self.tls_phase_count = 0
+        # for logic in self.tls_definition:
+        #     for phase in logic._phases:
+        #         self.tls_phase_count += 1
 
         # setup speed broadcasters
         self.sbc_locations = [
@@ -91,7 +91,8 @@ class IntersectionEnv(Env):
     def action_space(self):
         return Box(
             low=0,
-            high=max(self.scenario.max_speed, self.tls_phase_count-1),
+            # high=max(self.scenario.max_speed, self.tls_phase_count-1),
+            high=self.scenario.max_speed,
             shape=(9,),
             dtype=np.float32)
 
@@ -101,13 +102,12 @@ class IntersectionEnv(Env):
             for idx, loc in enumerate(self.sbc_locations)
         }
         self._set_reference(self.sbc_reference)
-        self.tls_phase = np.clip(int(action[-1]), 0, self.tls_phase_count-1)
-        self._set_phase(self.tls_phase)
+        # self.tls_phase = np.clip(int(action[-1]), 0, self.tls_phase_count-1)
+        # self._set_phase(self.tls_phase)
 
     # OBSERVATION GOES HERE
     @property
     def observation_space(self):
-        """See class definition."""
         return Box(
             low=0.,
             high=np.inf,
@@ -164,9 +164,9 @@ class IntersectionEnv(Env):
             self.outflow_values[loc] = _speed * _density
 
         # update traffic lights state
-        self.tls_state =\
-            self.traci_connection.trafficlight.\
-            getRedYellowGreenState(self.tls_id)
+        # self.tls_state =\
+        #     self.traci_connection.trafficlight.\
+        #     getRedYellowGreenState(self.tls_id)
 
         # disable skip to test traci tls and sbc setter methods
         self.test_sbc(skip=True)
