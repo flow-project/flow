@@ -69,10 +69,10 @@ def intersection_example(render=None,
     for veh_id, veh_num in vehicle_data.items():
         vehicles.add(
             veh_id=veh_id,
-            speed_mode=0b11111,
-            lane_change_mode=0b011001010101,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
+            speed_mode=0,
+            lane_change_mode=0,
+            acceleration_controller=(ConstAccController, {}),
+            lane_change_controller=(StaticLaneChanger, {}),
             routing_controller=(IntersectionRouter, {}),
             num_vehicles=veh_num)
 
