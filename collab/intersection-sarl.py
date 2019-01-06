@@ -101,9 +101,9 @@ def setup_exps():
     alg_run = 'ES' # TODO: Make this an argument
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config['num_workers'] = N_CPUS
-    config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['horizon'] = HORIZON
+    config['episodes_per_batch'] = N_ROLLOUTS
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
 
     # save the flow params for replay
     flow_json = json.dumps(

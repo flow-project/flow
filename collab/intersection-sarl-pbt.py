@@ -27,7 +27,7 @@ HORIZON = 1000
 # number of rollouts per training iteration
 N_ROLLOUTS = 18
 # number of parallel workers
-N_CPUS = 6
+N_CPUS = 9
 
 # We place 40 autonomous vehicles in the network
 vehicles = Vehicles()
@@ -56,7 +56,7 @@ for veh_id, veh_num in vehicle_data.items():
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='intersection-sarl',
+    exp_tag='intersection-sarl-pbt',
 
     # name of the flow environment the experiment is running on
     env_name='IntersectionEnv',
@@ -103,8 +103,9 @@ def setup_exps():
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS
-    config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['horizon'] = HORIZON
+    config['episodes_per_batch'] = N_ROLLOUTS
+    config['train_batch_size'] = HORIZON * N_ROLLOUTS
 
     # save the flow params for replay
     flow_json = json.dumps(
