@@ -43,7 +43,8 @@ def run_task(*_):
     additional_env_params = {
         "target_velocity": 20,
         "max_accel": 3,
-        "max_decel": 3
+        "max_decel": 3,
+        "sort_vehicles": False
     }
     env_params = EnvParams(
         horizon=HORIZON, additional_params=additional_env_params)
