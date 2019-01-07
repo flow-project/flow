@@ -73,7 +73,7 @@ additional_env_params = {
     'max_accel': 3,
     'max_decel': 3,
     'inflow_range': [1000, 2000],
-    'communicate': True
+    'communicate': False
 }
 
 # flow rate
@@ -120,7 +120,7 @@ flow_params = dict(
     generator='BottleneckGenerator',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.5,
         render=False,
         print_warnings=False,
@@ -172,6 +172,7 @@ def setup_exps():
     config['clip_actions'] = False
     config['observation_filter'] = 'NoFilter'
     config['horizon'] = HORIZON
+    config['use_centralized_vf'] = True
 
     # Grid search things
     # config['lr'] = tune.grid_search([1e-4,1e-5, 1e-6])
