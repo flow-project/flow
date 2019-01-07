@@ -2,7 +2,10 @@
 Environments for training vehicles to reduce capacity drops in a bottleneck.
 
 This environment was used in:
-TODO(ak): add paper after it has been published.
+
+E. Vinitsky, K. Parvate, A. Kreidieh, C. Wu, Z. Hu, A. Bayen, "Lagrangian
+Control through Deep-RL: Applications to Bottleneck Decongestion," IEEE
+Intelligent Transportation Systems Conference (ITSC), 2018.
 """
 
 from flow.controllers.rlcontroller import RLController
@@ -194,11 +197,13 @@ class BottleneckEnv(Env):
         cars_that_have_left = []
         for veh_id in self.cars_before_ramp:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_RAMP_METER:
-                lane_change_mode = \
-                    self.cars_before_ramp[veh_id]["lane_change_mode"]
-                self.traci_connection.vehicle.setLaneChangeMode(
-                    veh_id, lane_change_mode)
-
+                color = self.cars_before_ramp[veh_id]['color']
+                self.k.vehicle.set_color(veh_id, color)
+                if self.simulator == 'traci':
+                    lane_change_mode = self.cars_before_ramp[veh_id][
+                        'lane_change_mode']
+                    self.k.kernel_api.vehicle.setLaneChangeMode(
+                        veh_id, lane_change_mode)
                 cars_that_have_left.append(veh_id)
 
         for veh_id in cars_that_have_left:
@@ -211,14 +216,21 @@ class BottleneckEnv(Env):
                 veh_id, pos = car
                 if pos > RAMP_METER_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
-                        traci_veh = self.traci_connection.vehicle
-                        # Disable lane changes inside Toll Area
-                        lane_change_mode = \
-                            self.k.vehicle.get_lane_change_mode(veh_id)
+                        if self.simulator == 'traci':
+                            # Disable lane changes inside Toll Area
+                            lane_change_mode = \
+                                self.k.kernel_api.vehicle.getLaneChangeMode(
+                                    veh_id)
+                            self.k.kernel_api.vehicle.setLaneChangeMode(
+                                veh_id, 512)
+                        else:
+                            lane_change_mode = None
+                        color = self.k.vehicle.get_color(veh_id)
+                        self.k.vehicle.set_color(veh_id, (0, 255, 255))
                         self.cars_before_ramp[veh_id] = {
-                            "lane_change_mode": lane_change_mode,
+                            'lane_change_mode': lane_change_mode,
+                            'color': color
                         }
-                        traci_veh.setLaneChangeMode(veh_id, 512)
 
     def alinea(self):
         """Implementation of ALINEA from Toll Plaza Merging Traffic Control
@@ -249,10 +261,13 @@ class BottleneckEnv(Env):
         for veh_id in self.cars_waiting_for_toll:
             if self.k.vehicle.get_edge(veh_id) == EDGE_AFTER_TOLL:
                 lane = self.k.vehicle.get_lane(veh_id)
-                lane_change_mode = \
-                    self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
-                self.traci_connection.vehicle.setLaneChangeMode(
-                    veh_id, lane_change_mode)
+                color = self.cars_waiting_for_toll[veh_id]["color"]
+                self.k.vehicle.set_color(veh_id, color)
+                if self.simulator == 'traci':
+                    lane_change_mode = \
+                        self.cars_waiting_for_toll[veh_id]["lane_change_mode"]
+                    self.k.kernel_api.vehicle.setLaneChangeMode(
+                        veh_id, lane_change_mode)
                 if lane not in self.fast_track_lanes:
                     self.toll_wait_time[lane] = max(
                         0,
@@ -281,12 +296,18 @@ class BottleneckEnv(Env):
                 if pos > TOLL_BOOTH_AREA:
                     if veh_id not in self.cars_waiting_for_toll:
                         # Disable lane changes inside Toll Area
-                        lane_change_mode = \
-                            self.k.vehicle.get_lane_change_mode(veh_id)
+                        if self.simulator == 'traci':
+                            lane_change_mode = self.k.kernel_api.vehicle.\
+                                getLaneChangeMode(veh_id)
+                            self.k.kernel_api.vehicle.setLaneChangeMode(
+                                veh_id, 512)
+                        else:
+                            lane_change_mode = None
+                        color = self.k.vehicle.get_color(veh_id)
+                        self.k.vehicle.set_color(veh_id, (255, 0, 255))
                         self.cars_waiting_for_toll[veh_id] = \
-                            {"lane_change_mode": lane_change_mode}
-                        self.traci_connection.vehicle.setLaneChangeMode(
-                            veh_id, 512)
+                            {'lane_change_mode': lane_change_mode,
+                             'color': color}
                     else:
                         if pos > 50:
                             if self.toll_wait_time[lane] < 0:
@@ -318,6 +339,7 @@ class BottleneckEnv(Env):
             return -1
 
     def get_bottleneck_outflow_vehicles_per_hour(self, sample_period):
+        """Return the vehs/hour based on sample_period."""
         return self.k.vehicle.get_outflow_rate(sample_period)
 
     def get_bottleneck_density(self, lanes=None):
@@ -813,14 +835,13 @@ class DesiredVelocityEnv(BottleneckEnv):
                         bucket = np.searchsorted(self.slices[edge], pos) - 1
                         action = rl_actions[bucket + self.action_index[edge]]
 
-                    traci_veh = self.traci_connection.vehicle
-                    max_speed_curr = traci_veh.getMaxSpeed(rl_id)
+                    max_speed_curr = self.k.vehicle.get_max_speed(rl_id)
                     next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
-                    traci_veh.setMaxSpeed(rl_id, next_max)
+                    self.k.vehicle.set_max_speed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
-                    self.traci_connection.vehicle.setMaxSpeed(rl_id, 23.0)
+                    self.k.vehicle.set_max_speed(rl_id, 23.0)
 
     def compute_reward(self, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""

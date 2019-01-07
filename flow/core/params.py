@@ -207,6 +207,7 @@ class VehicleParams:
         self.__vehicles = collections.OrderedDict()
 
         self.num_vehicles = 0  # total number of vehicles in the network
+        self.num_rl_vehicles = 0  # number of rl vehicles in the network
         self.num_types = 0  # number of unique types of vehicles in the network
         self.types = []  # types of vehicles in the network
 
@@ -284,6 +285,7 @@ class VehicleParams:
              "car_following_params": car_following_params,
              "lane_change_params": lane_change_params}
 
+        # TODO: delete?
         self.initial.append({
             "veh_id":
                 veh_id,
@@ -321,7 +323,11 @@ class VehicleParams:
 
             # specify the speed of vehicles at the start of a rollout
             self.__vehicles[v_id]["initial_speed"] = initial_speed
-            self.num_vehicles = len(self.ids)
+
+            # update the number of vehicles
+            self.num_vehicles += 1
+            if acceleration_controller[0] == RLController:
+                self.num_rl_vehicles += 1
 
         # increase the number of unique types of vehicles in the network, and
         # add the type to the list of types
