@@ -43,6 +43,7 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
+
 class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
     """Adapts a RLlib preprocessor for use as an observation wrapper."""
 
@@ -56,6 +57,7 @@ class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
 
     def observation(self, observation):
         return self.preprocessor.transform(observation)
+
 
 def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
