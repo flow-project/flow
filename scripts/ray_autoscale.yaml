@@ -39,8 +39,8 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: m4.16xlarge #c4.4xlarge
-    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
+    InstanceType: c4.4xlarge
+    ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
          #Additional options can be found in the boto docs, e.g.
@@ -54,8 +54,8 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: m4.16xlarge #c4.4xlarge
-    ImageId: ami-04b53bf506e95394f # Flow AMI (Ubuntu)
+    InstanceType: c4.4xlarge
+    ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
     InstanceMarketOptions:
@@ -66,15 +66,20 @@ worker_nodes:
 
     # Additional options in the boto docs.
 
-file_mounts: {
-# path to your repo and the desired branch name
-"/tmp/path": "<PATH TO FLOW>.git/refs/heads/<BRANCH NAME>",
-}
-
 setup_commands:
     # checkout your desired branch on all worker nodes
-    - cd flow && git fetch && git checkout `cat /tmp/path`
-    - cd ray && git fetch eugene_upstream && git checkout eugene_upstream/master && git pull eugene_upstream master
+    - cd flow && git fetch && git checkout itsc_bottleneck
+    # set up ray by pip installing and copying over rllib and tune folder
+    - pip install --upgrade pyzmq notebook
+    - pip install ray==0.6.1
+    - pip install lz4
+    - git clone https://github.com/flow-project/ray.git
+    - cd ray && git fetch && git checkout master
+    - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
+    - cd ray && cp -r python/ray/rllib /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/rllib
+    - rm -rf /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
+    - cd ray && cp -r python/ray/tune /home/ubuntu/anaconda3/lib/python3.5/site-packages/ray/tune
+    # set up sumo and anaconda
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
