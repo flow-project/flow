@@ -113,7 +113,7 @@ class TwoLoopsMergePOEnv(Env):
             [self.env_params.additional_params["target_velocity"]
              ] * self.vehicles.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
-        normalization = self.scenario.length / self.vehicles.num_vehicles
+        normalization = self.k.scenario.length() / self.vehicles.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
             self.vehicles, self.sorted_extra_data, normalization)
         return vel_reward + headway_reward
@@ -124,7 +124,7 @@ class TwoLoopsMergePOEnv(Env):
         pos = np.zeros(self.n_obs_vehicles)
 
         sorted = self.sorted_extra_data
-        merge_len = self.scenario.intersection_length
+        merge_len = self.k.scenario.network.intersection_length
 
         # Merge stretch is pos 0.0-25.5 (ish), so actively merging vehicles
         # are sorted at the front of the list. Otherwise, vehicles closest to
@@ -177,10 +177,10 @@ class TwoLoopsMergePOEnv(Env):
 
         # normalize the speed
         # FIXME(cathywu) can divide by self.max_speed
-        normalized_vel = np.array(vel) / self.scenario.max_speed
+        normalized_vel = np.array(vel) / self.k.scenario.max_speed()
 
         # normalize the position
-        normalized_pos = np.array(pos) / self.scenario.length
+        normalized_pos = np.array(pos) / self.k.scenario.length()
 
         # Compute number of vehicles in the outer ring
         queue_length = np.zeros(1)
@@ -197,9 +197,9 @@ class TwoLoopsMergePOEnv(Env):
         return np.concatenate(
             (normalized_vel, normalized_pos, queue_length, vel_stats))
 
-    def sort_by_position(self):
-        """
-        See parent class.
+    @property
+    def sorted_ids(self):
+        """Sort vehicle IDs with separated humans and AVs.
 
         Instead of being sorted by a global reference, vehicles in this
         environment are sorted with regards to which ring this currently
@@ -209,16 +209,26 @@ class TwoLoopsMergePOEnv(Env):
         sorted_indx = np.argsort(pos)
         sorted_ids = np.array(self.vehicles.get_ids())[sorted_indx]
 
-        sorted_human_ids = [
-            veh_id for veh_id in sorted_ids
-            if veh_id not in self.vehicles.get_rl_ids()
-        ]
+        sorted_human_ids = [veh_id for veh_id in sorted_ids
+                            if veh_id not in self.vehicles.get_rl_ids()]
 
-        sorted_rl_ids = [
-            veh_id for veh_id in sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
-        ]
+        sorted_rl_ids = [veh_id for veh_id in sorted_ids
+                         if veh_id in self.vehicles.get_rl_ids()]
 
         sorted_separated_ids = sorted_human_ids + sorted_rl_ids
 
-        return sorted_separated_ids, sorted_ids
+        return sorted_separated_ids
+
+    @property
+    def sorted_extra_data(self):
+        """Sort vehicle IDs.
+
+        Instead of being sorted by a global reference, vehicles in this
+        environment are sorted with regards to which ring this currently
+        reside on.
+        """
+        pos = [self.get_x_by_id(veh_id) for veh_id in self.vehicles.get_ids()]
+        sorted_indx = np.argsort(pos)
+        sorted_ids = np.array(self.vehicles.get_ids())[sorted_indx]
+
+        return sorted_ids

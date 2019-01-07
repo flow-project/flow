@@ -155,12 +155,13 @@ class TrafficLightGridEnv(Env):
     def get_state(self):
         """See class definition."""
         # compute the normalizers
-        max_dist = max(self.scenario.short_length, self.scenario.long_length,
-                       self.scenario.inner_length)
+        max_dist = max(self.k.scenario.network.short_length,
+                       self.k.scenario.network.long_length,
+                       self.k.scenario.network.inner_length)
 
         # get the state arrays
         speeds = [
-            self.vehicles.get_speed(veh_id) / self.scenario.max_speed
+            self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
             for veh_id in self.vehicles.get_ids()
         ]
         dist_to_intersec = [
@@ -169,7 +170,7 @@ class TrafficLightGridEnv(Env):
         ]
         edges = [
             self._convert_edge(self.vehicles.get_edge(veh_id)) /
-            (self.scenario.num_edges - 1)
+            (self.k.scenario.network.num_edges - 1)
             for veh_id in self.vehicles.get_ids()
         ]
 
@@ -274,7 +275,7 @@ class TrafficLightGridEnv(Env):
             return -10
         if 'center' in edge_id:
             return 0
-        edge_len = self.scenario.edge_length(edge_id)
+        edge_len = self.k.scenario.edge_length(edge_id)
         relative_pos = self.vehicles.get_position(veh_id)
         dist = edge_len - relative_pos
         return dist
@@ -493,7 +494,7 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
             low=0.,
             high=1,
             shape=(12 * self.num_observed * self.num_traffic_lights +
-                   2 * len(self.scenario.get_edge_list()) +
+                   2 * len(self.k.scenario.get_edge_list()) +
                    3 * self.num_traffic_lights,),
             dtype=np.float32)
         return tl_box
@@ -508,8 +509,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         dist_to_intersec = []
         edge_number = []
         max_speed = max(
-            self.scenario.speed_limit(edge)
-            for edge in self.scenario.get_edge_list())
+            self.k.scenario.speed_limit(edge)
+            for edge in self.k.scenario.get_edge_list())
         max_dist = max(self.scenario.short_length, self.scenario.long_length,
                        self.scenario.inner_length)
         all_observed_ids = []
@@ -527,13 +528,14 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
                     for veh_id in observed_ids
                 ]
                 dist_to_intersec += [
-                    (self.scenario.edge_length(self.vehicles.get_edge(veh_id))
+                    (self.k.scenario.edge_length(
+                        self.vehicles.get_edge(veh_id))
                      - self.vehicles.get_position(veh_id)) / max_dist
                     for veh_id in observed_ids
                 ]
                 edge_number += \
                     [self._convert_edge(self.vehicles.get_edge(veh_id))
-                     / (self.scenario.num_edges - 1)
+                     / (self.k.scenario.network.num_edges - 1)
                      for veh_id in observed_ids]
 
                 if len(observed_ids) < self.num_observed:
@@ -545,10 +547,10 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
         # now add in the density and average velocity on the edges
         density = []
         velocity_avg = []
-        for edge in self.scenario.get_edge_list():
+        for edge in self.k.scenario.get_edge_list():
             ids = self.vehicles.get_ids_by_edge(edge)
             if len(ids) > 0:
-                density += [5 * len(ids) / self.scenario.edge_length(edge)]
+                density += [5 * len(ids) / self.k.scenario.edge_length(edge)]
                 velocity_avg += [
                     np.mean(
                         [self.vehicles.get_speed(veh_id)

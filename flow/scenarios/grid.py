@@ -515,19 +515,19 @@ class SimpleGridScenario(Scenario):
     @staticmethod
     def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """See parent class."""
-        row_num = cls.grid_array["row_num"]
-        col_num = cls.grid_array["col_num"]
+        row_num = cls.network.grid_array["row_num"]
+        col_num = cls.network.grid_array["col_num"]
         per_edge = int(num_vehicles / (2 * (row_num + col_num)))
         start_positions = []
         d_inc = 10
-        for i in range(cls.col_num):
+        for i in range(cls.network.col_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("right0_{}".format(i), x))
                 start_positions.append(("left{}_{}".format(row_num, i), x))
                 x += d_inc
 
-        for i in range(cls.row_num):
+        for i in range(cls.network.row_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("bot{}_0".format(i), x))
@@ -535,6 +535,7 @@ class SimpleGridScenario(Scenario):
                 x += d_inc
 
         start_lanes = [0] * len(start_positions)
+
         return start_positions, start_lanes
 
     def get_edge_names(self):

@@ -395,7 +395,7 @@ class VehicleParams:
         The following actions are performed:
         * The state of all vehicles is modified to match their state at the
           current time step. This includes states specified by sumo, and states
-          explicitly defined by flow, e.g. "absolute_position".
+          explicitly defined by flow, e.g. "num_arrived".
         * If vehicles exit the network, they are removed from the vehicles
           class, and newly departed vehicles are introduced to the class.
 
@@ -446,22 +446,6 @@ class VehicleParams:
                 if vehicle_obs[veh_id][tc.VAR_LANE_INDEX] != \
                         prev_lane and veh_id in self.__rl_ids:
                     self.set_state(veh_id, "last_lc", env.time_counter)
-
-            # update the "absolute_position" variable
-            for veh_id in self.__ids:
-                prev_pos = env.get_x_by_id(veh_id)
-                this_edge = vehicle_obs.get(veh_id, {}).get(tc.VAR_ROAD_ID, "")
-                this_pos = vehicle_obs.get(veh_id, {}).get(
-                    tc.VAR_LANEPOSITION, -1001)
-
-                # in case the vehicle isn't in the network
-                if this_edge == "":
-                    self.set_absolute_position(veh_id, -1001)
-                else:
-                    change = env.scenario.get_x(this_edge, this_pos) - prev_pos
-                    new_abs_pos = (self.get_absolute_position(veh_id) +
-                                   change) % env.scenario.length
-                    self.set_absolute_position(veh_id, new_abs_pos)
 
             # updated the list of departed and arrived vehicles
             self._num_departed.append(
@@ -573,9 +557,6 @@ class VehicleParams:
         # some constant vehicle parameters to the vehicles class
         self.set_length(veh_id, env.traci_connection.vehicle.getLength(veh_id))
 
-        # set the absolute position of the vehicle
-        self.set_absolute_position(veh_id, 0)
-
         # set the "last_lc" parameter of the vehicle
         self.set_state(veh_id, "last_lc", env.time_counter)
 
@@ -628,10 +609,6 @@ class VehicleParams:
     def test_set_speed(self, veh_id, speed):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
-
-    def set_absolute_position(self, veh_id, absolute_position):
-        """Set the absolute position of the specified vehicle."""
-        self.__vehicles[veh_id]["absolute_position"] = absolute_position
 
     def test_set_position(self, veh_id, position):
         """Set the relative position of the specified vehicle."""
@@ -772,6 +749,7 @@ class VehicleParams:
             vehicle id, or list of vehicle ids
         error : any, optional
             value that is returned if the vehicle is not found
+
         Returns
         -------
         float
@@ -816,26 +794,6 @@ class VehicleParams:
             return [self.get_default_speed(vehID, error) for vehID in veh_id]
         return self.__sumo_obs.get(veh_id, {}).get(tc.VAR_SPEED_WITHOUT_TRACI,
                                                    error)
-
-    def get_absolute_position(self, veh_id, error=-1001):
-        """Return the absolute position of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list<str>
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float
-        """
-        if isinstance(veh_id, (list, np.ndarray)):
-            return [
-                self.get_absolute_position(vehID, error) for vehID in veh_id
-            ]
-        return self.__vehicles.get(veh_id, {}).get("absolute_position", error)
 
     def get_position(self, veh_id, error=-1001):
         """Return the position of the vehicle relative to its current edge.
@@ -1213,15 +1171,15 @@ class VehicleParams:
         leader velocity/follower velocity for all
         vehicles in the network.
         """
-        edge_list = env.scenario.get_edge_list()
-        junction_list = env.scenario.get_junction_list()
+        edge_list = env.k.scenario.get_edge_list()
+        junction_list = env.k.scenario.get_junction_list()
         tot_list = edge_list + junction_list
-        num_edges = (len(env.scenario.get_edge_list()) + len(
-            env.scenario.get_junction_list()))
+        num_edges = (len(env.k.scenario.get_edge_list()) + len(
+            env.k.scenario.get_junction_list()))
 
         # maximum number of lanes in the network
         max_lanes = max(
-            [env.scenario.num_lanes(edge_id) for edge_id in tot_list])
+            [env.k.scenario.num_lanes(edge_id) for edge_id in tot_list])
 
         # Key = edge id
         # Element = list, with the ith element containing tuples with the name
@@ -1308,7 +1266,7 @@ class VehicleParams:
         this_pos = self.get_position(veh_id)
         this_edge = self.get_edge(veh_id)
         this_lane = self.get_lane(veh_id)
-        num_lanes = env.scenario.num_lanes(this_edge)
+        num_lanes = env.k.scenario.num_lanes(this_edge)
 
         # set default values for all output values
         headway = [1000] * num_lanes
@@ -1377,17 +1335,17 @@ class VehicleParams:
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        headway = 1000  # env.scenario.length
+        headway = 1000
         leader = ""
         add_length = 0  # length increment in headway
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(env.scenario.next_edge(edge, lane)) == 0:
+            if len(env.k.scenario.next_edge(edge, lane)) == 0:
                 break
 
-            add_length += env.scenario.edge_length(edge)
-            edge, lane = env.scenario.next_edge(edge, lane)[0]
+            add_length += env.k.scenario.edge_length(edge)
+            edge, lane = env.k.scenario.next_edge(edge, lane)[0]
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
@@ -1421,17 +1379,17 @@ class VehicleParams:
         pos = self.get_position(veh_id)
         edge = self.get_edge(veh_id)
 
-        tailway = 1000  # env.scenario.length
+        tailway = 1000
         follower = ""
         add_length = 0  # length increment in headway
 
         for _ in range(num_edges):
             # break if there are no edge/lane pairs behind the current one
-            if len(env.scenario.prev_edge(edge, lane)) == 0:
+            if len(env.k.scenario.prev_edge(edge, lane)) == 0:
                 break
 
-            edge, lane = env.scenario.prev_edge(edge, lane)[0]
-            add_length += env.scenario.edge_length(edge)
+            edge, lane = env.k.scenario.prev_edge(edge, lane)[0]
+            add_length += env.k.scenario.edge_length(edge)
 
             try:
                 if len(edge_dict[edge][lane]) > 0:
@@ -1627,7 +1585,6 @@ class EnvParams:
     def __init__(self,
                  additional_params=None,
                  horizon=500,
-                 sort_vehicles=False,
                  warmup_steps=0,
                  sims_per_step=1,
                  evaluate=False):
@@ -1640,11 +1597,6 @@ class EnvParams:
                 environment configuration
             horizon: int, optional
                 number of steps per rollouts
-            sort_vehicles: bool, optional
-                specifies whether vehicles are to be sorted by position during
-                a simulation step. If set to True, the environment parameter
-                self.sorted_ids will return a list of all vehicles ideas sorted
-                by their absolute position.
             warmup_steps: int, optional
                 number of steps performed before the initialization of training
                 during a rollout. These warmup steps are not added as steps
@@ -1663,7 +1615,6 @@ class EnvParams:
         self.additional_params = \
             additional_params if additional_params is not None else {}
         self.horizon = horizon
-        self.sort_vehicles = sort_vehicles
         self.warmup_steps = warmup_steps
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate

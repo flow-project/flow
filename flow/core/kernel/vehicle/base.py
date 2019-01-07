@@ -290,22 +290,6 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
-    def get_absolute_position(self, veh_id, error=-1001):
-        """Return the absolute position of the specified vehicle.
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float
-        """
-        raise NotImplementedError
-
     def get_position(self, veh_id, error=-1001):
         """Return the position of the vehicle relative to its current edge.
 
