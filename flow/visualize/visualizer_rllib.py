@@ -181,7 +181,7 @@ def visualizer_rllib(args):
     agent.restore(checkpoint)
 
     _env = env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
     _prep = ModelCatalog.get_preprocessor(_env, options={})
     env = _RLlibPreprocessorWrapper(_env, _prep)
 
