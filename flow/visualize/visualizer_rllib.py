@@ -29,6 +29,7 @@ from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
+import gym
 
 EXAMPLE_USAGE = """
 example usage:
@@ -38,6 +39,19 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
+class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
+    """Adapts a RLlib preprocessor for use as an observation wrapper."""
+
+    def __init__(self, env, preprocessor):
+        super(_RLlibPreprocessorWrapper, self).__init__(env)
+        self.preprocessor = preprocessor
+
+        from gym.spaces.box import Box
+        self.observation_space = Box(
+            -1.0, 1.0, preprocessor.shape, dtype=np.float32)
+
+    def observation(self, observation):
+        return self.preprocessor.transform(observation)
 
 def visualizer_rllib(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
@@ -109,8 +123,10 @@ def visualizer_rllib(args):
         sumo_params.render = True
     sumo_params.emission_path = './test_time_rollout/'
 
-    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+    _env = env_class(
+        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+    _prep = ModelCatalog.get_preprocessor(_env, options={})
+    env = _RLlibPreprocessorWrapper(_env, _prep)
 
     # Run the environment in the presence of the pre-trained RL agent for the
     # requested number of time steps / rollouts
