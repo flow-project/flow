@@ -74,7 +74,7 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(self.k.vehicle.num_rl_vehicles, ),
+            shape=(self.scenario.vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
     @property
@@ -84,7 +84,7 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=0,
             high=1,
-            shape=(2 * self.k.vehicle.num_vehicles, ),
+            shape=(2 * self.scenario.vehicles.num_vehicles, ),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):

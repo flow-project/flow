@@ -55,7 +55,8 @@ class TestUtils(unittest.TestCase):
         # instantiate an experiment class
         self.exp = Experiment(self.env)
 
-    def gen_edges(self, row_num, col_num):
+    @staticmethod
+    def gen_edges(row_num, col_num):
         edges = []
         for i in range(col_num):
             edges += ["left" + str(row_num) + '_' + str(i)]
@@ -69,9 +70,6 @@ class TestUtils(unittest.TestCase):
         return edges
 
     def test_get_distance_to_intersection(self):
-        veh_ids = self.env.k.vehicle.get_ids()
-        dists = self.env.get_distance_to_intersection(veh_ids)
-
         # Obtain list of lists of vehicles on entrance
         # edges, then the distances.
         veh_ids = [

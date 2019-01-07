@@ -236,22 +236,23 @@ def threaded_client(conn):
                 veh_id, = retrieve_message(conn, 'i')
 
                 tracking_info = aimsun_api.AKIVehTrackedGetInf(veh_id)
-                output = (tracking_info.report,
-                          tracking_info.idVeh,
-                          tracking_info.type,
+                output = (
+                          # tracking_info.report,
+                          # tracking_info.idVeh,
+                          # tracking_info.type,
                           tracking_info.CurrentPos,
                           tracking_info.distance2End,
                           tracking_info.xCurrentPos,
                           tracking_info.yCurrentPos,
                           tracking_info.zCurrentPos,
-                          tracking_info.xCurrentPosBack,
-                          tracking_info.yCurrentPosBack,
-                          tracking_info.zCurrentPosBack,
+                          # tracking_info.xCurrentPosBack,
+                          # tracking_info.yCurrentPosBack,
+                          # tracking_info.zCurrentPosBack,
                           tracking_info.CurrentSpeed,
-                          tracking_info.PreviousSpeed,
+                          # tracking_info.PreviousSpeed,
                           tracking_info.TotalDistance,
-                          tracking_info.SystemGenerationT,
-                          tracking_info.SystemEntranceT,
+                          # tracking_info.SystemGenerationT,
+                          # tracking_info.SystemEntranceT,
                           tracking_info.SectionEntranceT,
                           tracking_info.CurrentStopTime,
                           tracking_info.stopped,
@@ -265,8 +266,7 @@ def threaded_client(conn):
                           tracking_info.idLaneTo)
 
                 send_message(conn,
-                             in_format='i i i f f f f f f f f f f f f f f f f '
-                                       'i i i i i i i i',
+                             in_format='f f f f f f f f f f i i i i i i i i',
                              values=output)
 
             elif data == ac.VEH_GET_LEADER:

@@ -396,41 +396,11 @@ class FlowAimsunAPI(object):
         flow.utils.aimsun.struct.InfVeh
             tracking info object
         """
-        tracking_info = aimsun_struct.InfVeh()
-
-        (tracking_info.report,
-         tracking_info.idVeh,
-         tracking_info.type,
-         tracking_info.CurrentPos,
-         tracking_info.distance2End,
-         tracking_info.xCurrentPos,
-         tracking_info.yCurrentPos,
-         tracking_info.zCurrentPos,
-         tracking_info.xCurrentPosBack,
-         tracking_info.yCurrentPosBack,
-         tracking_info.zCurrentPosBack,
-         tracking_info.CurrentSpeed,
-         tracking_info.PreviousSpeed,
-         tracking_info.TotalDistance,
-         tracking_info.SystemGenerationT,
-         tracking_info.SystemEntranceT,
-         tracking_info.SectionEntranceT,
-         tracking_info.CurrentStopTime,
-         tracking_info.stopped,
-         tracking_info.idSection,
-         tracking_info.segment,
-         tracking_info.numberLane,
-         tracking_info.idJunction,
-         tracking_info.idSectionFrom,
-         tracking_info.idLaneFrom,
-         tracking_info.idSectionTo,
-         tracking_info.idLaneTo) = self._send_command(
+        return self._send_command(
             ac.VEH_GET_TRACKING,
             in_format='i',
             values=(veh_id,),
-            out_format='i i i f f f f f f f f f f f f f f f f i i i i i i i i')
-
-        return tracking_info
+            out_format='f f f f f f f f f f i i i i i i i i')
 
     def get_vehicle_leader(self, veh_id):
         """Return the leader of a specific vehicle.
