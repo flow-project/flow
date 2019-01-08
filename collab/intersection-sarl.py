@@ -133,7 +133,7 @@ if __name__ == '__main__':
             "local_dir": "/home/fangyu/ray_results/",
             'max_failures': 999,
             'stop': {
-                'training_iteration': 1000,
+                'training_iteration': 2500,
             },
         }
-    }, resume=False)
+    }, resume='prompt')
