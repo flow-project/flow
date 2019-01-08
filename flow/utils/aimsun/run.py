@@ -114,7 +114,9 @@ def threaded_client(conn):
             elif data == ac.VEH_SET_SPEED:
                 send_message(conn, in_format='i', values=(0,))
                 veh_id, speed = retrieve_message(conn, 'i f')
-                aimsun_api.AKIVehTrackedModifySpeed(veh_id, speed)
+                new_speed = speed * 3.6
+                #aimsun_api.AKIVehTrackedForceSpeed(veh_id, new_speed)
+                aimsun_api.AKIVehTrackedModifySpeed(veh_id, new_speed)
                 send_message(conn, in_format='i', values=(0,))
 
             elif data == ac.VEH_SET_LANE:

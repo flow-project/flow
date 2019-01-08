@@ -523,7 +523,7 @@ class AimsunKernelVehicle(KernelVehicle):
         """See parent class."""
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_speed(veh, error) for veh in veh_id]
-        return self.__vehicles[veh_id]['tracking_info'].CurrentSpeed
+        return self.__vehicles[veh_id]['tracking_info'].CurrentSpeed / 3.6
 
     def get_position(self, veh_id, error=-1001):
         """See parent class."""

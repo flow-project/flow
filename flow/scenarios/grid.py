@@ -373,7 +373,9 @@ class SimpleGridScenario(Scenario):
 
     def specify_connections(self, net_params):
         """See parent class."""
-        lanes = 1  # #TODO change it to net_params.additional_params["lanes"]
+        lanes_horizontal = net_params.additional_params["horizontal_lanes"]
+        lanes_vertical = net_params.additional_params["vertical_lanes"]
+
         row_num = self.grid_array["row_num"]
         col_num = self.grid_array["col_num"]
         con_dict = {}
@@ -385,7 +387,7 @@ class SimpleGridScenario(Scenario):
                 node_index = i * col_num + j
                 node_id = "center{}".format(node_index)
                 index = "{}_{}".format(i, j)
-                for l in range(lanes):
+                for l in range(lanes_vertical):
                     conn += [
                         {"from": "bot" + index,
                          "to": "bot" + "{}_{}".format(i, j + 1),
@@ -398,17 +400,18 @@ class SimpleGridScenario(Scenario):
                          "fromLane": str(l),
                          "toLane": str(l)}
                         ]
+                for l_h in range(lanes_horizontal):
                     conn += [
                         {"from": "right" + index,
                          "to": "right" + "{}_{}".format(i + 1, j),
-                         "fromLane": str(l),
-                         "toLane": str(l)}
+                         "fromLane": str(l_h),
+                         "toLane": str(l_h)}
                     ]
                     conn += [
                         {"from": "left" + "{}_{}".format(i + 1, j),
                          "to": "left" + index,
-                         "fromLane": str(l),
-                         "toLane": str(l)}
+                         "fromLane": str(l_h),
+                         "toLane": str(l_h)}
                     ]
                 con_dict[node_id] = conn
 
