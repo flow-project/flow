@@ -181,37 +181,45 @@ class AimsunKernelVehicle(KernelVehicle):
                 lead_id = self._id_aimsun2flow[lead_id]
                 self.__vehicles[veh_id]['leader'] = lead_id
                 self.__vehicles[lead_id]['follower'] = veh_id
+                # FIXME
+                try:
+                    self.__vehicles[veh_id]['headway'] = \
+                        (self.get_x_by_id(lead_id) - self.get_x_by_id(veh_id)
+                         - self.get_length(veh_id)) \
+                        % self.master_kernel.scenario.length()
+                except:
+                    self.__vehicles[veh_id]['headway'] = -1001
 
-                inf_veh = self.__vehicles[veh_id]['tracking_info']
-                next_section = self.kernel_api.get_next_section(
-                    aimsun_id, inf_veh.idSection)
-                inf_veh_leader = self.__vehicles[lead_id]['tracking_info']
-                static_inf_veh_leader = self.__vehicles[lead_id]['static_info']
-
-                if inf_veh.idSection == inf_veh_leader.idSection:
-                    gap = inf_veh_leader.CurrentPos - \
-                          static_inf_veh_leader.length - \
-                          inf_veh.CurrentPos
-                elif inf_veh_leader.idSection == next_section:
-                    gap = inf_veh_leader.CurrentPos - \
-                          static_inf_veh_leader.length + \
-                          inf_veh.distance2End
-                else:
-                    try:
-                        # assume Euclidean distance
-                        leader_pos = [inf_veh.xCurrentPos, inf_veh.yCurrentPos,
-                                      inf_veh.zCurrentPos]
-                        veh_pos = [inf_veh_leader.xCurrentPos,
-                                   inf_veh_leader.yCurrentPos,
-                                   inf_veh_leader.zCurrentPos]
-                        dist = np.linalg.norm(np.array(leader_pos) -
-                                              np.array(veh_pos))
-                        gap = dist - static_inf_veh_leader.length
-                    except TypeError:
-                        # tends to happy during reset
-                        gap = 1000
-
-                self.__vehicles[veh_id]['headway'] = gap
+                # inf_veh = self.__vehicles[veh_id]['tracking_info']
+                # next_section = self.kernel_api.get_next_section(
+                #     aimsun_id, inf_veh.idSection)
+                # inf_veh_leader = self.__vehicles[lead_id]['tracking_info']
+                # static_inf_veh_leader = self.__vehicles[lead_id]['static_info']
+                #
+                # if inf_veh.idSection == inf_veh_leader.idSection:
+                #     gap = inf_veh_leader.CurrentPos - \
+                #           static_inf_veh_leader.length - \
+                #           inf_veh.CurrentPos
+                # elif inf_veh_leader.idSection == next_section:
+                #     gap = inf_veh_leader.CurrentPos - \
+                #           static_inf_veh_leader.length + \
+                #           inf_veh.distance2End
+                # else:
+                #     try:
+                #         # assume Euclidean distance
+                #         leader_pos = [inf_veh.xCurrentPos, inf_veh.yCurrentPos,
+                #                       inf_veh.zCurrentPos]
+                #         veh_pos = [inf_veh_leader.xCurrentPos,
+                #                    inf_veh_leader.yCurrentPos,
+                #                    inf_veh_leader.zCurrentPos]
+                #         dist = np.linalg.norm(np.array(leader_pos) -
+                #                               np.array(veh_pos))
+                #         gap = dist - static_inf_veh_leader.length
+                #     except TypeError:
+                #         # tends to happy during reset
+                #         gap = 1000
+                #
+                # self.__vehicles[veh_id]['headway'] = gap
 
     def _add_departed(self, aimsun_id):
         """See parent class."""

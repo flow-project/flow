@@ -111,9 +111,6 @@ class AimsunKernelScenario(KernelScenario):
 
         # length of the network, or the portion of the network in
         # which cars are meant to be distributed
-        print([
-            self.edge_length(edge_id) for edge_id in self.get_edge_list()
-        ])
         self.__length = sum(
             self.edge_length(edge_id) for edge_id in self.get_edge_list()
         )
