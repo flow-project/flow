@@ -226,16 +226,18 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
         traffic_state_aimsun.setEntranceFlow(
             edge_aimsun, None, inflow['vehsPerHour'])
 
+    # get traffic demand
+    demand = model.getCatalog().findByName(
+        "Traffic Demand 864", type_demand)
+    # clear the demand of any previous item
+    demand.removeSchedule()
+
     # set traffic demand
     for veh_type in veh_types:
         # find the state for each vehicle type
         state_car = model.getCatalog().findByName(
             veh_type["veh_id"], type_traffic_state)
-        demand = model.getCatalog().findByName(
-            "Traffic Demand 864", type_demand)
         if demand is not None and demand.isA("GKTrafficDemand"):
-            # clear the demand of any previous item
-            demand.removeSchedule()
             # Add the state
             if state_car is not None and state_car.isA("GKTrafficState"):
                 set_demand_item(model, demand, state_car)
