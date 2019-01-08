@@ -185,8 +185,11 @@ class AimsunKernelVehicle(KernelVehicle):
         # update the headways and tailways
         for veh_id in self.__ids:
             aimsun_id = self._id_flow2aimsun[veh_id]
-            self.__vehicles[veh_id]['headway'] = \
-                self.kernel_api.get_vehicle_headway(aimsun_id)
+            if self.__vehicles[veh_id]['leader'] is None:
+                self.__vehicles[veh_id]['headway'] = 1000
+            else:
+                self.__vehicles[veh_id]['headway'] = \
+                    self.kernel_api.get_vehicle_headway(aimsun_id)
 
         # update the tailways of all vehicles TODO
         # for veh_id in self.__ids:
