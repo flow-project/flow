@@ -8,6 +8,8 @@ import numpy as np
 ADDITIONAL_NET_PARAMS = {
     # the factor multiplying number of lanes.
     "scaling": 1,
+    # edge speed limit
+    'speed_limit': 23
 }
 
 
@@ -91,6 +93,7 @@ class BottleneckScenario(Scenario):
     def specify_edges(self, net_params):
         """See parent class."""
         scaling = net_params.additional_params.get("scaling", 1)
+        speed = net_params.additional_params['speed_limit']
         assert (isinstance(scaling, int)), "Scaling must be an int"
 
         edges = [
@@ -101,7 +104,7 @@ class BottleneckScenario(Scenario):
                 "length": 100,
                 "spreadType": "center",
                 "numLanes": 4 * scaling,
-                "speed": 23
+                "speed": speed
             },
             {
                 "id": "2",
@@ -110,7 +113,7 @@ class BottleneckScenario(Scenario):
                 "length": 310,
                 "spreadType": "center",
                 "numLanes": 4 * scaling,
-                "speed": 23
+                "speed": speed
             },
             {
                 "id": "3",
@@ -119,7 +122,7 @@ class BottleneckScenario(Scenario):
                 "length": 140,
                 "spreadType": "center",
                 "numLanes": 4 * scaling,
-                "speed": 23
+                "speed": speed
             },
             {
                 "id": "4",
@@ -128,7 +131,7 @@ class BottleneckScenario(Scenario):
                 "length": 280,
                 "spreadType": "center",
                 "numLanes": 2 * scaling,
-                "speed": 23
+                "speed": speed
             },
             {
                 "id": "5",
@@ -137,7 +140,7 @@ class BottleneckScenario(Scenario):
                 "length": 155,
                 "spreadType": "center",
                 "numLanes": scaling,
-                "speed": 23
+                "speed": speed
             },
             # fake edge used for visualization
             {
@@ -147,7 +150,7 @@ class BottleneckScenario(Scenario):
                 "length": 1,
                 "spreadType": "center",
                 "numLanes": scaling,
-                "speed": 23
+                "speed": speed
             }
         ]
 

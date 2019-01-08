@@ -62,7 +62,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             section.setName(edge["id"])
             edge_aimsun = model.getCatalog().findByName(
                 edge["id"], type_section)
-            edge_aimsun.setSpeed(edge["speed"])
+            edge_aimsun.setSpeed(edge["speed"] * 3.6)
         else:
             first_node, last_node = get_edge_nodes(edge, nodes)
             theta = get_edge_angle(first_node, last_node)
@@ -118,7 +118,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             section.setName(edge["id"])
             edge_aimsun = model.getCatalog().findByName(
                 edge["id"], type_section)
-            edge_aimsun.setSpeed(edge["speed"])
+            edge_aimsun.setSpeed(edge["speed"] * 3.6)
 
     # draw nodes and connections
     for node in nodes:
@@ -258,6 +258,11 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     scenario_data = scenario.getInputData ()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
+
+    # set sim step
+    experiment_name = "Micro SRC Experiment 867"
+    experiment = model.getCatalog().findByName(
+        experiment_name, model.getType("GKExperiment"))  # find scenario
 
     # save
     gui.saveAs('flow.ang')
@@ -546,4 +551,4 @@ generate_net(nodes, edges, connections, inflows, veh_types)
 replication_name = "Replication 870"
 replication = model.getCatalog().findByName(replication_name)
 # execute, "play": run with GUI, "execute": run in batch mode
-GKSystem.getSystem().executeAction("play", replication, [], "")
+# GKSystem.getSystem().executeAction("play", replication, [], "")
