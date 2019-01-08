@@ -92,7 +92,7 @@ class AimsunKernelScenario(KernelScenario):
                         break
 
         self._edges = {}
-        for edge in scenario.edges:
+        for edge in deepcopy(scenario.edges):
             edge_name = edge['id']
             self._edges[edge_name] = {}
             del edge['id']

@@ -138,5 +138,9 @@ class AimsunKernelSimulation(KernelSimulation):
                 writer.writerow(self.stored_data.keys())
                 writer.writerows(zip(*self.stored_data.values()))
 
-        self.kernel_api.stop_simulation()
-        self.aimsun_proc.kill()
+        try:
+            self.kernel_api.stop_simulation()
+            self.aimsun_proc.kill()
+        except OSError:
+            # in case no simulation originally existed (used by the visualizer)
+            pass
