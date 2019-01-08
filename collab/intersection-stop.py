@@ -56,10 +56,10 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1': [('rl', 10)],
-                  'e_3': [('rl', 10)],
-                  'e_5': [('rl', 10)],
-                  'e_7': [('rl', 10)]}
+    experiment = {'e_1_sbc+': [('autonomous', 10)],
+                 'e_3_sbc+': [('autonomous', 10)],
+                 'e_5_sbc+': [('autonomous', 10)],
+                 'e_7_sbc+': [('autonomous', 10)]}
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
@@ -82,8 +82,8 @@ def intersection_example(render=None,
 
     net_params = NetParams(
         no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS.copy()
-        junction_type='allway_stop'
+        additional_params=ADDITIONAL_NET_PARAMS.copy(),
+        junction_type='allway_stop',
     )
 
     initial_config = InitialConfig(

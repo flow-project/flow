@@ -56,10 +56,10 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1': [('rl', 10)],
-                  'e_3': [('rl', 10)],
-                  'e_5': [('rl', 10)],
-                  'e_7': [('rl', 10)]}
+    experiment = {'e_1_sbc+': [('autonomous', 10)],
+                  'e_3_sbc+': [('autonomous', 10)],
+                  'e_5_sbc+': [('autonomous', 10)],
+                  'e_7_sbc+': [('autonomous', 10)]}
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
@@ -80,13 +80,14 @@ def intersection_example(render=None,
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
-    additional_net_params = ADDITIONAL_NET_PARAMS.copy()
     net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+        no_internal_links=False,
+        additional_params=ADDITIONAL_NET_PARAMS.copy(),
+        junction_type='traffic_light',
+    )
 
     initial_config = InitialConfig(
         spacing='uniform',
-        junction_type='traffic_light',
         edges_distribution=experiment,
     )
     scenario = IntersectionScenario(

@@ -136,4 +136,4 @@ if __name__ == '__main__':
                 'training_iteration': 1000,
             },
         }
-    }, resume="prompt")
+    }, resume=False)
