@@ -1,3 +1,4 @@
+# flake8: noqa
 import sys
 import os
 import flow.config as config
@@ -11,7 +12,6 @@ sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
 
 from flow.core.params import InFlows
 from copy import deepcopy
-import argparse
 import json
 import numpy as np
 
@@ -22,18 +22,6 @@ gui.newDoc(os.path.join(config.PROJECT_PATH,
                         "flow/utils/aimsun/Aimsun_Flow.ang"),
            "EPSG:32601")
 model = gui.getActiveModel()
-
-
-def create_parser():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='FIXME',
-        epilog='FIXME')
-
-    # required input parameters
-    parser.add_argument(
-        'filename', type=str, help='Directory containing nodes and edges')
-    return parser
 
 
 def generate_net(nodes, edges, connections, inflows, veh_types):
@@ -67,7 +55,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             first_node, last_node = get_edge_nodes(edge, nodes)
             theta = get_edge_angle(first_node, last_node)
             first_node_offset = [0, 0]  # x, and y offset
-            last_node_offset = [0, 0] # x, and y offset
+            last_node_offset = [0, 0]  # x, and y offset
 
             # offset edge ends if there is a radius in the node
             if "radius" in first_node:
@@ -106,7 +94,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                           0)
             points.append(new_point)
             new_point = GKPoint()
-            end_node = next(node for node in nodes if node["id"] == edge["to"])
             new_point.set(last_node['x'] + last_node_offset[0],
                           last_node['y'] + last_node_offset[1],
                           0)
@@ -130,7 +117,7 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
         model.getCommander().addCommand(cmd)
         new_node = cmd.createdObject()
         new_node.setName(node["id"])
-        node_aimsun = model.getCatalog().findByName(node["id"], type_node)
+
         # list of edges from and to the node
         from_edges = [
             edge['id'] for edge in edges if edge['from'] == node['id']]
@@ -141,7 +128,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                 and connections[node['id']] is not None:
             # add connections
             for connection in connections[node['id']]:
-                print (connection)
                 cmd = model.createNewCmd(type_turn)
                 from_section = model.getCatalog().findByName(
                     connection["from"], type_section, True)
@@ -257,14 +243,14 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     scenario_name = "Dynamic Scenario 866"
     scenario = model.getCatalog().findByName(
         scenario_name, model.getType("GKScenario"))  # find scenario
-    scenario_data = scenario.getInputData ()
+    scenario_data = scenario.getInputData()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # set sim step
-    experiment_name = "Micro SRC Experiment 867"
-    experiment = model.getCatalog().findByName(
-        experiment_name, model.getType("GKExperiment"))  # find scenario
+    # experiment_name = "Micro SRC Experiment 867"
+    # experiment = model.getCatalog().findByName(
+    #     experiment_name, model.getType("GKExperiment"))  # find scenario
 
     # save
     gui.saveAs('flow.ang')
@@ -274,14 +260,11 @@ def generate_net_osm(file_name, inflows, veh_types):
     inflows = inflows.get()
 
     type_section = model.getType("GKSection")
-    type_node = model.getType("GKNode")
-    type_turn = model.getType("GKTurning")
     type_traffic_state = model.getType("GKTrafficState")
     type_vehicle = model.getType("GKVehicle")
     type_demand = model.getType("GKTrafficDemand")
 
-    #load OSM file
-    # layer = model.getCatalog().findByName("Untitled", model.getType("GKLayer"))
+    # load OSM file
     layer = None
     point = GKPoint()
     point.set(0, 0, 0)
@@ -289,19 +272,6 @@ def generate_net_osm(file_name, inflows, veh_types):
     box.set(-1000, -1000, 0, 1000, 1000, 0)
 
     model.importFile(file_name, layer, point, box)
-
-    # get the control plan
-    control_plan = model.getCatalog().findByName(
-            "Control Plan", model.getType("GKControlPlan"))
-
-    # add traffic lights
-    # determine junctions
-    # junctions = get_junctions(nodes)
-    # # add meters for all nodes in junctions
-    # for node in junctions:
-    #     node = model.getCatalog().findByName(
-    #         node['id'], model.getType("GKNode"))
-    #     create_node_meters(model, control_plan, node)
 
     # set vehicle types
     vehicles = model.getCatalog().getObjectsByType(type_vehicle)
@@ -324,8 +294,6 @@ def generate_net_osm(file_name, inflows, veh_types):
             veh_type["veh_id"], model.getType("GKVehicle"))
         # set state vehicles
         new_state.setVehicle(veh_type)
-        # set_state_vehicle(model, new_state, veh_type["veh_id"])
-        # set_state_vehicle(model, veh_type["veh_id"], veh_type["veh_id"])
 
     # add traffic inflows to traffic states
     if inflows is not None:
@@ -368,14 +336,12 @@ def generate_net_osm(file_name, inflows, veh_types):
     scenario_name = "Dynamic Scenario 866"
     scenario = model.getCatalog().findByName(
         scenario_name, model.getType("GKScenario"))  # find scenario
-    scenario_data = scenario.getInputData ()
+    scenario_data = scenario.getInputData()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
 
     # save
     gui.saveAs('flow.ang')
-
-
 
 
 def get_junctions(nodes):
@@ -535,7 +501,6 @@ def find_turn(model, entry):
 
 
 # Returns (and creates if needed) the signals list.
-#
 def create_signal_groups(model, node):  # TODO generalize
     signals = []
 
@@ -586,7 +551,8 @@ def create_meter(model, section):
     pos = section.getLanesLength2D() - meter_length
     type = model.getType("GKMetering")
     cmd = model.createNewCmd(model.getType("GKSectionObject"))
-    cmd.init(type, section, 0, 0, pos, meter_length)  # TODO double check the zeros
+    # TODO double check the zeros
+    cmd.init(type, section, 0, 0, pos, meter_length)
     model.getCommander().addCommand(cmd)
     meter = cmd.createdObject()
     meter.setName("meter_{}".format(section.getName()))
@@ -641,18 +607,15 @@ if data['inflows'] is not None:
 else:
     inflows = None
 
-print(1111111111)
 # generate the network
 if osm is not None:
-    print(22222222222)
     # filename = osm
     filename = "/home/yashar/Desktop/bay_bridge.osm"
     generate_net_osm(filename, inflows, veh_types)
     edge_osm = {}
 
-    section_type = model.getType( "GKSection" )
-    print(555555)
-    for types in model.getCatalog().getUsedSubTypesFromType( section_type ):
+    section_type = model.getType("GKSection")
+    for types in model.getCatalog().getUsedSubTypesFromType(section_type):
         for s in types.itervalues():
             print(s.getId())
             id = s.getId()
@@ -665,7 +628,9 @@ if osm is not None:
                             }
     # cur_dir = os.path.dirname(__file__)
     # TODO: add current time
-    with open(os.path.join(config.PROJECT_PATH, 'flow/utils/aimsun/osm_edges.json'), 'w') as outfile:
+    with open(os.path.join(config.PROJECT_PATH,
+                           'flow/utils/aimsun/osm_edges.json'), 'w') \
+            as outfile:
         json.dump(edge_osm, outfile, sort_keys=True, indent=4)
 
 else:
@@ -682,12 +647,7 @@ else:
                     new_dict.pop("id")
                     edges[i].update(new_dict)
                     break
-    print(333333333333)
     generate_net(nodes, edges, connections, inflows, veh_types)
-
-
-
-
 
 # run the simulation
 # find the replication

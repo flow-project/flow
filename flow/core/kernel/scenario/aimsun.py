@@ -64,6 +64,7 @@ class AimsunKernelScenario(KernelScenario):
         self.rts = None
         self._edge_flow2aimsun = {}
         self._edge_aimsun2flow = {}
+        self.aimsun_proc = None
 
     def generate_network(self, scenario):
         self.network = scenario
