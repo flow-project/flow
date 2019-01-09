@@ -206,19 +206,8 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
 
                     self.vehicles = vehicles
 
-                    # delete the cfg and net files
-                    net_path = self.scenario.generator.net_path
-                    net_name = net_path + self.scenario.generator.name
-                    cfg_path = self.scenario.generator.cfg_path
-                    cfg_name = cfg_path + self.scenario.generator.name
-                    for f in glob.glob(net_name + '*'):
-                        os.remove(f)
-                    for f in glob.glob(cfg_name + '*'):
-                        os.remove(f)
-
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,
-                        generator_class=self.scenario.generator_class,
                         vehicles=vehicles,
                         net_params=net_params,
                         initial_config=self.scenario.initial_config,

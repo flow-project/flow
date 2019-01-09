@@ -23,9 +23,9 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 1500
 # number of parallel workers
-N_CPUS = 4
+N_CPUS = 30
 # number of rollouts per training iteration
-N_ROLLOUTS = 8
+N_ROLLOUTS = N_CPUS
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -74,7 +74,7 @@ additional_env_params = {
     'max_decel': 3,
     'inflow_range': [1000, 2000],
     'communicate': False,
-    "decentralized_obs": True
+    "decentralized_obs": False
 }
 
 # flow rate
@@ -89,7 +89,7 @@ inflow.add(
     departLane='random',
     departSpeed=10)
 inflow.add(
-    veh_type='followerstopper',
+    veh_type='av',
     edge='1',
     vehs_per_hour=flow_rate * AV_FRAC,
     departLane='random',
@@ -109,16 +109,13 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiBottleneckCommunicate',
+    exp_tag='MultiCentralObsDecentralAction',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
 
     # name of the scenario class the experiment is running on
     scenario='BottleneckScenario',
-
-    # name of the generator used to create/modify network configuration files
-    generator='BottleneckGenerator',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
@@ -171,12 +168,13 @@ def setup_exps():
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['clip_actions'] = False
-    config['observation_filter'] = 'NoFilter'
     config['horizon'] = HORIZON
-    config['use_centralized_vf'] = True
+    config['use_centralized_vf'] = False
+    config['simple_optimizer'] = True
+    config["batch_mode"] = "complete_episodes"
 
     # Grid search things
-    # config['lr'] = tune.grid_search([1e-4,1e-5, 1e-6])
+    config['lr'] = tune.grid_search([5e-4,5e-5])
     # config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
@@ -217,19 +215,18 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    # ray.init(redis_address='localhost:6379')
-    ray.init(num_cpus=6, redirect_output=False)
+    ray.init(redis_address='localhost:6379')
+    # ray.init(num_cpus=6, redirect_output=False)
     run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
             'env': env_name,
-            'checkpoint_freq': 1,
+            'checkpoint_freq': 50,
             'stop': {
-                'training_iteration': 400
+                'training_iteration': 500
             },
             'config': config,
-            # 'upload_dir': "s3://eugene.experiments/bottlen
-            # eck_exps/12-9-18-nocommunicate-lstm",
+            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-9-2019/MultiCentralObsDecentralAction",
             'num_samples': 3
         },
     })
