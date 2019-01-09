@@ -73,7 +73,6 @@ class Figure8Scenario(Scenario):
             "id": "center",
             "x": 0,
             "y": 0,
-            "radius": (2.9 + 3.3 * net_params.additional_params["lanes"])/2,
             "type": "priority"
         }, {
             "id": "right",
