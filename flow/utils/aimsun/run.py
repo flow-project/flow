@@ -1,3 +1,4 @@
+# flake8: noqa
 import flow.config as config
 import sys
 import os
@@ -115,7 +116,7 @@ def threaded_client(conn):
                 send_message(conn, in_format='i', values=(0,))
                 veh_id, speed = retrieve_message(conn, 'i f')
                 new_speed = speed * 3.6
-                #aimsun_api.AKIVehTrackedForceSpeed(veh_id, new_speed)
+                # aimsun_api.AKIVehTrackedForceSpeed(veh_id, new_speed)
                 aimsun_api.AKIVehTrackedModifySpeed(veh_id, new_speed)
                 send_message(conn, in_format='i', values=(0,))
 
@@ -131,7 +132,7 @@ def threaded_client(conn):
 
             elif data == ac.VEH_SET_COLOR:
                 send_message(conn, in_format='i', values=(0,))
-                veh_id, r, g, b = retrieve_message(conn, 'i i i i')
+                # veh_id, r, g, b = retrieve_message(conn, 'i i i i')
                 # TODO
                 send_message(conn, in_format='i', values=(0,))
 
@@ -303,7 +304,7 @@ def threaded_client(conn):
 
             elif data == ac.VEH_GET_ROUTE:
                 send_message(conn, in_format='i', values=(0,))
-                veh_id, = retrieve_message(conn, 'i')
+                # veh_id, = retrieve_message(conn, 'i')
                 # TODO
 
             elif data == ac.TL_GET_IDS:
@@ -316,7 +317,7 @@ def threaded_client(conn):
 
             elif data == ac.TL_GET_STATE:
                 send_message(conn, in_format='i', values=(0,))
-                tl_id, = retrieve_message(conn, 'i')
+                # tl_id, = retrieve_message(conn, 'i')
                 # TODO
 
             elif data == ac.GET_EDGE_NAME:
@@ -331,7 +332,8 @@ def threaded_client(conn):
                 edge_aimsun = model.getCatalog().findByName(
                     edge, model.getType('GKSection'))
 
-                send_message(conn, in_format='i', values=(edge_aimsun.getId(),))
+                send_message(conn, in_format='i',
+                             values=(edge_aimsun.getId(),))
 
             # in case the message is unknown, return -1001
             else:

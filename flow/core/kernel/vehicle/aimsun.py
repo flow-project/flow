@@ -194,27 +194,28 @@ class AimsunKernelVehicle(KernelVehicle):
                 # next_section = self.kernel_api.get_next_section(
                 #     aimsun_id, inf_veh.idSection)
                 # inf_veh_leader = self.__vehicles[lead_id]['tracking_info']
-                # static_inf_veh_leader = self.__vehicles[lead_id]['static_info']
+                # static_inf_leader = self.__vehicles[lead_id]['static_info']
                 #
                 # if inf_veh.idSection == inf_veh_leader.idSection:
                 #     gap = inf_veh_leader.CurrentPos - \
-                #           static_inf_veh_leader.length - \
+                #           static_inf_leader.length - \
                 #           inf_veh.CurrentPos
                 # elif inf_veh_leader.idSection == next_section:
                 #     gap = inf_veh_leader.CurrentPos - \
-                #           static_inf_veh_leader.length + \
+                #           static_inf_leader.length + \
                 #           inf_veh.distance2End
                 # else:
                 #     try:
                 #         # assume Euclidean distance
-                #         leader_pos = [inf_veh.xCurrentPos, inf_veh.yCurrentPos,
+                #         leader_pos = [inf_veh.xCurrentPos,
+                #                       inf_veh.yCurrentPos,
                 #                       inf_veh.zCurrentPos]
                 #         veh_pos = [inf_veh_leader.xCurrentPos,
                 #                    inf_veh_leader.yCurrentPos,
                 #                    inf_veh_leader.zCurrentPos]
                 #         dist = np.linalg.norm(np.array(leader_pos) -
                 #                               np.array(veh_pos))
-                #         gap = dist - static_inf_veh_leader.length
+                #         gap = dist - static_inf_leader.length
                 #     except TypeError:
                 #         # tends to happy during reset
                 #         gap = 1000
