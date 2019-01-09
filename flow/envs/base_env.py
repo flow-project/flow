@@ -1,9 +1,9 @@
 """Base environment class. This is the parent of all other environments."""
 
 import logging
-import os
 import sys
 from copy import deepcopy
+import os
 import atexit
 import time
 import traceback
@@ -27,6 +27,7 @@ except ImportError:
 
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
+from flow.utils.flow_warnings import FatalFlowError
 
 # pick out the correct class definition
 if serializable_flag:
@@ -477,12 +478,11 @@ class Env(*classdef):
         if len(self.initial_ids) > self.k.vehicle.num_vehicles:
             missing_vehicles = list(
                 set(self.initial_ids) - set(self.k.vehicle.get_ids()))
-            logging.error('Not enough vehicles have spawned! Bad start?')
-            logging.error('Missing vehicles / initial state:')
+            msg = '\nNot enough vehicles have spawned! Bad start?\n' \
+                  'Missing vehicles / initial state:\n'
             for veh_id in missing_vehicles:
-                logging.error('- {}: {}'.format(veh_id,
-                                                self.initial_state[veh_id]))
-            sys.exit()
+                msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
+            raise FatalFlowError(msg=msg)
 
         states = self.get_state()
         if isinstance(states, dict):

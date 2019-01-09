@@ -1,5 +1,3 @@
-import logging
-import sys
 import numpy as np
 import random
 import traceback
@@ -11,6 +9,7 @@ from traci.exceptions import TraCIException
 from ray.rllib.env import MultiAgentEnv
 
 from flow.envs.base_env import Env
+from flow.utils.flow_warnings import FatalFlowError
 
 
 class MultiEnv(MultiAgentEnv, Env):
@@ -237,12 +236,11 @@ class MultiEnv(MultiAgentEnv, Env):
         if len(self.initial_ids) > self.k.vehicle.num_vehicles:
             missing_vehicles = list(
                 set(self.initial_ids) - set(self.k.vehicle.get_ids()))
-            logging.error('Not enough vehicles have spawned! Bad start?')
-            logging.error('Missing vehicles / initial state:')
+            msg = '\nNot enough vehicles have spawned! Bad start?\n' \
+                  'Missing vehicles / initial state:\n'
             for veh_id in missing_vehicles:
-                logging.error('- {}: {}'.format(veh_id,
-                                                self.initial_state[veh_id]))
-            sys.exit()
+                msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
+            raise FatalFlowError(msg=msg)
 
         states = self.get_state()
         self.state = {}
