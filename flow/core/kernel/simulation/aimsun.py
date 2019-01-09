@@ -75,18 +75,18 @@ class AimsunKernelSimulation(KernelSimulation):
         if self.emission_path is not None:
             ensure_dir(self.emission_path)
 
-        # path to the Aimsun_Next binary
-        aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
-                               'Aimsun_Next')
-
-        # path to the supplementary file that is used to generate an aimsun
-        # network from a template
-        script_path = osp.join(config.PROJECT_PATH,
-                               'flow/utils/aimsun/generate.py')
-
-        # start the aimsun process
-        aimsun_call = [aimsun_path, "-script", script_path]
-        self.aimsun_proc = subprocess.Popen(aimsun_call)
+        # # path to the Aimsun_Next binary
+        # aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
+        #                        'Aimsun_Next')
+        #
+        # # path to the supplementary file that is used to generate an aimsun
+        # # network from a template
+        # script_path = osp.join(config.PROJECT_PATH,
+        #                        'flow/utils/aimsun/generate.py')
+        #
+        # # start the aimsun process
+        # aimsun_call = [aimsun_path, "-script", script_path]
+        # self.aimsun_proc = subprocess.Popen(aimsun_call)
 
         return FlowAimsunAPI(port=sim_params.port)
 

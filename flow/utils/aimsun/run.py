@@ -67,7 +67,7 @@ def threaded_client(conn):
     done = False
     while not done:
         # receive the next message
-        data = conn.recv(256)
+        data = conn.recv(2048)
 
         if data is not None:
             # if the message is empty, search for the next message
@@ -141,19 +141,26 @@ def threaded_client(conn):
                 # wait for a response
                 data = None
                 while data is None:
-                    data = conn.recv(256)
+                    data = conn.recv(2048)
 
                 # send the entered vehicle IDs
                 global entered_vehicles
 
-                if len(entered_vehicles) == 0:
-                    output = '-1'
-                else:
-                    output = ':'.join([str(e) for e in entered_vehicles])
-                conn.send(output)
+                while len(entered_vehicles) > 0:
+                    # send a positive response
+                    send_message(conn, in_format='i', values=(0,))
 
-                # clear the list
-                entered_vehicles = []
+                    # wait for a reply
+                    data = None
+                    while data is None:
+                        data = conn.recv(2048)
+
+                    # send the next vehicle
+                    conn.send(str(entered_vehicles[0]))
+                    del entered_vehicles[0]
+
+                # send a negative response
+                send_message(conn, in_format='i', values=(1,))
 
             elif data == ac.VEH_GET_EXITED_IDS:
                 send_message(conn, in_format='i', values=(0,))
@@ -161,19 +168,26 @@ def threaded_client(conn):
                 # wait for a response
                 data = None
                 while data is None:
-                    data = conn.recv(256)
+                    data = conn.recv(2048)
 
                 # send the entered vehicle IDs
                 global exited_vehicles
 
-                if len(exited_vehicles) == 0:
-                    output = '-1'
-                else:
-                    output = ':'.join([str(e) for e in exited_vehicles])
-                conn.send(output)
+                while len(exited_vehicles) > 0:
+                    # send a positive response
+                    send_message(conn, in_format='i', values=(0,))
 
-                # clear the list
-                exited_vehicles = []
+                    # wait for a reply
+                    data = None
+                    while data is None:
+                        data = conn.recv(2048)
+
+                    # send the next vehicle
+                    conn.send(str(exited_vehicles[0]))
+                    del exited_vehicles[0]
+
+                # send a negative response
+                send_message(conn, in_format='i', values=(1,))
 
             elif data == ac.VEH_GET_TYPE_ID:
                 send_message(conn, in_format='i', values=(0,))
@@ -181,7 +195,7 @@ def threaded_client(conn):
                 # get the type ID in flow
                 type_id = None
                 while type_id is None:
-                    type_id = conn.recv(256)
+                    type_id = conn.recv(2048)
 
                 # convert the edge name to an edge name in Aimsun
                 model = GKSystem.getSystem().getActiveModel()
@@ -311,7 +325,7 @@ def threaded_client(conn):
                 # get the edge ID in flow
                 edge = None
                 while edge is None:
-                    edge = conn.recv(256)
+                    edge = conn.recv(2048)
 
                 model = GKSystem.getSystem().getActiveModel()
                 edge_aimsun = model.getCatalog().findByName(

@@ -42,7 +42,7 @@ def create_client(port, print_status=False):
     # check the connection
     data = None
     while data is None:
-        data = s.recv(256)
+        data = s.recv(2048)
     if print_status:
         print(data.decode('utf-8'))
 
@@ -293,29 +293,85 @@ class FlowAimsunAPI(object):
 
     def get_entered_ids(self):
         """Return the ids of all vehicles that entered the network."""
-        veh_ids = self._send_command(ac.VEH_GET_ENTERED_IDS,
-                                     in_format=None,
-                                     values=None,
-                                     out_format='str')
+        res = []
 
-        if veh_ids == '-1':
-            return []
-        else:
-            veh_ids = veh_ids.split(':')
-            return [int(v) for v in veh_ids]
+        # send the command type to the server
+        self.s.send(str(ac.VEH_GET_ENTERED_IDS).encode())
+
+        # wait for a response
+        unpacker = struct.Struct(format='i')
+        data = None
+        while data is None:
+            data = self.s.recv(unpacker.size)
+
+        # send the command type to the server
+        self.s.send(str(ac.VEH_GET_ENTERED_IDS).encode())
+
+        # wait for a response
+        unpacker = struct.Struct(format='i')
+        response = None
+        while response is None:
+            response = self.s.recv(unpacker.size)
+        unpacked_response = unpacker.unpack(response)[0]
+
+        while unpacked_response == 0:
+            # send the command type to the server
+            self.s.send(str(ac.VEH_GET_ENTERED_IDS).encode())
+
+            next_element = None
+            while next_element is None:
+                next_element = self.s.recv(2048)
+            res.append(int(next_element.decode('utf-8')))
+
+            # wait for a response
+            unpacker = struct.Struct(format='i')
+            response = None
+            while response is None:
+                response = self.s.recv(unpacker.size)
+            unpacked_response = unpacker.unpack(response)[0]
+
+        return res
 
     def get_exited_ids(self):
         """Return the ids of all vehicles that exited the network."""
-        veh_ids = self._send_command(ac.VEH_GET_EXITED_IDS,
-                                     in_format=None,
-                                     values=None,
-                                     out_format='str')
+        res = []
 
-        if veh_ids == '-1':
-            return []
-        else:
-            veh_ids = veh_ids.split(':')
-            return [int(v) for v in veh_ids]
+        # send the command type to the server
+        self.s.send(str(ac.VEH_GET_EXITED_IDS).encode())
+
+        # wait for a response
+        unpacker = struct.Struct(format='i')
+        data = None
+        while data is None:
+            data = self.s.recv(unpacker.size)
+
+        # send the command type to the server
+        self.s.send(str(ac.VEH_GET_EXITED_IDS).encode())
+
+        # wait for a response
+        unpacker = struct.Struct(format='i')
+        response = None
+        while response is None:
+            response = self.s.recv(unpacker.size)
+        unpacked_response = unpacker.unpack(response)[0]
+
+        while unpacked_response == 0:
+            # send the command type to the server
+            self.s.send(str(ac.VEH_GET_EXITED_IDS).encode())
+
+            next_element = None
+            while next_element is None:
+                next_element = self.s.recv(2048)
+            res.append(int(next_element.decode('utf-8')))
+
+            # wait for a response
+            unpacker = struct.Struct(format='i')
+            response = None
+            while response is None:
+                response = self.s.recv(unpacker.size)
+            unpacked_response = unpacker.unpack(response)[0]
+
+        return res
 
     def get_vehicle_type_id(self, flow_id):
         """Get's the Aimsun type number of a Flow vehicle types.

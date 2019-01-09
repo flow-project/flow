@@ -270,6 +270,114 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     gui.saveAs('flow.ang')
 
 
+def generate_net_osm(file_name, inflows, veh_types):
+    inflows = inflows.get()
+
+    type_section = model.getType("GKSection")
+    type_node = model.getType("GKNode")
+    type_turn = model.getType("GKTurning")
+    type_traffic_state = model.getType("GKTrafficState")
+    type_vehicle = model.getType("GKVehicle")
+    type_demand = model.getType("GKTrafficDemand")
+
+    #load OSM file
+    # layer = model.getCatalog().findByName("Untitled", model.getType("GKLayer"))
+    layer = None
+    point = GKPoint()
+    point.set(0, 0, 0)
+    box = GKBBox()
+    box.set(-1000, -1000, 0, 1000, 1000, 0)
+
+    model.importFile(file_name, layer, point, box)
+
+    # get the control plan
+    control_plan = model.getCatalog().findByName(
+            "Control Plan", model.getType("GKControlPlan"))
+
+    # add traffic lights
+    # determine junctions
+    # junctions = get_junctions(nodes)
+    # # add meters for all nodes in junctions
+    # for node in junctions:
+    #     node = model.getCatalog().findByName(
+    #         node['id'], model.getType("GKNode"))
+    #     create_node_meters(model, control_plan, node)
+
+    # set vehicle types
+    vehicles = model.getCatalog().getObjectsByType(type_vehicle)
+    if vehicles is not None:
+        for vehicle in vehicles.itervalues():
+            name = vehicle.getName()
+            if name == "Car":
+                for veh_type in veh_types:
+                    cmd = GKObjectDuplicateCmd()
+                    cmd.init(vehicle)
+                    model.getCommander().addCommand(cmd)
+                    new_veh = cmd.createdObject()
+                    new_veh.setName(veh_type["veh_id"])
+
+    # Create new states based on vehicle types
+    for veh_type in veh_types:
+        new_state = create_state(model, veh_type["veh_id"])
+        # find vehicle type
+        veh_type = model.getCatalog().findByName(
+            veh_type["veh_id"], model.getType("GKVehicle"))
+        # set state vehicles
+        new_state.setVehicle(veh_type)
+        # set_state_vehicle(model, new_state, veh_type["veh_id"])
+        # set_state_vehicle(model, veh_type["veh_id"], veh_type["veh_id"])
+
+    # add traffic inflows to traffic states
+    if inflows is not None:
+        for inflow in inflows:
+            traffic_state_aimsun = model.getCatalog().findByName(
+                inflow["vtype"], type_traffic_state)
+            edge_aimsun = model.getCatalog().findByName(
+                inflow['edge'], type_section)
+            traffic_state_aimsun.setEntranceFlow(
+                edge_aimsun, None, inflow['vehsPerHour'])
+
+    # get traffic demand
+    demand = model.getCatalog().findByName(
+        "Traffic Demand 864", type_demand)
+    # clear the demand of any previous item
+    demand.removeSchedule()
+
+    # set traffic demand
+    for veh_type in veh_types:
+        # find the state for each vehicle type
+        state_car = model.getCatalog().findByName(
+            veh_type["veh_id"], type_traffic_state)
+        if demand is not None and demand.isA("GKTrafficDemand"):
+            # Add the state
+            if state_car is not None and state_car.isA("GKTrafficState"):
+                set_demand_item(model, demand, state_car)
+            model.getCommander().addCommand(None)
+        else:
+            create_traffic_demand(model, veh_type["veh_id"])  # TODO debug
+
+    # set the view to "whole world" in Aimsun
+    view = gui.getActiveViewWindow().getView()
+    if view is not None:
+        view.wholeWorld()
+
+    # set view mode, each vehicle type with different color
+    set_vehicles_color(model)
+
+    # set API
+    scenario_name = "Dynamic Scenario 866"
+    scenario = model.getCatalog().findByName(
+        scenario_name, model.getType("GKScenario"))  # find scenario
+    scenario_data = scenario.getInputData ()
+    scenario_data.addExtension(os.path.join(
+        config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
+
+    # save
+    gui.saveAs('flow.ang')
+
+
+
+
 def get_junctions(nodes):
     junctions = []  # TODO check
     for node in nodes:
@@ -524,20 +632,8 @@ with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
     data = json.load(f)
 
 # export the data from the dictionary
-nodes = data['nodes']
-edges = data['edges']
-types = data['types']
-connections = data['connections']
 veh_types = data['vehicle_types']
-
-for i in range(len(edges)):
-    if 'type' in edges[i]:
-        for typ in types:
-            if typ['id'] == edges[i]['type']:
-                new_dict = deepcopy(typ)
-                new_dict.pop("id")
-                edges[i].update(new_dict)
-                break
+osm = data['osm_path']
 
 if data['inflows'] is not None:
     inflows = InFlows()
@@ -545,8 +641,53 @@ if data['inflows'] is not None:
 else:
     inflows = None
 
+print(1111111111)
 # generate the network
-generate_net(nodes, edges, connections, inflows, veh_types)
+if osm is not None:
+    print(22222222222)
+    # filename = osm
+    filename = "/home/yashar/Desktop/bay_bridge.osm"
+    generate_net_osm(filename, inflows, veh_types)
+    edge_osm = {}
+
+    section_type = model.getType( "GKSection" )
+    print(555555)
+    for types in model.getCatalog().getUsedSubTypesFromType( section_type ):
+        for s in types.itervalues():
+            print(s.getId())
+            id = s.getId()
+            num_lanes = s.getNbFullLanes()
+            length = s.getLanesLength2D()
+            speed = s.getSpeed()
+            edge_osm[id] = {"speed": speed,
+                            "length": length,
+                            "numLanes": num_lanes
+                            }
+    # cur_dir = os.path.dirname(__file__)
+    # TODO: add current time
+    with open(os.path.join(config.PROJECT_PATH, 'flow/utils/aimsun/osm_edges.json'), 'w') as outfile:
+        json.dump(edge_osm, outfile, sort_keys=True, indent=4)
+
+else:
+    nodes = data['nodes']
+    edges = data['edges']
+    types = data['types']
+    connections = data['connections']
+
+    for i in range(len(edges)):
+        if 'type' in edges[i]:
+            for typ in types:
+                if typ['id'] == edges[i]['type']:
+                    new_dict = deepcopy(typ)
+                    new_dict.pop("id")
+                    edges[i].update(new_dict)
+                    break
+    print(333333333333)
+    generate_net(nodes, edges, connections, inflows, veh_types)
+
+
+
+
 
 # run the simulation
 # find the replication
