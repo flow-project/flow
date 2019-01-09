@@ -123,13 +123,24 @@ class TraCIScenario(KernelScenario):
             self._edges, self._connections = self.generate_net_from_osm(
                 self.network.net_params)
         else:
+            # combine all connections into a list
+            if network.connections is not None:
+                if isinstance(network.connections, list):
+                    connections = network.connections
+                else:
+                    connections = []
+                    for key in network.connections.keys():
+                        connections.extend(network.connections[key])
+            else:
+                connections = None
+
             self._edges, self._connections = self.generate_net(
                 self.network.net_params,
                 self.network.traffic_lights,
                 self.network.nodes,
                 self.network.edges,
                 self.network.types,
-                self.network.connections
+                connections
             )
 
         # list of edges and internal links (junctions)
