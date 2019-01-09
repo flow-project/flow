@@ -5,11 +5,16 @@ cluster_name: test #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 2 #<NUM WORKERS IN CLUSTER>
+min_workers: 0 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
 max_workers: 2
+
+# The initial number of worker nodes to launch in addition to the head
+# node. When the cluster is first brought up (or when it is refreshed with a
+# subsequent `ray up`) this number of nodes will be started.
+initial_workers: 2
 
 # The autoscaler will scale up the cluster to this target fraction of resource
 # usage. For example, if a cluster of 10 nodes is 100% busy and
@@ -76,12 +81,13 @@ setup_commands:
     - git clone https://github.com/flow-project/ray.git
     - cd ray && git fetch && git checkout centralized_vf_pr
     # soft link in rllib
-    - python ray/python/ray/rllib/setup-rllib-dev.py
+    - echo "y" | python ray/python/ray/rllib/setup-rllib-dev.py
     # set up sumo and anaconda
     - echo 'export PATH="/home/ubuntu/sumo/bin:$PATH"' >> ~/.bashrc
     - echo 'export SUMO_HOME="/home/ubuntu/sumo"' >> ~/.bashrc
     - echo 'export PYTHONPATH="/home/ubuntu/sumo/tools:$PYTHONPATH"' >> ~/.bashrc
     - echo 'export PATH="/home/ubuntu/anaconda3/bin:$PATH"' >> ~/.bashrc
+
 # Custom commands that will be run on the head node after common setup.
 head_setup_commands:
     - PATH="/home/ubuntu/anaconda3/bin:$PATH" yes | ~/anaconda3/bin/conda install boto3=1.4.8  # 1.4.8 adds InstanceMarketOptions
