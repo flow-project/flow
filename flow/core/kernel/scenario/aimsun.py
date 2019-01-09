@@ -1,7 +1,11 @@
 """Script containing the base scenario kernel class."""
 from copy import deepcopy
+import flow.config as config
 import json
+import subprocess
+import os.path as osp
 import os
+import time
 from flow.core.kernel.scenario.base import KernelScenario
 
 # length of vehicles in the network, in meters
@@ -70,7 +74,8 @@ class AimsunKernelScenario(KernelScenario):
             "types": scenario.types,
             "connections": scenario.connections,
             "inflows": None,
-            "vehicle_types": scenario.vehicles.types
+            "vehicle_types": scenario.vehicles.types,
+            "osm_path": scenario.net_params.osm_path
         }
 
         if scenario.net_params.inflows is not None:
@@ -81,29 +86,55 @@ class AimsunKernelScenario(KernelScenario):
         with open(os.path.join(cur_dir, 'data.json'), 'w') as outfile:
             json.dump(output, outfile, sort_keys=True, indent=4)
 
+        # path to the Aimsun_Next binary
+        aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
+                               'Aimsun_Next')
+
+        # path to the supplementary file that is used to generate an aimsun
+        # network from a template
+        script_path = osp.join(config.PROJECT_PATH,
+                               'flow/utils/aimsun/generate.py')
+
+        # start the aimsun process
+        aimsun_call = [aimsun_path, "-script", script_path]
+        self.aimsun_proc = subprocess.Popen(aimsun_call)
+
         # merge types into edges
-        for i in range(len(scenario.edges)):
-            if 'type' in scenario.edges[i]:
-                for typ in scenario.types:
-                    if typ['id'] == scenario.edges[i]['type']:
-                        new_dict = deepcopy(typ)
-                        new_dict.pop("id")
-                        scenario.edges[i].update(new_dict)
-                        break
+        if scenario.net_params.osm_path is None:
+            for i in range(len(scenario.edges)):
+                if 'type' in scenario.edges[i]:
+                    for typ in scenario.types:
+                        if typ['id'] == scenario.edges[i]['type']:
+                            new_dict = deepcopy(typ)
+                            new_dict.pop("id")
+                            scenario.edges[i].update(new_dict)
+                            break
 
-        self._edges = {}
-        for edge in deepcopy(scenario.edges):
-            edge_name = edge['id']
-            self._edges[edge_name] = {}
-            del edge['id']
-            self._edges[edge_name] = edge
+            self._edges = {}
+            for edge in deepcopy(scenario.edges):
+                edge_name = edge['id']
+                self._edges[edge_name] = {}
+                del edge['id']
+                self._edges[edge_name] = edge
 
-        # list of edges and internal links (junctions)
-        self._edge_list = [
-            edge_id for edge_id in self._edges.keys() if edge_id[0] != ':'
-        ]
-        self._junction_list = list(
-            set(self._edges.keys()) - set(self._edge_list))
+            # list of edges and internal links (junctions)
+            self._edge_list = [
+                edge_id for edge_id in self._edges.keys() if edge_id[0] != ':'
+            ]
+            self._junction_list = list(
+                set(self._edges.keys()) - set(self._edge_list))
+        else:
+            data_file = 'flow/utils/aimsun/osm_edges.json'
+            filepath = os.path.join(config.PROJECT_PATH, data_file)
+
+            while not os.path.exists(filepath):
+                time.sleep(0.5)
+
+            with open(filepath) as f:
+                self._edges = json.load(f)
+
+            # delete the file
+            os.remove(filepath)
 
         # maximum achievable speed on any edge in the network
         self.__max_speed = max(
