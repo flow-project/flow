@@ -23,9 +23,9 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 200
 # number of parallel workers
-N_CPUS = 1
+N_CPUS = 4
 # number of rollouts per training iteration
-N_ROLLOUTS = N_CPUS
+N_ROLLOUTS = 8
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -73,7 +73,8 @@ additional_env_params = {
     'max_accel': 3,
     'max_decel': 3,
     'inflow_range': [1000, 2000],
-    'communicate': False
+    'communicate': False,
+    "decentralized_obs": True
 }
 
 # flow rate
@@ -217,7 +218,7 @@ def setup_exps():
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
     # ray.init(redis_address='localhost:6379')
-    ray.init(num_cpus=3, redirect_output=False)
+    ray.init(num_cpus=6, redirect_output=False)
     run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
