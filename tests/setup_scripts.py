@@ -75,7 +75,7 @@ def ring_road_exp_setup(sim_params=None,
             "target_velocity": 8,
             "max_accel": 1,
             "max_decel": 1,
-            "num_steps": 500
+            "sort_vehicles": False,
         }
         env_params = EnvParams(additional_params=additional_env_params)
 
@@ -168,7 +168,7 @@ def figure_eight_exp_setup(sim_params=None,
             "target_velocity": 8,
             "max_accel": 1,
             "max_decel": 1,
-            "num_steps": 500
+            "sort_vehicles": False
         }
         env_params = EnvParams(additional_params=additional_env_params)
 
@@ -262,7 +262,7 @@ def highway_exp_setup(sim_params=None,
             "target_velocity": 8,
             "max_accel": 1,
             "max_decel": 1,
-            "num_steps": 500
+            "sort_vehicles": False
         }
         env_params = EnvParams(additional_params=additional_env_params)
 
@@ -478,7 +478,7 @@ def variable_lanes_exp_setup(sim_params=None,
             "target_velocity": 8,
             "max_accel": 1,
             "max_decel": 1,
-            "num_steps": 500
+            "sort_vehicles": False
         }
         env_params = EnvParams(additional_params=additional_env_params)
 

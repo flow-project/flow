@@ -216,6 +216,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         ids = self.env.vehicles.get_ids()
         lane0 = np.array(
             [self.env.vehicles.get_lane(veh_id) for veh_id in ids])
+        max_lanes = self.env.scenario.net_params.additional_params['lanes']
 
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
@@ -229,7 +230,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             for veh_id in ids
         ])
         expected_lane1 = (lane0 + np.sign(direction0)).clip(
-            min=0, max=self.env.scenario.lanes - 1)
+            min=0, max=max_lanes - 1)
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
@@ -255,62 +256,9 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
             for veh_id in ids
         ])
         expected_lane2 = (lane1 + np.sign(direction1)).clip(
-            min=0, max=self.env.scenario.lanes - 1)
+            min=0, max=max_lanes - 1)
 
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
-
-
-class TestSorting(unittest.TestCase):
-    """
-    Tests that the sorting method returns a list of ids sorted by the
-    get_absolute_position() method when sorting is requested, and does nothing
-    if it is not requested
-    """
-
-    def test_sorting(self):
-        # setup a environment with the "sort_vehicles" attribute set to True
-        additional_env_params = ADDITIONAL_ENV_PARAMS
-        env_params = EnvParams(
-            additional_params=additional_env_params, sort_vehicles=True)
-        initial_config = InitialConfig(shuffle=True)
-        vehicles = VehicleParams()
-        vehicles.add(veh_id="test", num_vehicles=5)
-        self.env, scenario = ring_road_exp_setup(
-            env_params=env_params,
-            initial_config=initial_config,
-            vehicles=vehicles)
-
-        self.env.reset()
-
-        sorted_ids = self.env.sorted_ids
-        positions = self.env.vehicles.get_absolute_position(sorted_ids)
-
-        # ensure vehicles ids are in sorted order by positions
-        self.assertTrue(
-            all(positions[i] <= positions[i + 1]
-                for i in range(len(positions) - 1)))
-
-    def test_no_sorting(self):
-        # setup a environment with the "sort_vehicles" attribute set to False,
-        # and shuffling so that the vehicles are not sorted by their ids
-        additional_env_params = ADDITIONAL_ENV_PARAMS
-        env_params = EnvParams(
-            additional_params=additional_env_params, sort_vehicles=True)
-        initial_config = InitialConfig(shuffle=True)
-        vehicles = VehicleParams()
-        vehicles.add(veh_id="test", num_vehicles=5)
-        self.env, scenario = ring_road_exp_setup(
-            env_params=env_params,
-            initial_config=initial_config,
-            vehicles=vehicles)
-
-        self.env.reset()
-
-        sorted_ids = list(self.env.sorted_ids)
-        ids = self.env.vehicles.get_ids()
-
-        # ensure that the list of ids did not change
-        self.assertListEqual(sorted_ids, ids)
 
 
 class TestWarmUpSteps(unittest.TestCase):

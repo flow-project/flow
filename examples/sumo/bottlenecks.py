@@ -1,4 +1,5 @@
 """File demonstrating formation of congestion in bottleneck."""
+
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
     InFlows, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.params import VehicleParams
@@ -9,6 +10,9 @@ from flow.controllers import SimLaneChangeController, ContinuousRouter
 from flow.envs.bottleneck_env import BottleneckEnv
 from flow.core.experiment import Experiment
 
+import logging
+
+import numpy as np
 SCALING = 1
 DISABLE_TB = True
 # If set to False, ALINEA will control the ramp meter
@@ -16,7 +20,82 @@ DISABLE_RAMP_METER = True
 INFLOW = 1800
 
 
-def bottleneck_example(flow_rate, horizon, render=None):
+class BottleneckDensityExperiment(Experiment):
+
+    def __init__(self, env):
+        super().__init__(env)
+
+    def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
+        info_dict = {}
+        if rl_actions is None:
+
+            def rl_actions(*_):
+                return None
+
+        rets = []
+        mean_rets = []
+        ret_lists = []
+        vels = []
+        mean_vels = []
+        std_vels = []
+        mean_densities = []
+        mean_outflows = []
+        for i in range(num_runs):
+            vel = np.zeros(num_steps)
+            logging.info('Iter #' + str(i))
+            ret = 0
+            ret_list = []
+            step_outflows = []
+            step_densities = []
+            vehicles = self.env.vehicles
+            state = self.env.reset()
+            for j in range(num_steps):
+                state, reward, done, _ = self.env.step(rl_actions(state))
+                vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
+                ret += reward
+                ret_list.append(reward)
+
+                env = self.env
+                step_outflow = env.get_bottleneck_outflow_vehicles_per_hour(20)
+                density = self.env.get_bottleneck_density()
+
+                step_outflows.append(step_outflow)
+                step_densities.append(density)
+                if done:
+                    break
+            rets.append(ret)
+            vels.append(vel)
+            mean_densities.append(sum(step_densities[100:]) /
+                                  (num_steps - 100))
+            env = self.env
+            outflow = env.get_bottleneck_outflow_vehicles_per_hour(10000)
+            mean_outflows.append(outflow)
+            mean_rets.append(np.mean(ret_list))
+            ret_lists.append(ret_list)
+            mean_vels.append(np.mean(vel))
+            std_vels.append(np.std(vel))
+            print('Round {0}, return: {1}'.format(i, ret))
+
+        info_dict['returns'] = rets
+        info_dict['velocities'] = vels
+        info_dict['mean_returns'] = mean_rets
+        info_dict['per_step_returns'] = ret_lists
+        info_dict['average_outflow'] = np.mean(mean_outflows)
+        info_dict['per_rollout_outflows'] = mean_outflows
+
+        info_dict['average_rollout_density_outflow'] = np.mean(mean_densities)
+
+        print('Average, std return: {}, {}'.format(
+            np.mean(rets), np.std(rets)))
+        print('Average, std speed: {}, {}'.format(
+            np.mean(mean_vels), np.std(std_vels)))
+        self.env.terminate()
+
+        return info_dict
+
+
+def bottleneck_example(flow_rate, horizon, restart_instance=False,
+                       render=None):
     """
     Perform a simulation of vehicles on a bottleneck.
 
@@ -26,6 +105,8 @@ def bottleneck_example(flow_rate, horizon, render=None):
         total inflow rate of vehicles into the bottleneck
     horizon : int
         time horizon
+    restart_instance: bool, optional
+        whether to restart the instance upon reset
     render: bool, optional
         specifies whether to use the gui during execution
 
@@ -42,7 +123,7 @@ def bottleneck_example(flow_rate, horizon, render=None):
         sim_step=0.5,
         render=render,
         overtake_right=False,
-        restart_instance=False)
+        restart_instance=restart_instance)
 
     vehicles = VehicleParams()
 
@@ -105,10 +186,10 @@ def bottleneck_example(flow_rate, horizon, render=None):
 
     env = BottleneckEnv(env_params, sim_params, scenario)
 
-    return Experiment(env)
+    return BottleneckDensityExperiment(env)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # import the experiment variable
     # inflow, number of steps, binary
     exp = bottleneck_example(INFLOW, 1000, render=True)

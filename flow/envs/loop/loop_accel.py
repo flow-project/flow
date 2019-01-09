@@ -14,6 +14,11 @@ ADDITIONAL_ENV_PARAMS = {
     'max_decel': 3,
     # desired velocity for all vehicles in the network, in m/s
     'target_velocity': 10,
+    # specifies whether vehicles are to be sorted by position during a
+    # simulation step. If set to True, the environment parameter
+    # self.sorted_ids will return a list of all vehicles sorted in accordance
+    # with the environment
+    'sort_vehicles': False
 }
 
 
@@ -28,6 +33,10 @@ class AccelEnv(Env):
     * max_accel: maximum acceleration for autonomous vehicles, in m/s^2
     * max_decel: maximum deceleration for autonomous vehicles, in m/s^2
     * target_velocity: desired velocity for all vehicles in the network, in m/s
+    * sort_vehicles: specifies whether vehicles are to be sorted by position
+      during a simulation step. If set to True, the environment parameter
+      self.sorted_ids will return a list of all vehicles sorted in accordance
+      with the environment
 
     States
         The state consists of the velocities and absolute position of all
@@ -52,6 +61,11 @@ class AccelEnv(Env):
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter \'{}\' not supplied'.format(p))
+
+        # variables used to sort vehicles by their initial position plus
+        # distance traveled
+        self.prev_pos = dict()
+        self.absolute_position = dict()
 
         super().__init__(env_params, sim_params, scenario)
 
@@ -91,16 +105,69 @@ class AccelEnv(Env):
 
     def get_state(self):
         """See class definition."""
-        speed = [self.vehicles.get_speed(veh_id) / self.scenario.max_speed
+        speed = [self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
                  for veh_id in self.sorted_ids]
-        pos = [self.get_x_by_id(veh_id) / self.scenario.length
+        pos = [self.get_x_by_id(veh_id) / self.k.scenario.length()
                for veh_id in self.sorted_ids]
 
         return np.array(speed + pos)
 
     def additional_command(self):
-        """Define which vehicles are observed for visualization purposes."""
+        """See parent class.
+
+        Define which vehicles are observed for visualization purposes, and
+        update the sorting of vehicles using the self.sorted_ids variable.
+        """
         # specify observed vehicles
         if self.vehicles.num_rl_vehicles > 0:
             for veh_id in self.vehicles.get_human_ids():
                 self.vehicles.set_observed(veh_id)
+
+        # update the "absolute_position" variable
+        for veh_id in self.vehicles.get_ids():
+            this_pos = self.get_x_by_id(veh_id)
+
+            if this_pos == -1001:
+                # in case the vehicle isn't in the network
+                self.absolute_position[veh_id] = -1001
+            else:
+                change = this_pos - self.prev_pos.get(veh_id, this_pos)
+                self.absolute_position[veh_id] = \
+                    (self.absolute_position.get(veh_id, this_pos) + change) \
+                    % self.k.scenario.length()
+                self.prev_pos[veh_id] = this_pos
+
+    @property
+    def sorted_ids(self):
+        """Sort the vehicle ids of vehicles in the network by position.
+
+        This environment does this by sorting vehicles by their absolute
+        position, defined as their initial position plus distance traveled.
+
+        Returns
+        -------
+        list of str
+            a list of all vehicle IDs sorted by position
+        """
+        if self.env_params.additional_params['sort_vehicles']:
+            return sorted(self.vehicles.get_ids(), key=self._get_abs_position)
+        else:
+            return self.vehicles.get_ids()
+
+    def _get_abs_position(self, veh_id):
+        """Return the absolute position of a vehicle."""
+        return self.absolute_position.get(veh_id, -1001)
+
+    def reset(self):
+        """See parent class.
+
+        This also includes updating the initial absolute position and previous
+        position.
+        """
+        obs = super().reset()
+
+        for veh_id in self.vehicles.get_ids():
+            self.absolute_position[veh_id] = self.get_x_by_id(veh_id)
+            self.prev_pos[veh_id] = self.get_x_by_id(veh_id)
+
+        return obs

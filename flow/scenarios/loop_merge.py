@@ -260,11 +260,11 @@ class TwoLoopsOneMergingScenario(Scenario):
             "merge_bunching", 0)
 
         num_merge_vehicles = \
-            sum("merge" in cls.vehicles.get_type(veh_id)
-                for veh_id in cls.vehicles.get_ids())
+            sum("merge" in cls.network.vehicles.get_type(veh_id)
+                for veh_id in cls.network.vehicles.get_ids())
 
-        radius = cls.net_params.additional_params["ring_radius"]
-        lane_length = cls.net_params.additional_params["lane_length"]
+        radius = cls.network.net_params.additional_params["ring_radius"]
+        lane_length = cls.network.net_params.additional_params["lane_length"]
 
         startpositions = []
         startlanes = []
@@ -272,16 +272,17 @@ class TwoLoopsOneMergingScenario(Scenario):
 
         try:
             increment_loop = \
-                (cls.length_loop - bunching) \
-                * cls.net_params.additional_params["inner_lanes"] \
+                (cls.network.length_loop - bunching) \
+                * cls.network.net_params.additional_params["inner_lanes"] \
                 / (num_vehicles - num_merge_vehicles)
 
             # x = [x0] * initial_config.lanes_distribution
             if initial_config.additional_params.get("ring_from_right", False):
                 x = [dict(cls.edgestarts)["right"]] * \
-                    cls.net_params.additional_params["inner_lanes"]
+                    cls.network.net_params.additional_params["inner_lanes"]
             else:
-                x = [x0] * cls.net_params.additional_params["inner_lanes"]
+                x = [x0] * \
+                    cls.network.net_params.additional_params["inner_lanes"]
             car_count = 0
             lane_count = 0
             while car_count < num_vehicles - num_merge_vehicles:
@@ -318,7 +319,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 lane_count += 1
                 # if the lane num exceeds the number of lanes the vehicles
                 # should be distributed on in the network, reset
-                if lane_count >= cls.net_params.additional_params[
+                if lane_count >= cls.network.net_params.additional_params[
                         "inner_lanes"]:
                     lane_count = 0
         except ZeroDivisionError:
@@ -332,10 +333,10 @@ class TwoLoopsOneMergingScenario(Scenario):
 
             if initial_config.additional_params.get("merge_from_top", False):
                 x = [dict(cls.edgestarts)["top"] - x0] * \
-                    cls.net_params.additional_params["outer_lanes"]
+                    cls.network.net_params.additional_params["outer_lanes"]
             else:
                 x = [dict(cls.edgestarts)["bottom"] - x0] * \
-                    cls.net_params.additional_params["outer_lanes"]
+                    cls.network.net_params.additional_params["outer_lanes"]
             car_count = 0
             lane_count = 0
             while car_count < num_merge_vehicles:
@@ -377,7 +378,7 @@ class TwoLoopsOneMergingScenario(Scenario):
                 # if the lane num exceeds the number of lanes the vehicles
                 # should be distributed on in the network, reset
                 # if lane_count >= self.initial_config.lane_distribution
-                if lane_count >= cls.net_params.additional_params[
+                if lane_count >= cls.network.net_params.additional_params[
                         "outer_lanes"]:
                     lane_count = 0
 

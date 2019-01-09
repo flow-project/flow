@@ -1,7 +1,7 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
 from flow.core.kernel.simulation import TraCISimulation
-from flow.core.kernel.scenario import KernelScenario
+from flow.core.kernel.scenario import TraCIScenario
 from flow.core.kernel.vehicle import KernelVehicle
 from flow.core.kernel.traffic_light import TraCITrafficLight
 
@@ -61,7 +61,7 @@ class Kernel(object):
 
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
-            self.scenario = KernelScenario(self)
+            self.scenario = TraCIScenario(self)
             self.vehicle = KernelVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
         else:

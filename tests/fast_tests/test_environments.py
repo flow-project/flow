@@ -36,7 +36,8 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
                 "max_accel": 3,
                 "max_decel": 3,
                 "target_velocity": 10,
-                "lane_change_duration": 5
+                "lane_change_duration": 5,
+                "sort_vehicles": False
             }
         )
 
@@ -56,7 +57,8 @@ class TestLaneChangeAccelEnv(unittest.TestCase):
                     "max_accel": 1,
                     "max_decel": 1,
                     "lane_change_duration": 5,
-                    "target_velocity": 10
+                    "target_velocity": 10,
+                    "sort_vehicles": False
                 }
             )
         )
@@ -121,7 +123,8 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
                 "max_accel": 3,
                 "max_decel": 3,
                 "target_velocity": 10,
-                "lane_change_duration": 5
+                "lane_change_duration": 5,
+                "sort_vehicles": False
             }
         )
 
@@ -141,7 +144,8 @@ class TestLaneChangeAccelPOEnv(unittest.TestCase):
                     "max_accel": 1,
                     "max_decel": 1,
                     "lane_change_duration": 5,
-                    "target_velocity": 10
+                    "target_velocity": 10,
+                    "sort_vehicles": False
                 }
             )
         )
@@ -200,7 +204,8 @@ class TestAccelEnv(unittest.TestCase):
             additional_params={
                 "max_accel": 3,
                 "max_decel": 3,
-                "target_velocity": 10
+                "target_velocity": 10,
+                "sort_vehicles": False
             }
         )
 
@@ -219,7 +224,8 @@ class TestAccelEnv(unittest.TestCase):
                 additional_params={
                     "max_accel": 1,
                     "max_decel": 1,
-                    "target_velocity": 10
+                    "target_velocity": 10,
+                    "sort_vehicles": False
                 }
             )
         )
@@ -260,6 +266,55 @@ class TestAccelEnv(unittest.TestCase):
             )
         )
 
+    def test_sorting(self):
+        """
+        Tests that the sorting method returns a list of ids sorted by the
+        absolute_position variable when sorting is requested, and does
+        nothing if it is not requested.
+        """
+        env_params = self.env_params
+        env_params.additional_params['sort_vehicles'] = True
+        self.scenario.initial_config.shuffle = True
+
+        env = AccelEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        env.reset()
+        env.additional_command()
+
+        sorted_ids = env.sorted_ids
+        positions = [env.absolute_position[veh_id] for veh_id in sorted_ids]
+
+        # ensure vehicles ids are in sorted order by positions
+        self.assertTrue(
+            all(positions[i] <= positions[i + 1]
+                for i in range(len(positions) - 1)))
+
+    def test_no_sorting(self):
+        # setup a environment with the "sort_vehicles" attribute set to False,
+        # and shuffling so that the vehicles are not sorted by their ids
+        env_params = self.env_params
+        env_params.additional_params['sort_vehicles'] = False
+        self.scenario.initial_config.shuffle = True
+
+        env = AccelEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        env.reset()
+        env.additional_command()
+
+        sorted_ids = list(env.sorted_ids)
+        ids = env.vehicles.get_ids()
+
+        # ensure that the list of ids did not change
+        self.assertListEqual(sorted_ids, ids)
+
 
 class TestTwoLoopsMergeEnv(unittest.TestCase):
 
@@ -285,6 +340,7 @@ class TestTwoLoopsMergeEnv(unittest.TestCase):
                 "n_preceding": 2,
                 "n_following": 2,
                 "n_merging_in": 2,
+                "sort_vehicles": True
             }
         )
 
@@ -428,11 +484,11 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         )
 
         # reset the network several times and check its length
-        self.assertEqual(env.scenario.length, 230)
+        self.assertEqual(env.k.scenario.length(), 230)
         env.reset()
-        self.assertEqual(env.scenario.length, 222)
+        self.assertEqual(env.k.scenario.length(), 239)
         env.reset()
-        self.assertEqual(env.scenario.length, 239)
+        self.assertEqual(env.k.scenario.length(), 236)
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
@@ -690,7 +746,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1353.6  # just from checking the new inflow
+        expected_inflow = 1343.178  # just from checking the new inflow
 
         # check that the first inflow rate is approximately 1500
         for _ in range(500):
@@ -700,7 +756,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
 
         # reset the environment and get a new inflow rate
         env.reset()
-        expected_inflow = 1756.8  # just from checking the new inflow
+        expected_inflow = 1729.050  # just from checking the new inflow
 
         # check that the new inflow rate is approximately as expected
         for _ in range(500):
