@@ -32,12 +32,12 @@ class TestGetX(unittest.TestCase):
 
     def test_getx(self):
         # test for an edge in the lanes
-        edge_1 = "bottom_lower_ring"
+        edge_1 = "bottom"
         pos_1 = 4.72
         self.assertAlmostEqual(self.env.k.scenario.get_x(edge_1, pos_1), 5)
 
         # test for an edge in the internal links
-        edge_2 = ":bottom_lower_ring"
+        edge_2 = ":bottom"
         pos_2 = 0.1
         self.assertAlmostEqual(self.env.k.scenario.get_x(edge_2, pos_2), 0.1)
 
@@ -62,12 +62,12 @@ class TestGetEdge(unittest.TestCase):
         # test for a position in the lanes
         x1 = 5
         self.assertTupleEqual(
-            self.env.k.scenario.get_edge(x1), ("bottom_lower_ring", 4.72))
+            self.env.k.scenario.get_edge(x1), ("bottom", 4.72))
 
         # test for a position in the internal links
         x2 = 0.1
         self.assertTupleEqual(
-            self.env.k.scenario.get_edge(x2), (":bottom_lower_ring", 0.1))
+            self.env.k.scenario.get_edge(x2), (":bottom", 0.1))
 
 
 class TestEvenStartPos(unittest.TestCase):
@@ -611,9 +611,9 @@ class TestEdgeLength(unittest.TestCase):
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
-            env.k.scenario.edge_length(":center_intersection_0"), 5.00)
+            env.k.scenario.edge_length(":center_0"), 6.20)
         self.assertAlmostEqual(
-            env.k.scenario.edge_length(":center_intersection_1"), 6.20)
+            env.k.scenario.edge_length(":center_1"), 6.20)
 
 
 class TestSpeedLimit(unittest.TestCase):
@@ -654,9 +654,9 @@ class TestSpeedLimit(unittest.TestCase):
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
         self.assertAlmostEqual(
-            env.k.scenario.speed_limit("bottom_upper_ring_in"), 60)
+            env.k.scenario.speed_limit("bottom"), 60)
         self.assertAlmostEqual(
-            env.k.scenario.speed_limit(":top_upper_ring_0"), 60)
+            env.k.scenario.speed_limit(":top_0"), 60)
 
 
 class TestNumLanes(unittest.TestCase):
@@ -696,8 +696,8 @@ class TestNumLanes(unittest.TestCase):
 
         env, scenario = figure_eight_exp_setup(net_params=net_params)
 
-        self.assertEqual(env.k.scenario.num_lanes("bottom_upper_ring_in"), 3)
-        self.assertEqual(env.k.scenario.num_lanes(":top_upper_ring_0"), 3)
+        self.assertEqual(env.k.scenario.num_lanes("bottom"), 3)
+        self.assertEqual(env.k.scenario.num_lanes(":top_0"), 3)
 
 
 class TestGetEdgeList(unittest.TestCase):
@@ -718,11 +718,7 @@ class TestGetEdgeList(unittest.TestCase):
     def test_get_edge_list(self):
         edge_list = self.env.k.scenario.get_edge_list()
         expected_edge_list = [
-            "bottom_lower_ring", "right_lower_ring_in", "right_lower_ring_out",
-            "left_upper_ring", "top_upper_ring", "right_upper_ring",
-            "bottom_upper_ring_in", "bottom_upper_ring_out", "top_lower_ring",
-            "left_lower_ring"
-        ]
+            "bottom", "top", "upper_ring", "right", "left", "lower_ring"]
 
         self.assertCountEqual(edge_list, expected_edge_list)
 
@@ -745,12 +741,8 @@ class TestGetJunctionList(unittest.TestCase):
     def test_get_junction_list(self):
         junction_list = self.env.k.scenario.get_junction_list()
         expected_junction_list = \
-            [':right_upper_ring_0', ':right_lower_ring_in_0',
-             ':center_intersection_1', ':bottom_upper_ring_in_0',
-             ':bottom_lower_ring_0', ':top_lower_ring_0',
-             ':top_upper_ring_0', ':left_lower_ring_0',
-             ':center_intersection_2', ':center_intersection_0',
-             ':center_intersection_3', ':left_upper_ring_0']
+            [':right_0', ':left_0', ':bottom_0', ':top_0', ':center_1',
+             ':center_0']
 
         self.assertCountEqual(junction_list, expected_junction_list)
 
@@ -768,9 +760,8 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests the next_edge() method in the presence of internal links.
         """
         env, scenario = figure_eight_exp_setup()
-        next_edge = env.k.scenario.next_edge("bottom_upper_ring_in", 0)
-        expected_next_edge = [(':center_intersection_0', 0),
-                              (':center_intersection_1', 0)]
+        next_edge = env.k.scenario.next_edge("bottom", 0)
+        expected_next_edge = [(':center_1', 0)]
 
         self.assertCountEqual(next_edge, expected_next_edge)
 
@@ -779,8 +770,8 @@ class TestNextPrevEdge(unittest.TestCase):
         Tests the prev_edge() method in the presence of internal links.
         """
         env, scenario = figure_eight_exp_setup()
-        prev_edge = env.k.scenario.prev_edge("bottom_upper_ring_in", 0)
-        expected_prev_edge = [(':bottom_upper_ring_in_0', 0)]
+        prev_edge = env.k.scenario.prev_edge("bottom", 0)
+        expected_prev_edge = [(':bottom_0', 0)]
 
         self.assertCountEqual(prev_edge, expected_prev_edge)
 
