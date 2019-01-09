@@ -21,7 +21,7 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 200
+HORIZON = 1500
 # number of parallel workers
 N_CPUS = 4
 # number of rollouts per training iteration
@@ -68,7 +68,7 @@ additional_env_params = {
     'controlled_segments': controlled_segments,
     'symmetric': False,
     'observed_segments': num_observed_segments,
-    'reset_inflow': False,
+    'reset_inflow': True,
     'lane_change_duration': 5,
     'max_accel': 3,
     'max_decel': 3,
@@ -230,6 +230,6 @@ if __name__ == '__main__':
             'config': config,
             # 'upload_dir': "s3://eugene.experiments/bottlen
             # eck_exps/12-9-18-nocommunicate-lstm",
-            'num_samples': 1
+            'num_samples': 3
         },
     })

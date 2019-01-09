@@ -23,11 +23,11 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 1500
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 30
 # number of rollouts per training iteration
-N_ROLLOUTS = N_CPUS * 4
+N_ROLLOUTS = N_CPUS
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -41,14 +41,14 @@ vehicles.add(
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="all_checks",
+        speed_mode=9,
     ),
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
 vehicles.add(
-    veh_id="followerstopper",
+    veh_id="av",
     acceleration_controller=(RLController, {}),
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
@@ -70,7 +70,7 @@ additional_env_params = {
     "controlled_segments": controlled_segments,
     "symmetric": False,
     "observed_segments": num_observed_segments,
-    "reset_inflow": False,
+    "reset_inflow": True,
     "lane_change_duration": 5,
     "max_accel": 3,
     "max_decel": 3,
@@ -89,7 +89,7 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 inflow.add(
-    veh_type="followerstopper",
+    veh_type="av",
     edge="1",
     vehs_per_hour=flow_rate * AV_FRAC,
     departLane="random",
@@ -109,7 +109,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="DesiredVelocity",
+    exp_tag="SingleAgentCentralized",
 
     # name of the flow environment the experiment is running on
     env_name="DesiredVelocityEnv",
@@ -169,10 +169,10 @@ def setup_exps():
     config["num_workers"] = N_CPUS
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
-    config["model"].update({"fcnet_hiddens": [64, 64]})
+    config["model"].update({"fcnet_hiddens": [100, 50, 25]})
+    config['clip_actions'] = False
     config["use_gae"] = True
     config["lambda"] = 0.97
-    config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
 
@@ -199,10 +199,13 @@ if __name__ == "__main__":
             "config": {
                 **config
             },
-            "checkpoint_freq": 20,
+            "checkpoint_freq": 50,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 200,
+                "training_iteration": 500,
             },
+            "num_samples": 3,
+            "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper/1-9-2019/"
+
         }
     })

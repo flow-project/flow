@@ -5,11 +5,11 @@ cluster_name: test #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 0 #<NUM WORKERS IN CLUSTER>
+min_workers: 2 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
-max_workers: 0
+max_workers: 2
 
 # The autoscaler will scale up the cluster to this target fraction of resource
 # usage. For example, if a cluster of 10 nodes is 100% busy and
@@ -39,7 +39,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c4.4xlarge
+    InstanceType: c5d.9xlarge
     ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
@@ -54,7 +54,7 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c4.4xlarge
+    InstanceType: c5d.9xlarge
     ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
@@ -68,7 +68,7 @@ worker_nodes:
 
 setup_commands:
     # checkout your desired branch on all worker nodes
-    - cd flow && git fetch && git checkout itsc_bottleneck
+    - cd flow && git fetch && git checkout itsc_bottleneck_exps
     # set up ray by pip installing and copying over rllib and tune folder
     - pip install --upgrade pyzmq notebook
     - pip install ray==0.6.1
