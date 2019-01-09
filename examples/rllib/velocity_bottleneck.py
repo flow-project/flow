@@ -174,7 +174,7 @@ def setup_exps():
     config["use_gae"] = True
     config["lambda"] = 0.97
     config["num_sgd_iter"] = 10
-    config["truncate_episodes"] = False
+    config["batch_mode"] = "complete_episodes"
     config["horizon"] = HORIZON
 
     # save the flow params for replay
