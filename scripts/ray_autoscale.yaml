@@ -5,11 +5,11 @@ cluster_name: test #<YOUR NAME>
 
 # The minimum number of workers nodes to launch in addition to the head
 # node. This number should be >= 0.
-min_workers: 0 #<NUM WORKERS IN CLUSTER>
+min_workers: 11 #<NUM WORKERS IN CLUSTER>
 
 # The maximum number of workers nodes to launch in addition to the head
 # node. This takes precedence over min_workers.
-max_workers: 0
+max_workers: 11
 
 # The initial number of worker nodes to launch in addition to the head
 # node. When the cluster is first brought up (or when it is refreshed with a
