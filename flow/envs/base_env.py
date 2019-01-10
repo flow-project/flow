@@ -27,7 +27,7 @@ except ImportError:
 
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
-from flow.utils.flow_warnings import FatalFlowError
+from flow.utils.exceptions import FatalFlowError
 
 # pick out the correct class definition
 if serializable_flag:

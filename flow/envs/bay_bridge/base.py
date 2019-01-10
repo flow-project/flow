@@ -62,7 +62,6 @@ class BayBridgeEnv(Env):
 
     def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         super().__init__(env_params, sim_params, scenario, simulator)
-        self.num_rl = self.k.vehicle.num_rl_vehicles
         self.edge_dict = defaultdict(list)
         self.cars_waiting_for_toll = dict()
         self.cars_before_ramp = dict()
