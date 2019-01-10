@@ -45,7 +45,7 @@ class KernelVehicle(object):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
+        sim_params : flow.core.params.SimParams
             simulation-specific parameters
         """
         self.master_kernel = master_kernel

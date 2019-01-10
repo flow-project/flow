@@ -654,4 +654,5 @@ else:
 replication_name = "Replication 870"
 replication = model.getCatalog().findByName(replication_name)
 # execute, "play": run with GUI, "execute": run in batch mode
-# GKSystem.getSystem().executeAction("play", replication, [], "")
+mode = 'play' if data['render'] is True else 'execute'
+GKSystem.getSystem().executeAction(mode, replication, [], "")

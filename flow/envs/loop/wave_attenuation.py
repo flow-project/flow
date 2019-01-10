@@ -60,13 +60,13 @@ class WaveAttenuationEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter \'{}\' not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
     @property
     def action_space(self):
