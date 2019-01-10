@@ -29,7 +29,7 @@ ADDITIONAL_RL_ENV_PARAMS = {
     # whether communication between vehicles is on
     "communicate": False,
     # whether the observation space is aggregate counts or local observations
-    "centralized_obs": False
+    "centralized_obs": False,
 }
 
 
@@ -64,10 +64,10 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         if add_params['centralized_obs']:
             num_obs = 0
             # density and velocity for rl and non-rl vehicles per segment
-            # Last element is the outflow
+            # Last element is the outflow and inflow
             for segment in self.obs_segments:
                 num_obs += 4 * segment[1] * self.k.scenario.num_lanes(segment[0])
-            num_obs += 1
+            num_obs += 2
             return Box(low=0.0, high=1.0, shape=(num_obs,), dtype=np.float32)
         else:
             if self.env_params.additional_params.get('communicate', False):
@@ -179,7 +179,8 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         outflow = np.asarray(
             self.vehicles.get_outflow_rate(20 * self.sim_step) / 2000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
-                               mean_speed_norm, mean_rl_speed, [outflow]))
+                               mean_speed_norm, mean_rl_speed, [outflow],
+                               [self.inflow]))
 
     def _apply_rl_actions(self, rl_actions):
         """
@@ -214,7 +215,14 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             # cong_penalty = max(num_ids - 30, 0)/60
             # return {rl_id: speed_rew(rl_id) - cong_penalty for rl_id
             #         in self.vehicles.get_rl_ids()}
-            return {rl_id: -1 for rl_id in self.vehicles.get_rl_ids()}
+            reward = -1
+            add_params = self.env_params.additional_params
+            if add_params["congest_penalty"]:
+                num_vehs = len(self.vehicles.get_ids_by_edge('4'))
+                if num_vehs > 30*self.scaling:
+                    penalty = (num_vehs - 30*self.scaling)/10.0
+                    reward -= penalty
+            return {rl_id: reward for rl_id in self.vehicles.get_rl_ids()}
         else:
             return {}
 
@@ -224,6 +232,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             inflow_range = add_params.get("inflow_range")
             flow_rate = np.random.uniform(
                 min(inflow_range), max(inflow_range)) * self.scaling
+            self.inflow = flow_rate
             for _ in range(100):
                 try:
                     inflow = InFlows()
@@ -240,43 +249,10 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                         departLane="random",
                         departSpeed=10)
 
-                    additional_net_params = {"scaling": self.scaling}
-                    net_params = NetParams(
-                        inflows=inflow,
-                        no_internal_links=False,
-                        additional_params=additional_net_params)
-
-                    vehicles = VehicleParams()
-                    vehicles.add(
-                        veh_id="human",
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,
-                        ),
-                        num_vehicles=1 * self.scaling)
-                    vehicles.add(
-                        veh_id="av",
-                        acceleration_controller=(RLController, {}),
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,
-                        ),
-                        num_vehicles=1 * self.scaling)
-
-                    self.vehicles = vehicles
-
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,
-                        vehicles=vehicles,
-                        net_params=net_params,
+                        vehicles=self.vehicles,
+                        net_params=self.scenario.net_params,
                         initial_config=self.scenario.initial_config,
                         traffic_lights=self.scenario.traffic_lights)
                     observation = super().reset()

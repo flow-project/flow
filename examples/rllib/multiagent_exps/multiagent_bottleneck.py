@@ -58,6 +58,9 @@ vehicles.add(
     ),
     num_vehicles=1 * SCALING)
 
+# flow rate
+flow_rate = 1900 * SCALING
+
 controlled_segments = [('1', 1, False), ('2', 2, True), ('3', 2, True),
                        ('4', 2, True), ('5', 1, False)]
 num_observed_segments = [('1', 1), ('2', 3), ('3', 3), ('4', 3), ('5', 1)]
@@ -73,12 +76,10 @@ additional_env_params = {
     'max_accel': 3,
     'max_decel': 3,
     'inflow_range': [1000, 2000],
+    'start_inflow': flow_rate,
     'communicate': False,
     "centralized_obs": True
 }
-
-# flow rate
-flow_rate = 1900 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
@@ -87,13 +88,13 @@ inflow.add(
     edge='1',
     vehs_per_hour=flow_rate * (1 - AV_FRAC),
     departLane='random',
-    departSpeed=10)
+    departSpeed=30)
 inflow.add(
     veh_type='av',
     edge='1',
     vehs_per_hour=flow_rate * AV_FRAC,
     departLane='random',
-    departSpeed=10)
+    departSpeed=30)
 
 traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
@@ -170,12 +171,10 @@ def setup_exps():
     config['clip_actions'] = False
     config['horizon'] = HORIZON
     config['use_centralized_vf'] = False
-    config['simple_optimizer'] = True
-    config["batch_mode"] = "complete_episodes"
 
     # Grid search things
     config['lr'] = tune.grid_search([5e-4,5e-5])
-    # config['num_sgd_iter'] = tune.grid_search([10, 30])
+    config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
     # config['model']['use_lstm'] = True

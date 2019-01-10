@@ -69,15 +69,17 @@ ADDITIONAL_VSL_ENV_PARAMS = {
     "controlled_segments": [("1", 1, True), ("2", 1, True), ("3", 1, True),
                             ("4", 1, True), ("5", 1, True)],
     # whether lanes in a segment have the same action or not
-    "symmetric":
-    False,
+    "symmetric": False,
     # which edges are observed
     "observed_segments": [("1", 1), ("2", 1), ("3", 1), ("4", 1), ("5", 1)],
     # whether the inflow should be reset on each rollout
-    "reset_inflow":
-    False,
+    "reset_inflow": False,
     # the range of inflows to reset on
-    "inflow_range": [1000, 2000]
+    "inflow_range": [1000, 2000],
+    # whether to subtract a penalty when vehicles congest
+    "congest_penalty": True,
+    # initial inflow
+    "start_inflow": 1900
 }
 
 ADDITIONAL_NET_PARAMS = {
@@ -713,15 +715,18 @@ class DesiredVelocityEnv(BottleneckEnv):
                     ]
                 index += 1
 
+        # inflow to keep track of for observations
+        self.inflow = add_env_params["start_inflow"]
+
     @property
     def observation_space(self):
         """See class definition."""
         num_obs = 0
         # density and velocity for rl and non-rl vehicles per segment
-        # Last element is the outflow
+        # Last elements are the outflow and inflows
         for segment in self.obs_segments:
             num_obs += 4 * segment[1] * self.k.scenario.num_lanes(segment[0])
-        num_obs += 1
+        num_obs += 2
         return Box(low=0.0, high=1.0, shape=(num_obs, ), dtype=np.float32)
 
     @property
@@ -798,7 +803,8 @@ class DesiredVelocityEnv(BottleneckEnv):
         outflow = np.asarray(
             self.vehicles.get_outflow_rate(20 * self.sim_step) / 2000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
-                               mean_speed_norm, mean_rl_speed, [outflow]))
+                               mean_speed_norm, mean_rl_speed, [outflow],
+                               [self.inflow]))
 
     def _apply_rl_actions(self, rl_actions):
         """
@@ -846,14 +852,22 @@ class DesiredVelocityEnv(BottleneckEnv):
         else:
             reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
                      (2000.0 * self.scaling)
+            add_params = self.env_params.additional_params
+            if add_params["congest_penalty"]:
+                num_vehs = len(self.vehicles.get_ids_by_edge('4'))
+                if num_vehs > 30*self.scaling:
+                    penalty = (num_vehs - 30*self.scaling)/10.0
+                    reward -= penalty
         return reward
 
     def reset(self):
         add_params = self.env_params.additional_params
         if add_params.get("reset_inflow"):
             inflow_range = add_params.get("inflow_range")
+            # FIXME(ev)
             flow_rate = np.random.uniform(
                 min(inflow_range), max(inflow_range)) * self.scaling
+            self.inflow = flow_rate
             for _ in range(100):
                 try:
                     inflow = InFlows()
@@ -862,13 +876,13 @@ class DesiredVelocityEnv(BottleneckEnv):
                         edge="1",
                         vehs_per_hour=flow_rate * .1,
                         departLane="random",
-                        departSpeed=10)
+                        departSpeed=30)
                     inflow.add(
                         veh_type="human",
                         edge="1",
                         vehs_per_hour=flow_rate * .9,
                         departLane="random",
-                        departSpeed=10)
+                        departSpeed=30)
 
                     additional_net_params = {"scaling": self.scaling}
                     net_params = NetParams(
@@ -876,35 +890,9 @@ class DesiredVelocityEnv(BottleneckEnv):
                         no_internal_links=False,
                         additional_params=additional_net_params)
 
-                    vehicles = VehicleParams()
-                    vehicles.add(
-                        veh_id="human",
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,  # 1621,#0b100000101,
-                        ),
-                        num_vehicles=1 * self.scaling)
-                    vehicles.add(
-                        veh_id="av",
-                        acceleration_controller=(RLController, {}),
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,
-                        ),
-                        num_vehicles=1 * self.scaling)
-                    self.vehicles = vehicles
-
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,
-                        vehicles=vehicles,
+                        vehicles=self.vehicles,
                         net_params=net_params,
                         initial_config=self.scenario.initial_config,
                         traffic_lights=self.scenario.traffic_lights)

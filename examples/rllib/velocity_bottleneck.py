@@ -10,6 +10,7 @@ try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
+from ray import tune
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -60,6 +61,9 @@ vehicles.add(
     ),
     num_vehicles=1 * SCALING)
 
+# flow rate
+flow_rate = 1900 * SCALING
+
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
                        ("4", 2, True), ("5", 1, False)]
 num_observed_segments = [("1", 1), ("2", 3), ("3", 3), ("4", 3), ("5", 1)]
@@ -74,11 +78,10 @@ additional_env_params = {
     "lane_change_duration": 5,
     "max_accel": 3,
     "max_decel": 3,
-    "inflow_range": [1000, 2000]
+    "inflow_range": [1000, 2000],
+    "congest_penalty": True,
+    "start_inflow": flow_rate
 }
-
-# flow rate
-flow_rate = 1900 * SCALING
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
@@ -87,13 +90,13 @@ inflow.add(
     edge="1",
     vehs_per_hour=flow_rate * (1 - AV_FRAC),
     departLane="random",
-    departSpeed=10)
+    departSpeed=30)
 inflow.add(
     veh_type="av",
     edge="1",
     vehs_per_hour=flow_rate * AV_FRAC,
     departLane="random",
-    departSpeed=10)
+    departSpeed=30)
 
 traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
@@ -171,11 +174,11 @@ def setup_exps():
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [100, 50, 25]})
     config['clip_actions'] = False
-    config["use_gae"] = True
-    config["lambda"] = 0.97
-    config["num_sgd_iter"] = 10
-    config["batch_mode"] = "complete_episodes"
     config["horizon"] = HORIZON
+
+    # Grid search things
+    config['lr'] = tune.grid_search([5e-4, 5e-5])
+    config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -193,6 +196,7 @@ def setup_exps():
 if __name__ == "__main__":
     alg_run, gym_name, config = setup_exps()
     ray.init(redis_address="localhost:6379")
+    # ray.init(num_cpus=2)
     trials = run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
@@ -206,7 +210,7 @@ if __name__ == "__main__":
                 "training_iteration": 500,
             },
             "num_samples": 3,
-            "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper/1-9-2019/"
+            "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper/1-10-2019/SingleAgentBottleneck"
 
         }
     })
