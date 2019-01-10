@@ -4,6 +4,7 @@ import logging
 import datetime
 import numpy as np
 import time
+import os
 
 from flow.core.util import emission_to_csv
 
@@ -104,7 +105,7 @@ class Experiment:
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(
-                    self.env.vehicles.get_speed(self.env.vehicles.get_ids()))
+                    self.env.k.vehicle.get_speed(self.env.k.vehicle.get_ids()))
                 ret += reward
                 ret_list.append(reward)
                 if done:
@@ -136,8 +137,7 @@ class Experiment:
             dir_path = self.env.sim_params.emission_path
             emission_filename = \
                 "{0}-emission.xml".format(self.env.scenario.name)
-            emission_path = \
-                "{0}/{1}".format(dir_path, emission_filename)
+            emission_path = os.path.join(dir_path, emission_filename)
 
             # convert the emission file into a csv
             emission_to_csv(emission_path)

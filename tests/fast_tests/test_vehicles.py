@@ -132,12 +132,14 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=4,
             acceleration_controller=(IDMController, {}))
 
-        self.assertEqual(vehicles.num_vehicles, 7)
-        self.assertEqual(len(vehicles.get_ids()), 7)
-        self.assertEqual(len(vehicles.get_rl_ids()), 0)
-        self.assertEqual(len(vehicles.get_human_ids()), 7)
-        self.assertEqual(len(vehicles.get_controlled_ids()), 4)
-        self.assertEqual(len(vehicles.get_controlled_lc_ids()), 2)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertEqual(env.k.vehicle.num_vehicles, 7)
+        self.assertEqual(len(env.k.vehicle.get_ids()), 7)
+        self.assertEqual(len(env.k.vehicle.get_rl_ids()), 0)
+        self.assertEqual(len(env.k.vehicle.get_human_ids()), 7)
+        self.assertEqual(len(env.k.vehicle.get_controlled_ids()), 4)
+        self.assertEqual(len(env.k.vehicle.get_controlled_lc_ids()), 2)
 
     def test_add_vehicles_rl(self):
         """
@@ -150,12 +152,14 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
-        self.assertEqual(vehicles.num_vehicles, 10)
-        self.assertEqual(len(vehicles.get_ids()), 10)
-        self.assertEqual(len(vehicles.get_rl_ids()), 10)
-        self.assertEqual(len(vehicles.get_human_ids()), 0)
-        self.assertEqual(len(vehicles.get_controlled_ids()), 0)
-        self.assertEqual(len(vehicles.get_controlled_lc_ids()), 0)
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
+        self.assertEqual(env.k.vehicle.num_vehicles, 10)
+        self.assertEqual(len(env.k.vehicle.get_ids()), 10)
+        self.assertEqual(len(env.k.vehicle.get_rl_ids()), 10)
+        self.assertEqual(len(env.k.vehicle.get_human_ids()), 0)
+        self.assertEqual(len(env.k.vehicle.get_controlled_ids()), 0)
+        self.assertEqual(len(env.k.vehicle.get_controlled_lc_ids()), 0)
 
     def test_remove(self):
         """
@@ -170,36 +174,40 @@ class TestVehiclesClass(unittest.TestCase):
             num_vehicles=10,
             acceleration_controller=(RLController, {}))
 
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
+
         # remove one human-driven vehicle and on rl vehicle
-        vehicles.remove("test_0")
-        vehicles.remove("test_rl_0")
+        env.k.vehicle.remove("test_0")
+        env.k.vehicle.remove("test_rl_0")
 
         # ensure that the removed vehicle's ID is not in any lists of vehicles
-        self.assertTrue("test_0" not in vehicles.get_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_ids(),
                         msg="vehicle still in get_ids()")
-        self.assertTrue("test_0" not in vehicles.get_human_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_human_ids(),
                         msg="vehicle still in get_controlled_lc_ids()")
-        self.assertTrue("test_0" not in vehicles.get_controlled_lc_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_controlled_lc_ids(),
                         msg="vehicle still in get_controlled_lc_ids()")
-        self.assertTrue("test_0" not in vehicles.get_controlled_ids(),
+        self.assertTrue("test_0" not in env.k.vehicle.get_controlled_ids(),
                         msg="vehicle still in get_controlled_ids()")
-        self.assertTrue("test_rl_0" not in vehicles.get_ids(),
+        self.assertTrue("test_rl_0" not in env.k.vehicle.get_ids(),
                         msg="RL vehicle still in get_ids()")
-        self.assertTrue("test_rl_0" not in vehicles.get_rl_ids(),
+        self.assertTrue("test_rl_0" not in env.k.vehicle.get_rl_ids(),
                         msg="RL vehicle still in get_rl_ids()")
 
         # ensure that the vehicles are not storing extra information in the
         # vehicles.__vehicles dict
-        error_state = vehicles.get_state('test_0', "type", error=None)
+        error_state = env.k.vehicle.get_speed('test_0', error=None)
         self.assertIsNone(error_state)
-        error_state_rl = vehicles.get_state('rl_test_0', "type", error=None)
+        error_state_rl = env.k.vehicle.get_speed('rl_test_0', error=None)
         self.assertIsNone(error_state_rl)
 
         # ensure that the num_vehicles matches the actual number of vehicles
-        self.assertEqual(vehicles.num_vehicles, len(vehicles.get_ids()))
+        self.assertEqual(env.k.vehicle.num_vehicles,
+                         len(env.k.vehicle.get_ids()))
 
         # ensures that then num_rl_vehicles matches the actual number of rl veh
-        self.assertEqual(vehicles.num_rl_vehicles, len(vehicles.get_rl_ids()))
+        self.assertEqual(env.k.vehicle.num_rl_vehicles,
+                         len(env.k.vehicle.get_rl_ids()))
 
 
 class TestMultiLaneData(unittest.TestCase):
@@ -238,22 +246,22 @@ class TestMultiLaneData(unittest.TestCase):
         env.reset()
 
         # check the lane leaders method is outputting the right values
-        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        actual_lane_leaders = env.k.vehicle.get_lane_leaders("test_0")
         expected_lane_leaders = ["test_3", "test_1", "test_2"]
         self.assertCountEqual(actual_lane_leaders, expected_lane_leaders)
 
         # check the lane headways is outputting the right values
-        actual_lane_head = env.vehicles.get_lane_headways("test_0")
+        actual_lane_head = env.k.vehicle.get_lane_headways("test_0")
         expected_lane_head = [27.85714285714286, -5, -5]
         self.assertCountEqual(actual_lane_head, expected_lane_head)
 
         # check the lane followers method is outputting the right values
-        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        actual_lane_followers = env.k.vehicle.get_lane_followers("test_0")
         expected_lane_followers = ["test_18", "test_19", "test_20"]
         self.assertCountEqual(actual_lane_followers, expected_lane_followers)
 
         # check the lane tailways is outputting the right values
-        actual_lane_tail = env.vehicles.get_lane_tailways("test_0")
+        actual_lane_tail = env.k.vehicle.get_lane_tailways("test_0")
         expected_lane_tail = [27.85714285714286] * 3
         np.testing.assert_array_almost_equal(actual_lane_tail,
                                              expected_lane_tail)
@@ -296,30 +304,31 @@ class TestMultiLaneData(unittest.TestCase):
         # test_0 is car to test in central lane
         # test_1 should be leading car in lane 2
         # test_2 should be trailing car in lane 0
-        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        actual_lane_leaders = env.k.vehicle.get_lane_leaders("test_0")
         expected_lane_leaders = ["", "", "test_1"]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
-        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
         expected_lane_headways = [1000, 1000, 5.0]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
-        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        actual_lane_followers = env.k.vehicle.get_lane_followers("test_0")
         expected_lane_followers = ["test_2", "", ""]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
-        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
         expected_lane_tailways = [5.0, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
         expected_leader_speed = [0.0, 0.0, 1.0]
-        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        actual_leader_speed = env.k.vehicle.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
 
         expected_follower_speed = [1.0, 0.0, 0.0]
-        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        actual_follower_speed = env.k.vehicle.get_lane_followers_speed(
+            "test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,
                                              expected_follower_speed)
 
@@ -367,31 +376,32 @@ class TestMultiLaneData(unittest.TestCase):
             initial_config=initial_config)
         env.reset()
 
-        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        actual_lane_leaders = env.k.vehicle.get_lane_leaders("test_0")
         expected_lane_leaders = ["test_1", "", "test_5", "test_7"]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
 
-        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
         expected_lane_headways = [5.0, 1000, 5.0, 5.0]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
-        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        actual_lane_followers = env.k.vehicle.get_lane_followers("test_0")
         expected_lane_followers = ["test_2", "test_3", "", "test_8"]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
 
-        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
         expected_lane_tailways = [5.0, 5.0, 1000, 5.0]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
         expected_leader_speed = [1.0, 0.0, 1.0, 1.0]
-        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        actual_leader_speed = env.k.vehicle.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
         expected_follower_speed = [1.0, 1.0, 0.0, 1.0]
-        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        actual_follower_speed = env.k.vehicle.get_lane_followers_speed(
+            "test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,
                                              expected_follower_speed)
 
@@ -435,29 +445,30 @@ class TestMultiLaneData(unittest.TestCase):
         # test_1 should be leading car in lane 2
         # test_2 should be trailing car in lane 0
 
-        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        actual_lane_leaders = env.k.vehicle.get_lane_leaders("test_0")
         expected_lane_leaders = ["", "", "test_1"]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
-        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
         expected_lane_headways = [1000, 1000, 19.996667]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
-        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        actual_lane_followers = env.k.vehicle.get_lane_followers("test_0")
         expected_lane_followers = ["test_2", "", ""]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
-        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
         expected_lane_tailways = [19.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
         expected_leader_speed = [0.0, 0.0, 1.0]
-        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        actual_leader_speed = env.k.vehicle.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
         expected_follower_speed = [1.0, 0.0, 0.0]
-        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        actual_follower_speed = env.k.vehicle.get_lane_followers_speed(
+            "test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,
                                              expected_follower_speed)
 
@@ -500,29 +511,30 @@ class TestMultiLaneData(unittest.TestCase):
         # test_0 is car to test in lane 0
         # test_1 should be leading car in lane 0
         # test_2 should be trailing car in lane 0
-        actual_lane_leaders = env.vehicles.get_lane_leaders("test_0")
+        actual_lane_leaders = env.k.vehicle.get_lane_leaders("test_0")
         expected_lane_leaders = ["test_1", "", ""]
         self.assertTrue(actual_lane_leaders == expected_lane_leaders)
-        actual_lane_headways = env.vehicles.get_lane_headways("test_0")
+        actual_lane_headways = env.k.vehicle.get_lane_headways("test_0")
         expected_lane_headways = [19.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_headways,
                                              expected_lane_headways)
 
-        actual_lane_followers = env.vehicles.get_lane_followers("test_0")
+        actual_lane_followers = env.k.vehicle.get_lane_followers("test_0")
         expected_lane_followers = ["test_2", "", ""]
         self.assertTrue(actual_lane_followers == expected_lane_followers)
-        actual_lane_tailways = env.vehicles.get_lane_tailways("test_0")
+        actual_lane_tailways = env.k.vehicle.get_lane_tailways("test_0")
         expected_lane_tailways = [19.996667, 1000, 1000]
         np.testing.assert_array_almost_equal(actual_lane_tailways,
                                              expected_lane_tailways)
 
         # test the leader/follower speed methods
         expected_leader_speed = [1.0, 0.0, 0.0]
-        actual_leader_speed = env.vehicles.get_lane_leaders_speed("test_0")
+        actual_leader_speed = env.k.vehicle.get_lane_leaders_speed("test_0")
         np.testing.assert_array_almost_equal(actual_leader_speed,
                                              expected_leader_speed)
         expected_follower_speed = [1.0, 0.0, 0.0]
-        actual_follower_speed = env.vehicles.get_lane_followers_speed("test_0")
+        actual_follower_speed = env.k.vehicle.get_lane_followers_speed(
+            "test_0")
         np.testing.assert_array_almost_equal(actual_follower_speed,
                                              expected_follower_speed)
 
@@ -553,7 +565,7 @@ class TestIdsByEdge(unittest.TestCase):
 
     def test_ids_by_edge(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids_by_edge("bottom")
+        ids = self.env.k.vehicle.get_ids_by_edge("bottom")
         expected_ids = ["test_0", "test_1", "test_2", "test_3", "test_4"]
         self.assertCountEqual(ids, expected_ids)
 
@@ -565,26 +577,29 @@ class TestObservedIDs(unittest.TestCase):
         vehicles = VehicleParams()
         vehicles.add(veh_id="test", num_vehicles=10)
 
-        # test setting new observed values
-        vehicles.set_observed("test_0")
-        self.assertCountEqual(vehicles.get_observed_ids(), ["test_0"])
+        env, _ = ring_road_exp_setup(vehicles=vehicles)
 
-        vehicles.set_observed("test_1")
-        self.assertCountEqual(vehicles.get_observed_ids(),
+        # test setting new observed values
+        env.k.vehicle.set_observed("test_0")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(), ["test_0"])
+
+        env.k.vehicle.set_observed("test_1")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(),
                               ["test_0", "test_1"])
 
         # ensures that setting vehicles twice doesn't add an element
-        vehicles.set_observed("test_0")
-        self.assertListEqual(vehicles.get_observed_ids(), ["test_0", "test_1"])
+        env.k.vehicle.set_observed("test_0")
+        self.assertListEqual(env.k.vehicle.get_observed_ids(),
+                             ["test_0", "test_1"])
 
         # test removing observed values
-        vehicles.remove_observed("test_0")
-        self.assertCountEqual(vehicles.get_observed_ids(), ["test_1"])
+        env.k.vehicle.remove_observed("test_0")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(), ["test_1"])
 
         # ensures that removing a value that does not exist does not lead to
         # an error
-        vehicles.remove_observed("test_0")
-        self.assertCountEqual(vehicles.get_observed_ids(), ["test_1"])
+        env.k.vehicle.remove_observed("test_0")
+        self.assertCountEqual(env.k.vehicle.get_observed_ids(), ["test_1"])
 
 
 if __name__ == '__main__':
