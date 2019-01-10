@@ -17,6 +17,8 @@ class Experiment:
     it to run an scenario and environment in the absence of a method specifying
     the actions of RL agents in the network, type the following:
 
+        >>> from flow.envs import Env
+        >>> env = Env(...)
         >>> exp = Experiment(env)  # for some env and scenario
         >>> exp.run(num_runs=1, num_steps=1000)
 

@@ -8,9 +8,10 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.utils.exceptions import FatalFlowError
 from flow.envs import Env, TestEnv
 
-from tests.setup_scripts import ring_road_exp_setup
+from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
 import numpy as np
 
@@ -385,6 +386,25 @@ class TestVehicleColoring(unittest.TestCase):
                 self.assertEqual(env.k.vehicle.get_color(veh_id), RED)
             else:
                 self.assertEqual(env.k.vehicle.get_color(veh_id), WHITE)
+
+
+class TestNotEnoughVehicles(unittest.TestCase):
+    """Tests that when not enough vehicles spawn an error is raised."""
+
+    def test_num_spawned(self):
+        initial_config = InitialConfig(
+            spacing="custom",
+            additional_params={
+                'start_positions': [('highway_0', 0), ('highway_0', 0)],
+                'start_lanes': [0, 0]}
+        )
+        vehicles = VehicleParams()
+        vehicles.add('test', num_vehicles=2)
+
+        self.assertRaises(FatalFlowError,
+                          highway_exp_setup,
+                          initial_config=initial_config,
+                          vehicles=vehicles)
 
 
 if __name__ == '__main__':

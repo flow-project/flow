@@ -422,7 +422,6 @@ class SumoParams(SimParams):
                  show_radius=False,
                  pxpm=2,
                  overtake_right=False,
-                 ballistic=False,
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
@@ -466,10 +465,6 @@ class SumoParams(SimParams):
         overtake_right: bool, optional
             whether vehicles are allowed to overtake on the right as well as
             the left
-        ballistic: bool, optional
-            specifies whether to use ballistic step updates. This is somewhat
-            more realistic, but increases the possibility of collisions.
-            Defaults to False
         seed: int, optional
             seed for sumo instance
         restart_instance: bool, optional
@@ -493,7 +488,6 @@ class SumoParams(SimParams):
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
         self.seed = seed
-        self.ballistic = ballistic
         self.overtake_right = overtake_right
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
@@ -682,10 +676,6 @@ class InitialConfig:
         self.lanes_distribution = lanes_distribution
         self.edges_distribution = edges_distribution
         self.additional_params = additional_params or dict()
-
-    def get_additional_params(self, key):
-        """Return a variable from additional_params."""
-        return self.additional_params[key]
 
 
 class SumoCarFollowingParams:
@@ -1009,9 +999,7 @@ class InFlows:
             begin=1,
             end=2e6,
             vehs_per_hour=None,
-            period=None,
             probability=None,
-            number=None,
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 
@@ -1028,11 +1016,7 @@ class InFlows:
             see Note
         vehs_per_hour: float, optional
             see vehsPerHour in Note
-        period: float, optional
-            see Note
         probability: float, optional
-            see Note
-        number: int, optional
             see Note
         kwargs: dict, optional
             see Note
@@ -1065,12 +1049,8 @@ class InFlows:
             new_inflow["begin"] = begin
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
-        if period is not None:
-            new_inflow["period"] = period
         if probability is not None:
             new_inflow["probability"] = probability
-        if number is not None:
-            new_inflow["number"] = number
 
         self.__flows.append(new_inflow)
 
