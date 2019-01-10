@@ -25,7 +25,8 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
-        self.__ids = self.kernel_api.get_traffic_light_ids()
+        self.__ids = []
+        # self.__ids = self.kernel_api.get_traffic_light_ids()
 
     def update(self, reset):
         """See parent class."""

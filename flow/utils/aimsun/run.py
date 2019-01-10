@@ -23,6 +23,9 @@ exited_vehicles = []
 def send_message(conn, in_format, values):
     """Send a message to the client.
 
+    If the message is a string, it is sent in segments of length 256 (if the
+    string is longer than such) and concatenated on the client end.
+
     Parameters
     ----------
     conn : socket.socket
@@ -32,9 +35,43 @@ def send_message(conn, in_format, values):
     values : tuple of Any
         commands to be encoded and issued to the client
     """
-    packer = struct.Struct(format=in_format)
-    packed_data = packer.pack(*values)
-    conn.send(packed_data)
+    if in_format == 'str':
+        packer = struct.Struct(format='i')
+        values = values[0]
+
+        # when the message is too large, send value in segments and inform the
+        # client that additional information will be sent. The value will be
+        # concatenated on the other end
+        while len(values) > 256:
+            # send the next set of data
+            conn.send(values[:256])
+            values = values[256:]
+
+            # wait for a reply
+            data = None
+            while data is None:
+                data = conn.recv(2048)
+
+            # send a not-done signal
+            packed_data = packer.pack(*(1,))
+            conn.send(packed_data)
+
+        # send the remaining components of the message (which is of length less
+        # than or equal to 256)
+        conn.send(values)
+
+        # wait for a reply
+        data = None
+        while data is None:
+            data = conn.recv(2048)
+
+        # send a done signal
+        packed_data = packer.pack(*(0,))
+        conn.send(packed_data)
+    else:
+        packer = struct.Struct(format=in_format)
+        packed_data = packer.pack(*values)
+        conn.send(packed_data)
 
 
 def retrieve_message(conn, out_format):
@@ -132,63 +169,39 @@ def threaded_client(conn):
 
             elif data == ac.VEH_SET_COLOR:
                 send_message(conn, in_format='i', values=(0,))
-                # veh_id, r, g, b = retrieve_message(conn, 'i i i i')
+                veh_id, r, g, b = retrieve_message(conn, 'i i i i')
                 # TODO
                 send_message(conn, in_format='i', values=(0,))
 
             elif data == ac.VEH_GET_ENTERED_IDS:
                 send_message(conn, in_format='i', values=(0,))
 
-                # wait for a response
                 data = None
                 while data is None:
-                    data = conn.recv(2048)
+                    data = conn.recv(256)
 
-                # send the entered vehicle IDs
                 global entered_vehicles
-
-                while len(entered_vehicles) > 0:
-                    # send a positive response
-                    send_message(conn, in_format='i', values=(0,))
-
-                    # wait for a reply
-                    data = None
-                    while data is None:
-                        data = conn.recv(2048)
-
-                    # send the next vehicle
-                    conn.send(str(entered_vehicles[0]))
-                    del entered_vehicles[0]
-
-                # send a negative response
-                send_message(conn, in_format='i', values=(1,))
+                if len(entered_vehicles) == 0:
+                    output = '-1'
+                else:
+                    output = ':'.join([str(e) for e in entered_vehicles])
+                send_message(conn, in_format='str', values=(output,))
+                entered_vehicles = []
 
             elif data == ac.VEH_GET_EXITED_IDS:
                 send_message(conn, in_format='i', values=(0,))
 
-                # wait for a response
                 data = None
                 while data is None:
-                    data = conn.recv(2048)
+                    data = conn.recv(256)
 
-                # send the entered vehicle IDs
                 global exited_vehicles
-
-                while len(exited_vehicles) > 0:
-                    # send a positive response
-                    send_message(conn, in_format='i', values=(0,))
-
-                    # wait for a reply
-                    data = None
-                    while data is None:
-                        data = conn.recv(2048)
-
-                    # send the next vehicle
-                    conn.send(str(exited_vehicles[0]))
-                    del exited_vehicles[0]
-
-                # send a negative response
-                send_message(conn, in_format='i', values=(1,))
+                if len(exited_vehicles) == 0:
+                    output = '-1'
+                else:
+                    output = ':'.join([str(e) for e in exited_vehicles])
+                send_message(conn, in_format='str', values=(output,))
+                exited_vehicles = []
 
             elif data == ac.VEH_GET_TYPE_ID:
                 send_message(conn, in_format='i', values=(0,))
