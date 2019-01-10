@@ -599,7 +599,7 @@ with open(os.path.join(config.PROJECT_PATH, data_file)) as f:
 
 # export the data from the dictionary
 veh_types = data['vehicle_types']
-osm = data['osm_path']
+osm_path = data['osm_path']
 
 if data['inflows'] is not None:
     inflows = InFlows()
@@ -608,25 +608,20 @@ else:
     inflows = None
 
 # generate the network
-if osm is not None:
-    # filename = osm
-    filename = "/home/yashar/Desktop/bay_bridge.osm"
-    generate_net_osm(filename, inflows, veh_types)
+if osm_path is not None:
+    generate_net_osm(osm_path, inflows, veh_types)
     edge_osm = {}
 
     section_type = model.getType("GKSection")
     for types in model.getCatalog().getUsedSubTypesFromType(section_type):
         for s in types.itervalues():
-            print(s.getId())
-            id = s.getId()
+            s_id = s.getId()
             num_lanes = s.getNbFullLanes()
             length = s.getLanesLength2D()
             speed = s.getSpeed()
-            edge_osm[id] = {"speed": speed,
-                            "length": length,
-                            "numLanes": num_lanes
-                            }
-    # cur_dir = os.path.dirname(__file__)
+            edge_osm[s_id] = {"speed": speed,
+                              "length": length,
+                              "numLanes": num_lanes}
     # TODO: add current time
     with open(os.path.join(config.PROJECT_PATH,
                            'flow/utils/aimsun/osm_edges.json'), 'w') \
