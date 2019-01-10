@@ -171,12 +171,12 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
-    config['use_centralized_vf'] = False
+    config['use_centralized_vf'] = True
     config['simple_optimizer'] = True
 
     # Grid search things
-    config['lr'] = tune.grid_search([5e-4,5e-5])
-    config['num_sgd_iter'] = tune.grid_search([10, 30])
+    # config['lr'] = tune.grid_search([5e-4,5e-5])
+    # config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
     # config['model']['use_lstm'] = True
@@ -216,8 +216,8 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    ray.init(redis_address='localhost:6379')
-    # ray.init(num_cpus=3, redirect_output=False)
+    # ray.init(redis_address='localhost:6379')
+    ray.init(redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
             'run': alg_run,
@@ -227,7 +227,7 @@ if __name__ == '__main__':
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-10-2019/MultiDecentralObsBottleneck",
-            'num_samples': 3
+            # 'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-10-2019/MultiDecentralObsBottleneck",
+            # 'num_samples': 3
         },
     })
