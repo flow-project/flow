@@ -25,7 +25,7 @@ except ImportError:
 
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
-from flow.utils.flow_warnings import FatalFlowError
+from flow.utils.exceptions import FatalFlowError
 
 # Number of retries on restarting SUMO before giving up
 RETRIES_ON_ERROR = 10
