@@ -46,7 +46,7 @@ vehicles.add(
                         ),
     num_vehicles=1 * SCALING)
 vehicles.add(
-    veh_id='followerstopper',
+    veh_id='av',
     acceleration_controller=(RLController, {}),
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
@@ -74,7 +74,7 @@ additional_env_params = {
     'max_decel': 3,
     'inflow_range': [1000, 2000],
     'communicate': False,
-    "decentralized_obs": False
+    "centralized_obs": True
 }
 
 # flow rate

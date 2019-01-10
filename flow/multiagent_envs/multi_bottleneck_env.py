@@ -8,7 +8,7 @@ from flow.controllers.rlcontroller import RLController
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.lane_change_controllers import SimLaneChangeController
 from flow.multiagent_envs.multiagent_env import MultiEnv
-from flow.envs.bottleneck_env import BottleneckEnv
+from flow.envs.bottleneck_env import DesiredVelocityEnv
 from flow.core.params import InFlows, NetParams, VehicleParams, \
     SumoCarFollowingParams, SumoLaneChangeParams
 
@@ -17,10 +17,8 @@ from gym.spaces.box import Box
 from gym.spaces.discrete import Discrete
 from gym.spaces.tuple_space import Tuple
 
-import os
-import glob
-
 MAX_LANES = 4  # base number of largest number of lanes in the network
+EDGE_LIST = ["1", "2", "3", "4", "5"]  # Edge 1 is before the toll booth
 
 # Keys for RL experiments
 ADDITIONAL_RL_ENV_PARAMS = {
@@ -31,11 +29,11 @@ ADDITIONAL_RL_ENV_PARAMS = {
     # whether communication between vehicles is on
     "communicate": False,
     # whether the observation space is aggregate counts or local observations
-    "decentralized_obs": False
+    "centralized_obs": False
 }
 
 
-class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
+class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
     """Environment used to train decentralized vehicles to effectively pass
        through a bottleneck by specifying the velocity that RL vehicles
        should attempt to travel in certain regions of space
@@ -63,8 +61,14 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
         # the number of vehicles in the congested section
         # the average velocity on each edge 3,4,5
         add_params = self.env_params.additional_params
-        if add_params.get('decentralized_obs', False):
-            return super().observation_space
+        if add_params['centralized_obs']:
+            num_obs = 0
+            # density and velocity for rl and non-rl vehicles per segment
+            # Last element is the outflow
+            for segment in self.obs_segments:
+                num_obs += 4 * segment[1] * self.k.scenario.num_lanes(segment[0])
+            num_obs += 1
+            return Box(low=0.0, high=1.0, shape=(num_obs,), dtype=np.float32)
         else:
             if self.env_params.additional_params.get('communicate', False):
                 # eight possible signals if above
@@ -93,8 +97,9 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
         # action space is speed and velocity of leading and following
         # vehicles for all of the avs
         add_params = self.env_params.additional_params
-        if add_params.get('decentralized_obs', False):
-            super().get_state()
+        if add_params['centralized_obs']:
+            rl_ids = self.vehicles.get_rl_ids()
+            return {rl_id: self.get_centralized_state() for rl_id in rl_ids}
         else:
             if self.env_params.additional_params.get('communicate', False):
                 veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
@@ -113,6 +118,68 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
                                  for rl_id, val in veh_info.items()}
 
             return lead_follow_final
+
+    def get_centralized_state(self):
+        """See class definition."""
+        # action space is number of vehicles in each segment in each lane,
+        # number of rl vehicles in each segment in each lane
+        # mean speed in each segment, and mean rl speed in each
+        # segment in each lane
+        num_vehicles_list = []
+        num_rl_vehicles_list = []
+        vehicle_speeds_list = []
+        rl_speeds_list = []
+        NUM_VEHICLE_NORM = 20
+        for i, edge in enumerate(EDGE_LIST):
+            num_lanes = self.k.scenario.num_lanes(edge)
+            num_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
+            num_rl_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
+            vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
+            rl_vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
+            ids = self.vehicles.get_ids_by_edge(edge)
+            lane_list = self.vehicles.get_lane(ids)
+            pos_list = self.vehicles.get_position(ids)
+            for i, id in enumerate(ids):
+                segment = np.searchsorted(self.obs_slices[edge],
+                                          pos_list[i]) - 1
+                if id in self.vehicles.get_rl_ids():
+                    rl_vehicle_speeds[segment, lane_list[i]] \
+                        += self.vehicles.get_speed(id)
+                    num_rl_vehicles[segment, lane_list[i]] += 1
+                else:
+                    vehicle_speeds[segment, lane_list[i]] \
+                        += self.vehicles.get_speed(id)
+                    num_vehicles[segment, lane_list[i]] += 1
+
+            # normalize
+
+            num_vehicles /= NUM_VEHICLE_NORM
+            num_rl_vehicles /= NUM_VEHICLE_NORM
+            num_vehicles_list += num_vehicles.flatten().tolist()
+            num_rl_vehicles_list += num_rl_vehicles.flatten().tolist()
+            vehicle_speeds_list += vehicle_speeds.flatten().tolist()
+            rl_speeds_list += rl_vehicle_speeds.flatten().tolist()
+
+        unnorm_veh_list = np.asarray(num_vehicles_list) * \
+            NUM_VEHICLE_NORM
+        unnorm_rl_list = np.asarray(num_rl_vehicles_list) * \
+            NUM_VEHICLE_NORM
+        # compute the mean speed if the speed isn't zero
+        num_rl = len(num_rl_vehicles_list)
+        num_veh = len(num_vehicles_list)
+        mean_speed = np.nan_to_num([
+            vehicle_speeds_list[i] / unnorm_veh_list[i]
+            if int(unnorm_veh_list[i]) else 0 for i in range(num_veh)
+        ])
+        mean_speed_norm = mean_speed / 50
+        mean_rl_speed = np.nan_to_num([
+            rl_speeds_list[i] / unnorm_rl_list[i]
+            if int(unnorm_rl_list[i]) else 0 for i in range(num_rl)
+        ]) / 50
+        outflow = np.asarray(
+            self.vehicles.get_outflow_rate(20 * self.sim_step) / 2000.0)
+        return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
+                               mean_speed_norm, mean_rl_speed, [outflow]))
 
     def _apply_rl_actions(self, rl_actions):
         """
@@ -161,7 +228,7 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
                 try:
                     inflow = InFlows()
                     inflow.add(
-                        veh_type="followerstopper",
+                        veh_type="av",
                         edge="1",
                         vehs_per_hour=flow_rate * .1,
                         departLane="random",
@@ -192,7 +259,7 @@ class MultiBottleneckEnv(MultiEnv, BottleneckEnv):
                         ),
                         num_vehicles=1 * self.scaling)
                     vehicles.add(
-                        veh_id="followerstopper",
+                        veh_id="av",
                         acceleration_controller=(RLController, {}),
                         lane_change_controller=(SimLaneChangeController, {}),
                         routing_controller=(ContinuousRouter, {}),
