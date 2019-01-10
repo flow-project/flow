@@ -79,7 +79,7 @@ additional_env_params = {
     'start_inflow': flow_rate,
     'congest_penalty': True,
     'communicate': False,
-    "centralized_obs": True
+    "centralized_obs": False
 }
 
 # percentage of flow coming out of each lane
@@ -111,7 +111,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiCentralObsBottleneck',
+    exp_tag='MultiDecentralObsBottleneck',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -227,7 +227,7 @@ if __name__ == '__main__':
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-10-2019/MultiCentralObsBottleneck",
+            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-10-2019/MultiDecentralObsBottleneck",
             'num_samples': 3
         },
     })
