@@ -8,7 +8,6 @@ try:
 except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune import run_experiments
-from ray.tune.schedulers import PopulationBasedTraining
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
@@ -18,16 +17,17 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter,\
     SumoCarFollowingController, SumoLaneChangeController
 from flow.controllers.routing_controllers import IntersectionRouter
-from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection_env import SoftIntersectionEnv, \
+    ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import \
-    IntersectionScenario, ADDITIONAL_NET_PARAMS
+    SoftIntersectionScenario, ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1000
 # number of rollouts per training iteration
 N_ROLLOUTS = 18
 # number of parallel workers
-N_CPUS = 9
+N_CPUS = 6
 
 # We place 40 autonomous vehicles in the network
 vehicles = Vehicles()
@@ -56,13 +56,13 @@ for veh_id, veh_num in vehicle_data.items():
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='intersection-sarl-pbt',
+    exp_tag='intersection-sarl-soft',
 
     # name of the flow environment the experiment is running on
-    env_name='IntersectionEnv',
+    env_name='SoftIntersectionEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='IntersectionScenario',
+    scenario='SoftIntersectionScenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -71,9 +71,11 @@ flow_params = dict(
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
+    additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
+    additional_env_params["alpha"] = 1.0  # performance-consumption tradeoff
     env=EnvParams(
         horizon=HORIZON,
-        additional_params=ADDITIONAL_ENV_PARAMS.copy(),
+        additional_params=additional_env_params,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -122,18 +124,6 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    pbt = PopulationBasedTraining(
-        time_attr="time_total_s",
-        reward_attr="episode_reward_mean",
-        perturbation_interval=50,
-        resample_probability=0.25,
-        # Specifies the mutations of agent hyperparams
-        hyperparam_mutations={
-            "eval_prob": lambda: random.uniform(0.01, 0.1),
-            "noise_stdev": lambda: random.uniform(0.01, 0.03),
-            "stepsize": lambda: random.uniform(0.01, 0.03),
-        },
-    )
     ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
     trials = run_experiments({
         flow_params['exp_tag']: {
@@ -143,9 +133,10 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 50,
+            "local_dir": "/home/fangyu/ray_results/",
             'max_failures': 999,
             'stop': {
-                'training_iteration': 1000,
+                'training_iteration': 2500,
             },
-        },
-    }, scheduler=pbt)
+        }
+    }, resume='prompt')

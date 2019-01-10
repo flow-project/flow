@@ -9,8 +9,8 @@ ADDITIONAL_NET_PARAMS = {}
 SCALING = 10
 
 
-class IntersectionScenario(Scenario):
-    """Scenario class for bottleneck simulations."""
+class SoftIntersectionScenario(Scenario):
+    """Scenario class for soft intersection simulations."""
 
     def __init__(self,
                  name,
@@ -18,14 +18,6 @@ class IntersectionScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig()):
         """Instantiate the scenario class.
-
-        Requires from net_params:
-        - scaling: the factor multiplying number of lanes
-
-        In order for right-of-way dynamics to take place at the intersection,
-        set 'no_internal_links' in net_params to False.
-
-        See flow/scenarios/base_scenario.py for description of params.
         """
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:

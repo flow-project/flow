@@ -8,11 +8,12 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRouter
 import numpy as np
 seed=204
 np.random.seed(seed)
+from flow.scenarios.intersection import SoftIntersectionScenario, \
+    ADDITIONAL_NET_PARAMS
 
 
 def intersection_example(render=None,
@@ -90,7 +91,8 @@ def intersection_example(render=None,
         spacing='uniform',
         edges_distribution=experiment,
     )
-    scenario = IntersectionScenario(
+
+    scenario = SoftIntersectionScenario(
         name='intersection',
         vehicles=vehicles,
         initial_config=initial_config,

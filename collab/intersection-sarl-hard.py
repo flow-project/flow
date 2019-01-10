@@ -17,9 +17,10 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter,\
     SumoCarFollowingController, SumoLaneChangeController
 from flow.controllers.routing_controllers import IntersectionRouter
-from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection_env import HardIntersectionEnv, \
+    ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import \
-    IntersectionScenario, ADDITIONAL_NET_PARAMS
+    HardIntersectionScenario, ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1000
@@ -55,13 +56,13 @@ for veh_id, veh_num in vehicle_data.items():
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='intersection-sarl',
+    exp_tag='intersection-sarl-hard',
 
     # name of the flow environment the experiment is running on
-    env_name='IntersectionEnv',
+    env_name='HardIntersectionEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='IntersectionScenario',
+    scenario='HardIntersectionScenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
