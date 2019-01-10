@@ -70,47 +70,27 @@ class Figure8Scenario(Scenario):
         r = net_params.additional_params["radius_ring"]
 
         nodes = [{
-            "id": "center_intersection",
+            "id": "center",
             "x": 0,
             "y": 0,
             "type": "priority"
         }, {
-            "id": "top_upper_ring",
-            "x": r,
-            "y": 2 * r,
-            "type": "priority"
-        }, {
-            "id": "bottom_upper_ring_in",
+            "id": "right",
             "x": r,
             "y": 0,
             "type": "priority"
         }, {
-            "id": "left_upper_ring",
+            "id": "top",
             "x": 0,
             "y": r,
             "type": "priority"
         }, {
-            "id": "right_upper_ring",
-            "x": 2 * r,
-            "y": r,
-            "type": "priority"
-        }, {
-            "id": "top_lower_ring",
+            "id": "left",
             "x": -r,
             "y": 0,
             "type": "priority"
         }, {
-            "id": "bottom_lower_ring",
-            "x": -r,
-            "y": -2 * r,
-            "type": "priority"
-        }, {
-            "id": "left_lower_ring",
-            "x": -2 * r,
-            "y": -r,
-            "type": "priority"
-        }, {
-            "id": "right_lower_ring_in",
+            "id": "bottom",
             "x": 0,
             "y": -r,
             "type": "priority"
@@ -122,137 +102,57 @@ class Figure8Scenario(Scenario):
         """See parent class."""
         r = net_params.additional_params["radius_ring"]
         resolution = net_params.additional_params["resolution"]
-        ring_edgelen = r * pi / 2.
+        ring_edgelen = 3 * r * pi / 2.
         intersection_edgelen = 2 * r
 
         # intersection edges
         edges = [{
-            "id": "right_lower_ring_in",
+            "id": "bottom",
             "type": "edgeType",
             "priority": "78",
-            "from": "right_lower_ring_in",
-            "to": "center_intersection",
+            "from": "bottom",
+            "to": "center",
             "length": intersection_edgelen / 2
         }, {
-            "id": "right_lower_ring_out",
+            "id": "top",
             "type": "edgeType",
             "priority": 78,
-            "from": "center_intersection",
-            "to": "left_upper_ring",
+            "from": "center",
+            "to": "top",
             "length": intersection_edgelen / 2
         }, {
-            "id": "bottom_upper_ring_in",
+            "id": "right",
             "type": "edgeType",
             "priority": 46,
-            "from": "bottom_upper_ring_in",
-            "to": "center_intersection",
+            "from": "right",
+            "to": "center",
             "length": intersection_edgelen / 2
         }, {
-            "id": "bottom_upper_ring_out",
+            "id": "left",
             "type": "edgeType",
             "priority": 46,
-            "from": "center_intersection",
-            "to": "top_lower_ring",
+            "from": "center",
+            "to": "left",
             "length": intersection_edgelen / 2
         }]
 
         # ring edges
         edges += [{
-            "id":
-            "left_upper_ring",
-            "type":
-            "edgeType",
-            "from":
-            "left_upper_ring",
-            "to":
-            "top_upper_ring",
-            "length":
-            ring_edgelen,
-            "shape":
-            [
-                (r * (1 - cos(t)), r * (1 + sin(t)))
-                for t in linspace(0, pi / 2, resolution)
-            ]
+            "id": "upper_ring",
+            "type": "edgeType",
+            "from": "top",
+            "to": "right",
+            "length": ring_edgelen,
+            "shape": [(r * (1 - cos(t)), r * (1 + sin(t)))
+                      for t in linspace(0, 3 * pi / 2, resolution)]
         }, {
-            "id":
-            "top_upper_ring",
-            "type":
-            "edgeType",
-            "from":
-            "top_upper_ring",
-            "to":
-            "right_upper_ring",
-            "length":
-            ring_edgelen,
-            "shape":
-            [
-                (r * (1 + sin(t)), r * (1 + cos(t)))
-                for t in linspace(0, pi / 2, resolution)
-            ]
-        }, {
-            "id":
-            "right_upper_ring",
-            "type":
-            "edgeType",
-            "from":
-            "right_upper_ring",
-            "to":
-            "bottom_upper_ring_in",
-            "length":
-            ring_edgelen,
-            "shape":
-            [
-                (r * (1 + cos(t)), r * (1 - sin(t)))
-                for t in linspace(0, pi / 2, resolution)
-            ]
-        }, {
-            "id":
-            "top_lower_ring",
-            "type":
-            "edgeType",
-            "from":
-            "top_lower_ring",
-            "to":
-            "left_lower_ring",
-            "length":
-            ring_edgelen,
-            "shape":
-            [
-                (-r + r * cos(t), -r + r * sin(t))
-                for t in linspace(pi / 2, pi, resolution)
-            ]
-        }, {
-            "id":
-            "left_lower_ring",
-            "type":
-            "edgeType",
-            "from":
-            "left_lower_ring",
-            "to":
-            "bottom_lower_ring",
-            "length":
-            ring_edgelen,
-            "shape":
-            [
-                (-r + r * cos(t), -r + r * sin(t))
-                for t in linspace(pi, 3 * pi / 2, resolution)
-            ]
-        }, {
-            "id":
-            "bottom_lower_ring",
-            "type":
-            "edgeType",
-            "from":
-            "bottom_lower_ring",
-            "to":
-            "right_lower_ring_in",
-            "length":
-            ring_edgelen,
-            "shape":
-            [
-                (-r + r * cos(t), -r + r * sin(t))
-                for t in linspace(-pi / 2, 0, resolution)
-            ]
+            "id": "lower_ring",
+            "type": "edgeType",
+            "from": "left",
+            "to": "bottom",
+            "length": ring_edgelen,
+            "shape": [(-r + r * cos(t), -r + r * sin(t))
+                      for t in linspace(pi / 2, 2 * pi, resolution)]
         }]
 
         return edges
@@ -272,146 +172,76 @@ class Figure8Scenario(Scenario):
     def specify_routes(self, net_params):
         """See parent class."""
         rts = {
-            "bottom_lower_ring": [
-                "bottom_lower_ring", "right_lower_ring_in",
-                "right_lower_ring_out", "left_upper_ring", "top_upper_ring",
-                "right_upper_ring", "bottom_upper_ring_in",
-                "bottom_upper_ring_out", "top_lower_ring", "left_lower_ring"
-            ],
-            "right_lower_ring_in": [
-                "right_lower_ring_in", "right_lower_ring_out",
-                "left_upper_ring", "top_upper_ring", "right_upper_ring",
-                "bottom_upper_ring_in", "bottom_upper_ring_out",
-                "top_lower_ring", "left_lower_ring", "bottom_lower_ring"
-            ],
-            "right_lower_ring_out": [
-                "right_lower_ring_out", "left_upper_ring", "top_upper_ring",
-                "right_upper_ring", "bottom_upper_ring_in",
-                "bottom_upper_ring_out", "top_lower_ring", "left_lower_ring",
-                "bottom_lower_ring", "right_lower_ring_in"
-            ],
-            "left_upper_ring": [
-                "left_upper_ring", "top_upper_ring", "right_upper_ring",
-                "bottom_upper_ring_in", "bottom_upper_ring_out",
-                "top_lower_ring", "left_lower_ring", "bottom_lower_ring",
-                "right_lower_ring_in", "right_lower_ring_out"
-            ],
-            "top_upper_ring": [
-                "top_upper_ring", "right_upper_ring", "bottom_upper_ring_in",
-                "bottom_upper_ring_out", "top_lower_ring", "left_lower_ring",
-                "bottom_lower_ring", "right_lower_ring_in",
-                "right_lower_ring_out", "left_upper_ring"
-            ],
-            "right_upper_ring": [
-                "right_upper_ring", "bottom_upper_ring_in",
-                "bottom_upper_ring_out", "top_lower_ring", "left_lower_ring",
-                "bottom_lower_ring", "right_lower_ring_in",
-                "right_lower_ring_out", "left_upper_ring", "top_upper_ring"
-            ],
-            "bottom_upper_ring_in": [
-                "bottom_upper_ring_in", "bottom_upper_ring_out",
-                "top_lower_ring", "left_lower_ring", "bottom_lower_ring",
-                "right_lower_ring_in", "right_lower_ring_out",
-                "left_upper_ring", "top_upper_ring", "right_upper_ring"
-            ],
-            "bottom_upper_ring_out": [
-                "bottom_upper_ring_out", "top_lower_ring", "left_lower_ring",
-                "bottom_lower_ring", "right_lower_ring_in",
-                "right_lower_ring_out", "left_upper_ring", "top_upper_ring",
-                "right_upper_ring", "bottom_upper_ring_in"
-            ],
-            "top_lower_ring": [
-                "top_lower_ring", "left_lower_ring", "bottom_lower_ring",
-                "right_lower_ring_in", "right_lower_ring_out",
-                "left_upper_ring", "top_upper_ring", "right_upper_ring",
-                "bottom_upper_ring_in", "bottom_upper_ring_out"
-            ],
-            "left_lower_ring": [
-                "left_lower_ring", "bottom_lower_ring", "right_lower_ring_in",
-                "right_lower_ring_out", "left_upper_ring", "top_upper_ring",
-                "right_upper_ring", "bottom_upper_ring_in",
-                "bottom_upper_ring_out", "top_lower_ring"
-            ]
+            "bottom":
+                ["bottom", "top", "upper_ring", "right", "left", "lower_ring"],
+            "top":
+                ["top", "upper_ring", "right", "left", "lower_ring", "bottom"],
+            "upper_ring":
+                ["upper_ring", "right", "left", "lower_ring", "bottom", "top"],
+            "left":
+                ["left", "lower_ring", "bottom", "top", "upper_ring", "right"],
+            "right":
+                ["right", "left", "lower_ring", "bottom", "top", "upper_ring"],
+            "lower_ring":
+                ["lower_ring", "bottom", "top", "upper_ring", "right", "left"],
         }
 
         return rts
 
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes = net_params.additional_params["lanes"]
+        conn_dict = {}
+        conn = []
+        for i in range(lanes):
+            conn += [{"from": "bottom",
+                      "to": "top",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+            conn += [{"from": "right",
+                      "to": "left",
+                      "fromLane": str(i),
+                      "toLane": str(i)}]
+        conn_dict["center"] = conn
+        return conn_dict
+
     def specify_edge_starts(self):
         """See base class."""
-        edgestarts = \
-            [("bottom_lower_ring",
-              0 + self.inner_space_len),
-             ("right_lower_ring_in",
-              self.ring_edgelen + 2 * self.inner_space_len),
-             ("right_lower_ring_out",
-              self.ring_edgelen + self.intersection_len / 2 +
-              self.junction_len + 3 * self.inner_space_len),
-             ("left_upper_ring",
-              self.ring_edgelen + self.intersection_len +
-              self.junction_len + 4 * self.inner_space_len),
-             ("top_upper_ring",
-              2 * self.ring_edgelen + self.intersection_len +
-              self.junction_len + 5 * self.inner_space_len),
-             ("right_upper_ring",
-              3 * self.ring_edgelen + self.intersection_len +
-              self.junction_len + 6 * self.inner_space_len),
-             ("bottom_upper_ring_in",
-              4 * self.ring_edgelen + self.intersection_len +
-              self.junction_len + 7 * self.inner_space_len),
-             ("bottom_upper_ring_out",
-              4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
-              2 * self.junction_len + 8 * self.inner_space_len),
-             ("top_lower_ring",
-              4 * self.ring_edgelen + 2 * self.intersection_len +
-              2 * self.junction_len + 9 * self.inner_space_len),
-             ("left_lower_ring",
-              5 * self.ring_edgelen + 2 * self.intersection_len +
-              2 * self.junction_len + 10 * self.inner_space_len)]
+        edgestarts = [
+            ("bottom", self.inner_space_len),
+            ("top", self.intersection_len / 2 + self.junction_len +
+             self.inner_space_len),
+            ("upper_ring", self.intersection_len + self.junction_len +
+             2 * self.inner_space_len),
+            ("right", self.intersection_len + 3 * self.ring_edgelen
+             + self.junction_len + 3 * self.inner_space_len),
+            ("left", 3 / 2 * self.intersection_len + 3 * self.ring_edgelen
+             + 2 * self.junction_len + 3 * self.inner_space_len),
+            ("lower_ring", 2 * self.intersection_len + 3 * self.ring_edgelen
+             + 2 * self.junction_len + 4 * self.inner_space_len)]
 
         return edgestarts
 
     def specify_intersection_edge_starts(self):
         """See base class."""
-        intersection_edgestarts = \
-            [(":center_intersection_%s" % (1 + self.lanes),
-              self.ring_edgelen + self.intersection_len / 2 +
-              3 * self.inner_space_len),
-             (":center_intersection_1",
-              4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
-              self.junction_len + 8 * self.inner_space_len)]
+        intersection_edgestarts = [
+            (":center_{}".format(self.lanes),
+             self.intersection_len / 2 + self.inner_space_len),
+            (":center_0", 3 / 2 * self.intersection_len + 3 * self.ring_edgelen
+             + self.junction_len + 3 * self.inner_space_len)
+        ]
 
         return intersection_edgestarts
 
     def specify_internal_edge_starts(self):
         """See base class."""
         internal_edgestarts = \
-            [(":bottom_lower_ring",
-              0),
-             (":right_lower_ring_in",
-              self.ring_edgelen + self.inner_space_len),
-             (":right_lower_ring_out",
-              self.ring_edgelen + self.intersection_len / 2 +
-              self.junction_len + 2 * self.inner_space_len),
-             (":left_upper_ring",
-              self.ring_edgelen + self.intersection_len +
-              self.junction_len + 3 * self.inner_space_len),
-             (":top_upper_ring",
-              2 * self.ring_edgelen + self.intersection_len +
-              self.junction_len + 4 * self.inner_space_len),
-             (":right_upper_ring",
-              3 * self.ring_edgelen + self.intersection_len +
-              self.junction_len + 5 * self.inner_space_len),
-             (":bottom_upper_ring_in",
-              4 * self.ring_edgelen + self.intersection_len +
-              self.junction_len + 6 * self.inner_space_len),
-             (":bottom_upper_ring_out",
-              4 * self.ring_edgelen + 3 / 2 * self.intersection_len +
-              2 * self.junction_len + 7 * self.inner_space_len),
-             (":top_lower_ring",
-              4 * self.ring_edgelen + 2 * self.intersection_len +
-              2 * self.junction_len + 8 * self.inner_space_len),
-             (":left_lower_ring",
-              5 * self.ring_edgelen + 2 * self.intersection_len +
-              2 * self.junction_len + 9 * self.inner_space_len)]
+            [(":bottom", 0),
+             (":top", self.intersection_len + self.junction_len +
+             self.inner_space_len),
+             (":right", self.intersection_len + 3 * self.ring_edgelen
+             + self.junction_len + 2 * self.inner_space_len),
+             (":left", 2 * self.intersection_len + 3 * self.ring_edgelen
+             + 2 * self.junction_len + 3 * self.inner_space_len)]
 
         return internal_edgestarts
