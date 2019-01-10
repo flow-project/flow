@@ -74,7 +74,7 @@ additional_env_params = {
     'max_decel': 3,
     'inflow_range': [1000, 2000],
     'communicate': False,
-    "centralized_obs": False
+    "centralized_obs": True
 }
 
 # flow rate
@@ -109,7 +109,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsDecentralAction',
+    exp_tag='MultiCentralObsDecentralAction',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -169,7 +169,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
-    config['use_centralized_vf'] = True
+    config['use_centralized_vf'] = False
     config['simple_optimizer'] = True
     config["batch_mode"] = "complete_episodes"
 
@@ -226,7 +226,7 @@ if __name__ == '__main__':
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-9-2019/MultiDecentralObsDecentralAction",
+            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-9-2019/MultiCentralObsDecentralAction",
             'num_samples': 3
         },
     })
