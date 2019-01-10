@@ -154,7 +154,7 @@ class TestRegistry(unittest.TestCase):
                          flow_params["env"].__dict__)
         self.assertEqual(env.sim_params.__dict__,
                          flow_params["sim"].__dict__)
-        self.assertEqual(env.traffic_lights.__dict__,
+        self.assertEqual(env.scenario.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
         self.assertEqual(env.scenario.net_params.__dict__,
                          flow_params["net"].__dict__)

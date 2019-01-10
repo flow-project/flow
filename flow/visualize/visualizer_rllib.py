@@ -25,6 +25,7 @@ except ImportError:
     from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 from ray.rllib.models import ModelCatalog
+import gym
 
 import flow.envs
 from flow.core.util import emission_to_csv
@@ -41,6 +42,21 @@ example usage:
 Here the arguments are:
 1 - the number of the checkpoint
 """
+
+
+class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
+    """Adapts a RLlib preprocessor for use as an observation wrapper."""
+
+    def __init__(self, env, preprocessor):
+        super(_RLlibPreprocessorWrapper, self).__init__(env)
+        self.preprocessor = preprocessor
+
+        from gym.spaces.box import Box
+        self.observation_space = Box(
+            -1.0, 1.0, preprocessor.shape, dtype=np.float32)
+
+    def observation(self, observation):
+        return self.preprocessor.transform(observation)
 
 
 def visualizer_rllib(args):
@@ -166,8 +182,10 @@ def visualizer_rllib(args):
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-        env_params=env_params, sim_params=sim_params, scenario=scenario))
+    _env = env_class(
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
+    _prep = ModelCatalog.get_preprocessor(_env, options={})
+    env = _RLlibPreprocessorWrapper(_env, _prep)
 
     if multiagent:
         rets = {}
@@ -187,7 +205,7 @@ def visualizer_rllib(args):
         else:
             ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.unwrapped.vehicles
+            vehicles = env.unwrapped.k.vehicle
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             if multiagent:
                 action = {}
