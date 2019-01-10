@@ -77,6 +77,7 @@ additional_env_params = {
     'max_decel': 3,
     'inflow_range': [1000, 2000],
     'start_inflow': flow_rate,
+    'congest_penalty': True,
     'communicate': False,
     "centralized_obs": True
 }
@@ -110,7 +111,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiCentralObsDecentralAction',
+    exp_tag='MultiCentralObsBottleneck',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -171,6 +172,7 @@ def setup_exps():
     config['clip_actions'] = False
     config['horizon'] = HORIZON
     config['use_centralized_vf'] = False
+    config['simple_optimizer'] = True
 
     # Grid search things
     config['lr'] = tune.grid_search([5e-4,5e-5])
@@ -217,15 +219,15 @@ if __name__ == '__main__':
     ray.init(redis_address='localhost:6379')
     # ray.init(num_cpus=3, redirect_output=False)
     run_experiments({
-        flow_params['exp_tag']: {
+        flow_params["exp_tag"]: {
             'run': alg_run,
             'env': env_name,
-            'checkpoint_freq': 50,
+            'checkpoint_freq': 1,
             'stop': {
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-9-2019/MultiCentralObsDecentralAction",
+            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-10-2019/MultiCentralObsBottleneck",
             'num_samples': 3
         },
     })
