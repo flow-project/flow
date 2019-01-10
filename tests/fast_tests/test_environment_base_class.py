@@ -8,8 +8,8 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
+from flow.utils.exceptions import FatalFlowError
 from flow.envs import Env, TestEnv
-from flow.utils.flow_warnings import FatalFlowError
 
 from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os

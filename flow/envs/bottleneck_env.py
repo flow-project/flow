@@ -111,7 +111,6 @@ class BottleneckEnv(Env):
                 raise KeyError('Net parameter "{}" not supplied'.format(p))
 
         super().__init__(env_params, sim_params, scenario, simulator)
-        self.num_rl = deepcopy(self.k.vehicle.num_rl_vehicles)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
         self.scaling = scenario.net_params.additional_params.get("scaling")

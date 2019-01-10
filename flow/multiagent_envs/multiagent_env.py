@@ -9,7 +9,7 @@ from traci.exceptions import TraCIException
 from ray.rllib.env import MultiAgentEnv
 
 from flow.envs.base_env import Env
-from flow.utils.flow_warnings import FatalFlowError
+from flow.utils.exceptions import FatalFlowError
 
 
 class MultiEnv(MultiAgentEnv, Env):
