@@ -59,25 +59,25 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(int(self.vehicles.num_rl_vehicles/num_rings), ),
+            shape=(int(self.scenario.vehicles.num_rl_vehicles / num_rings), ),
             dtype=np.float32)
 
     def get_state(self):
         """See class definition."""
         obs = {}
-        for rl_id in self.vehicles.get_rl_ids():
-            lead_id = self.vehicles.get_leader(rl_id) or rl_id
+        for rl_id in self.k.vehicle.get_rl_ids():
+            lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
 
             # normalizers
             max_speed = 15.
             max_length = self.env_params.additional_params['ring_length'][1]
 
             observation = np.array([
-                self.vehicles.get_speed(rl_id) / max_speed,
-                (self.vehicles.get_speed(lead_id) -
-                 self.vehicles.get_speed(rl_id))
+                self.k.vehicle.get_speed(rl_id) / max_speed,
+                (self.k.vehicle.get_speed(lead_id) -
+                 self.k.vehicle.get_speed(rl_id))
                 / max_speed,
-                self.vehicles.get_headway(rl_id) / max_length
+                self.k.vehicle.get_headway(rl_id) / max_length
             ])
             obs.update({rl_id: observation})
 
@@ -88,7 +88,7 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         if rl_actions:
             rl_ids = list(rl_actions.keys())
             accel = list(rl_actions.values())
-            self.apply_acceleration(rl_ids, accel)
+            self.k.vehicle.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
@@ -100,9 +100,9 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
         for rl_id in rl_actions.keys():
             edge_id = rl_id.split('_')[1]
             edges = self.gen_edges(edge_id)
-            vehs_on_edge = self.vehicles.get_ids_by_edge(edges)
+            vehs_on_edge = self.k.vehicle.get_ids_by_edge(edges)
             vel = np.array([
-                self.vehicles.get_speed(veh_id)
+                self.k.vehicle.get_speed(veh_id)
                 for veh_id in vehs_on_edge
             ])
             if any(vel < -100) or kwargs['fail']:
@@ -121,9 +121,9 @@ class MultiWaveAttenuationPOEnv(MultiEnv):
     def additional_command(self):
         """Define which vehicles are observed for visualization purposes."""
         # specify observed vehicles
-        for rl_id in self.vehicles.get_rl_ids():
-            lead_id = self.vehicles.get_leader(rl_id) or rl_id
-            self.vehicles.set_observed(lead_id)
+        for rl_id in self.k.vehicle.get_rl_ids():
+            lead_id = self.k.vehicle.get_leader(rl_id) or rl_id
+            self.k.vehicle.set_observed(lead_id)
 
     def gen_edges(self, i):
         """Return the edges corresponding to the rl id"""

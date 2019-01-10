@@ -1,4 +1,3 @@
-from copy import deepcopy
 import numpy as np
 import random
 import traceback
@@ -51,37 +50,36 @@ class MultiEnv(MultiAgentEnv, Env):
             self.step_counter += 1
 
             # perform acceleration actions for controlled human-driven vehicles
-            if len(self.vehicles.get_controlled_ids()) > 0:
+            if len(self.k.vehicle.get_controlled_ids()) > 0:
                 accel = []
-                for veh_id in self.vehicles.get_controlled_ids():
-                    accel_contr = self.vehicles.get_acc_controller(veh_id)
+                for veh_id in self.k.vehicle.get_controlled_ids():
+                    accel_contr = self.k.vehicle.get_acc_controller(veh_id)
                     action = accel_contr.get_action(self)
                     accel.append(action)
-                self.apply_acceleration(self.vehicles.get_controlled_ids(),
-                                        accel)
+                self.k.vehicle.apply_acceleration(
+                    self.k.vehicle.get_controlled_ids(), accel)
 
             # perform lane change actions for controlled human-driven vehicles
-            if len(self.vehicles.get_controlled_lc_ids()) > 0:
+            if len(self.k.vehicle.get_controlled_lc_ids()) > 0:
                 direction = []
-                for veh_id in self.vehicles.get_controlled_lc_ids():
-                    lc_contr = self.vehicles.get_lane_changing_controller(
-                        veh_id)
-                    target_lane = lc_contr.get_action(self)
+                for veh_id in self.k.vehicle.get_controlled_lc_ids():
+                    target_lane = self.k.vehicle.get_lane_changing_controller(
+                        veh_id).get_action(self)
                     direction.append(target_lane)
-                self.apply_lane_change(
-                    self.vehicles.get_controlled_lc_ids(), direction=direction)
+                self.k.vehicle.apply_lane_change(
+                    self.k.vehicle.get_controlled_lc_ids(),
+                    direction=direction)
 
             # perform (optionally) routing actions for all vehicle in the
             # network, including rl and sumo-controlled vehicles
             routing_ids = []
             routing_actions = []
-            for veh_id in self.vehicles.get_ids():
-                if self.vehicles.get_routing_controller(veh_id) is not None:
+            for veh_id in self.k.vehicle.get_ids():
+                if self.k.vehicle.get_routing_controller(veh_id) is not None:
                     routing_ids.append(veh_id)
-                    route_contr = self.vehicles.get_routing_controller(veh_id)
+                    route_contr = self.k.vehicle.get_routing_controller(veh_id)
                     routing_actions.append(route_contr.choose_route(self))
-
-            self.choose_routes(routing_ids, routing_actions)
+            self.k.vehicle.choose_routes(routing_ids, routing_actions)
 
             self.apply_rl_actions(rl_actions)
 
@@ -90,20 +88,12 @@ class MultiEnv(MultiAgentEnv, Env):
             # advance the simulation in the simulator by one step
             self.k.simulation.simulation_step()
 
-            # collect subscription information from sumo
-            vehicle_obs = \
-                self.traci_connection.vehicle.getSubscriptionResults()
-            id_lists = \
-                self.traci_connection.simulation.getSubscriptionResults()
-
-            # store new observations in the vehicles and traffic lights class
-            self.vehicles.update(vehicle_obs, id_lists, self)
-
             # store new observations in the vehicles and traffic lights class
             self.k.update(reset=False)
 
             # update the colors of vehicles
-            self.update_vehicle_colors()
+            if self.sim_params.render:
+                self.k.vehicle.update_vehicle_colors()
 
             # crash encodes whether the simulator experienced a collision
             crash = self.k.simulation.check_collision()
@@ -129,7 +119,7 @@ class MultiEnv(MultiAgentEnv, Env):
             # test if a crash has occurred
             done[key] = crash
             # test if the agent has exited the system
-            if key in self.vehicles.get_arrived_ids():
+            if key in self.k.vehicle.get_arrived_ids():
                 done[key] = True
             # check if an agent is done
             if crash:
@@ -181,9 +171,7 @@ class MultiEnv(MultiAgentEnv, Env):
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sim_params.seed = random.randint(0, 1e5)
-            # modify the vehicles class to match initial data
-            self.vehicles = deepcopy(self.initial_vehicles)
-            # restart the simulation instance
+            # restart the sumo instance
             self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
@@ -191,26 +179,21 @@ class MultiEnv(MultiAgentEnv, Env):
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
-        for veh_id in self.traci_connection.vehicle.getIDList():
+        for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
             try:
-                self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
-                self.vehicles.remove(veh_id)
+                self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
-                pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
-        for veh_id in list(self.vehicles.get_ids()):
-            self.vehicles.remove(veh_id)
+        for veh_id in list(self.k.vehicle.get_ids()):
             # do not try to remove the vehicles from the network in the first
             # step after initializing the network, as there will be no vehicles
             if self.step_counter == 0:
                 continue
             try:
-                self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.unsubscribe(veh_id)
+                self.k.vehicle.remove(veh_id)
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
@@ -220,55 +203,44 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.initial_state[veh_id]
 
             try:
-                self.traci_connection.vehicle.addFull(
-                    veh_id,
-                    route_id,
-                    typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(pos),
-                    departSpeed=str(speed))
+                self.k.vehicle.add(
+                    veh_id=veh_id,
+                    type_id=type_id,
+                    route_id=route_id,
+                    lane=lane_index,
+                    pos=pos,
+                    speed=speed)
             except (FatalTraCIError, TraCIException):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
-                self.traci_connection.vehicle.remove(veh_id)
-                self.traci_connection.vehicle.addFull(
-                    veh_id,
-                    route_id,
-                    typeID=str(type_id),
-                    departLane=str(lane_index),
-                    departPos=str(pos),
-                    departSpeed=str(speed))
+                self.k.vehicle.remove(veh_id)
+                self.k.vehicle.add(
+                    veh_id=veh_id,
+                    type_id=type_id,
+                    route_id=route_id,
+                    lane=lane_index,
+                    pos=pos,
+                    speed=speed)
 
         # advance the simulation in the simulator by one step
         self.k.simulation.simulation_step()
 
-        # collect subscription information from sumo
-        vehicle_obs = self.traci_connection.vehicle.getSubscriptionResults()
-        id_lists = self.traci_connection.simulation.getSubscriptionResults()
-
-        # store new observations in the vehicles and traffic lights class
-        self.vehicles.update(vehicle_obs, id_lists, self)
-
-        # store new observations in the vehicles and traffic lights class
+        # update the information in each kernel to match the current state
         self.k.update(reset=True)
 
         # update the colors of vehicles
-        self.update_vehicle_colors()
+        if self.sim_params.render:
+            self.k.vehicle.update_vehicle_colors()
 
         # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) > self.vehicles.num_vehicles:
+        if len(self.initial_ids) > self.k.vehicle.num_vehicles:
             missing_vehicles = list(
-                set(self.initial_ids) - set(self.vehicles.get_ids()))
+                set(self.initial_ids) - set(self.k.vehicle.get_ids()))
             msg = '\nNot enough vehicles have spawned! Bad start?\n' \
                   'Missing vehicles / initial state:\n'
             for veh_id in missing_vehicles:
                 msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
             raise FatalFlowError(msg=msg)
-
-        self.prev_last_lc = dict()
-        for veh_id in self.vehicles.get_ids():
-            # re-initialize memory on last lc
-            self.prev_last_lc[veh_id] = -float("inf")
 
         states = self.get_state()
         self.state = {}

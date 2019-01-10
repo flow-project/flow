@@ -55,14 +55,14 @@ class TestCFMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [5, 10, 15, 20, 25]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -104,14 +104,14 @@ class TestBCMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [5, 10, 15, 20, 25]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -159,14 +159,14 @@ class TestOVMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [0, 10, 5, 5, 5]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -209,14 +209,14 @@ class TestLinearOVM(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [5, 10, 10, 15, 0]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -256,14 +256,14 @@ class TestIDMController(unittest.TestCase):
 
     def test_get_action(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         test_headways = [10, 20, 30, 40, 50]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         requested_accel = [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -274,12 +274,12 @@ class TestIDMController(unittest.TestCase):
         # set the perceived headway to zero
         test_headways = [0, 0, 0, 0, 0]
         for i, veh_id in enumerate(ids):
-            self.env.vehicles.set_headway(veh_id, test_headways[i])
+            self.env.k.vehicle.set_headway(veh_id, test_headways[i])
 
         # make sure the controller doesn't return a ZeroDivisionError when the
         # headway is zero
         [
-            self.env.vehicles.get_acc_controller(veh_id).get_action(self.env)
+            self.env.k.vehicle.get_acc_controller(veh_id).get_action(self.env)
             for veh_id in ids
         ]
 
@@ -431,14 +431,14 @@ class TestStaticLaneChanger(unittest.TestCase):
 
     def test_static_lane_changer(self):
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # run the experiment for a few iterations and collect the lane index
         # for vehicles
-        lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+        lanes = [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
             self.env.step(rl_actions=[])
-            lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+            lanes += [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
 
         # set the timer as very high and reset (the timer used to cause bugs at
         # the beginning of a new run for this controller)
@@ -447,10 +447,10 @@ class TestStaticLaneChanger(unittest.TestCase):
 
         # run the experiment for a few more iterations and collect the lane
         # index for vehicles
-        lanes = [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+        lanes = [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
         for i in range(5):
             self.env.step(rl_actions=[])
-            lanes += [self.env.vehicles.get_lane(veh_id) for veh_id in ids]
+            lanes += [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids]
 
         # assert that all lane indices are zero
         self.assertEqual(sum(np.array(lanes)), 0)
