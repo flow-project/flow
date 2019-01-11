@@ -860,13 +860,16 @@ class DesiredVelocityEnv(BottleneckEnv):
                     reward -= penalty
         return reward
 
-    def reset(self):
+    def reset(self, new_inflow_rate=None):
         add_params = self.env_params.additional_params
         if add_params.get("reset_inflow"):
             inflow_range = add_params.get("inflow_range")
             # FIXME(ev)
-            flow_rate = np.random.uniform(
-                min(inflow_range), max(inflow_range)) * self.scaling
+            if new_inflow_rate:
+                flow_rate = new_inflow_rate
+            else:
+                flow_rate = np.random.uniform(
+                    min(inflow_range), max(inflow_range)) * self.scaling
             self.inflow = flow_rate
             for _ in range(100):
                 try:
