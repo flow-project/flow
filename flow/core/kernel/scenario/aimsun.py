@@ -75,7 +75,7 @@ class AimsunKernelScenario(KernelScenario):
             "connections": scenario.connections,
             "inflows": None,
             "vehicle_types": scenario.vehicles.types,
-            "osm_path": scenario.net_params.osm_path
+            "osm_path": scenario.net_params.osm_path,
         }
 
         if scenario.net_params.inflows is not None:
@@ -307,7 +307,7 @@ class AimsunKernelScenario(KernelScenario):
     def flow_edge_name(self, edge):
         """Returns the edge name in Aimsun."""
         if edge not in self._edge_aimsun2flow:
-            print("aimsun edge unknown: {}".format(edge))
+            # print("aimsun edge unknown: {}".format(edge))
             return ''
         else:
             return self._edge_aimsun2flow[edge]

@@ -392,26 +392,30 @@ class SimpleGridScenario(Scenario):
                         {"from": "bot" + index,
                          "to": "bot" + "{}_{}".format(i, j + 1),
                          "fromLane": str(l),
-                         "toLane": str(l)}
+                         "toLane": str(l),
+                         "signal_group": "1"}
                     ]
                     conn += [
                         {"from": "top" + "{}_{}".format(i, j + 1),
                          "to": "top" + index,
                          "fromLane": str(l),
-                         "toLane": str(l)}
+                         "toLane": str(l),
+                         "signal_group": "1"}
                         ]
                 for l_h in range(lanes_horizontal):
                     conn += [
                         {"from": "right" + index,
                          "to": "right" + "{}_{}".format(i + 1, j),
                          "fromLane": str(l_h),
-                         "toLane": str(l_h)}
+                         "toLane": str(l_h),
+                         "signal_group": "2"}
                     ]
                     conn += [
                         {"from": "left" + "{}_{}".format(i + 1, j),
                          "to": "left" + index,
                          "fromLane": str(l_h),
-                         "toLane": str(l_h)}
+                         "toLane": str(l_h),
+                         "signal_group": "2"}
                     ]
                 con_dict[node_id] = conn
 
