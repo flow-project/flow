@@ -120,10 +120,26 @@ class FlowAimsunAPI(object):
         # collect the return values
         if out_format is not None:
             if out_format == 'str':
-                data = None
-                while data is None:
-                    data = self.s.recv(256)
-                unpacked_data = data.decode('utf-8')
+                done = False
+                unpacked_data = ''
+                while not done:
+                    # get the next bit of data
+                    data = None
+                    while data is None:
+                        data = self.s.recv(256)
+
+                    # concatenate the results
+                    unpacked_data += data.decode('utf-8')
+
+                    # ask for a status check (just by sending any command)
+                    self.s.send(str.encode('1'))
+
+                    # check if done
+                    unpacker = struct.Struct(format='i')
+                    data = None
+                    while data is None:
+                        data = self.s.recv(unpacker.size)
+                    done = unpacker.unpack(data)[0] == 0
             else:
                 unpacker = struct.Struct(format=out_format)
                 data = None
@@ -293,85 +309,29 @@ class FlowAimsunAPI(object):
 
     def get_entered_ids(self):
         """Return the ids of all vehicles that entered the network."""
-        res = []
+        veh_ids = self._send_command(ac.VEH_GET_ENTERED_IDS,
+                                     in_format=None,
+                                     values=None,
+                                     out_format='str')
 
-        # send the command type to the server
-        self.s.send(str(ac.VEH_GET_ENTERED_IDS).encode())
-
-        # wait for a response
-        unpacker = struct.Struct(format='i')
-        data = None
-        while data is None:
-            data = self.s.recv(unpacker.size)
-
-        # send the command type to the server
-        self.s.send(str(ac.VEH_GET_ENTERED_IDS).encode())
-
-        # wait for a response
-        unpacker = struct.Struct(format='i')
-        response = None
-        while response is None:
-            response = self.s.recv(unpacker.size)
-        unpacked_response = unpacker.unpack(response)[0]
-
-        while unpacked_response == 0:
-            # send the command type to the server
-            self.s.send(str(ac.VEH_GET_ENTERED_IDS).encode())
-
-            next_element = None
-            while next_element is None:
-                next_element = self.s.recv(2048)
-            res.append(int(next_element.decode('utf-8')))
-
-            # wait for a response
-            unpacker = struct.Struct(format='i')
-            response = None
-            while response is None:
-                response = self.s.recv(unpacker.size)
-            unpacked_response = unpacker.unpack(response)[0]
-
-        return res
+        if veh_ids == '-1':
+            return []
+        else:
+            veh_ids = veh_ids.split(':')
+            return [int(v) for v in veh_ids]
 
     def get_exited_ids(self):
         """Return the ids of all vehicles that exited the network."""
-        res = []
+        veh_ids = self._send_command(ac.VEH_GET_EXITED_IDS,
+                                     in_format=None,
+                                     values=None,
+                                     out_format='str')
 
-        # send the command type to the server
-        self.s.send(str(ac.VEH_GET_EXITED_IDS).encode())
-
-        # wait for a response
-        unpacker = struct.Struct(format='i')
-        data = None
-        while data is None:
-            data = self.s.recv(unpacker.size)
-
-        # send the command type to the server
-        self.s.send(str(ac.VEH_GET_EXITED_IDS).encode())
-
-        # wait for a response
-        unpacker = struct.Struct(format='i')
-        response = None
-        while response is None:
-            response = self.s.recv(unpacker.size)
-        unpacked_response = unpacker.unpack(response)[0]
-
-        while unpacked_response == 0:
-            # send the command type to the server
-            self.s.send(str(ac.VEH_GET_EXITED_IDS).encode())
-
-            next_element = None
-            while next_element is None:
-                next_element = self.s.recv(2048)
-            res.append(int(next_element.decode('utf-8')))
-
-            # wait for a response
-            unpacker = struct.Struct(format='i')
-            response = None
-            while response is None:
-                response = self.s.recv(unpacker.size)
-            unpacked_response = unpacker.unpack(response)[0]
-
-        return res
+        if veh_ids == '-1':
+            return []
+        else:
+            veh_ids = veh_ids.split(':')
+            return [int(v) for v in veh_ids]
 
     def get_vehicle_type_id(self, flow_id):
         """Get's the Aimsun type number of a Flow vehicle types.

@@ -2,7 +2,6 @@
 
 import argparse
 import joblib
-from matplotlib import pyplot as plt
 import numpy as np
 import os
 
@@ -88,7 +87,6 @@ def create_parser():
 
 
 if __name__ == '__main__':
-
     parser = create_parser()
     args = parser.parse_args()
     visualizer_rllab(args)

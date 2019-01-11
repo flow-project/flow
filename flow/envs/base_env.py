@@ -1,9 +1,9 @@
 """Base environment class. This is the parent of all other environments."""
 
 import logging
-import os
 import sys
 from copy import deepcopy
+import os
 import atexit
 import time
 import traceback
@@ -27,6 +27,7 @@ except ImportError:
 
 from flow.core.util import ensure_dir
 from flow.core.kernel import Kernel
+from flow.utils.exceptions import FatalFlowError
 
 # pick out the correct class definition
 if serializable_flag:
@@ -59,13 +60,15 @@ class Env(*classdef):
     ----------
     env_params : flow.core.params.EnvParams
        see flow/core/params.py
-    sim_params: flow.core.params.SimParams
+    sim_params : flow.core.params.SimParams
        see flow/core/params.py
-    scenario: Scenario type
+    scenario : flow.scenarios.Scenario
         see flow/scenarios/base_scenario.py
+    simulator : str
+        the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         # Invoke serializable if using rllab
         if serializable_flag:
             Serializable.quick_init(self, locals())
@@ -94,7 +97,7 @@ class Env(*classdef):
         self.sim_step = sim_params.sim_step
 
         # the simulator used by this environment
-        self.simulator = 'aimsun'
+        self.simulator = simulator
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
@@ -405,7 +408,8 @@ class Env(*classdef):
                 "**********************************************************"
             )
 
-        if self.sim_params.restart_instance or self.step_counter > 2e6:
+        if self.sim_params.restart_instance or self.step_counter > 2e6 \
+                and self.simulator != 'aimsun':  # FIXME: hack
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sim_params.seed = random.randint(0, 1e5)
@@ -420,11 +424,12 @@ class Env(*classdef):
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
-        # for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
-        #     try:
-        #         self.k.vehicle.remove(veh_id)
-        #     except (FatalTraCIError, TraCIException):
-        #         pass
+        if self.simulator == 'traci':
+            for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
+                try:
+                    self.k.vehicle.remove(veh_id)
+                except (FatalTraCIError, TraCIException):
+                    pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -477,12 +482,11 @@ class Env(*classdef):
         if len(self.initial_ids) > self.k.vehicle.num_vehicles:
             missing_vehicles = list(
                 set(self.initial_ids) - set(self.k.vehicle.get_ids()))
-            logging.error('Not enough vehicles have spawned! Bad start?')
-            logging.error('Missing vehicles / initial state:')
+            msg = '\nNot enough vehicles have spawned! Bad start?\n' \
+                  'Missing vehicles / initial state:\n'
             for veh_id in missing_vehicles:
-                logging.error('- {}: {}'.format(veh_id,
-                                                self.initial_state[veh_id]))
-            sys.exit()
+                msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
+            raise FatalFlowError(msg=msg)
 
         states = self.get_state()
         if isinstance(states, dict):

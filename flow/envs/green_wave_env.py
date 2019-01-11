@@ -63,7 +63,7 @@ class TrafficLightGridEnv(Env):
         vehicles.
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
 
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -77,7 +77,7 @@ class TrafficLightGridEnv(Env):
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
         # Saving env variables for plotting
         self.steps = env_params.horizon
@@ -464,8 +464,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
     """
 
-    def __init__(self, env_params, sim_params, scenario):
-        super().__init__(env_params, sim_params, scenario)
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        super().__init__(env_params, sim_params, scenario, simulator)
 
         for p in ADDITIONAL_PO_ENV_PARAMS.keys():
             if p not in env_params.additional_params:

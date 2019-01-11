@@ -49,11 +49,10 @@ class AimsunKernelScenario(KernelScenario):
       see:  # TODO: create tutorial
     """
 
-    def __init__(self, master_kernel):
+    def __init__(self, master_kernel, sim_params):
         """See parent class."""
-        KernelScenario.__init__(self, master_kernel)
+        KernelScenario.__init__(self, master_kernel, sim_params)
 
-        self.master_kernel = master_kernel
         self.kernel_api = None
         self.network = None
         self._edges = None
@@ -64,6 +63,7 @@ class AimsunKernelScenario(KernelScenario):
         self.rts = None
         self._edge_flow2aimsun = {}
         self._edge_aimsun2flow = {}
+        self.aimsun_proc = None
 
     def generate_network(self, scenario):
         self.network = scenario
@@ -75,7 +75,8 @@ class AimsunKernelScenario(KernelScenario):
             "connections": scenario.connections,
             "inflows": None,
             "vehicle_types": scenario.vehicles.types,
-            "osm_path": scenario.net_params.osm_path
+            "osm_path": scenario.net_params.osm_path,
+            'render': self.sim_params.render
         }
 
         if scenario.net_params.inflows is not None:
