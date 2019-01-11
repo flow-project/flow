@@ -75,7 +75,7 @@ class AimsunKernelScenario(KernelScenario):
             "connections": scenario.connections,
             "inflows": None,
             "vehicle_types": scenario.vehicles.types,
-            "osm_path": scenario.net_params.osm_path,
+            "osm_path": scenario.net_params.osm_path
         }
 
         if scenario.net_params.inflows is not None:
