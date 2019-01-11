@@ -99,7 +99,8 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         add_params = self.env_params.additional_params
         if add_params['centralized_obs']:
             rl_ids = self.vehicles.get_rl_ids()
-            return {rl_id: self.get_centralized_state() for rl_id in rl_ids}
+            state = self.get_centralized_state()
+            return {rl_id: state for rl_id in rl_ids}
         else:
             if self.env_params.additional_params.get('communicate', False):
                 veh_info = {rl_id: np.concatenate((self.state_util(rl_id),

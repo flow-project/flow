@@ -228,7 +228,7 @@ if __name__ == '__main__':
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-11-2019/MultiDecentralObsBottleneckTest",
+            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-11-2019/MultiDecentralObsBottleneckTest2",
             'num_samples': 1
         },
     })
