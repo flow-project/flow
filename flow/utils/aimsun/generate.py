@@ -11,6 +11,8 @@ sys.path.append(os.path.join(config.AIMSUN_NEXT_PATH,
                              'programming/Aimsun Next API/AAPIPython/Micro'))
 
 from flow.core.params import InFlows
+from flow.core.params import TrafficLightParams
+
 from copy import deepcopy
 import json
 import numpy as np
@@ -24,7 +26,7 @@ gui.newDoc(os.path.join(config.PROJECT_PATH,
 model = gui.getActiveModel()
 
 
-def generate_net(nodes, edges, connections, inflows, veh_types):
+def generate_net(nodes, edges, connections, inflows, veh_types, traffic_lights):
     inflows = inflows.get()
     lane_width = 3.6  # TODO additional params??
     type_section = model.getType("GKSection")
@@ -171,13 +173,14 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             "Control Plan", model.getType("GKControlPlan"))
 
     # add traffic lights
+    tls_properties = traffic_lights.get_properties()
     # determine junctions
     junctions = get_junctions(nodes)
     # add meters for all nodes in junctions
     for node in junctions:
-        node = model.getCatalog().findByName(
-            node['id'], model.getType("GKNode"))
-        create_node_meters(model, control_plan, node)
+        phases = tls_properties[node['id']]["phases"]
+        print(phases)
+        create_node_meters(model, control_plan, node['id'], phases)
 
     # set vehicle types
     vehicles = model.getCatalog().getObjectsByType(type_vehicle)
@@ -259,11 +262,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
     scenario_data = scenario.getInputData()
     scenario_data.addExtension(os.path.join(
         config.PROJECT_PATH, "flow/utils/aimsun/run.py"), True)
-
-    # set sim step
-    # experiment_name = "Micro SRC Experiment 867"
-    # experiment = model.getCatalog().findByName(
-    #     experiment_name, model.getType("GKExperiment"))  # find scenario
 
     # save
     gui.saveAs('flow.ang')
@@ -559,7 +557,8 @@ def set_signal_times(cp, node, signal_groups):  # TODO generalize
         from_time = from_time + 20
 
 
-def create_meter(model, section):
+def create_meter(model, edge):
+    section = model.getCatalog().findByName(edge, model.getType("GKSection"))
     meter_length = 2
     pos = section.getLanesLength2D() - meter_length
     type = model.getType("GKMetering")
@@ -584,10 +583,8 @@ def set_metering_times(
     cp_meter.setMaxGreen(max_green)
 
 
-def create_node_meters(model, cp, node, phases):
+def create_node_meters(model, cp, node_id, phases):
     meters = []
-    node_id = node.getName()
-    enter_sections = node.getEntranceSections()
     signal_groups = {}
     for connection in connections[node_id]:
         if connection["signal_group"] in signal_groups:
@@ -596,33 +593,27 @@ def create_node_meters(model, cp, node, phases):
         else:
             signal_groups[connection["signal_group"]] = [connection["from"]]
 
+    # get cycle length
+    cycle = 0
     for signal_group, edges in signal_groups.items():
+        cycle += int(phases[signal_group]["duration"]) + \
+                 int(phases[signal_group]["yellow"])
 
-        phases[signal_group]["duration"]
+    # set a meter for each edge in each signal group cycle length
+    sum_phases = 0
+    for signal_group, edges in signal_groups.items():
+        green = int(phases[signal_group]["duration"])
+        yellow = int(phases[signal_group]["yellow"])
+        min_green = int(phases[signal_group]["minDur"])
+        max_green = int(phases[signal_group]["maxDur"])
+        for edge in edges:
+            meter = create_meter(model, edge)
+            set_metering_times(cp, meter, cycle, green, yellow,
+                               sum_phases, min_green, max_green)
+            meters.append(meter)
+        sum_phases += green + yellow
+    return meters
 
-
-
-
-
-
-
-
-    for section in enter_sections:
-        meter = create_meter(model, section)
-        # default light params
-        cycle = 40
-        green = 17
-        yellow = 3
-        min_green = 5
-        max_green = 40
-        # offset for vertical edges is 20 and for horizontal edges is 0
-        if "bot" in meter.getName() or "top" in meter.getName():
-            offset = 0
-        elif "left" in meter.getName() or "right" in meter.getName():
-            offset = 20
-        set_metering_times(cp, meter, cycle, green, yellow, offset, min_green,
-                           max_green)
-        meters.append(meter)
 
 def set_sim_step(experiment, sim_step):
     # Get Simulation Step attribute column
@@ -645,6 +636,12 @@ if data['inflows'] is not None:
     inflows.__dict__ = data['inflows'].copy()
 else:
     inflows = None
+
+if data['traffic_lights'] is not None:
+    traffic_lights = TrafficLightParams()
+    traffic_lights.__dict__ = data['traffic_lights'].copy()
+else:
+    traffic_lights = None
 
 # generate the network
 if osm_path is not None:
@@ -680,14 +677,14 @@ else:
                     new_dict.pop("id")
                     edges[i].update(new_dict)
                     break
-    generate_net(nodes, edges, connections, inflows, veh_types)
+    generate_net(nodes, edges, connections, inflows, veh_types, traffic_lights)
 
 # set sim step
+sim_step = data["sim_step"]
 # retrieve experiment by name
 experiment_name = "Micro SRC Experiment 867"
 experiment = model.getCatalog().findByName(
     experiment_name, model.getType("GKTExperiment"))
-sim_step = 0.9
 set_sim_step(experiment, sim_step)
 
 # run the simulation
