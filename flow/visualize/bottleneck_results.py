@@ -44,9 +44,9 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
-OUTFLOW_RANGE = [1000, 2000]
-NUM_GRID_POINTS = 10
-NUM_TRIALS = 5
+OUTFLOW_RANGE = [2.0, 2000]
+NUM_GRID_POINTS = 2
+NUM_TRIALS = 2
 END_LEN = 500
 
 class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
@@ -137,6 +137,7 @@ def visualizer_rllib(args):
         sim_params.render = True
     elif args.render_mode == 'no_render':
         sim_params.render = False
+        sim_params.restart_instance = True
 
     if args.save_render:
         sim_params.render = 'drgb'
@@ -208,10 +209,10 @@ def visualizer_rllib(args):
     # keep track of the last 500 points of velocity data for lane 0 and 1 in edge 4
     velocity_arr = np.zeros((END_LEN*NUM_GRID_POINTS*NUM_TRIALS, 3))
 
-    for i in range(NUM_TRIALS):
-        for j in range(NUM_GRID_POINTS):
+    for i in range(NUM_GRID_POINTS):
+        for j in range(NUM_TRIALS):
             vel = []
-            state = env.reset(inflow_grid[j])
+            state = env.unwrapped.reset(inflow_grid[i])
             if multiagent:
                 ret = {key: [0] for key in rets.keys()}
             else:
@@ -219,7 +220,7 @@ def visualizer_rllib(args):
             for k in range(env_params.horizon):
                 vehicles = env.unwrapped.vehicles
                 vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
-                if k > env_params.horizon - END_LEN:
+                if k >= env_params.horizon - END_LEN:
                     vehs_on_four = vehicles.get_ids_by_edge('4')
                     lanes = vehicles.get_lane(vehs_on_four)
                     lane_dict = {veh_id: lane for veh_id, lane in
@@ -227,13 +228,19 @@ def visualizer_rllib(args):
                     sort_by_lane = sorted(vehs_on_four,
                                           key=lambda x: lane_dict[x])
                     num_zeros = lanes.count(0)
-                    speed_on_zero = np.mean(vehicles.get_speed(sort_by_lane[0:num_zeros]))
-                    speed_on_one = np.mean(vehicles.get_speed(sort_by_lane[num_zeros:]))
-                    velocity_arr[END_LEN*(j*NUM_GRID_POINTS + i), :] = [inflow_grid[j],
+                    if num_zeros > 0:
+                        speed_on_zero = np.mean(vehicles.get_speed(sort_by_lane[0:num_zeros]))
+                    else:
+                        speed_on_zero = 0.0
+                    if num_zeros < len(vehs_on_four):
+                        speed_on_one = np.mean(vehicles.get_speed(sort_by_lane[num_zeros:]))
+                    else:
+                        speed_on_one = 0.0
+                    velocity_arr[END_LEN * (j + i * NUM_TRIALS) + k -(
+                                 env_params.horizon - END_LEN), :] = [inflow_grid[i],
                                                                         speed_on_zero,
                                                                         speed_on_one]
 
-                print(vehicles.get_outflow_rate(10000))
                 if multiagent:
                     action = {}
                     for agent_id in state.keys():
@@ -258,7 +265,7 @@ def visualizer_rllib(args):
             else:
                 rets.append(ret)
             outflow = vehicles.get_outflow_rate(500)
-            outflow_arr[j*NUM_GRID_POINTS + i, :] = [inflow_grid[j], outflow]
+            outflow_arr[j + i * NUM_TRIALS, :] = [inflow_grid[i], outflow]
             final_outflows.append(outflow)
             mean_speed.append(np.mean(vel))
             if multiagent:
@@ -301,7 +308,6 @@ def visualizer_rllib(args):
                                for inflow in unique_inflows])
 
     plt.figure(figsize=(27, 9))
-
     plt.plot(unique_inflows, mean_outflows, linewidth=2, color='orange')
     plt.fill_between(unique_inflows, mean_outflows - std_outflows,
                      mean_outflows + std_outflows, alpha=0.25, color='orange')
@@ -335,6 +341,7 @@ def visualizer_rllib(args):
     plt.tick_params(labelsize=20)
     plt.rcParams['xtick.minor.size'] = 20
     plt.minorticks_on()
+    plt.show()
 
     # Plot the "inequality" of the resultant solution by visualizing outflow velocity per lane
 
@@ -405,7 +412,7 @@ def create_parser():
         type=str,
         default='sumo_gui',
         help='Pick the render mode. Options include sumo_web3d, '
-             'rgbd and sumo_gui')
+             'rgbd, no_render and sumo_gui')
     parser.add_argument(
         '--save_render',
         action='store_true',
