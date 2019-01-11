@@ -141,7 +141,6 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
                 and connections[node['id']] is not None:
             # add connections
             for connection in connections[node['id']]:
-                print (connection)
                 cmd = model.createNewCmd(type_turn)
                 from_section = model.getCatalog().findByName(
                     connection["from"], type_section, True)
@@ -225,6 +224,19 @@ def generate_net(nodes, edges, connections, inflows, veh_types):
             inflow['edge'], type_section)
         traffic_state_aimsun.setEntranceFlow(
             edge_aimsun, None, inflow['vehsPerHour'])
+
+    # for centroid in centroids:
+    #     cmd = model.createNewCmd(model.getType("GKCentroid"))
+    #     pos = GKPoint(centroid['x'], centroid['y'], 0)
+    #     conf = model.getCatalog().findByName("Centroid Configuration 905",
+    #                                          model.getType(
+    #                                              "GKCentroidConfiguration"))
+    #     cmd.setData(pos, conf);
+    #     model.getCommander().addCommand(cmd);
+    #     res = cmd.createdObject();
+    #     res.setName(centroid["id"])
+    #     print("done", res.getName())
+
 
     # get traffic demand
     demand = model.getCatalog().findByName(
@@ -374,8 +386,6 @@ def generate_net_osm(file_name, inflows, veh_types):
 
     # save
     gui.saveAs('flow.ang')
-
-
 
 
 def get_junctions(nodes):
@@ -605,9 +615,29 @@ def set_metering_times(
     cp_meter.setMaxGreen(max_green)
 
 
-def create_node_meters(model, cp, node):
+def create_node_meters(model, cp, node, phases):
     meters = []
+    node_id = node.getName()
     enter_sections = node.getEntranceSections()
+    signal_groups = {}
+    for connection in connections[node_id]:
+        if connection["signal_group"] in signal_groups:
+            signal_groups[
+                connection["signal_group"]].append(connection["from"])
+        else:
+            signal_groups[connection["signal_group"]] = [connection["from"]]
+
+    for signal_group, edges in signal_groups.items():
+
+        phases[signal_group]["duration"]
+
+
+
+
+
+
+
+
     for section in enter_sections:
         meter = create_meter(model, section)
         # default light params
@@ -625,6 +655,12 @@ def create_node_meters(model, cp, node):
                            max_green)
         meters.append(meter)
 
+def set_sim_step(experiment, sim_step):
+    # Get Simulation Step attribute column
+    col_sim = model.getColumn('GKExperiment::simStepAtt')
+    # Set new simulation step value
+    experiment.setDataValue(col_sim, sim_step)
+
 
 # collect the scenario-specific data
 data_file = 'flow/core/kernel/scenario/data.json'
@@ -641,17 +677,14 @@ if data['inflows'] is not None:
 else:
     inflows = None
 
-print(1111111111)
 # generate the network
 if osm is not None:
-    print(22222222222)
     # filename = osm
     filename = "/home/yashar/Desktop/bay_bridge.osm"
     generate_net_osm(filename, inflows, veh_types)
     edge_osm = {}
 
     section_type = model.getType( "GKSection" )
-    print(555555)
     for types in model.getCatalog().getUsedSubTypesFromType( section_type ):
         for s in types.itervalues():
             print(s.getId())
@@ -664,7 +697,6 @@ if osm is not None:
                             "numLanes": num_lanes
                             }
     # cur_dir = os.path.dirname(__file__)
-    # TODO: add current time
     with open(os.path.join(config.PROJECT_PATH, 'flow/utils/aimsun/osm_edges.json'), 'w') as outfile:
         json.dump(edge_osm, outfile, sort_keys=True, indent=4)
 
@@ -682,12 +714,15 @@ else:
                     new_dict.pop("id")
                     edges[i].update(new_dict)
                     break
-    print(333333333333)
     generate_net(nodes, edges, connections, inflows, veh_types)
 
-
-
-
+# set sim step
+# retrieve experiment by name
+experiment_name = "Micro SRC Experiment 867"
+experiment = model.getCatalog().findByName(
+    experiment_name, model.getType("GKTExperiment"))
+sim_step = 0.9
+set_sim_step(experiment, sim_step)
 
 # run the simulation
 # find the replication
