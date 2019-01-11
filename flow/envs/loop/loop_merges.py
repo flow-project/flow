@@ -60,7 +60,7 @@ class TwoLoopsMergePOEnv(Env):
         vehicles.
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -75,7 +75,7 @@ class TwoLoopsMergePOEnv(Env):
         self.obs_var_labels = \
             ["speed", "pos", "queue_length", "velocity_stats"]
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
     @property
     def observation_space(self):
@@ -115,7 +115,7 @@ class TwoLoopsMergePOEnv(Env):
         max_cost = np.linalg.norm(max_cost)
         normalization = self.k.scenario.length() / self.k.vehicle.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
-            self.k.vehicle, self.sorted_extra_data, normalization)
+            self.k.vehicle, self.sorted_ids, normalization)
         return vel_reward + headway_reward
 
     def get_state(self, **kwargs):
@@ -123,7 +123,7 @@ class TwoLoopsMergePOEnv(Env):
         vel = np.zeros(self.n_obs_vehicles)
         pos = np.zeros(self.n_obs_vehicles)
 
-        sorted = self.sorted_extra_data
+        sorted = self.sorted_ids
         merge_len = self.k.scenario.network.intersection_length
 
         # Merge stretch is pos 0.0-25.5 (ish), so actively merging vehicles
@@ -200,29 +200,6 @@ class TwoLoopsMergePOEnv(Env):
 
     @property
     def sorted_ids(self):
-        """Sort vehicle IDs with separated humans and AVs.
-
-        Instead of being sorted by a global reference, vehicles in this
-        environment are sorted with regards to which ring this currently
-        reside on.
-        """
-        pos = [self.k.vehicle.get_x_by_id(veh_id)
-               for veh_id in self.k.vehicle.get_ids()]
-        sorted_indx = np.argsort(pos)
-        sorted_ids = np.array(self.k.vehicle.get_ids())[sorted_indx]
-
-        sorted_human_ids = [veh_id for veh_id in sorted_ids
-                            if veh_id not in self.k.vehicle.get_rl_ids()]
-
-        sorted_rl_ids = [veh_id for veh_id in sorted_ids
-                         if veh_id in self.k.vehicle.get_rl_ids()]
-
-        sorted_separated_ids = sorted_human_ids + sorted_rl_ids
-
-        return sorted_separated_ids
-
-    @property
-    def sorted_extra_data(self):
         """Sort vehicle IDs.
 
         Instead of being sorted by a global reference, vehicles in this

@@ -399,6 +399,58 @@ class SimParams(object):
         self.show_radius = show_radius
 
 
+class AimsunParams(SimParams):
+    """Aimsun-specific simulation parameters.
+
+    Extends SimParams.
+    """
+    def __init__(self,
+                 sim_step=0.1,
+                 render=False,
+                 restart_instance=False,
+                 emission_path=None,
+                 save_render=False,
+                 sight_radius=25,
+                 show_radius=False,
+                 pxpm=2):
+        """Instantiate AimsunParams.
+
+        Parameters
+        ----------
+        sim_step: float optional
+            seconds per simulation step; 0.1 by default
+        render: str or bool, optional
+            specifies whether to visualize the rollout(s)
+
+            * False: no rendering
+            * True: delegate rendering to sumo-gui for back-compatibility
+            * "gray": static grayscale rendering, which is good for training
+            * "dgray": dynamic grayscale rendering
+            * "rgb": static RGB rendering
+            * "drgb": dynamic RGB rendering, which is good for visualization
+
+        restart_instance: bool, optional
+            specifies whether to restart a simulation upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "render" is set to True.
+        emission_path: str, optional
+            Path to the folder in which to create the emissions output.
+            Emissions output is not generated if this value is not specified
+        save_render: bool, optional
+            specifies whether to save rendering data to disk
+        sight_radius: int, optional
+            sets the radius of observation for RL vehicles (meter)
+        show_radius: bool, optional
+            specifies whether to render the radius of RL observation
+        pxpm: int, optional
+            specifies rendering resolution (pixel / meter)
+        """
+        super(AimsunParams, self).__init__(
+            sim_step, render, restart_instance, emission_path, save_render,
+            sight_radius, show_radius, pxpm)
+
+
 class SumoParams(SimParams):
     """Sumo-specific simulation parameters.
 
@@ -422,7 +474,6 @@ class SumoParams(SimParams):
                  show_radius=False,
                  pxpm=2,
                  overtake_right=False,
-                 ballistic=False,
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
@@ -466,10 +517,6 @@ class SumoParams(SimParams):
         overtake_right: bool, optional
             whether vehicles are allowed to overtake on the right as well as
             the left
-        ballistic: bool, optional
-            specifies whether to use ballistic step updates. This is somewhat
-            more realistic, but increases the possibility of collisions.
-            Defaults to False
         seed: int, optional
             seed for sumo instance
         restart_instance: bool, optional
@@ -493,7 +540,6 @@ class SumoParams(SimParams):
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
         self.seed = seed
-        self.ballistic = ballistic
         self.overtake_right = overtake_right
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
@@ -682,10 +728,6 @@ class InitialConfig:
         self.lanes_distribution = lanes_distribution
         self.edges_distribution = edges_distribution
         self.additional_params = additional_params or dict()
-
-    def get_additional_params(self, key):
-        """Return a variable from additional_params."""
-        return self.additional_params[key]
 
 
 class SumoCarFollowingParams:
@@ -1009,9 +1051,7 @@ class InFlows:
             begin=1,
             end=2e6,
             vehs_per_hour=None,
-            period=None,
             probability=None,
-            number=None,
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 
@@ -1030,11 +1070,7 @@ class InFlows:
             see Note
         vehs_per_hour: float, optional
             see vehsPerHour in Note
-        period: float, optional
-            see Note
         probability: float, optional
-            see Note
-        number: int, optional
             see Note
         kwargs: dict, optional
             see Note
@@ -1068,12 +1104,8 @@ class InFlows:
             new_inflow["begin"] = begin
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
-        if period is not None:
-            new_inflow["period"] = period  # TODO: specify sumo-specific
         if probability is not None:
-            new_inflow["probability"] = probability  # TODO: specify sumo-specific
-        if number is not None:
-            new_inflow["number"] = number
+            new_inflow["probability"] = probability
 
         self.__flows.append(new_inflow)
 

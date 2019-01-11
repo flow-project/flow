@@ -205,6 +205,8 @@ class SimpleGridScenario(Scenario):
         list <dict>
             List of inner nodes
         """
+        lanes = max(self.net_params.additional_params["horizontal_lanes"],
+                    self.net_params.additional_params["vertical_lanes"])
         tls = self.net_params.additional_params.get("traffic_lights", True)
         node_type = "traffic_light" if tls else "priority"
         row_num = self.grid_array["row_num"]
@@ -222,8 +224,8 @@ class SimpleGridScenario(Scenario):
                     "id": "center" + str(index),
                     "x": x_center,
                     "y": y_center,
-                    "radius": (2.9 + 3.3 * self.net_params.additional_params["horizontal_lanes"]),
-                    "type": node_type
+                    "type": node_type,
+                    "radius": (2.9 + 3.3 * lanes)/2,
                 })
         return nodes
 

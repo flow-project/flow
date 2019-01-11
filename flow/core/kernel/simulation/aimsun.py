@@ -1,16 +1,9 @@
 """Script containing the base simulation kernel class."""
 from flow.core.kernel.simulation.base import KernelSimulation
 from flow.utils.aimsun.api import FlowAimsunAPI
-import subprocess
 import os.path as osp
 import csv
 from flow.core.util import ensure_dir
-
-try:
-    # Load user config if exists, else load default config
-    import flow.config as config
-except ImportError:
-    import flow.config_default as config
 
 
 class AimsunKernelSimulation(KernelSimulation):
@@ -34,7 +27,6 @@ class AimsunKernelSimulation(KernelSimulation):
         self.master_kernel = master_kernel
         self.kernel_api = None
         self.sim_step = None
-        self.aimsun_proc = None
         self.emission_path = None
 
         # used to internally keep track of the simulation time
@@ -74,19 +66,6 @@ class AimsunKernelSimulation(KernelSimulation):
         self.emission_path = sim_params.emission_path
         if self.emission_path is not None:
             ensure_dir(self.emission_path)
-
-        # # path to the Aimsun_Next binary
-        # aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
-        #                        'Aimsun_Next')
-        #
-        # # path to the supplementary file that is used to generate an aimsun
-        # # network from a template
-        # script_path = osp.join(config.PROJECT_PATH,
-        #                        'flow/utils/aimsun/generate.py')
-        #
-        # # start the aimsun process
-        # aimsun_call = [aimsun_path, "-script", script_path]
-        # self.aimsun_proc = subprocess.Popen(aimsun_call)
 
         return FlowAimsunAPI(port=sim_params.port)
 
@@ -138,9 +117,10 @@ class AimsunKernelSimulation(KernelSimulation):
                 writer.writerow(self.stored_data.keys())
                 writer.writerows(zip(*self.stored_data.values()))
 
+        # close the API and simulation process
         try:
             self.kernel_api.stop_simulation()
-            self.aimsun_proc.kill()
+            self.master_kernel.scenario.aimsun_proc.kill()
         except OSError:
             # in case no simulation originally existed (used by the visualizer)
             pass

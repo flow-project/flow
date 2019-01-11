@@ -38,7 +38,6 @@ class BaseController:
             variance of the gaussian from which to sample a noisy acceleration
         """
         self.veh_id = veh_id
-        self.sumo_controller = False
 
         # magnitude of gaussian noise
         self.accel_noise = noise
@@ -54,10 +53,6 @@ class BaseController:
         self.max_deaccel = abs(car_following_params.controller_params['decel'])
 
         self.car_following_params = car_following_params
-
-    def uses_sumo(self):
-        """Specify whether the controller uses sumo's default accelerations."""
-        return self.sumo_controller
 
     def get_accel(self, env):
         """Return the acceleration of the controller."""
