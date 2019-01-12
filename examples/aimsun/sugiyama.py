@@ -34,11 +34,7 @@ def sugiyama_example(render=None):
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
-        num_vehicles=21)
-    vehicles.add(
-        veh_id="rl",
-        acceleration_controller=(RLController, {}),
-        num_vehicles=1)
+        num_vehicles=22)
 
     env_params = EnvParams()
 
