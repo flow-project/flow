@@ -43,7 +43,7 @@ vehicles.add(
         max_speed=V_ENTER,
         speed_mode="right_of_way",
     ),
-    #routing_controller=(GridRouter, {}),
+    routing_controller=(GridRouter, {}),
     num_vehicles=(N_LEFT + N_RIGHT) * N_COLUMNS + (N_BOTTOM + N_TOP) * N_ROWS)
 
 # inflows of vehicles are place on all outer edges (listed here)
@@ -73,11 +73,14 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="SimpleGridScenario",
 
+    # simulator that is used by the experiment
+    simulator='traci',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
-        # restart_instance=True,
+        restart_instance=True,
         sim_step=1,
-        render=True,
+        render=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

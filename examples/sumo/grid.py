@@ -55,7 +55,7 @@ def grid_example(render=None):
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
-        #routing_controller=(GridRouter, {}),
+        routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)

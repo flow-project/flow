@@ -737,7 +737,7 @@ class TestDesiredVelocityEnv(unittest.TestCase):
         net_params = NetParams(
             inflows=inflow,
             no_internal_links=False,
-            additional_params={"scaling": 1})
+            additional_params={"scaling": 1, "speed_limit": 23})
 
         scenario = BottleneckScenario(
             name="bay_bridge_toll",

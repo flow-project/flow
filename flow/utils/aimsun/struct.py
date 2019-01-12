@@ -21,6 +21,12 @@ class InfVeh(object):
         y coordinates of the middle point of the front bumper of the vehicle
     zCurrentPos : float
         z coordinates of the middle point of the front bumper of the vehicle
+    xCurrentPosBack : float
+        x coordinates of the midle point of the rear bumper of the vehicle
+    yCurrentPosBack : float
+        y coordinates of the midle point of the rear bumper of the vehicle
+    zCurrentPosBack : float
+        z coordinates of the midle point of the rear bumper of the vehicle
     CurrentSpeed : float
         Current speed (in km/h or mph, depending on the units defined in the
         network)
@@ -63,6 +69,9 @@ class InfVeh(object):
         self.xCurrentPos = None
         self.yCurrentPos = None
         self.zCurrentPos = None
+        self.xCurrentPosBack = None
+        self.yCurrentPosBack = None
+        self.zCurrentPosBack = None
         self.CurrentSpeed = None
         self.TotalDistance = None
         self.SectionEntranceT = None

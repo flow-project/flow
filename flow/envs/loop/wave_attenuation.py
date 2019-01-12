@@ -41,7 +41,8 @@ class WaveAttenuationEnv(Env):
     * max_accel: maximum acceleration of autonomous vehicles
     * max_decel: maximum deceleration of autonomous vehicles
     * ring_length: bounds on the ranges of ring road lengths the autonomous
-      vehicle is trained on
+      vehicle is trained on. If set to None, the environment sticks to the ring
+      road specified in the original scenario definition.
 
     States
         The state consists of the velocities and absolute position of all
@@ -142,6 +143,10 @@ class WaveAttenuationEnv(Env):
         The sumo instance is reset with a new ring length, and a number of
         steps are performed with the rl vehicle acting as a human vehicle.
         """
+        # skip if ring length is None
+        if self.env_params.additional_params['ring_length'] is None:
+            return super().reset()
+
         # reset the step counter
         self.step_counter = 0
 

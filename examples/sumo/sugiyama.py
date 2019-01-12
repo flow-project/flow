@@ -27,7 +27,7 @@ def sugiyama_example(render=None):
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a ring road.
     """
-    sim_params = SumoParams(sim_step=0.2, render=True)
+    sim_params = SumoParams(sim_step=0.1, render=True)
 
     if render is not None:
         sim_params.render = render
@@ -36,7 +36,7 @@ def sugiyama_example(render=None):
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
-        #routing_controller=(ContinuousRouter, {}),
+        routing_controller=(ContinuousRouter, {}),
         num_vehicles=22)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)

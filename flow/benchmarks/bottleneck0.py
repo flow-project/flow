@@ -89,7 +89,7 @@ if not DISABLE_TB:
 if not DISABLE_RAMP_METER:
     traffic_lights.add(node_id="3")
 
-additional_net_params = {"scaling": SCALING}
+additional_net_params = {"scaling": SCALING, "speed_limit": 23}
 net_params = NetParams(
     inflows=inflow,
     no_internal_links=False,
@@ -104,6 +104,9 @@ flow_params = dict(
 
     # name of the scenario class the experiment is running on
     scenario="BottleneckScenario",
+
+    # simulator that is used by the experiment
+    simulator='traci',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(

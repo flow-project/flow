@@ -15,37 +15,9 @@ RED = (255, 0, 0)
 
 
 class AimsunKernelVehicle(KernelVehicle):
-    """Flow vehicle kernel.
+    """Aimsun vehicle kernel.
 
-    This kernel sub-class is used to interact with the simulator with regards
-    to all vehicle-dependent components. Specifically, this class contains
-    methods for:
-
-    * Interacting with the simulator: This includes apply acceleration, lane
-      change, and routing commands to specific vehicles in the simulator. In
-      addition, methods exist to add or remove a specific vehicle from the
-      network, and update internal state information after every simulation
-      step in order to support and potentially speed up all state-acquisition
-      methods.
-    * Visually distinguishing vehicles by type: In the case when some vehicles
-      are controlled by a reinforcement learning agent or some other
-      controller, these methods can be used to visually distinguish the
-      vehicles during rendering by RL/actuated, human-observed, and
-      human-unobserved. The traci simulator, for instance, renders RL vehicles
-      as red, observed human vehicles as cyan, and unobserved human vehicles as
-      white. In the absence of RL/actuated agents, all vehicles are white.
-    * State acquisition: Finally, this methods contains several methods for
-      acquiring state information from specific vehicles. For example, if you
-      would like to get the speed of a vehicle from the environment, that can
-      be done by calling:
-
-        >>> from flow.envs.base_env import Env
-        >>> env = Env(...)
-        >>> veh_id = "test_car"  # name of the vehicle
-        >>> speed = env.k.vehicle.get_speed(veh_id)
-
-    All methods in this class are abstract, and must be filled in by the child
-    vehicle kernel of separate simulators.
+    Extends KernelVehicle.
     """
 
     def __init__(self,
@@ -157,6 +129,9 @@ class AimsunKernelVehicle(KernelVehicle):
              self.__vehicles[veh_id]['tracking_info'].xCurrentPos,
              self.__vehicles[veh_id]['tracking_info'].yCurrentPos,
              self.__vehicles[veh_id]['tracking_info'].zCurrentPos,
+             self.__vehicles[veh_id]['tracking_info'].xCurrentPosBack,
+             self.__vehicles[veh_id]['tracking_info'].yCurrentPosBack,
+             self.__vehicles[veh_id]['tracking_info'].zCurrentPosBack,
              self.__vehicles[veh_id]['tracking_info'].CurrentSpeed,
              self.__vehicles[veh_id]['tracking_info'].TotalDistance,
              self.__vehicles[veh_id]['tracking_info'].SectionEntranceT,
