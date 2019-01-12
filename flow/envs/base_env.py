@@ -114,7 +114,7 @@ class Env(*classdef):
         # the scenario kernel as an input in order to determine what network
         # needs to be simulated.
         kernel_api = self.k.simulation.start_simulation(
-            network=self.k.scenario, sim_params=sim_params)
+            scenario=self.k.scenario, sim_params=sim_params)
 
         # pass the kernel api to the kernel and it's subclasses
         self.k.pass_api(kernel_api)
@@ -202,7 +202,7 @@ class Env(*classdef):
         self.k.scenario.generate_network(self.scenario)
         self.k.vehicle.initialize(deepcopy(self.scenario.vehicles))
         kernel_api = self.k.simulation.start_simulation(
-            network=self.k.scenario, sim_params=self.sim_params)
+            scenario=self.k.scenario, sim_params=self.sim_params)
         self.k.pass_api(kernel_api)
 
         self.setup_initial_state()
@@ -408,7 +408,7 @@ class Env(*classdef):
                 "**********************************************************"
             )
 
-        if self.sim_params.restart_instance or self.step_counter > 2e6 \
+        if (self.sim_params.restart_instance or self.step_counter > 2e6) \
                 and self.simulator != 'aimsun':  # FIXME: hack
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout

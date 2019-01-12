@@ -50,7 +50,7 @@ class AimsunKernelSimulation(KernelSimulation):
         """See parent class."""
         self.kernel_api = kernel_api
 
-    def start_simulation(self, network, sim_params):
+    def start_simulation(self, scenario, sim_params):
         """See parent class.
 
         This method calls the aimsun generator to generate the network, starts
