@@ -27,9 +27,9 @@ class AimsunKernelSimulation(KernelSimulation):
         # a file used to store data if an emission file is provided
         self.stored_data = {
             'time': [],
-            # 'x': [],
-            # 'y': [],
-            # 'angle': [],
+            'x': [],
+            'y': [],
+            'angle': [],
             'type': [],
             'id': [],
             'relative_position': [],
@@ -77,17 +77,21 @@ class AimsunKernelSimulation(KernelSimulation):
 
         if self.emission_path is not None:
             for veh_id in self.master_kernel.vehicle.get_ids():
+                pos = self.master_kernel.vehicle.get_position_world(veh_id)
                 self.stored_data['id'].append(
                     veh_id)
                 self.stored_data['time'].append(
                     self.time)
                 self.stored_data['type'].append(
                     self.master_kernel.vehicle.get_type(veh_id))
-                # self.stored_data['x'].append()
-                # self.stored_data['y'].append()
+                self.stored_data['x'].append(
+                    pos[0])
+                self.stored_data['y'].append(
+                    pos[1])
                 self.stored_data['relative_position'].append(
                     self.master_kernel.vehicle.get_position(veh_id))
-                # self.stored_data['angle'].append()
+                self.stored_data['angle'].append(
+                    self.master_kernel.vehicle.get_angle(veh_id))
                 self.stored_data['speed'].append(
                     self.master_kernel.vehicle.get_speed(veh_id))
                 self.stored_data['edge_id'].append(

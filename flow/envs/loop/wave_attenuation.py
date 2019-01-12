@@ -252,7 +252,10 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
         # normalizers
         max_speed = 15.
-        max_length = self.env_params.additional_params['ring_length'][1]
+        if self.env_params.additional_params['ring_length'] is not None:
+            max_length = self.env_params.additional_params['ring_length'][1]
+        else:
+            max_length = self.k.scenario.length()
 
         observation = np.array([
             self.k.vehicle.get_speed(rl_id) / max_speed,
