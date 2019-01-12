@@ -9,6 +9,7 @@ omit =
     *aimsun.py
     *aimsun/run.py
     *aimsun/api.py
+    *aimsun/generate.py
 
 exclude_lines =
     if __name__ == .__main__.:
