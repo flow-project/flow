@@ -1,7 +1,5 @@
 """Base environment class. This is the parent of all other environments."""
 
-import logging
-import sys
 from copy import deepcopy
 import os
 import atexit
