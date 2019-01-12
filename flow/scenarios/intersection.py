@@ -146,3 +146,165 @@ class SoftIntersectionScenario(Scenario):
                'e_8_sbc-': ['e_8', 'e_8_sbc-']}
 
         return rts
+
+class HardIntersectionScenario(SoftIntersectionScenario):
+    """Scenario class for hard intersection simulations."""
+
+    def specify_nodes(self, net_params):
+        """See parent class."""
+        nodes = [
+            {'id': 'n_1_zone1', 'x': -10, 'y': 0},
+            {'id': 'n_1_zone2', 'x': -7.5, 'y': 0},
+            {'id': 'n_1_zone3', 'x': -5, 'y': 0},
+            {'id': 'n_1_zone4', 'x': -2.5, 'y': 0},
+            {'id': 'n_2_zone1', 'x': 0, 'y': 10},
+            {'id': 'n_2_zone2', 'x': 0, 'y': 7.5},
+            {'id': 'n_2_zone3', 'x': 0, 'y': 5},
+            {'id': 'n_2_zone4', 'x': 0, 'y': 2.5},
+            {'id': 'n_3_zone1', 'x': 10, 'y': 0},
+            {'id': 'n_3_zone2', 'x': 7.5, 'y': 0},
+            {'id': 'n_3_zone3', 'x': 5, 'y': 0},
+            {'id': 'n_3_zone4', 'x': 2.5, 'y': 0},
+            {'id': 'n_4_zone1', 'x': 0, 'y': -10},
+            {'id': 'n_4_zone2', 'x': 0, 'y': -7.5},
+            {'id': 'n_4_zone3', 'x': 0, 'y': -5},
+            {'id': 'n_4_zone4', 'x': 0, 'y': -2.5},
+            {'id': 'n_5', 'x': 0, 'y': 0, 'type': self.junction_type}]
+
+        for node in nodes:
+            self.nodes[node['id']] = np.array([node['x'] * SCALING,
+                                               node['y'] * SCALING])
+
+        for node in nodes:
+            node['x'] = str(node['x'] * SCALING)
+            node['y'] = str(node['y'] * SCALING)
+
+        return nodes
+
+    def specify_edges(self, net_params):
+        """See parent class."""
+        res = 40
+
+        edges = [
+            {'id': 'e_1_zone1>', 'from': 'n_1_zone1', 'to': 'n_1_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_1_zone2>', 'from': 'n_1_zone2', 'to': 'n_1_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_1_zone3>', 'from': 'n_1_zone3', 'to': 'n_1_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_1_zone4>', 'from': 'n_1_zone4', 'to': 'n_5',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+
+            {'id': 'e_1_zone1<', 'from': 'n_1_zone2', 'to': 'n_1_zone1',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_1_zone2<', 'from': 'n_1_zone3', 'to': 'n_1_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_1_zone3<', 'from': 'n_1_zone4', 'to': 'n_1_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_1_zone4<', 'from': 'n_5', 'to': 'n_1_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+
+            {'id': 'e_2_zone1>', 'from': 'n_2_zone1', 'to': 'n_2_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_2_zone2>', 'from': 'n_2_zone2', 'to': 'n_2_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_2_zone3>', 'from': 'n_2_zone3', 'to': 'n_2_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_2_zone4>', 'from': 'n_2_zone4', 'to': 'n_5',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+
+            {'id': 'e_2_zone1<', 'from': 'n_2_zone2', 'to': 'n_2_zone1',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_2_zone2<', 'from': 'n_2_zone3', 'to': 'n_2_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_2_zone3<', 'from': 'n_2_zone4', 'to': 'n_2_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_2_zone4<', 'from': 'n_5', 'to': 'n_2_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+
+            {'id': 'e_3_zone1>', 'from': 'n_3_zone1', 'to': 'n_3_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_3_zone2>', 'from': 'n_3_zone2', 'to': 'n_3_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_3_zone3>', 'from': 'n_3_zone3', 'to': 'n_3_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_3_zone4>', 'from': 'n_3_zone4', 'to': 'n_5',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+
+            {'id': 'e_3_zone1<', 'from': 'n_3_zone2', 'to': 'n_3_zone1',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_3_zone2<', 'from': 'n_3_zone3', 'to': 'n_3_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_3_zone3<', 'from': 'n_3_zone4', 'to': 'n_3_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_3_zone4<', 'from': 'n_5', 'to': 'n_3_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+
+            {'id': 'e_4_zone1>', 'from': 'n_4_zone1', 'to': 'n_4_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_4_zone2>', 'from': 'n_4_zone2', 'to': 'n_4_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_4_zone3>', 'from': 'n_4_zone3', 'to': 'n_4_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_4_zone4>', 'from': 'n_4_zone4', 'to': 'n_5',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+
+            {'id': 'e_4_zone1<', 'from': 'n_4_zone2', 'to': 'n_4_zone1',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_4_zone2<', 'from': 'n_4_zone3', 'to': 'n_4_zone2',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_4_zone3<', 'from': 'n_4_zone4', 'to': 'n_4_zone3',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+            {'id': 'e_4_zone4<', 'from': 'n_5', 'to': 'n_4_zone4',
+                'length': None, 'numLanes': 2, 'type': 'edgeType'},
+        ]
+
+        for edge in edges:
+            edge['numLanes'] = str(edge['numLanes'])
+            if 'shape' in edge:
+                edge['length'] = sum(
+                    [np.sqrt((edge['shape'][i][0] - edge['shape'][i+1][0])**2 +
+                             (edge['shape'][i][1] - edge['shape'][i+1][1])**2)
+                     * SCALING for i in range(len(edge['shape'])-1)])
+                edge['length'] = str(edge['length'])
+                edge['shape'] = ' '.join('%.2f,%.2f' % (blip*SCALING,
+                                                        blop*SCALING)
+                                         for blip, blop in edge['shape'])
+            else:
+                edge['length'] = str(np.linalg.norm(self.nodes[edge['to']] -
+                                                    self.nodes[edge['from']]))
+
+        return edges
+
+    def specify_routes(self, net_params):
+        """See parent class."""
+        rts = {'e_1_entry': ['e_1_zone1>', 'e_1_zone2>',
+                            'e_1_zone3>', 'e_1_zone4>',
+                            'e_3_zone4<', 'e_3_zone3<',
+                            'e_3_zone2<', 'e_3_zone1<',],
+               'e_1_exit': ['e_1_zone4<', 'e_1_zone3<',
+                            'e_1_zone2<', 'e_1_zone1<',],
+
+               'e_2_entry': ['e_2_zone1>', 'e_2_zone2>',
+                             'e_2_zone3>', 'e_2_zone4>',
+                             'e_4_zone4<', 'e_4_zone3<',
+                             'e_4_zone2<', 'e_4_zone1<',],
+               'e_2_exit': ['e_2_zone4<', 'e_2_zone3<',
+                            'e_2_zone2<', 'e_2_zone1<',],
+
+               'e_3_entry': ['e_3_zone1>', 'e_3_zone2>',
+                             'e_3_zone3>', 'e_3_zone4>',
+                             'e_1_zone4<', 'e_1_zone3<',
+                             'e_1_zone2<', 'e_1_zone1<',],
+               'e_3_exit': ['e_3_zone4<', 'e_3_zone3<',
+                            'e_3_zone2<', 'e_3_zone1<',],
+
+               'e_4_entry': ['e_4_zone1>', 'e_4_zone2>',
+                             'e_4_zone3>', 'e_4_zone4>',
+                             'e_2_zone4<', 'e_2_zone3<',
+                             'e_2_zone2<', 'e_2_zone1<',],
+               'e_4_exit': ['e_4_zone4<', 'e_4_zone3<',
+                            'e_4_zone2<', 'e_4_zone1<',],
+              }
+
+        return rts
