@@ -76,11 +76,17 @@ class AimsunKernelScenario(KernelScenario):
             "inflows": None,
             "vehicle_types": scenario.vehicles.types,
             "osm_path": scenario.net_params.osm_path,
-            'render': self.sim_params.render
+            'render': self.sim_params.render,
+            "sim_step": self.sim_params.sim_step,
+            "traffic_lights": None
         }
 
         if scenario.net_params.inflows is not None:
             output["inflows"] = scenario.net_params.inflows.__dict__
+
+        if scenario.traffic_lights is not None:
+            print(scenario.traffic_lights.__dict__)
+            output["traffic_lights"] = scenario.traffic_lights.__dict__
 
         cur_dir = os.path.dirname(__file__)
         # TODO: add current time
@@ -308,7 +314,7 @@ class AimsunKernelScenario(KernelScenario):
     def flow_edge_name(self, edge):
         """Returns the edge name in Aimsun."""
         if edge not in self._edge_aimsun2flow:
-            print("aimsun edge unknown: {}".format(edge))
+            # print("aimsun edge unknown: {}".format(edge))
             return ''
         else:
             return self._edge_aimsun2flow[edge]

@@ -55,7 +55,7 @@ def grid_example(render=None):
     vehicles = VehicleParams()
     vehicles.add(
         veh_id="human",
-        routing_controller=(GridRouter, {}),
+        #routing_controller=(GridRouter, {}),
         num_vehicles=tot_cars)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
@@ -65,26 +65,33 @@ def grid_example(render=None):
         "duration": "31",
         "minDur": "8",
         "maxDur": "45",
+        "yellow": "3",
         "state": "GGGrrrGGGrrr"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
+        "yellow": "3",
         "state": "yyyrrryyyrrr"
     }, {
         "duration": "31",
         "minDur": "8",
         "maxDur": "45",
+        "yellow": "3",
         "state": "rrrGGGrrrGGG"
     }, {
         "duration": "6",
         "minDur": "3",
         "maxDur": "6",
+        "yellow": "3",
         "state": "rrryyyrrryyy"
     }]
     tl_logic.add("center0", phases=phases, programID=1)
     tl_logic.add("center1", phases=phases, programID=1)
     tl_logic.add("center2", tls_type="actuated", phases=phases, programID=1)
+    tl_logic.add("center3", phases=phases, programID=1)
+    tl_logic.add("center4", phases=phases, programID=1)
+    tl_logic.add("center5", tls_type="actuated", phases=phases, programID=1)
 
     additional_net_params = {
         "grid_array": grid_array,

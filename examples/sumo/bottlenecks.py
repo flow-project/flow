@@ -120,7 +120,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         render = False
 
     sim_params = SumoParams(
-        sim_step=0.5,
+        sim_step=0.8,
         render=render,
         overtake_right=False,
         restart_instance=restart_instance)
@@ -130,7 +130,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     vehicles.add(
         veh_id="human",
         lane_change_controller=(SimLaneChangeController, {}),
-        routing_controller=(ContinuousRouter, {}),
+        #routing_controller=(ContinuousRouter, {}),
         car_following_params=SumoCarFollowingParams(
             speed_mode=25,
         ),
@@ -165,7 +165,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     if not DISABLE_RAMP_METER:
         traffic_lights.add(node_id="3")
 
-    additional_net_params = {"scaling": SCALING}
+    additional_net_params = {"scaling": SCALING, "speed_limit": 30/3.6}
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False,
