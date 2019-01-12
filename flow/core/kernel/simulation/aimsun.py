@@ -7,17 +7,9 @@ from flow.core.util import ensure_dir
 
 
 class AimsunKernelSimulation(KernelSimulation):
-    """Base simulation kernel.
+    """Aimsun simulation kernel.
 
-    The simulation kernel is responsible for generating the simulation and
-    passing to all other kernel the API that they can use to interact with the
-    simulation.
-
-    The simulation kernel is also responsible for advancing, resetting, and
-    storing whatever simulation data is relevant.
-
-    All methods in this class are abstract and must be overwritten by other
-    child classes.
+    Extends KernelSimulation.
     """
 
     def __init__(self, master_kernel):

@@ -515,11 +515,6 @@ class Env(*classdef):
         # render a frame
         self.render(reset=True)
 
-        # check to make sure all vehicles have been spawned
-        if len(self.initial_ids) < self.k.vehicle.num_vehicles:
-            logging.error("Not enough vehicles have spawned! Bad start?")
-            sys.exit()
-
         return observation
 
     def additional_command(self):
