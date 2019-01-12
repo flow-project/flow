@@ -416,7 +416,7 @@ class FlowAimsunAPI(object):
             ac.VEH_GET_TRACKING,
             in_format='i',
             values=(veh_id,),
-            out_format='f f f f f f f f f f i i i i i i i i')
+            out_format='f f f f f f f f f f f f f i i i i i i i i')
 
     def get_vehicle_leader(self, veh_id):
         """Return the leader of a specific vehicle.

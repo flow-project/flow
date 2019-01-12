@@ -97,7 +97,7 @@ class Env(*classdef):
         self.sim_step = sim_params.sim_step
 
         # the simulator used by this environment
-        self.simulator = 'aimsun'
+        self.simulator = simulator
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,

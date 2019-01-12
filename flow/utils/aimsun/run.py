@@ -273,9 +273,9 @@ def threaded_client(conn):
                           tracking_info.xCurrentPos,
                           tracking_info.yCurrentPos,
                           tracking_info.zCurrentPos,
-                          # tracking_info.xCurrentPosBack,
-                          # tracking_info.yCurrentPosBack,
-                          # tracking_info.zCurrentPosBack,
+                          tracking_info.xCurrentPosBack,
+                          tracking_info.yCurrentPosBack,
+                          tracking_info.zCurrentPosBack,
                           tracking_info.CurrentSpeed,
                           # tracking_info.PreviousSpeed,
                           tracking_info.TotalDistance,
@@ -294,7 +294,8 @@ def threaded_client(conn):
                           tracking_info.idLaneTo)
 
                 send_message(conn,
-                             in_format='f f f f f f f f f f i i i i i i i i',
+                             in_format='f f f f f f f f f f f f f i i i i i i '
+                                       'i i',
                              values=output)
 
             elif data == ac.VEH_GET_LEADER:
