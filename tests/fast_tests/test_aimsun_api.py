@@ -132,3 +132,7 @@ class TestDummyAPI(unittest.TestCase):
         # test the get traffic light IDs method when the list is empty
         tl_ids = self.kernel_api.get_traffic_light_ids()
         self.assertEqual(len(tl_ids), 0)
+
+
+if __name__ == '__main__':
+    unittest.main()
