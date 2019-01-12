@@ -441,26 +441,26 @@ def set_state_vehicle(model, state, veh_type_name):
 
 
 def set_vehicles_color(model):
-    viewMode = model.getGeoModel().findMode(
+    view_mode = model.getGeoModel().findMode(
         "GKViewMode::VehiclesByVehicleType", False)
-    if viewMode is None:
-        viewMode = GKSystem.getSystem().newObject("GKViewMode", model)
-        viewMode.setInternalName("GKViewMode::VehiclesByVehicleType")
-        viewMode.setName("DYNAMIC: Simulation Vehicles by Vehicle Type")
-        model.getGeoModel().addMode(viewMode)
-    viewMode.removeAllStyles()
-    viewStyle = model.getGeoModel().findStyle(
+    if view_mode is None:
+        view_mode = GKSystem.getSystem().newObject("GKViewMode", model)
+        view_mode.setInternalName("GKViewMode::VehiclesByVehicleType")
+        view_mode.setName("DYNAMIC: Simulation Vehicles by Vehicle Type")
+        model.getGeoModel().addMode(view_mode)
+    view_mode.removeAllStyles()
+    view_style = model.getGeoModel().findStyle(
         "GKViewModeStyle::VehiclesByVehicleType")
-    if viewStyle is None:
-        viewStyle = GKSystem.getSystem().newObject("GKViewModeStyle", model)
-        viewStyle.setInternalName("GKViewModeStyle::VehiclesByVehicleType")
-        viewStyle.setName("DYNAMIC: Simulation Vehicles by Vehicle Type")
-        viewStyle.setStyleType(GKViewModeStyle.eColor)
-        viewStyle.setVariableType(GKViewModeStyle.eDiscrete)
-        simType = model.getType("GKSimVehicle")
-        typeColumn = simType.getColumn("GKSimVehicle::vehicleTypeAtt",
+    if view_style is None:
+        view_style = GKSystem.getSystem().newObject("GKViewModeStyle", model)
+        view_style.setInternalName("GKViewModeStyle::VehiclesByVehicleType")
+        view_style.setName("DYNAMIC: Simulation Vehicles by Vehicle Type")
+        view_style.setStyleType(GKViewModeStyle.eColor)
+        view_style.setVariableType(GKViewModeStyle.eDiscrete)
+        sim_type = model.getType("GKSimVehicle")
+        type_col = sim_type.getColumn("GKSimVehicle::vehicleTypeAtt",
                                        GKType.eSearchOnlyThisType)
-        viewStyle.setColumn(simType, typeColumn)
+        view_style.setColumn(sim_type, type_col)
         ramp = GKColorRamp()
         ramp.setType(GKColorRamp.eRGB)
         vehicles = model.getCatalog().getObjectsByType(
@@ -468,10 +468,10 @@ def set_vehicles_color(model):
         if vehicles is not None:
             ramp.lines(len(vehicles))
             for i, vehicle in enumerate(vehicles.itervalues()):
-                color_range = viewStyle.addRange(vehicle.getName())
+                color_range = view_style.addRange(vehicle.getName())
                 color_range.color = ramp.getColor(i)
-        model.getGeoModel().addStyle(viewStyle)
-    viewMode.addStyle(viewStyle)
+        model.getGeoModel().addStyle(view_style)
+    view_mode.addStyle(view_style)
 
 
 # Returns (and creates if needed) the folder for the control plan

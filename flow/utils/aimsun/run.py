@@ -323,16 +323,41 @@ def threaded_client(conn):
 
             elif data == ac.TL_GET_IDS:
                 send_message(conn, in_format='i', values=(0,))
-                # TODO
+
+                data = None
+                while data is None:
+                    data = conn.recv(256)
+
+                num_meters = aimsun_api.ECIGetNumberMeterings()
+                if num_meters == 0:
+                    output = '-1'
+                else:
+                    meter_ids = []
+                    for i in range(1, num_meters + 1):
+                        struct_metering = ECIGetMeteringProperties(i)
+                        meter_id = struct_metering.Id
+                        meter_ids.append(meter_id)
+                    output = ':'.join([str(e) for e in meter_ids])
+                send_message(conn, in_format='str', values=(output,))
 
             elif data == ac.TL_SET_STATE:
                 send_message(conn, in_format='i', values=(0,))
-                # TODO
+                meter_aimsun_id, state = retrieve_message(conn, 'i i')
+                time = AKIGetCurrentSimulationTime()  # simulation time
+                sim_step = AKIGetSimulationStepTime()
+                identity = 0
+                ECIChangeStateMeteringById(
+                    meter_aimsun_id, state, time, sim_step, identity)
+                send_message(conn, in_format='i', values=(0,))
 
             elif data == ac.TL_GET_STATE:
                 send_message(conn, in_format='i', values=(0,))
-                # tl_id, = retrieve_message(conn, 'i')
-                # TODO
+                meter_aimsun_id = retrieve_message(conn, 'i')
+                lane_id = 1  # TODO double check
+                state = ECIGetCurrentStateofMeteringById(
+                    meter_aimsun_id, lane_id)
+                send_message(conn, in_format='i', values=(state,))
+
 
             elif data == ac.GET_EDGE_NAME:
                 send_message(conn, in_format='i', values=(0,))
