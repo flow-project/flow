@@ -516,7 +516,11 @@ class FlowAimsunAPI(object):
         str
             traffic light state of each light on that node
         """
-        return self._send_command(ac.TL_GET_STATE, values=(tl_id,))
+        res, = self._send_command(ac.TL_GET_STATE, values=(tl_id,),
+                                  in_format = 'i',
+                                  out_format='i')
+        return res
+
 
     def set_traffic_light_state(self, tl_id, link_index, state):
         """Set the state of the specified traffic light(s).
