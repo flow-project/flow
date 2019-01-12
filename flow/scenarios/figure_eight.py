@@ -229,20 +229,26 @@ class Figure8Scenario(Scenario):
             (":center_{}".format(self.lanes),
              self.intersection_len / 2 + self.inner_space_len),
             (":center_0", 3 / 2 * self.intersection_len + 3 * self.ring_edgelen
-             + self.junction_len + 3 * self.inner_space_len)
+             + self.junction_len + 3 * self.inner_space_len),
         ]
 
         return intersection_edgestarts
 
     def specify_internal_edge_starts(self):
         """See base class."""
-        internal_edgestarts = \
-            [(":bottom", 0),
-             (":top", self.intersection_len + self.junction_len +
+        internal_edgestarts = [
+            (":bottom", 0),
+            (":top", self.intersection_len + self.junction_len +
              self.inner_space_len),
-             (":right", self.intersection_len + 3 * self.ring_edgelen
+            (":right", self.intersection_len + 3 * self.ring_edgelen
              + self.junction_len + 2 * self.inner_space_len),
-             (":left", 2 * self.intersection_len + 3 * self.ring_edgelen
-             + 2 * self.junction_len + 3 * self.inner_space_len)]
+            (":left", 2 * self.intersection_len + 3 * self.ring_edgelen
+             + 2 * self.junction_len + 3 * self.inner_space_len),
+            # for aimsun
+            ('bottom_to_top',
+             self.intersection_len / 2 + self.inner_space_len),
+            ('right_to_left',
+             + self.junction_len + 3 * self.inner_space_len),
+        ]
 
         return internal_edgestarts

@@ -27,22 +27,31 @@ def create_client(port, print_status=False):
     # create a socket connection
     if print_status:
         print('Listening for connection...', end=' ')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connected = False
-    num_tries = 0
-    while not connected and num_tries < 100:
-        num_tries += 1
-        try:
-            s.connect(('localhost', port))
-            connected = True
-        except Exception as e:
-            logging.debug('Cannot connect to the server: {}'.format(e))
-            time.sleep(1)
 
-    # check the connection
-    data = None
-    while data is None:
-        data = s.recv(2048)
+    stop = False
+    while not stop:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            connected = False
+            num_tries = 0
+            while not connected and num_tries < 100:
+                num_tries += 1
+                try:
+                    s.connect(('localhost', port))
+                    connected = True
+                except Exception as e:
+                    logging.debug('Cannot connect to the server: {}'.format(e))
+                    time.sleep(1)
+
+            # check the connection
+            data = None
+            while data is None:
+                data = s.recv(2048)
+            stop = True
+        except socket.error as ex:
+            stop = False
+
+    # print the return statement
     if print_status:
         print(data.decode('utf-8'))
 
