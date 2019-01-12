@@ -73,9 +73,12 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="SimpleGridScenario",
 
+    # simulator that is used by the experiment
+    simulator='traci',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
-        # restart_instance=True,
+        restart_instance=True,
         sim_step=1,
         render=False,
     ),
