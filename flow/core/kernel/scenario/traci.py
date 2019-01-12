@@ -479,6 +479,8 @@ class TraCIScenario(KernelScenario):
             x = makexml('connections',
                         'http://sumo.dlr.de/xsd/connections_file.xsd')
             for connection_attributes in connections:
+                if 'signal_group' in connection_attributes:
+                    del connection_attributes['signal_group']
                 x.append(E('connection', **connection_attributes))
             printxml(x, self.net_path + self.confn)
 
@@ -771,6 +773,9 @@ class TraCIScenario(KernelScenario):
                 for key in inflow:
                     if not isinstance(inflow[key], str):
                         inflow[key] = repr(inflow[key])
+                    if key == 'edge':
+                        inflow['route'] = 'route{}'.format(inflow['edge'])
+                        del inflow['edge']
                 routes.append(_flow(**inflow))
 
         printxml(routes, self.cfg_path + self.roufn)

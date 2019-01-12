@@ -80,7 +80,7 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
-    def add(self, veh_id, type_id, route_id, pos, lane, speed):
+    def add(self, veh_id, type_id, edge, pos, lane, speed):
         """Add a vehicle to the network.
 
         Parameters
@@ -89,8 +89,8 @@ class KernelVehicle(object):
             unique identifier of the vehicle to be added
         type_id : str
             vehicle type of the added vehicle
-        route_id : str
-            starting route of the added vehicle
+        edge : str
+            starting edge of the added vehicle
         pos : float
             starting position of the added vehicle
         lane : int
