@@ -458,6 +458,8 @@ class Env(*classdef):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
+                if self.simulator == 'traci':
+                    self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
