@@ -167,7 +167,8 @@ class MultiEnv(MultiAgentEnv, Env):
                 "**********************************************************"
             )
 
-        if self.sim_params.restart_instance or self.step_counter > 2e6:
+        if (self.sim_params.restart_instance or self.step_counter > 2e6) \
+                and self.simulator != 'aimsun':
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sim_params.seed = random.randint(0, 1e5)
@@ -199,14 +200,13 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, pos, speed = \
-                self.initial_state[veh_id]
+            type_id, edge, lane_index, pos, speed = self.initial_state[veh_id]
 
             try:
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
-                    route_id=route_id,
+                    edge=edge,
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
@@ -217,7 +217,7 @@ class MultiEnv(MultiAgentEnv, Env):
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
-                    route_id=route_id,
+                    edge=edge,
                     lane=lane_index,
                     pos=pos,
                     speed=speed)

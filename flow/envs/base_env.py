@@ -1,7 +1,7 @@
 """Base environment class. This is the parent of all other environments."""
 
-import os
 from copy import deepcopy
+import os
 import atexit
 import time
 import traceback
@@ -58,13 +58,15 @@ class Env(*classdef):
     ----------
     env_params : flow.core.params.EnvParams
        see flow/core/params.py
-    sim_params: flow.core.params.SimParams
+    sim_params : flow.core.params.SimParams
        see flow/core/params.py
-    scenario: Scenario type
+    scenario : flow.scenarios.Scenario
         see flow/scenarios/base_scenario.py
+    simulator : str
+        the simulator used, one of {'traci', 'aimsun'}. Defaults to 'traci'
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         # Invoke serializable if using rllab
         if serializable_flag:
             Serializable.quick_init(self, locals())
@@ -93,7 +95,7 @@ class Env(*classdef):
         self.sim_step = sim_params.sim_step
 
         # the simulator used by this environment
-        self.simulator = 'traci'
+        self.simulator = simulator
 
         # create the Flow kernel
         self.k = Kernel(simulator=self.simulator,
@@ -225,9 +227,9 @@ class Env(*classdef):
             pos = start_pos[i][1]
             lane = start_lanes[i]
             speed = self.scenario.vehicles.get_initial_speed(veh_id)
-            route_id = "route" + start_pos[i][0]
+            edge = start_pos[i][0]
 
-            self.initial_state[veh_id] = (type_id, route_id, lane, pos, speed)
+            self.initial_state[veh_id] = (type_id, edge, lane, pos, speed)
 
     def step(self, rl_actions):
         """Advance the environment by one step.
@@ -404,7 +406,8 @@ class Env(*classdef):
                 "**********************************************************"
             )
 
-        if self.sim_params.restart_instance or self.step_counter > 2e6:
+        if (self.sim_params.restart_instance or self.step_counter > 2e6) \
+                and self.simulator != 'aimsun':  # FIXME: hack
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sim_params.seed = random.randint(0, 1e5)
@@ -414,16 +417,17 @@ class Env(*classdef):
             # restart the sumo instance
             self.restart_simulation(self.sim_params)
 
+        # perform shuffling (if requested)
         elif self.scenario.initial_config.shuffle:
-            # perform shuffling (if requested)
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
-        for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
-            try:
-                self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+        if self.simulator == 'traci':
+            for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
+                try:
+                    self.k.vehicle.remove(veh_id)
+                except (FatalTraCIError, TraCIException):
+                    pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -439,14 +443,14 @@ class Env(*classdef):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, route_id, lane_index, pos, speed = \
+            type_id, edge, lane_index, pos, speed = \
                 self.initial_state[veh_id]
 
             try:
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
-                    route_id=route_id,
+                    edge=edge,
                     lane=lane_index,
                     pos=pos,
                     speed=speed)
@@ -454,10 +458,12 @@ class Env(*classdef):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
+                if self.simulator == 'traci':
+                    self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
-                    route_id=route_id,
+                    edge=edge,
                     lane=lane_index,
                     pos=pos,
                     speed=speed)

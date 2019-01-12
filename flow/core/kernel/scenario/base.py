@@ -45,7 +45,7 @@ class KernelScenario(object):
       see:  # TODO: create tutorial
     """
 
-    def __init__(self, master_kernel):
+    def __init__(self, master_kernel, sim_params):
         """Instantiate the base scenario kernel.
 
         Parameters
@@ -53,8 +53,11 @@ class KernelScenario(object):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
+        sim_params : flow.core.params.SimParams
+            simulation-specific parameters
         """
         self.master_kernel = master_kernel
+        self.sim_params = sim_params
         self.kernel_api = None
 
         # These variable need to be filled in by the generate_network method.
