@@ -63,7 +63,7 @@ class TrafficLightGridEnv(Env):
         vehicles.
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
 
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
@@ -77,7 +77,7 @@ class TrafficLightGridEnv(Env):
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
         # Saving env variables for plotting
         self.steps = env_params.horizon
@@ -383,7 +383,6 @@ class TrafficLightGridEnv(Env):
             route_id = "right0_{}".format(col_index)
 
         if route_id is not None:
-            route_id = "route" + route_id
             type_id = self.k.vehicle.get_type(veh_id)
             lane_index = self.k.vehicle.get_lane(veh_id)
             # remove the vehicle
@@ -391,7 +390,7 @@ class TrafficLightGridEnv(Env):
             # reintroduce it at the start of the network
             self.k.vehicle.add(
                 veh_id=veh_id,
-                route_id=route_id,
+                edge=route_id,
                 type_id=str(type_id),
                 lane=str(lane_index),
                 pos="0",
@@ -464,8 +463,8 @@ class PO_TrafficLightGridEnv(TrafficLightGridEnv):
 
     """
 
-    def __init__(self, env_params, sim_params, scenario):
-        super().__init__(env_params, sim_params, scenario)
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        super().__init__(env_params, sim_params, scenario, simulator)
 
         for p in ADDITIONAL_PO_ENV_PARAMS.keys():
             if p not in env_params.additional_params:

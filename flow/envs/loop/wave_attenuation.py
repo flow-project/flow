@@ -41,7 +41,8 @@ class WaveAttenuationEnv(Env):
     * max_accel: maximum acceleration of autonomous vehicles
     * max_decel: maximum deceleration of autonomous vehicles
     * ring_length: bounds on the ranges of ring road lengths the autonomous
-      vehicle is trained on
+      vehicle is trained on. If set to None, the environment sticks to the ring
+      road specified in the original scenario definition.
 
     States
         The state consists of the velocities and absolute position of all
@@ -60,13 +61,13 @@ class WaveAttenuationEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter \'{}\' not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
     @property
     def action_space(self):
@@ -142,6 +143,10 @@ class WaveAttenuationEnv(Env):
         The sumo instance is reset with a new ring length, and a number of
         steps are performed with the rl vehicle acting as a human vehicle.
         """
+        # skip if ring length is None
+        if self.env_params.additional_params['ring_length'] is None:
+            return super().reset()
+
         # reset the step counter
         self.step_counter = 0
 
@@ -247,7 +252,10 @@ class WaveAttenuationPOEnv(WaveAttenuationEnv):
 
         # normalizers
         max_speed = 15.
-        max_length = self.env_params.additional_params['ring_length'][1]
+        if self.env_params.additional_params['ring_length'] is not None:
+            max_length = self.env_params.additional_params['ring_length'][1]
+        else:
+            max_length = self.k.scenario.length()
 
         observation = np.array([
             self.k.vehicle.get_speed(rl_id) / max_speed,

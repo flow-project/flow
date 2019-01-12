@@ -106,6 +106,7 @@ class TestRegistry(unittest.TestCase):
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
             scenario="Figure8Scenario",
+            simulator='traci',
             sim=SumoParams(
                 sim_step=0.1,
                 render=False,

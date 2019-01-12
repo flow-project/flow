@@ -165,7 +165,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     if not DISABLE_RAMP_METER:
         traffic_lights.add(node_id="3")
 
-    additional_net_params = {"scaling": SCALING}
+    additional_net_params = {"scaling": SCALING, "speed_limit": 23}
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False,

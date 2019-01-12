@@ -83,16 +83,12 @@ ADDITIONAL_VSL_ENV_PARAMS = {
     "inflow_range": [1000, 2000]
 }
 
-ADDITIONAL_NET_PARAMS = {
-    "scaling": 1  # the factor multiplying number of lanes.
-}
-
 START_RECORD_TIME = 0.0
 PERIOD = 10.0
 
 
 class BottleneckEnv(Env):
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         """Environment used as a simplified representation of the toll booth
         portion of the bay bridge. Contains ramp meters, and a toll both.
 
@@ -106,11 +102,8 @@ class BottleneckEnv(Env):
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
-        for p in ADDITIONAL_NET_PARAMS.keys():
-            if p not in scenario.net_params.additional_params:
-                raise KeyError('Net parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
         env_add_params = self.env_params.additional_params
         # tells how scaled the number of lanes are
         self.scaling = scenario.net_params.additional_params.get("scaling")
@@ -418,13 +411,13 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
        """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_RL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
                     'Environment parameter "{}" not supplied'.format(p))
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
 
     @property
@@ -594,7 +587,7 @@ class BottleNeckAccelEnv(BottleneckEnv):
                 try:
                     self.k.vehicle.add(
                         veh_id=rl_id,
-                        route_id='route1',
+                        edge='1',
                         type_id=str('rl'),
                         lane=str(lane_num),
                         pos="0",
@@ -622,8 +615,8 @@ class DesiredVelocityEnv(BottleneckEnv):
            for RL vehicles making forward progress
     """
 
-    def __init__(self, env_params, sim_params, scenario):
-        super().__init__(env_params, sim_params, scenario)
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
+        super().__init__(env_params, sim_params, scenario, simulator)
         for p in ADDITIONAL_VSL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -877,7 +870,11 @@ class DesiredVelocityEnv(BottleneckEnv):
                         departLane="random",
                         departSpeed=10)
 
-                    additional_net_params = {"scaling": self.scaling}
+                    additional_net_params = {
+                        "scaling": self.scaling,
+                        "speed_limit": self.scenario.net_params.
+                        additional_params['speed_limit']
+                    }
                     net_params = NetParams(
                         inflows=inflow,
                         no_internal_links=False,
