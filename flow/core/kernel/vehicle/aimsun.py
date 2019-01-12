@@ -498,8 +498,12 @@ class AimsunKernelVehicle(KernelVehicle):
 
         Returns
         -------
-        float,
-            The distance from the beginning of the section
+        float
+            x position
+        float
+            y position
+        float
+            z position
         """
         if isinstance(veh_id, (list, np.ndarray)):
             return [self.get_position_world(veh, error) for veh in veh_id]
@@ -522,6 +526,33 @@ class AimsunKernelVehicle(KernelVehicle):
             return '{}_to_{}'.format(from_edge, to_edge)
         else:
             return self.master_kernel.scenario.flow_edge_name(edge_aimsun_id)
+
+    def get_angle(self, veh_id, error=-1001):
+        """Return the angle of the vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
+
+        Returns
+        -------
+        float
+            the angle of the vehicle
+        """
+        if isinstance(veh_id, (list, np.ndarray)):
+            return [self.get_angle(veh, error) for veh in veh_id]
+
+        if veh_id not in self.__vehicles:
+            return error
+        else:
+            x2 = self.__vehicles[veh_id]['tracking_info'].xCurrentPos
+            y2 = self.__vehicles[veh_id]['tracking_info'].yCurrentPos
+            x1 = self.__vehicles[veh_id]['tracking_info'].xCurrentPosBack
+            y1 = self.__vehicles[veh_id]['tracking_info'].yCurrentPosBack
+            return np.arctan2(y2-y1, x2-x1)
 
     def get_lane(self, veh_id, error=-1001):
         """See parent class."""

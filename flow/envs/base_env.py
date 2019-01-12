@@ -323,7 +323,6 @@ class Env(*classdef):
 
             # render a frame
             self.render()
-            # print(self.k.traffic_light.get_state(1000))
 
         states = self.get_state()
         if isinstance(states, dict):

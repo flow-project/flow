@@ -23,7 +23,6 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
         self.__ids = []
         self.num_meters = 0
 
-
     def pass_api(self, kernel_api):
         """See parent class."""
         self.kernel_api = kernel_api
@@ -71,4 +70,3 @@ class AimsunKernelTrafficLight(KernelTrafficLight):
             2: yellow
         """
         return self.kernel_api.get_traffic_light_state(meter_aimsun_id)
-
