@@ -75,6 +75,7 @@ flow_params = dict(
     additional_env_params["alpha"] = 1.0  # performance-consumption tradeoff
     env=EnvParams(
         horizon=HORIZON,
+        warmup_steps=2,
         additional_params=additional_env_params,
     ),
 
