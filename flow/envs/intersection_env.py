@@ -24,8 +24,6 @@ ADDITIONAL_ENV_PARAMS = {
     "target_velocity": 11.176,
     # reward function performance-consumption tradeoff
     "alpha": 0.8,
-    # reward function safety-navigation tradeoff
-    "beta": 0.5,
 }
 
 
@@ -404,7 +402,6 @@ class HardIntersectionEnv(Env):
         self.inflow_accelerations = {loc: 0 for loc in self.inflow_locations}
         self.inflow_speeds = {loc: 0 for loc in self.inflow_locations}
         self.inflow_densities = { loc: 0 for loc in self.inflow_locations}
-        self.inflow_collisions = { loc: 0 for loc in self.inflow_locations}
         self.inflow_fuels = {loc: 0 for loc in self.inflow_locations}
         self.inflow_co2s = {loc: 0 for loc in self.inflow_locations}
         self.outflow_locations = [
@@ -431,17 +428,11 @@ class HardIntersectionEnv(Env):
         self.outflow_accelerations = {loc: 0 for loc in self.outflow_locations}
         self.outflow_speeds = {loc: 0 for loc in self.outflow_locations}
         self.outflow_densities = {loc: 0 for loc in self.outflow_locations}
-        self.outflow_collisions = {loc: 0 for loc in self.outflow_locations}
         self.outflow_fuels = {loc: 0 for loc in self.outflow_locations}
         self.outflow_co2s = {loc: 0 for loc in self.outflow_locations}
 
-        # setup collision tracker
-        self.collision_count = 0
-        self.collision_vehicles = []
-
         # setup reward-related variables
         self.alpha = env_params.additional_params["alpha"]
-        self.beta = env_params.additional_params["beta"]
         self.rewards = 0
 
     # ACTION GOES HERE
@@ -488,10 +479,6 @@ class HardIntersectionEnv(Env):
             self.inflow_densities[loc]
             for loc in self.inflow_locations
         ]
-        inflow_collisions = [
-            self.inflow_collisions[loc]
-            for loc in self.inflow_locations
-        ]
         outflow_accelerations = [
             self.outflow_accelerations[loc]
             for loc in self.outflow_locations
@@ -504,16 +491,10 @@ class HardIntersectionEnv(Env):
             self.outflow_densities[loc]
             for loc in self.outflow_locations
         ]
-        outflow_collisions = [
-            self.outflow_collisions[loc]
-            for loc in self.outflow_locations
-        ]
         tls_phase = self.tls_phase
         observation = np.asarray(
-            inflow_accelerations + inflow_speeds +
-            inflow_densities + inflow_collisions +
-            outflow_accelerations + outflow_speeds +
-            outflow_densities + outflow_collisions +
+            inflow_accelerations + inflow_speeds + inflow_densities +
+            outflow_accelerations + outflow_speeds + outflow_densities +
             [tls_phase]
         )
         return observation
@@ -531,12 +512,7 @@ class HardIntersectionEnv(Env):
         co2s = list(self.inflow_co2s.values())
         co2s += list(self.outflow_co2s.values())
         consumption = 0.5*-np.mean(fuels) + 0.5*-np.mean(co2s)/1e2
-        navigation = self.alpha * performance + (1 - self.alpha) * consumption
-        safety = self.collision_count * -10
-        print("performance:", performance)
-        print("consumption:", consumption)
-        print("safety:", safety)
-        return self.beta * safety + (1 - self.beta) * navigation
+        return self.alpha * performance + (1 - self.alpha) * consumption
 
     # UTILITY FUNCTION GOES HERE
     def additional_command(self):
@@ -545,12 +521,10 @@ class HardIntersectionEnv(Env):
         for idx, loc in enumerate(self.inflow_locations):
             flow_stats = self.get_flow_stats(loc)
             inflow_stats.append(flow_stats)
-            acceleration, speed, _, _, density, collision, fuel, co2 = \
-                flow_stats
+            acceleration, speed, _, _, density, fuel, co2 = flow_stats
             self.inflow_accelerations[loc] = acceleration
             self.inflow_speeds[loc] = speed
             self.inflow_densities[loc] = density
-            self.inflow_collisions[loc] = collision
             self.inflow_fuels[loc] = fuel
             self.inflow_co2s[loc] = co2
 
@@ -559,12 +533,10 @@ class HardIntersectionEnv(Env):
         for idx, loc in enumerate(self.outflow_locations):
             flow_stats = self.get_flow_stats(loc)
             outflow_stats.append(flow_stats)
-            acceleration, speed, _, _, density, collision, fuel, co2 = \
-                flow_stats
+            acceleration, speed, _, _, density, fuel, co2 = flow_stats
             self.outflow_accelerations[loc] = acceleration
             self.outflow_speeds[loc] = speed
             self.outflow_densities[loc] = density
-            self.outflow_collisions[loc] = collision
             self.outflow_fuels[loc] = fuel
             self.outflow_co2s[loc] = co2
 
@@ -572,12 +544,6 @@ class HardIntersectionEnv(Env):
         self.tls_state =\
             self.traci_connection.trafficlight.\
             getRedYellowGreenState(self.tls_id)
-
-        # update collision counter
-        self.collision_count = \
-            self.traci_connection.simulation.getCollidingVehiclesNumber()
-        self.collision_vehicles = \
-            self.traci_connection.simulation.getStopEndingVehiclesIDList()
 
         # disable skip to test traci tls and sbc setter methods
         self.test_sbc(skip=True)
@@ -633,15 +599,13 @@ class HardIntersectionEnv(Env):
         count = self.traci_connection.lane.getLastStepVehicleNumber(loc)
         length = self.traci_connection.lane.getLength(loc)
         lane_vehicles = self.traci_connection.lane.getLastStepVehicleIDs(loc)
-        collision = \
-            len(set(lane_vehicles).intersection(self.collision_vehicles))
         density = count / length
         fuel = self.traci_connection.lane.getFuelConsumption(loc) / length
         co2 = self.traci_connection.lane.getCO2Emission(loc) / length
         if count == 0:
             speed = 0
         return [
-            acceleration, speed, count, length, density, collision, fuel, co2
+            acceleration, speed, count, length, density, fuel, co2
         ]
 
     def _set_phase(self, tls_phase):
