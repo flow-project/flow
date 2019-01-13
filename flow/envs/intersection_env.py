@@ -252,7 +252,10 @@ class SoftIntersectionEnv(Env):
 
     def get_flow_stats(self, loc):
         speed = self.traci_connection.lane.getLastStepMeanSpeed(loc)
-        acceleration = (speed - self.inflow_speeds[loc])/self.sim_step
+        try:
+            acceleration = (speed - self.inflow_speeds[loc])/self.sim_step
+        except KeyError:
+            acceleration = (speed - self.outflow_speeds[loc])/self.sim_step
         count = self.traci_connection.lane.getLastStepVehicleNumber(loc)
         length = self.traci_connection.lane.getLength(loc)
         density = count / length
@@ -306,25 +309,25 @@ class HardIntersectionEnv(Env):
 
         # setup speed broadcasters
         self.sbc_locations = [
-            "e_1_zone1>_0", "e_1_zone1>_1",  # east bound
-            "e_1_zone2>_0", "e_1_zone2>_1",  # east bound
-            "e_1_zone3>_0", "e_1_zone3>_1",  # east bound
-            "e_1_zone4>_0", "e_1_zone4>_1",  # east bound
+            "e_1_zone1+_0", "e_1_zone1+_1",  # east bound
+            "e_1_zone2+_0", "e_1_zone2+_1",  # east bound
+            "e_1_zone3+_0", "e_1_zone3+_1",  # east bound
+            "e_1_zone4+_0", "e_1_zone4+_1",  # east bound
 
-            "e_2_zone1>_0", "e_2_zone1>_1",  # south bound
-            "e_2_zone2>_0", "e_2_zone2>_1",  # south bound
-            "e_2_zone3>_0", "e_2_zone3>_1",  # south bound
-            "e_2_zone4>_0", "e_2_zone4>_1",  # south bound
+            "e_2_zone1+_0", "e_2_zone1+_1",  # south bound
+            "e_2_zone2+_0", "e_2_zone2+_1",  # south bound
+            "e_2_zone3+_0", "e_2_zone3+_1",  # south bound
+            "e_2_zone4+_0", "e_2_zone4+_1",  # south bound
 
-            "e_3_zone1>_0", "e_3_zone1>_1",  # west bound
-            "e_3_zone2>_0", "e_3_zone2>_1",  # west bound
-            "e_3_zone3>_0", "e_3_zone3>_1",  # west bound
-            "e_3_zone4>_0", "e_3_zone4>_1",  # west bound
+            "e_3_zone1+_0", "e_3_zone1+_1",  # west bound
+            "e_3_zone2+_0", "e_3_zone2+_1",  # west bound
+            "e_3_zone3+_0", "e_3_zone3+_1",  # west bound
+            "e_3_zone4+_0", "e_3_zone4+_1",  # west bound
 
-            "e_4_zone1>_0", "e_4_zone1>_1",  # north bound
-            "e_4_zone2>_0", "e_4_zone2>_1",  # north bound
-            "e_4_zone3>_0", "e_4_zone3>_1",  # north bound
-            "e_4_zone4>_0", "e_4_zone4>_1",  # north bound
+            "e_4_zone1+_0", "e_4_zone1+_1",  # north bound
+            "e_4_zone2+_0", "e_4_zone2+_1",  # north bound
+            "e_4_zone3+_0", "e_4_zone3+_1",  # north bound
+            "e_4_zone4+_0", "e_4_zone4+_1",  # north bound
         ]
         # default speed reference to 11.176 m/s
         self.sbc_command = {
@@ -334,25 +337,25 @@ class HardIntersectionEnv(Env):
 
         # setup inflow outflow logger
         self.inflow_locations = [
-            "e_1_zone1>_0", "e_1_zone1>_1",  # east bound
-            "e_1_zone2>_0", "e_1_zone2>_1",  # east bound
-            "e_1_zone3>_0", "e_1_zone3>_1",  # east bound
-            "e_1_zone4>_0", "e_1_zone4>_1",  # east bound
+            "e_1_zone1+_0", "e_1_zone1+_1",  # east bound
+            "e_1_zone2+_0", "e_1_zone2+_1",  # east bound
+            "e_1_zone3+_0", "e_1_zone3+_1",  # east bound
+            "e_1_zone4+_0", "e_1_zone4+_1",  # east bound
 
-            "e_2_zone1>_0", "e_2_zone1>_1",  # south bound
-            "e_2_zone2>_0", "e_2_zone2>_1",  # south bound
-            "e_2_zone3>_0", "e_2_zone3>_1",  # south bound
-            "e_2_zone4>_0", "e_2_zone4>_1",  # south bound
+            "e_2_zone1+_0", "e_2_zone1+_1",  # south bound
+            "e_2_zone2+_0", "e_2_zone2+_1",  # south bound
+            "e_2_zone3+_0", "e_2_zone3+_1",  # south bound
+            "e_2_zone4+_0", "e_2_zone4+_1",  # south bound
 
-            "e_3_zone1>_0", "e_3_zone1>_1",  # west bound
-            "e_3_zone2>_0", "e_3_zone2>_1",  # west bound
-            "e_3_zone3>_0", "e_3_zone3>_1",  # west bound
-            "e_3_zone4>_0", "e_3_zone4>_1",  # west bound
+            "e_3_zone1+_0", "e_3_zone1+_1",  # west bound
+            "e_3_zone2+_0", "e_3_zone2+_1",  # west bound
+            "e_3_zone3+_0", "e_3_zone3+_1",  # west bound
+            "e_3_zone4+_0", "e_3_zone4+_1",  # west bound
 
-            "e_4_zone1>_0", "e_4_zone1>_1",  # north bound
-            "e_4_zone2>_0", "e_4_zone2>_1",  # north bound
-            "e_4_zone3>_0", "e_4_zone3>_1",  # north bound
-            "e_4_zone4>_0", "e_4_zone4>_1",  # north bound
+            "e_4_zone1+_0", "e_4_zone1+_1",  # north bound
+            "e_4_zone2+_0", "e_4_zone2+_1",  # north bound
+            "e_4_zone3+_0", "e_4_zone3+_1",  # north bound
+            "e_4_zone4+_0", "e_4_zone4+_1",  # north bound
         ]
         self.inflow_accelerations = {loc: 0 for loc in self.inflow_locations}
         self.inflow_speeds = {loc: 0 for loc in self.inflow_locations}
@@ -361,25 +364,25 @@ class HardIntersectionEnv(Env):
         self.inflow_fuels = {loc: 0 for loc in self.inflow_locations}
         self.inflow_co2s = {loc: 0 for loc in self.inflow_locations}
         self.outflow_locations = [
-            "e_1_zone1<_0", "e_1_zone1<_1",  # east bound
-            "e_1_zone2<_0", "e_1_zone2<_1",  # east bound
-            "e_1_zone3<_0", "e_1_zone3<_1",  # east bound
-            "e_1_zone4<_0", "e_1_zone4<_1",  # east bound
+            "e_1_zone1-_0", "e_1_zone1-_1",  # east bound
+            "e_1_zone2-_0", "e_1_zone2-_1",  # east bound
+            "e_1_zone3-_0", "e_1_zone3-_1",  # east bound
+            "e_1_zone4-_0", "e_1_zone4-_1",  # east bound
 
-            "e_2_zone1<_0", "e_2_zone1<_1",  # south bound
-            "e_2_zone2<_0", "e_2_zone2<_1",  # south bound
-            "e_2_zone3<_0", "e_2_zone3<_1",  # south bound
-            "e_2_zone4<_0", "e_2_zone4<_1",  # south bound
+            "e_2_zone1-_0", "e_2_zone1-_1",  # south bound
+            "e_2_zone2-_0", "e_2_zone2-_1",  # south bound
+            "e_2_zone3-_0", "e_2_zone3-_1",  # south bound
+            "e_2_zone4-_0", "e_2_zone4-_1",  # south bound
 
-            "e_3_zone1<_0", "e_3_zone1<_1",  # west bound
-            "e_3_zone2<_0", "e_3_zone2<_1",  # west bound
-            "e_3_zone3<_0", "e_3_zone3<_1",  # west bound
-            "e_3_zone4<_0", "e_3_zone4<_1",  # west bound
+            "e_3_zone1-_0", "e_3_zone1-_1",  # west bound
+            "e_3_zone2-_0", "e_3_zone2-_1",  # west bound
+            "e_3_zone3-_0", "e_3_zone3-_1",  # west bound
+            "e_3_zone4-_0", "e_3_zone4-_1",  # west bound
 
-            "e_4_zone1<_0", "e_4_zone1<_1",  # north bound
-            "e_4_zone2<_0", "e_4_zone2<_1",  # north bound
-            "e_4_zone3<_0", "e_4_zone3<_1",  # north bound
-            "e_4_zone4<_0", "e_4_zone4<_1",  # north bound
+            "e_4_zone1-_0", "e_4_zone1-_1",  # north bound
+            "e_4_zone2-_0", "e_4_zone2-_1",  # north bound
+            "e_4_zone3-_0", "e_4_zone3-_1",  # north bound
+            "e_4_zone4-_0", "e_4_zone4-_1",  # north bound
         ]
         self.outflow_accelerations = {loc: 0 for loc in self.outflow_locations}
         self.outflow_speeds = {loc: 0 for loc in self.outflow_locations}
@@ -390,6 +393,7 @@ class HardIntersectionEnv(Env):
 
         # setup collision tracker
         self.collision_count = 0
+        self.collision_vehicles = []
 
         # setup reward-related variables
         self.alpha = env_params.additional_params["alpha"]
@@ -480,7 +484,7 @@ class HardIntersectionEnv(Env):
         consumption = 0.5*-np.mean(fuels) + 0.5*-np.mean(co2s)
         navigation = self.alpha * performance + (1 - self.alpha) * consumption
         safety = self.collision_count * 100
-        return self.beta * safety + (1 - self.bata) * navigation
+        return self.beta * safety + (1 - self.beta) * navigation
 
     # UTILITY FUNCTION GOES HERE
     def additional_command(self):
@@ -531,16 +535,40 @@ class HardIntersectionEnv(Env):
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:
-            print("Broadcasting reference...")
+            print("Broadcasting command...")
             self.sbc_command = {
                 loc: 1
                 for loc in self.sbc_locations
             }
             self._set_command(self.sbc_command)
 
+    def test_tls(self, skip=True):
+        if self.time_counter % 10 == 0 and not skip:
+            print("Switching phase...")
+            self.tls_phase = np.random.randint(0, self.tls_phase_count-1)
+            print("New phase:", self.tls_phase)
+            self._set_phase(self.tls_phase)
+
+    def test_ioflow(self, inflow_stats, outflow_stats, skip=False):
+        if not skip:
+            print(inflow_stats)
+            print(self.inflow_values)
+            print(outflow_stats)
+            print(self.outflow_values)
+
+    def test_reward(self, skip=True):
+        if not skip:
+            _reward = self.get_reward()
+            print('Reward this step:', _reward)
+            self.rewards += _reward
+            print('Total rewards:', self.rewards)
+
     def get_flow_stats(self, loc):
         speed = self.traci_connection.lane.getLastStepMeanSpeed(loc)
-        acceleration = (speed - self.inflow_speeds[loc])/self.sim_step
+        try:
+            acceleration = (speed - self.inflow_speeds[loc])/self.sim_step
+        except KeyError:
+            acceleration = (speed - self.outflow_speeds[loc])/self.sim_step
         count = self.traci_connection.lane.getLastStepVehicleNumber(loc)
         length = self.traci_connection.lane.getLength(loc)
         lane_vehicles = self.traci_connection.lane.getLastStepVehicleIDs(loc)
@@ -558,3 +586,14 @@ class HardIntersectionEnv(Env):
             sbc_clients = self.traci_connection.lane.getLastStepVehicleIDs(sbc)
             for veh_id in sbc_clients:
                 self.traci_connection.vehicle.setSpeed(veh_id, reference)
+
+    # DO NOT WORRY ABOUT ANYTHING BELOW THIS LINE >◡<
+    def _apply_rl_actions(self, rl_actions):
+        self.set_action(rl_actions)
+
+    def get_state(self, **kwargs):
+        return self.get_observation(**kwargs)
+
+    def compute_reward(self, actions, **kwargs):
+        return self.get_reward(**kwargs)
+

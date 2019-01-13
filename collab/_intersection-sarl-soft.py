@@ -6,8 +6,8 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
+from flow.envs.intersection_env import SoftIntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.scenarios.intersection import SoftIntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRouter
 import numpy as np
 seed=204
@@ -92,14 +92,14 @@ def intersection_example(render=None,
         edges_distribution=experiment,
     )
 
-    scenario = IntersectionScenario(
-        name='intersection',
+    scenario = SoftIntersectionScenario(
+        name='intersection-soft',
         vehicles=vehicles,
         initial_config=initial_config,
         net_params=net_params,
     )
 
-    env = IntersectionEnv(env_params, sumo_params, scenario)
+    env = SoftIntersectionEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 
