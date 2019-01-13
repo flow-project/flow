@@ -31,10 +31,20 @@ N_CPUS = 6
 
 # We place 40 autonomous vehicles in the network
 vehicles = Vehicles()
-experiment = {'e_1_sbc+': [('autonomous', 10)],
-              'e_3_sbc+': [('autonomous', 10)],
-              'e_5_sbc+': [('autonomous', 10)],
-              'e_7_sbc+': [('autonomous', 10)]}
+experiment = {
+    'e_1_zone1+': [('autonomous', 2)],
+    'e_2_zone1+': [('autonomous', 2)],
+    'e_3_zone1+': [('autonomous', 2)],
+    'e_4_zone1+': [('autonomous', 2)],
+    'e_1_zone2+': [('autonomous', 2)],
+    'e_2_zone2+': [('autonomous', 2)],
+    'e_3_zone2+': [('autonomous', 2)],
+    'e_4_zone2+': [('autonomous', 2)],
+    'e_1_zone3+': [('autonomous', 2)],
+    'e_2_zone3+': [('autonomous', 2)],
+    'e_3_zone3+': [('autonomous', 2)],
+    'e_4_zone3+': [('autonomous', 2)],
+}
 vehicle_data = {}
 
 # get all different vehicle types
@@ -47,8 +57,8 @@ for _, pairs in experiment.items():
 for veh_id, veh_num in vehicle_data.items():
     vehicles.add(
         veh_id=veh_id,
-        speed_mode=0b11111,
-        lane_change_mode=0b011001010101,
+        speed_mode=0b00000,
+        lane_change_mode=0b000000000000,
         acceleration_controller=(SumoCarFollowingController, {}),
         lane_change_controller=(SumoLaneChangeController, {}),
         routing_controller=(IntersectionRouter, {}),

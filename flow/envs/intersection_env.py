@@ -126,7 +126,9 @@ class SoftIntersectionEnv(Env):
             self.tls_phase_increment = np.clip(
                 int(action[-1]), 0, 1)
         self._set_reference(self.sbc_reference)
-        self._set_phase(self.tls_phase + self.tls_phase_increment)
+        self.tls_phase += self.tls_phase_increment
+        self.tls_phase %= self.tls_phase_count
+        self._set_phase(self.tls_phase)
 
     # OBSERVATION GOES HERE
     @property
@@ -187,9 +189,7 @@ class SoftIntersectionEnv(Env):
         co2s = list(self.inflow_co2s.values())
         co2s += list(self.junction_co2s.values())
         co2s += list(self.outflow_co2s.values())
-        consumption = 0.5*-np.mean(fuels) + 0.5*-np.mean(co2s)/1e3
-        print("performance:", performance)
-        print("consumption:", consumption)
+        consumption = 0.5*-np.mean(fuels) + 0.5*-np.mean(co2s)/1e2
         return self.alpha * performance + (1 - self.alpha) * consumption
 
     # UTILITY FUNCTION GOES HERE
@@ -240,7 +240,7 @@ class SoftIntersectionEnv(Env):
         self.test_tls(skip=True)
         self.test_ioflow(
             inflow_stats, outflow_stats, junction_stats, skip=True)
-        self.test_reward(skip=True)
+        self.test_reward(skip=False)
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:
@@ -301,8 +301,8 @@ class SoftIntersectionEnv(Env):
         count = self.traci_connection.lane.getLastStepVehicleNumber(loc)
         length = self.traci_connection.lane.getLength(loc)
         density = count / length
-        fuel = self.traci_connection.lane.getFuelConsumption(loc)
-        co2 = self.traci_connection.lane.getCO2Emission(loc)
+        fuel = self.traci_connection.lane.getFuelConsumption(loc) / length
+        co2 = self.traci_connection.lane.getCO2Emission(loc) / length
         if count == 0:
             speed = 0
         return [acceleration, speed, count, length, density, fuel, co2]
@@ -461,8 +461,9 @@ class HardIntersectionEnv(Env):
         self.tls_phase_increment = np.clip(
             int(action[-1]), 0, self.tls_phase_count)
         self._set_command(self.sbc_command)
-        self._set_phase(
-            (self.tls_phase + self.tls_phase_increment) % self.tls_phase_count)
+        self.tls_phase += self.tls_phase_increment
+        self.tls_phase %= self.tls_phase_count
+        self._set_phase(self.tls_phase)
 
     # OBSERVATION GOES HERE
     @property
@@ -520,14 +521,21 @@ class HardIntersectionEnv(Env):
     # REWARD FUNCTION GOES HERE
     def get_reward(self, **kwargs):
         speeds = list(self.inflow_speeds.values())
+        speeds += list(self.outflow_speeds.values())
         densities = list(self.inflow_densities.values())
+        densities += list(self.outflow_densities.values())
         performance = 0.4*np.mean(speeds) + 0.1*-np.std(speeds) + \
                       0.4*-np.mean(densities) + 0.1*-np.std(densities)
         fuels = list(self.inflow_fuels.values())
+        fuels += list(self.outflow_fuels.values())
         co2s = list(self.inflow_co2s.values())
-        consumption = 0.5*-np.mean(fuels) + 0.5*-np.mean(co2s)
+        co2s += list(self.outflow_co2s.values())
+        consumption = 0.5*-np.mean(fuels) + 0.5*-np.mean(co2s)/1e2
         navigation = self.alpha * performance + (1 - self.alpha) * consumption
-        safety = self.collision_count * 100
+        safety = self.collision_count * -10
+        print("performance:", performance)
+        print("consumption:", consumption)
+        print("safety:", safety)
         return self.beta * safety + (1 - self.beta) * navigation
 
     # UTILITY FUNCTION GOES HERE
@@ -575,7 +583,7 @@ class HardIntersectionEnv(Env):
         self.test_sbc(skip=True)
         self.test_tls(skip=True)
         self.test_ioflow(inflow_stats, outflow_stats, skip=True)
-        self.test_reward(skip=True)
+        self.test_reward(skip=False)
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:
@@ -601,6 +609,7 @@ class HardIntersectionEnv(Env):
             print("density:", self.inflow_densities)
             print("fuel:", self.inflow_fuels)
             print("co2:", self.inflow_co2s)
+
             print("outflow:", outflow_stats)
             print("acceleration:", self.outflow_accelerations)
             print("speed:", self.outflow_speeds)
@@ -627,11 +636,17 @@ class HardIntersectionEnv(Env):
         collision = \
             len(set(lane_vehicles).intersection(self.collision_vehicles))
         density = count / length
-        fuel = self.traci_connection.lane.getFuelConsumption(loc)
-        co2 = self.traci_connection.lane.getCO2Emission(loc)
+        fuel = self.traci_connection.lane.getFuelConsumption(loc) / length
+        co2 = self.traci_connection.lane.getCO2Emission(loc) / length
+        if count == 0:
+            speed = 0
         return [
             acceleration, speed, count, length, density, collision, fuel, co2
         ]
+
+    def _set_phase(self, tls_phase):
+        self.traci_connection.trafficlight.setPhase(\
+            self.tls_id, tls_phase)
 
     def _set_command(self, sbc_command):
         for sbc, reference in sbc_command.items():

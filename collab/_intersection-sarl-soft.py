@@ -55,10 +55,10 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1_sbc+': [('autonomous', 10)],
-                  'e_3_sbc+': [('autonomous', 10)],
-                  'e_5_sbc+': [('autonomous', 10)],
-                  'e_7_sbc+': [('autonomous', 10)]}
+    experiment = {'e_1_sbc+': [('autonomous', 6)],
+                  'e_3_sbc+': [('autonomous', 6)],
+                  'e_5_sbc+': [('autonomous', 6)],
+                  'e_7_sbc+': [('autonomous', 6)]}
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
