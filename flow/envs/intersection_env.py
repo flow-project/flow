@@ -50,6 +50,7 @@ class SoftIntersectionEnv(Env):
         for logic in self.tls_definition:
             for phase in logic._phases:
                 self.tls_phase_count += 1
+        self.tls_phase_increment = 0
 
         # setup speed broadcasters
         self.sbc_locations = [
@@ -238,7 +239,7 @@ class SoftIntersectionEnv(Env):
         self.test_tls(skip=True)
         self.test_ioflow(
             inflow_stats, outflow_stats, junction_stats, skip=True)
-        self.test_reward(skip=False)
+        self.test_reward(skip=True)
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:
@@ -348,6 +349,7 @@ class HardIntersectionEnv(Env):
         for logic in self.tls_definition:
             for phase in logic._phases:
                 self.tls_phase_count += 1
+        self.tls_phase_increment = 0
 
         # setup speed broadcasters
         self.sbc_locations = [
@@ -549,7 +551,7 @@ class HardIntersectionEnv(Env):
         self.test_sbc(skip=True)
         self.test_tls(skip=True)
         self.test_ioflow(inflow_stats, outflow_stats, skip=True)
-        self.test_reward(skip=False)
+        self.test_reward(skip=True)
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:
