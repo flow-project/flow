@@ -79,7 +79,7 @@ additional_env_params = {
     'start_inflow': flow_rate,
     'congest_penalty': True,
     'communicate': False,
-    "centralized_obs": True
+    "centralized_obs": False
 }
 
 # percentage of flow coming out of each lane
@@ -174,7 +174,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
-    config['use_centralized_vf'] = False
+    config['use_centralized_vf'] = True
     config['simple_optimizer'] = True
     config['log_level'] = 'DEBUG'
 
