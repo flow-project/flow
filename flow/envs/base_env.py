@@ -325,46 +325,19 @@ class Env(*classdef):
             self.render()
 
         states = self.get_state()
-        if isinstance(states, dict):
-            self.state = {}
-            next_observation = {}
-            done = {}
-            infos = {}
-            temp_state = states
-            for key, state in temp_state.items():
-                # collect information of the state of the network based on the
-                # environment class used
-                self.state[key] = np.asarray(state).T
 
-                # collect observation new state associated with action
-                next_observation[key] = np.copy(self.state[key])
+        # collect information of the state of the network based on the
+        # environment class used
+        self.state = np.asarray(states).T
 
-                # test if a crash has occurred
-                done[key] = crash
-                # test if the agent has exited the system, if so
-                # its agent should be done
-                # FIXME(ev) this assumes that agents are single vehicles
-                if key in self.k.vehicle.get_arrived_ids():
-                    done[key] = True
-                # check if an agent is done
-                if crash:
-                    done['__all__'] = True
-                else:
-                    done['__all__'] = False
-                infos[key] = {}
-        else:
-            # collect information of the state of the network based on the
-            # environment class used
-            self.state = np.asarray(states).T
+        # collect observation new state associated with action
+        next_observation = np.copy(states)
 
-            # collect observation new state associated with action
-            next_observation = np.copy(states)
+        # test if the agent should terminate due to a crash
+        done = crash
 
-            # test if the agent should terminate due to a crash
-            done = crash
-
-            # compute the info for each agent
-            infos = {}
+        # compute the info for each agent
+        infos = {}
 
         # compute the reward
         rl_clipped = self.clip_actions(rl_actions)
@@ -489,24 +462,13 @@ class Env(*classdef):
             raise FatalFlowError(msg=msg)
 
         states = self.get_state()
-        if isinstance(states, dict):
-            self.state = {}
-            observation = {}
-            for key, state in states.items():
-                # collect information of the state of the network based on the
-                # environment class used
-                self.state[key] = np.asarray(state).T
 
-                # collect observation new state associated with action
-                observation[key] = np.copy(self.state[key]).tolist()
+        # collect information of the state of the network based on the
+        # environment class used
+        self.state = np.asarray(states).T
 
-        else:
-            # collect information of the state of the network based on the
-            # environment class used
-            self.state = np.asarray(states).T
-
-            # observation associated with the reset (no warm-up steps)
-            observation = np.copy(states)
+        # observation associated with the reset (no warm-up steps)
+        observation = np.copy(states)
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
