@@ -111,26 +111,6 @@ class MultiEnv(MultiAgentEnv, Env):
         else:
             done['__all__'] = False
         infos = {key: {} for key in states.keys()}
-        # temp_state = states
-        # for key, state in temp_state.items():
-        #     # collect information of the state of the network based on the
-        #     # environment class used
-        #     self.state[key] = np.asarray(state).T
-        #
-        #     # collect observation new state associated with action
-        #     next_observation[key] = np.copy(self.state[key])
-        #
-        #     # test if a crash has occurred
-        #     done[key] = crash
-        #     # test if the agent has exited the system
-        #     if key in self.k.vehicle.get_arrived_ids():
-        #         done[key] = True
-        #     # check if an agent is done
-        #     if crash:
-        #         done['__all__'] = True
-        #     else:
-        #         done['__all__'] = False
-        #     infos[key] = {}
 
         clipped_actions = self.clip_actions(rl_actions)
         reward = self.compute_reward(clipped_actions, fail=crash)
@@ -252,17 +232,6 @@ class MultiEnv(MultiAgentEnv, Env):
             for veh_id in missing_vehicles:
                 msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
             raise FatalFlowError(msg=msg)
-
-        # states = self.get_state()
-        # self.state = {key}
-        # observation = {}
-        # for key, state in states.items():
-        #     # collect information of the state of the network based on the
-        #     # environment class used
-        #     self.state[key] = np.asarray(state).T
-        #
-        #     # collect observation new state associated with action
-        #     observation[key] = np.copy(self.state[key]).tolist()
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
