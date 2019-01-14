@@ -58,7 +58,8 @@ class AimsunKernelScenario(KernelScenario):
         if scenario.traffic_lights is not None:
             output["traffic_lights"] = scenario.traffic_lights.__dict__
 
-        cur_dir = os.path.dirname(__file__)
+        cur_dir = os.path.join(config.PROJECT_PATH,
+                               'flow/core/kernel/scenario')
         # TODO: add current time
         with open(os.path.join(cur_dir, 'data.json'), 'w') as outfile:
             json.dump(output, outfile, sort_keys=True, indent=4)
@@ -156,10 +157,7 @@ class AimsunKernelScenario(KernelScenario):
 
         # total_edgestarts and total_edgestarts_dict contain all of the above
         # edges, with the former being ordered by position
-        if self.network.net_params.no_internal_links:
-            self.total_edgestarts = self.edgestarts
-        else:
-            self.total_edgestarts = self.edgestarts + self.internal_edgestarts
+        self.total_edgestarts = self.edgestarts + self.internal_edgestarts
         self.total_edgestarts.sort(key=lambda tup: tup[1])
 
         self.total_edgestarts_dict = dict(self.total_edgestarts)
@@ -187,7 +185,8 @@ class AimsunKernelScenario(KernelScenario):
     def close(self):
         """See parent class."""
         # delete the json file that was used to read the scenario data
-        cur_dir = os.path.dirname(__file__)
+        cur_dir = os.path.join(config.PROJECT_PATH,
+                               'flow/core/kernel/scenario')
         os.remove(os.path.join(cur_dir, 'data.json'))
 
     ###########################################################################
