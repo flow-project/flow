@@ -197,7 +197,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 accel = np.concatenate([action[0] for action in actions])
             else:
                 accel = actions
-            self.apply_acceleration(rl_ids, accel)
+            self.k.vehicle.apply_acceleration(rl_ids, accel)
 
     def compute_reward(self, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
@@ -239,19 +239,33 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             self.inflow = flow_rate
             for _ in range(100):
                 try:
+                    net_params = self.scenario.net_params
+                    add_params = net_params.additional_params
+                    speed_limit = add_params['speed_limit']
                     inflow = InFlows()
                     inflow.add(
                         veh_type="av",
                         edge="1",
                         vehs_per_hour=flow_rate * .1,
                         departLane="random",
-                        departSpeed=10)
+                        departSpeed=speed_limit)
                     inflow.add(
                         veh_type="human",
                         edge="1",
                         vehs_per_hour=flow_rate * .9,
                         departLane="random",
-                        departSpeed=10)
+                        departSpeed=speed_limit)
+
+                    additional_net_params = {
+                        "scaling": self.scaling,
+                        "speed_limit": self.scenario.net_params.
+                            additional_params['speed_limit']
+                    }
+                    net_params = NetParams(
+                        inflows=inflow,
+                        no_internal_links=False,
+                        additional_params=additional_net_params)
+
                     vehicles = VehicleParams()
                     vehicles.add(
                         veh_id="human",
@@ -276,16 +290,6 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                             lane_change_mode=0,
                         ),
                         num_vehicles=1 * self.scaling)
-
-                    additional_net_params = {
-                        "scaling": self.scaling,
-                        "speed_limit": self.scenario.net_params.
-                            additional_params['speed_limit']
-                    }
-                    net_params = NetParams(
-                        inflows=inflow,
-                        no_internal_links=False,
-                        additional_params=additional_net_params)
 
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,

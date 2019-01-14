@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 import random
 import traceback
@@ -103,37 +104,40 @@ class MultiEnv(MultiAgentEnv, Env):
                 break
 
         states = self.get_state()
-        self.state = {}
-        next_observation = {}
-        done = {}
-        infos = {}
-        temp_state = states
-        for key, state in temp_state.items():
-            # collect information of the state of the network based on the
-            # environment class used
-            self.state[key] = np.asarray(state).T
-
-            # collect observation new state associated with action
-            next_observation[key] = np.copy(self.state[key])
-
-            # test if a crash has occurred
-            done[key] = crash
-            # test if the agent has exited the system
-            if key in self.k.vehicle.get_arrived_ids():
-                done[key] = True
-            # check if an agent is done
-            if crash:
-                done['__all__'] = True
-            else:
-                done['__all__'] = False
-            infos[key] = {}
+        done = {key: key in self.k.vehicle.get_arrived_ids()
+                for key in states.keys()}
+        if crash:
+            done['__all__'] = True
+        else:
+            done['__all__'] = False
+        infos = {key: {} for key in states.keys()}
+        # temp_state = states
+        # for key, state in temp_state.items():
+        #     # collect information of the state of the network based on the
+        #     # environment class used
+        #     self.state[key] = np.asarray(state).T
+        #
+        #     # collect observation new state associated with action
+        #     next_observation[key] = np.copy(self.state[key])
+        #
+        #     # test if a crash has occurred
+        #     done[key] = crash
+        #     # test if the agent has exited the system
+        #     if key in self.k.vehicle.get_arrived_ids():
+        #         done[key] = True
+        #     # check if an agent is done
+        #     if crash:
+        #         done['__all__'] = True
+        #     else:
+        #         done['__all__'] = False
+        #     infos[key] = {}
 
         clipped_actions = self.clip_actions(rl_actions)
         reward = self.compute_reward(clipped_actions, fail=crash)
 
-        return next_observation, reward, done, infos
+        return states, reward, done, infos
 
-    def reset(self):
+    def reset(self, new_inflow_rate=None):
         """Reset the environment.
 
         This method is performed in between rollouts. It resets the state of
@@ -172,19 +176,23 @@ class MultiEnv(MultiAgentEnv, Env):
             self.step_counter = 0
             # issue a random seed to induce randomness into the next rollout
             self.sim_params.seed = random.randint(0, 1e5)
+
+            self.k.vehicle = deepcopy(self.initial_vehicles)
+            self.k.vehicle.master_kernel = self.k
             # restart the sumo instance
             self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
-        if self.scenario.initial_config.shuffle:
+        elif self.scenario.initial_config.shuffle:
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
-        for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
-            try:
-                self.k.vehicle.remove(veh_id)
-            except (FatalTraCIError, TraCIException):
-                print("Error during start: {}".format(traceback.format_exc()))
+        if self.simulator == 'traci':
+            for veh_id in self.k.kernel_api.vehicle.getIDList():  # FIXME: hack
+                try:
+                    self.k.vehicle.remove(veh_id)
+                except (FatalTraCIError, TraCIException):
+                    pass
 
         # clear all vehicles from the network and the vehicles class
         # FIXME (ev, ak) this is weird and shouldn't be necessary
@@ -200,7 +208,8 @@ class MultiEnv(MultiAgentEnv, Env):
 
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
-            type_id, edge, lane_index, pos, speed = self.initial_state[veh_id]
+            type_id, edge, lane_index, pos, speed = \
+                self.initial_state[veh_id]
 
             try:
                 self.k.vehicle.add(
@@ -214,6 +223,8 @@ class MultiEnv(MultiAgentEnv, Env):
                 # if a vehicle was not removed in the first attempt, remove it
                 # now and then reintroduce it
                 self.k.vehicle.remove(veh_id)
+                if self.simulator == 'traci':
+                    self.k.kernel_api.vehicle.remove(veh_id)  # FIXME: hack
                 self.k.vehicle.add(
                     veh_id=veh_id,
                     type_id=type_id,
@@ -242,22 +253,25 @@ class MultiEnv(MultiAgentEnv, Env):
                 msg += '- {}: {}\n'.format(veh_id, self.initial_state[veh_id])
             raise FatalFlowError(msg=msg)
 
-        states = self.get_state()
-        self.state = {}
-        observation = {}
-        for key, state in states.items():
-            # collect information of the state of the network based on the
-            # environment class used
-            self.state[key] = np.asarray(state).T
-
-            # collect observation new state associated with action
-            observation[key] = np.copy(self.state[key]).tolist()
+        # states = self.get_state()
+        # self.state = {key}
+        # observation = {}
+        # for key, state in states.items():
+        #     # collect information of the state of the network based on the
+        #     # environment class used
+        #     self.state[key] = np.asarray(state).T
+        #
+        #     # collect observation new state associated with action
+        #     observation[key] = np.copy(self.state[key]).tolist()
 
         # perform (optional) warm-up steps before training
         for _ in range(self.env_params.warmup_steps):
             observation, _, _, _ = self.step(rl_actions=None)
 
-        return observation
+        # render a frame
+        self.render(reset=True)
+
+        return self.get_state()
 
     def clip_actions(self, rl_actions=None):
         """Clip the actions passed from the RL agent

@@ -834,12 +834,12 @@ class DesiredVelocityEnv(BottleneckEnv):
                         action = rl_actions[bucket + self.action_index[edge]]
 
                     max_speed_curr = self.k.vehicle.get_max_speed(rl_id)
-                    next_max = np.clip(max_speed_curr + action, 0.01, 30.0)
+                    next_max = np.clip(max_speed_curr + action, 0.01, 23.0)
                     self.k.vehicle.set_max_speed(rl_id, next_max)
 
                 else:
                     # set the desired velocity of the controller to the default
-                    self.k.vehicle.set_max_speed(rl_id, 30.0)
+                    self.k.vehicle.set_max_speed(rl_id, 23.0)
 
     def compute_reward(self, rl_actions, **kwargs):
         """Outflow rate over last ten seconds normalized to max of 1."""
@@ -854,7 +854,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                      (2000.0 * self.scaling)
             add_params = self.env_params.additional_params
             if add_params["congest_penalty"]:
-                num_vehs = len(self.vehicles.get_ids_by_edge('4'))
+                num_vehs = len(self.k.vehicle.get_ids_by_edge('4'))
                 if num_vehs > 30*self.scaling:
                     penalty = (num_vehs - 30*self.scaling)/10.0
                     reward -= penalty
@@ -872,19 +872,22 @@ class DesiredVelocityEnv(BottleneckEnv):
             self.inflow = flow_rate
             for _ in range(100):
                 try:
+                    net_params = self.scenario.net_params
+                    add_params = net_params.additional_params
+                    speed_limit = add_params['speed_limit']
                     inflow = InFlows()
                     inflow.add(
                         veh_type="av",
                         edge="1",
                         vehs_per_hour=flow_rate * .1,
                         departLane="random",
-                        departSpeed=30)
+                        departSpeed=speed_limit)
                     inflow.add(
                         veh_type="human",
                         edge="1",
                         vehs_per_hour=flow_rate * .9,
                         departLane="random",
-                        departSpeed=30)
+                        departSpeed=speed_limit)
 
                     additional_net_params = {
                         "scaling": self.scaling,
