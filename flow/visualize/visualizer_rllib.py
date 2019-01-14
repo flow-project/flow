@@ -183,7 +183,11 @@ def visualizer_rllib(args):
     agent.restore(checkpoint)
 
     _env = env_class(
-        env_params=env_params, sim_params=sim_params, scenario=scenario)
+        env_params=env_params,
+        sim_params=sim_params,
+        scenario=scenario,
+        simulator=flow_params['simulator']
+    )
     _prep = ModelCatalog.get_preprocessor(_env, options={})
     env = _RLlibPreprocessorWrapper(_env, _prep)
 
@@ -205,7 +209,7 @@ def visualizer_rllib(args):
         else:
             ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.unwrapped.vehicles
+            vehicles = env.unwrapped.k.vehicle
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             if multiagent:
                 action = {}

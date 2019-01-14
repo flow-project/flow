@@ -80,68 +80,68 @@ class LoopScenario(Scenario):
 
         edges = [{
             "id":
-            "bottom",
+                "bottom",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "bottom",
+                "bottom",
             "to":
-            "right",
+                "right",
             "length":
-            edgelen,
+                edgelen,
             "shape":
-            [
-                (r * cos(t), r * sin(t))
-                for t in linspace(-pi / 2, 0, resolution)
-            ]
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(-pi / 2, 0, resolution)
+                ]
         }, {
             "id":
-            "right",
+                "right",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "right",
+                "right",
             "to":
-            "top",
+                "top",
             "length":
-            edgelen,
+                edgelen,
             "shape":
-            [
-                (r * cos(t), r * sin(t))
-                for t in linspace(0, pi / 2, resolution)
-            ]
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(0, pi / 2, resolution)
+                ]
         }, {
             "id":
-            "top",
+                "top",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "top",
+                "top",
             "to":
-            "left",
+                "left",
             "length":
-            edgelen,
+                edgelen,
             "shape":
-            [
-                (r * cos(t), r * sin(t))
-                for t in linspace(pi / 2, pi, resolution)
-            ]
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(pi / 2, pi, resolution)
+                ]
         }, {
             "id":
-            "left",
+                "left",
             "type":
-            "edgeType",
+                "edgeType",
             "from":
-            "left",
+                "left",
             "to":
-            "bottom",
+                "bottom",
             "length":
-            edgelen,
+                edgelen,
             "shape":
-            [
-                (r * cos(t), r * sin(t))
-                for t in linspace(pi, 3 * pi / 2, resolution)
-            ]
+                [
+                    (r * cos(t), r * sin(t))
+                    for t in linspace(pi, 3 * pi / 2, resolution)
+                ]
         }]
 
         return edges

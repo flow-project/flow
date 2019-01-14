@@ -98,7 +98,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         # vehicles for all of the avs
         add_params = self.env_params.additional_params
         if add_params['centralized_obs']:
-            rl_ids = self.vehicles.get_rl_ids()
+            rl_ids = self.k.vehicle.get_rl_ids()
             state = self.get_centralized_state()
             return {rl_id: state for rl_id in rl_ids}
         else:
@@ -109,11 +109,11 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                                                                    rl_actions)
                                                    )
                                                   )
-                            for rl_id in self.vehicles.get_rl_ids()}
+                            for rl_id in self.k.vehicle.get_rl_ids()}
             else:
                 veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                    self.veh_statistics(rl_id)))
-                            for rl_id in self.vehicles.get_rl_ids()}
+                            for rl_id in self.k.vehicle.get_rl_ids()}
             agg_statistics = self.aggregate_statistics()
             lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
                                  for rl_id, val in veh_info.items()}
@@ -137,19 +137,19 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             num_rl_vehicles = np.zeros((self.num_obs_segments[i], num_lanes))
             vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
             rl_vehicle_speeds = np.zeros((self.num_obs_segments[i], num_lanes))
-            ids = self.vehicles.get_ids_by_edge(edge)
-            lane_list = self.vehicles.get_lane(ids)
-            pos_list = self.vehicles.get_position(ids)
+            ids = self.k.vehicle.get_ids_by_edge(edge)
+            lane_list = self.k.vehicle.get_lane(ids)
+            pos_list = self.k.vehicle.get_position(ids)
             for i, id in enumerate(ids):
                 segment = np.searchsorted(self.obs_slices[edge],
                                           pos_list[i]) - 1
-                if id in self.vehicles.get_rl_ids():
+                if id in self.k.vehicle.get_rl_ids():
                     rl_vehicle_speeds[segment, lane_list[i]] \
-                        += self.vehicles.get_speed(id)
+                        += self.k.vehicle.get_speed(id)
                     num_rl_vehicles[segment, lane_list[i]] += 1
                 else:
                     vehicle_speeds[segment, lane_list[i]] \
-                        += self.vehicles.get_speed(id)
+                        += self.k.vehicle.get_speed(id)
                     num_vehicles[segment, lane_list[i]] += 1
 
             # normalize
@@ -178,7 +178,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             if int(unnorm_rl_list[i]) else 0 for i in range(num_rl)
         ]) / 50
         outflow = np.asarray(
-            self.vehicles.get_outflow_rate(20 * self.sim_step) / 2000.0)
+            self.k.vehicle.get_outflow_rate(20 * self.sim_step) / 2000.0)
         return np.concatenate((num_vehicles_list, num_rl_vehicles_list,
                                mean_speed_norm, mean_rl_speed, [outflow],
                                [self.inflow]))
@@ -204,26 +204,26 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
 
         if self.env_params.evaluate:
             if self.time_counter == self.env_params.horizon:
-                reward = self.vehicles.get_outflow_rate(500)
+                reward = self.k.vehicle.get_outflow_rate(500)
                 return reward
             else:
                 return 0
 
         if rl_actions:
             # edge = '4'
-            # speed_rew = lambda x: self.vehicles.get_speed(x)/10
-            # num_ids = len(self.vehicles.get_ids_by_edge(edge))
+            # speed_rew = lambda x: self.k.vehicle.get_speed(x)/10
+            # num_ids = len(self.k.vehicle.get_ids_by_edge(edge))
             # cong_penalty = max(num_ids - 30, 0)/60
             # return {rl_id: speed_rew(rl_id) - cong_penalty for rl_id
-            #         in self.vehicles.get_rl_ids()}
+            #         in self.k.vehicle.get_rl_ids()}
             reward = -1
             add_params = self.env_params.additional_params
             if add_params["congest_penalty"]:
-                num_vehs = len(self.vehicles.get_ids_by_edge('4'))
+                num_vehs = len(self.k.vehicle.get_ids_by_edge('4'))
                 if num_vehs > 30*self.scaling:
                     penalty = (num_vehs - 30*self.scaling)/10.0
                     reward -= penalty
-            return {rl_id: reward for rl_id in self.vehicles.get_rl_ids()}
+            return {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
         else:
             return {}
 
@@ -277,10 +277,20 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                         ),
                         num_vehicles=1 * self.scaling)
 
+                    additional_net_params = {
+                        "scaling": self.scaling,
+                        "speed_limit": self.scenario.net_params.
+                            additional_params['speed_limit']
+                    }
+                    net_params = NetParams(
+                        inflows=inflow,
+                        no_internal_links=False,
+                        additional_params=additional_net_params)
+
                     self.scenario = self.scenario.__class__(
                         name=self.scenario.orig_name,
                         vehicles=vehicles,
-                        net_params=self.scenario.net_params,
+                        net_params=net_params,
                         initial_config=self.scenario.initial_config,
                         traffic_lights=self.scenario.traffic_lights)
                     self.restart_simulation(
@@ -306,11 +316,11 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
 
     def veh_statistics(self, rl_id):
         '''Returns speed and edge information about the vehicle itself'''
-        speed = self.vehicles.get_speed(rl_id)/100.0
-        edge = self.vehicles.get_edge(rl_id)
-        lane = (self.vehicles.get_lane(rl_id)+1)/10.0
+        speed = self.k.vehicle.get_speed(rl_id)/100.0
+        edge = self.k.vehicle.get_edge(rl_id)
+        lane = (self.k.vehicle.get_lane(rl_id)+1)/10.0
         if edge[0] != ':':
-            edge_id = int(self.vehicles.get_edge(rl_id))/10.0
+            edge_id = int(self.k.vehicle.get_edge(rl_id))/10.0
         else:
             edge_id = - 1/10.0
         return np.array([speed, edge_id, lane])
@@ -322,14 +332,14 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             If there are fewer than self.scaling*MAX_LANES the extra
             entries are filled with -1 to disambiguate from zeros
         '''
-        veh = self.vehicles
+        veh = self.k.vehicle
         lane_headways = veh.get_lane_headways(rl_id).copy()
         lane_tailways = veh.get_lane_tailways(rl_id).copy()
         lane_leader_speed = veh.get_lane_leaders_speed(rl_id).copy()
         lane_follower_speed = veh.get_lane_followers_speed(rl_id).copy()
         leader_ids = veh.get_lane_leaders(rl_id).copy()
         follower_ids = veh.get_lane_followers(rl_id).copy()
-        rl_ids = self.vehicles.get_rl_ids()
+        rl_ids = self.k.vehicle.get_rl_ids()
         is_leader_rl = [1 if l_id in rl_ids else 0 for l_id in leader_ids]
         is_follow_rl = [1 if f_id in rl_ids else 0 for f_id in follower_ids]
         diff = self.scaling*MAX_LANES - len(is_leader_rl)
@@ -355,14 +365,14 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             and average velocity of segments 3,4,5,6
         '''
         time_step = self.time_counter/self.env_params.horizon
-        outflow = self.vehicles.get_outflow_rate(10)/3600
+        outflow = self.k.vehicle.get_outflow_rate(10)/3600
         valid_edges = ['3', '4', '5']
-        congest_number = len(self.vehicles.get_ids_by_edge('4'))/50
+        congest_number = len(self.k.vehicle.get_ids_by_edge('4'))/50
         avg_speeds = np.zeros(len(valid_edges))
         for i, edge in enumerate(valid_edges):
-            edge_veh = self.vehicles.get_ids_by_edge(edge)
+            edge_veh = self.k.vehicle.get_ids_by_edge(edge)
             if len(edge_veh) > 0:
-                veh = self.vehicles
+                veh = self.k.vehicle
                 avg_speeds[i] = np.mean(veh.get_speed(edge_veh))/100.0
         return np.concatenate(([time_step], [outflow],
                                [congest_number], avg_speeds))
@@ -371,8 +381,8 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         ''' Returns the communication signals that should be
             pass to the autonomous vehicles
         '''
-        lead_ids = self.vehicles.get_lane_leaders(rl_id)
-        follow_ids = self.vehicles.get_lane_followers(rl_id)
+        lead_ids = self.k.vehicle.get_lane_leaders(rl_id)
+        follow_ids = self.k.vehicle.get_lane_followers(rl_id)
         comm_ids = lead_ids + follow_ids
         if rl_actions:
             signals = [rl_actions[av_id][1]/4.0 if av_id in

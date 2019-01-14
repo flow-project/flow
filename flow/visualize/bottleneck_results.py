@@ -218,7 +218,7 @@ def visualizer_rllib(args):
             else:
                 ret = 0
             for k in range(env_params.horizon):
-                vehicles = env.unwrapped.vehicles
+                vehicles = env.unwrapped.k.vehicle
                 vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
                 if k >= env_params.horizon - END_LEN:
                     vehs_on_four = vehicles.get_ids_by_edge('4')
