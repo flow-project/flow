@@ -79,7 +79,7 @@ additional_env_params = {
     "max_accel": 3,
     "max_decel": 3,
     "inflow_range": [1000, 2000],
-    "congest_penalty": True,
+    "congest_penalty": False,
     "start_inflow": flow_rate
 }
 
@@ -112,7 +112,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="SingleAgentCentralized",
+    exp_tag="SingleAgentNoPenalty",
 
     # name of the flow environment the experiment is running on
     env_name="DesiredVelocityEnv",
@@ -199,8 +199,8 @@ def setup_exps():
 
 if __name__ == "__main__":
     alg_run, gym_name, config = setup_exps()
-    # ray.init(redis_address="localhost:6379")
-    ray.init()
+    ray.init(redis_address="localhost:6379")
+    # ray.init(num_cpus=3)
     trials = run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
@@ -214,7 +214,8 @@ if __name__ == "__main__":
                 "training_iteration": 500,
             },
             "num_samples": 1,
-            "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper/1-11-2019/SingleAgentBottleneckTest"
+            "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper"
+                          "/1-14-2019/SingleAgentNoPenalty"
 
         }
     })
