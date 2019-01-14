@@ -111,7 +111,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsBottleneck',
+    exp_tag='MultiCentralObsBottleneck',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -174,7 +174,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
-    # config['use_centralized_vf'] = True
+    config['use_centralized_vf'] = False
     config['simple_optimizer'] = True
     config['log_level'] = 'DEBUG'
 
@@ -220,8 +220,8 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    # ray.init(redis_address='localhost:6379')
-    ray.init(redirect_output=False)
+    ray.init(redis_address='localhost:6379')
+    # ray.init(num_cpus=3, redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
             'run': alg_run,
@@ -231,7 +231,8 @@ if __name__ == '__main__':
                 'training_iteration': 500
             },
             'config': config,
-            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper/1-11-2019/MultiDecentralObsBottleneckTest2",
-            'num_samples': 1
+            'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
+                          "/1-14-2019/MultiCentralObsBottleneck",
+            'num_samples': 3
         },
     })
