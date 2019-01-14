@@ -143,9 +143,12 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 50,
+            "local_dir": "~/ray_results/",
             'max_failures': 999,
             'stop': {
-                'training_iteration': 1000,
+                'training_iteration': 5000,
             },
         },
-    }, scheduler=pbt)
+    },
+    resume='prompt',
+    scheduler=pbt,)
