@@ -79,7 +79,7 @@ additional_env_params = {
     "max_accel": 3,
     "max_decel": 3,
     "inflow_range": [1000, 2000],
-    "congest_penalty": False,
+    "congest_penalty": True,
     "start_inflow": flow_rate
 }
 
@@ -112,7 +112,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="SingleAgentNoPenalty",
+    exp_tag="SingleAgentPenalty",
 
     # name of the flow environment the experiment is running on
     env_name="DesiredVelocityEnv",
@@ -215,7 +215,7 @@ if __name__ == "__main__":
             },
             "num_samples": 3,
             "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-14-2019/SingleAgentNoPenalty"
+                          "/1-14-2019/SingleAgentPenalty"
 
         }
     })
