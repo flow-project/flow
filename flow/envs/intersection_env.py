@@ -441,7 +441,7 @@ class HardIntersectionEnv(Env):
         return Box(
             low=0,
             high=max(self.scenario.max_speed, self.tls_phase_count),
-            shape=(17,),
+            shape=(33,),
             dtype=np.float32)
 
     def set_action(self, action):
@@ -586,9 +586,7 @@ class HardIntersectionEnv(Env):
     def test_reward(self, skip=True):
         if not skip:
             _reward = self.get_reward()
-            print('Reward this step:', _reward)
             self.rewards += _reward
-            print('Total rewards:', self.rewards)
 
     def get_flow_stats(self, loc):
         speed = self.traci_connection.lane.getLastStepMeanSpeed(loc)
