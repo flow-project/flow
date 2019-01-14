@@ -44,7 +44,7 @@ auth:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 head_node:
-    InstanceType: c5d.9xlarge
+    InstanceType: c4.4xlarge
     ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
     InstanceMarketOptions:
         MarketType: spot
@@ -59,7 +59,7 @@ head_node:
 # For more documentation on available fields, see:
 # http://boto3.readthedocs.io/en/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 worker_nodes:
-    InstanceType: c5d.9xlarge
+    InstanceType: c4.4xlarge
     ImageId: ami-0067051ba5c8f0b64 # Flow AMI (Ubuntu)
 
     #Run workers on spot by default. Comment this out to use on-demand.
