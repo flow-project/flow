@@ -178,7 +178,6 @@ def setup_exps():
     config["model"].update({"fcnet_hiddens": [100, 50, 25]})
     config['clip_actions'] = False
     config["horizon"] = HORIZON
-    config['log_level'] = 'DEBUG'
 
     # Grid search things
     config['lr'] = tune.grid_search([5e-4, 5e-5])
