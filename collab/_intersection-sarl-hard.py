@@ -6,8 +6,8 @@ from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
+from flow.envs.intersection_env import HardIntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.scenarios.intersection import HardIntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRouter
 import numpy as np
 seed=204
@@ -55,10 +55,20 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1_sbc+': [('autonomous', 10)],
-                  'e_3_sbc+': [('autonomous', 10)],
-                  'e_5_sbc+': [('autonomous', 10)],
-                  'e_7_sbc+': [('autonomous', 10)]}
+    experiment = {
+        'e_1_zone1+': [('autonomous', 2)],
+        'e_2_zone1+': [('autonomous', 2)],
+        'e_3_zone1+': [('autonomous', 2)],
+        'e_4_zone1+': [('autonomous', 2)],
+        'e_1_zone2+': [('autonomous', 2)],
+        'e_2_zone2+': [('autonomous', 2)],
+        'e_3_zone2+': [('autonomous', 2)],
+        'e_4_zone2+': [('autonomous', 2)],
+        'e_1_zone3+': [('autonomous', 2)],
+        'e_2_zone3+': [('autonomous', 2)],
+        'e_3_zone3+': [('autonomous', 2)],
+        'e_4_zone3+': [('autonomous', 2)],
+    }
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
@@ -92,14 +102,14 @@ def intersection_example(render=None,
         edges_distribution=experiment,
     )
 
-    scenario = IntersectionScenario(
-        name='intersection',
+    scenario = HardIntersectionScenario(
+        name='intersection-hard',
         vehicles=vehicles,
         initial_config=initial_config,
         net_params=net_params,
     )
 
-    env = IntersectionEnv(env_params, sumo_params, scenario)
+    env = HardIntersectionEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 

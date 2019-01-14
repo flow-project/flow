@@ -17,9 +17,10 @@ from flow.core.vehicles import Vehicles
 from flow.controllers import IDMController, ContinuousRouter,\
     SumoCarFollowingController, SumoLaneChangeController
 from flow.controllers.routing_controllers import IntersectionRouter
-from flow.envs.intersection_env import IntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection_env import SoftIntersectionEnv, \
+    ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import \
-    IntersectionScenario, ADDITIONAL_NET_PARAMS
+    SoftIntersectionScenario, ADDITIONAL_NET_PARAMS
 
 # time horizon of a single rollout
 HORIZON = 1000
@@ -28,12 +29,15 @@ N_ROLLOUTS = 18
 # number of parallel workers
 N_CPUS = 6
 
+additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
+additional_env_params["alpha"] = 1.0  # performance-consumption tradeoff
+
 # We place 40 autonomous vehicles in the network
 vehicles = Vehicles()
-experiment = {'e_1_sbc+': [('autonomous', 10)],
-              'e_3_sbc+': [('autonomous', 10)],
-              'e_5_sbc+': [('autonomous', 10)],
-              'e_7_sbc+': [('autonomous', 10)]}
+experiment = {'e_1_sbc+': [('autonomous', 6)],
+              'e_3_sbc+': [('autonomous', 6)],
+              'e_5_sbc+': [('autonomous', 6)],
+              'e_7_sbc+': [('autonomous', 6)]}
 vehicle_data = {}
 
 # get all different vehicle types
@@ -55,13 +59,13 @@ for veh_id, veh_num in vehicle_data.items():
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='intersection-sarl',
+    exp_tag='intersection-sarl-soft',
 
     # name of the flow environment the experiment is running on
-    env_name='IntersectionEnv',
+    env_name='SoftIntersectionEnv',
 
     # name of the scenario class the experiment is running on
-    scenario='IntersectionScenario',
+    scenario='SoftIntersectionScenario',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
@@ -72,7 +76,8 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         horizon=HORIZON,
-        additional_params=ADDITIONAL_ENV_PARAMS.copy(),
+        warmup_steps=2,
+        additional_params=additional_env_params,
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
@@ -130,10 +135,9 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 50,
-            "local_dir": "/home/fangyu/ray_results/",
             'max_failures': 999,
             'stop': {
-                'training_iteration': 2500,
+                'training_iteration': 1000,
             },
         }
-    }, resume='prompt')
+    })

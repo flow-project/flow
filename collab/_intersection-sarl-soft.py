@@ -1,19 +1,17 @@
 """Example of modified intersection network with human-driven vehicles."""
-from flow.controllers import IDMController
 from flow.controllers import RLController, IDMController, ConstAccController,\
     SumoCarFollowingController, SumoLaneChangeController,\
-    RandomConstAccController, RandomLaneChanger
+    RandomConstAccController, RandomLaneChanger, StaticLaneChanger
 from flow.core.experiment import SumoExperiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
     SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.intersection_env import SoftIntersectionEnv, ADDITIONAL_ENV_PARAMS
+from flow.scenarios.intersection import SoftIntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRouter
 import numpy as np
 seed=204
 np.random.seed(seed)
-from flow.scenarios.intersection import SoftIntersectionScenario, \
-    ADDITIONAL_NET_PARAMS
 
 
 def intersection_example(render=None,
@@ -57,10 +55,10 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1_sbc+': [('autonomous', 10)],
-                  'e_3_sbc+': [('autonomous', 10)],
-                  'e_5_sbc+': [('autonomous', 10)],
-                  'e_7_sbc+': [('autonomous', 10)]}
+    experiment = {'e_1_sbc+': [('autonomous', 6)],
+                  'e_3_sbc+': [('autonomous', 6)],
+                  'e_5_sbc+': [('autonomous', 6)],
+                  'e_7_sbc+': [('autonomous', 6)]}
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
@@ -79,12 +77,14 @@ def intersection_example(render=None,
             routing_controller=(IntersectionRouter, {}),
             num_vehicles=veh_num)
 
-    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
+    env_params = EnvParams(
+        additional_params=ADDITIONAL_ENV_PARAMS,
+    )
 
     net_params = NetParams(
         no_internal_links=False,
-        additional_params=ADDITIONAL_NET_PARAMS.copy(),
         junction_type='traffic_light',
+        additional_params=ADDITIONAL_NET_PARAMS.copy(),
     )
 
     initial_config = InitialConfig(
@@ -93,13 +93,13 @@ def intersection_example(render=None,
     )
 
     scenario = SoftIntersectionScenario(
-        name='intersection',
+        name='intersection-soft',
         vehicles=vehicles,
         initial_config=initial_config,
         net_params=net_params,
     )
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = SoftIntersectionEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
 
