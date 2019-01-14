@@ -170,20 +170,6 @@ The latter command should return an output similar to:
 Copy the path up until right before /bin (i.e. /path/to/envs/aimsun_flow) and
 place it under the `AIMSUN_SITEPACKAGES` variable in flow/config.py.
 
-Finally, all Aimsun run scripts available within the Flow framework relies on
-an Aimsun template located within flow/utils/aimsun/Aimsun_Flow.ang when
-generating new networks. This template is also responsible for interacting the
-API during simulation. To ensure that it can locate the API, you will need to
-add the location to the API within the template. In order to do so:
-
-* Click on "SCENARIOS" |rarr| "Dynamic Scenario 866" in the right panel.
-* Click on "Aimsun Next APIs" and "Add" (highlighted in red in the figure
-  below), and add the "flow/utils/aimsun/run.py" file.
-* Close and save the template.
-
-.. image:: ../img/aimsun_template_api.png
-   :width: 400
-   :align: center
 
 Testing your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
