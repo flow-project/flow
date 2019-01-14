@@ -66,7 +66,8 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             # density and velocity for rl and non-rl vehicles per segment
             # Last element is the outflow and inflow
             for segment in self.obs_segments:
-                num_obs += 4 * segment[1] * self.k.scenario.num_lanes(segment[0])
+                num_obs += 4 * segment[1] * \
+                           self.k.scenario.num_lanes(segment[0])
             num_obs += 2
             return Box(low=0.0, high=1.0, shape=(num_obs,), dtype=np.float32)
         else:
@@ -259,7 +260,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                     additional_net_params = {
                         "scaling": self.scaling,
                         "speed_limit": self.scenario.net_params.
-                            additional_params['speed_limit']
+                        additional_params['speed_limit']
                     }
                     net_params = NetParams(
                         inflows=inflow,

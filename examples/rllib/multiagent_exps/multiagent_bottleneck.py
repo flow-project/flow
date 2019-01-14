@@ -179,7 +179,7 @@ def setup_exps():
     config['log_level'] = 'DEBUG'
 
     # Grid search things
-    config['lr'] = tune.grid_search([5e-4,5e-5])
+    config['lr'] = tune.grid_search([5e-4, 5e-5])
     config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things

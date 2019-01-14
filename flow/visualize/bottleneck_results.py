@@ -20,6 +20,7 @@ import os
 import sys
 
 import ray
+
 try:
     from ray.rllib.agents.agent import get_agent_class
 except ImportError:
@@ -35,7 +36,6 @@ from flow.utils.rllib import get_flow_params
 from flow.utils.rllib import get_rllib_config
 from flow.utils.rllib import get_rllib_pkl
 
-
 EXAMPLE_USAGE = """
 example usage:
     python ./visualizer_rllib.py /tmp/ray/result_dir 1
@@ -48,6 +48,7 @@ OUTFLOW_RANGE = [2.0, 2000]
 NUM_GRID_POINTS = 2
 NUM_TRIALS = 2
 END_LEN = 500
+
 
 class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
     """Adapts a RLlib preprocessor for use as an observation wrapper."""
@@ -204,10 +205,12 @@ def visualizer_rllib(args):
     final_outflows = []
     mean_speed = []
 
-    inflow_grid = np.linspace(OUTFLOW_RANGE[0], OUTFLOW_RANGE[1], NUM_GRID_POINTS)
-    outflow_arr = np.zeros((NUM_GRID_POINTS*NUM_TRIALS, 2))
-    # keep track of the last 500 points of velocity data for lane 0 and 1 in edge 4
-    velocity_arr = np.zeros((END_LEN*NUM_GRID_POINTS*NUM_TRIALS, 3))
+    inflow_grid = np.linspace(OUTFLOW_RANGE[0], OUTFLOW_RANGE[1],
+                              NUM_GRID_POINTS)
+    outflow_arr = np.zeros((NUM_GRID_POINTS * NUM_TRIALS, 2))
+    # keep track of the last 500 points of velocity data for lane 0
+    # and 1 in edge 4
+    velocity_arr = np.zeros((END_LEN * NUM_GRID_POINTS * NUM_TRIALS, 3))
 
     for i in range(NUM_GRID_POINTS):
         for j in range(NUM_TRIALS):
@@ -229,17 +232,20 @@ def visualizer_rllib(args):
                                           key=lambda x: lane_dict[x])
                     num_zeros = lanes.count(0)
                     if num_zeros > 0:
-                        speed_on_zero = np.mean(vehicles.get_speed(sort_by_lane[0:num_zeros]))
+                        speed_on_zero = np.mean(vehicles.get_speed(
+                            sort_by_lane[0:num_zeros]))
                     else:
                         speed_on_zero = 0.0
                     if num_zeros < len(vehs_on_four):
-                        speed_on_one = np.mean(vehicles.get_speed(sort_by_lane[num_zeros:]))
+                        speed_on_one = np.mean(vehicles.get_speed(
+                            sort_by_lane[num_zeros:]))
                     else:
                         speed_on_one = 0.0
-                    velocity_arr[END_LEN * (j + i * NUM_TRIALS) + k -(
-                                 env_params.horizon - END_LEN), :] = [inflow_grid[i],
-                                                                        speed_on_zero,
-                                                                        speed_on_one]
+                    velocity_arr[END_LEN * (j + i * NUM_TRIALS) + k - (
+                            env_params.horizon - END_LEN), :] = \
+                        [inflow_grid[i],
+                            speed_on_zero,
+                            speed_on_one]
 
                 if multiagent:
                     action = {}
@@ -290,9 +296,12 @@ def visualizer_rllib(args):
     env.unwrapped.terminate()
 
     # save the file
-    output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), './data'))
-    np.savetxt(output_path+'/bottleneck_outflow.txt', outflow_arr, delimiter=', ')
-    np.savetxt(output_path+'/speed_outflow.txt', velocity_arr, delimiter=', ')
+    output_path = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), './data'))
+    np.savetxt(output_path + '/bottleneck_outflow.txt',
+               outflow_arr, delimiter=', ')
+    np.savetxt(output_path + '/speed_outflow.txt',
+               velocity_arr, delimiter=', ')
 
     # Plot the inflow results
     unique_inflows = sorted(list(set(outflow_arr[:, 0])))
@@ -327,9 +336,9 @@ def visualizer_rllib(args):
     for inflow, vel_0, vel_1 in zip(inflows, lane_0, lane_1):
         sorted_vels[inflow] += [vel_0, vel_1]
     mean_vels = np.asarray([np.mean(sorted_vels[inflow])
-                                for inflow in unique_inflows])
+                            for inflow in unique_inflows])
     std_vels = np.asarray([np.std(sorted_vels[inflow])
-                               for inflow in unique_inflows])
+                           for inflow in unique_inflows])
 
     plt.figure(figsize=(27, 9))
 
@@ -343,8 +352,6 @@ def visualizer_rllib(args):
     plt.minorticks_on()
     plt.show()
 
-    # Plot the "inequality" of the resultant solution by visualizing outflow velocity per lane
-
     # if prompted, convert the emission file into a csv file
     if args.emission_to_csv:
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -357,7 +364,7 @@ def visualizer_rllib(args):
 
     # if we wanted to save the render, here we create the movie
     if args.save_render:
-        dirs = os.listdir(os.path.expanduser('~')+'/flow_rendering')
+        dirs = os.listdir(os.path.expanduser('~') + '/flow_rendering')
         dirs.sort(key=lambda date: datetime.strptime(date, "%Y-%m-%d-%H%M%S"))
         recent_dir = dirs[-1]
         # create the movie
