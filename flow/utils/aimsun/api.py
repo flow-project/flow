@@ -48,7 +48,7 @@ def create_client(port, print_status=False):
             while data is None:
                 data = s.recv(2048)
             stop = True
-        except socket.error as ex:
+        except socket.error:
             stop = False
 
     # print the return statement
