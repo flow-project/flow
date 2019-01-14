@@ -29,6 +29,9 @@ N_ROLLOUTS = 18
 # number of parallel workers
 N_CPUS = 6
 
+additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
+additional_env_params["alpha"] = 1.0  # performance-consumption tradeoff
+
 # We place 40 autonomous vehicles in the network
 vehicles = Vehicles()
 experiment = {'e_1_sbc+': [('autonomous', 6)],
@@ -71,8 +74,6 @@ flow_params = dict(
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
-    additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
-    additional_env_params["alpha"] = 1.0  # performance-consumption tradeoff
     env=EnvParams(
         horizon=HORIZON,
         warmup_steps=2,
