@@ -441,7 +441,7 @@ class HardIntersectionEnv(Env):
         return Box(
             low=0,
             high=max(self.scenario.max_speed, self.tls_phase_count),
-            shape=(9,),
+            shape=(17,),
             dtype=np.float32)
 
     def set_action(self, action):
@@ -463,7 +463,7 @@ class HardIntersectionEnv(Env):
         return Box(
             low=0.,
             high=np.inf,
-            shape=(65,),
+            shape=(193,),
             dtype=np.float32)
 
     def get_observation(self, **kwargs):

@@ -142,10 +142,9 @@ if __name__ == '__main__':
                 **config
             },
             'checkpoint_freq': 50,
-            "local_dir": "/home/fangyu/ray_results/",
             'max_failures': 999,
             'stop': {
-                'training_iteration': 2500,
+                'training_iteration': 1000,
             },
         }
-    }, resume='prompt')
+    })
