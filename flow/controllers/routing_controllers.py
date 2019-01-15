@@ -63,7 +63,7 @@ class MinicityRouter(BaseRouter):
 
         return next_route
 
-class IntersectionRouter(MinicityRouter):
+class IntersectionRandomRouter(MinicityRouter):
 
     def choose_route(self, env):
         type_id = env.vehicles.get_state(self.veh_id, 'type')
@@ -72,20 +72,35 @@ class IntersectionRouter(MinicityRouter):
         cur_lane = env.vehicles.get_lane(self.veh_id)
         route_assigned = False
 
-        if len(cur_route) > 1:
-            route_assigned = True
-        if 'xiao' in type_id and not route_assigned:
-            if cur_edge == 'e_7':
-                if cur_lane == 0:
-                    route = ['e_7', 'e_6']
-            elif cur_edge == 'e_3':
-                if cur_lane == 0:
-                    route = ['e_3', 'e_2']
-        elif 'idm' in type_id:
-            route = MinicityRouter.choose_route(self, env)
-        else:
-            route = None
+        straight_routes = [
+            ['e_1_sbc+', 'e_1', 'e_6', 'e_6_sbc-'],
+            ['e_3_sbc+', 'e_3', 'e_8', 'e_8_sbc-'],
+            ['e_5_sbc+', 'e_5', 'e_2', 'e_2_sbc-'],
+            ['e_7_sbc+', 'e_7', 'e_4', 'e_4_sbc-']]
+        right_turn_routes = [
+            ['e_1_sbc+', 'e_1', 'e_8', 'e_8_sbc-'],
+            ['e_7_sbc+', 'e_7', 'e_6', 'e_6_sbc-'],
+            ['e_5_sbc+', 'e_5', 'e_4', 'e_4_sbc-'],
+            ['e_3_sbc+', 'e_3', 'e_2', 'e_2_sbc-'],
+        ]
+        left_turn_routes = [
+            ['e_1_sbc+', 'e_1', 'e_4', 'e_4_sbc-'],
+            ['e_7_sbc+', 'e_7', 'e_2', 'e_2_sbc-'],
+            ['e_5_sbc+', 'e_5', 'e_8', 'e_8_sbc-'],
+            ['e_3_sbc+', 'e_3', 'e_6', 'e_6_sbc-'],
+        ]
+        # request all vehicles start from sbc+ edges, not any edge
+        all_routes = straight_routes + right_turn_routes + left_turn_routes;
+        all_routes_dict = {}
+        for route in all_routes:
+            if route[0] in all_routes_dict:
+                all_routes_dict[route[0]] += [route]
+            else:
+                all_routes_dict[route[0]] = [route]
 
+        if len(cur_route) == 1 and not route_assigned:
+            route = random.choice(all_routes_dict[cur_edge])
+            print(route)
         return route
 
 class MinicityTrainingRouter_9(MinicityRouter):

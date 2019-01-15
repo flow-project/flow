@@ -144,13 +144,27 @@ class IntersectionScenario(Scenario):
 
     def specify_routes(self, net_params):
         """See parent class."""
-        rts = {'e_1_sbc+': ['e_1_sbc+', 'e_1', 'e_6', 'e_6_sbc-'],
-               'e_2_sbc-': ['e_2', 'e_2_sbc-'],
-               'e_3_sbc+': ['e_3_sbc+', 'e_3', 'e_8', 'e_8_sbc-'],
-               'e_4_sbc-': ['e_4', 'e_4_sbc-'],
-               'e_5_sbc+': ['e_5_sbc+', 'e_5', 'e_2', 'e_2_sbc-'],
-               'e_6_sbc-': ['e_6', 'e_6_sbc-'],
-               'e_7_sbc+': ['e_7_sbc+', 'e_7', 'e_4', 'e_4_sbc-'],
-               'e_8_sbc-': ['e_8', 'e_8_sbc-']}
+        # default routes only contain straight routes
+        # rts = {'e_1_sbc+': ['e_1_sbc+', 'e_1', 'e_6', 'e_6_sbc-'],
+        #        'e_3_sbc+': ['e_3_sbc+', 'e_3', 'e_8', 'e_8_sbc-'],
+        #        'e_5_sbc+': ['e_5_sbc+', 'e_5', 'e_2', 'e_2_sbc-'],
+        #        'e_7_sbc+': ['e_7_sbc+', 'e_7', 'e_4', 'e_4_sbc-']}
 
+        # setup for random routes controller
+        rts = {'e_1_sbc+': ['e_1_sbc+'],
+               'e_2_sbc-': ['e_2_sbc-'],
+               'e_3_sbc+': ['e_3_sbc+'],
+               'e_4_sbc-': ['e_4_sbc-'],
+               'e_5_sbc+': ['e_5_sbc+'],
+               'e_6_sbc-': ['e_6_sbc-'],
+               'e_7_sbc+': ['e_7_sbc+'],
+               'e_8_sbc-': ['e_8_sbc-'],
+               'e_1': ['e_1'],
+               'e_2': ['e_2'],
+               'e_3': ['e_3'],
+               'e_4': ['e_4'],
+               'e_5': ['e_5'],
+               'e_6': ['e_6'],
+               'e_7': ['e_7'],
+               'e_8': ['e_8']}
         return rts

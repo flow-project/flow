@@ -9,7 +9,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
 from flow.core.vehicles import Vehicles
 from flow.envs.intersection_baseline import IntersectionBaseline, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.routing_controllers import IntersectionRouter
+from flow.controllers.routing_controllers import IntersectionRandomRouter
 import numpy as np
 seed=204
 np.random.seed(seed)
@@ -54,10 +54,10 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1_sbc+': [('autonomous', 10)],
-                  'e_3_sbc+': [('autonomous', 10)],
-                  'e_5_sbc+': [('autonomous', 10)],
-                  'e_7_sbc+': [('autonomous', 10)]}
+    experiment = {'e_1_sbc+': [('autonomous', 2)],
+                  'e_3_sbc+': [('autonomous', 2)],
+                  'e_5_sbc+': [('autonomous', 2)],
+                  'e_7_sbc+': [('autonomous', 1)]}
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
@@ -73,7 +73,7 @@ def intersection_example(render=None,
             lane_change_mode=0,
             acceleration_controller=(ConstAccController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
-            routing_controller=(IntersectionRouter, {}),
+            routing_controller=(IntersectionRandomRouter, {}),
             num_vehicles=veh_num)
 
     env_params = EnvParams(
