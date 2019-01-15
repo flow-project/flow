@@ -186,6 +186,8 @@ class MultiEnv(MultiAgentEnv, Env):
             except (FatalTraCIError, TraCIException):
                 print("Error during start: {}".format(traceback.format_exc()))
 
+        self.k.vehicle.num_vehicles = 0
+
         # reintroduce the initial vehicles to the network
         for veh_id in self.initial_ids:
             type_id, edge, lane_index, pos, speed = \

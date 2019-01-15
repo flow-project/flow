@@ -44,9 +44,9 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
-OUTFLOW_RANGE = [2.0, 2000]
-NUM_GRID_POINTS = 2
-NUM_TRIALS = 2
+OUTFLOW_RANGE = [1000, 2000]
+NUM_GRID_POINTS = 10
+NUM_TRIALS = 1
 END_LEN = 500
 
 

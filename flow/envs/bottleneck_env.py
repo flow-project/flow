@@ -899,37 +899,9 @@ class DesiredVelocityEnv(BottleneckEnv):
                         no_internal_links=False,
                         additional_params=additional_net_params)
 
-                    vehicles = VehicleParams()
-                    vehicles.add(
-                        veh_id="human",
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,
-                        ),
-                        num_vehicles=1 * self.scaling)
-                    vehicles.add(
-                        veh_id="av",
-                        acceleration_controller=(RLController, {}),
-                        lane_change_controller=(SimLaneChangeController, {}),
-                        routing_controller=(ContinuousRouter, {}),
-                        car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
-                        lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,
-                        ),
-                        num_vehicles=1 * self.scaling)
-
                     self.scenario = self.scenario.__class__(
-                        name=self.scenario.orig_name,
-                        vehicles=vehicles,
-                        net_params=net_params,
-                        initial_config=self.scenario.initial_config,
-                        traffic_lights=self.scenario.traffic_lights)
+                        self.scenario.orig_name, self.scenario.vehicles,
+                        net_params, self.scenario.initial_config)
                     self.restart_simulation(
                         sim_params=self.sim_params,
                         render=self.sim_params.render)
