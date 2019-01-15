@@ -46,7 +46,7 @@ Here the arguments are:
 
 OUTFLOW_RANGE = [1000, 2000]
 NUM_GRID_POINTS = 10
-NUM_TRIALS = 1
+NUM_TRIALS = 5
 END_LEN = 500
 
 
@@ -298,10 +298,19 @@ def visualizer_rllib(args):
     # save the file
     output_path = os.path.abspath(os.path.join(
         os.path.dirname(__file__), './data'))
-    np.savetxt(output_path + '/bottleneck_outflow.txt',
-               outflow_arr, delimiter=', ')
-    np.savetxt(output_path + '/speed_outflow.txt',
-               velocity_arr, delimiter=', ')
+    if args.filename:
+        filename = args.filename
+        outflow_name = '/bottleneck_outflow_{}.txt'.format(filename)
+        speed_name = '/speed_outflow_{}.txt'.format(filename)
+        np.savetxt(output_path + outflow_name,
+                   outflow_arr, delimiter=', ')
+        np.savetxt(output_path + speed_name,
+                   velocity_arr, delimiter=', ')
+    else:
+        np.savetxt(output_path + '/bottleneck_outflow.txt',
+                   outflow_arr, delimiter=', ')
+        np.savetxt(output_path + '/speed_outflow.txt',
+                   velocity_arr, delimiter=', ')
 
     # Plot the inflow results
     unique_inflows = sorted(list(set(outflow_arr[:, 0])))
@@ -428,6 +437,10 @@ def create_parser():
         '--horizon',
         type=int,
         help='Specifies the horizon.')
+    parser.add_argument(
+        '--filename',
+        type=str,
+        help='Specifies the filename to output the results into.')
     return parser
 
 

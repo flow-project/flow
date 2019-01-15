@@ -10,6 +10,9 @@ import ray
 
 from examples.sumo.bottlenecks import bottleneck_example
 
+STEP_SIZE = 100
+NUM_TRIALS = 10
+
 
 @ray.remote
 def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
@@ -26,7 +29,7 @@ def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
 
 if __name__ == '__main__':
     # import the experiment variable`
-    densities = list(range(400, 3000, 100))
+    densities = list(range(1000, 2100, 500))
     outflows = []
     velocities = []
     bottleneckdensities = []
@@ -40,7 +43,7 @@ if __name__ == '__main__':
 
     num_cpus = multiprocessing.cpu_count()
     ray.init(num_cpus=max(num_cpus - 2, 1))
-    bottleneck_outputs = [run_bottleneck.remote(d, 10, 2000)
+    bottleneck_outputs = [run_bottleneck.remote(d, 1, 2000)
                           for d in densities]
     for output in ray.get(bottleneck_outputs):
         outflow, velocity, bottleneckdensity, \
@@ -53,13 +56,13 @@ if __name__ == '__main__':
         bottleneckdensities.append(bottleneckdensity)
 
     path = os.path.dirname(os.path.abspath(__file__))
-    np.savetxt(path + '/../../data/rets.csv',
+    np.savetxt(path + '/../../flow/visualize/data/rets.csv',
                np.matrix([densities,
                           outflows,
                           velocities,
                           bottleneckdensities]).T,
                delimiter=',')
-    np.savetxt(path + '/../../data/inflows_outflows.csv',
+    np.savetxt(path + '/../../flow/visualize/data/inflows_outflows.csv',
                np.matrix([rollout_inflows,
                           rollout_outflows]).T,
                delimiter=',')

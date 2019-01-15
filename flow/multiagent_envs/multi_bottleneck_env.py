@@ -238,6 +238,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 flow_rate = np.random.uniform(
                     min(inflow_range), max(inflow_range)) * self.scaling
             self.inflow = flow_rate
+            print('THE FLOW RATE IS: ', flow_rate)
             for _ in range(100):
                 try:
                     net_params = self.scenario.net_params

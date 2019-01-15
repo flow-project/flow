@@ -132,10 +132,10 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
         lane_change_controller=(SimLaneChangeController, {}),
         routing_controller=(ContinuousRouter, {}),
         car_following_params=SumoCarFollowingParams(
-            speed_mode=25,
+            speed_mode=9,
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode=1621,
+            lane_change_mode=0,
         ),
         num_vehicles=1)
 

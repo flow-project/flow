@@ -8,12 +8,7 @@ Control through Deep-RL: Applications to Bottleneck Decongestion," IEEE
 Intelligent Transportation Systems Conference (ITSC), 2018.
 """
 
-from flow.controllers.rlcontroller import RLController
-from flow.controllers.lane_change_controllers import SimLaneChangeController
-from flow.controllers.routing_controllers import ContinuousRouter
 from flow.core.params import InFlows, NetParams
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-from flow.core.params import VehicleParams
 
 from collections import defaultdict
 from copy import deepcopy

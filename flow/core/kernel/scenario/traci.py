@@ -239,8 +239,8 @@ class TraCIScenario(KernelScenario):
                 os.remove(self.cfg_path + self.sumfn)
                 os.remove(self.net_path + self.confn)
                 os.remove(self.net_path + self.typfn)
-            except:
-                pass
+            except Exception as e:
+                print('Removing the files failed with exception ', e)
 
     def get_edge(self, x):
         """See parent class."""
