@@ -201,22 +201,22 @@ class TrafficLightGridEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state="GGGrrrGGGrrr")
+                            state="GrGr")
                     else:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state='rrrGGGrrrGGG')
+                            state='rGrG')
                     self.last_change[i, 2] = 1
             else:
                 if action:
                     if self.last_change[i, 1] == 0:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state='yyyrrryyyrrr')
+                            state='yryr')
                     else:
                         self.k.traffic_light.set_state(
                             node_id='center{}'.format(i),
-                            state='rrryyyrrryyy')
+                            state='ryry')
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]
                     self.last_change[i, 2] = 0
