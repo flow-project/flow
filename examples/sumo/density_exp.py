@@ -12,6 +12,7 @@ from examples.sumo.bottlenecks import bottleneck_example
 
 STEP_SIZE = 100
 NUM_TRIALS = 10
+NUM_STEPS = 2000
 
 
 @ray.remote
@@ -29,7 +30,7 @@ def run_bottleneck(flow_rate, num_trials, num_steps, render=None):
 
 if __name__ == '__main__':
     # import the experiment variable`
-    densities = list(range(2100, 2200, STEP_SIZE))
+    densities = list(range(400, 2500, STEP_SIZE))
     outflows = []
     velocities = []
     lane_4_vels = []

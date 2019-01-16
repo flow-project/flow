@@ -812,7 +812,7 @@ class TraCIVehicle(KernelVehicle):
     def apply_acceleration(self, veh_ids, acc):
         """See parent class."""
         for i, vid in enumerate(veh_ids):
-            if acc[i] is not None:
+            if acc[i] is not None and vid in self.get_ids():
                 this_vel = self.get_speed(vid)
                 next_vel = max([this_vel + acc[i] * self.sim_step, 0])
                 self.kernel_api.vehicle.slowDown(vid, next_vel, 1)
