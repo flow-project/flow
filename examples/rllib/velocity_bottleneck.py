@@ -24,7 +24,7 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 2000
 # number of parallel workers
 N_CPUS = 14
 # number of rollouts per training iteration
@@ -134,7 +134,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         warmup_steps=40,
-        sims_per_step=2,
+        sims_per_step=1,
         horizon=HORIZON,
         additional_params=additional_env_params,
     ),
