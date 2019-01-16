@@ -80,7 +80,7 @@ additional_env_params = {
     'inflow_range': [800, 2000],
     'start_inflow': flow_rate,
     'congest_penalty': False,
-    'communicate': False,
+    'communicate': True,
     "centralized_obs": False
 }
 
