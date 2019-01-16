@@ -10,6 +10,7 @@ from flow.core.vehicles import Vehicles
 from flow.envs.intersection_baseline import IntersectionBaseline, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import IntersectionScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import IntersectionRandomRouter
+from flow.core.params import InFlows
 import numpy as np
 seed=204
 np.random.seed(seed)
@@ -54,41 +55,58 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1_sbc+': [('autonomous', 2)],
-                  'e_3_sbc+': [('autonomous', 2)],
-                  'e_5_sbc+': [('autonomous', 2)],
-                  'e_7_sbc+': [('autonomous', 1)]}
-    vehicle_data = {}
-    # get all different vehicle types
-    for _, pairs in experiment.items():
-        for pair in pairs:
-            cur_num = vehicle_data.get(pair[0], 0)
-            vehicle_data[pair[0]] = cur_num + pair[1]
+    # experiment = {'e_1_sbc+': [('autonomous', 6)],
+    #               'e_3_sbc+': [('autonomous', 8)],
+    #               'e_5_sbc+': [('autonomous', 7)],
+    #               'e_7_sbc+': [('autonomous', 5)]}
+    # vehicle_data = {}
+    # # get all different vehicle types
+    # for _, pairs in experiment.items():
+    #     for pair in pairs:
+    #         cur_num = vehicle_data.get(pair[0], 0)
+    #         vehicle_data[pair[0]] = cur_num + pair[1]
+    #
+    # # add vehicle
+    # for veh_id, veh_num in vehicle_data.items():
+    #     vehicles.add(
+    #         veh_id=veh_id,
+    #         speed_mode=31,
+    #         lane_change_mode='strategic',
+    #         acceleration_controller=(ConstAccController, {}),
+    #         # lane_change_controller=(StaticLaneChanger, {}),
+    #         routing_controller=(IntersectionRandomRouter, {}),
+    #         num_vehicles=veh_num)
 
-    # add vehicle
-    for veh_id, veh_num in vehicle_data.items():
-        vehicles.add(
-            veh_id=veh_id,
-            speed_mode=0,
-            lane_change_mode=0,
-            acceleration_controller=(ConstAccController, {}),
-            lane_change_controller=(StaticLaneChanger, {}),
-            routing_controller=(IntersectionRandomRouter, {}),
-            num_vehicles=veh_num)
+    vehicles.add(veh_id='autonomous',
+                 acceleration_controller=(ConstAccController, {}),
+                 speed_mode=0,
+                 lane_change_mode='strategic',
+                 routing_controller=(IntersectionRandomRouter, {}),
+                 num_vehicles=1)
+
+    # add inflow
+    inflow = InFlows()
+    inflow.add(veh_type='autonomous',
+               edge='e_1_inflow',
+               vehs_per_hour=1000,
+               departSpeed=10,
+               departLane='random')
 
     env_params = EnvParams(
         additional_params=ADDITIONAL_ENV_PARAMS,
     )
 
     net_params = NetParams(
+        inflows=inflow,
         no_internal_links=False,
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
     )
 
     initial_config = InitialConfig(
         spacing='uniform',
-        edges_distribution=experiment,
+        edges_distribution=['e_1_sbc+'],
     )
+    # initial_config = InitialConfig()
 
     scenario = IntersectionScenario(
         name='intersection',
