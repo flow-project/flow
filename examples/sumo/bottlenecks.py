@@ -22,10 +22,11 @@ INFLOW = 1800
 
 class BottleneckDensityExperiment(Experiment):
 
-    def __init__(self, env):
+    def __init__(self, env, inflow=INFLOW):
         super().__init__(env)
+        self.inflow = inflow
 
-    def run(self, num_runs, num_steps, rl_actions=None, convert_to_csv=False):
+    def run(self, num_runs, num_steps, end_len=500, rl_actions=None, convert_to_csv=False):
         info_dict = {}
         if rl_actions is None:
 
@@ -40,6 +41,7 @@ class BottleneckDensityExperiment(Experiment):
         std_vels = []
         mean_densities = []
         mean_outflows = []
+        lane_4_vels = []
         for i in range(num_runs):
             vel = np.zeros(num_steps)
             logging.info('Iter #' + str(i))
@@ -52,6 +54,27 @@ class BottleneckDensityExperiment(Experiment):
                 state, reward, done, _ = self.env.step(rl_actions(state))
                 vel[j] = np.mean(self.env.k.vehicle.get_speed(
                     self.env.k.vehicle.get_ids()))
+                if j >= num_steps - end_len:
+                    vehicles = self.env.k.vehicle
+                    vehs_on_four = vehicles.get_ids_by_edge('4')
+                    lanes = vehicles.get_lane(vehs_on_four)
+                    lane_dict = {veh_id: lane for veh_id, lane in
+                                 zip(vehs_on_four, lanes)}
+                    sort_by_lane = sorted(vehs_on_four,
+                                          key=lambda x: lane_dict[x])
+                    num_zeros = lanes.count(0)
+                    if num_zeros > 0:
+                        speed_on_zero = np.mean(vehicles.get_speed(
+                            sort_by_lane[0:num_zeros]))
+                    else:
+                        speed_on_zero = 0.0
+                    if num_zeros < len(vehs_on_four):
+                        speed_on_one = np.mean(vehicles.get_speed(
+                            sort_by_lane[num_zeros:]))
+                    else:
+                        speed_on_one = 0.0
+                    lane_4_vels.append([self.inflow, speed_on_zero,
+                                        speed_on_one])
                 ret += reward
                 ret_list.append(reward)
 
@@ -68,7 +91,7 @@ class BottleneckDensityExperiment(Experiment):
             mean_densities.append(sum(step_densities[100:]) /
                                   (num_steps - 100))
             env = self.env
-            outflow = env.get_bottleneck_outflow_vehicles_per_hour(10000)
+            outflow = env.get_bottleneck_outflow_vehicles_per_hour(end_len)
             mean_outflows.append(outflow)
             mean_rets.append(np.mean(ret_list))
             ret_lists.append(ret_list)
@@ -82,6 +105,7 @@ class BottleneckDensityExperiment(Experiment):
         info_dict['per_step_returns'] = ret_lists
         info_dict['average_outflow'] = np.mean(mean_outflows)
         info_dict['per_rollout_outflows'] = mean_outflows
+        info_dict['lane_4_vels'] = lane_4_vels
 
         info_dict['average_rollout_density_outflow'] = np.mean(mean_densities)
 
@@ -141,8 +165,8 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
 
     additional_env_params = {
         "target_velocity": 40,
-        "max_accel": 1,
-        "max_decel": 1,
+        "max_accel": 3,
+        "max_decel": 3,
         "lane_change_duration": 5,
         "add_rl_if_exit": False,
         "disable_tb": DISABLE_TB,
@@ -186,7 +210,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
 
     env = BottleneckEnv(env_params, sim_params, scenario)
 
-    return BottleneckDensityExperiment(env)
+    return BottleneckDensityExperiment(env, flow_rate)
 
 
 if __name__ == '__main__':

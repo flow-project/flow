@@ -42,8 +42,8 @@ for file_name in file_list:
                            for inflow in unique_inflows])
 
     plt.plot(unique_inflows, mean_vels, linewidth=2, color='orange')
-    plt.fill_between(unique_inflows, mean_vels - std_vels,
-                     mean_vels + std_vels, alpha=0.25, color='orange')
+    # plt.fill_between(unique_inflows, mean_vels - std_vels,
+    #                  mean_vels + std_vels, alpha=0.25, color='orange')
     plt.xlabel('Inflow' + r'$ \ \frac{vehs}{hour}$')
     plt.ylabel('Velocity' + r'$ \ \frac{m}{s}$')
     plt.tick_params(labelsize=20)

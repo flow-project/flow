@@ -45,8 +45,8 @@ Here the arguments are:
 """
 
 OUTFLOW_RANGE = [1000, 2000]
-NUM_GRID_POINTS = 10
-NUM_TRIALS = 5
+STEP_SIZE = 100
+NUM_TRIALS = 10
 END_LEN = 500
 
 
@@ -65,7 +65,7 @@ class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
         return self.preprocessor.transform(observation)
 
 
-def visualizer_rllib(args):
+def bottleneck_visualizer(args):
     result_dir = args.result_dir if args.result_dir[-1] != '/' \
         else args.result_dir[:-1]
 
@@ -174,7 +174,7 @@ def visualizer_rllib(args):
     module = __import__(env_loc, fromlist=[flow_params['env_name']])
     env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
-    env_params.restart_instance = False
+    env_params.restart_instance = True
     if args.evaluate:
         env_params.evaluate = True
 
@@ -205,14 +205,14 @@ def visualizer_rllib(args):
     final_outflows = []
     mean_speed = []
 
-    inflow_grid = np.linspace(OUTFLOW_RANGE[0], OUTFLOW_RANGE[1],
-                              NUM_GRID_POINTS)
-    outflow_arr = np.zeros((NUM_GRID_POINTS * NUM_TRIALS, 2))
+    inflow_grid = list(range(OUTFLOW_RANGE[0], OUTFLOW_RANGE[1],
+                             STEP_SIZE))
+    outflow_arr = np.zeros((len(inflow_grid) * NUM_TRIALS, 2))
     # keep track of the last 500 points of velocity data for lane 0
     # and 1 in edge 4
-    velocity_arr = np.zeros((END_LEN * NUM_GRID_POINTS * NUM_TRIALS, 3))
+    velocity_arr = np.zeros((END_LEN * len(inflow_grid) * NUM_TRIALS, 3))
 
-    for i in range(NUM_GRID_POINTS):
+    for i in range(len(inflow_grid)):
         for j in range(NUM_TRIALS):
             vel = []
             state = env.unwrapped.reset(inflow_grid[i])
@@ -277,9 +277,9 @@ def visualizer_rllib(args):
             if multiagent:
                 for agent_id, rew in rets.items():
                     print('Round {}, Return: {} for agent {}'.format(
-                        i, ret, agent_id))
+                        j, ret, agent_id))
             else:
-                print('Round {}, Return: {}'.format(i, ret))
+                print('Round {}, Return: {}'.format(j, ret))
         if multiagent:
             for agent_id, rew in rets.items():
                 print('Average, std return: {}, {} for agent {}'.format(
@@ -448,4 +448,4 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
     ray.init(num_cpus=1)
-    visualizer_rllib(args)
+    bottleneck_visualizer(args)

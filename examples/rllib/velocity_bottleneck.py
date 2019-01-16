@@ -24,11 +24,11 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 1500
+HORIZON = 1000
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 14
 # number of rollouts per training iteration
-N_ROLLOUTS = N_CPUS
+N_ROLLOUTS = 2*N_CPUS
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -78,7 +78,7 @@ additional_env_params = {
     "lane_change_duration": 5,
     "max_accel": 3,
     "max_decel": 3,
-    "inflow_range": [1000, 2000],
+    "inflow_range": [800, 2000],
     "congest_penalty": True,
     "start_inflow": flow_rate
 }
@@ -90,13 +90,13 @@ inflow.add(
     edge="1",
     vehs_per_hour=flow_rate * (1 - AV_FRAC),
     departLane="random",
-    departSpeed=30)
+    departSpeed=10)
 inflow.add(
     veh_type="av",
     edge="1",
     vehs_per_hour=flow_rate * AV_FRAC,
     departLane="random",
-    departSpeed=30)
+    departSpeed=10)
 
 traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
@@ -134,7 +134,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         warmup_steps=40,
-        sims_per_step=1,
+        sims_per_step=2,
         horizon=HORIZON,
         additional_params=additional_env_params,
     ),
@@ -214,7 +214,7 @@ if __name__ == "__main__":
             },
             "num_samples": 3,
             "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-14-2019/SingleAgentPenalty"
+                          "/1-16-2019/SingleAgentPenalty"
 
         }
     })

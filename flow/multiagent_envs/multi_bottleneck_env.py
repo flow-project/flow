@@ -243,20 +243,19 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 try:
                     net_params = self.scenario.net_params
                     add_params = net_params.additional_params
-                    speed_limit = add_params['speed_limit']
                     inflow = InFlows()
                     inflow.add(
                         veh_type="av",
                         edge="1",
                         vehs_per_hour=flow_rate * .1,
                         departLane="random",
-                        departSpeed=speed_limit)
+                        departSpeed=10.0)
                     inflow.add(
                         veh_type="human",
                         edge="1",
                         vehs_per_hour=flow_rate * .9,
                         departLane="random",
-                        departSpeed=speed_limit)
+                        departSpeed=10.0)
 
                     additional_net_params = {
                         "scaling": self.scaling,
