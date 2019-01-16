@@ -21,9 +21,9 @@ from flow.controllers import RLController, ContinuousRouter, \
     SimLaneChangeController
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 2000
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 14
 # number of rollouts per training iteration
 N_ROLLOUTS = 2*N_CPUS
 
@@ -77,7 +77,7 @@ additional_env_params = {
     'max_decel': 3,
     'inflow_range': [800, 2000],
     'start_inflow': flow_rate,
-    'congest_penalty': True,
+    'congest_penalty': False,
     'communicate': False,
     "centralized_obs": False
 }
@@ -133,7 +133,7 @@ flow_params = dict(
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
         warmup_steps=40,
-        sims_per_step=2,
+        sims_per_step=1,
         horizon=HORIZON,
         additional_params=additional_env_params,
     ),
@@ -174,7 +174,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
-    config['use_centralized_vf'] = True
+    config['use_centralized_vf'] = tune.grid_search([True, False])
     config['simple_optimizer'] = True
 
     # Grid search things
@@ -220,7 +220,7 @@ def setup_exps():
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
     ray.init(redis_address='localhost:6379')
-    # ray.init(num_cpus=3, redirect_output=False)
+    # ray.init(num_cpus=4, redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
             'run': alg_run,
@@ -231,7 +231,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-14-2019/MultiDecentralObsBottleneck",
+                          "/1-16-2019/MultiDecentralObsBottleneck",
             'num_samples': 3
         },
     })

@@ -211,12 +211,6 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 return 0
 
         if rl_actions:
-            # edge = '4'
-            # speed_rew = lambda x: self.k.vehicle.get_speed(x)/10
-            # num_ids = len(self.k.vehicle.get_ids_by_edge(edge))
-            # cong_penalty = max(num_ids - 30, 0)/60
-            # return {rl_id: speed_rew(rl_id) - cong_penalty for rl_id
-            #         in self.k.vehicle.get_rl_ids()}
             reward = -1
             add_params = self.env_params.additional_params
             if add_params["congest_penalty"]:
