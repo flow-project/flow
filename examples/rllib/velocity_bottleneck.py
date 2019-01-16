@@ -35,7 +35,7 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
-LANE_CHANGING = 'OFF'
+LANE_CHANGING = 'ON'
 lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
@@ -114,7 +114,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag="SingleAgentPenalty",
+    exp_tag="SingleAgentPenaltyLC",
 
     # name of the flow environment the experiment is running on
     env_name="DesiredVelocityEnv",
@@ -216,7 +216,7 @@ if __name__ == "__main__":
             },
             "num_samples": 3,
             "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-16-2019/SingleAgentPenalty"
+                          "/1-16-2019/SingleAgentPenaltyLC"
 
         }
     })
