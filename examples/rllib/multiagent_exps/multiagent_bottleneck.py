@@ -23,7 +23,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 14
+N_CPUS = 2
 # number of rollouts per training iteration
 N_ROLLOUTS = 2*N_CPUS
 
@@ -113,7 +113,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='DecentralObsBottleneckLC',
+    exp_tag='DecentralObsBottleneckLC_mini',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -233,7 +233,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-16-2019/DecentralObsBottleneckLC",
+                          "/1-16-2019/DecentralObsBottleneckLC_mini",
             'num_samples': 3
         },
     })
