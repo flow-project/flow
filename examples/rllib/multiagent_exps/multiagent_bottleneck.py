@@ -23,7 +23,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 14
+N_CPUS = 2
 # number of rollouts per training iteration
 N_ROLLOUTS = 2*N_CPUS
 
@@ -32,21 +32,23 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
+LANE_CHANGING = 'OFF'
+lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
 vehicles.add(
-    veh_id='human',
+    veh_id="human",
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-                            speed_mode=9,
-                        ),
+        speed_mode=9,
+    ),
     lane_change_params=SumoLaneChangeParams(
-                            lane_change_mode=0,
-                        ),
+        lane_change_mode=lc_mode[LANE_CHANGING],
+    ),
     num_vehicles=1 * SCALING)
 vehicles.add(
-    veh_id='av',
+    veh_id="av",
     acceleration_controller=(RLController, {}),
     lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
@@ -54,7 +56,7 @@ vehicles.add(
         speed_mode=9,
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode=0,
+        lane_change_mode=lc_mode[LANE_CHANGING],
     ),
     num_vehicles=1 * SCALING)
 
@@ -111,7 +113,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsBottleneck',
+    exp_tag='DecentralObsBottleneckMiniRollout',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -219,8 +221,8 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    ray.init(redis_address='localhost:6379')
-    # ray.init(num_cpus=4, redirect_output=False)
+    # ray.init(redis_address='localhost:6379')
+    ray.init(redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
             'run': alg_run,
@@ -231,7 +233,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-16-2019/MultiDecentralObsBottleneck",
+                          "/1-16-2019/DecentralObsBottleneckMiniRollout",
             'num_samples': 3
         },
     })

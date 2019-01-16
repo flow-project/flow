@@ -77,7 +77,7 @@ ADDITIONAL_VSL_ENV_PARAMS = {
     # whether to subtract a penalty when vehicles congest
     "congest_penalty": True,
     # initial inflow
-    "start_inflow": 1900
+    "start_inflow": 1900,
 }
 
 START_RECORD_TIME = 0.0
@@ -868,7 +868,6 @@ class DesiredVelocityEnv(BottleneckEnv):
             for _ in range(100):
                 try:
                     net_params = self.scenario.net_params
-                    add_params = net_params.additional_params
                     inflow = InFlows()
                     inflow.add(
                         veh_type="av",

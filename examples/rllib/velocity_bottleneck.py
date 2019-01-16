@@ -35,6 +35,8 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
+LANE_CHANGING = 'OFF'
+lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -45,7 +47,7 @@ vehicles.add(
         speed_mode=9,
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode=0,
+        lane_change_mode=lc_mode[LANE_CHANGING],
     ),
     num_vehicles=1 * SCALING)
 vehicles.add(
@@ -57,7 +59,7 @@ vehicles.add(
         speed_mode=9,
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode=0,
+        lane_change_mode=lc_mode[LANE_CHANGING],
     ),
     num_vehicles=1 * SCALING)
 
@@ -80,7 +82,7 @@ additional_env_params = {
     "max_decel": 3,
     "inflow_range": [800, 2000],
     "congest_penalty": True,
-    "start_inflow": flow_rate
+    "start_inflow": flow_rate,
 }
 
 # percentage of flow coming out of each lane
