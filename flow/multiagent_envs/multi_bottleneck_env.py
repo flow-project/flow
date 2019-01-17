@@ -315,8 +315,11 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         speed = self.k.vehicle.get_speed(rl_id)/100.0
         edge = self.k.vehicle.get_edge(rl_id)
         lane = (self.k.vehicle.get_lane(rl_id)+1)/10.0
-        if edge[0] != ':':
-            edge_id = int(self.k.vehicle.get_edge(rl_id))/10.0
+        if edge:
+            if edge[0] != ':':
+                edge_id = int(self.k.vehicle.get_edge(rl_id))/10.0
+            else:
+                edge_id = - 1 / 10.0
         else:
             edge_id = - 1/10.0
         return np.array([speed, edge_id, lane])

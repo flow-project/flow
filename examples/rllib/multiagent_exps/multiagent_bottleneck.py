@@ -23,7 +23,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 15
+N_CPUS = 16
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -33,7 +33,7 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 LANE_CHANGING = 'OFF'
-lc_mode = {'OFF': 0, 'ON': 1621}
+lc_mode = {'OFF': 0, 'ON': 512}
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -56,7 +56,7 @@ vehicles.add(
         speed_mode=9,
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode=lc_mode[LANE_CHANGING],
+        lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
 
@@ -80,7 +80,7 @@ additional_env_params = {
     'inflow_range': [800, 2000],
     'start_inflow': flow_rate,
     'congest_penalty': False,
-    'communicate': True,
+    'communicate': False,
     "centralized_obs": False
 }
 
@@ -113,7 +113,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='DecentralObsBottleneckLC_mini',
+    exp_tag='MultiDecentralObsBottleneck',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -177,12 +177,12 @@ def setup_exps():
     config['clip_actions'] = False
     config['horizon'] = HORIZON
     config['use_centralized_vf'] = tune.grid_search([True, False])
+    config['max_vf_agents'] = 140
     config['simple_optimizer'] = True
-    config["log_level"] = "DEBUG"
 
     # Grid search things
-    # config['lr'] = tune.grid_search([5e-4, 5e-5])
-    # config['num_sgd_iter'] = tune.grid_search([10, 30])
+    config['lr'] = tune.grid_search([5e-4, 5e-5])
+    config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
     # config['model']['use_lstm'] = True
@@ -222,8 +222,8 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
-    # ray.init(redis_address='localhost:6379')
-    ray.init(redirect_output=False)
+    ray.init(redis_address='localhost:6379')
+    # ray.init(redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
             'run': alg_run,
@@ -234,7 +234,8 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-16-2019/DecentralObsBottleneck",
-            'num_samples': 1
+                          "/1-16-2019/MultiDecentralObsBottleneck",
+            'num_samples': 3,
+            'resources_per_trial': {"cpu": 34, "gpu": 0}
         },
     })

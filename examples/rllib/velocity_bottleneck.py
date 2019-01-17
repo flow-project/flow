@@ -36,7 +36,7 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 LANE_CHANGING = 'ON'
-lc_mode = {'OFF': 0, 'ON': 1621}
+lc_mode = {'OFF': 0, 'ON': 512}
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -59,7 +59,7 @@ vehicles.add(
         speed_mode=9,
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode=lc_mode[LANE_CHANGING],
+        lane_change_mode=0,
     ),
     num_vehicles=1 * SCALING)
 
@@ -128,9 +128,9 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=0.5,
-        render=False,
+        render=True,
         print_warnings=False,
-        restart_instance=True,
+        restart_instance=False,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
