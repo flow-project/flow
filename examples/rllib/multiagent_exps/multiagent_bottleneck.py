@@ -178,6 +178,7 @@ def setup_exps():
     config['horizon'] = HORIZON
     config['use_centralized_vf'] = tune.grid_search([True, False])
     config['simple_optimizer'] = True
+    config["log_level"] = "DEBUG"
 
     # Grid search things
     # config['lr'] = tune.grid_search([5e-4, 5e-5])
