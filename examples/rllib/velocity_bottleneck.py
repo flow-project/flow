@@ -212,7 +212,7 @@ if __name__ == "__main__":
             "checkpoint_freq": 50,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 500,
+                "training_iteration": 300,
             },
             "num_samples": 3,
             "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper"

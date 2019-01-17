@@ -54,8 +54,8 @@ class MultiEnv(MultiAgentEnv, Env):
             if len(self.k.vehicle.get_controlled_ids()) > 0:
                 accel = []
                 for veh_id in self.k.vehicle.get_controlled_ids():
-                    accel_contr = self.k.vehicle.get_acc_controller(veh_id)
-                    action = accel_contr.get_action(self)
+                    action = self.k.vehicle.get_acc_controller(
+                        veh_id).get_action(self)
                     accel.append(action)
                 self.k.vehicle.apply_acceleration(
                     self.k.vehicle.get_controlled_ids(), accel)
@@ -71,15 +71,18 @@ class MultiEnv(MultiAgentEnv, Env):
                     self.k.vehicle.get_controlled_lc_ids(),
                     direction=direction)
 
-            # perform (optionally) routing actions for all vehicle in the
-            # network, including rl and sumo-controlled vehicles
+            # perform (optionally) routing actions for all vehicles in the
+            # network, including RL and SUMO-controlled vehicles
             routing_ids = []
             routing_actions = []
             for veh_id in self.k.vehicle.get_ids():
-                if self.k.vehicle.get_routing_controller(veh_id) is not None:
+                if self.k.vehicle.get_routing_controller(veh_id) \
+                        is not None:
                     routing_ids.append(veh_id)
-                    route_contr = self.k.vehicle.get_routing_controller(veh_id)
+                    route_contr = self.k.vehicle.get_routing_controller(
+                        veh_id)
                     routing_actions.append(route_contr.choose_route(self))
+
             self.k.vehicle.choose_routes(routing_ids, routing_actions)
 
             self.apply_rl_actions(rl_actions)
@@ -102,6 +105,9 @@ class MultiEnv(MultiAgentEnv, Env):
             # stop collecting new simulation steps if there is a collision
             if crash:
                 break
+
+            # render a frame
+            self.render()
 
         states = self.get_state()
         done = {key: key in self.k.vehicle.get_arrived_ids()

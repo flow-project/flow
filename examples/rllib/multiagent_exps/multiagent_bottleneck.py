@@ -23,16 +23,16 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 2
+N_CPUS = 15
 # number of rollouts per training iteration
-N_ROLLOUTS = 2*N_CPUS
+N_ROLLOUTS = N_CPUS
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
-LANE_CHANGING = 'ON'
+LANE_CHANGING = 'OFF'
 lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
@@ -180,8 +180,8 @@ def setup_exps():
     config['simple_optimizer'] = True
 
     # Grid search things
-    config['lr'] = tune.grid_search([5e-4, 5e-5])
-    config['num_sgd_iter'] = tune.grid_search([10, 30])
+    # config['lr'] = tune.grid_search([5e-4, 5e-5])
+    # config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
     # config['model']['use_lstm'] = True
@@ -229,11 +229,11 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 50,
             'stop': {
-                'training_iteration': 500
+                'training_iteration': 300
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-16-2019/DecentralObsBottleneckLC_mini",
-            'num_samples': 3
+                          "/1-16-2019/DecentralObsBottleneck",
+            'num_samples': 1
         },
     })
