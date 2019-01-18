@@ -234,8 +234,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-16-2019/MultiDecentralObsBottleneck",
+                          "/1-18-2019/MultiDecentralObsBottleneck",
             'num_samples': 3,
-            'resources_per_trial': {"cpu": 34, "gpu": 0}
         },
     })

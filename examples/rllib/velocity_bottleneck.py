@@ -128,9 +128,9 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=0.5,
-        render=True,
+        render=False,
         print_warnings=False,
-        restart_instance=False,
+        restart_instance=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -182,8 +182,8 @@ def setup_exps():
     config["horizon"] = HORIZON
 
     # Grid search things
-    config['lr'] = tune.grid_search([5e-4, 5e-5])
-    config['num_sgd_iter'] = tune.grid_search([10, 30])
+    # config['lr'] = tune.grid_search([5e-4, 5e-5])
+    # config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # save the flow params for replay
     flow_json = json.dumps(
