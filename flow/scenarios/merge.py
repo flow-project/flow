@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos
 
 INFLOW_EDGE_LEN = 100  # length of the inflow edges (needed for resets)
@@ -32,7 +32,7 @@ class MergeScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a merge scenario.
 
         Requires from net_params:
@@ -62,33 +62,33 @@ class MergeScenario(Scenario):
         nodes = [
             {
                 "id": "inflow_highway",
-                "x": repr(-INFLOW_EDGE_LEN),
-                "y": repr(0)
+                "x": -INFLOW_EDGE_LEN,
+                "y": 0
             },
             {
                 "id": "left",
-                "y": repr(0),
-                "x": repr(0)
+                "y": 0,
+                "x": 0
             },
             {
                 "id": "center",
-                "y": repr(0),
-                "x": repr(premerge)
+                "y": 0,
+                "x": premerge
             },
             {
                 "id": "right",
-                "y": repr(0),
-                "x": repr(premerge + postmerge)
+                "y": 0,
+                "x": premerge + postmerge
             },
             {
                 "id": "inflow_merge",
-                "x": repr(premerge - (merge + INFLOW_EDGE_LEN) * cos(angle)),
-                "y": repr(-(merge + INFLOW_EDGE_LEN) * sin(angle))
+                "x": premerge - (merge + INFLOW_EDGE_LEN) * cos(angle),
+                "y": -(merge + INFLOW_EDGE_LEN) * sin(angle)
             },
             {
                 "id": "bottom",
-                "x": repr(premerge - merge * cos(angle)),
-                "y": repr(-merge * sin(angle))
+                "x": premerge - merge * cos(angle),
+                "y": -merge * sin(angle)
             },
         ]
 
@@ -105,31 +105,31 @@ class MergeScenario(Scenario):
             "type": "highwayType",
             "from": "inflow_highway",
             "to": "left",
-            "length": repr(INFLOW_EDGE_LEN)
+            "length": INFLOW_EDGE_LEN
         }, {
             "id": "left",
             "type": "highwayType",
             "from": "left",
             "to": "center",
-            "length": repr(premerge)
+            "length": premerge
         }, {
             "id": "inflow_merge",
             "type": "mergeType",
             "from": "inflow_merge",
             "to": "bottom",
-            "length": repr(INFLOW_EDGE_LEN)
+            "length": INFLOW_EDGE_LEN
         }, {
             "id": "bottom",
             "type": "mergeType",
             "from": "bottom",
             "to": "center",
-            "length": repr(merge)
+            "length": merge
         }, {
             "id": "center",
             "type": "highwayType",
             "from": "center",
             "to": "right",
-            "length": repr(postmerge)
+            "length": postmerge
         }]
 
         return edges
@@ -142,12 +142,12 @@ class MergeScenario(Scenario):
 
         types = [{
             "id": "highwayType",
-            "numLanes": repr(h_lanes),
-            "speed": repr(speed)
+            "numLanes": h_lanes,
+            "speed": speed
         }, {
             "id": "mergeType",
-            "numLanes": repr(m_lanes),
-            "speed": repr(speed)
+            "numLanes": m_lanes,
+            "speed": speed
         }]
 
         return types
