@@ -4,11 +4,11 @@ import os
 import json
 import collections
 
-from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import VehicleParams
+from flow.core.params import TrafficLightParams
 from flow.controllers import IDMController, ContinuousRouter, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, \
-    InFlows
+    InFlows, SumoCarFollowingParams
 from flow.core.util import emission_to_csv
 from flow.utils.flow_warnings import deprecation_warning
 from flow.utils.registry import make_create_env
@@ -82,27 +82,32 @@ class TestRegistry(unittest.TestCase):
         """Tests that the make_create_env methods generates an environment with
         the expected flow parameters."""
         # use a flow_params dict derived from flow/benchmarks/figureeight0.py
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {
                 "noise": 0.2
             }),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="no_collide",
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=13)
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="no_collide",
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=1)
 
         flow_params = dict(
             exp_tag="figure_eight_0",
             env_name="AccelEnv",
             scenario="Figure8Scenario",
-            sumo=SumoParams(
+            simulator='traci',
+            sim=SumoParams(
                 sim_step=0.1,
                 render=False,
             ),
@@ -112,6 +117,7 @@ class TestRegistry(unittest.TestCase):
                     "target_velocity": 20,
                     "max_accel": 3,
                     "max_decel": 3,
+                    "sort_vehicles": False
                 },
             ),
             net=NetParams(
@@ -125,7 +131,7 @@ class TestRegistry(unittest.TestCase):
             ),
             veh=vehicles,
             initial=InitialConfig(),
-            tls=TrafficLights(),
+            tls=TrafficLightParams(),
         )
 
         # some random version number for testing
@@ -140,25 +146,23 @@ class TestRegistry(unittest.TestCase):
         # create the gym environment
         env = create_env()
 
-        # Note that we expect the port number in sumo_params to change, and
+        # Note that we expect the port number in sim_params to change, and
         # that this feature is in fact needed to avoid race conditions
-        flow_params["sumo"].port = env.env.sumo_params.port
+        flow_params["sim"].port = env.sim_params.port
 
         # check that each of the parameter match
-        self.assertEqual(env.env.env_params.__dict__,
+        self.assertEqual(env.env_params.__dict__,
                          flow_params["env"].__dict__)
-        self.assertEqual(env.env.sumo_params.__dict__,
-                         flow_params["sumo"].__dict__)
-        self.assertEqual(env.env.traffic_lights.__dict__,
+        self.assertEqual(env.sim_params.__dict__,
+                         flow_params["sim"].__dict__)
+        self.assertEqual(env.scenario.traffic_lights.__dict__,
                          flow_params["tls"].__dict__)
-        self.assertEqual(env.env.scenario.net_params.__dict__,
+        self.assertEqual(env.scenario.net_params.__dict__,
                          flow_params["net"].__dict__)
-        self.assertEqual(env.env.scenario.net_params.__dict__,
-                         flow_params["net"].__dict__)
-        self.assertEqual(env.env.scenario.initial_config.__dict__,
+        self.assertEqual(env.scenario.initial_config.__dict__,
                          flow_params["initial"].__dict__)
-        self.assertEqual(env.env.__class__.__name__, flow_params["env_name"])
-        self.assertEqual(env.env.scenario.__class__.__name__,
+        self.assertEqual(env.__class__.__name__, flow_params["env_name"])
+        self.assertEqual(env.scenario.__class__.__name__,
                          flow_params["scenario"])
 
 
@@ -174,18 +178,22 @@ class TestRllib(unittest.TestCase):
         checked to match expected results.
         """
         # use a flow_params dict derived from flow/benchmarks/merge0.py
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="human",
             acceleration_controller=(IDMController, {}),
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             # for testing coverage purposes, we add a routing controller
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="no_collide",
             num_vehicles=5)
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
-            speed_mode="no_collide",
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="no_collide",
+            ),
             num_vehicles=0)
 
         inflow = InFlows()
@@ -212,7 +220,7 @@ class TestRllib(unittest.TestCase):
             exp_tag="merge_0",
             env_name="WaveAttenuationMergePOEnv",
             scenario="MergeScenario",
-            sumo=SumoParams(
+            sim=SumoParams(
                 restart_instance=True,
                 sim_step=0.5,
                 render=False,
@@ -242,7 +250,7 @@ class TestRllib(unittest.TestCase):
             ),
             veh=vehicles,
             initial=InitialConfig(),
-            tls=TrafficLights(),
+            tls=TrafficLightParams(),
         )
 
         # create an config dict with space for the flow_params dict
@@ -283,8 +291,8 @@ class TestRllib(unittest.TestCase):
                         flow_params["initial"].__dict__)
         self.assertTrue(imported_flow_params["tls"].__dict__ == flow_params[
             "tls"].__dict__)
-        self.assertTrue(imported_flow_params["sumo"].__dict__ == flow_params[
-            "sumo"].__dict__)
+        self.assertTrue(imported_flow_params["sim"].__dict__ == flow_params[
+            "sim"].__dict__)
         self.assertTrue(imported_flow_params["net"].__dict__ == flow_params[
             "net"].__dict__)
 
@@ -327,9 +335,8 @@ class TestRllib(unittest.TestCase):
 
         # make sure that the Vehicles class that was imported matches the
         # original one
-        if not search_dicts(imported_flow_params["veh"].__dict__,
-                            flow_params["veh"].__dict__):
-            raise AssertionError
+        self.assertTrue(search_dicts(imported_flow_params["veh"].__dict__,
+                                     flow_params["veh"].__dict__))
 
 
 if __name__ == '__main__':

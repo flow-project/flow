@@ -6,18 +6,21 @@ in a segment of space
 import json
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
-from flow.core.traffic_lights import TrafficLights
-from flow.core.vehicles import Vehicles
+    InFlows, SumoCarFollowingParams, SumoLaneChangeParams
+from flow.core.params import TrafficLightParams
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter, \
-    SumoLaneChangeController
+    SimLaneChangeController
 
 # time horizon of a single rollout
 HORIZON = 1000
@@ -32,21 +35,29 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="human",
-    speed_mode="all_checks",
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    lane_change_mode=0,
+    car_following_params=SumoCarFollowingParams(
+        speed_mode="all_checks",
+    ),
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 vehicles.add(
     veh_id="followerstopper",
     acceleration_controller=(RLController, {}),
-    lane_change_controller=(SumoLaneChangeController, {}),
+    lane_change_controller=(SimLaneChangeController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode=9,
-    lane_change_mode=0,
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
@@ -84,13 +95,13 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 
-traffic_lights = TrafficLights()
+traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
     traffic_lights.add(node_id="2")
 if not DISABLE_RAMP_METER:
     traffic_lights.add(node_id="3")
 
-additional_net_params = {"scaling": SCALING}
+additional_net_params = {"scaling": SCALING, "speed_limit": 23}
 net_params = NetParams(
     inflows=inflow,
     no_internal_links=False,
@@ -106,8 +117,11 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="BottleneckScenario",
 
+    # simulator that is used by the experiment
+    simulator='traci',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.5,
         render=False,
         print_warnings=False,
@@ -144,24 +158,25 @@ flow_params = dict(
     ),
 
     # traffic lights to be introduced to specific nodes (see
-    # flow.core.traffic_lights.TrafficLights)
+    # flow.core.params.TrafficLightParams)
     tls=traffic_lights,
 )
 
-if __name__ == '__main__':
-    ray.init(num_cpus=N_CPUS+1, redirect_output=True)
+
+def setup_exps():
 
     alg_run = "PPO"
 
     agent_cls = get_agent_class(alg_run)
     config = agent_cls._default_config.copy()
-    config["num_workers"] = N_CPUS  # number of parallel rollouts
+    config["num_workers"] = N_CPUS
     config["train_batch_size"] = HORIZON * N_ROLLOUTS
     config["gamma"] = 0.999  # discount rate
     config["model"].update({"fcnet_hiddens": [64, 64]})
-    config["lambda"] = 0.99
+    config["use_gae"] = True
+    config["lambda"] = 0.97
     config["kl_target"] = 0.02
-    config["num_sgd_iter"] = 30
+    config["num_sgd_iter"] = 10
     config["horizon"] = HORIZON
 
     # save the flow params for replay
@@ -170,22 +185,27 @@ if __name__ == '__main__':
     config['env_config']['flow_params'] = flow_json
     config['env_config']['run'] = alg_run
 
-    create_env, env_name = make_create_env(flow_params, version=0)
+    create_env, gym_name = make_create_env(params=flow_params, version=0)
 
     # Register as rllib env
-    register_env(env_name, create_env)
+    register_env(gym_name, create_env)
+    return alg_run, gym_name, config
 
+
+if __name__ == "__main__":
+    alg_run, gym_name, config = setup_exps()
+    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
     trials = run_experiments({
         flow_params["exp_tag"]: {
             "run": alg_run,
-            "env": "DesiredVelocityEnv-v0",
+            "env": gym_name,
             "config": {
                 **config
             },
             "checkpoint_freq": 20,
             "max_failures": 999,
             "stop": {
-                "training_iteration": 400,
+                "training_iteration": 200,
             },
         }
     })

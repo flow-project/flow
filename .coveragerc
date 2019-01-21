@@ -3,3 +3,14 @@ omit =
     */python?.?/*
     */site-packages/nose/*
     *__init__*
+    */setup.py
+    *rllab*
+    *dummy_server.py
+    *aimsun.py
+    *aimsun/run.py
+    *aimsun/api.py
+    *aimsun/generate.py
+
+exclude_lines =
+    if __name__ == .__main__.:
+    raise NotImplementedError

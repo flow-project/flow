@@ -13,6 +13,7 @@ Subpackages
     flow.scenarios
     flow.utils
     flow.visualize
+    flow.renderer
 
 Submodules
 ----------

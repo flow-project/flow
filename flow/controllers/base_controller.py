@@ -14,7 +14,7 @@ class BaseController:
 
     def __init__(self,
                  veh_id,
-                 sumo_cf_params,
+                 car_following_params,
                  delay=0,
                  fail_safe=None,
                  noise=0):
@@ -24,7 +24,7 @@ class BaseController:
         ----------
         veh_id: string
             ID of the vehicle this controller is used for
-        sumo_cf_params: SumoCarFollowingParams
+        car_following_params: SumoCarFollowingParams
             The underlying sumo model for car that will be overwritten. A Flow
             controller will override the behavior this sumo car following
             model; however, if control is ceded back to sumo, the vehicle will
@@ -38,7 +38,6 @@ class BaseController:
             variance of the gaussian from which to sample a noisy acceleration
         """
         self.veh_id = veh_id
-        self.sumo_controller = False
 
         # magnitude of gaussian noise
         self.accel_noise = noise
@@ -49,15 +48,11 @@ class BaseController:
         # longitudinal failsafe used by the vehicle
         self.fail_safe = fail_safe
 
-        self.max_accel = sumo_cf_params.controller_params['accel']
+        self.max_accel = car_following_params.controller_params['accel']
         # max deaccel should always be a positive
-        self.max_deaccel = abs(sumo_cf_params.controller_params['decel'])
+        self.max_deaccel = abs(car_following_params.controller_params['decel'])
 
-        self.sumo_cf_params = sumo_cf_params
-
-    def uses_sumo(self):
-        """Specify whether the controller uses sumo's default accelerations."""
-        return self.sumo_controller
+        self.car_following_params = car_following_params
 
     def get_accel(self, env):
         """Return the acceleration of the controller."""
@@ -124,19 +119,19 @@ class BaseController:
             action otherwise
         """
         # if there is only one vehicle in the network, all actions are safe
-        if env.vehicles.num_vehicles == 1:
+        if env.k.vehicle.num_vehicles == 1:
             return action
 
-        lead_id = env.vehicles.get_leader(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
 
         # if there is no other vehicle in the lane, all actions are safe
         if lead_id is None:
             return action
 
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
         sim_step = env.sim_step
         next_vel = this_vel + action * sim_step
-        h = env.vehicles.get_headway(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
 
         if next_vel > 0:
             # the second and third terms cover (conservatively) the extra
@@ -174,13 +169,13 @@ class BaseController:
         safe_action: float
             the requested action clipped by the safe velocity
         """
-        if env.vehicles.num_vehicles == 1:
+        if env.k.vehicle.num_vehicles == 1:
             # if there is only one vehicle in the network, all actions are safe
             return action
         else:
             safe_velocity = self.safe_velocity(env)
 
-            this_vel = env.vehicles.get_speed(self.veh_id)
+            this_vel = env.k.vehicle.get_speed(self.veh_id)
             sim_step = env.sim_step
 
             if this_vel + action * sim_step > safe_velocity:
@@ -210,11 +205,11 @@ class BaseController:
             maximum safe velocity given a maximum deceleration and delay in
             performing the breaking action
         """
-        lead_id = env.vehicles.get_leader(self.veh_id)
-        lead_vel = env.vehicles.get_speed(lead_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
 
-        h = env.vehicles.get_headway(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
         dv = lead_vel - this_vel
 
         v_safe = 2 * h / env.sim_step + dv - this_vel * (2 * self.delay)
