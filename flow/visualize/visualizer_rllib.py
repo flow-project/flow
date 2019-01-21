@@ -118,10 +118,9 @@ def visualizer_rllib(args):
         sys.exit(1)
 
     sim_params.restart_instance = False
-
     sim_params.emission_path = './test_time_rollout/'
 
-    # prepare for rendering
+    # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
         sim_params.num_clients = 2
         sim_params.render = False
@@ -132,7 +131,6 @@ def visualizer_rllib(args):
         sim_params.render = True
     elif args.render_mode == 'no_render':
         sim_params.render = False
-
     if args.save_render:
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
@@ -321,11 +319,12 @@ def create_parser():
         help='Specifies whether to use the \'evaluate\' reward '
              'for the environment.')
     parser.add_argument(
-        '--render_mode',
+        '--render-mode',
         type=str,
-        default='sumo_gui',
-        help='Pick the render mode. Options include sumo_web3d, '
-             'rgbd and sumo_gui')
+        default='sumo-gui',
+        help='Pick the render mode. Options include sumo-web3d, '
+             'rgbd, sumo-gui, and no-render. For more details'
+             'see the visualization tutorial.')
     parser.add_argument(
         '--save_render',
         action='store_true',
