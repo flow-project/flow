@@ -28,19 +28,23 @@ exercise is as follows:
 
 **Tutorial 1:** Running SUMO simulations in Flow.
 
-**Tutorial 2:** Running RLlib experiments for mixed-autonomy traffic.
+**Tutorial 2:** Running Aimsun simulations in Flow.
 
-**Tutorial 3:** Running rllab experiments for mixed-autonomy traffic.
+**Tutorial 3:** Running RLlib experiments for mixed-autonomy traffic.
 
-**Tutorial 4:** Saving and visualizing resuls from non-RL simulations and 
+**Tutorial 4:** Running rllab experiments for mixed-autonomy traffic.
+
+**Tutorial 5:** Saving and visualizing resuls from non-RL simulations and 
 testing simulations in the presence of an RLlib/rllab agent.
 
-**Tutorial 5:** Creating custom scenarios.
+**Tutorial 6:** Creating custom scenarios.
 
-**Tutorial 6:** Creating custom environments.
+**Tutorial 7:** Creating custom environments.
 
-**Tutorial 7:** Creating custom controllers.
+**Tutorial 8:** Creating custom controllers.
 
-**Tutorial 8:** Traffic lights.
+**Tutorial 9:** Traffic lights.
 
-**Tutorial 9:** Running simulations with inflows of vehicles.
+**Tutorial 10:** Running simulations with inflows of vehicles.
+
+**Tutorial 11:** Running rllab experiments on Amazon EC2 instances.

@@ -53,6 +53,9 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="Figure8Scenario",
 
+    # simulator that is used by the experiment
+    simulator='traci',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=0.1,
@@ -66,6 +69,7 @@ flow_params = dict(
             "target_velocity": 20,
             "max_accel": 3,
             "max_decel": 3,
+            "sort_vehicles": False
         },
     ),
 

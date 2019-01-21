@@ -60,7 +60,7 @@ class TwoLoopsMergePOEnv(Env):
         vehicles.
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -75,7 +75,7 @@ class TwoLoopsMergePOEnv(Env):
         self.obs_var_labels = \
             ["speed", "pos", "queue_length", "velocity_stats"]
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
     @property
     def observation_space(self):
@@ -92,16 +92,16 @@ class TwoLoopsMergePOEnv(Env):
         return Box(
             low=-np.abs(self.env_params.additional_params["max_decel"]),
             high=self.env_params.additional_params["max_accel"],
-            shape=(self.vehicles.num_rl_vehicles, ),
+            shape=(self.scenario.vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
-        self.apply_acceleration(sorted_rl_ids, rl_actions)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
@@ -111,11 +111,11 @@ class TwoLoopsMergePOEnv(Env):
         # reward
         max_cost = np.array(
             [self.env_params.additional_params["target_velocity"]
-             ] * self.vehicles.num_vehicles)
+             ] * self.k.vehicle.num_vehicles)
         max_cost = np.linalg.norm(max_cost)
-        normalization = self.scenario.length / self.vehicles.num_vehicles
+        normalization = self.k.scenario.length() / self.k.vehicle.num_vehicles
         headway_reward = 0.2 * max_cost * rewards.penalize_headway_variance(
-            self.vehicles, self.sorted_extra_data, normalization)
+            self.k.vehicle, self.sorted_ids, normalization)
         return vel_reward + headway_reward
 
     def get_state(self, **kwargs):
@@ -123,13 +123,14 @@ class TwoLoopsMergePOEnv(Env):
         vel = np.zeros(self.n_obs_vehicles)
         pos = np.zeros(self.n_obs_vehicles)
 
-        sorted = self.sorted_extra_data
-        merge_len = self.scenario.intersection_length
+        sorted = self.sorted_ids
+        merge_len = self.k.scenario.network.intersection_length
 
         # Merge stretch is pos 0.0-25.5 (ish), so actively merging vehicles
         # are sorted at the front of the list. Otherwise, vehicles closest to
         # the merge are at the end of the list (effectively reverse sorted).
-        if self.get_x_by_id(sorted[0]) < merge_len and self.get_x_by_id(
+        if self.k.vehicle.get_x_by_id(sorted[0]) < \
+                merge_len and self.k.vehicle.get_x_by_id(
                 sorted[1]) < merge_len:
             if not sorted[0].startswith("merge") and \
                     not sorted[1].startswith("merge"):
@@ -144,21 +145,21 @@ class TwoLoopsMergePOEnv(Env):
             else:
                 vid1 = sorted[1]
                 vid2 = sorted[0]
-        elif self.get_x_by_id(sorted[0]) < merge_len:
+        elif self.k.vehicle.get_x_by_id(sorted[0]) < merge_len:
             vid1 = sorted[0]
             vid2 = sorted[-1]
         else:
             vid1 = sorted[-1]
             vid2 = sorted[-2]
-        pos[-2] = self.get_x_by_id(vid1)
-        pos[-1] = self.get_x_by_id(vid2)
-        vel[-2] = self.vehicles.get_speed(vid1)
-        vel[-1] = self.vehicles.get_speed(vid2)
+        pos[-2] = self.k.vehicle.get_x_by_id(vid1)
+        pos[-1] = self.k.vehicle.get_x_by_id(vid2)
+        vel[-2] = self.k.vehicle.get_speed(vid1)
+        vel[-1] = self.k.vehicle.get_speed(vid2)
 
         # find and eliminate all the vehicles on the outer ring
         num_inner = len(sorted)
 
-        rl_vehID = self.vehicles.get_rl_ids()[0]
+        rl_vehID = self.k.vehicle.get_rl_ids()[0]
         rl_srtID, = np.where(sorted == rl_vehID)
         rl_srtID = rl_srtID[0]
 
@@ -171,16 +172,16 @@ class TwoLoopsMergePOEnv(Env):
         vehicles = [rl_vehID[0], lead_id1, lead_id2, follow_id1, follow_id2]
 
         vel[:self.n_obs_vehicles - self.n_merging_in] = np.array(
-            self.vehicles.get_speed(vehicles))
+            self.k.vehicle.get_speed(vehicles))
         pos[:self.n_obs_vehicles - self.n_merging_in] = np.array(
-            [self.get_x_by_id(veh_id) for veh_id in vehicles])
+            [self.k.vehicle.get_x_by_id(veh_id) for veh_id in vehicles])
 
         # normalize the speed
         # FIXME(cathywu) can divide by self.max_speed
-        normalized_vel = np.array(vel) / self.scenario.max_speed
+        normalized_vel = np.array(vel) / self.k.scenario.max_speed()
 
         # normalize the position
-        normalized_pos = np.array(pos) / self.scenario.length
+        normalized_pos = np.array(pos) / self.k.scenario.length()
 
         # Compute number of vehicles in the outer ring
         queue_length = np.zeros(1)
@@ -189,7 +190,7 @@ class TwoLoopsMergePOEnv(Env):
         # Compute mean velocity on inner and outer rings
         # Note: merging vehicles count towards the inner ring stats
         vel_stats = np.zeros(2)
-        vel_all = self.vehicles.get_speed(sorted)
+        vel_all = self.k.vehicle.get_speed(sorted)
         vel_stats[0] = np.mean(vel_all[:num_inner])
         vel_stats[1] = np.mean(vel_all[num_inner:])
         vel_stats = np.nan_to_num(vel_stats)
@@ -197,28 +198,17 @@ class TwoLoopsMergePOEnv(Env):
         return np.concatenate(
             (normalized_vel, normalized_pos, queue_length, vel_stats))
 
-    def sort_by_position(self):
-        """
-        See parent class.
+    @property
+    def sorted_ids(self):
+        """Sort vehicle IDs.
 
         Instead of being sorted by a global reference, vehicles in this
         environment are sorted with regards to which ring this currently
         reside on.
         """
-        pos = [self.get_x_by_id(veh_id) for veh_id in self.vehicles.get_ids()]
+        pos = [self.k.vehicle.get_x_by_id(veh_id)
+               for veh_id in self.k.vehicle.get_ids()]
         sorted_indx = np.argsort(pos)
-        sorted_ids = np.array(self.vehicles.get_ids())[sorted_indx]
+        sorted_ids = np.array(self.k.vehicle.get_ids())[sorted_indx]
 
-        sorted_human_ids = [
-            veh_id for veh_id in sorted_ids
-            if veh_id not in self.vehicles.get_rl_ids()
-        ]
-
-        sorted_rl_ids = [
-            veh_id for veh_id in sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
-        ]
-
-        sorted_separated_ids = sorted_human_ids + sorted_rl_ids
-
-        return sorted_separated_ids, sorted_ids
+        return sorted_ids

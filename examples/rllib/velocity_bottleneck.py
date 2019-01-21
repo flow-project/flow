@@ -6,7 +6,10 @@ in a segment of space
 import json
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -98,7 +101,7 @@ if not DISABLE_TB:
 if not DISABLE_RAMP_METER:
     traffic_lights.add(node_id="3")
 
-additional_net_params = {"scaling": SCALING}
+additional_net_params = {"scaling": SCALING, "speed_limit": 23}
 net_params = NetParams(
     inflows=inflow,
     no_internal_links=False,
@@ -113,6 +116,9 @@ flow_params = dict(
 
     # name of the scenario class the experiment is running on
     scenario="BottleneckScenario",
+
+    # simulator that is used by the experiment
+    simulator='traci',
 
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(

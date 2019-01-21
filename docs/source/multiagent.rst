@@ -24,7 +24,7 @@ A brief example of a multiagent env:
         for rl_id, action in rl_actions.items():
             rl_ids.append(rl_id)
             rl_action_list.append(action)
-        self.apply_acceleration(rl_ids, rl_action_list)
+        self.k.vehicle.apply_acceleration(rl_ids, rl_action_list)
 
     def compute_reward(self, rl_actions, **kwargs):
         """In this example all agents receive a reward of 10"""
@@ -37,8 +37,8 @@ A brief example of a multiagent env:
         """Here every agent gets its speed"""
         # speed normalizer
         obs_dict = {}
-        for rl_id in self.vehicles.get_rl_ids():
-            obs_dict[rl_id] = self.vehicles.get_speed(rl_id)
+        for rl_id in self.k.vehicle.get_rl_ids():
+            obs_dict[rl_id] = self.k.vehicle.get_speed(rl_id)
         return obs_dict
 
 

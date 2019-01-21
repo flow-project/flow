@@ -33,23 +33,21 @@ class MiniCityScenario(Scenario):
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))
 
-        self.nodes = dict()
+        self.nodes_dict = dict()
 
         super().__init__(name, vehicles, net_params,
                          initial_config, traffic_lights)
 
     def specify_edge_starts(self):
         """See parent class."""
-        # the total length of the network is defined within this function
-        self.length = 0
-
+        length = 0
         edgestarts = []
-        for edge_id in self._edge_list:
+        for edge in self.edges:
             # the current edge starts where the last edge ended
-            edgestarts.append((edge_id, self.length))
+            edgestarts.append((edge['id'], length))
             # increment the total length of the network with the length of the
             # current edge
-            self.length += self._edges[edge_id]['length']
+            length += float(edge['length'])
 
         return edgestarts
 
@@ -103,8 +101,8 @@ class MiniCityScenario(Scenario):
                  {'id': 'n_s14', 'x': 4.75, 'y': 3.75}]
 
         for node in nodes:
-            self.nodes[node['id']] = np.array([node['x'] * SCALING,
-                                               node['y'] * SCALING])
+            self.nodes_dict[node['id']] = np.array([node['x'] * SCALING,
+                                                    node['y'] * SCALING])
 
         for node in nodes:
             node['x'] = node['x'] * SCALING
@@ -423,8 +421,9 @@ class MiniCityScenario(Scenario):
                 edge['shape'] = [(x * SCALING, y * SCALING)
                                  for x, y in edge['shape']]
             else:
-                edge['length'] = np.linalg.norm(self.nodes[edge['to']] -
-                                                self.nodes[edge['from']])
+                edge['length'] = np.linalg.norm(
+                    self.nodes_dict[edge['to']] -
+                    self.nodes_dict[edge['from']])
 
             # fix junction overlapping issue
             junctions = {'e_8_b': 2,
