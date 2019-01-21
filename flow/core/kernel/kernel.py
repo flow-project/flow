@@ -1,9 +1,10 @@
 """Script containing the Flow kernel object for interacting with simulators."""
 
-from flow.core.kernel.simulation import TraCISimulation
-from flow.core.kernel.scenario import KernelScenario
-from flow.core.kernel.vehicle import KernelVehicle
-from flow.core.kernel.traffic_light import TraCITrafficLight
+from flow.core.kernel.simulation import TraCISimulation, AimsunKernelSimulation
+from flow.core.kernel.scenario import TraCIScenario, AimsunKernelScenario
+from flow.core.kernel.vehicle import TraCIVehicle, AimsunKernelVehicle
+from flow.core.kernel.traffic_light import TraCITrafficLight, \
+    AimsunKernelTrafficLight
 
 
 class Kernel(object):
@@ -61,9 +62,14 @@ class Kernel(object):
 
         if simulator == "traci":
             self.simulation = TraCISimulation(self)
-            self.scenario = KernelScenario(self)
-            self.vehicle = KernelVehicle(self, sim_params)
+            self.scenario = TraCIScenario(self, sim_params)
+            self.vehicle = TraCIVehicle(self, sim_params)
             self.traffic_light = TraCITrafficLight(self)
+        elif simulator == 'aimsun':
+            self.simulation = AimsunKernelSimulation(self)
+            self.scenario = AimsunKernelScenario(self, sim_params)
+            self.vehicle = AimsunKernelVehicle(self, sim_params)
+            self.traffic_light = AimsunKernelTrafficLight(self)
         else:
             raise ValueError('Simulator type "{}" is not valid.'.
                              format(simulator))
@@ -90,10 +96,10 @@ class Kernel(object):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        # self.scenario.update(reset)
-        self.simulation.update(reset)
-        # self.vehicle.update(reset)
+        self.vehicle.update(reset)
         self.traffic_light.update(reset)
+        self.scenario.update(reset)
+        self.simulation.update(reset)
 
     def close(self):
         """Terminate all components within the simulation and scenario."""

@@ -24,6 +24,7 @@ Flow is a work in progress - input is welcome. Available documentation is limite
    rendering
    visualizing
    regression
+   examples
    modules
 
 
