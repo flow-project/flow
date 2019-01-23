@@ -1,7 +1,6 @@
 """Objects that define the various meta-parameters of an experiment."""
 
 import logging
-import warnings
 import collections
 
 from flow.utils.flow_warnings import deprecation_warning
