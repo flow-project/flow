@@ -544,14 +544,6 @@ class SumoParams(SimParams):
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
-        if sumo_binary is not None:
-            warnings.simplefilter("always", PendingDeprecationWarning)
-            warnings.warn(
-                "sumo_binary will be deprecated in a future release, use "
-                "render instead.",
-                PendingDeprecationWarning
-            )
-            self.render = sumo_binary == "sumo-gui"
 
 
 class EnvParams:
@@ -655,14 +647,6 @@ class NetParams:
         self.osm_path = osm_path
         self.netfile = netfile
         self.additional_params = additional_params or {}
-        if in_flows is not None:
-            warnings.simplefilter("always", PendingDeprecationWarning)
-            warnings.warn(
-                "in_flows will be deprecated in a future release, use "
-                "inflows instead.",
-                PendingDeprecationWarning
-            )
-            self.inflows = in_flows
 
 
 class InitialConfig:
