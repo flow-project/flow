@@ -168,11 +168,12 @@ class WaveAttenuationEnv(Env):
 
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
+        length = random.randint(
+            self.env_params.additional_params['ring_length'][0],
+            self.env_params.additional_params['ring_length'][1]),
         additional_net_params = {
             'length':
-                random.randint(
-                    self.env_params.additional_params['ring_length'][0],
-                    self.env_params.additional_params['ring_length'][1]),
+                length,
             'lanes':
                 self.scenario.net_params.additional_params['lanes'],
             'speed_limit':
@@ -191,9 +192,8 @@ class WaveAttenuationEnv(Env):
 
         # solve for the velocity upper bound of the ring
         v_guess = 4
-        v_eq_max = fsolve(
-            v_eq_max_function, np.array(v_guess),
-            args=(len(self.initial_ids), self.k.scenario.length()))[0]
+        v_eq_max = fsolve(v_eq_max_function, np.array(v_guess),
+                          args=(len(self.initial_ids), length))[0]
 
         print('\n-----------------------')
         print('ring length:', net_params.additional_params['length'])
