@@ -3,8 +3,10 @@ omit =
     */python?.?/*
     */site-packages/nose/*
     *__init__*
+    */scripts/*
     */setup.py
     *rllab*
+    */flow/utils/shflags
     *dummy_server.py
     *aimsun.py
     *aimsun/run.py
