@@ -170,7 +170,7 @@ class WaveAttenuationEnv(Env):
         initial_config = InitialConfig(bunching=50, min_gap=0)
         length = random.randint(
             self.env_params.additional_params['ring_length'][0],
-            self.env_params.additional_params['ring_length'][1]),
+            self.env_params.additional_params['ring_length'][1])
         additional_net_params = {
             'length':
                 length,
