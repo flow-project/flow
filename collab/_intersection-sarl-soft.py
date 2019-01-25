@@ -8,7 +8,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
 from flow.core.vehicles import Vehicles
 from flow.envs.intersection_env import SoftIntersectionEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import SoftIntersectionScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.routing_controllers import IntersectionRouter
+from flow.controllers.routing_controllers import IntersectionRandomRouter
 import numpy as np
 seed=204
 np.random.seed(seed)
