@@ -55,33 +55,63 @@ def intersection_example(render=None,
 
     vehicles = Vehicles()
 
-    experiment = {'e_1_sbc+': [('autonomous', 6)],
-                  'e_3_sbc+': [('autonomous', 6)],
-                  'e_5_sbc+': [('autonomous', 6)],
-                  'e_7_sbc+': [('autonomous', 6)]}
-    vehicle_data = {}
-    # get all different vehicle types
-    for _, pairs in experiment.items():
-        for pair in pairs:
-            cur_num = vehicle_data.get(pair[0], 0)
-            vehicle_data[pair[0]] = cur_num + pair[1]
+    # experiment = {'e_1_sbc+': [('autonomous', 6)],
+    #               'e_3_sbc+': [('autonomous', 6)],
+    #               'e_5_sbc+': [('autonomous', 6)],
+    #               'e_7_sbc+': [('autonomous', 6)]}
+    # vehicle_data = {}
+    # # get all different vehicle types
+    # for _, pairs in experiment.items():
+    #     for pair in pairs:
+    #         cur_num = vehicle_data.get(pair[0], 0)
+    #         vehicle_data[pair[0]] = cur_num + pair[1]
+    #
+    # # add vehicle
+    # for veh_id, veh_num in vehicle_data.items():
+    #     vehicles.add(
+    #         veh_id=veh_id,
+    #         speed_mode=0b11111,
+    #         lane_change_mode=0b011001010101,
+    #         acceleration_controller=(SumoCarFollowingController, {}),
+    #         lane_change_controller=(SumoLaneChangeController, {}),
+    #         routing_controller=(IntersectionRouter, {}),
+    #         num_vehicles=veh_num)
 
-    # add vehicle
-    for veh_id, veh_num in vehicle_data.items():
-        vehicles.add(
-            veh_id=veh_id,
-            speed_mode=0b11111,
-            lane_change_mode=0b011001010101,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
-            routing_controller=(IntersectionRouter, {}),
-            num_vehicles=veh_num)
+    vehicles.add(veh_id='autonomous',
+             acceleration_controller=(ConstAccController, {}),
+             speed_mode=0,
+             lane_change_mode='strategic',
+             routing_controller=(IntersectionRandomRouter, {}),
+             num_vehicles=1)
+    # add inflow
+    inflow = InFlows()
+    inflow.add(veh_type='autonomous',
+               edge='e_1_inflow',
+               vehs_per_hour=1000,
+               departSpeed=10,
+               departLane='random')
+    inflow.add(veh_type='autonomous',
+               edge='e_3_inflow',
+               vehs_per_hour=1000,
+               departSpeed=10,
+               departLane='random')
+    inflow.add(veh_type='autonomous',
+               edge='e_5_inflow',
+               vehs_per_hour=1000,
+               departSpeed=10,
+               departLane='random')
+    inflow.add(veh_type='autonomous',
+               edge='e_7_inflow',
+               vehs_per_hour=1000,
+               departSpeed=10,
+               departLane='random')
 
     env_params = EnvParams(
         additional_params=ADDITIONAL_ENV_PARAMS,
     )
 
     net_params = NetParams(
+        inflow=inflow,
         no_internal_links=False,
         junction_type='traffic_light',
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
@@ -89,7 +119,7 @@ def intersection_example(render=None,
 
     initial_config = InitialConfig(
         spacing='uniform',
-        edges_distribution=experiment,
+        edges_distribution=['e_1_sbc+'],
     )
 
     scenario = SoftIntersectionScenario(
