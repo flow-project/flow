@@ -8,7 +8,8 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig,\
 from flow.core.vehicles import Vehicles
 from flow.envs.intersection_env import SoftIntersectionEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.intersection import SoftIntersectionScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.routing_controllers import IntersectionRouter
+from flow.controllers.routing_controllers import IntersectionRandomRouter
+from flow.core.params import InFlows
 import numpy as np
 seed=204
 np.random.seed(seed)
@@ -54,34 +55,54 @@ def intersection_example(render=None,
     # sumo_params.sim_step = 0.2
 
     vehicles = Vehicles()
+    
+    # Add a virtual vehicle
+    vehicles.add(
+        veh_id='autonomous',
+        speed_mode=0b11111,
+        lane_change_mode=0b011001010101,
+        acceleration_controller=(SumoCarFollowingController, {}),
+        lane_change_controller=(SumoLaneChangeController, {}),
+        routing_controller=(IntersectionRandomRouter, {}),
+        num_vehicles=0,
+    )
 
-    experiment = {'e_1_sbc+': [('autonomous', 6)],
-                  'e_3_sbc+': [('autonomous', 6)],
-                  'e_5_sbc+': [('autonomous', 6)],
-                  'e_7_sbc+': [('autonomous', 6)]}
-    vehicle_data = {}
-    # get all different vehicle types
-    for _, pairs in experiment.items():
-        for pair in pairs:
-            cur_num = vehicle_data.get(pair[0], 0)
-            vehicle_data[pair[0]] = cur_num + pair[1]
-
-    # add vehicle
-    for veh_id, veh_num in vehicle_data.items():
-        vehicles.add(
-            veh_id=veh_id,
-            speed_mode=0b11111,
-            lane_change_mode=0b011001010101,
-            acceleration_controller=(SumoCarFollowingController, {}),
-            lane_change_controller=(SumoLaneChangeController, {}),
-            routing_controller=(IntersectionRouter, {}),
-            num_vehicles=veh_num)
+    inflow = InFlows()
+    inflow.add(
+        veh_type='autonomous',
+        edge='e_1_inflow',
+        probability=0.2,
+        departSpeed=8,
+        departLane='random'
+    )
+    inflow.add(
+        veh_type='autonomous',
+        edge='e_3_inflow',
+        probability=0.1,
+        departSpeed=8,
+        departLane='random'
+    )
+    inflow.add(
+        veh_type='autonomous',
+        edge='e_5_inflow',
+        probability=0.2,
+        departSpeed=8,
+        departLane='random'
+    )
+    inflow.add(
+        veh_type='autonomous',
+        edge='e_7_inflow',
+        probability=0.1,
+        departSpeed=8,
+        departLane='random'
+    )
 
     env_params = EnvParams(
         additional_params=ADDITIONAL_ENV_PARAMS,
     )
 
     net_params = NetParams(
+        inflows=inflow,
         no_internal_links=False,
         junction_type='traffic_light',
         additional_params=ADDITIONAL_NET_PARAMS.copy(),
@@ -89,7 +110,8 @@ def intersection_example(render=None,
 
     initial_config = InitialConfig(
         spacing='uniform',
-        edges_distribution=experiment,
+        edges_distribution=['e_1_sbc+'], # add a placeholder
+        min_gap=5,
     )
 
     scenario = SoftIntersectionScenario(
@@ -112,4 +134,4 @@ if __name__ == "__main__":
                                show_radius=False)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1000)
+    exp.run(1, 5000)

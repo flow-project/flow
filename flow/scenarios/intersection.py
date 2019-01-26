@@ -49,15 +49,20 @@ class SoftIntersectionScenario(Scenario):
     def specify_nodes(self, net_params):
         """See parent class."""
         nodes = [
+            {'id': 'n_1_inflow', 'x': -12, 'y': 0},
             {'id': 'n_1_sbc', 'x': -10, 'y': 0},
             {'id': 'n_1', 'x': -4, 'y': 0},
+            {'id': 'n_2_inflow', 'x': 0, 'y': 12},
             {'id': 'n_2_sbc', 'x': 0, 'y': 10},
             {'id': 'n_2', 'x': 0, 'y': 4},
+            {'id': 'n_3_inflow', 'x': 12, 'y': 0},
             {'id': 'n_3_sbc', 'x': 10, 'y': 0},
             {'id': 'n_3', 'x': 4, 'y': 0},
+            {'id': 'n_4_inflow', 'x': 0, 'y': -12},
             {'id': 'n_4_sbc', 'x': 0, 'y': -10},
             {'id': 'n_4', 'x': 0, 'y': -4},
-            {'id': 'n_5', 'x': 0, 'y': 0, 'type': self.junction_type}]
+            {'id': 'n_5', 'x': 0, 'y': 0, 'type': self.junction_type}
+        ]
 
         for node in nodes:
             self.nodes[node['id']] = np.array([node['x'] * SCALING,
@@ -74,40 +79,48 @@ class SoftIntersectionScenario(Scenario):
         res = 40
 
         edges = [
+            {'id': 'e_1_inflow', 'from': 'n_1_inflow', 'to': 'n_1_sbc', 'length': None,
+                'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_1_sbc+', 'from': 'n_1_sbc', 'to': 'n_1', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_1', 'from': 'n_1', 'to': 'n_5', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_2', 'from': 'n_5', 'to': 'n_1', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
-            {'id': 'e_2_sbc-', 'from': 'n_1', 'to': 'n_1_sbc', 'length': None,
+            {'id': 'e_2_sbc-', 'from': 'n_1', 'to': 'n_1_inflow', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
 
+            {'id': 'e_3_inflow', 'from': 'n_2_inflow', 'to': 'n_2_sbc', 'length': None,
+                'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_3_sbc+', 'from': 'n_2_sbc', 'to': 'n_2', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_3', 'from': 'n_2', 'to': 'n_5', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_4', 'from': 'n_5', 'to': 'n_2', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
-            {'id': 'e_4_sbc-', 'from': 'n_2', 'to': 'n_2_sbc', 'length': None,
+            {'id': 'e_4_sbc-', 'from': 'n_2', 'to': 'n_2_inflow', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
 
+            {'id': 'e_5_inflow', 'from': 'n_3_inflow', 'to': 'n_3_sbc', 'length': None,
+                'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_5_sbc+', 'from': 'n_3_sbc', 'to': 'n_3', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_5', 'from': 'n_3', 'to': 'n_5', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_6', 'from': 'n_5', 'to': 'n_3', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
-            {'id': 'e_6_sbc-', 'from': 'n_3', 'to': 'n_3_sbc', 'length': None,
+            {'id': 'e_6_sbc-', 'from': 'n_3', 'to': 'n_3_inflow', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
 
+            {'id': 'e_7_inflow', 'from': 'n_4_inflow', 'to': 'n_4_sbc', 'length': None,
+                'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_7_sbc+', 'from': 'n_4_sbc', 'to': 'n_4', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_7', 'from': 'n_4', 'to': 'n_5', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
             {'id': 'e_8', 'from': 'n_5', 'to': 'n_4', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
-            {'id': 'e_8_sbc-', 'from': 'n_4', 'to': 'n_4_sbc', 'length': None,
+            {'id': 'e_8_sbc-', 'from': 'n_4', 'to': 'n_4_inflow', 'length': None,
                 'numLanes': 2, 'type': 'edgeType'},
         ]
 
@@ -136,15 +149,26 @@ class SoftIntersectionScenario(Scenario):
 
     def specify_routes(self, net_params):
         """See parent class."""
-        rts = {'e_1_sbc+': ['e_1_sbc+', 'e_1', 'e_6', 'e_6_sbc-'],
-               'e_2_sbc-': ['e_2', 'e_2_sbc-'],
-               'e_3_sbc+': ['e_3_sbc+', 'e_3', 'e_8', 'e_8_sbc-'],
-               'e_4_sbc-': ['e_4', 'e_4_sbc-'],
-               'e_5_sbc+': ['e_5_sbc+', 'e_5', 'e_2', 'e_2_sbc-'],
-               'e_6_sbc-': ['e_6', 'e_6_sbc-'],
-               'e_7_sbc+': ['e_7_sbc+', 'e_7', 'e_4', 'e_4_sbc-'],
-               'e_8_sbc-': ['e_8', 'e_8_sbc-']}
-
+        rts = {'e_1_sbc+': ['e_1_sbc+'],
+               'e_2_sbc-': ['e_2_sbc-'],
+               'e_3_sbc+': ['e_3_sbc+'],
+               'e_4_sbc-': ['e_4_sbc-'],
+               'e_5_sbc+': ['e_5_sbc+'],
+               'e_6_sbc-': ['e_6_sbc-'],
+               'e_7_sbc+': ['e_7_sbc+'],
+               'e_8_sbc-': ['e_8_sbc-'],
+               'e_1': ['e_1'],
+               'e_2': ['e_2'],
+               'e_3': ['e_3'],
+               'e_4': ['e_4'],
+               'e_5': ['e_5'],
+               'e_6': ['e_6'],
+               'e_7': ['e_7'],
+               'e_8': ['e_8'],
+               'e_1_inflow': ['e_1_inflow'],
+               'e_3_inflow': ['e_3_inflow'],
+               'e_5_inflow': ['e_5_inflow'],
+               'e_7_inflow': ['e_7_inflow'],}
         return rts
 
 class HardIntersectionScenario(SoftIntersectionScenario):

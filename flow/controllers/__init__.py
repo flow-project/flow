@@ -27,7 +27,7 @@ from flow.controllers.lane_change_controllers import StaticLaneChanger, \
 # routing controllers
 from flow.controllers.base_routing_controller import BaseRouter
 from flow.controllers.routing_controllers import ContinuousRouter, \
-    GridRouter, BayBridgeRouter, IntersectionRouter
+    GridRouter, BayBridgeRouter, IntersectionRouter, IntersectionRandomRouter
 
 __all__ = [
     "RLController", "BaseController", "BaseLaneChangeController", "BaseRouter",
@@ -36,5 +36,5 @@ __all__ = [
     "PISaturation", "HandTunedVelocityController", "StaticLaneChanger",
     "SumoLaneChangeController", "ContinuousRouter", "GridRouter",
     "BayBridgeRouter", "ConstAccController", "RandomConstAccController",
-    "RandomLaneChanger", "IntersectionRouter"
+    "RandomLaneChanger", "IntersectionRouter", "IntersectionRandomRouter",
 ]

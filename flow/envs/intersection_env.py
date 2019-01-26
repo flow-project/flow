@@ -91,10 +91,14 @@ class SoftIntersectionEnv(Env):
 
         # setup junction logger
         self.junction_locations = [
-            "e_1_0", "e_1_1", "e_2_0", "e_2_1",
-            "e_3_0", "e_3_1", "e_4_0", "e_4_1",
-            "e_5_0", "e_5_1", "e_6_0", "e_6_1",
-            "e_7_0", "e_7_1", "e_8_0", "e_8_1",
+            "e_1_0", "e_1_1", 
+            "e_2_0", "e_2_1",
+            "e_3_0", "e_3_1", 
+            "e_4_0", "e_4_1",
+            "e_5_0", "e_5_1", 
+            "e_6_0", "e_6_1",
+            "e_7_0", "e_7_1", 
+            "e_8_0", "e_8_1",
         ]
         self.junction_accelerations = \
             {loc: 0 for loc in self.junction_locations}
