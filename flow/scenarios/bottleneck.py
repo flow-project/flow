@@ -1,13 +1,15 @@
 """Contains the bottleneck scenario class."""
 
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from flow.scenarios.base_scenario import Scenario
 import numpy as np
 
 ADDITIONAL_NET_PARAMS = {
     # the factor multiplying number of lanes.
     "scaling": 1,
+    # edge speed limit
+    'speed_limit': 23
 }
 
 
@@ -19,7 +21,7 @@ class BottleneckScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Instantiate the scenario class.
 
         Requires from net_params:
@@ -42,48 +44,48 @@ class BottleneckScenario(Scenario):
         nodes = [
             {
                 "id": "1",
-                "x": "0",
-                "y": "0"
+                "x": 0,
+                "y": 0
             },  # pre-toll
             {
                 "id": "2",
-                "x": "100",
-                "y": "0"
+                "x": 100,
+                "y": 0
             },  # toll
             {
                 "id": "3",
-                "x": "410",
-                "y": "0"
+                "x": 410,
+                "y": 0
             },  # light
             {
                 "id": "4",
-                "x": "550",
-                "y": "0",
+                "x": 550,
+                "y": 0,
                 "type": "zipper",
-                "radius": "20"
+                "radius": 20
             },  # merge1
             {
                 "id": "5",
-                "x": "830",
-                "y": "0",
+                "x": 830,
+                "y": 0,
                 "type": "zipper",
-                "radius": "20"
+                "radius": 20
             },  # merge2
             {
                 "id": "6",
-                "x": "985",
-                "y": "0"
+                "x": 985,
+                "y": 0
             },
             # fake nodes used for visualization
             {
                 "id": "fake1",
-                "x": "0",
-                "y": "1"
+                "x": 0,
+                "y": 1
             },
             {
                 "id": "fake2",
-                "x": "0",
-                "y": "2"
+                "x": 0,
+                "y": 2
             }
         ]  # post-merge2
         return nodes
@@ -91,6 +93,7 @@ class BottleneckScenario(Scenario):
     def specify_edges(self, net_params):
         """See parent class."""
         scaling = net_params.additional_params.get("scaling", 1)
+        speed = net_params.additional_params['speed_limit']
         assert (isinstance(scaling, int)), "Scaling must be an int"
 
         edges = [
@@ -98,56 +101,56 @@ class BottleneckScenario(Scenario):
                 "id": "1",
                 "from": "1",
                 "to": "2",
-                "length": "100",  #
+                "length": 100,
                 "spreadType": "center",
-                "numLanes": str(4 * scaling),
-                "speed": "23"
+                "numLanes": 4 * scaling,
+                "speed": speed
             },
             {
                 "id": "2",
                 "from": "2",
                 "to": "3",
-                "length": "310",  # DONE
+                "length": 310,
                 "spreadType": "center",
-                "numLanes": str(4 * scaling),
-                "speed": "23"
+                "numLanes": 4 * scaling,
+                "speed": speed
             },
             {
                 "id": "3",
                 "from": "3",
                 "to": "4",
-                "length": "140",  # DONE
+                "length": 140,
                 "spreadType": "center",
-                "numLanes": str(4 * scaling),
-                "speed": "23"
+                "numLanes": 4 * scaling,
+                "speed": speed
             },
             {
                 "id": "4",
                 "from": "4",
                 "to": "5",
-                "length": "280",  # DONE
+                "length": 280,
                 "spreadType": "center",
-                "numLanes": str(2 * scaling),
-                "speed": "23"
+                "numLanes": 2 * scaling,
+                "speed": speed
             },
             {
                 "id": "5",
                 "from": "5",
                 "to": "6",
-                "length": "155",
+                "length": 155,
                 "spreadType": "center",
-                "numLanes": str(scaling),
-                "speed": "23"
+                "numLanes": scaling,
+                "speed": speed
             },
             # fake edge used for visualization
             {
                 "id": "fake_edge",
                 "from": "fake1",
                 "to": "fake2",
-                "length": "1",
+                "length": 1,
                 "spreadType": "center",
-                "numLanes": str(scaling),
-                "speed": "23"
+                "numLanes": scaling,
+                "speed": speed
             }
         ]
 
@@ -156,22 +159,45 @@ class BottleneckScenario(Scenario):
     def specify_connections(self, net_params):
         """See parent class."""
         scaling = net_params.additional_params.get("scaling", 1)
+        conn_dic = {}
         conn = []
         for i in range(4 * scaling):
             conn += [{
                 "from": "3",
                 "to": "4",
-                "fromLane": str(i),
-                "toLane": str(int(np.floor(i / 2)))
+                "fromLane": i,
+                "toLane": int(np.floor(i / 2))
             }]
+        conn_dic["4"] = conn
+        conn = []
         for i in range(2 * scaling):
             conn += [{
                 "from": "4",
                 "to": "5",
-                "fromLane": str(i),
-                "toLane": str(int(np.floor(i / 2)))
+                "fromLane": i,
+                "toLane": int(np.floor(i / 2))
             }]
-        return conn
+        conn_dic["5"] = conn
+        return conn_dic
+
+    def specify_centroids(self, net_params):
+        """See parent class."""
+        centroids = []
+        centroids += [{
+            "id": "1",
+            "from": None,
+            "to": "1",
+            "x": -30,
+            "y": 0,
+        }]
+        centroids += [{
+            "id": "1",
+            "from": "5",
+            "to": None,
+            "x": 985 + 30,
+            "y": 0,
+        }]
+        return centroids
 
     def specify_routes(self, net_params):
         """See parent class."""

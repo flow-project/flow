@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from collections import defaultdict
 
 ADDITIONAL_NET_PARAMS = {
@@ -48,7 +48,7 @@ class SimpleGridScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize an nxm grid scenario.
 
         The grid scenario consists of m vertical lanes and n horizontal lanes,
@@ -177,12 +177,12 @@ class SimpleGridScenario(Scenario):
 
         types = [{
             "id": "horizontal",
-            "numLanes": repr(horizontal_lanes),
-            "speed": repr(speed_limit["horizontal"])
+            "numLanes": horizontal_lanes,
+            "speed": speed_limit["horizontal"]
         }, {
             "id": "vertical",
-            "numLanes": repr(vertical_lanes),
-            "speed": repr(speed_limit["vertical"])
+            "numLanes": vertical_lanes,
+            "speed": speed_limit["vertical"]
         }]
 
         return types
@@ -236,6 +236,8 @@ class SimpleGridScenario(Scenario):
         list <dict>
             List of inner nodes
         """
+        lanes = max(self.net_params.additional_params["horizontal_lanes"],
+                    self.net_params.additional_params["vertical_lanes"])
         tls = self.net_params.additional_params.get("traffic_lights", True)
         node_type = "traffic_light" if tls else "priority"
         row_num = self.grid_array["row_num"]
@@ -251,9 +253,10 @@ class SimpleGridScenario(Scenario):
                 y_center = i * inner_length
                 nodes.append({
                     "id": "center" + str(index),
-                    "x": repr(x_center),
-                    "y": repr(y_center),
-                    "type": node_type
+                    "x": x_center,
+                    "y": y_center,
+                    "type": node_type,
+                    "radius": (2.9 + 3.3 * lanes)/2,
                 })
         return nodes
 
@@ -281,50 +284,50 @@ class SimpleGridScenario(Scenario):
             # build the bottom nodes
             nodes += [{
                 "id": "bot_col_short" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr(-short_length),
+                "x": i * inner_length,
+                "y": -short_length,
                 "type": "priority"
             }, {
                 "id": "bot_col_long" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr(-long_length),
+                "x": i * inner_length,
+                "y": -long_length,
                 "type": "priority"
             }]
             # build the top nodes
             nodes += [{
                 "id": "top_col_short" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr((row_num - 1) * inner_length + short_length),
+                "x": i * inner_length,
+                "y": (row_num - 1) * inner_length + short_length,
                 "type": "priority"
             }, {
                 "id": "top_col_long" + str(i),
-                "x": repr(i * inner_length),
-                "y": repr((row_num - 1) * inner_length + long_length),
+                "x": i * inner_length,
+                "y": (row_num - 1) * inner_length + long_length,
                 "type": "priority"
             }]
         for i in range(row_num):
             # build the left nodes
             nodes += [{
                 "id": "left_row_short" + str(i),
-                "x": repr(-short_length),
-                "y": repr(i * inner_length),
+                "x": -short_length,
+                "y": i * inner_length,
                 "type": "priority"
             }, {
                 "id": "left_row_long" + str(i),
-                "x": repr(-long_length),
-                "y": repr(i * inner_length),
+                "x": -long_length,
+                "y": i * inner_length,
                 "type": "priority"
             }]
             # build the right nodes
             nodes += [{
                 "id": "right_row_short" + str(i),
-                "x": repr((col_num - 1) * inner_length + short_length),
-                "y": repr(i * inner_length),
+                "x": (col_num - 1) * inner_length + short_length,
+                "y": i * inner_length,
                 "type": "priority"
             }, {
                 "id": "right_row_long" + str(i),
-                "x": repr((col_num - 1) * inner_length + long_length),
-                "y": repr(i * inner_length),
+                "x": (col_num - 1) * inner_length + long_length,
+                "y": i * inner_length,
                 "type": "priority"
             }]
         return nodes
@@ -359,17 +362,17 @@ class SimpleGridScenario(Scenario):
                 edges += [{
                     "id": "top" + index,
                     "type": "horizontal",
-                    "priority": "78",
+                    "priority": 78,
                     "from": "center" + str(node_index + 1),
                     "to": "center" + str(node_index),
-                    "length": repr(inner_length)
+                    "length": inner_length
                 }, {
                     "id": "bot" + index,
                     "type": "horizontal",
-                    "priority": "78",
+                    "priority": 78,
                     "from": "center" + str(node_index),
                     "to": "center" + str(node_index + 1),
-                    "length": repr(inner_length)
+                    "length": inner_length
                 }]
 
         # Build the vertical edges
@@ -386,20 +389,70 @@ class SimpleGridScenario(Scenario):
                 edges += [{
                     "id": "right" + index,
                     "type": "vertical",
-                    "priority": "78",
+                    "priority": 78,
                     "from": "center" + str(node_index_bot),
                     "to": "center" + str(node_index_top),
-                    "length": repr(inner_length)
+                    "length": inner_length
                 }, {
                     "id": "left" + index,
                     "type": "vertical",
-                    "priority": "78",
+                    "priority": 78,
                     "from": "center" + str(node_index_top),
                     "to": "center" + str(node_index_bot),
-                    "length": repr(inner_length)
+                    "length": inner_length
                 }]
 
         return edges
+
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes_horizontal = net_params.additional_params["horizontal_lanes"]
+        lanes_vertical = net_params.additional_params["vertical_lanes"]
+
+        row_num = self.grid_array["row_num"]
+        col_num = self.grid_array["col_num"]
+        con_dict = {}
+
+        # build connections
+        for i in range(row_num):
+            for j in range(col_num):
+                conn = []
+                node_index = i * col_num + j
+                node_id = "center{}".format(node_index)
+                index = "{}_{}".format(i, j)
+                for l in range(lanes_vertical):
+                    conn += [
+                        {"from": "bot" + index,
+                         "to": "bot" + "{}_{}".format(i, j + 1),
+                         "fromLane": str(l),
+                         "toLane": str(l),
+                         "signal_group": 1}
+                    ]
+                    conn += [
+                        {"from": "top" + "{}_{}".format(i, j + 1),
+                         "to": "top" + index,
+                         "fromLane": str(l),
+                         "toLane": str(l),
+                         "signal_group": 1}
+                        ]
+                for l_h in range(lanes_horizontal):
+                    conn += [
+                        {"from": "right" + index,
+                         "to": "right" + "{}_{}".format(i + 1, j),
+                         "fromLane": str(l_h),
+                         "toLane": str(l_h),
+                         "signal_group": 2}
+                    ]
+                    conn += [
+                        {"from": "left" + "{}_{}".format(i + 1, j),
+                         "to": "left" + index,
+                         "fromLane": str(l_h),
+                         "toLane": str(l_h),
+                         "signal_group": 2}
+                    ]
+                con_dict[node_id] = conn
+
+        return con_dict
 
     def _build_outer_edges(self):
         """Build the outer edges.
@@ -407,9 +460,9 @@ class SimpleGridScenario(Scenario):
         Starts with the bottom edges, then the top edges, then the left edges,
         then the right.
 
-        Yields
-        ------
-        list <dict>
+        Returns
+        -------
+        list of dict
             List of outer edges
         """
         row_num = self.grid_array["row_num"]
@@ -426,17 +479,17 @@ class SimpleGridScenario(Scenario):
             edges += [{
                 "id": "right" + index,
                 "type": "vertical",
-                "priority": "78",
+                "priority": 78,
                 "from": "bot_col_short" + str(i),
                 "to": "center" + str(i),
-                "length": repr(short_length)
+                "length": short_length
             }, {
                 "id": "left" + index,
                 "type": "vertical",
-                "priority": "78",
+                "priority": 78,
                 "from": "center" + str(i),
                 "to": "bot_col_long" + str(i),
-                "length": repr(long_length)
+                "length": long_length
             }]
             # top edges
             index = str(row_num) + '_' + str(i)
@@ -446,17 +499,17 @@ class SimpleGridScenario(Scenario):
             edges += [{
                 "id": "left" + index,
                 "type": "vertical",
-                "priority": "78",
+                "priority": 78,
                 "from": "top_col_short" + str(i),
                 "to": "center" + str(center_start + i),
-                "length": repr(short_length)
+                "length": short_length
             }, {
                 "id": "right" + index,
                 "type": "vertical",
-                "priority": "78",
+                "priority": 78,
                 "from": "center" + str(center_start + i),
                 "to": "top_col_long" + str(i),
-                "length": repr(long_length)
+                "length": long_length
             }]
 
         # build the left and then the right edges
@@ -468,17 +521,17 @@ class SimpleGridScenario(Scenario):
             edges += [{
                 "id": "bot" + index,
                 "type": "horizontal",
-                "priority": "78",
+                "priority": 78,
                 "from": "left_row_short" + str(j),
                 "to": "center" + str(j * col_num),
-                "length": repr(short_length)
+                "length": short_length
             }, {
                 "id": "top" + index,
                 "type": "horizontal",
-                "priority": "78",
+                "priority": 78,
                 "from": "center" + str(j * col_num),
                 "to": "left_row_long" + str(j),
-                "length": repr(long_length)
+                "length": long_length
             }]
             # right edges
             index = str(j) + '_' + str(col_num)
@@ -488,17 +541,17 @@ class SimpleGridScenario(Scenario):
             edges += [{
                 "id": "top" + index,
                 "type": "horizontal",
-                "priority": "78",
+                "priority": 78,
                 "from": "right_row_short" + str(j),
                 "to": "center" + str(center_index),
-                "length": repr(short_length)
+                "length": short_length
             }, {
                 "id": "bot" + index,
                 "type": "horizontal",
-                "priority": "78",
+                "priority": 78,
                 "from": "center" + str(center_index),
                 "to": "right_row_long" + str(j),
-                "length": repr(long_length)
+                "length": long_length
             }]
 
         return edges
@@ -543,21 +596,22 @@ class SimpleGridScenario(Scenario):
             [(":center", 0)]
         return intersection_edgestarts
 
-    def gen_even_start_pos(self, initial_config, num_vehicles, **kwargs):
+    @staticmethod
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
         """See parent class."""
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
+        row_num = cls.network.grid_array["row_num"]
+        col_num = cls.network.grid_array["col_num"]
         per_edge = int(num_vehicles / (2 * (row_num + col_num)))
         start_positions = []
         d_inc = 10
-        for i in range(self.col_num):
+        for i in range(cls.network.col_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("right0_{}".format(i), x))
                 start_positions.append(("left{}_{}".format(row_num, i), x))
                 x += d_inc
 
-        for i in range(self.row_num):
+        for i in range(cls.network.row_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("bot{}_0".format(i), x))
@@ -565,6 +619,7 @@ class SimpleGridScenario(Scenario):
                 x += d_inc
 
         start_lanes = [0] * len(start_positions)
+
         return start_positions, start_lanes
 
     def get_edge_names(self):

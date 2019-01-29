@@ -5,13 +5,13 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.envs.gym_env import GymEnv
 
-from flow.core.vehicles import Vehicles
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import VehicleParams
+from flow.core.params import TrafficLightParams
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
     InFlows
 from flow.core.params import SumoCarFollowingParams
 
-from flow.controllers import SumoCarFollowingController, GridRouter
+from flow.controllers import SimCarFollowingController, GridRouter
 
 from flow.scenarios.grid import SimpleGridScenario
 
@@ -33,7 +33,7 @@ def gen_edges(row_num, col_num):
 def get_flow_params(v_enter, vehs_per_hour, col_num, row_num,
                     additional_net_params):
     initial_config = InitialConfig(
-        spacing="uniform", lanes_distribution=float("inf"), shuffle=True)
+        spacing="custom", lanes_distribution=float("inf"), shuffle=True)
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
@@ -55,7 +55,8 @@ def get_flow_params(v_enter, vehs_per_hour, col_num, row_num,
 
 def get_non_flow_params(enter_speed, additional_net_params):
     additional_init_params = {"enter_speed": enter_speed}
-    initial_config = InitialConfig(additional_params=additional_init_params)
+    initial_config = InitialConfig(
+        spacing='custom', additional_params=additional_init_params)
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
@@ -64,48 +65,48 @@ def get_non_flow_params(enter_speed, additional_net_params):
 
 def run_task(*_):
     """Implement the run_task method needed to run experiments with rllab."""
-    v_enter = 10
-    inner_length = 300
-    long_length = 100
-    short_length = 300
-    n = 3
-    m = 3
-    num_cars_left = 1
-    num_cars_right = 1
-    num_cars_top = 1
-    num_cars_bot = 1
-    tot_cars = (num_cars_left + num_cars_right) * m \
-        + (num_cars_bot + num_cars_top) * n
+    V_ENTER = 30
+    INNER_LENGTH = 300
+    LONG_LENGTH = 100
+    SHORT_LENGTH = 300
+    N_ROWS = 3
+    N_COLUMNS = 3
+    NUM_CARS_LEFT = 1
+    NUM_CARS_RIGHT = 1
+    NUM_CARS_TOP = 1
+    NUM_CARS_BOT = 1
+    tot_cars = (NUM_CARS_LEFT + NUM_CARS_RIGHT) * N_COLUMNS \
+        + (NUM_CARS_BOT + NUM_CARS_TOP) * N_ROWS
 
     grid_array = {
-        "short_length": short_length,
-        "inner_length": inner_length,
-        "long_length": long_length,
-        "row_num": n,
-        "col_num": m,
-        "cars_left": num_cars_left,
-        "cars_right": num_cars_right,
-        "cars_top": num_cars_top,
-        "cars_bot": num_cars_bot
+        "short_length": SHORT_LENGTH,
+        "inner_length": INNER_LENGTH,
+        "long_length": LONG_LENGTH,
+        "row_num": N_ROWS,
+        "col_num": N_COLUMNS,
+        "cars_left": NUM_CARS_LEFT,
+        "cars_right": NUM_CARS_RIGHT,
+        "cars_top": NUM_CARS_TOP,
+        "cars_bot": NUM_CARS_BOT
     }
 
-    sumo_params = SumoParams(sim_step=1, render=True)
+    sim_params = SumoParams(sim_step=1, render=True)
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="idm",
-        acceleration_controller=(SumoCarFollowingController, {}),
-        sumo_car_following_params=SumoCarFollowingParams(
+        acceleration_controller=(SimCarFollowingController, {}),
+        car_following_params=SumoCarFollowingParams(
             min_gap=2.5,
             tau=1.1,
-            max_speed=v_enter,
+            max_speed=V_ENTER,
             decel=7.5,  # avoid collisions at emergency stops
+            speed_mode="all_checks"
         ),
         routing_controller=(GridRouter, {}),
-        num_vehicles=tot_cars,
-        speed_mode="all_checks")
+        num_vehicles=tot_cars)
 
-    tl_logic = TrafficLights(baseline=False)
+    tl_logic = TrafficLightParams(baseline=False)
 
     additional_env_params = {
         "target_velocity": 50,
@@ -123,7 +124,7 @@ def run_task(*_):
         "vertical_lanes": 1
     }
 
-    initial_config, net_params = get_flow_params(10, 300, n, m,
+    initial_config, net_params = get_flow_params(10, 300, N_ROWS, N_COLUMNS,
                                                  additional_net_params)
 
     scenario = SimpleGridScenario(
@@ -134,7 +135,7 @@ def run_task(*_):
         traffic_lights=tl_logic)
 
     env_name = "PO_TrafficLightGridEnv"
-    pass_params = (env_name, sumo_params, vehicles, env_params, net_params,
+    pass_params = (env_name, sim_params, vehicles, env_params, net_params,
                    initial_config, scenario)
 
     env = GymEnv(env_name, record_video=False, register_params=pass_params)

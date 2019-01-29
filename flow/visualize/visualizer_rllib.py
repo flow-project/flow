@@ -19,10 +19,15 @@ import os
 import sys
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 from ray.rllib.models import ModelCatalog
+import gym
 
+import flow.envs
 from flow.core.util import emission_to_csv
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import get_flow_params
@@ -37,6 +42,21 @@ example usage:
 Here the arguments are:
 1 - the number of the checkpoint
 """
+
+
+class _RLlibPreprocessorWrapper(gym.ObservationWrapper):
+    """Adapts a RLlib preprocessor for use as an observation wrapper."""
+
+    def __init__(self, env, preprocessor):
+        super(_RLlibPreprocessorWrapper, self).__init__(env)
+        self.preprocessor = preprocessor
+
+        from gym.spaces.box import Box
+        self.observation_space = Box(
+            -1.0, 1.0, preprocessor.shape, dtype=np.float32)
+
+    def observation(self, observation):
+        return self.preprocessor.transform(observation)
 
 
 def visualizer_rllib(args):
@@ -67,8 +87,8 @@ def visualizer_rllib(args):
 
     # hack for old pkl files
     # TODO(ev) remove eventually
-    sumo_params = flow_params['sumo']
-    setattr(sumo_params, 'num_clients', 1)
+    sim_params = flow_params['sim']
+    setattr(sim_params, 'num_clients', 1)
 
     # Create and register a gym+rllib env
     create_env, env_name = make_create_env(
@@ -78,16 +98,16 @@ def visualizer_rllib(args):
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
-    if (args.run and config_run):
-        if (args.run != config_run):
+    if args.run and config_run:
+        if args.run != config_run:
             print('visualizer_rllib.py: error: run argument '
                   + '\'{}\' passed in '.format(args.run)
                   + 'differs from the one stored in params.json '
                   + '\'{}\''.format(config_run))
             sys.exit(1)
-    if (args.run):
+    if args.run:
         agent_cls = get_agent_class(args.run)
-    elif (config_run):
+    elif config_run:
         agent_cls = get_agent_class(config_run)
     else:
         print('visualizer_rllib.py: error: could not find flow parameter '
@@ -97,26 +117,24 @@ def visualizer_rllib(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    sumo_params.restart_instance = False
-
-    sumo_params.emission_path = './test_time_rollout/'
+    sim_params.restart_instance = False
+    sim_params.emission_path = './test_time_rollout/'
 
     # pick your rendering mode
-    if args.render_mode == 'sumo-web3d':
-        sumo_params.num_clients = 2
-        sumo_params.render = False
+    if args.render_mode == 'sumo_web3d':
+        sim_params.num_clients = 2
+        sim_params.render = False
     elif args.render_mode == 'drgb':
-        sumo_params.render = 'drgb'
-        sumo_params.pxpm = 4
-    elif args.render_mode == 'sumo-gui':
-        sumo_params.render = True
-    elif args.render_mode == 'no-render':
-        sumo_params.render = False
-
+        sim_params.render = 'drgb'
+        sim_params.pxpm = 4
+    elif args.render_mode == 'sumo_gui':
+        sim_params.render = True
+    elif args.render_mode == 'no_render':
+        sim_params.render = False
     if args.save_render:
-        sumo_params.render = 'drgb'
-        sumo_params.pxpm = 4
-        sumo_params.save_render = True
+        sim_params.render = 'drgb'
+        sim_params.pxpm = 4
+        sim_params.save_render = True
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
@@ -132,9 +150,19 @@ def visualizer_rllib(args):
         net_params=net_params,
         initial_config=initial_config)
 
+    # check if the environment is a single or multiagent environment, and
+    # get the right address accordingly
+    single_agent_envs = [env for env in dir(flow.envs)
+                         if not env.startswith('__')]
+
+    if flow_params['env_name'] in single_agent_envs:
+        env_loc = 'flow.envs'
+    else:
+        env_loc = 'flow.multiagent_envs'
+
     # Start the environment with the gui turned on and a path for the
     # emission file
-    module = __import__('flow.envs', fromlist=[flow_params['env_name']])
+    module = __import__(env_loc, fromlist=[flow_params['env_name']])
     env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
     env_params.restart_instance = False
@@ -152,8 +180,14 @@ def visualizer_rllib(args):
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    env = ModelCatalog.get_preprocessor_as_wrapper(env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario))
+    _env = env_class(
+        env_params=env_params,
+        sim_params=sim_params,
+        scenario=scenario,
+        simulator=flow_params['simulator']
+    )
+    _prep = ModelCatalog.get_preprocessor(_env, options={})
+    env = _RLlibPreprocessorWrapper(_env, _prep)
 
     if multiagent:
         rets = {}
@@ -168,13 +202,12 @@ def visualizer_rllib(args):
     for i in range(args.num_rollouts):
         vel = []
         state = env.reset()
-        done = False
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:
             ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.unwrapped.vehicles
+            vehicles = env.unwrapped.k.vehicle
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             if multiagent:
                 action = {}

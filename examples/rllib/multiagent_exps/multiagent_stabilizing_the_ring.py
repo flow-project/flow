@@ -7,7 +7,10 @@ Creates a set of stabilizing the ring experiments to test if
 import json
 
 import ray
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.rllib.agents.ppo.ppo_policy_graph import PPOPolicyGraph
 from ray import tune
 from ray.tune.registry import register_env
@@ -20,7 +23,7 @@ from flow.core.params import EnvParams
 from flow.core.params import InitialConfig
 from flow.core.params import NetParams
 from flow.core.params import SumoParams
-from flow.core.vehicles import Vehicles
+from flow.core.params import VehicleParams
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
@@ -35,7 +38,7 @@ N_ROLLOUTS = 20  # int(20/NUM_RINGS)
 N_CPUS = 2  # int(20/NUM_RINGS)
 
 # We place one autonomous vehicle and 21 human-driven vehicles in the network
-vehicles = Vehicles()
+vehicles = VehicleParams()
 for i in range(NUM_RINGS):
     vehicles.add(
         veh_id='human_{}'.format(i),
@@ -60,8 +63,11 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario='MultiLoopScenario',
 
+    # simulator that is used by the experiment
+    simulator='traci',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.1,
         render=False,
     ),
