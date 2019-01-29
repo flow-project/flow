@@ -13,16 +13,10 @@ sudo: required
 
 before_install:
   # Setup conda (needed for opencv, ray dependency)
-  # WARNING: enforces py3.6
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - export TEST_FLAG="True"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda info -a
-  - python -V
 
   # Set up requirements for flow
   - conda env create -f environment.yml
@@ -51,6 +45,13 @@ before_install:
   -     ./flow/scripts/setup_sumo_ubuntu1404.sh
   - popd
   - source ~/.bashrc
+
+  # [aimsun] install the conda env and update the path to the env
+  - pushd $HOME/build/flow-project
+  -     ./flow/scripts/setup_aimsun.sh
+  - popd
+  - source ~/.bashrc
+  - sed -i 's/\/path\/to\/envs\/aimsun_flow/\/home\/travis\/miniconda\/envs\/aimsun_flow/g' flow/config.py
 
   - ls ../
 

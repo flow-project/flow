@@ -6,7 +6,10 @@ import shutil
 import ray
 import ray.rllib.agents.ppo as ppo
 
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune.registry import register_env
 
 from flow.utils.registry import make_create_env
@@ -37,12 +40,6 @@ class TestBenchmarks(unittest.TestCase):
     Tests that the baselines in the benchmarks folder are running and
     returning expected values (i.e. values that match those in the CoRL paper
     reported on the website, or other).
-    """
-
-    """
-    self.env, self.scenario = setup_bottlenecks()
-        self.exp = SumoExperiment(self.env, self.scenario)
-        self.exp.run(5, 50)
     """
 
     def setup(self):

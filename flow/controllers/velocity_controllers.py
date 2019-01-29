@@ -3,7 +3,11 @@ import numpy as np
 
 
 class FollowerStopper(BaseController):
-    def __init__(self, veh_id, sumo_cf_params, v_des=15, danger_edges=None):
+    def __init__(self,
+                 veh_id,
+                 car_following_params,
+                 v_des=15,
+                 danger_edges=None):
         """Inspired by Dan Work's... work:
 
         Dissipation of stop-and-go waves via control of autonomous vehicles:
@@ -17,13 +21,14 @@ class FollowerStopper(BaseController):
             desired speed of the vehicles (m/s)
         """
         BaseController.__init__(
-            self, veh_id, sumo_cf_params, delay=1.0, fail_safe='safe_velocity')
+            self, veh_id, car_following_params, delay=1.0,
+            fail_safe='safe_velocity')
 
         # desired speed of the vehicle
         self.v_des = v_des
 
         # maximum achievable acceleration by the vehicle
-        self.max_accel = sumo_cf_params.controller_params['accel']
+        self.max_accel = car_following_params.controller_params['accel']
 
         # other parameters
         self.dx_1_0 = 4.5
@@ -48,22 +53,22 @@ class FollowerStopper(BaseController):
             distance from the vehicle's current position to the position of the
             node it is heading toward.
         """
-        edge_id = env.vehicles.get_edge(self.veh_id)
+        edge_id = env.k.vehicle.get_edge(self.veh_id)
         # FIXME this might not be the best way of handling this
         if edge_id == "":
             return -10
         if 'center' in edge_id:
             return 0
-        edge_len = env.scenario.edge_length(edge_id)
-        relative_pos = env.vehicles.get_position(self.veh_id)
+        edge_len = env.k.scenario.edge_length(edge_id)
+        relative_pos = env.k.vehicle.get_position(self.veh_id)
         dist = edge_len - relative_pos
         return dist
 
     def get_accel(self, env):
         """See parent class."""
-        lead_id = env.vehicles.get_leader(self.veh_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
-        lead_vel = env.vehicles.get_speed(lead_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        lead_vel = env.k.vehicle.get_speed(lead_id)
 
         if self.v_des is None:
             return None
@@ -71,7 +76,7 @@ class FollowerStopper(BaseController):
         if lead_id is None:
             v_cmd = self.v_des
         else:
-            dx = env.vehicles.get_headway(self.veh_id)
+            dx = env.k.vehicle.get_headway(self.veh_id)
             dv_minus = min(lead_vel - this_vel, 0)
 
             dx_1 = self.dx_1_0 + 1 / (2 * self.d_1) * dv_minus**2
@@ -89,14 +94,14 @@ class FollowerStopper(BaseController):
             else:
                 v_cmd = self.v_des
 
-        edge = env.vehicles.get_edge(self.veh_id)
+        edge = env.k.vehicle.get_edge(self.veh_id)
 
         if edge == "":
             return None
 
         if self.find_intersection_dist(env) <= 10 and \
-                env.vehicles.get_edge(self.veh_id) in self.danger_edges or \
-                env.vehicles.get_edge(self.veh_id)[0] == ":":
+                env.k.vehicle.get_edge(self.veh_id) in self.danger_edges or \
+                env.k.vehicle.get_edge(self.veh_id)[0] == ":":
             return None
         else:
             # compute the acceleration from the desired velocity
@@ -104,7 +109,7 @@ class FollowerStopper(BaseController):
 
 
 class PISaturation(BaseController):
-    def __init__(self, veh_id, sumo_cf_params):
+    def __init__(self, veh_id, car_following_params):
         """Inspired by Dan Work's... work:
 
         Dissipation of stop-and-go waves via control of autonomous vehicles:
@@ -114,13 +119,13 @@ class PISaturation(BaseController):
         ----------
         veh_id : str
             unique vehicle identifier
-        sumo_cf_params : SumoCarFollowingParams
+        car_following_params : SumoCarFollowingParams
             object defining sumo-specific car-following parameters
         """
-        BaseController.__init__(self, veh_id, sumo_cf_params, delay=1.0)
+        BaseController.__init__(self, veh_id, car_following_params, delay=1.0)
 
         # maximum achievable acceleration by the vehicle
-        self.max_accel = sumo_cf_params.controller_params['accel']
+        self.max_accel = car_following_params.controller_params['accel']
 
         # history used to determine AV desired velocity
         self.v_history = []
@@ -140,11 +145,11 @@ class PISaturation(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        lead_id = env.vehicles.get_leader(self.veh_id)
-        lead_vel = env.vehicles.get_speed(lead_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
 
-        dx = env.vehicles.get_headway(self.veh_id)
+        dx = env.k.vehicle.get_headway(self.veh_id)
         dv = lead_vel - this_vel
         dx_s = max(2 * dv, 4)
 
@@ -174,22 +179,27 @@ class PISaturation(BaseController):
 
 
 class HandTunedVelocityController(FollowerStopper):
-    def __init__(self, veh_id, v_regions, sumo_cf_params, danger_edges=None):
+    def __init__(self,
+                 veh_id,
+                 v_regions,
+                 car_following_params,
+                 danger_edges=None):
         super().__init__(
-            veh_id, sumo_cf_params, v_regions[0], danger_edges=danger_edges)
+            veh_id, car_following_params, v_regions[0],
+            danger_edges=danger_edges)
         self.v_regions = v_regions
 
     def get_accel(self, env):
-        edge = env.vehicles.get_edge(self.veh_id)
+        edge = env.k.vehicle.get_edge(self.veh_id)
         if edge:
             if edge[0] != ':' and edge in env.controlled_edges:
-                pos = env.vehicles.get_position(self.veh_id)
+                pos = env.k.vehicle.get_position(self.veh_id)
                 # find what segment we fall into
                 bucket = np.searchsorted(env.slices[edge], pos) - 1
                 action = self.v_regions[bucket +
                                         env.action_index[int(edge) - 1]]
                 # set the desired velocity of the controller to the action
-                controller = env.vehicles.get_acc_controller(self.veh_id)
+                controller = env.k.vehicle.get_acc_controller(self.veh_id)
                 controller.v_des = action
 
         return super().get_accel(env)
@@ -198,17 +208,18 @@ class HandTunedVelocityController(FollowerStopper):
 class FeedbackController(FollowerStopper):
     def __init__(self,
                  veh_id,
-                 sumo_cf_params,
+                 car_following_params,
                  Kp,
                  desired_bottleneck_density,
                  danger_edges=None):
-        super().__init__(veh_id, sumo_cf_params, danger_edges=danger_edges)
+        super().__init__(veh_id, car_following_params,
+                         danger_edges=danger_edges)
         self.Kp = Kp
         self.desired_density = desired_bottleneck_density
 
     def get_accel(self, env):
         """See parent class."""
-        current_lane = env.vehicles.get_lane(veh_id=self.veh_id)
+        current_lane = env.k.vehicle.get_lane(veh_id=self.veh_id)
         future_lanes = env.scenario.get_bottleneck_lanes(current_lane)
         future_edge_lanes = [
             "3_" + str(current_lane), "4_" + str(future_lanes[0]),
@@ -216,7 +227,7 @@ class FeedbackController(FollowerStopper):
         ]
 
         current_density = env.get_bottleneck_density(future_edge_lanes)
-        edge = env.vehicles.get_edge(self.veh_id)
+        edge = env.k.vehicle.get_edge(self.veh_id)
         if edge:
             if edge[0] != ':' and edge in env.controlled_edges:
                 if edge in self.danger_edges:

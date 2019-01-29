@@ -5,9 +5,10 @@ either side of the intersection, leading to a significant reduction in the
 average speed of vehicles in the network.
 """
 from flow.controllers import IDMController, StaticLaneChanger, ContinuousRouter
-from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, NetParams
-from flow.core.vehicles import Vehicles
+from flow.core.experiment import Experiment
+from flow.core.params import SumoParams, EnvParams, NetParams, \
+    SumoCarFollowingParams
+from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.figure_eight import Figure8Scenario, ADDITIONAL_NET_PARAMS
 
@@ -19,26 +20,28 @@ def figure_eight_example(render=None):
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on a figure eight.
     """
-    sumo_params = SumoParams(render=True)
+    sim_params = SumoParams(render=True)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         lane_change_controller=(StaticLaneChanger, {}),
         routing_controller=(ContinuousRouter, {}),
-        speed_mode="no_collide",
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         initial_speed=0,
         num_vehicles=14)
 
@@ -53,9 +56,9 @@ def figure_eight_example(render=None):
         vehicles=vehicles,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

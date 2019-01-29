@@ -1,12 +1,460 @@
 """Objects that define the various meta-parameters of an experiment."""
 
 import logging
-from flow.utils.flow_warnings import deprecation_warning
 import warnings
+import collections
+
+from flow.utils.flow_warnings import deprecation_warning
+from flow.controllers.car_following_models import SimCarFollowingController
+from flow.controllers.rlcontroller import RLController
+from flow.controllers.lane_change_controllers import SimLaneChangeController
 
 
-class SumoParams:
-    """Sumo-specific parameters.
+SPEED_MODES = {
+    "aggressive": 0,
+    "no_collide": 1,
+    "right_of_way": 25,
+    "all_checks": 31
+}
+
+LC_MODES = {"aggressive": 0, "no_lat_collide": 512, "strategic": 1621}
+
+# Traffic light defaults
+PROGRAM_ID = 1
+MAX_GAP = 3.0
+DETECTOR_GAP = 0.6
+SHOW_DETECTORS = True
+
+
+class TrafficLightParams:
+    """Base traffic light.
+
+    This class is used to place traffic lights in the network and describe
+    the state of these traffic lights. In addition, this class supports
+    modifying the states of certain lights via TraCI.
+    """
+
+    def __init__(self, baseline=False):
+        """Instantiate base traffic light.
+
+        Parameters
+        ----------
+        baseline: bool
+        """
+        # traffic light xml properties
+        self.__tls_properties = dict()
+
+        # all traffic light parameters are set to default baseline values
+        self.baseline = baseline
+
+    def add(self,
+            node_id,
+            tls_type="static",
+            programID=10,
+            offset=None,
+            phases=None,
+            maxGap=None,
+            detectorGap=None,
+            showDetectors=None,
+            file=None,
+            freq=None):
+        """Add a traffic light component to the network.
+
+        When generating networks using xml files, using this method to add a
+        traffic light will explicitly place the traffic light in the requested
+        node of the generated network.
+
+        If traffic lights are not added here but are already present in the
+        network (e.g. through a prebuilt net.xml file), then the traffic light
+        class will identify and add them separately.
+
+        Parameters
+        ----------
+        node_id : str
+            name of the node with traffic lights
+        tls_type : str, optional
+            type of the traffic light (see Note)
+        programID : str, optional
+            id of the traffic light program (see Note)
+        offset : int, optional
+            initial time offset of the program
+        phases : list <dict>, optional
+            list of phases to be followed by the traffic light, defaults
+            to default sumo traffic light behavior. Each element in the list
+            must consist of a dict with two keys:
+
+            * "duration": length of the current phase cycle (in sec)
+            * "state": string consist the sequence of states in the phase
+            * "minDur": optional
+                The minimum duration of the phase when using type actuated
+            * "maxDur": optional
+                The maximum duration of the phase when using type actuated
+
+        maxGap : int, used for actuated traffic lights
+            describes the maximum time gap between successive vehicle that
+            will cause the current phase to be prolonged
+        detectorGap : int, used for actuated traffic lights
+            determines the time distance between the (automatically generated)
+            detector and the stop line in seconds (at each lanes maximum speed)
+        showDetectors : bool, used for actuated traffic lights
+            toggles whether or not detectors are shown in sumo-gui
+        file : str, optional
+            which file the detector shall write results into
+        freq : int, optional
+            the period over which collected values shall be aggregated
+
+        Note
+        ----
+        For information on defining traffic light properties, see:
+        http://sumo.dlr.de/wiki/Simulation/Traffic_Lights#Defining_New_TLS-Programs
+        """
+        # prepare the data needed to generate xml files
+        self.__tls_properties[node_id] = {"id": node_id, "type": tls_type}
+
+        if programID:
+            self.__tls_properties[node_id]["programID"] = programID
+
+        if offset:
+            self.__tls_properties[node_id]["offset"] = offset
+
+        if phases:
+            self.__tls_properties[node_id]["phases"] = phases
+
+        if tls_type == "actuated":
+            # Required parameters
+            self.__tls_properties[node_id]["max-gap"] = \
+                maxGap if maxGap else MAX_GAP
+            self.__tls_properties[node_id]["detector-gap"] = \
+                detectorGap if detectorGap else DETECTOR_GAP
+            self.__tls_properties[node_id]["show-detectors"] = \
+                showDetectors if showDetectors else SHOW_DETECTORS
+
+            # Optional parameters
+            if file:
+                self.__tls_properties[node_id]["file"] = file
+
+            if freq:
+                self.__tls_properties[node_id]["freq"] = freq
+
+    def get_properties(self):
+        """Return traffic light properties.
+
+        This is meant to be used by the generator to import traffic light data
+        to the .net.xml file
+        """
+        return self.__tls_properties
+
+    def actuated_default(self):
+        """
+        Return the default values to be used for the scenario
+        for a system where all junctions are actuated traffic lights.
+
+        Returns
+        -------
+        tl_logic: dict
+        """
+        tl_type = "actuated"
+        program_id = 1
+        max_gap = 3.0
+        detector_gap = 0.8
+        show_detectors = True
+        phases = [{
+            "duration": "31",
+            "minDur": "8",
+            "maxDur": "45",
+            "state": "GrGr"
+        }, {
+            "duration": "6",
+            "minDur": "3",
+            "maxDur": "6",
+            "state": "yryr"
+        }, {
+            "duration": "31",
+            "minDur": "8",
+            "maxDur": "45",
+            "state": "rGrG"
+        }, {
+            "duration": "6",
+            "minDur": "3",
+            "maxDur": "6",
+            "state": "ryry"
+        }]
+
+        return {
+            "tl_type": str(tl_type),
+            "program_id": str(program_id),
+            "max_gap": str(max_gap),
+            "detector_gap": str(detector_gap),
+            "show_detectors": show_detectors,
+            "phases": phases
+        }
+
+
+class VehicleParams:
+    """Base vehicle class.
+
+    This is used to describe the state of all vehicles in the network.
+    State information on the vehicles for a given time step can be set or
+    retrieved from this class.
+    """
+
+    def __init__(self):
+        """Instantiate the base vehicle class."""
+        self.ids = []  # ids of all vehicles
+
+        # vehicles: Key = Vehicle ID, Value = Dictionary describing the vehicle
+        # Ordered dictionary used to keep neural net inputs in order
+        self.__vehicles = collections.OrderedDict()
+
+        self.num_vehicles = 0  # total number of vehicles in the network
+        self.num_rl_vehicles = 0  # number of rl vehicles in the network
+        self.num_types = 0  # number of unique types of vehicles in the network
+        self.types = []  # types of vehicles in the network
+
+        # contains the parameters associated with each type of vehicle
+        self.type_parameters = dict()
+
+        # contain the minGap attribute of each type of vehicle
+        self.minGap = dict()
+
+        # initial state of the vehicles class, used for serialization purposes
+        self.initial = []
+
+    def add(self,
+            veh_id,
+            acceleration_controller=(SimCarFollowingController, {}),
+            lane_change_controller=(SimLaneChangeController, {}),
+            routing_controller=None,
+            initial_speed=0,
+            num_vehicles=1,
+            car_following_params=None,
+            lane_change_params=None):
+        """Add a sequence of vehicles to the list of vehicles in the network.
+
+        Parameters
+        ----------
+        veh_id : str
+            base vehicle ID for the vehicles (will be appended by a number)
+        acceleration_controller : tup, optional
+            1st element: flow-specified acceleration controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        lane_change_controller : tup, optional
+            1st element: flow-specified lane-changer controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        routing_controller : tup, optional
+            1st element: flow-specified routing controller
+            2nd element: controller parameters (may be set to None to maintain
+            default parameters)
+        initial_speed : float, optional
+            initial speed of the vehicles being added (in m/s)
+        num_vehicles : int, optional
+            number of vehicles of this type to be added to the network
+        car_following_params : flow.core.params.SumoCarFollowingParams
+            Params object specifying attributes for Sumo car following model.
+        lane_change_params : flow.core.params.SumoLaneChangeParams
+            Params object specifying attributes for Sumo lane changing model.
+        """
+        if car_following_params is None:
+            # FIXME: depends on simulator
+            car_following_params = SumoCarFollowingParams()
+
+        if lane_change_params is None:
+            # FIXME: depends on simulator
+            lane_change_params = SumoLaneChangeParams()
+
+        type_params = {}
+        type_params.update(car_following_params.controller_params)
+        type_params.update(lane_change_params.controller_params)
+
+        # If a vehicle is not sumo or RL, let the minGap be zero so that it
+        # does not tamper with the dynamics of the controller
+        if acceleration_controller[0] != SimCarFollowingController \
+                and acceleration_controller[0] != RLController:
+            type_params["minGap"] = 0.0
+
+        # This dict will be used when trying to introduce new vehicles into
+        # the network via a Flow. It is passed to the vehicle kernel object
+        # during environment instantiation.
+        self.type_parameters[veh_id] = \
+            {"acceleration_controller": acceleration_controller,
+             "lane_change_controller": lane_change_controller,
+             "routing_controller": routing_controller,
+             "initial_speed": initial_speed,
+             "car_following_params": car_following_params,
+             "lane_change_params": lane_change_params}
+
+        # TODO: delete?
+        self.initial.append({
+            "veh_id":
+                veh_id,
+            "acceleration_controller":
+                acceleration_controller,
+            "lane_change_controller":
+                lane_change_controller,
+            "routing_controller":
+                routing_controller,
+            "initial_speed":
+                initial_speed,
+            "num_vehicles":
+                num_vehicles,
+            "car_following_params":
+                car_following_params,
+            "lane_change_params":
+                lane_change_params
+        })
+
+        # This is used to return the actual headways from the vehicles class.
+        # It is passed to the vehicle kernel class during environment
+        # instantiation.
+        self.minGap[veh_id] = type_params["minGap"]
+
+        for i in range(num_vehicles):
+            v_id = veh_id + '_%d' % i
+
+            # add the vehicle to the list of vehicle ids
+            self.ids.append(v_id)
+
+            self.__vehicles[v_id] = dict()
+
+            # specify the type
+            self.__vehicles[v_id]["type"] = veh_id
+
+            # specify the speed of vehicles at the start of a rollout
+            self.__vehicles[v_id]["initial_speed"] = initial_speed
+
+            # update the number of vehicles
+            self.num_vehicles += 1
+            if acceleration_controller[0] == RLController:
+                self.num_rl_vehicles += 1
+
+        # increase the number of unique types of vehicles in the network, and
+        # add the type to the list of types
+        self.num_types += 1
+        self.types.append({"veh_id": veh_id, "type_params": type_params})
+
+    def get_type(self, veh_id):
+        return self.__vehicles[veh_id]["type"]
+
+    def get_initial_speed(self, veh_id):
+        return self.__vehicles[veh_id]["initial_speed"]
+
+
+class SimParams(object):
+    """Simulation-specific parameters.
+
+    All subsequent parameters of the same type must extend this.
+    """
+
+    def __init__(self,
+                 sim_step=0.1,
+                 render=False,
+                 restart_instance=False,
+                 emission_path=None,
+                 save_render=False,
+                 sight_radius=25,
+                 show_radius=False,
+                 pxpm=2):
+        """Instantiate SimParams.
+
+        Parameters
+        ----------
+        sim_step: float optional
+            seconds per simulation step; 0.1 by default
+        render: str or bool, optional
+            specifies whether to visualize the rollout(s)
+
+            * False: no rendering
+            * True: delegate rendering to sumo-gui for back-compatibility
+            * "gray": static grayscale rendering, which is good for training
+            * "dgray": dynamic grayscale rendering
+            * "rgb": static RGB rendering
+            * "drgb": dynamic RGB rendering, which is good for visualization
+
+        restart_instance: bool, optional
+            specifies whether to restart a simulation upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "render" is set to True.
+        emission_path: str, optional
+            Path to the folder in which to create the emissions output.
+            Emissions output is not generated if this value is not specified
+        save_render: bool, optional
+            specifies whether to save rendering data to disk
+        sight_radius: int, optional
+            sets the radius of observation for RL vehicles (meter)
+        show_radius: bool, optional
+            specifies whether to render the radius of RL observation
+        pxpm: int, optional
+            specifies rendering resolution (pixel / meter)
+        """
+        self.sim_step = sim_step
+        self.render = render
+        self.restart_instance = restart_instance
+        self.emission_path = emission_path
+        self.save_render = save_render
+        self.sight_radius = sight_radius
+        self.pxpm = pxpm
+        self.show_radius = show_radius
+
+
+class AimsunParams(SimParams):
+    """Aimsun-specific simulation parameters.
+
+    Extends SimParams.
+    """
+    def __init__(self,
+                 sim_step=0.1,
+                 render=False,
+                 restart_instance=False,
+                 emission_path=None,
+                 save_render=False,
+                 sight_radius=25,
+                 show_radius=False,
+                 pxpm=2):
+        """Instantiate AimsunParams.
+
+        Parameters
+        ----------
+        sim_step: float optional
+            seconds per simulation step; 0.1 by default
+        render: str or bool, optional
+            specifies whether to visualize the rollout(s)
+
+            * False: no rendering
+            * True: delegate rendering to sumo-gui for back-compatibility
+            * "gray": static grayscale rendering, which is good for training
+            * "dgray": dynamic grayscale rendering
+            * "rgb": static RGB rendering
+            * "drgb": dynamic RGB rendering, which is good for visualization
+
+        restart_instance: bool, optional
+            specifies whether to restart a simulation upon reset. Restarting
+            the instance helps avoid slowdowns cause by excessive inflows over
+            large experiment runtimes, but also require the gui to be started
+            after every reset if "render" is set to True.
+        emission_path: str, optional
+            Path to the folder in which to create the emissions output.
+            Emissions output is not generated if this value is not specified
+        save_render: bool, optional
+            specifies whether to save rendering data to disk
+        sight_radius: int, optional
+            sets the radius of observation for RL vehicles (meter)
+        show_radius: bool, optional
+            specifies whether to render the radius of RL observation
+        pxpm: int, optional
+            specifies rendering resolution (pixel / meter)
+        """
+        super(AimsunParams, self).__init__(
+            sim_step, render, restart_instance, emission_path, save_render,
+            sight_radius, show_radius, pxpm)
+
+
+class SumoParams(SimParams):
+    """Sumo-specific simulation parameters.
+
+    Extends SimParams.
 
     These parameters are used to customize a sumo simulation instance upon
     initialization. This includes passing the simulation step length,
@@ -26,7 +474,6 @@ class SumoParams:
                  show_radius=False,
                  pxpm=2,
                  overtake_right=False,
-                 ballistic=False,
                  seed=None,
                  restart_instance=False,
                  print_warnings=True,
@@ -70,10 +517,6 @@ class SumoParams:
         overtake_right: bool, optional
             whether vehicles are allowed to overtake on the right as well as
             the left
-        ballistic: bool, optional
-            specifies whether to use ballistic step updates. This is somewhat
-            more realistic, but increases the possibility of collisions.
-            Defaults to False
         seed: int, optional
             seed for sumo instance
         restart_instance: bool, optional
@@ -90,27 +533,21 @@ class SumoParams:
             Number of clients that will connect to Traci
 
         """
+        super(SumoParams, self).__init__(
+            sim_step, render, restart_instance, emission_path, save_render,
+            sight_radius, show_radius, pxpm)
         self.port = port
-        self.sim_step = sim_step
-        self.emission_path = emission_path
         self.lateral_resolution = lateral_resolution
         self.no_step_log = no_step_log
-        self.render = render
-        self.save_render = save_render
-        self.sight_radius = sight_radius
-        self.pxpm = pxpm
-        self.show_radius = show_radius
         self.seed = seed
-        self.ballistic = ballistic
         self.overtake_right = overtake_right
-        self.restart_instance = restart_instance
         self.print_warnings = print_warnings
         self.teleport_time = teleport_time
         self.num_clients = num_clients
         if sumo_binary is not None:
             warnings.simplefilter("always", PendingDeprecationWarning)
             warnings.warn(
-                "sumo_params will be deprecated in a future release, use "
+                "sumo_binary will be deprecated in a future release, use "
                 "render instead.",
                 PendingDeprecationWarning
             )
@@ -126,11 +563,8 @@ class EnvParams:
     """
 
     def __init__(self,
-                 vehicle_arrangement_shuffle=False,
-                 starting_position_shuffle=False,
                  additional_params=None,
                  horizon=500,
-                 sort_vehicles=False,
                  warmup_steps=0,
                  sims_per_step=1,
                  evaluate=False):
@@ -138,22 +572,11 @@ class EnvParams:
 
         Attributes
         ----------
-            vehicle_arrangement_shuffle: bool, optional
-                determines if initial conditions of vehicles are shuffled at
-                reset; False by default
-            starting_position_shuffle: bool, optional
-                determines if starting position of vehicles should be updated
-                between rollouts; False by default
             additional_params: dict, optional
                 Specify additional environment params for a specific
                 environment configuration
             horizon: int, optional
                 number of steps per rollouts
-            sort_vehicles: bool, optional
-                specifies whether vehicles are to be sorted by position during
-                a simulation step. If set to True, the environment parameter
-                self.sorted_ids will return a list of all vehicles ideas sorted
-                by their absolute position.
             warmup_steps: int, optional
                 number of steps performed before the initialization of training
                 during a rollout. These warmup steps are not added as steps
@@ -169,12 +592,9 @@ class EnvParams:
                 normal reward
 
         """
-        self.vehicle_arrangement_shuffle = vehicle_arrangement_shuffle
-        self.starting_position_shuffle = starting_position_shuffle
         self.additional_params = \
             additional_params if additional_params is not None else {}
         self.horizon = horizon
-        self.sort_vehicles = sort_vehicles
         self.warmup_steps = warmup_steps
         self.sims_per_step = sims_per_step
         self.evaluate = evaluate
@@ -309,16 +729,13 @@ class InitialConfig:
         self.edges_distribution = edges_distribution
         self.additional_params = additional_params or dict()
 
-    def get_additional_params(self, key):
-        """Return a variable from additional_params."""
-        return self.additional_params[key]
-
 
 class SumoCarFollowingParams:
     """Parameters for sumo-controlled acceleration behavior."""
 
     def __init__(
             self,
+            speed_mode='right_of_way',
             accel=1.0,
             decel=1.5,
             sigma=0.5,
@@ -334,6 +751,23 @@ class SumoCarFollowingParams:
 
         Attributes
         ----------
+        speed_mode : str or int, optional
+            may be one of the following:
+
+             * "right_of_way" (default): respect safe speed, right of way and
+               brake hard at red lights if needed. DOES NOT respect
+               max accel and decel which enables emergency stopping.
+               Necessary to prevent custom models from crashing
+             * "no_collide": Human and RL cars are preventing from reaching
+               speeds that may cause crashes (also serves as a failsafe). Note:
+               this may lead to collisions in complex networks
+             * "aggressive": Human and RL cars are not limited by sumo with
+               regard to their accelerations, and can crash longitudinally
+             * "all_checks": all sumo safety checks are activated
+             * int values may be used to define custom speed mode for the given
+               vehicles, specified at:
+               http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#speed_mode_.280xb3.29
+
         accel: float
             see Note
         decel: float
@@ -402,11 +836,22 @@ class SumoCarFollowingParams:
             "carFollowModel": car_follow_model,
         }
 
+        # adjust the speed mode value
+        if isinstance(speed_mode, str) and speed_mode in SPEED_MODES:
+            speed_mode = SPEED_MODES[speed_mode]
+        elif not (isinstance(speed_mode, int)
+                  or isinstance(speed_mode, float)):
+            logging.error("Setting speed mode of to default.")
+            speed_mode = SPEED_MODES["no_collide"]
+
+        self.speed_mode = speed_mode
+
 
 class SumoLaneChangeParams:
     """Parameters for sumo-controlled lane change behavior."""
 
     def __init__(self,
+                 lane_change_mode="no_lat_collide",
                  model="LC2013",
                  lc_strategic=1.0,
                  lc_cooperative=1.0,
@@ -426,6 +871,20 @@ class SumoLaneChangeParams:
 
         Attributes
         ----------
+        lane_change_mode : str or int, optional
+            may be one of the following:
+
+            * "no_lat_collide" (default): Human cars will not make lane
+              changes, RL cars can lane change into any space, no matter how
+              likely it is to crash
+            * "strategic": Human cars make lane changes in accordance with SUMO
+              to provide speed boosts
+            * "aggressive": RL cars are not limited by sumo with regard to
+              their lane-change actions, and can crash longitudinally
+            * int values may be used to define custom lane change modes for the
+              given vehicles, specified at:
+              http://sumo.dlr.de/wiki/TraCI/Change_Vehicle_State#lane_change_mode_.280xb6.29
+
         model: str, optional
             see laneChangeModel in Note
         lc_strategic: float, optional
@@ -563,6 +1022,16 @@ class SumoLaneChangeParams:
                 "lcAccelLat": str(lc_accel_lat)
             }
 
+        # adjust the lane change mode value
+        if isinstance(lane_change_mode, str) and lane_change_mode in LC_MODES:
+            lane_change_mode = LC_MODES[lane_change_mode]
+        elif not (isinstance(lane_change_mode, int)
+                  or isinstance(lane_change_mode, float)):
+            logging.error("Setting lane change mode to default.")
+            lane_change_mode = LC_MODES["no_lat_collide"]
+
+        self.lane_change_mode = lane_change_mode
+
 
 class InFlows:
     """Used to add inflows to a network.
@@ -582,9 +1051,7 @@ class InFlows:
             begin=1,
             end=2e6,
             vehs_per_hour=None,
-            period=None,
             probability=None,
-            number=None,
             **kwargs):
         r"""Specify a new inflow for a given type of vehicles and edge.
 
@@ -595,17 +1062,15 @@ class InFlows:
             in the Vehicles class.
         edge: str
             starting edge for vehicles in this inflow.
+        name : str, optional
+            prefix for inflow vehicles
         begin: float, optional
             see Note
         end: float, optional
             see Note
         vehs_per_hour: float, optional
             see vehsPerHour in Note
-        period: float, optional
-            see Note
         probability: float, optional
-            see Note
-        number: int, optional
             see Note
         kwargs: dict, optional
             see Note
@@ -628,7 +1093,7 @@ class InFlows:
         new_inflow = {
             "name": "%s_%d" % (name, self.num_flows),
             "vtype": veh_type,
-            "route": "route" + edge,
+            "edge": edge,
             "end": end
         }
 
@@ -638,12 +1103,8 @@ class InFlows:
             new_inflow["begin"] = begin
         if vehs_per_hour is not None:
             new_inflow["vehsPerHour"] = vehs_per_hour
-        if period is not None:
-            new_inflow["period"] = period
         if probability is not None:
             new_inflow["probability"] = probability
-        if number is not None:
-            new_inflow["number"] = number
 
         self.__flows.append(new_inflow)
 

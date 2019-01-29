@@ -1,9 +1,10 @@
 """Example of modified minicity network with human-driven vehicles."""
 from flow.controllers import IDMController
 from flow.controllers import RLController
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
-from flow.core.vehicles import Vehicles
+from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
+from flow.core.params import VehicleParams
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import MinicityRouter
@@ -24,45 +25,51 @@ def minicity_example(render=None,
     Parameters
     ----------
     render: bool, optional
-        specifies whether to use sumo's gui during execution
+        specifies whether to use the gui during execution
 
     Returns
     -------
-    exp: flow.core.SumoExperiment type
+    exp: flow.core.experiment.Experiment
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on the minicity scenario.
     """
-    sumo_params = SumoParams(sim_step=0.25)
+    sim_params = SumoParams(sim_step=0.25)
 
     if render is not None:
-        sumo_params.render = render
+        sim_params.render = render
 
     if save_render is not None:
-        sumo_params.save_render = save_render
+        sim_params.save_render = save_render
 
     if sight_radius is not None:
-        sumo_params.sight_radius = sight_radius
+        sim_params.sight_radius = sight_radius
 
     if pxpm is not None:
-        sumo_params.pxpm = pxpm
+        sim_params.pxpm = pxpm
 
     if show_radius is not None:
-        sumo_params.show_radius = show_radius
+        sim_params.show_radius = show_radius
 
-    vehicles = Vehicles()
+    vehicles = VehicleParams()
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityRouter, {}),
-        speed_mode=1,
-        lane_change_mode="no_lat_collide",
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=1,
+        ),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="no_lat_collide",
+        ),
         initial_speed=0,
         num_vehicles=90)
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        speed_mode="no_collide",
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="no_collide",
+        ),
         initial_speed=0,
         num_vehicles=10)
 
@@ -82,9 +89,9 @@ def minicity_example(render=None,
         initial_config=initial_config,
         net_params=net_params)
 
-    env = AccelEnv(env_params, sumo_params, scenario)
+    env = AccelEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env, scenario)
+    return Experiment(env)
 
 
 if __name__ == "__main__":

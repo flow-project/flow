@@ -2,7 +2,7 @@
 
 from flow.scenarios.base_scenario import Scenario
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
+from flow.core.params import TrafficLightParams
 from numpy import pi, sin, cos, linspace, ceil, sqrt
 
 ADDITIONAL_NET_PARAMS = {
@@ -29,7 +29,7 @@ class MultiLoopScenario(Scenario):
                  vehicles,
                  net_params,
                  initial_config=InitialConfig(),
-                 traffic_lights=TrafficLights()):
+                 traffic_lights=TrafficLightParams()):
         """Initialize a loop scenario.
 
         Requires from net_params:
@@ -65,38 +65,22 @@ class MultiLoopScenario(Scenario):
 
         return edgestarts
 
-    def gen_custom_start_pos(self, initial_config, num_vehicles, **kwargs):
-        """Generate uniformly spaced starting positions.
+    @staticmethod
+    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+        """Generate uniformly spaced starting positions on each ring.
 
         It is assumed that there are an equal number of vehicles per ring.
         If the perturbation term in initial_config is set to some positive
         value, then the start positions are perturbed from a uniformly spaced
         distribution by a gaussian whose std is equal to this perturbation
         term.
-
-        Parameters
-        ----------
-        initial_config : InitialConfig type
-            see flow/core/params.py
-        num_vehicles : int
-            number of vehicles to be placed on the network
-        kwargs : dict
-            extra components, usually defined during reset to overwrite initial
-            config parameters
-
-        Returns
-        -------
-        startpositions : list of tuple (float, float)
-            list of start positions [(edge0, pos0), (edge1, pos1), ...]
-        startlanes : list of int
-            list of start lanes
         """
         (x0, min_gap, bunching, lanes_distr, available_length,
          available_edges, initial_config) = \
-            self._get_start_pos_util(initial_config, num_vehicles, **kwargs)
+            cls._get_start_pos_util(initial_config, num_vehicles)
 
         increment = available_length / num_vehicles
-        vehs_per_ring = num_vehicles / self.num_rings
+        vehs_per_ring = num_vehicles / cls.network.num_rings
 
         x = x0
         car_count = 0
@@ -105,14 +89,14 @@ class MultiLoopScenario(Scenario):
         # generate uniform starting positions
         while car_count < num_vehicles:
             # collect the position and lane number of each new vehicle
-            pos = self.get_edge(x)
+            pos = cls.get_edge(x)
 
             # place vehicles side-by-side in all available lanes on this edge
-            for lane in range(min([self.num_lanes(pos[0]), lanes_distr])):
+            for lane in range(min(cls.num_lanes(pos[0]), lanes_distr)):
                 car_count += 1
                 startpositions.append(pos)
                 edge, pos = startpositions[-1]
-                startpositions[-1] = edge, pos % self.length
+                startpositions[-1] = edge, pos % cls.length()
                 startlanes.append(lane)
 
                 if car_count == num_vehicles:
@@ -124,7 +108,7 @@ class MultiLoopScenario(Scenario):
                 # if we have put in the right number of cars,
                 # move onto the next ring
                 ring_num = int(car_count / vehs_per_ring)
-                x = self.length * ring_num + 1e-13
+                x = cls.length() * ring_num + 1e-13
 
         # add a perturbation to each vehicle, while not letting the vehicle
         # leave its current edge
@@ -152,20 +136,20 @@ class MultiLoopScenario(Scenario):
             for k in range(num_cols):
                 nodes += [{
                     "id": "bottom_{}".format(i),
-                    "x": repr(0 + j * ring_spacing),
-                    "y": repr(-r + k * ring_spacing)
+                    "x": 0 + j * ring_spacing,
+                    "y": -r + k * ring_spacing
                 }, {
                     "id": "right_{}".format(i),
-                    "x": repr(r + j * ring_spacing),
-                    "y": repr(0 + k * ring_spacing)
+                    "x": r + j * ring_spacing,
+                    "y": 0 + k * ring_spacing
                 }, {
                     "id": "top_{}".format(i),
-                    "x": repr(0 + j * ring_spacing),
-                    "y": repr(r + k * ring_spacing)
+                    "x": 0 + j * ring_spacing,
+                    "y": r + k * ring_spacing
                 }, {
                     "id": "left_{}".format(i),
-                    "x": repr(-r + j * ring_spacing),
-                    "y": repr(0 + k * ring_spacing)
+                    "x": -r + j * ring_spacing,
+                    "y": 0 + k * ring_spacing
                 }]
                 i += 1
                 # FIXME this break if we don't have an exact square
@@ -201,13 +185,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "right_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(-pi / 2, 0, resolution)
-                        ])
+                        ]
                 }, {
                     "id":
                         "right_{}".format(i),
@@ -218,13 +202,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "top_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(0, pi / 2, resolution)
-                        ])
+                        ]
                 }, {
                     "id":
                         "top_{}".format(i),
@@ -235,13 +219,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "left_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(pi / 2, pi, resolution)
-                        ])
+                        ]
                 }, {
                     "id":
                         "left_{}".format(i),
@@ -252,13 +236,13 @@ class MultiLoopScenario(Scenario):
                     "to":
                         "bottom_{}".format(i),
                     "length":
-                        repr(edgelen),
+                        edgelen,
                     "shape":
-                        " ".join([
-                            "%.2f,%.2f" % (r * cos(t) + j * ring_spacing,
-                                           r * sin(t) + k * ring_spacing)
+                        [
+                            (r * cos(t) + j * ring_spacing,
+                             r * sin(t) + k * ring_spacing)
                             for t in linspace(pi, 3 * pi / 2, resolution)
-                        ])
+                        ]
                 }]
                 i += 1
                 if i >= ring_num:
@@ -275,8 +259,8 @@ class MultiLoopScenario(Scenario):
 
         types = [{
             "id": "edgeType",
-            "numLanes": repr(lanes),
-            "speed": repr(speed_limit)
+            "numLanes": lanes,
+            "speed": speed_limit
         }]
 
         return types
