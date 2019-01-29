@@ -98,7 +98,8 @@ def make_create_env(params, version=0, render=None):
                 kwargs={
                     "env_params": env_params,
                     "sim_params": sim_params,
-                    "scenario": scenario
+                    "scenario": scenario,
+                    "simulator": params['simulator']
                 })
         except Exception:
             pass

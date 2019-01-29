@@ -23,6 +23,8 @@ Flow is a work in progress - input is welcome. Available documentation is limite
    multiagent
    rendering
    visualizing
+   regression
+   examples
    modules
 
 

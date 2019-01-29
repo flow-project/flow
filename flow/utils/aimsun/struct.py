@@ -6,18 +6,12 @@ class InfVeh(object):
 
     Attributes
     ----------
-    report : int
-        0, OK, otherwise is an error code
-    idVeh : int
-        The vehicle identifier
-    type : int
-        The vehicle type (car, bus, truck, etc.)
     CurrentPos : float
         Position inside the section. The distance (metres or feet, depending on
         the units defined in the network) from the beginning of the section or
         position inside the junction given as the distance from the entrance to
         the junction
-    distnace2End : float
+    distance2End : float
         Distance to end of the section (metres or feet, depending on the units
         defined in the network) when the vehicle is located in a section or the
         distance to the end of the turn when the vehicle is in a junction
@@ -36,19 +30,8 @@ class InfVeh(object):
     CurrentSpeed : float
         Current speed (in km/h or mph, depending on the units defined in the
         network)
-    PreviousSpeed : float
-        Speed in the previous simulation step (in km/h or mph, depending on the
-        units defined in the network)
     TotalDistance : float
         Total distance travelled (metres or feet)
-    SystemGenerationT : float
-        The absolute generation time of the vehicle into the system. If no
-        virtual queue found in its entrance section it will be the same as the
-        SystemEntranceT.
-    SystemEntranceT : float
-        The absolute entrance time of the vehicle into the system, that is into
-        its entrance section. If no virtual queue found in its entrance section
-        it will be the same as the SystemGenerationT
     SectionEntranceT : float
         The absolute entrance time of the vehicle into the current section
     CurrentStopTime : float
@@ -81,11 +64,8 @@ class InfVeh(object):
 
     def __init__(self):
         """Instantiate InfVeh."""
-        self.report = None
-        self.idVeh = None
-        self.type = None
         self.CurrentPos = None
-        self.distnace2End = None
+        self.distance2End = None
         self.xCurrentPos = None
         self.yCurrentPos = None
         self.zCurrentPos = None
@@ -93,10 +73,7 @@ class InfVeh(object):
         self.yCurrentPosBack = None
         self.zCurrentPosBack = None
         self.CurrentSpeed = None
-        self.PreviousSpeed = None
         self.TotalDistance = None
-        self.SystemGenerationT = None
-        self.SystemEntranceT = None
         self.SectionEntranceT = None
         self.CurrentStopTime = None
         self.stopped = None
