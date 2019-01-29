@@ -17,7 +17,9 @@ class RLController(BaseController):
 
     In order to collect the list of all RL vehicles in the next, run:
 
-        >>> rl_ids = vehicles.get_rl_ids()
+        >>> from flow.envs import Env
+        >>> env = Env(...)
+        >>> rl_ids = env.k.vehicle.get_rl_ids()
     """
 
     def __init__(self, veh_id, car_following_params):

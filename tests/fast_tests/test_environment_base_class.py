@@ -8,19 +8,20 @@ from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController
 from flow.controllers import RLController
 from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS
-from flow.envs import Env
+from flow.utils.exceptions import FatalFlowError
+from flow.envs import Env, TestEnv
 
-from tests.setup_scripts import ring_road_exp_setup
+from tests.setup_scripts import ring_road_exp_setup, highway_exp_setup
 import os
 import numpy as np
 
 os.environ["TEST_FLAG"] = "True"
 
 # colors for vehicles
-WHITE = (255, 255, 255, 255)
-CYAN = (0, 255, 255, 255)
-RED = (255, 0, 0, 255)
-YELLOW = (255, 255, 0, 255)
+WHITE = (255, 255, 255)
+CYAN = (0, 255, 255)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
 
 
 class TestShuffle(unittest.TestCase):
@@ -58,16 +59,18 @@ class TestShuffle(unittest.TestCase):
         self.env = None
 
     def test_shuffle(self):
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # position of vehicles before reset
-        before_reset = [self.env.get_x_by_id(veh_id) for veh_id in ids]
+        before_reset = [self.env.k.vehicle.get_x_by_id(veh_id)
+                        for veh_id in ids]
 
         # reset the environment
         self.env.reset()
 
         # position of vehicles after reset
-        after_reset = [self.env.get_x_by_id(veh_id) for veh_id in ids]
+        after_reset = [self.env.k.vehicle.get_x_by_id(veh_id)
+                       for veh_id in ids]
 
         self.assertCountEqual(before_reset, after_reset)
 
@@ -144,44 +147,37 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         ensures that vehicles can never have velocities below zero given any
         acceleration.
         """
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         vel0 = np.array(
-            [self.env.vehicles.get_speed(veh_id) for veh_id in ids])
+            [self.env.k.vehicle.get_speed(veh_id) for veh_id in ids])
 
         # apply a certain set of accelerations to the vehicles in the network
         accel_step0 = np.array([0, 1, 4, 9, 16])
-        self.env.apply_acceleration(veh_ids=ids, acc=accel_step0)
+        self.env.k.vehicle.apply_acceleration(veh_ids=ids, acc=accel_step0)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # compare the new velocity of the vehicles to the expected velocity
         # given the accelerations
         vel1 = np.array([
-            self.env.traci_connection.vehicle.getSpeed(veh_id)
+            self.env.k.vehicle.get_speed(veh_id)
             for veh_id in ids
         ])
         expected_vel1 = (vel0 + accel_step0 * 0.1).clip(min=0)
 
         np.testing.assert_array_almost_equal(vel1, expected_vel1, 1)
 
-        # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_list = self.env.traci_connection.simulation.getSubscriptionResults()
-
-        # store the network observations in the vehicles class
-        self.env.vehicles.update(veh_obs, id_list, self.env)
-
         # apply a set of decelerations
         accel_step1 = np.array([-16, -9, -4, -1, 0])
-        self.env.apply_acceleration(veh_ids=ids, acc=accel_step1)
+        self.env.k.vehicle.apply_acceleration(veh_ids=ids, acc=accel_step1)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # this time, some vehicles should be at 0 velocity (NOT less), and sum
         # are a result of the accelerations that took place
         vel2 = np.array([
-            self.env.traci_connection.vehicle.getSpeed(veh_id)
+            self.env.k.vehicle.get_speed(veh_id)
             for veh_id in ids
         ])
         expected_vel2 = (vel1 + accel_step1 * 0.1).clip(min=0)
@@ -193,7 +189,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         Ensures that apply_lane_change raises ValueErrors when it should
         """
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
 
         # make sure that running apply lane change with a invalid direction
         # values leads to a ValueError
@@ -201,7 +197,7 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         self.assertRaises(
             ValueError,
-            self.env.apply_lane_change,
+            self.env.k.vehicle.apply_lane_change,
             veh_ids=ids,
             direction=bad_directions)
 
@@ -213,20 +209,21 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
         is no lane in te requested direction.
         """
         self.env.reset()
-        ids = self.env.vehicles.get_ids()
+        ids = self.env.k.vehicle.get_ids()
         lane0 = np.array(
-            [self.env.vehicles.get_lane(veh_id) for veh_id in ids])
+            [self.env.k.vehicle.get_lane(veh_id) for veh_id in ids])
         max_lanes = self.env.scenario.net_params.additional_params['lanes']
 
         # perform lane-changing actions using the direction method
         direction0 = np.array([0, 1, 0, 1, -1])
-        self.env.apply_lane_change(ids, direction=direction0)
+        self.env.k.vehicle.apply_lane_change(ids, direction=direction0)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
         lane1 = np.array([
-            self.env.traci_connection.vehicle.getLaneIndex(veh_id)
+            self.env.k.vehicle.get_lane(veh_id)
             for veh_id in ids
         ])
         expected_lane1 = (lane0 + np.sign(direction0)).clip(
@@ -234,84 +231,23 @@ class TestApplyingActionsWithSumo(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(lane1, expected_lane1, 1)
 
-        # collect information on the vehicle in the network from sumo
-        veh_obs = self.env.traci_connection.vehicle.getSubscriptionResults()
-
-        # get vehicle ids for the entering, exiting, and colliding vehicles
-        id_list = self.env.traci_connection.simulation.getSubscriptionResults()
-
-        # store the network observations in the vehicles class
-        self.env.vehicles.update(veh_obs, id_list, self.env)
-
         # perform lane-changing actions using the direction method one more
         # time to test lane changes to the right
         direction1 = np.array([-1, -1, -1, -1, -1])
-        self.env.apply_lane_change(ids, direction=direction1)
+        self.env.k.vehicle.apply_lane_change(ids, direction=direction1)
         self.env.k.simulation.simulation_step()
+        self.env.k.vehicle.update(False)
 
         # check that the lane vehicle lane changes to the correct direction
         # without skipping lanes
         lane2 = np.array([
-            self.env.traci_connection.vehicle.getLaneIndex(veh_id)
+            self.env.k.vehicle.get_lane(veh_id)
             for veh_id in ids
         ])
         expected_lane2 = (lane1 + np.sign(direction1)).clip(
             min=0, max=max_lanes - 1)
 
         np.testing.assert_array_almost_equal(lane2, expected_lane2, 1)
-
-
-class TestSorting(unittest.TestCase):
-    """
-    Tests that the sorting method returns a list of ids sorted by the
-    get_absolute_position() method when sorting is requested, and does nothing
-    if it is not requested
-    """
-
-    def test_sorting(self):
-        # setup a environment with the "sort_vehicles" attribute set to True
-        additional_env_params = ADDITIONAL_ENV_PARAMS
-        env_params = EnvParams(
-            additional_params=additional_env_params, sort_vehicles=True)
-        initial_config = InitialConfig(shuffle=True)
-        vehicles = VehicleParams()
-        vehicles.add(veh_id="test", num_vehicles=5)
-        self.env, scenario = ring_road_exp_setup(
-            env_params=env_params,
-            initial_config=initial_config,
-            vehicles=vehicles)
-
-        self.env.reset()
-
-        sorted_ids = self.env.sorted_ids
-        positions = self.env.vehicles.get_absolute_position(sorted_ids)
-
-        # ensure vehicles ids are in sorted order by positions
-        self.assertTrue(
-            all(positions[i] <= positions[i + 1]
-                for i in range(len(positions) - 1)))
-
-    def test_no_sorting(self):
-        # setup a environment with the "sort_vehicles" attribute set to False,
-        # and shuffling so that the vehicles are not sorted by their ids
-        additional_env_params = ADDITIONAL_ENV_PARAMS
-        env_params = EnvParams(
-            additional_params=additional_env_params, sort_vehicles=False)
-        initial_config = InitialConfig(shuffle=True)
-        vehicles = VehicleParams()
-        vehicles.add(veh_id="test", num_vehicles=5)
-        self.env, scenario = ring_road_exp_setup(
-            env_params=env_params,
-            initial_config=initial_config,
-            vehicles=vehicles)
-
-        self.env.reset()
-
-        sorted_ids = list(self.env.sorted_ids)
-        ids = self.env.vehicles.get_ids()
-
-        # ensure that the list of ids did not change
-        self.assertListEqual(sorted_ids, ids)
 
 
 class TestWarmUpSteps(unittest.TestCase):
@@ -418,42 +354,57 @@ class TestVehicleColoring(unittest.TestCase):
         # add an RL vehicle to ensure that its color will be distinct
         vehicles.add("rl", acceleration_controller=(RLController, {}),
                      num_vehicles=1)
-        env, scenario = ring_road_exp_setup(vehicles=vehicles)
+        _, scenario = ring_road_exp_setup(vehicles=vehicles)
+        env = TestEnv(EnvParams(), SumoParams(), scenario)
+        env.reset()
 
         # set one vehicle as observed
-        env.vehicles.set_observed("human_0")
+        env.k.vehicle.set_observed("human_0")
 
         # update the colors of all vehicles
-        env.update_vehicle_colors()
-        env.k.simulation.simulation_step()
+        env.step(rl_actions=None)
 
         # check that, when rendering is off, the colors don't change (this
         # avoids unnecessary API calls)
-        for veh_id in env.vehicles.get_ids():
-            self.assertEqual(
-                env.traci_connection.vehicle.getColor(veh_id), YELLOW)
+        for veh_id in env.k.vehicle.get_ids():
+            self.assertEqual(env.k.vehicle.get_color(veh_id), YELLOW)
 
         # a little hack to ensure the colors change
         env.sim_params.render = True
 
         # set one vehicle as observed
-        env.vehicles.set_observed("human_0")
+        env.k.vehicle.set_observed("human_0")
 
         # update the colors of all vehicles
-        env.update_vehicle_colors()
-        env.k.simulation.simulation_step()
+        env.step(rl_actions=None)
 
         # check the colors of all vehicles
-        for veh_id in env.vehicles.get_ids():
-            if veh_id == "human_0":
-                self.assertEqual(
-                    env.traci_connection.vehicle.getColor(veh_id), CYAN)
+        for veh_id in env.k.vehicle.get_ids():
+            if veh_id in ["human_0"]:
+                self.assertEqual(env.k.vehicle.get_color(veh_id), CYAN)
             elif veh_id == "rl_0":
-                self.assertEqual(
-                    env.traci_connection.vehicle.getColor(veh_id), RED)
+                self.assertEqual(env.k.vehicle.get_color(veh_id), RED)
             else:
-                self.assertEqual(
-                    env.traci_connection.vehicle.getColor(veh_id), WHITE)
+                self.assertEqual(env.k.vehicle.get_color(veh_id), WHITE)
+
+
+class TestNotEnoughVehicles(unittest.TestCase):
+    """Tests that when not enough vehicles spawn an error is raised."""
+
+    def test_num_spawned(self):
+        initial_config = InitialConfig(
+            spacing="custom",
+            additional_params={
+                'start_positions': [('highway_0', 0), ('highway_0', 0)],
+                'start_lanes': [0, 0]}
+        )
+        vehicles = VehicleParams()
+        vehicles.add('test', num_vehicles=2)
+
+        self.assertRaises(FatalFlowError,
+                          highway_exp_setup,
+                          initial_config=initial_config,
+                          vehicles=vehicles)
 
 
 if __name__ == '__main__':

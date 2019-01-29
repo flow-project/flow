@@ -45,7 +45,7 @@ class KernelScenario(object):
       see:  # TODO: create tutorial
     """
 
-    def __init__(self, master_kernel):
+    def __init__(self, master_kernel, sim_params):
         """Instantiate the base scenario kernel.
 
         Parameters
@@ -53,8 +53,11 @@ class KernelScenario(object):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
+        sim_params : flow.core.params.SimParams
+            simulation-specific parameters
         """
         self.master_kernel = master_kernel
+        self.sim_params = sim_params
         self.kernel_api = None
 
         # These variable need to be filled in by the generate_network method.
@@ -272,8 +275,9 @@ class KernelScenario(object):
 
         increment = available_length / num_vehicles
 
-        # if not all lanes are equal, then we must ensure that vehicles are in
-        # two edges at the same time
+        # when consecutive edges do not have the same number of lanes, vehicles
+        # are not allowed to be in between edges (as a lane might not exist on
+        # the other side)
         flag = False
         lanes = [self.num_lanes(edge) for edge in self.get_edge_list()]
         if any(lanes[0] != lanes[i] for i in range(1, len(lanes))):
@@ -373,11 +377,8 @@ class KernelScenario(object):
             available_length -= efs * min([self.num_lanes(edge), lanes_distr])
 
         # choose random positions for each vehicle
-        init_absolute_pos = \
-            [random.random() * available_length
-             for _ in range(num_vehicles)]
-
-        # sort the positions of vehicles, for simplicity in using
+        init_absolute_pos = [random.random() * available_length
+                             for _ in range(num_vehicles)]
         init_absolute_pos.sort()
 
         # these positions do not include the length of the vehicle, which need

@@ -45,7 +45,7 @@ class KernelVehicle(object):
         master_kernel : flow.core.kernel.Kernel
             the higher level kernel (used to call methods from other
             sub-kernels)
-        sim_params : flow.core.params.SumoParams  # FIXME: make ambiguous
+        sim_params : flow.core.params.SimParams
             simulation-specific parameters
         """
         self.master_kernel = master_kernel
@@ -80,7 +80,7 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
-    def add(self, veh_id, type_id, route_id, pos, lane, speed):
+    def add(self, veh_id, type_id, edge, pos, lane, speed):
         """Add a vehicle to the network.
 
         Parameters
@@ -89,8 +89,8 @@ class KernelVehicle(object):
             unique identifier of the vehicle to be added
         type_id : str
             vehicle type of the added vehicle
-        route_id : str
-            starting route of the added vehicle
+        edge : str
+            starting edge of the added vehicle
         pos : float
             starting position of the added vehicle
         lane : int
@@ -167,6 +167,18 @@ class KernelVehicle(object):
         """
         raise NotImplementedError
 
+    def set_max_speed(self, veh_id, max_speed):
+        """Update the maximum allowable speed by a vehicles in the network.
+
+        Parameters
+        ----------
+        veh_id : list
+            vehicle identifier
+        max_speed : float
+            desired max speed by the vehicle
+        """
+        raise NotImplementedError
+
     ###########################################################################
     # Methods to visually distinguish vehicles by {RL, observed, unobserved}  #
     ###########################################################################
@@ -185,6 +197,14 @@ class KernelVehicle(object):
 
     def get_observed_ids(self):
         """Return the list of observed vehicles."""
+        raise NotImplementedError
+
+    def get_color(self, veh_id):
+        """Return and RGB tuple of the color of the specified vehicle."""
+        raise NotImplementedError
+
+    def set_color(self, veh_id, color):
+        """Set the color of the specified vehicle with the RGB tuple."""
         raise NotImplementedError
 
     ###########################################################################
@@ -258,6 +278,14 @@ class KernelVehicle(object):
         """Return the number of vehicles that arrived in the last time step."""
         raise NotImplementedError
 
+    def get_arrived_ids(self):
+        """Return the ids of vehicles that arrived in the last time step."""
+        raise NotImplementedError
+
+    def get_departed_ids(self):
+        """Return the ids of vehicles that departed in the last time step."""
+        raise NotImplementedError
+
     def get_speed(self, veh_id, error=-1001):
         """Return the speed of the specified vehicle.
 
@@ -276,22 +304,6 @@ class KernelVehicle(object):
 
     def get_default_speed(self, veh_id, error=-1001):
         """Return the expected speed if no control were applied
-
-        Parameters
-        ----------
-        veh_id : str or list of str
-            vehicle id, or list of vehicle ids
-        error : any, optional
-            value that is returned if the vehicle is not found
-
-        Returns
-        -------
-        float
-        """
-        raise NotImplementedError
-
-    def get_absolute_position(self, veh_id, error=-1001):
-        """Return the absolute position of the specified vehicle.
 
         Parameters
         ----------
@@ -625,6 +637,22 @@ class KernelVehicle(object):
         ----------
         veh_id : str
             vehicle identifier
+
+        Returns
+        -------
+        float
+        """
+        raise NotImplementedError
+
+    def get_max_speed(self, veh_id, error):
+        """Return the max speed of the specified vehicle.
+
+        Parameters
+        ----------
+        veh_id : str or list of str
+            vehicle id, or list of vehicle ids
+        error : any, optional
+            value that is returned if the vehicle is not found
 
         Returns
         -------

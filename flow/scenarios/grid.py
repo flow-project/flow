@@ -205,6 +205,8 @@ class SimpleGridScenario(Scenario):
         list <dict>
             List of inner nodes
         """
+        lanes = max(self.net_params.additional_params["horizontal_lanes"],
+                    self.net_params.additional_params["vertical_lanes"])
         tls = self.net_params.additional_params.get("traffic_lights", True)
         node_type = "traffic_light" if tls else "priority"
         row_num = self.grid_array["row_num"]
@@ -222,7 +224,8 @@ class SimpleGridScenario(Scenario):
                     "id": "center" + str(index),
                     "x": x_center,
                     "y": y_center,
-                    "type": node_type
+                    "type": node_type,
+                    "radius": (2.9 + 3.3 * lanes)/2,
                 })
         return nodes
 
@@ -369,6 +372,56 @@ class SimpleGridScenario(Scenario):
                 }]
 
         return edges
+
+    def specify_connections(self, net_params):
+        """See parent class."""
+        lanes_horizontal = net_params.additional_params["horizontal_lanes"]
+        lanes_vertical = net_params.additional_params["vertical_lanes"]
+
+        row_num = self.grid_array["row_num"]
+        col_num = self.grid_array["col_num"]
+        con_dict = {}
+
+        # build connections
+        for i in range(row_num):
+            for j in range(col_num):
+                conn = []
+                node_index = i * col_num + j
+                node_id = "center{}".format(node_index)
+                index = "{}_{}".format(i, j)
+                for l in range(lanes_vertical):
+                    conn += [
+                        {"from": "bot" + index,
+                         "to": "bot" + "{}_{}".format(i, j + 1),
+                         "fromLane": str(l),
+                         "toLane": str(l),
+                         "signal_group": 1}
+                    ]
+                    conn += [
+                        {"from": "top" + "{}_{}".format(i, j + 1),
+                         "to": "top" + index,
+                         "fromLane": str(l),
+                         "toLane": str(l),
+                         "signal_group": 1}
+                        ]
+                for l_h in range(lanes_horizontal):
+                    conn += [
+                        {"from": "right" + index,
+                         "to": "right" + "{}_{}".format(i + 1, j),
+                         "fromLane": str(l_h),
+                         "toLane": str(l_h),
+                         "signal_group": 2}
+                    ]
+                    conn += [
+                        {"from": "left" + "{}_{}".format(i + 1, j),
+                         "to": "left" + index,
+                         "fromLane": str(l_h),
+                         "toLane": str(l_h),
+                         "signal_group": 2}
+                    ]
+                con_dict[node_id] = conn
+
+        return con_dict
 
     def _build_outer_edges(self):
         """Build the outer edges.

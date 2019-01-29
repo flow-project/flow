@@ -1,3 +1,4 @@
+..    include:: <isonum.txt>
 .. contents:: Table of contents
 
 Local Installation
@@ -24,7 +25,7 @@ shell commands below to get started.
 doing so.**
 
 Installing Flow and SUMO
-----------
+------------------------
 
 In this section we install Flow as well as the binaries and packages needed
 to support the traffic simulator used in modeling the dynamics of traffic
@@ -104,7 +105,7 @@ Note that, if the above commands did not work, you may need to run
 If you are a Mac user and the above command gives you the error ``FXApp:openDisplay: unable to open display :0.0``, make sure to open the application XQuartz.
 
 Testing your installation
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once the above modules have been successfully installed, we can test the
 installation by running a few examples. Before trying to run any examples, be
@@ -143,7 +144,7 @@ during the execution of various tasks. The path should look something like:
 
     /home/user/Aimsun_Next_X_Y_Z/
 
-Finally, being that Aimsun's python API is written to support Python 2.7.4,
+In addition, being that Aimsun's python API is written to support Python 2.7.4,
 we will need to create a Python 2.7.4 conda environment that Aimsun can refer
 to when executing commands. In order to do so, run the following script from
 the Flow main directory:
@@ -171,13 +172,18 @@ place it under the `AIMSUN_SITEPACKAGES` variable in flow/config.py.
 
 
 Testing your installation
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+To test that you installation was successful, you can try running one of the
+Aimsun examples within the Flow main directory. In order to do so, type:
+
+::
+
+    python examples/aimsun/sugiyama.py
 
 
 (Optional) Install Ray RLlib
-----------
+----------------------------
 
 Flow has been tested on a variety of RL libraries, the installation of which is
 optional but may be of use when trying to execute some of the examples files
@@ -202,7 +208,7 @@ then follow the setup instructions.
 
 
 Testing your installation
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See `getting started with RLlib <http://ray.readthedocs.io/en/latest/rllib.html#getting-started>`_ for sample commands.
 
@@ -245,7 +251,7 @@ jobs from there.
 
 
 (Optional) Install Rllab-multiagent
-----------
+-----------------------------------
 
 `rllab-multiagent` is another RL library that is compatible with Flow.
 In order to install the `rllab-multiagent` library, follow the below instructions:
@@ -273,7 +279,7 @@ For mac run
 
 
 Testing your installation
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To run any of the RL examples, make sure to run
 
@@ -293,7 +299,7 @@ rllab-multiagent.
 
 
 (Optional) Direct install of SUMO from GitHub
-----------
+---------------------------------------------
 
 The below commands walk you through installing and building SUMO locally. Note
 that if this does not work, you are recommended to point an issue on the
@@ -349,10 +355,10 @@ If you have Ubuntu 14.04+, run the following command
 
 
 Remote installation using docker
-==========
+================================
 
 Installation
-----------
+------------
 
 Installation of a remote desktop and docker to get access to flow quickly
 
@@ -377,7 +383,7 @@ Go into your browser ( Firefox, Chrome, Safari)
 
 
 Notebooks and tutorial
-----------
+----------------------
 
 In the docker desktop
 
