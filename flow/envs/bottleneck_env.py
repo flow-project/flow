@@ -872,7 +872,7 @@ class DesiredVelocityEnv(BottleneckEnv):
 
                     additional_net_params = {
                         "scaling": self.scaling,
-                        "speed_limit": self.scenario.net_params.
+                        "speed_limit": self.net_params.
                         additional_params['speed_limit']
                     }
                     net_params = NetParams(
@@ -909,7 +909,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                         name=self.scenario.orig_name,
                         vehicles=vehicles,
                         net_params=net_params,
-                        initial_config=self.scenario.initial_config,
+                        initial_config=self.initial_config,
                         traffic_lights=self.scenario.traffic_lights)
                     observation = super().reset()
 
