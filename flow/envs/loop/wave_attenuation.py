@@ -75,7 +75,7 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=-np.abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(self.scenario.vehicles.num_rl_vehicles, ),
+            shape=(self.initial_vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
     @property
@@ -85,7 +85,7 @@ class WaveAttenuationEnv(Env):
         return Box(
             low=0,
             high=1,
-            shape=(2 * self.scenario.vehicles.num_vehicles, ),
+            shape=(2 * self.initial_vehicles.num_vehicles, ),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
@@ -158,11 +158,11 @@ class WaveAttenuationEnv(Env):
                     self.env_params.additional_params['ring_length'][0],
                     self.env_params.additional_params['ring_length'][1]),
             'lanes':
-                self.scenario.net_params.additional_params['lanes'],
+                self.net_params.additional_params['lanes'],
             'speed_limit':
-                self.scenario.net_params.additional_params['speed_limit'],
+                self.net_params.additional_params['speed_limit'],
             'resolution':
-                self.scenario.net_params.additional_params['resolution']
+                self.net_params.additional_params['resolution']
         }
         net_params = NetParams(additional_params=additional_net_params)
 

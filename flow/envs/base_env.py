@@ -73,6 +73,8 @@ class Env(*classdef):
 
         self.env_params = env_params
         self.scenario = scenario
+        self.net_params = scenario.net_params
+        self.initial_config = scenario.initial_config
         self.sim_params = sim_params
         time_stamp = ''.join(str(time.time()).split('.'))
         if os.environ.get("TEST_FLAG", 0):
@@ -213,12 +215,12 @@ class Env(*classdef):
         sumo to collect state information each step.
         """
         # determine whether to shuffle the vehicles
-        if self.scenario.initial_config.shuffle:
+        if self.initial_config.shuffle:
             random.shuffle(self.initial_ids)
 
         # generate starting position for vehicles in the network
         start_pos, start_lanes = self.k.scenario.generate_starting_positions(
-            initial_config=self.scenario.initial_config,
+            initial_config=self.initial_config,
             num_vehicles=len(self.initial_ids))
 
         # save the initial state. This is used in the _reset function
@@ -365,7 +367,7 @@ class Env(*classdef):
         self.time_counter = 0
 
         # warn about not using restart_instance when using inflows
-        if len(self.scenario.net_params.inflows.get()) > 0 and \
+        if len(self.net_params.inflows.get()) > 0 and \
                 not self.sim_params.restart_instance:
             print(
                 "**********************************************************\n"
@@ -391,7 +393,7 @@ class Env(*classdef):
             self.restart_simulation(self.sim_params)
 
         # perform shuffling (if requested)
-        elif self.scenario.initial_config.shuffle:
+        elif self.initial_config.shuffle:
             self.setup_initial_state()
 
         # clear all vehicles from the network and the vehicles class
