@@ -29,6 +29,11 @@ def desired_velocity(env, fail=False, edge_list=None):
     edge_list : list  of str, optional
         list of edges the reward is computed over. If no edge_list is defined,
         the reward is computed over all edges
+
+    Returns
+    -------
+    float
+        reward value
     """
     if edge_list is None:
         veh_ids = env.k.vehicle.get_ids()
@@ -85,6 +90,11 @@ def rl_forward_progress(env, gain=0.1):
         state of the system.
     gain: float
         specifies how much to reward the RL vehicles
+
+    Returns
+    -------
+    float
+        reward value
     """
     rl_velocity = env.k.vehicle.get_speed(env.k.vehicle.get_rl_ids())
     rl_norm_vel = np.linalg.norm(rl_velocity, 1)
@@ -107,6 +117,11 @@ def min_delay(env):
     env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
+
+    Returns
+    -------
+    float
+        reward value
     """
     vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
 
@@ -132,6 +147,11 @@ def min_delay_unscaled(env):
     env: flow.envs.Env
         the environment variable, which contains information on the current
         state of the system.
+
+    Returns
+    -------
+    float
+        reward value
     """
 
     vel = np.array(env.k.vehicle.get_speed(env.k.vehicle.get_ids()))
@@ -160,6 +180,11 @@ def penalize_standstill(env, gain=1):
         state of the system.
     gain : float
         multiplicative factor on the action penalty
+
+    Returns
+    -------
+    float
+        reward value
     """
     veh_ids = env.k.vehicle.get_ids()
     vel = np.array(env.k.vehicle.get_speed(veh_ids))
