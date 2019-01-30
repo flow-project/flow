@@ -71,7 +71,7 @@ def intersection_example(render=None,
     inflow.add(
         veh_type='autonomous',
         edge='e_1_inflow',
-        probability=0.2,
+        probability=0.1,
         departSpeed=8,
         departLane='random'
     )
@@ -85,7 +85,7 @@ def intersection_example(render=None,
     inflow.add(
         veh_type='autonomous',
         edge='e_5_inflow',
-        probability=0.2,
+        probability=0.1,
         departSpeed=8,
         departLane='random'
     )

@@ -22,8 +22,6 @@ ADDITIONAL_ENV_PARAMS = {
     "max_decel": 5,
     # desired velocity for all vehicles in the network, in m/s
     "target_velocity": 11.176,
-    # reward function performance-consumption tradeoff
-    "alpha": 0.8,
 }
 
 
@@ -38,19 +36,21 @@ class SoftIntersectionEnv(Env):
         super().__init__(env_params, sumo_params, scenario)
 
         # setup traffic lights
-        self.tls_id = self.traci_connection.trafficlight.getIDList()[0]
-        self.tls_state =\
-            self.traci_connection.trafficlight.\
-            getRedYellowGreenState(self.tls_id)
-        self.tls_definition =\
-            self.traci_connection.trafficlight.\
-            getCompleteRedYellowGreenDefinition(self.tls_id)
-        self.tls_phase = 0
-        self.tls_phase_count = 0
-        for logic in self.tls_definition:
-            for phase in logic._phases:
-                self.tls_phase_count += 1
-        self.tls_phase_increment = 0
+        self.tls_idlist = self.traci_connection.trafficlight.getIDList()
+        if len(self.tls_idlist) > 0:
+            self.tls_id = self.tls_idlist[0]
+            self.tls_state =\
+                self.traci_connection.trafficlight.\
+                getRedYellowGreenState(self.tls_id)
+            self.tls_definition =\
+                self.traci_connection.trafficlight.\
+                getCompleteRedYellowGreenDefinition(self.tls_id)
+            self.tls_phase = 0
+            self.tls_phase_count = 0
+            for logic in self.tls_definition:
+                for phase in logic._phases:
+                    self.tls_phase_count += 1
+            self.tls_phase_increment = 0
 
         # setup speed broadcasters
         self.sbc_locations = [
@@ -65,50 +65,7 @@ class SoftIntersectionEnv(Env):
             for loc in self.sbc_locations
         }
 
-        # setup inflow outflow logger
-        self.inflow_locations = [
-            "e_1_sbc+_0", "e_1_sbc+_1",  # east bound
-            "e_3_sbc+_0", "e_3_sbc+_1",  # south bound
-            "e_5_sbc+_0", "e_5_sbc+_1",  # west bound
-            "e_7_sbc+_0", "e_7_sbc+_1",  # north bound
-        ]
-        self.inflow_accelerations = {loc: 0 for loc in self.inflow_locations}
-        self.inflow_speeds = {loc: 0 for loc in self.inflow_locations}
-        self.inflow_densities = { loc: 0 for loc in self.inflow_locations}
-        self.inflow_fuels = {loc: 0 for loc in self.inflow_locations}
-        self.inflow_co2s = {loc: 0 for loc in self.inflow_locations}
-        self.outflow_locations = [
-            "e_2_sbc-_0", "e_2_sbc-_1",  # east bound
-            "e_4_sbc-_0", "e_4_sbc-_1",  # south bound
-            "e_6_sbc-_0", "e_6_sbc-_1",  # west bound
-            "e_8_sbc-_0", "e_8_sbc-_1",  # north bound
-        ]
-        self.outflow_accelerations = {loc: 0 for loc in self.outflow_locations}
-        self.outflow_speeds = {loc: 0 for loc in self.outflow_locations}
-        self.outflow_densities = {loc: 0 for loc in self.outflow_locations}
-        self.outflow_fuels = {loc: 0 for loc in self.outflow_locations}
-        self.outflow_co2s = {loc: 0 for loc in self.outflow_locations}
-
-        # setup junction logger
-        self.junction_locations = [
-            "e_1_0", "e_1_1", 
-            "e_2_0", "e_2_1",
-            "e_3_0", "e_3_1", 
-            "e_4_0", "e_4_1",
-            "e_5_0", "e_5_1", 
-            "e_6_0", "e_6_1",
-            "e_7_0", "e_7_1", 
-            "e_8_0", "e_8_1",
-        ]
-        self.junction_accelerations = \
-            {loc: 0 for loc in self.junction_locations}
-        self.junction_speeds = {loc: 0 for loc in self.junction_locations}
-        self.junction_densities = {loc: 0 for loc in self.junction_locations}
-        self.junction_fuels = {loc: 0 for loc in self.junction_locations}
-        self.junction_co2s = {loc: 0 for loc in self.junction_locations}
-
         # setup reward-related variables
-        self.alpha = env_params.additional_params["alpha"]
         self.rewards = 0
 
     # ACTION GOES HERE
@@ -144,106 +101,34 @@ class SoftIntersectionEnv(Env):
             dtype=np.float32)
 
     def get_observation(self, **kwargs):
-        inflow_accelerations = [
-            self.inflow_accelerations[loc]
-            for loc in self.inflow_locations
-        ]
-        inflow_speeds = [
-            self.inflow_speeds[loc]
-            for loc in self.inflow_locations
-        ]
-        inflow_densities = [
-            self.inflow_densities[loc]
-            for loc in self.inflow_locations
-        ]
-        outflow_accelerations = [
-            self.outflow_accelerations[loc]
-            for loc in self.outflow_locations
-        ]
-        outflow_speeds = [
-            self.outflow_speeds[loc]
-            for loc in self.outflow_locations
-        ]
-        outflow_densities = [
-            self.outflow_densities[loc]
-            for loc in self.outflow_locations
-        ]
         tls_phase = self.tls_phase
-        observation = np.asarray(
-            inflow_accelerations + inflow_speeds + inflow_densities +
-            outflow_accelerations + outflow_speeds + outflow_densities +
-            [tls_phase]
-        )
+        observation = None
         return observation
 
     # REWARD FUNCTION GOES HERE
     def get_reward(self, **kwargs):
-        speeds = list(self.inflow_speeds.values())
-        speeds += list(self.junction_speeds.values())
-        speeds += list(self.outflow_speeds.values())
-        densities = list(self.inflow_densities.values())
-        densities += list(self.junction_densities.values())
-        densities += list(self.outflow_densities.values())
-        performance = 0.4*np.mean(speeds) + 0.1*-np.std(speeds) + \
-                      0.4*-np.mean(densities) + 0.1*-np.std(densities)
-        fuels = list(self.inflow_fuels.values())
-        fuels += list(self.junction_fuels.values())
-        fuels += list(self.outflow_fuels.values())
-        co2s = list(self.inflow_co2s.values())
-        co2s += list(self.junction_co2s.values())
-        co2s += list(self.outflow_co2s.values())
-        consumption = 0.5*-np.mean(fuels) + 0.5*-np.mean(co2s)/1e2
-        return self.alpha * performance + (1 - self.alpha) * consumption
+        # safety reward
+        R_total_collisions = self.total_collisions * 1  # TODO: normalize
+        R_min_headway = self.min_headway * 1  # TODO: normalize
+        R_safety = 0.8 * R_total_collisions + 0.2 * R_min_headway
+        # performance reward
+        R_avg_speed = self.avg_speed * 1  # TODO: normalize
+        R_std_speed = self.std_speed * 1  # TODO: normalize
+        R_performance = 0.8 * R_avg_speed + 0.2 * R_std_speed
+        # consumption reward
+        R_avg_fuel = self.avg_fuel * 1  # TODO: normalize
+        R_avg_co2 = self.avg_co2 * 1  # TODO: normalize
+        R_consumption = 0.5 * R_avg_fuel + 0.5 * R_avg_co2
+        # total reward
+        reward = 0.5 * R_safety + 0.4 * R_performance + 0.1 * R_consumption
+        return reward
 
     # UTILITY FUNCTION GOES HERE
     def additional_command(self):
-        # update inflow statistics
-        inflow_stats = []
-        for idx, loc in enumerate(self.inflow_locations):
-            flow_stats = self.get_flow_stats(loc)
-            inflow_stats.append(flow_stats)
-            acceleration, speed, _, _, density, fuel, co2 = flow_stats
-            self.inflow_accelerations[loc] = acceleration
-            self.inflow_speeds[loc] = speed
-            self.inflow_densities[loc] = density
-            self.inflow_fuels[loc] = fuel
-            self.inflow_co2s[loc] = co2
-
-        # update outflow statistics
-        outflow_stats = []
-        for idx, loc in enumerate(self.outflow_locations):
-            flow_stats = self.get_flow_stats(loc)
-            outflow_stats.append(flow_stats)
-            acceleration, speed, _, _, density, fuel, co2 = flow_stats
-            self.outflow_accelerations[loc] = acceleration
-            self.outflow_speeds[loc] = speed
-            self.outflow_densities[loc] = density
-            self.outflow_fuels[loc] = fuel
-            self.outflow_co2s[loc] = co2
-
-        # update junction statistics
-        junction_stats = []
-        for idx, loc in enumerate(self.junction_locations):
-            flow_stats = self.get_flow_stats(loc)
-            junction_stats.append(flow_stats)
-            acceleration, speed, _, _, density, fuel, co2 = flow_stats
-            self.junction_accelerations[loc] = acceleration
-            self.junction_speeds[loc] = speed
-            self.junction_densities[loc] = density
-            self.junction_fuels[loc] = fuel
-            self.junction_co2s[loc] = co2
-
-        # update traffic lights state
-        self.tls_state =\
-            self.traci_connection.trafficlight.\
-            getRedYellowGreenState(self.tls_id)
-
-        # disable skip to test traci tls and sbc setter methods
+        # disable skip to test methods
         self.test_sbc(skip=True)
         self.test_tls(skip=True)
-        self.test_ioflow(
-            inflow_stats, outflow_stats, junction_stats, skip=True)
-        self.test_reward(skip=True)
+        self.test_reward(skip=False)
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:
@@ -261,30 +146,6 @@ class SoftIntersectionEnv(Env):
             print("New phase:", self.tls_phase)
             self._set_phase(self.tls_phase)
 
-    def test_ioflow(\
-        self, inflow_stats, outflow_stats, junction_stats, skip=False):
-        if not skip:
-            print("inflow:", inflow_stats)
-            print("acceleration:", self.inflow_accelerations)
-            print("speed:", self.inflow_speeds)
-            print("density:", self.inflow_densities)
-            print("fuel:", self.inflow_fuels)
-            print("co2:", self.inflow_co2s)
-
-            print("outflow:", outflow_stats)
-            print("acceleration:", self.outflow_accelerations)
-            print("speed:", self.outflow_speeds)
-            print("density:", self.outflow_densities)
-            print("fuel:", self.outflow_fuels)
-            print("co2:", self.outflow_co2s)
-
-            print("junction:", junction_stats)
-            print("acceleration:", self.junction_accelerations)
-            print("speed:", self.junction_speeds)
-            print("density:", self.junction_densities)
-            print("fuel:", self.junction_fuels)
-            print("co2:", self.junction_co2s)
-
     def test_reward(self, skip=True):
         if not skip:
             _reward = self.get_reward()
@@ -292,33 +153,18 @@ class SoftIntersectionEnv(Env):
             self.rewards += _reward
             print('Total rewards:', self.rewards)
 
-    def get_flow_stats(self, loc):
-        speed = self.traci_connection.lane.getLastStepMeanSpeed(loc)
-        try:
-            acceleration = (speed - self.inflow_speeds[loc])/self.sim_step
-        except KeyError:
-            try:
-                acceleration = (speed - self.outflow_speeds[loc])/self.sim_step
-            except KeyError:
-                acceleration = (speed - self.junction_speeds[loc])/self.sim_step
-        count = self.traci_connection.lane.getLastStepVehicleNumber(loc)
-        length = self.traci_connection.lane.getLength(loc)
-        density = count / length
-        fuel = self.traci_connection.lane.getFuelConsumption(loc) / length
-        co2 = self.traci_connection.lane.getCO2Emission(loc) / length
-        if count == 0:
-            speed = 0
-        return [acceleration, speed, count, length, density, fuel, co2]
-
     def _set_reference(self, sbc_reference):
         for sbc, reference in sbc_reference.items():
             sbc_clients = self.traci_connection.lane.getLastStepVehicleIDs(sbc)
             for veh_id in sbc_clients:
-                self.traci_connection.vehicle.slowDown(veh_id, reference, 100)
+                if "autonomous" in veh_id:
+                    self.traci_connection.vehicle.slowDown(
+                        veh_id, reference, 100)
 
     def _set_phase(self, tls_phase):
-        self.traci_connection.trafficlight.setPhase(\
-            self.tls_id, tls_phase)
+        if len(self.tls_idlist) > 0:
+            self.traci_connection.trafficlight.setPhase(\
+                self.tls_id, tls_phase)
 
     # DO NOT WORRY ABOUT ANYTHING BELOW THIS LINE >◡<
     def _apply_rl_actions(self, rl_actions):
