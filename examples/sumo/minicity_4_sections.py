@@ -63,20 +63,20 @@ def minicity_example(render=None,
     #                 'e_10', 'e_11', 'e_87', 'e_39', 'e_37', 'e_29_u', 'e_92',
     #                 'e_7', 'e_8_b', 'e_10']
     # upper left
-    edge_starts = ['e_12', 'e_18', 'e_19', 'e_24', 'e_45', 'e_43',
-                    'e_41', 'e_88', 'e_26', 'e_34', 'e_23', 'e_5', 'e_4',
-                    'e_3', 'e_25', 'e_87', 'e_40', 'e_42', 'e_44', 'e_15',
-                    'e_16', 'e_20', 'e_47']
-    # # bottom right corner
-    # edge_starts += ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
-    #                 'e_94', 'e_52', 'e_38']
-    # # bottom half outer loop
-    # edge_starts += ['e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26',
-    #                 'e_2', 'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93',
-    #                 'e_53', 'e_64']
-    # # bottom right inner loop
-    # edge_starts += ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
-    #                 'e_94', 'e_52', 'e_38']
+    # edge_starts = ['e_12', 'e_18', 'e_19', 'e_24', 'e_45', 'e_43',
+    #                 'e_41', 'e_88', 'e_26', 'e_34', 'e_23', 'e_5', 'e_4',
+    #                 'e_3', 'e_25', 'e_87', 'e_40', 'e_42', 'e_44', 'e_15',
+    #                 'e_16', 'e_20', 'e_47']
+    # bottom right corner
+    edge_starts = ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
+                    'e_94', 'e_52', 'e_38']
+    # bottom half outer loop
+    edge_starts += ['e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26',
+                    'e_2', 'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93',
+                    'e_53', 'e_64']
+    # bottom right inner loop
+    edge_starts += ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
+                    'e_94', 'e_52', 'e_38']
 
     edge_starts = list(set(edge_starts))
 

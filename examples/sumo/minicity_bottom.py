@@ -51,13 +51,16 @@ def minicity_example(render=None,
         sumo_params.show_radius = show_radius
 
     vehicles = Vehicles()
-    # upper right
-    edge_starts = ['e_80', 'e_83', 'e_82', 'e_79', 'e_47', 'e_49', 'e_55',
-                   'e_56', 'e_89', 'e_45', 'e_43', 'e_41', 'e_50', 'e_60',
-                   'e_69', 'e_73', 'e_75', 'e_59', 'e_48', 'e_81',
-                   'e_84', 'e_85', 'e_90', 'e_62', 'e_57', 'e_46', 'e_76',
-                   'e_76', 'e_74', 'e_70', 'e_61', 'e_54', 'e_40', 'e_42',
-                   'e_44']
+    # bottom right corner
+    edge_starts = ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
+                    'e_94', 'e_52', 'e_38']
+    # bottom half outer loop
+    edge_starts += ['e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26',
+                    'e_2', 'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93',
+                    'e_53', 'e_64']
+    # bottom right inner loop
+    edge_starts += ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
+                    'e_94', 'e_52', 'e_38']
 
     edge_starts = list(set(edge_starts))
 
