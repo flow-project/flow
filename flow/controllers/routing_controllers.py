@@ -198,7 +198,7 @@ class MinicityTrainingRouter_9(MinicityRouter):
 
 
 class MinicityTrainingRouter_4(MinicityRouter):
-
+    #top right corner routes
     def choose_route(self, env):
         type_id = env.vehicles.get_state(self.veh_id, 'type')
         edge = env.vehicles.get_edge(self.veh_id)
@@ -221,43 +221,6 @@ class MinicityTrainingRouter_4(MinicityRouter):
             ['e_46','e_48', 'e_78', 'e_76', 'e_74', 'e_70', 'e_61', 'e_54', 
             'e_40', 'e_42', 'e_44']
         ]
-        #top left corner
-        # some_routes = [
-        #     ['e_12', 'e_18', 'e_19', 'e_24', 'e_33', 'e_45', 'e_43', 'e_41',
-        #      'e_88', 'e_26'],
-        #     ['e_34', 'e_23', 'e_5', 'e_4', 'e_3', 'e_25', 'e_87', 'e_40',
-        #      'e_42', 'e_44'],
-        #     ['e_15', 'e_16', 'e_20', 'e_47', 'e_45', 'e_43', 'e_41', 'e_88',
-        #      'e_26', 'e_12', 'e_13', 'e_14'],
-        #     ['e_46', 'e_35', 'e_27', 'e_6', 'e_22', 'e_33'],
-        #     # ['e_46', 'e_35', 'e_27', 'e_6', 'e_5', 'e_4', 'e_3', 'e_25',
-        #     # 'e_87', 'e_40', 'e_42', 'e_44'],
-        #     ['e_15', 'e_16', 'e_20', 'e_47', 'e_34', 'e_23']
-        # ]
-        # # bottom-left
-        # some_routes = [
-        #     ['e_25', 'e_30', 'e_31', 'e_32', 'e_21', 'e_8_u', 'e_9', 'e_10',
-        #      'e_11'],
-        #     ['e_87', 'e_39', 'e_37', 'e_29_u', 'e_21', 'e_8_u', 'e_9', 'e_92',
-        #      'e_7', 'e_8_b', 'e_8_u', 'e_9', 'e_10', 'e_11', 'e_25']
-        # ]
-        # # bottom right corner
-        # some_routes += [
-        #     ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63', 'e_94',
-        #      'e_52', 'e_38']
-        #     # ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_91','e_64',
-        #     # 'e_65', 'e_66', 'e_63', 'e_94', 'e_52', 'e_38']
-        # ]
-        # # bottom half outer loop
-        # some_routes += [
-        #     ['e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26', 'e_2',
-        #      'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93', 'e_53', 'e_64']
-        # ]
-        # # bottom right inner loop
-        # some_routes += [
-        #     ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63', 'e_94',
-        #      'e_52', 'e_38']
-        # ]
 
         for some_route in some_routes:
             for i in range(len(some_route)):
@@ -285,6 +248,118 @@ class MinicityTrainingRouter_4(MinicityRouter):
             route = None
 
         return route
+
+class MinicityTrainingRouter_5(MinicityRouter):
+    #top left corner routes
+    def choose_route(self, env):
+        type_id = env.vehicles.get_state(self.veh_id, 'type')
+        edge = env.vehicles.get_edge(self.veh_id)
+        cur_route = env.vehicles.get_route(self.veh_id)
+
+        routes = {}
+        overlap_routes = {}  # assuming we only have
+        #top left corner
+        some_routes = [
+            ['e_12', 'e_18', 'e_19', 'e_24', 'e_33', 'e_45', 'e_43', 'e_41',
+             'e_88', 'e_26'],
+            ['e_34', 'e_23', 'e_5', 'e_4', 'e_3', 'e_25', 'e_87', 'e_40',
+             'e_42', 'e_44'],
+            ['e_15', 'e_16', 'e_20', 'e_47', 'e_45', 'e_43', 'e_41', 'e_88',
+             'e_26', 'e_12', 'e_13', 'e_14'],
+            ['e_46', 'e_35', 'e_27', 'e_6', 'e_22', 'e_33'],
+            # ['e_46', 'e_35', 'e_27', 'e_6', 'e_5', 'e_4', 'e_3', 'e_25',
+            # 'e_87', 'e_40', 'e_42', 'e_44'],
+            ['e_15', 'e_16', 'e_20', 'e_47', 'e_34', 'e_23']
+        ]
+
+        for some_route in some_routes:
+            for i in range(len(some_route)):
+                # Routes through the top edge going right will continue in the
+                # first path, while those in the center top edge will follow
+                # the second path. This is to prevent vehicles in these routes
+                # from converging onto one path.
+                if some_route[-i] in routes:
+                    overlap_routes[some_route[-i]] = \
+                        some_route[-i:] + some_route[:-i]
+                else:
+                    routes[some_route[-i]] = some_route[-i:] + some_route[:-i]
+
+        if 'idm' in type_id:
+            route = MinicityRouter.choose_route(self, env)
+        elif edge == cur_route[-1]:
+            if edge in overlap_routes:
+                # pick randomly among possible choices given multiple routes
+                possible_routes = [overlap_routes[edge], routes[edge]]
+                route = random.choice(possible_routes)
+            else:
+                # choose the only available route
+                route = routes[edge]
+        else:
+            route = None
+
+        return route
+class MinicityTrainingRouter_6(MinicityRouter):
+    #bottom half routes
+    def choose_route(self, env):
+        type_id = env.vehicles.get_state(self.veh_id, 'type')
+        edge = env.vehicles.get_edge(self.veh_id)
+        cur_route = env.vehicles.get_route(self.veh_id)
+
+        routes = {}
+        overlap_routes = {}  # assuming we only have
+        # bottom-left
+        some_routes = [
+            ['e_25', 'e_30', 'e_31', 'e_32', 'e_21', 'e_8_u', 'e_9', 'e_10',
+             'e_11'],
+            ['e_87', 'e_39', 'e_37', 'e_29_u', 'e_21', 'e_8_u', 'e_9', 'e_92',
+             'e_7', 'e_8_b', 'e_8_u', 'e_9', 'e_10', 'e_11', 'e_25']
+        ]
+        # bottom right corner
+        some_routes += [
+            ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63', 'e_94',
+             'e_52', 'e_38']
+            # ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_91','e_64',
+            # 'e_65', 'e_66', 'e_63', 'e_94', 'e_52', 'e_38']
+        ]
+        # bottom half outer loop
+        some_routes += [
+            ['e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26', 'e_2',
+             'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93', 'e_53', 'e_64']
+        ]
+        # bottom right inner loop
+        some_routes += [
+            ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63', 'e_94',
+             'e_52', 'e_38']
+        ]
+
+        for some_route in some_routes:
+            for i in range(len(some_route)):
+                # Routes through the top edge going right will continue in the
+                # first path, while those in the center top edge will follow
+                # the second path. This is to prevent vehicles in these routes
+                # from converging onto one path.
+                if some_route[-i] in routes:
+                    overlap_routes[some_route[-i]] = \
+                        some_route[-i:] + some_route[:-i]
+                else:
+                    routes[some_route[-i]] = some_route[-i:] + some_route[:-i]
+
+        if 'idm' in type_id:
+            route = MinicityRouter.choose_route(self, env)
+        elif edge == cur_route[-1]:
+            if edge in overlap_routes:
+                # pick randomly among possible choices given multiple routes
+                possible_routes = [overlap_routes[edge], routes[edge]]
+                route = random.choice(possible_routes)
+            else:
+                # choose the only available route
+                route = routes[edge]
+        else:
+            route = None
+
+        return route
+
+
 
 class LoopyEightRouter(BaseRouter):
 

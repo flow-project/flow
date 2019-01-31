@@ -6,7 +6,7 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.routing_controllers import MinicityTrainingRouter_4
+from flow.controllers.routing_controllers import MinicityTrainingRouter_5
 import numpy as np
 
 np.random.seed(204)
@@ -65,7 +65,7 @@ def minicity_example(render=None,
     vehicles.add(
         veh_id='human',
         acceleration_controller=(IDMController, {}),
-        routing_controller=(MinicityTrainingRouter_4, {}),
+        routing_controller=(MinicityTrainingRouter_5, {}),
         speed_mode='no_collide',
         lane_change_mode='strategic',
         num_vehicles=50)
