@@ -7,13 +7,7 @@ from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import MinicityRouter
-import numpy as np
-
-
-
 from flow.core.traffic_lights import TrafficLights
-
-
 import numpy as np
 
 np.random.seed(204)
@@ -61,7 +55,7 @@ def minicity_example(render=None,
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityRouter, {}),
-        speed_mode=1,
+        speed_mode="right_of_way",
         lane_change_mode="no_lat_collide",
         initial_speed=0,
         num_vehicles=50)
@@ -69,7 +63,7 @@ def minicity_example(render=None,
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        speed_mode="no_collide",
+        speed_mode="right_of_way",
         initial_speed=0,
         num_vehicles=15)
 
@@ -93,7 +87,6 @@ def minicity_example(render=None,
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 
     additional_net_params['traffic_lights']=True
-    print(additional_net_params)
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 

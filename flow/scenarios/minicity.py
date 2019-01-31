@@ -53,49 +53,6 @@ class MiniCityScenario(Scenario):
 
         return edgestarts
 
-
-
-    def _build_inner_nodes(self):
-        """Build out the inner nodes of the system.
-
-        The nodes are numbered from bottom left and increasing first across the
-        columns and then across the rows. For example, in a 3x3 grid, we will
-        have four inner nodes with the bottom left being 0, the bottom right
-        being 1, the top left being 2, the top right being 3. The coordinate of
-        the bottom left inner node is (0, 0).
-
-        Yields
-        ------
-        list <dict>
-            List of inner nodes
-        """
-        tls = self.net_params.additional_params.get("traffic_lights", True)
-        node_type = "traffic_light" if tls else "priority"
-        row_num = self.grid_array["row_num"]
-        col_num = self.grid_array["col_num"]
-        inner_length = self.grid_array["inner_length"]
-        nodes = []
-        # sweep up across columns
-        for i in range(row_num):
-            # sweep across rows
-            for j in range(col_num):
-                index = i * col_num + j
-                x_center = j * inner_length
-                y_center = i * inner_length
-                nodes.append({
-                    "id": "center" + str(index),
-                    "x": repr(x_center),
-                    "y": repr(y_center),
-                    "type": node_type
-                })
-        return nodes
-
-
-    def specify_tll(self, net_params):
-        """See parent class."""
-        return self._build_inner_nodes()
-
-
     def specify_nodes(self, net_params):
         """See parent class."""
         nodes = [{'id': 'n_i1', 'x': 0.65, 'y': 2.75},
