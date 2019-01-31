@@ -60,69 +60,69 @@ def minicity_example(render=None,
                  'e_31': [('idm', 2)],
                  'e_39': [('idm', 3)],
                  'e_41': [('idm', 3)]}
-    # # section 2: center_left
-    # section_2 = {'e_3': [('section2_track', 3), ('idm', 4)],
-    #              'e_26': [('idm', 10)],
-    #              'e_66': [('idm', 3)],
-    #              'e_87': [('idm', 3)]}
-    # # section 3: center_center
-    # section_3 = {'e_41': [('section3_track', 5), ('idm', 1)],
-    #              'e_3': [('idm', 8)],
-    #              'e_25': [('idm', 8)],
-    #              'e_38': [('idm', 8)],
-    #              'e_54': [('idm', 6)],
-    #              'e_87': [('idm', 2)]}
-    # # section 4: bottom_center
-    # section_4 = {'e_39': [('section4_track', 5), ('idm', 1)],
-    #              'e_63': [('idm', 4)],
-    #              'e_31': [('idm', 3)],
-    #              'e_51': [('idm', 1)],
-    #              'e_94': [('idm', 2)],
-    #              'e_29_u': [('idm', 1)]}
-    # # section 5: top left
-    # section_5 = {'e_34': [('section5_track', 4), ('idm', 1)],
-    #              'e_23': [('section5_track', 2), ('idm', 3)],
-    #              'e_13': [('idm', 2)],
-    #              'e_14': [('idm', 3)],
-    #              'e_27': [('idm', 2)],
-    #              'e_6': [('idm', 1)],
-    #              'e_12': [('idm', 2)],
-    #              'e_35': [('idm', 1)]}
-    # # section 6: right center
-    # section_6 = {'e_60': [('section6_track', 1), ('idm', 1)],
-    #              'e_50': [('section6_track', 3), ('idm', 1)],
-    #              'e_74': [('idm', 4)],
-    #              'e_67': [('idm', 3)],
-    #              'e_71': [('idm', 2)],
-    #              'e_69': [('idm', 1)],
-    #              'e_64': [('idm', 2)]}
-    # # section 7: top center
-    # section_7 = {'e_42': [('section7_track', 3), ('idm', 1)],
-    #              'e_44': [('section7_track', 2), ('idm', 1)],
-    #              'e_79': [('idm', 8)],
-    #              'e_59': [('idm', 3)],
-    #              'e_24': [('idm', 1)],
-    #              'e_33': [('idm', 3)],
-    #              'e_47': [('idm', 2)],
-    #              'e_86': [('idm', 2)],
-    #              'e_22': [('idm', 3)],
-    #              'e_40': [('idm', 2)]}
-    # # top right
-    # section_8 = {'e_84': [('idm', 1)],
-    #              'e_73': [('section8_track', 3)],
-    #              'e_77': [('idm', 1)],
-    #              'e_56': [('idm', 3)],
-    #              'e_89': [('idm', 1)],
-    #              'e_80': [('idm', 3)],
-    #              'e_83': [('idm', 2)],
-    #              'e_82': [('idm', 1)],
-    #              'e_90': [('idm', 1)],
-    #              'e_78': [('idm', 1)],
-    #              'e_76': [('idm', 2)],
-    #              # 'e_86': [('idm', 4)],
-    #              'e_75': [('idm', 1)]}
+    # section 2: center_left
+    section_2 = {'e_3': [('section2_track', 3), ('idm', 4)],
+                 'e_26': [('idm', 10)],
+                 'e_66': [('idm', 3)],
+                 'e_87': [('idm', 3)]}
+    # section 3: center_center
+    section_3 = {'e_41': [('section3_track', 5), ('idm', 1)],
+                 'e_3': [('idm', 8)],
+                 'e_25': [('idm', 8)],
+                 'e_38': [('idm', 8)],
+                 'e_54': [('idm', 6)],
+                 'e_87': [('idm', 2)]}
+    # section 4: bottom_center
+    section_4 = {'e_39': [('section4_track', 5), ('idm', 1)],
+                 'e_63': [('idm', 4)],
+                 'e_31': [('idm', 3)],
+                 'e_51': [('idm', 1)],
+                 'e_94': [('idm', 2)],
+                 'e_29_u': [('idm', 1)]}
+    # section 5: top left
+    section_5 = {'e_34': [('section5_track', 4), ('idm', 1)],
+                 'e_23': [('section5_track', 2), ('idm', 3)],
+                 'e_13': [('idm', 2)],
+                 'e_14': [('idm', 3)],
+                 'e_27': [('idm', 2)],
+                 'e_6': [('idm', 1)],
+                 'e_12': [('idm', 2)],
+                 'e_35': [('idm', 1)]}
+    # section 6: right center
+    section_6 = {'e_60': [('section6_track', 1), ('idm', 1)],
+                 'e_50': [('section6_track', 3), ('idm', 1)],
+                 'e_74': [('idm', 4)],
+                 'e_67': [('idm', 3)],
+                 'e_71': [('idm', 2)],
+                 'e_69': [('idm', 1)],
+                 'e_64': [('idm', 2)]}
+    # section 7: top center
+    section_7 = {'e_42': [('section7_track', 3), ('idm', 1)],
+                 'e_44': [('section7_track', 2), ('idm', 1)],
+                 'e_79': [('idm', 8)],
+                 'e_59': [('idm', 3)],
+                 'e_24': [('idm', 1)],
+                 'e_33': [('idm', 3)],
+                 'e_47': [('idm', 2)],
+                 'e_86': [('idm', 2)],
+                 'e_22': [('idm', 3)],
+                 'e_40': [('idm', 2)]}
+    # top right
+    section_8 = {'e_84': [('idm', 1)],
+                 'e_73': [('section8_track', 3)],
+                 'e_77': [('idm', 1)],
+                 'e_56': [('idm', 3)],
+                 'e_89': [('idm', 1)],
+                 'e_80': [('idm', 3)],
+                 'e_83': [('idm', 2)],
+                 'e_82': [('idm', 1)],
+                 'e_90': [('idm', 1)],
+                 'e_78': [('idm', 1)],
+                 'e_76': [('idm', 2)],
+                 # 'e_86': [('idm', 4)],
+                 'e_75': [('idm', 1)]}
 
-    experiment = section_1
+    experiment = section_2
     vehicle_data = {}
     # get all different vehicle types
     for _, pairs in experiment.items():
