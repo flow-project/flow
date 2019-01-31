@@ -53,6 +53,10 @@ class MiniCityScenario(Scenario):
 
         return edgestarts
 
+    def specify_tll(self, net_params):
+        """See parent class."""
+        return self._build_inner_nodes()
+
     def specify_nodes(self, net_params):
         """See parent class."""
         nodes = [{'id': 'n_i1', 'x': 0.65, 'y': 2.75},

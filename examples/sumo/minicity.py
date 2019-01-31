@@ -2,11 +2,18 @@
 from flow.controllers import IDMController
 from flow.controllers import RLController
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import MinicityRouter
+import numpy as np
+
+
+
+from flow.core.traffic_lights import TrafficLights
+
+
 import numpy as np
 
 np.random.seed(204)
@@ -57,18 +64,36 @@ def minicity_example(render=None,
         speed_mode=1,
         lane_change_mode="no_lat_collide",
         initial_speed=0,
-        num_vehicles=20)
+        num_vehicles=50)
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
         speed_mode="no_collide",
         initial_speed=0,
-        num_vehicles=5)
+        num_vehicles=15)
+
+    tl_logic = TrafficLights(baseline = False)
+
+    # nodes = ["n_i3", "n_i1", "n_i4"]
+    nodes = [ "n_i4"]
+    phases = [{"duration": "31", "state": "GGGrrrGGGrrr"},
+              {"duration": "6", "state": "yyyrrryyyrrr"},
+              {"duration": "31", "state": "rrrGGGrrrGGG"},
+              {"duration": "6", "state": "rrryyyrrryyy"}]
+
+
+    for node_id in nodes:
+        print(node_id)
+        tl_logic.add(node_id, phases=phases,tls_type="actuated", programID=1)
+
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+
+    additional_net_params['traffic_lights']=True
+    print(additional_net_params)
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
@@ -80,7 +105,8 @@ def minicity_example(render=None,
         name="minicity",
         vehicles=vehicles,
         initial_config=initial_config,
-        net_params=net_params)
+        net_params=net_params,
+        traffic_lights=tl_logic)
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
@@ -96,11 +122,11 @@ if __name__ == "__main__":
     # Dynamic grayscale rendering: minicity_example(render="dgray")
     # Static RGB rendering: minicity_example(render="rgb")
     # Dynamic RGB rendering: minicity_example(render="drgb")
-    exp = minicity_example(render='drgb',
+    exp = minicity_example(render=True,
                            save_render=False,
                            sight_radius=50,
                            pxpm=3,
-                           show_radius=True)
+                           show_radius=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 750)
