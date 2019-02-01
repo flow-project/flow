@@ -218,7 +218,9 @@ class BayBridgeEnv(Env):
         """See class definition."""
         return np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
 
-    """ The below methods need to be updated by child classes. """
+    ###########################################################################
+    #         The below methods need to be updated by child classes.          #
+    ###########################################################################
 
     def _apply_rl_actions(self, rl_actions):
         """Implemented by child classes."""

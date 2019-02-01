@@ -25,7 +25,19 @@ ADDITIONAL_NET_PARAMS = {
 
 
 class MergeScenario(Scenario):
-    """Scenario class for highways with a single in-merge."""
+    """Scenario class for highways with a single in-merge.
+
+    Requires from net_params:
+
+    * **merge_length** : length of the merge edge
+    * **pre_merge_length** : length of the highway leading to the merge
+    * **post_merge_length** : length of the highway past the merge
+    * **merge_lanes** : number of lanes in the merge
+    * **highway_lanes** : number of lanes in the highway
+    * **speed_limit** : max speed limit of the network
+
+    See flow/scenarios/base_scenario.py for description of params.
+    """
 
     def __init__(self,
                  name,
@@ -33,18 +45,7 @@ class MergeScenario(Scenario):
                  net_params,
                  initial_config=InitialConfig(),
                  traffic_lights=TrafficLightParams()):
-        """Initialize a merge scenario.
-
-        Requires from net_params:
-        - merge_length: length of the merge edge
-        - pre_merge_length: length of the highway leading to the merge
-        - post_merge_length: length of the highway past the merge
-        - merge_lanes: number of lanes in the merge
-        - highway_lanes: number of lanes in the highway
-        - speed_limit: max speed limit of the network
-
-        See flow/scenarios/base_scenario.py for description of params.
-        """
+        """Initialize a merge scenario."""
         for p in ADDITIONAL_NET_PARAMS.keys():
             if p not in net_params.additional_params:
                 raise KeyError('Network parameter "{}" not supplied'.format(p))

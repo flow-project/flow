@@ -182,7 +182,7 @@ epub_exclude_files = ['search.html']
 # -- Extension configuration -------------------------------------------------
 
 numpydoc_use_plotsv = True
-numpydoc_show_class_members = True
+numpydoc_show_class_members = False
 numpydoc_show_inherited_class_members = True
 numpydoc_class_members_toctree = True
 #numpydoc_citation_re : str
