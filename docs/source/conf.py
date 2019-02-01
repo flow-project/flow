@@ -185,6 +185,4 @@ numpydoc_use_plotsv = True
 numpydoc_show_class_members = False
 numpydoc_show_inherited_class_members = True
 numpydoc_class_members_toctree = True
-#numpydoc_citation_re : str
 numpydoc_use_blockquotes = True
-#numpydoc_edit_link =True
