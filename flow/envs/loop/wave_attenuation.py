@@ -30,6 +30,22 @@ ADDITIONAL_ENV_PARAMS = {
 }
 
 
+def v_eq_max_function(v, *args):
+    num_vehicles, length = args
+
+    # maximum gap in the presence of one rl vehicle
+    s_eq_max = (length - num_vehicles * 5) / (num_vehicles - 1)
+
+    v0 = 30
+    s0 = 2
+    tau = 1
+    gamma = 4
+
+    error = s_eq_max - (s0 + v * tau) * (1 - (v / v0) ** gamma) ** -0.5
+
+    return error
+
+
 class WaveAttenuationEnv(Env):
     """Fully observable wave attenuation environment.
 
@@ -152,11 +168,12 @@ class WaveAttenuationEnv(Env):
 
         # update the scenario
         initial_config = InitialConfig(bunching=50, min_gap=0)
+        length = random.randint(
+            self.env_params.additional_params['ring_length'][0],
+            self.env_params.additional_params['ring_length'][1])
         additional_net_params = {
             'length':
-                random.randint(
-                    self.env_params.additional_params['ring_length'][0],
-                    self.env_params.additional_params['ring_length'][1]),
+                length,
             'lanes':
                 self.net_params.additional_params['lanes'],
             'speed_limit':
@@ -174,23 +191,9 @@ class WaveAttenuationEnv(Env):
         self.k.vehicle.master_kernel = self.k
 
         # solve for the velocity upper bound of the ring
-        def v_eq_max_function(v):
-            num_veh = self.k.vehicle.num_vehicles - 1
-            # maximum gap in the presence of one rl vehicle
-            s_eq_max = (self.k.scenario.length() -
-                        self.k.vehicle.num_vehicles * 5) / num_veh
-
-            v0 = 30
-            s0 = 2
-            T = 1
-            gamma = 4
-
-            error = s_eq_max - (s0 + v * T) * (1 - (v / v0)**gamma)**-0.5
-
-            return error
-
-        v_guess = 4.
-        v_eq_max = fsolve(v_eq_max_function, v_guess)[0]
+        v_guess = 4
+        v_eq_max = fsolve(v_eq_max_function, np.array(v_guess),
+                          args=(len(self.initial_ids), length))[0]
 
         print('\n-----------------------')
         print('ring length:', net_params.additional_params['length'])
