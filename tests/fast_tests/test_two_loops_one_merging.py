@@ -23,7 +23,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             acceleration_controller=(RLController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             num_vehicles=1)
         vehicles.add(
@@ -31,7 +31,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             num_vehicles=5)
         vehicles.add(
@@ -39,7 +39,7 @@ def two_loops_one_merging_exp_setup(vehicles=None):
             acceleration_controller=(IDMController, {}),
             lane_change_controller=(StaticLaneChanger, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             num_vehicles=5)
 
