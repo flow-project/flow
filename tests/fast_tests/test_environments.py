@@ -2,6 +2,7 @@ import random
 import numpy as np
 import unittest
 import os
+from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
@@ -491,6 +492,29 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.assertEqual(env.k.scenario.length(), 239)
         env.reset()
         self.assertEqual(env.k.scenario.length(), 224)
+
+    def test_reset_no_same_length(self):
+        """
+        Tests that the reset method uses the original ring length when the
+        range is set to None.
+        """
+        # setup env_params with not range
+        env_params = deepcopy(self.env_params)
+        env_params.additional_params["ring_length"] = None
+
+        # create the environment
+        env = WaveAttenuationEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        # reset the network several times and check its length
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        env.reset()
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        env.reset()
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
 
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
