@@ -203,7 +203,7 @@ def visualizer_rllib(args):
     mean_speed = []
     for i in range(args.num_rollouts):
         vel = []
-        state = env.reset(new_inflow_rate=1.0)
+        state = env.reset()
         if multiagent:
             ret = {key: [0] for key in rets.keys()}
         else:

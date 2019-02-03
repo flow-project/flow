@@ -159,7 +159,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
             speed_mode=9,
         ),
         lane_change_params=SumoLaneChangeParams(
-            lane_change_mode=0,
+            lane_change_mode=512
         ),
         num_vehicles=1)
 
@@ -210,7 +210,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
 
     env = BottleneckEnv(env_params, sim_params, scenario)
 
-    return BottleneckDensityExperiment(env, flow_rate)
+    return BottleneckDensityExperiment(env, int(flow_rate))
 
 
 if __name__ == '__main__':

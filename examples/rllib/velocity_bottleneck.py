@@ -26,9 +26,9 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 14
+N_CPUS = 40
 # number of rollouts per training iteration
-N_ROLLOUTS = 2*N_CPUS
+N_ROLLOUTS = N_CPUS
 
 SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
@@ -182,8 +182,8 @@ def setup_exps():
     config["horizon"] = HORIZON
 
     # Grid search things
-    # config['lr'] = tune.grid_search([5e-4, 5e-5])
-    # config['num_sgd_iter'] = tune.grid_search([10, 30])
+    config['lr'] = tune.grid_search([5e-4, 5e-5])
+    config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -214,9 +214,9 @@ if __name__ == "__main__":
             "stop": {
                 "training_iteration": 300,
             },
-            "num_samples": 3,
+            "num_samples": 2,
             "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-16-2019/SingleAgentPenaltyLC"
+                          "/1-27-2019/SingleAgentPenaltyLC"
 
         }
     })

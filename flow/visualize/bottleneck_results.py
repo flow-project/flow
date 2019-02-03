@@ -44,9 +44,9 @@ Here the arguments are:
 1 - the number of the checkpoint
 """
 
-OUTFLOW_RANGE = [1000, 2000]
+OUTFLOW_RANGE = [400, 2500]
 STEP_SIZE = 100
-NUM_TRIALS = 10
+NUM_TRIALS = 20
 END_LEN = 500
 
 
@@ -123,7 +123,7 @@ def bottleneck_visualizer(args):
               'python ./visualizer_rllib.py /tmp/ray/result_dir 1 --run PPO')
         sys.exit(1)
 
-    sim_params.restart_instance = False
+    sim_params.restart_instance = True
 
     sim_params.emission_path = './test_time_rollout/'
 
@@ -174,7 +174,6 @@ def bottleneck_visualizer(args):
     module = __import__(env_loc, fromlist=[flow_params['env_name']])
     env_class = getattr(module, flow_params['env_name'])
     env_params = flow_params['env']
-    env_params.restart_instance = True
     if args.evaluate:
         env_params.evaluate = True
 
@@ -307,9 +306,9 @@ def bottleneck_visualizer(args):
         np.savetxt(output_path + speed_name,
                    velocity_arr, delimiter=', ')
     else:
-        np.savetxt(output_path + '/bottleneck_outflow.txt',
+        np.savetxt(output_path + '/bottleneck_outflow_MA_LC.txt',
                    outflow_arr, delimiter=', ')
-        np.savetxt(output_path + '/speed_outflow.txt',
+        np.savetxt(output_path + '/speed_outflow_MA_LC.txt',
                    velocity_arr, delimiter=', ')
 
     # Plot the inflow results
@@ -426,7 +425,7 @@ def create_parser():
     parser.add_argument(
         '--render_mode',
         type=str,
-        default='sumo_gui',
+        default='no_render',
         help='Pick the render mode. Options include sumo_web3d, '
              'rgbd, no_render and sumo_gui')
     parser.add_argument(

@@ -58,5 +58,5 @@ for i, file_name in enumerate(file_list):
     plt.minorticks_on()
     plt.legend(['Average outflow', 'Std. deviation', 'Max-min'])
 
-#plt.legend(args.files)
+plt.legend(args.files)
 plt.show()

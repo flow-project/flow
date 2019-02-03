@@ -23,7 +23,7 @@ from flow.controllers import RLController, ContinuousRouter, \
 # time horizon of a single rollout
 HORIZON = 2000
 # number of parallel workers
-N_CPUS = 16
+N_CPUS = 40
 # number of rollouts per training iteration
 N_ROLLOUTS = N_CPUS
 
@@ -113,7 +113,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsBottleneck',
+    exp_tag='MultiDecentralObsBottleneckOutflow',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -176,6 +176,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [100, 50, 25]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
+    # config['model']['use_lstm'] = True
     config['use_centralized_vf'] = tune.grid_search([True, False])
     config['max_vf_agents'] = 140
     config['simple_optimizer'] = True
@@ -230,11 +231,11 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 50,
             'stop': {
-                'training_iteration': 300
+                'training_iteration': 400
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-18-2019/MultiDecentralObsBottleneck",
-            'num_samples': 3,
+                          "/2-03-2019/MultiDecentralObsBottleneckOutflow",
+            'num_samples': 2,
         },
     })
