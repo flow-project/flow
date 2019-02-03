@@ -12,6 +12,7 @@ import numpy as np
 
 np.random.seed(204)
 
+
 def minicity_example(render=None,
                      save_render=None,
                      sight_radius=None,
@@ -126,6 +127,7 @@ def minicity_example(render=None,
     env = AccelEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
+
 
 if __name__ == "__main__":
     # import the experiment variable
