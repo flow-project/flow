@@ -71,24 +71,20 @@ def minicity_example(render=None,
 
     # nodes = ["n_i3", "n_i1", "n_i4"]
     nodes = ["n_i1", "n_i4",'n_i6','n_i8']
-    phases = [{"duration": "20", "state": "GGGrrrGGGrrr"},
-              {"duration": "8", "state": "yyyrrryyyrrr"},
-              {"duration": "20", "state": "rrrGGGrrrGGG"},
-              {"duration": "8", "state": "rrryyyrrryyy"}]
+    phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
+              {"duration": "8", "state": "yyyGrryyGyrr"},
+              {"duration": "20", "state": "GrrGGGGrrGGG"},
+              {"duration": "8", "state": "GrryyyGrryyy"}]
 
-    phases_6 = [{"duration": "10", "state": "GGrrrrr"},
-                {"duration": "4", "state": "yyrrrrr"},
-                {"duration": "10", "state": "rrGGrrr"},
-                {"duration": "4", "state": "rryyrrr"},
-                {"duration": "10", "state": "rrrrGGG"},
-                {"duration": "4", "state": "rrrryyy"}]
+    phases_6 = [{"duration": "20", "state": "GGGGGrr"},
+                {"duration": "4", "state": "yyGGGrr"},
+                {"duration": "20", "state": "GrrrGGG"},
+                {"duration": "4", "state": "Grrryyy"}]
 
-    phases_8 = [{"duration": "10", "state": "rrGGrrr"},
-                {"duration": "4", "state": "rryyrrr"} ,
-                {"duration": "10", "state": "rrrrGGG"},
-                {"duration": "4", "state": "rrrryyy"},
-                {"duration": "10", "state": "GGrrrrr"},
-                {"duration": "4", "state": "yyrrrrr"}]
+    phases_8 = [ {"duration": "20", "state": "GrrrGGG"},
+                {"duration": "4", "state": "Grrryyy"},
+                 {"duration": "20", "state": "GGGGGrr"},
+                 {"duration": "4", "state": "yyGGGrr"}]
 
     # {"duration": "15", "state": "rrrrrrrrrGGG"},
               # {"duration": "3", "state": "rrrrrrrrryyy"}]
@@ -142,4 +138,4 @@ if __name__ == "__main__":
                            show_radius=False)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 750)
+    exp.run(1, 7500)
