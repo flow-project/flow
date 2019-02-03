@@ -58,29 +58,49 @@ def minicity_example(render=None,
         speed_mode="right_of_way",
         lane_change_mode="no_lat_collide",
         initial_speed=0,
-        num_vehicles=50)
+        num_vehicles=100)
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
         speed_mode="right_of_way",
         initial_speed=0,
-        num_vehicles=15)
+        num_vehicles=10)
 
     tl_logic = TrafficLights(baseline = False)
 
     # nodes = ["n_i3", "n_i1", "n_i4"]
-    nodes = [ "n_i4"]
-    phases = [{"duration": "31", "state": "GGGrrrGGGrrr"},
-              {"duration": "6", "state": "yyyrrryyyrrr"},
-              {"duration": "31", "state": "rrrGGGrrrGGG"},
-              {"duration": "6", "state": "rrryyyrrryyy"}]
+    nodes = ["n_i1", "n_i4",'n_i6','n_i8']
+    phases = [{"duration": "20", "state": "GGGrrrGGGrrr"},
+              {"duration": "8", "state": "yyyrrryyyrrr"},
+              {"duration": "20", "state": "rrrGGGrrrGGG"},
+              {"duration": "8", "state": "rrryyyrrryyy"}]
 
+    phases_6 = [{"duration": "10", "state": "GGrrrrr"},
+                {"duration": "4", "state": "yyrrrrr"},
+                {"duration": "10", "state": "rrGGrrr"},
+                {"duration": "4", "state": "rryyrrr"},
+                {"duration": "10", "state": "rrrrGGG"},
+                {"duration": "4", "state": "rrrryyy"}]
+
+    phases_8 = [{"duration": "10", "state": "rrGGrrr"},
+                {"duration": "4", "state": "rryyrrr"} ,
+                {"duration": "10", "state": "rrrrGGG"},
+                {"duration": "4", "state": "rrrryyy"},
+                {"duration": "10", "state": "GGrrrrr"},
+                {"duration": "4", "state": "yyrrrrr"}]
+
+    # {"duration": "15", "state": "rrrrrrrrrGGG"},
+              # {"duration": "3", "state": "rrrrrrrrryyy"}]
 
     for node_id in nodes:
         print(node_id)
-        tl_logic.add(node_id, phases=phases,tls_type="actuated", programID=1)
-
+        if node_id == 'n_i6':
+            tl_logic.add(node_id, phases=phases_6,tls_type="actuated", programID=1)
+        elif node_id == 'n_i8' :
+            tl_logic.add(node_id, phases=phases_8, tls_type="actuated", programID=1)
+        else:
+            tl_logic.add(node_id, phases=phases, tls_type="actuated", programID=1)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
