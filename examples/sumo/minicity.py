@@ -12,7 +12,6 @@ import numpy as np
 
 np.random.seed(204)
 
-
 def minicity_example(render=None,
                      save_render=None,
                      sight_radius=None,
@@ -69,7 +68,6 @@ def minicity_example(render=None,
 
     tl_logic = TrafficLights(baseline=False)
 
-    # nodes = ["n_i3", "n_i1", "n_i4"]
     nodes = ["n_i1", 'n_i3', "n_i4", 'n_i6', 'n_i8']
     phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
               {"duration": "4", "state": "yyyGrryyGyrr"},
@@ -90,9 +88,6 @@ def minicity_example(render=None,
                 {"duration": "4", "state": "Grrryyy"},
                 {"duration": "20", "state": "GGGGGrr"},
                 {"duration": "4", "state": "yyGGGrr"}]
-
-    # {"duration": "15", "state": "rrrrrrrrrGGG"},
-    # {"duration": "3", "state": "rrrrrrrrryyy"}]
 
     for node_id in nodes:
         print(node_id)
@@ -131,7 +126,6 @@ def minicity_example(render=None,
     env = AccelEnv(env_params, sumo_params, scenario)
 
     return SumoExperiment(env, scenario)
-
 
 if __name__ == "__main__":
     # import the experiment variable
