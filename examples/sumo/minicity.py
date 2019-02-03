@@ -67,10 +67,10 @@ def minicity_example(render=None,
         initial_speed=0,
         num_vehicles=10)
 
-    tl_logic = TrafficLights(baseline = False)
+    tl_logic = TrafficLights(baseline=False)
 
     # nodes = ["n_i3", "n_i1", "n_i4"]
-    nodes = ["n_i1", 'n_i3', "n_i4",'n_i6','n_i8']
+    nodes = ["n_i1", 'n_i3', "n_i4", 'n_i6', 'n_i8']
     phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
               {"duration": "4", "state": "yyyGrryyGyrr"},
               {"duration": "20", "state": "GrrGGGGrrGGG"},
@@ -86,30 +86,34 @@ def minicity_example(render=None,
                 {"duration": "20", "state": "GrrrGGG"},
                 {"duration": "4", "state": "Grrryyy"}]
 
-    phases_8 = [ {"duration": "20", "state": "GrrrGGG"},
+    phases_8 = [{"duration": "20", "state": "GrrrGGG"},
                 {"duration": "4", "state": "Grrryyy"},
-                 {"duration": "20", "state": "GGGGGrr"},
-                 {"duration": "4", "state": "yyGGGrr"}]
+                {"duration": "20", "state": "GGGGGrr"},
+                {"duration": "4", "state": "yyGGGrr"}]
 
     # {"duration": "15", "state": "rrrrrrrrrGGG"},
-              # {"duration": "3", "state": "rrrrrrrrryyy"}]
+    # {"duration": "3", "state": "rrrrrrrrryyy"}]
 
     for node_id in nodes:
         print(node_id)
         if node_id == 'n_i3':
-            tl_logic.add(node_id, phases=phases_3,tls_type="actuated", programID=1)
+            tl_logic.add(node_id, phases=phases_3,
+                         tls_type="actuated", programID=1)
         elif node_id == 'n_i6':
-            tl_logic.add(node_id, phases=phases_6, tls_type="actuated", programID=1)
-        elif node_id == 'n_i8' :
-            tl_logic.add(node_id, phases=phases_8, tls_type="actuated", programID=1)
+            tl_logic.add(node_id, phases=phases_6,
+                         tls_type="actuated", programID=1)
+        elif node_id == 'n_i8':
+            tl_logic.add(node_id, phases=phases_8,
+                         tls_type="actuated", programID=1)
         else:
-            tl_logic.add(node_id, phases=phases, tls_type="actuated", programID=1)
+            tl_logic.add(node_id, phases=phases,
+                         tls_type="actuated", programID=1)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 
-    additional_net_params['traffic_lights']=True
+    additional_net_params['traffic_lights'] = True
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
