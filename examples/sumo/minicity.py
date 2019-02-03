@@ -70,11 +70,16 @@ def minicity_example(render=None,
     tl_logic = TrafficLights(baseline = False)
 
     # nodes = ["n_i3", "n_i1", "n_i4"]
-    nodes = ["n_i1", "n_i4",'n_i6','n_i8']
+    nodes = ["n_i1", 'n_i3', "n_i4",'n_i6','n_i8']
     phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
-              {"duration": "8", "state": "yyyGrryyGyrr"},
+              {"duration": "4", "state": "yyyGrryyGyrr"},
               {"duration": "20", "state": "GrrGGGGrrGGG"},
-              {"duration": "8", "state": "GrryyyGrryyy"}]
+              {"duration": "4", "state": "GrryyyGrryyy"}]
+
+    phases_3 = [{"duration": "20", "state": "GGGGGrrrGGGGGrrr"},
+                {"duration": "4", "state": "yyyyyrrryyyyyrrr"},
+                {"duration": "20", "state": "GrrrGGGGGrrrGGGG"},
+                {"duration": "4", "state": "yrrryyyyyrrryyyy"}]
 
     phases_6 = [{"duration": "20", "state": "GGGGGrr"},
                 {"duration": "4", "state": "yyGGGrr"},
@@ -91,8 +96,10 @@ def minicity_example(render=None,
 
     for node_id in nodes:
         print(node_id)
-        if node_id == 'n_i6':
-            tl_logic.add(node_id, phases=phases_6,tls_type="actuated", programID=1)
+        if node_id == 'n_i3':
+            tl_logic.add(node_id, phases=phases_3,tls_type="actuated", programID=1)
+        elif node_id == 'n_i6':
+            tl_logic.add(node_id, phases=phases_6, tls_type="actuated", programID=1)
         elif node_id == 'n_i8' :
             tl_logic.add(node_id, phases=phases_8, tls_type="actuated", programID=1)
         else:
