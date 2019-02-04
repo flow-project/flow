@@ -320,9 +320,6 @@ class VehicleParams:
             # specify the type
             self.__vehicles[v_id]["type"] = veh_id
 
-            # specify the speed of vehicles at the start of a rollout
-            self.__vehicles[v_id]["initial_speed"] = initial_speed
-
             # update the number of vehicles
             self.num_vehicles += 1
             if acceleration_controller[0] == RLController:
@@ -335,9 +332,6 @@ class VehicleParams:
 
     def get_type(self, veh_id):
         return self.__vehicles[veh_id]["type"]
-
-    def get_initial_speed(self, veh_id):
-        return self.__vehicles[veh_id]["initial_speed"]
 
 
 class SimParams(object):

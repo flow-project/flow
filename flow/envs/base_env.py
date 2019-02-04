@@ -225,10 +225,10 @@ class Env(*classdef):
 
         # save the initial state. This is used in the _reset function
         for i, veh_id in enumerate(self.initial_ids):
-            type_id = self.scenario.vehicles.get_type(veh_id)
+            type_id = self.k.vehicle.get_type(veh_id)
             pos = start_pos[i][1]
             lane = start_lanes[i]
-            speed = self.scenario.vehicles.get_initial_speed(veh_id)
+            speed = self.k.vehicle.get_initial_speed(veh_id)
             edge = start_pos[i][0]
 
             self.initial_state[veh_id] = (type_id, edge, lane, pos, speed)
