@@ -128,6 +128,17 @@ class AimsunKernelVehicle(KernelVehicle):
             self.num_type[tracked_type] = 0
             self.total_num_type[tracked_type] = 0
             self.type_parameters[tracked_type] = {}
+            
+        self.__vehicles.clear()
+        for typ in vehicles.initial:
+            for i in range(typ['num_vehicles']):
+                veh_id = '{}_{}'.format(typ['veh_id'], i)
+                self.__vehicles[veh_id] = dict()
+                self.__vehicles[veh_id]['type'] = typ['veh_id']
+                self.__vehicles[veh_id]['initial_speed'] = typ['initial_speed']
+                self.num_vehicles += 1
+                if typ['acceleration_controller'][0] == RLController:
+                    self.num_rl_vehicles += 1
 
     def pass_api(self, kernel_api):
         """See parent class."""
