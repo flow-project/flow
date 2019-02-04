@@ -216,9 +216,9 @@ class TraCIVehicle(KernelVehicle):
         if veh_type not in self.type_parameters:
             raise KeyError("Entering vehicle is not a valid type.")
 
-        self.num_vehicles += 1
         self.__ids.append(veh_id)
         if veh_id not in self.__vehicles:
+            self.num_vehicles += 1
             self.__vehicles[veh_id] = dict()
 
         # specify the type
