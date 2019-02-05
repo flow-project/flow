@@ -51,7 +51,7 @@ parser.add_argument(
 parser.add_argument(
     '--num_cpus',
     type=int,
-    default=6,
+    default=2,
     help="The number of cpus to use.")
 
 if __name__ == "__main__":
@@ -89,6 +89,7 @@ if __name__ == "__main__":
     config["stepsize"] = 0.02
 
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["observation_filter"] = "NoFilter"
     # save the flow params for replay
     flow_json = json.dumps(flow_params, cls=FlowParamsEncoder, sort_keys=True,

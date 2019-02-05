@@ -28,7 +28,7 @@ vehicles.add(
     }),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="no_collide",
+        speed_mode="obey_safe_speed",
     ),
     num_vehicles=13)
 vehicles.add(
@@ -36,7 +36,7 @@ vehicles.add(
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode="no_collide",
+        speed_mode="obey_safe_speed",
     ),
     num_vehicles=1)
 

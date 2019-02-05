@@ -2,6 +2,7 @@ import random
 import numpy as np
 import unittest
 import os
+from scipy.optimize import fsolve
 from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
@@ -14,6 +15,7 @@ from flow.scenarios.loop_merge import ADDITIONAL_NET_PARAMS as LM_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
     TestEnv, TwoLoopsMergePOEnv, DesiredVelocityEnv
+from flow.envs.loop.wave_attenuation import v_eq_max_function
 
 
 os.environ["TEST_FLAG"] = "True"
@@ -492,6 +494,20 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         self.assertEqual(env.k.scenario.length(), 239)
         env.reset()
         self.assertEqual(env.k.scenario.length(), 224)
+
+    def test_v_eq_max_function(self):
+        """
+        Tests that the v_eq_max_function returns appropriate values.
+        """
+        # for 230 m ring roads
+        self.assertAlmostEqual(
+            float(fsolve(v_eq_max_function, np.array([4]), args=(22, 230))[0]),
+            3.7136148111012934)
+
+        # for 270 m ring roads
+        self.assertAlmostEqual(
+            float(fsolve(v_eq_max_function, np.array([4]), args=(22, 270))[0]),
+            5.6143732387852054)
 
     def test_reset_no_same_length(self):
         """
