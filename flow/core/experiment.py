@@ -48,16 +48,15 @@ class Experiment:
     will be two files, one with the suffix .xml and another with the suffix
     .csv. The latter should be easily interpretable from any csv reader (e.g.
     Excel), and can be parsed using tools such as numpy and pandas.
+
+    Attributes
+    ----------
+    env : flow.envs.Env
+        the environment object the simulator will run
     """
 
     def __init__(self, env):
-        """Instantiate Experiment.
-
-        Attributes
-        ----------
-        env: flow.envs.Env
-            the environment object the simulator will run
-        """
+        """Instantiate Experiment."""
         self.env = env
 
         logging.info(" Starting experiment {} at {}".format(
@@ -70,25 +69,24 @@ class Experiment:
 
         Parameters
         ----------
-            num_runs: int
-                number of runs the experiment should perform
-            num_steps: int
-                number of steps to be performs in each run of the experiment
-            rl_actions: method, optional
-                maps states to actions to be performed by the RL agents (if
-                there are any)
-            convert_to_csv: bool
-                Specifies whether to convert the emission file created by sumo
-                into a csv file
+        num_runs : int
+            number of runs the experiment should perform
+        num_steps : int
+            number of steps to be performs in each run of the experiment
+        rl_actions : method, optional
+            maps states to actions to be performed by the RL agents (if
+            there are any)
+        convert_to_csv : bool
+            Specifies whether to convert the emission file created by sumo
+            into a csv file
 
         Returns
         -------
-            info_dict: dict
-                contains returns, average speed per step
+        info_dict : dict
+            contains returns, average speed per step
         """
         info_dict = {}
         if rl_actions is None:
-
             def rl_actions(*_):
                 return None
 
