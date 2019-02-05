@@ -47,11 +47,11 @@ class BottleneckDensityExperiment(Experiment):
             ret_list = []
             step_outflows = []
             step_densities = []
-            vehicles = self.env.vehicles
             state = self.env.reset()
             for j in range(num_steps):
                 state, reward, done, _ = self.env.step(rl_actions(state))
-                vel[j] = np.mean(vehicles.get_speed(vehicles.get_ids()))
+                vel[j] = np.mean(self.env.k.vehicle.get_speed(
+                    self.env.k.vehicle.get_ids()))
                 ret += reward
                 ret_list.append(reward)
 
@@ -165,7 +165,7 @@ def bottleneck_example(flow_rate, horizon, restart_instance=False,
     if not DISABLE_RAMP_METER:
         traffic_lights.add(node_id="3")
 
-    additional_net_params = {"scaling": SCALING}
+    additional_net_params = {"scaling": SCALING, "speed_limit": 23}
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False,

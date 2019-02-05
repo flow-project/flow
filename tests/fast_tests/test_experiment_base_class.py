@@ -49,7 +49,7 @@ class TestNumRuns(unittest.TestCase):
         exp = Experiment(env)
         exp.run(num_runs=1, num_steps=10)
 
-        vel1 = [exp.env.vehicles.get_speed(exp.env.vehicles.get_ids())]
+        vel1 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
 
         # run the experiment for 2 runs and collect the last position of all
         # vehicles
@@ -57,7 +57,7 @@ class TestNumRuns(unittest.TestCase):
         exp = Experiment(env)
         exp.run(num_runs=2, num_steps=10)
 
-        vel2 = [exp.env.vehicles.get_speed(exp.env.vehicles.get_ids())]
+        vel2 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
 
         # check that the final position is the same in both instances
         np.testing.assert_array_almost_equal(vel1, vel2)
@@ -92,7 +92,8 @@ class TestRLActions(unittest.TestCase):
 
         # check that the acceleration of the RL vehicle was that specified by
         # the rl_actions method
-        self.assertAlmostEqual(exp.env.vehicles.get_speed("rl_0"), 1, places=1)
+        self.assertAlmostEqual(exp.env.k.vehicle.get_speed("rl_0"), 1,
+                               places=1)
 
 
 class TestConvertToCSV(unittest.TestCase):

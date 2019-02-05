@@ -25,7 +25,6 @@ class TestSumoParams(unittest.TestCase):
              show_radius=True,
              pxpm=10,
              overtake_right=True,
-             ballistic=True,
              seed=204,
              restart_instance=True,
              print_warnings=False,
@@ -44,7 +43,6 @@ class TestSumoParams(unittest.TestCase):
         self.assertEqual(params.show_radius, True)
         self.assertEqual(params.pxpm, 10)
         self.assertEqual(params.overtake_right, True)
-        self.assertEqual(params.ballistic, True)
         self.assertEqual(params.seed, 204)
         self.assertEqual(params.restart_instance, True)
         self.assertEqual(params.print_warnings, False)

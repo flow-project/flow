@@ -71,14 +71,14 @@ class CFMController(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        lead_id = env.vehicles.get_leader(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.max_accel
 
-        lead_vel = env.vehicles.get_speed(lead_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
 
-        d_l = env.vehicles.get_headway(self.veh_id)
+        d_l = env.k.vehicle.get_headway(self.veh_id)
 
         return self.k_d*(d_l - self.d_des) + self.k_v*(lead_vel - this_vel) + \
             self.k_c*(self.v_des - this_vel)
@@ -151,18 +151,18 @@ class BCMController(BaseController):
         speed limits, weather and lighting conditions, traffic density
         and traffic advisories
         """
-        lead_id = env.vehicles.get_leader(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.max_accel
 
-        lead_vel = env.vehicles.get_speed(lead_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
 
-        trail_id = env.vehicles.get_follower(self.veh_id)
-        trail_vel = env.vehicles.get_speed(trail_id)
+        trail_id = env.k.vehicle.get_follower(self.veh_id)
+        trail_vel = env.k.vehicle.get_speed(trail_id)
 
-        headway = env.vehicles.get_headway(self.veh_id)
-        footway = env.vehicles.get_headway(trail_id)
+        headway = env.k.vehicle.get_headway(self.veh_id)
+        footway = env.k.vehicle.get_headway(trail_id)
 
         return self.k_d * (headway - footway) + \
             self.k_v * ((lead_vel - this_vel) - (this_vel - trail_vel)) + \
@@ -227,13 +227,13 @@ class OVMController(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        lead_id = env.vehicles.get_leader(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
         if not lead_id:  # no car ahead
             return self.max_accel
 
-        lead_vel = env.vehicles.get_speed(lead_id)
-        this_vel = env.vehicles.get_speed(self.veh_id)
-        h = env.vehicles.get_headway(self.veh_id)
+        lead_vel = env.k.vehicle.get_speed(lead_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
         h_dot = lead_vel - this_vel
 
         # V function here - input: h, output : Vh
@@ -298,8 +298,8 @@ class LinearOVM(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        this_vel = env.vehicles.get_speed(self.veh_id)
-        h = env.vehicles.get_headway(self.veh_id)
+        this_vel = env.k.vehicle.get_speed(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
 
         # V function here - input: h, output : Vh
         alpha = 1.689  # the average value from Nakayama paper
@@ -378,9 +378,9 @@ class IDMController(BaseController):
 
     def get_accel(self, env):
         """See parent class."""
-        v = env.vehicles.get_speed(self.veh_id)
-        lead_id = env.vehicles.get_leader(self.veh_id)
-        h = env.vehicles.get_headway(self.veh_id)
+        v = env.k.vehicle.get_speed(self.veh_id)
+        lead_id = env.k.vehicle.get_leader(self.veh_id)
+        h = env.k.vehicle.get_headway(self.veh_id)
 
         # negative headways may be registered by sumo at intersections/
         # junctions. Setting them to 0 causes vehicles to not move; therefore,
@@ -392,7 +392,7 @@ class IDMController(BaseController):
         if lead_id is None or lead_id == '':  # no car ahead
             s_star = 0
         else:
-            lead_vel = env.vehicles.get_speed(lead_id)
+            lead_vel = env.k.vehicle.get_speed(lead_id)
             s_star = self.s0 + max(
                 0, v * self.T + v * (v - lead_vel) /
                 (2 * np.sqrt(self.a * self.b)))
