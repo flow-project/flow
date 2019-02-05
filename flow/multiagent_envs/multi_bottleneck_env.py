@@ -220,7 +220,7 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             #         reward -= penalty
             # return {rl_id: reward for rl_id in self.k.vehicle.get_rl_ids()}
             reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
-                     (2000.0 * self.scaling)
+                     (2000.0 * self.scaling) - 3
             add_params = self.env_params.additional_params
             if add_params["congest_penalty"]:
                 num_vehs = len(self.k.vehicle.get_ids_by_edge('4'))
