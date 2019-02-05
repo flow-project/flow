@@ -15,7 +15,6 @@ from ray.tune.registry import register_env
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
 
-
 import flow.benchmarks.bottleneck0 as bottleneck0
 import flow.benchmarks.bottleneck1 as bottleneck1
 import flow.benchmarks.bottleneck2 as bottleneck2
