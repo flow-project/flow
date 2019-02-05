@@ -11,7 +11,8 @@ from flow.controllers.lane_change_controllers import SimLaneChangeController
 
 SPEED_MODES = {
     "aggressive": 0,
-    "no_collide": 1,
+    "obey_safe_speed": 1,
+    "no_collide": 7,
     "right_of_way": 25,
     "all_checks": 31
 }
@@ -732,6 +733,9 @@ class SumoCarFollowingParams:
            brake hard at red lights if needed. DOES NOT respect
            max accel and decel which enables emergency stopping.
            Necessary to prevent custom models from crashing
+         * "obey_safe_speed": prevents vehicles from colliding
+           longitudinally, but can fail in cases where vehicles are allowed
+           to lane change
          * "no_collide": Human and RL cars are preventing from reaching
            speeds that may cause crashes (also serves as a failsafe). Note:
            this may lead to collisions in complex networks
@@ -831,7 +835,7 @@ class SumoCarFollowingParams:
         elif not (isinstance(speed_mode, int)
                   or isinstance(speed_mode, float)):
             logging.error("Setting speed mode of to default.")
-            speed_mode = SPEED_MODES["no_collide"]
+            speed_mode = SPEED_MODES["obey_safe_speed"]
 
         self.speed_mode = speed_mode
 
