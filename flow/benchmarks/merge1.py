@@ -4,11 +4,9 @@ Trains a small percentage of autonomous vehicles to dissipate shockwaves caused
 by merges in an open network. The autonomous penetration rate in this example
 is 25%.
 
-Action Dimension: (13, )
-
-Observation Dimension: (65, )
-
-Horizon: 750 steps
+- **Action Dimension**: (13, )
+- **Observation Dimension**: (65, )
+- **Horizon**: 750 steps
 """
 
 from copy import deepcopy
