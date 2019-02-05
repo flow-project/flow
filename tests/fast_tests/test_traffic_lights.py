@@ -163,7 +163,8 @@ class TestPOEnv(unittest.TestCase):
         # free data used by the class
         self.env = None
 
-    def compare_ordering(self, ordering):
+    @staticmethod
+    def compare_ordering(ordering):
         # take in a list like [[bot0_0, right0_0, top0_1, left1_0], [bot....]
         # print(ordering)
         for x in ordering:
@@ -203,7 +204,7 @@ class TestPOEnv(unittest.TestCase):
             self.env.k_closest_to_intersection(c0_edges[3], 3), k_closest[4:6])
 
         for veh_id in k_closest:
-            self.assertTrue(self.env.vehicles.get_edge(veh_id) in c0_edges)
+            self.assertTrue(self.env.k.vehicle.get_edge(veh_id) in c0_edges)
 
 
 class TestItRuns(unittest.TestCase):

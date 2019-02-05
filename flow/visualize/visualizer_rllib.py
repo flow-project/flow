@@ -100,10 +100,9 @@ def visualizer_rllib(args):
         sys.exit(1)
 
     sim_params.restart_instance = False
-
     sim_params.emission_path = './test_time_rollout/'
 
-    # prepare for rendering
+    # pick your rendering mode
     if args.render_mode == 'sumo_web3d':
         sim_params.num_clients = 2
         sim_params.render = False
@@ -114,7 +113,6 @@ def visualizer_rllib(args):
         sim_params.render = True
     elif args.render_mode == 'no_render':
         sim_params.render = False
-
     if args.save_render:
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
@@ -205,7 +203,7 @@ def visualizer_rllib(args):
         else:
             ret = 0
         for _ in range(env_params.horizon):
-            vehicles = env.unwrapped.vehicles
+            vehicles = env.unwrapped.k.vehicle
             vel.append(np.mean(vehicles.get_speed(vehicles.get_ids())))
             if multiagent:
                 action = {}

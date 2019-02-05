@@ -62,8 +62,8 @@ VEH_GET_LEADER = 0x0E
 # get vehicle follower
 VEH_GET_FOLLOWER = 0x0F
 
-# get vehicle headway
-VEH_GET_HEADWAY = 0x10
+# get vehicle next section
+VEH_GET_NEXT_SECTION = 0x10
 
 # get vehicle route
 VEH_GET_ROUTE = 0x11

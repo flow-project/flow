@@ -21,6 +21,9 @@ tl_ids = [1, 2, 3, 4, 5]
 def send_message(conn, in_format, values):
     """Send a message to the client.
 
+    If the message is a string, it is sent in segments of length 256 (if the
+    string is longer than such) and concatenated on the client end.
+
     Parameters
     ----------
     conn : socket.socket
@@ -30,9 +33,43 @@ def send_message(conn, in_format, values):
     values : tuple of Any
         commands to be encoded and issued to the client
     """
-    packer = struct.Struct(format=in_format)
-    packed_data = packer.pack(*values)
-    conn.send(packed_data)
+    if in_format == 'str':
+        packer = struct.Struct(format='i')
+        values = values[0]
+
+        # when the message is too large, send value in segments and inform the
+        # client that additional information will be sent. The value will be
+        # concatenated on the other end
+        while len(values) > 256:
+            # send the next set of data
+            conn.send(values[:256])
+            values = values[256:]
+
+            # wait for a reply
+            data = None
+            while data is None:
+                data = conn.recv(2048)
+
+            # send a not-done signal
+            packed_data = packer.pack(*(1,))
+            conn.send(packed_data)
+
+        # send the remaining components of the message (which is of length less
+        # than or equal to 256)
+        conn.send(values)
+
+        # wait for a reply
+        data = None
+        while data is None:
+            data = conn.recv(2048)
+
+        # send a done signal
+        packed_data = packer.pack(*(0,))
+        conn.send(packed_data)
+    else:
+        packer = struct.Struct(format=in_format)
+        packed_data = packer.pack(*values)
+        conn.send(packed_data)
 
 
 def retrieve_message(conn, out_format):
@@ -86,7 +123,7 @@ def threaded_client(conn):
                     output = '-1'
                 else:
                     output = ':'.join([str(e) for e in entered_vehicles])
-                conn.send(output)
+                send_message(conn, in_format='str', values=(output,))
                 entered_vehicles = []
 
             elif data == ac.VEH_GET_EXITED_IDS:
@@ -99,7 +136,7 @@ def threaded_client(conn):
                     output = '-1'
                 else:
                     output = ':'.join([str(e) for e in exited_vehicles])
-                conn.send(output)
+                send_message(conn, in_format='str', values=(output,))
                 exited_vehicles = []
 
             elif data == ac.VEH_GET_STATIC:
@@ -115,11 +152,11 @@ def threaded_client(conn):
             elif data == ac.VEH_GET_TRACKING:
                 send_message(conn, in_format='i', values=(0,))
                 retrieve_message(conn, 'i')
-                output = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27)
+                output = (4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 17, 18, 19, 20, 21,
+                          22, 23, 24, 25, 26, 27)
                 send_message(conn,
-                             in_format='i i i f f f f f f f f f f f f f f f f '
-                                       'i i i i i i i i',
+                             in_format='f f f f f f f f f f f f f i i i i i i '
+                                       'i i',
                              values=output)
 
             elif data == ac.TL_GET_IDS:
@@ -132,7 +169,7 @@ def threaded_client(conn):
                     output = '-1'
                 else:
                     output = ':'.join([str(e) for e in tl_ids])
-                conn.send(output)
+                send_message(conn, in_format='str', values=(output,))
                 tl_ids = []
 
             # in case the message is unknown, return -1001

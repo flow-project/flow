@@ -56,7 +56,7 @@ class AccelEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sim_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -67,7 +67,7 @@ class AccelEnv(Env):
         self.prev_pos = dict()
         self.absolute_position = dict()
 
-        super().__init__(env_params, sim_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
     @property
     def action_space(self):
@@ -75,7 +75,7 @@ class AccelEnv(Env):
         return Box(
             low=-abs(self.env_params.additional_params['max_decel']),
             high=self.env_params.additional_params['max_accel'],
-            shape=(self.vehicles.num_rl_vehicles, ),
+            shape=(self.scenario.vehicles.num_rl_vehicles, ),
             dtype=np.float32)
 
     @property
@@ -85,29 +85,29 @@ class AccelEnv(Env):
         return Box(
             low=0,
             high=1,
-            shape=(2 * self.vehicles.num_vehicles, ),
+            shape=(2 * self.scenario.vehicles.num_vehicles, ),
             dtype=np.float32)
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
         sorted_rl_ids = [
             veh_id for veh_id in self.sorted_ids
-            if veh_id in self.vehicles.get_rl_ids()
+            if veh_id in self.k.vehicle.get_rl_ids()
         ]
-        self.apply_acceleration(sorted_rl_ids, rl_actions)
+        self.k.vehicle.apply_acceleration(sorted_rl_ids, rl_actions)
 
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
-            return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
+            return np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
         else:
             return rewards.desired_velocity(self, fail=kwargs['fail'])
 
     def get_state(self):
         """See class definition."""
-        speed = [self.vehicles.get_speed(veh_id) / self.k.scenario.max_speed()
+        speed = [self.k.vehicle.get_speed(veh_id) / self.k.scenario.max_speed()
                  for veh_id in self.sorted_ids]
-        pos = [self.get_x_by_id(veh_id) / self.k.scenario.length()
+        pos = [self.k.vehicle.get_x_by_id(veh_id) / self.k.scenario.length()
                for veh_id in self.sorted_ids]
 
         return np.array(speed + pos)
@@ -119,13 +119,13 @@ class AccelEnv(Env):
         update the sorting of vehicles using the self.sorted_ids variable.
         """
         # specify observed vehicles
-        if self.vehicles.num_rl_vehicles > 0:
-            for veh_id in self.vehicles.get_human_ids():
-                self.vehicles.set_observed(veh_id)
+        if self.k.vehicle.num_rl_vehicles > 0:
+            for veh_id in self.k.vehicle.get_human_ids():
+                self.k.vehicle.set_observed(veh_id)
 
         # update the "absolute_position" variable
-        for veh_id in self.vehicles.get_ids():
-            this_pos = self.get_x_by_id(veh_id)
+        for veh_id in self.k.vehicle.get_ids():
+            this_pos = self.k.vehicle.get_x_by_id(veh_id)
 
             if this_pos == -1001:
                 # in case the vehicle isn't in the network
@@ -150,9 +150,9 @@ class AccelEnv(Env):
             a list of all vehicle IDs sorted by position
         """
         if self.env_params.additional_params['sort_vehicles']:
-            return sorted(self.vehicles.get_ids(), key=self._get_abs_position)
+            return sorted(self.k.vehicle.get_ids(), key=self._get_abs_position)
         else:
-            return self.vehicles.get_ids()
+            return self.k.vehicle.get_ids()
 
     def _get_abs_position(self, veh_id):
         """Return the absolute position of a vehicle."""
@@ -166,8 +166,8 @@ class AccelEnv(Env):
         """
         obs = super().reset()
 
-        for veh_id in self.vehicles.get_ids():
-            self.absolute_position[veh_id] = self.get_x_by_id(veh_id)
-            self.prev_pos[veh_id] = self.get_x_by_id(veh_id)
+        for veh_id in self.k.vehicle.get_ids():
+            self.absolute_position[veh_id] = self.k.vehicle.get_x_by_id(veh_id)
+            self.prev_pos[veh_id] = self.k.vehicle.get_x_by_id(veh_id)
 
         return obs

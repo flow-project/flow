@@ -27,22 +27,31 @@ def create_client(port, print_status=False):
     # create a socket connection
     if print_status:
         print('Listening for connection...', end=' ')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connected = False
-    num_tries = 0
-    while not connected and num_tries < 100:
-        num_tries += 1
-        try:
-            s.connect(('localhost', port))
-            connected = True
-        except Exception as e:
-            logging.debug('Cannot connect to the server: {}'.format(e))
-            time.sleep(1)
 
-    # check the connection
-    data = None
-    while data is None:
-        data = s.recv(256)
+    stop = False
+    while not stop:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            connected = False
+            num_tries = 0
+            while not connected and num_tries < 100:
+                num_tries += 1
+                try:
+                    s.connect(('localhost', port))
+                    connected = True
+                except Exception as e:
+                    logging.debug('Cannot connect to the server: {}'.format(e))
+                    time.sleep(1)
+
+            # check the connection
+            data = None
+            while data is None:
+                data = s.recv(2048)
+            stop = True
+        except socket.error:
+            stop = False
+
+    # print the return statement
     if print_status:
         print(data.decode('utf-8'))
 
@@ -120,10 +129,26 @@ class FlowAimsunAPI(object):
         # collect the return values
         if out_format is not None:
             if out_format == 'str':
-                data = None
-                while data is None:
-                    data = self.s.recv(256)
-                unpacked_data = data.decode('utf-8')
+                done = False
+                unpacked_data = ''
+                while not done:
+                    # get the next bit of data
+                    data = None
+                    while data is None:
+                        data = self.s.recv(256)
+
+                    # concatenate the results
+                    unpacked_data += data.decode('utf-8')
+
+                    # ask for a status check (just by sending any command)
+                    self.s.send(str.encode('1'))
+
+                    # check if done
+                    unpacker = struct.Struct(format='i')
+                    data = None
+                    while data is None:
+                        data = self.s.recv(unpacker.size)
+                    done = unpacker.unpack(data)[0] == 0
             else:
                 unpacker = struct.Struct(format=out_format)
                 data = None
@@ -396,41 +421,11 @@ class FlowAimsunAPI(object):
         flow.utils.aimsun.struct.InfVeh
             tracking info object
         """
-        tracking_info = aimsun_struct.InfVeh()
-
-        (tracking_info.report,
-         tracking_info.idVeh,
-         tracking_info.type,
-         tracking_info.CurrentPos,
-         tracking_info.distance2End,
-         tracking_info.xCurrentPos,
-         tracking_info.yCurrentPos,
-         tracking_info.zCurrentPos,
-         tracking_info.xCurrentPosBack,
-         tracking_info.yCurrentPosBack,
-         tracking_info.zCurrentPosBack,
-         tracking_info.CurrentSpeed,
-         tracking_info.PreviousSpeed,
-         tracking_info.TotalDistance,
-         tracking_info.SystemGenerationT,
-         tracking_info.SystemEntranceT,
-         tracking_info.SectionEntranceT,
-         tracking_info.CurrentStopTime,
-         tracking_info.stopped,
-         tracking_info.idSection,
-         tracking_info.segment,
-         tracking_info.numberLane,
-         tracking_info.idJunction,
-         tracking_info.idSectionFrom,
-         tracking_info.idLaneFrom,
-         tracking_info.idSectionTo,
-         tracking_info.idLaneTo) = self._send_command(
+        return self._send_command(
             ac.VEH_GET_TRACKING,
             in_format='i',
             values=(veh_id,),
-            out_format='i i i f f f f f f f f f f f f f f f f i i i i i i i i')
-
-        return tracking_info
+            out_format='f f f f f f f f f f f f f i i i i i i i i')
 
     def get_vehicle_leader(self, veh_id):
         """Return the leader of a specific vehicle.
@@ -468,23 +463,25 @@ class FlowAimsunAPI(object):
                                   values=(veh_id,),
                                   out_format='i')[0]
 
-    def get_vehicle_headway(self, veh_id):
+    def get_next_section(self, veh_id, section):
         """Return the headway of a specific vehicle.
 
         Parameters
         ----------
         veh_id : int
             name of the vehicle in Aimsun
+        section : int
+            name of the section the vehicle resides on
 
         Returns
         -------
-        float
-            headway
+        int
+            next section
         """
-        return self._send_command(ac.VEH_GET_HEADWAY,
-                                  in_format='i',
-                                  values=(veh_id,),
-                                  out_format='f')[0]
+        return self._send_command(ac.VEH_GET_NEXT_SECTION,
+                                  in_format='i i',
+                                  values=(veh_id, section),
+                                  out_format='i')[0]
 
     def get_route(self, veh_id):
         """Return the route of a specific vehicle.
@@ -528,7 +525,10 @@ class FlowAimsunAPI(object):
         str
             traffic light state of each light on that node
         """
-        return self._send_command(ac.TL_GET_STATE, values=(tl_id,))
+        res, = self._send_command(ac.TL_GET_STATE, values=(tl_id,),
+                                  in_format='i',
+                                  out_format='i')
+        return res
 
     def set_traffic_light_state(self, tl_id, link_index, state):
         """Set the state of the specified traffic light(s).
@@ -543,5 +543,6 @@ class FlowAimsunAPI(object):
             TODO
         """
         self._send_command(ac.TL_SET_STATE,
-                           values=[tl_id, link_index, state],
+                           in_format='i i i',
+                           values=(tl_id, link_index, state),
                            out_format=None)
