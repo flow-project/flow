@@ -91,7 +91,6 @@ def minicity_example(render=None,
                 {"duration": "4", "state": "yyGGGrr"}]
 
     for node_id in nodes:
-        print(node_id)
         if node_id == 'n_i3':
             tl_logic.add(node_id, phases=phases_3,
                          tls_type="actuated", programID=1)
