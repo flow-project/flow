@@ -75,16 +75,19 @@ def minicity_example(render=None,
               {"duration": "20", "state": "GrrGGGGrrGGG"},
               {"duration": "4", "state": "GrryyyGrryyy"}]
 
+    #center traffic light
     phases_3 = [{"duration": "20", "state": "GGGGGrrrGGGGGrrr"},
                 {"duration": "4", "state": "yyyyyrrryyyyyrrr"},
                 {"duration": "20", "state": "GrrrGGGGGrrrGGGG"},
                 {"duration": "4", "state": "yrrryyyyyrrryyyy"}]
 
+    #bottom right traffic light
     phases_6 = [{"duration": "20", "state": "GGGGGrr"},
                 {"duration": "4", "state": "yyGGGrr"},
                 {"duration": "20", "state": "GrrrGGG"},
                 {"duration": "4", "state": "Grrryyy"}]
 
+    #top right traffic light
     phases_8 = [{"duration": "20", "state": "GrrrGGG"},
                 {"duration": "4", "state": "Grrryyy"},
                 {"duration": "20", "state": "GGGGGrr"},
