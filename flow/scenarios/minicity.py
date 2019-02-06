@@ -56,14 +56,14 @@ class MiniCityScenario(Scenario):
     def specify_nodes(self, net_params):
         """See parent class."""
         nodes = [{'id': 'n_i1', 'x': 0.65, 'y': 2.75},
-                 {'id': 'n_i2', 'x': 0.65, 'y': 4.90},
+                 {'id': 'n_i2', 'x': 0.65, 'y': 4.90, 'type': 'allway_stop'},
                  {'id': 'n_i3', 'x': 3.05, 'y': 2.75},
                  {'id': 'n_i4', 'x': 3.05, 'y': 4.90},
-                 {'id': 'n_i5', 'x': 3.05, 'y': 5.75},
-                 {'id': 'n_i6', 'x': 5.08, 'y': 2.75},
+                 {'id': 'n_i5', 'x': 3.05, 'y': 5.75, 'type': 'allway_stop'},
+                 {'id': 'n_i6', 'x': 5.08, 'y': 2.75, 'type': 'allway_stop'},
                  {'id': 'n_i7', 'x': 5.08, 'y': 3.75},
                  {'id': 'n_i8', 'x': 5.08, 'y': 4.90},
-                 {'id': 'n_i9', 'x': 5.08, 'y': 5.75},
+                 {'id': 'n_i9', 'x': 5.08, 'y': 5.75, 'type': 'allway_stop'},
                  {'id': 'n_r1', 'x': 0.30, 'y': 1.15},
                  {'id': 'n_r2', 'x': 0.90, 'y': 0.40},
                  {'id': 'n_r3', 'x': 0.95, 'y': 1.45},
