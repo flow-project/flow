@@ -69,35 +69,41 @@ def minicity_example(render=None,
 
     tl_logic = TrafficLights(baseline=False)
 
-    nodes = ["n_i1", 'n_i3', "n_i4", 'n_i7','n_i8']
-    phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
-              {"duration": "4", "state": "yyyGrryyGyrr"},
-              {"duration": "20", "state": "GrrGGGGrrGGG"},
-              {"duration": "4", "state": "GrryyyGrryyy"}]
+    nodes = ["n_i1", 'n_i2', 'n_i3', "n_i4", 'n_i6', 'n_i7', 'n_i8', 'n_m3']
+    phases = [{"duration": "10", "state": "GGGGrrGGGGrr"},
+              {"duration": "2", "state": "yyyGrryyGyrr"},
+              {"duration": "10", "state": "GrrGGGGrrGGG"},
+              {"duration": "2", "state": "GrryyyGrryyy"}]
+
+    #merge
+    phases_m3 = [{"duration": "10", "state": "GGrG"},
+              {"duration": "2", "state": "yGry"},
+              {"duration": "5", "state": "rGGr"},
+              {"duration": "2", "state": "rGyr"}]
 
     #top left traffic light
-    phases_2 = [{"duration": "20", "state": "GGGrGG"},
-              {"duration": "4", "state": "yyyryy"},
-              {"duration": "10", "state": "rrGGGr"},
-              {"duration": "4", "state": "rryyyr"}]
+    phases_2 = [{"duration": "10", "state": "GGGrGG"},
+              {"duration": "2", "state": "yyyryy"},
+              {"duration": "5", "state": "rrGGGr"},
+              {"duration": "2", "state": "rryyyr"}]
 
     #center traffic light
-    phases_3 = [{"duration": "20", "state": "GGGGGrrrGGGGGrrr"},
-                {"duration": "4", "state": "yyyyyrrryyyyyrrr"},
-                {"duration": "20", "state": "GrrrGGGGGrrrGGGG"},
-                {"duration": "4", "state": "yrrryyyyyrrryyyy"}]
+    phases_3 = [{"duration": "10", "state": "GGGGGrrrGGGGGrrr"},
+                {"duration": "2", "state": "yyyyyrrryyyyyrrr"},
+                {"duration": "10", "state": "GrrrGGGGGrrrGGGG"},
+                {"duration": "2", "state": "yrrryyyyyrrryyyy"}]
 
     #bottom right traffic light
-    phases_6 = [{"duration": "20", "state": "GGGGGrr"},
-                {"duration": "4", "state": "yyGGGrr"},
-                {"duration": "20", "state": "GrrrGGG"},
-                {"duration": "4", "state": "Grrryyy"}]
+    phases_6 = [{"duration": "10", "state": "GGGGGrr"},
+                {"duration": "2", "state": "yyGGGrr"},
+                {"duration": "5", "state": "GrrrGGG"},
+                {"duration": "2", "state": "Grrryyy"}]
 
     #top right traffic light
-    phases_8 = [{"duration": "20", "state": "GrrrGGG"},
-                {"duration": "4", "state": "Grrryyy"},
-                {"duration": "20", "state": "GGGGGrr"},
-                {"duration": "4", "state": "yyGGGrr"}]
+    phases_8 = [{"duration": "10", "state": "GrrrGGG"},
+                {"duration": "2", "state": "Grrryyy"},
+                {"duration": "5", "state": "GGGGGrr"},
+                {"duration": "2", "state": "yyGGGrr"}]
 
     for node_id in nodes:
         if node_id == 'n_i2':
@@ -111,6 +117,9 @@ def minicity_example(render=None,
                          tls_type="actuated", programID=1)
         elif node_id == 'n_i8':
             tl_logic.add(node_id, phases=phases_8,
+                         tls_type="actuated", programID=1)
+        elif node_id == 'n_m3':
+            tl_logic.add(node_id, phases=phases_m3,
                          tls_type="actuated", programID=1)
         else:
             tl_logic.add(node_id, phases=phases,
@@ -156,4 +165,4 @@ if __name__ == "__main__":
                            show_radius=False)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 7500)
+    exp.run(1, 1000)
