@@ -7,6 +7,7 @@ from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
 from flow.controllers.routing_controllers import MinicityTrainingRouter_4
+from flow.core.traffic_lights import TrafficLights
 import numpy as np
 
 np.random.seed(204)
@@ -66,13 +67,65 @@ def minicity_example(render=None,
         veh_id='human',
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityTrainingRouter_4, {}),
-        speed_mode='no_collide',
-        lane_change_mode='strategic',
+        speed_mode='right_of_way',
+        lane_change_mode='no_lat_collide',
         num_vehicles=50)
+
+    tl_logic = TrafficLights(baseline=False)
+
+    nodes = ["n_i1", 'n_i2', 'n_i3', "n_i4", 'n_i6', 'n_i7', 'n_i8']
+    phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
+              {"duration": "4", "state": "yyyGrryyGyrr"},
+              {"duration": "20", "state": "GrrGGGGrrGGG"},
+              {"duration": "4", "state": "GrryyyGrryyy"}]
+
+    #top left traffic light
+    phases_2 = [{"duration": "20", "state": "GGGrGG"},
+              {"duration": "4", "state": "yyyryy"},
+              {"duration": "10", "state": "rrGGGr"},
+              {"duration": "4", "state": "rryyyr"}]
+
+    #center traffic light
+    phases_3 = [{"duration": "20", "state": "GGGGGrrrGGGGGrrr"},
+                {"duration": "4", "state": "yyyyyrrryyyyyrrr"},
+                {"duration": "20", "state": "GrrrGGGGGrrrGGGG"},
+                {"duration": "4", "state": "yrrryyyyyrrryyyy"}]
+
+    #bottom right traffic light
+    phases_6 = [{"duration": "20", "state": "GGGGGrr"},
+                {"duration": "4", "state": "yyGGGrr"},
+                {"duration": "20", "state": "GrrrGGG"},
+                {"duration": "4", "state": "Grrryyy"}]
+
+    #top right traffic light
+    phases_8 = [{"duration": "20", "state": "GrrrGGG"},
+                {"duration": "4", "state": "Grrryyy"},
+                {"duration": "20", "state": "GGGGGrr"},
+                {"duration": "4", "state": "yyGGGrr"}]
+
+    for node_id in nodes:
+        if node_id == 'n_i2':
+            tl_logic.add(node_id, phases=phases_2,
+                         tls_type="actuated", programID=1)
+        elif node_id == 'n_i3':
+            tl_logic.add(node_id, phases=phases_3,
+                         tls_type="actuated", programID=1)
+        elif node_id == 'n_i6':
+            tl_logic.add(node_id, phases=phases_6,
+                         tls_type="actuated", programID=1)
+        elif node_id == 'n_i8':
+            tl_logic.add(node_id, phases=phases_8,
+                         tls_type="actuated", programID=1)
+        else:
+            tl_logic.add(node_id, phases=phases,
+                         tls_type="actuated", programID=1)
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
+
+    additional_net_params['traffic_lights'] = True
+
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
@@ -88,7 +141,8 @@ def minicity_example(render=None,
         name='minicity',
         vehicles=vehicles,
         initial_config=initial_config,
-        net_params=net_params)
+        net_params=net_params,
+        traffic_lights=tl_logic)
 
     env = AccelEnv(env_params, sumo_params, scenario)
 
@@ -107,7 +161,7 @@ if __name__ == "__main__":
     import time
     for _ in range(100):
         # t = time.time()
-        exp = minicity_example(render='drgb',
+        exp = minicity_example(render=True,
                                save_render=False,
                                sight_radius=50,
                                pxpm=3,

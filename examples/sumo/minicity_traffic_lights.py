@@ -2,11 +2,11 @@
 from flow.controllers import IDMController
 from flow.controllers import RLController
 from flow.core.experiment import SumoExperiment
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
+from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, InFlows, SumoCarFollowingParams
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.routing_controllers import MinicityTrainingRouter_6
+from flow.controllers.routing_controllers import MinicityRouter
 from flow.core.traffic_lights import TrafficLights
 import numpy as np
 
@@ -33,8 +33,7 @@ def minicity_example(render=None,
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on the minicity scenario.
     """
-    sumo_params = SumoParams(sim_step=0.5,
-                             emission_path='./data/')
+    sumo_params = SumoParams(render=False)
 
     if render is not None:
         sumo_params.render = render
@@ -52,27 +51,21 @@ def minicity_example(render=None,
         sumo_params.show_radius = show_radius
 
     vehicles = Vehicles()
-    # bottom right corner
-    edge_starts = ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
-                    'e_94', 'e_52', 'e_38']
-    # bottom half outer loop
-    edge_starts += ['e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26',
-                    'e_2', 'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93',
-                    'e_53', 'e_64']
-    # bottom right inner loop
-    edge_starts += ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
-                    'e_94', 'e_52', 'e_38']
-
-    edge_starts = list(set(edge_starts))
-
-    # add vehicle
     vehicles.add(
-        veh_id='human',
+        veh_id="idm",
         acceleration_controller=(IDMController, {}),
-        routing_controller=(MinicityTrainingRouter_6, {}),
-        speed_mode='right_of_way',
-        lane_change_mode='no_lat_collide',
-        num_vehicles=50)
+        routing_controller=(MinicityRouter, {}),
+        speed_mode="right_of_way",
+        lane_change_mode="no_lat_collide",
+        initial_speed=0,
+        num_vehicles=100)
+    vehicles.add(
+        veh_id="rl",
+        acceleration_controller=(RLController, {}),
+        routing_controller=(MinicityRouter, {}),
+        speed_mode="right_of_way",
+        initial_speed=0,
+        num_vehicles=10)
 
     tl_logic = TrafficLights(baseline=False)
 
@@ -128,20 +121,15 @@ def minicity_example(render=None,
     additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 
     additional_net_params['traffic_lights'] = True
-
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
     initial_config = InitialConfig(
-        spacing='random',
-        edges_distribution=edge_starts,
-        min_gap=2)
-    # initial_config = InitialConfig(
-    #     spacing="random",
-    #     min_gap=5
-    # )
+        spacing="random",
+        min_gap=5
+    )
     scenario = MiniCityScenario(
-        name='minicity',
+        name="minicity",
         vehicles=vehicles,
         initial_config=initial_config,
         net_params=net_params,
@@ -161,15 +149,11 @@ if __name__ == "__main__":
     # Dynamic grayscale rendering: minicity_example(render="dgray")
     # Static RGB rendering: minicity_example(render="rgb")
     # Dynamic RGB rendering: minicity_example(render="drgb")
-    import time
-    for _ in range(100):
-        # t = time.time()
-        exp = minicity_example(render=True,
-                               save_render=False,
-                               sight_radius=50,
-                               pxpm=3,
-                               show_radius=True)
+    exp = minicity_example(render=True,
+                           save_render=False,
+                           sight_radius=50,
+                           pxpm=3,
+                           show_radius=False)
 
-        # run for a set number of rollouts / time steps
-        exp.run(1, 7200, convert_to_csv=True)
-        # print(time.time() - t)
+    # run for a set number of rollouts / time steps
+    exp.run(1, 7500)
