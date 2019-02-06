@@ -69,7 +69,7 @@ def minicity_example(render=None,
 
     tl_logic = TrafficLights(baseline=False)
 
-    nodes = ["n_i1", 'n_i3', "n_i4", 'n_i6', 'n_i8']
+    nodes = ["n_i1", 'n_i3', "n_i4", 'n_i6', 'n_i7', 'n_i8']
     phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
               {"duration": "4", "state": "yyyGrryyGyrr"},
               {"duration": "20", "state": "GrrGGGGrrGGG"},
