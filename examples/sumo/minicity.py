@@ -53,23 +53,23 @@ def minicity_example(render=None,
     vehicles = Vehicles()
     vehicles.add(
         veh_id="idm",
-        acceleration_controller=(IDMController, {}),
-        routing_controller=(MinicityRouter, {}),
-        speed_mode="right_of_way",
-        lane_change_mode="no_lat_collide",
-        initial_speed=0,
-        num_vehicles=100)
-    vehicles.add(
-        veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
         speed_mode="right_of_way",
+        lane_change_mode="aggressive",
         initial_speed=0,
-        num_vehicles=10)
+        num_vehicles=110)
+    # vehicles.add(
+    #     veh_id="rl",
+    #     acceleration_controller=(RLController, {}),
+    #     routing_controller=(MinicityRouter, {}),
+    #     speed_mode="right_of_way",
+    #     initial_speed=0,
+    #     num_vehicles=10)
 
     tl_logic = TrafficLights(baseline=False)
 
-    nodes = ["n_i1", 'n_i2', 'n_i3', "n_i4", 'n_i6', 'n_i7', 'n_i8']
+    nodes = ["n_i1", 'n_i3', "n_i4", 'n_i7','n_i8']
     phases = [{"duration": "20", "state": "GGGGrrGGGGrr"},
               {"duration": "4", "state": "yyyGrryyGyrr"},
               {"duration": "20", "state": "GrrGGGGrrGGG"},
