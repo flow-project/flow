@@ -58,15 +58,11 @@ def gen_edges(row_num, col_num):
     return edges
 
 
-def get_flow_params(v_enter, vehs_per_hour, col_num, row_num, add_net_params):
+def get_flow_params(col_num, row_num, add_net_params):
     """Define the network and initial params in the presence of inflows.
 
     Parameters
     ----------
-    v_enter : float
-        entering speed of inflow vehicles
-    vehs_per_hour : float
-        vehicle inflow rate (in veh/hr)
     col_num : int
         number of columns of edges in the grid
     row_num : int
@@ -83,17 +79,17 @@ def get_flow_params(v_enter, vehs_per_hour, col_num, row_num, add_net_params):
         network-specific parameters used to generate the scenario
     """
     initial_config = InitialConfig(
-        spacing="custom", lanes_distribution=float("inf"), shuffle=True)
+        spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
     inflow = InFlows()
     outer_edges = gen_edges(col_num, row_num)
     for i in range(len(outer_edges)):
         inflow.add(
-            veh_type="idm",
+            veh_type='idm',
             edge=outer_edges[i],
-            vehs_per_hour=vehs_per_hour,
-            departLane="free",
-            departSpeed=v_enter)
+            probability=0.25,
+            departLane='free',
+            departSpeed=20)
 
     net_params = NetParams(
         inflows=inflow,
@@ -187,8 +183,6 @@ vehicles.add(
 
 if USE_INFLOWS:
     initial_config, net_params = get_flow_params(
-        v_enter=V_ENTER,
-        vehs_per_hour=EDGE_INFLOW,
         col_num=N_COLUMNS,
         row_num=N_ROWS,
         add_net_params=additional_net_params)
