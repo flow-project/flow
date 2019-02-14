@@ -6,18 +6,66 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig
 from flow.core.vehicles import Vehicles
 from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.routing_controllers import MinicityTrainingRouter_6
+from flow.controllers.routing_controllers import *
 from flow.core.traffic_lights import TrafficLights
 import numpy as np
+from enum import Enum
 
 np.random.seed(204)
+
+
+# Definitions of subnetworks
+class SubRoute(Enum):
+    ALL =  0
+    TOP_LEFT = 1
+    TOP_RIGHT = 2
+    BOTTOM = 3
+
+subroute_edge_starts = [
+                    # Full network
+                    None,
+
+                    # Top left
+                    ['e_12', 'e_18', 'e_19', 'e_24', 'e_45', 'e_43',
+                    'e_41', 'e_88', 'e_26', 'e_34', 'e_23', 'e_5', 'e_4',
+                    'e_3', 'e_25', 'e_87', 'e_40', 'e_42', 'e_44', 'e_15',
+                    'e_16', 'e_20', 'e_47'],
+
+                    # Top right
+                    ['e_80', 'e_83', 'e_82', 'e_79', 'e_47', 'e_49', 'e_55',
+                    'e_56', 'e_89', 'e_45', 'e_43', 'e_41', 'e_50', 'e_60',
+                    'e_69', 'e_73', 'e_75', 'e_59', 'e_48', 'e_81',
+                    'e_84', 'e_85', 'e_90', 'e_62', 'e_57', 'e_46', 'e_76',
+                    'e_76', 'e_74', 'e_70', 'e_61', 'e_54', 'e_40', 'e_42',
+                    'e_44'],
+
+                    # Bottom (right corner, half outer loop, right inner loop)
+                    ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
+                    'e_94', 'e_52', 'e_38', 
+                    'e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26',
+                    'e_2', 'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93',
+                    'e_53', 'e_64',
+                    'e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
+                    'e_94', 'e_52', 'e_38'],
+
+                    ]
+
+subroute_controllers = [
+                    MinicityRouter, # full network
+                    MinicityTrainingRouter_5, # top left
+                    MinicityTrainingRouter_4, # top right
+                    MinicityTrainingRouter_6, # bottom
+                    ]
+
+
 
 
 def minicity_example(render=None,
                      save_render=None,
                      sight_radius=None,
                      pxpm=None,
-                     show_radius=None):
+                     show_radius=None,
+                     subroute=SubRoute.ALL):
     """
     Perform a simulation of vehicles on modified minicity of University of
     Delaware.
@@ -26,6 +74,9 @@ def minicity_example(render=None,
     ----------
     render: bool, optional
         specifies whether to use sumo's gui during execution
+    subroute: optional, specifies whether to constrict car routes to 
+        pre-defined subnetworks. 
+        Pass in as SubRoute.TOP_LEFT, SubRoute.TOP_RIGHT, or SubRoute.BOTTOM
 
     Returns
     -------
@@ -52,24 +103,12 @@ def minicity_example(render=None,
         sumo_params.show_radius = show_radius
 
     vehicles = Vehicles()
-    # bottom right corner
-    edge_starts = ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
-                    'e_94', 'e_52', 'e_38']
-    # bottom half outer loop
-    edge_starts += ['e_67', 'e_71', 'e_70', 'e_61', 'e_54', 'e_88', 'e_26',
-                    'e_2', 'e_1', 'e_7', 'e_17', 'e_28_b', 'e_36', 'e_93',
-                    'e_53', 'e_64']
-    # bottom right inner loop
-    edge_starts += ['e_50', 'e_60', 'e_69', 'e_72', 'e_68', 'e_66', 'e_63',
-                    'e_94', 'e_52', 'e_38']
-
-    edge_starts = list(set(edge_starts))
 
     # add vehicle
     vehicles.add(
         veh_id='human',
         acceleration_controller=(IDMController, {}),
-        routing_controller=(MinicityTrainingRouter_6, {}),
+        routing_controller=(subroute_controllers[subroute.value], {}),
         speed_mode='right_of_way',
         lane_change_mode='no_lat_collide',
         num_vehicles=50)
@@ -131,15 +170,23 @@ def minicity_example(render=None,
 
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
+    
+    if subroute == SubRoute.ALL:
+        initial_config = InitialConfig(
+            spacing="random",
+            min_gap=5
+        )
+    else:
+        # Define subroute edges
+        edge_starts = list(set(subroute_edge_starts[subroute.value]))
 
-    initial_config = InitialConfig(
-        spacing='random',
-        edges_distribution=edge_starts,
-        min_gap=2)
-    # initial_config = InitialConfig(
-    #     spacing="random",
-    #     min_gap=5
-    # )
+        initial_config = InitialConfig(
+            spacing='random',
+            edges_distribution=edge_starts,
+            min_gap=2
+        )
+
+
     scenario = MiniCityScenario(
         name='minicity',
         vehicles=vehicles,
@@ -168,7 +215,9 @@ if __name__ == "__main__":
                                save_render=False,
                                sight_radius=50,
                                pxpm=3,
-                               show_radius=True)
+                               show_radius=True,
+                               subroute=SubRoute.ALL) # Change this line to specify subnetwork
+                               # Pass in as SubRoute.ALL, SubRoute.TOP_LEFT, SubRoute.TOP_RIGHT, or SubRoute.BOTTOM
 
         # run for a set number of rollouts / time steps
         exp.run(1, 7200, convert_to_csv=True)
