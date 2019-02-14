@@ -16,11 +16,12 @@ from flow.scenarios.netfile import NetFileScenario
 from flow.scenarios.loop_merge import TwoLoopsOneMergingScenario
 from flow.scenarios.intersection import SoftIntersectionScenario, \
     HardIntersectionScenario
+from flow.scenarios.minicity import MiniCityScenario
 
 __all__ = [
     "Scenario", "BayBridgeScenario", "BayBridgeTollScenario",
     "BottleneckScenario", "Figure8Scenario", "SimpleGridScenario",
     "HighwayScenario", "LoopScenario", "MergeScenario", "NetFileScenario",
     "TwoLoopsOneMergingScenario", "SoftIntersectionScenario",
-    "HardIntersectionScenario",
+    "HardIntersectionScenario", "MiniCityScenario"
 ]
