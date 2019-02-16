@@ -43,7 +43,7 @@ def desired_velocity(env, fail=False, edge_list=None):
     vel = np.array(env.k.vehicle.get_speed(veh_ids))
     num_vehicles = len(veh_ids)
 
-    if any(vel < -100) or fail:
+    if any(vel < -100) or fail or num_vehicles == 0:
         return 0.
 
     target_vel = env.env_params.additional_params['target_velocity']
@@ -53,7 +53,10 @@ def desired_velocity(env, fail=False, edge_list=None):
     cost = vel - target_vel
     cost = np.linalg.norm(cost)
 
-    return max(max_cost - cost, 0) / max_cost
+    try:
+        return max(max_cost - cost, 0) / max_cost
+    except ZeroDivisionError:
+        return 0
 
 
 def average_velocity(env, fail=False):
@@ -162,8 +165,11 @@ def min_delay_unscaled(env):
         for edge in env.k.scenario.get_edge_list())
     time_step = env.sim_step
 
-    cost = time_step * sum((v_top - vel) / v_top)
-    return cost / len(env.k.vehicle.get_ids())
+    try:
+        cost = time_step * sum((v_top - vel) / v_top)
+        return cost / len(env.k.vehicle.get_ids())
+    except ZeroDivisionError:
+        return 0
 
 
 def penalize_standstill(env, gain=1):
