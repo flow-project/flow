@@ -368,7 +368,7 @@ class AimsunKernelVehicle(KernelVehicle):
         ----------
         veh_ids : list
             list of vehicle identifiers
-        route_choices : numpy ndarray or list of floats
+        route_choices : array_like
             list of edges the vehicle wishes to traverse, starting with the
             edge the vehicle is currently on. If a value of None is provided,
             the vehicle does not update its route

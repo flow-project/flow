@@ -116,6 +116,7 @@ def setup_exps():
     config['model'].update({'fcnet_hiddens': [32, 32]})
     config['lr'] = tune.grid_search([1e-5])
     config['horizon'] = HORIZON
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay

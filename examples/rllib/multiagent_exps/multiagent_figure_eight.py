@@ -47,7 +47,7 @@ vehicles.add(
     }),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode='no_collide',
+        speed_mode='obey_safe_speed',
     ),
     num_vehicles=13)
 vehicles.add(
@@ -55,7 +55,7 @@ vehicles.add(
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
     car_following_params=SumoCarFollowingParams(
-        speed_mode='no_collide',
+        speed_mode='obey_safe_speed',
     ),
     num_vehicles=1)
 
@@ -123,6 +123,7 @@ def setup_exps():
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['observation_filter'] = 'NoFilter'
 
     # save the flow params for replay

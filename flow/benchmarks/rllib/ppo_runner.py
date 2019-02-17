@@ -51,7 +51,7 @@ parser.add_argument(
 parser.add_argument(
     '--num_cpus',
     type=int,
-    default=6,
+    default=2,
     help="The number of cpus to use.")
 
 if __name__ == "__main__":
@@ -97,6 +97,7 @@ if __name__ == "__main__":
     config["lr"] = step_size
     config["vf_clip_param"] = 1e6
     config["num_sgd_iter"] = 10
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["model"]["fcnet_hiddens"] = [100, 50, 25]
     config["observation_filter"] = "NoFilter"
 

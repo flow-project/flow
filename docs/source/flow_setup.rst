@@ -190,9 +190,12 @@ optional but may be of use when trying to execute some of the examples files
 located in Flow.
 RLlib is one such library.
 First visit <https://github.com/flow-project/ray/blob/master/doc/source/installation.rst> and
-install the required packages. Do NOT `pip install ray`.
+install the required packages.
 
-The installation process for this library is as follows:
+If you are not intending to develop RL algorithms or customize rllib you don't need to do anything,
+Ray was installed when you created the conda environment. 
+
+If you are intending to modify Ray, the installation process for this library is as follows:
 
 ::
 

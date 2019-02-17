@@ -52,7 +52,7 @@ parser.add_argument(
 parser.add_argument(
     '--num_cpus',
     type=int,
-    default=6,
+    default=2,
     help="The number of rollouts to average over.")
 
 if __name__ == "__main__":
@@ -91,6 +91,7 @@ if __name__ == "__main__":
     config["sgd_stepsize"] = 0.2
     config["noise_stdev"] = 0.2
     config['eval_prob'] = 0.05
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['observation_filter'] = "NoFilter"
 
     # save the flow params for replay
