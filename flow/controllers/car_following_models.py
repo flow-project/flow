@@ -330,6 +330,8 @@ class IDMController(BaseController):
         desirable velocity, in m/s (default: 30)
     T : float
         safe time headway, in s (default: 1)
+    a : float
+        max acceleration, in m/s2 (default: 1)
     b : float
         comfortable deceleration, in m/s2 (default: 1.5)
     delta : float
