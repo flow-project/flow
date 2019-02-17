@@ -61,12 +61,33 @@ def get_flow_params(col_num, row_num, additional_net_params):
     return initial_config, net_params
 
 
-def get_non_flow_params(enter_speed, additional_net_params):
+def get_non_flow_params(enter_speed, add_net_params):
+    """Define the network and initial params in the absence of inflows.
+
+    Note that when a vehicle leaves a network in this case, it is immediately
+    returns to the start of the row/column it was traversing, and in the same
+    direction as it was before.
+
+    Parameters
+    ----------
+    enter_speed : float
+        initial speed of vehicles as they enter the network.
+    add_net_params: dict
+        additional network-specific parameters (unique to the grid)
+
+    Returns
+    -------
+    flow.core.params.InitialConfig
+        parameters specifying the initial configuration of vehicles in the
+        network
+    flow.core.params.NetParams
+        network-specific parameters used to generate the scenario
+    """
     additional_init_params = {'enter_speed': enter_speed}
     initial_config = InitialConfig(
         spacing='custom', additional_params=additional_init_params)
     net_params = NetParams(
-        no_internal_links=False, additional_params=additional_net_params)
+        no_internal_links=False, additional_params=add_net_params)
 
     return initial_config, net_params
 
@@ -179,6 +200,7 @@ def setup_exps():
     config['lambda'] = 0.97
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config['horizon'] = HORIZON
 
     # save the flow params for replay

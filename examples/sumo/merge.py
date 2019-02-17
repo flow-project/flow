@@ -48,7 +48,7 @@ def merge_example(render=None):
             "noise": 0.2
         }),
         car_following_params=SumoCarFollowingParams(
-            speed_mode="no_collide",
+            speed_mode="obey_safe_speed",
         ),
         num_vehicles=5)
 

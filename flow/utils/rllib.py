@@ -3,14 +3,16 @@ Utility functions for Flow compatibility with RLlib.
 
 This includes: environment generation, serialization, and visualization.
 """
-import dill
 import json
 from copy import deepcopy
+import os
 
 from flow.core.params import SumoLaneChangeParams, SumoCarFollowingParams, \
     SumoParams, InitialConfig, EnvParams, NetParams, InFlows
 from flow.core.params import TrafficLightParams
 from flow.core.params import VehicleParams
+
+from ray.cloudpickle import cloudpickle
 
 
 class FlowParamsEncoder(json.JSONEncoder):
@@ -139,14 +141,27 @@ def get_flow_params(config):
 
 def get_rllib_config(path):
     """Return the data from the specified rllib configuration file."""
-    jsonfile = path + '/params.json'  # params.json is the config file
-    jsondata = json.loads(open(jsonfile).read())
-    return jsondata
+    config_path = os.path.join(path, "params.json")
+    if not os.path.exists(config_path):
+        config_path = os.path.join(path, "../params.json")
+    if not os.path.exists(config_path):
+        raise ValueError(
+            "Could not find params.json in either the checkpoint dir or "
+            "its parent directory.")
+    with open(config_path) as f:
+        config = json.load(f)
+    return config
 
 
 def get_rllib_pkl(path):
     """Return the data from the specified rllib configuration file."""
-    pklfile = path + '/params.pkl'  # params.json is the config file
-    with open(pklfile, 'rb') as file:
-        pkldata = dill.load(file)
-    return pkldata
+    config_path = os.path.join(path, "params.pkl")
+    if not os.path.exists(config_path):
+        config_path = os.path.join(path, "../params.pkl")
+    if not os.path.exists(config_path):
+        raise ValueError(
+            "Could not find params.pkl in either the checkpoint dir or "
+            "its parent directory.")
+    with open(config_path, 'rb') as f:
+        config = cloudpickle.load(f)
+    return config
