@@ -117,8 +117,9 @@ def get_non_flow_params(enter_speed, add_net_params):
     flow.core.params.NetParams
         network-specific parameters used to generate the scenario
     """
-    additional_init_params = {"enter_speed": enter_speed}
-    initial_config = InitialConfig(additional_params=additional_init_params)
+    additional_init_params = {'enter_speed': enter_speed}
+    initial_config = InitialConfig(
+        spacing='custom', additional_params=additional_init_params)
     net_params = NetParams(
         no_internal_links=False, additional_params=add_net_params)
 

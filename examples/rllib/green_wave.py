@@ -23,28 +23,9 @@ HORIZON = 200
 N_ROLLOUTS = 20
 # number of parallel workers
 N_CPUS = 2
-# set to true if you would like to run the experiment with inflows of vehicles
-# from the edges, and false otherwise
-USE_INFLOWS = False
-# inflow rate of vehicles at every edge (only if USE_INFLOWS is set to True)
-EDGE_INFLOW = 300
 
 
 def gen_edges(row_num, col_num):
-    """Define the names of all edges in the network.
-
-    Parameters
-    ----------
-    row_num : int
-        number of rows of edges in the grid
-    col_num : int
-        number of columns of edges in the grid
-
-    Returns
-    -------
-    list of str
-        names of every edge to be generated.
-    """
     edges = []
     for i in range(col_num):
         edges += ['left' + str(row_num) + '_' + str(i)]
@@ -58,26 +39,7 @@ def gen_edges(row_num, col_num):
     return edges
 
 
-def get_flow_params(col_num, row_num, add_net_params):
-    """Define the network and initial params in the presence of inflows.
-
-    Parameters
-    ----------
-    col_num : int
-        number of columns of edges in the grid
-    row_num : int
-        number of rows of edges in the grid
-    add_net_params : dict
-        additional network-specific parameters (unique to the grid)
-
-    Returns
-    -------
-    flow.core.params.InitialConfig
-        parameters specifying the initial configuration of vehicles in the
-        network
-    flow.core.params.NetParams
-        network-specific parameters used to generate the scenario
-    """
+def get_flow_params(col_num, row_num, additional_net_params):
     initial_config = InitialConfig(
         spacing='custom', lanes_distribution=float('inf'), shuffle=True)
 
@@ -94,7 +56,7 @@ def get_flow_params(col_num, row_num, add_net_params):
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False,
-        additional_params=add_net_params)
+        additional_params=additional_net_params)
 
     return initial_config, net_params
 
@@ -121,8 +83,9 @@ def get_non_flow_params(enter_speed, add_net_params):
     flow.core.params.NetParams
         network-specific parameters used to generate the scenario
     """
-    additional_init_params = {"enter_speed": enter_speed}
-    initial_config = InitialConfig(additional_params=additional_init_params)
+    additional_init_params = {'enter_speed': enter_speed}
+    initial_config = InitialConfig(
+        spacing='custom', additional_params=additional_init_params)
     net_params = NetParams(
         no_internal_links=False, additional_params=add_net_params)
 
@@ -181,14 +144,8 @@ vehicles.add(
     routing_controller=(GridRouter, {}),
     num_vehicles=tot_cars)
 
-if USE_INFLOWS:
-    initial_config, net_params = get_flow_params(
-        col_num=N_COLUMNS,
-        row_num=N_ROWS,
-        add_net_params=additional_net_params)
-else:
-    initial_config, net_params = get_non_flow_params(
-        V_ENTER, additional_net_params)
+initial_config, net_params = \
+    get_non_flow_params(V_ENTER, additional_net_params)
 
 flow_params = dict(
     # name of the experiment
