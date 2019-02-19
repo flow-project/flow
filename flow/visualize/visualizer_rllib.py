@@ -72,11 +72,6 @@ def visualizer_rllib(args):
     sim_params = flow_params['sim']
     setattr(sim_params, 'num_clients', 1)
 
-    # Create and register a gym+rllib env
-    create_env, env_name = make_create_env(
-        params=flow_params, version=0, render=False)
-    register_env(env_name, create_env)
-
     # Determine agent and checkpoint
     config_run = config['env_config']['run'] if 'run' in config['env_config'] \
         else None
@@ -117,6 +112,11 @@ def visualizer_rllib(args):
         sim_params.render = 'drgb'
         sim_params.pxpm = 4
         sim_params.save_render = True
+
+    # Create and register a gym+rllib env
+    create_env, env_name = make_create_env(
+        params=flow_params, version=0)
+    register_env(env_name, create_env)
 
     # Recreate the scenario from the pickled parameters
     exp_tag = flow_params['exp_tag']
