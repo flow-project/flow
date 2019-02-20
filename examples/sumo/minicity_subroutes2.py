@@ -27,10 +27,14 @@ class SubRoute(Enum):
 
 
 
-SUBNETWORK = SubRoute.ALL # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
-                                 # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
+SUBNETWORK = SubRoute.ALL   # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
+                            # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
-TRAFFIC_LIGHTS = True           # CHANGE THIS to True to add traffic lights to Minicity
+TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
+
+RENDERER = 'drgb'           # PARAMETER. 
+                            # Set to True to use default Sumo renderer, 
+                            # Set to 'drgb' for Fangyu's renderer
 
 
 
@@ -332,7 +336,7 @@ class MinicityRouter(BaseRouter):
                 next_edge = random.choice(subnetwork_edges[edge])
             else:
                 # Edge choices weighted by integer. 
-                # Inefficient implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices 
+                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices 
                 next_edge = random.choice(sum(([edge]*weight for edge, weight in subnetwork_edges), []))
         self.prev_edge = edge
         if next_edge is None:
@@ -442,6 +446,8 @@ def minicity_example(render=None,
         # lane_change_params=SumoLaneChangeParams(
         #     lane_change_mode="strategic",
         # ),
+        speed_mode="no_collide",
+        lane_change_mode="strategic",
         initial_speed=0,
         num_vehicles=50)
     vehicles.add(
@@ -451,6 +457,8 @@ def minicity_example(render=None,
         # car_following_params=SumoCarFollowingParams(
         #     speed_mode="strategic",
         # ),
+        speed_mode="no_collide",
+        lane_change_mode="strategic",
         initial_speed=0,
         num_vehicles=0)
 
@@ -517,7 +525,7 @@ if __name__ == "__main__":
     # Dynamic grayscale rendering: minicity_example(render="dgray")
     # Static RGB rendering: minicity_example(render="rgb")
     # Dynamic RGB rendering: minicity_example(render="drgb")
-    exp = minicity_example(render=True,
+    exp = minicity_example(render=RENDERER,
                            save_render=False,
                            sight_radius=30,
                            pxpm=3,
