@@ -50,15 +50,18 @@ def minicity_example(render=None,
     if show_radius is not None:
         sumo_params.show_radius = show_radius
 
+    sumo_car_following_params = SumoCarFollowingParams(decel=7.5)
+
     vehicles = Vehicles()
     vehicles.add(
-        veh_id="idm",
+        veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        speed_mode="right_of_way",
+        speed_mode=31,
         lane_change_mode="aggressive",
         initial_speed=0,
-        num_vehicles=110)
+        num_vehicles=110,
+        sumo_car_following_params=sumo_car_following_params)
     # vehicles.add(
     #     veh_id="rl",
     #     acceleration_controller=(RLController, {}),
@@ -70,40 +73,40 @@ def minicity_example(render=None,
     tl_logic = TrafficLights(baseline=False)
 
     nodes = ["n_i1", 'n_i2', 'n_i3', "n_i4", 'n_i6', 'n_i7', 'n_i8', 'n_m3']
-    phases = [{"duration": "10", "state": "GGGGrrGGGGrr"},
-              {"duration": "2", "state": "yyyGrryyGyrr"},
-              {"duration": "10", "state": "GrrGGGGrrGGG"},
-              {"duration": "2", "state": "GrryyyGrryyy"}]
+    phases = [{"duration": "15", "state": "GGGGrrGGGGrr"},
+              {"duration": "5", "state": "yyyGrryyGyrr"},
+              {"duration": "15", "state": "GrrGGGGrrGGG"},
+              {"duration": "15", "state": "GrryyyGrryyy"}]
 
     #merge
-    phases_m3 = [{"duration": "10", "state": "GGrG"},
-              {"duration": "2", "state": "yGry"},
-              {"duration": "5", "state": "rGGr"},
-              {"duration": "2", "state": "rGyr"}]
+    phases_m3 = [{"duration": "15", "state": "GGrG"},
+              {"duration": "5", "state": "yGry"},
+              {"duration": "15", "state": "rGGr"},
+              {"duration": "5", "state": "rGyr"}]
 
     #top left traffic light
-    phases_2 = [{"duration": "10", "state": "GGGrGG"},
-              {"duration": "2", "state": "yyyryy"},
-              {"duration": "5", "state": "rrGGGr"},
-              {"duration": "2", "state": "rryyyr"}]
+    phases_2 = [{"duration": "15", "state": "GGGrGG"},
+              {"duration": "5", "state": "yyyryy"},
+              {"duration": "15", "state": "rrGGGr"},
+              {"duration": "5", "state": "rryyyr"}]
 
     #center traffic light
-    phases_3 = [{"duration": "10", "state": "GGGGGrrrGGGGGrrr"},
-                {"duration": "2", "state": "yyyyyrrryyyyyrrr"},
-                {"duration": "10", "state": "GrrrGGGGGrrrGGGG"},
-                {"duration": "2", "state": "yrrryyyyyrrryyyy"}]
+    phases_3 = [{"duration": "15", "state": "GGGGGrrrGGGGGrrr"},
+                {"duration": "5", "state": "yyyyyrrryyyyyrrr"},
+                {"duration": "15", "state": "GrrrGGGGGrrrGGGG"},
+                {"duration": "5", "state": "yrrryyyyyrrryyyy"}]
 
     #bottom right traffic light
-    phases_6 = [{"duration": "10", "state": "GGGGGrr"},
-                {"duration": "2", "state": "yyGGGrr"},
-                {"duration": "5", "state": "GrrrGGG"},
-                {"duration": "2", "state": "Grrryyy"}]
+    phases_6 = [{"duration": "15", "state": "GGGGGrr"},
+                {"duration": "5", "state": "yyGGGrr"},
+                {"duration": "15", "state": "GrrrGGG"},
+                {"duration": "5", "state": "Grrryyy"}]
 
     #top right traffic light
-    phases_8 = [{"duration": "10", "state": "GrrrGGG"},
-                {"duration": "2", "state": "Grrryyy"},
-                {"duration": "5", "state": "GGGGGrr"},
-                {"duration": "2", "state": "yyGGGrr"}]
+    phases_8 = [{"duration": "15", "state": "GrrrGGG"},
+                {"duration": "5", "state": "Grrryyy"},
+                {"duration": "15", "state": "GGGGGrr"},
+                {"duration": "5", "state": "yyGGGrr"}]
 
     for node_id in nodes:
         if node_id == 'n_i2':
