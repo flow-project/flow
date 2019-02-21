@@ -7,12 +7,15 @@ from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, In
 from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
 #from flow.core.params import VehicleParams
 from flow.core.vehicles import Vehicles # Modified from VehicleParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
+from flow.envs.loop.loop_accel import * #AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
 from flow.core.traffic_lights import TrafficLights
 import numpy as np
 import random
 from enum import Enum
+
+from matplotlib import pyplot as plt
+import time
 
 np.random.seed(204)
 
@@ -27,7 +30,7 @@ class SubRoute(Enum):
 
 
 
-SUBNETWORK = SubRoute.ALL   # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
+SUBNETWORK = SubRoute.BOTTOM   # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
                             # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
@@ -299,6 +302,17 @@ SUBROUTE_EDGES = [
     },
 ]
 
+# The cropping dimensions for a subnetwork out of whole Minicity.
+# Contains (minWidth, maxWidth, minHeight, maxHeight) 
+
+SUBNET_CROP = [
+    (0, 5000, 0, 5000), # Full network 
+    (0, 2500, 0, 2500),  # Top left
+    (2500, 5000, 0, 2500), # Top right
+    (0, 5000, 2000, 5000), # Bottom
+    (2500, 5000, 0, 5000), # Full right
+]
+
 # Whether pre-defined subnetwork is not a self-contained loop.
 # If routes are clipped and vehicles can exit subnetwork, requires vehicle inflows
 REQUIRES_INFLOWS = [
@@ -511,9 +525,61 @@ def minicity_example(render=None,
             initial_config=initial_config,
             net_params=net_params)
 
-    env = AccelEnv(env_params, sim_params, scenario)
+    # env = AccelEnv(env_params, sim_params, scenario)
+    env = AccelSubnetEnv(env_params, sim_params, scenario)
+    #env = AccelCNNSubnetEnv(env_params, sim_params, scenario)
 
     return SumoExperiment(env, scenario) # modified from Experiment(), added scenario param
+
+class AccelSubnetEnv(AccelEnv):
+
+    def render(self, reset=False, buffer_length=5):
+        """Render a frame.
+        Parameters
+        ----------
+        reset: bool
+            set to True to reset the buffer
+        buffer_length: int
+            length of the buffer
+        """
+        if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+            # render a frame
+            self.pyglet_render()
+
+            # cache rendering
+            if reset:
+                self.frame_buffer = [self.frame.copy() for _ in range(5)]
+                self.sights_buffer = [self.sights.copy() for _ in range(5)]
+
+                # Crop self.frame_buffer to subnetwork only
+                for frame in self.frame_buffer:
+                    subnet_xmin = SUBNET_CROP[SUBNETWORK.value][0]
+                    subnet_xmax = SUBNET_CROP[SUBNETWORK.value][1]
+                    subnet_ymin = SUBNET_CROP[SUBNETWORK.value][2]
+                    subnet_ymax = SUBNET_CROP[SUBNETWORK.value][3]
+                    frame = frame[subnet_ymin:subnet_ymax, \
+                                 subnet_xmin:subnet_xmax, :]
+            else:
+                if self.step_counter % int(1/self.sim_step) == 0:
+                    next_frame = self.frame.copy()
+                    subnet_xmin = SUBNET_CROP[SUBNETWORK.value][0]
+                    subnet_xmax = SUBNET_CROP[SUBNETWORK.value][1]
+                    subnet_ymin = SUBNET_CROP[SUBNETWORK.value][2]
+                    subnet_ymax = SUBNET_CROP[SUBNETWORK.value][3]
+                    next_frame = next_frame[subnet_ymin:subnet_ymax, \
+                                 subnet_xmin:subnet_xmax, :]
+
+                    # Save a cropped image to current executing directory for debug
+                    plt.imsave('test_subnet_crop.png', next_frame)
+
+
+                    self.frame_buffer.append(next_frame)
+                    self.sights_buffer.append(self.sights.copy())
+
+                if len(self.frame_buffer) > buffer_length:
+                    self.frame_buffer.pop(0)
+                    self.sights_buffer.pop(0)
+
 
 
 if __name__ == "__main__":
