@@ -15,7 +15,6 @@ import random
 from enum import Enum
 
 from matplotlib import pyplot as plt
-import time
 
 np.random.seed(204)
 
@@ -30,7 +29,7 @@ class SubRoute(Enum):
 
 
 
-SUBNETWORK = SubRoute.BOTTOM  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
+SUBNETWORK = SubRoute.FULL_RIGHT  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
                             # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
@@ -525,9 +524,10 @@ def minicity_example(render=None,
             initial_config=initial_config,
             net_params=net_params)
 
-    # env = AccelEnv(env_params, sim_params, scenario)
+    #env = AccelEnv(env_params, sim_params, scenario)
     env = AccelSubnetEnv(env_params, sim_params, scenario)
     #env = AccelCNNSubnetEnv(env_params, sim_params, scenario)
+    #env = AccelCNNEnv(env_params, sim_params, scenario)
 
     return SumoExperiment(env, scenario) # modified from Experiment(), added scenario param
 
@@ -580,6 +580,58 @@ class AccelSubnetEnv(AccelEnv):
                     self.frame_buffer.pop(0)
                     self.sights_buffer.pop(0)
 
+
+class AccelCNNSubnetEnv(AccelCNNEnv):
+
+    # Currently has a bug with "sights_buffer / 255" in original AccelCNNEnv
+    pass
+
+    # def render(self, reset=False, buffer_length=5):
+    #     """Render a frame.
+    #     Parameters
+    #     ----------
+    #     reset: bool
+    #         set to True to reset the buffer
+    #     buffer_length: int
+    #         length of the buffer
+    #     """
+    #     if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
+    #         # render a frame
+    #         self.pyglet_render()
+
+    #         # cache rendering
+    #         if reset:
+    #             self.frame_buffer = [self.frame.copy() for _ in range(5)]
+    #             self.sights_buffer = [self.sights.copy() for _ in range(5)]
+
+    #             # Crop self.frame_buffer to subnetwork only
+    #             for frame in self.frame_buffer:
+    #                 subnet_xmin = SUBNET_CROP[SUBNETWORK.value][0]
+    #                 subnet_xmax = SUBNET_CROP[SUBNETWORK.value][1]
+    #                 subnet_ymin = SUBNET_CROP[SUBNETWORK.value][2]
+    #                 subnet_ymax = SUBNET_CROP[SUBNETWORK.value][3]
+    #                 frame = frame[subnet_ymin:subnet_ymax, \
+    #                              subnet_xmin:subnet_xmax, :]
+    #         else:
+    #             if self.step_counter % int(1/self.sim_step) == 0:
+    #                 next_frame = self.frame.copy()
+    #                 subnet_xmin = SUBNET_CROP[SUBNETWORK.value][0]
+    #                 subnet_xmax = SUBNET_CROP[SUBNETWORK.value][1]
+    #                 subnet_ymin = SUBNET_CROP[SUBNETWORK.value][2]
+    #                 subnet_ymax = SUBNET_CROP[SUBNETWORK.value][3]
+    #                 next_frame = next_frame[subnet_ymin:subnet_ymax, \
+    #                              subnet_xmin:subnet_xmax, :]
+
+    #                 # Save a cropped image to current executing directory for debug
+    #                 # plt.imsave('test_subnet_crop.png', next_frame)
+
+
+    #                 self.frame_buffer.append(next_frame)
+    #                 self.sights_buffer.append(self.sights.copy())
+
+    #             if len(self.frame_buffer) > buffer_length:
+    #                 self.frame_buffer.pop(0)
+    #                 self.sights_buffer.pop(0)
 
 
 if __name__ == "__main__":
