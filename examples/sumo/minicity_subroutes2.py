@@ -30,7 +30,7 @@ class SubRoute(Enum):
 
 
 
-SUBNETWORK = SubRoute.BOTTOM   # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
+SUBNETWORK = SubRoute.BOTTOM  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
                             # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
@@ -307,9 +307,9 @@ SUBROUTE_EDGES = [
 
 SUBNET_CROP = [
     (0, 5000, 0, 5000), # Full network 
-    (0, 2500, 0, 2500),  # Top left
-    (2500, 5000, 0, 2500), # Top right
-    (0, 5000, 2000, 5000), # Bottom
+    (0, 920, 0, 1020),  # Top left
+    (890, 5000, 0, 1020), # Top right
+    (0, 3000, 970, 5000), # Bottom
     (2500, 5000, 0, 5000), # Full right
 ]
 
