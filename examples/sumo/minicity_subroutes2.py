@@ -432,7 +432,7 @@ def minicity_example(render=None,
         A non-rl experiment demonstrating the performance of human-driven
         vehicles on the minicity scenario.
     """
-    sim_params = SumoParams(sim_step=0.25)
+    sim_params = SumoParams(sim_step=0.25, emission_path='./data/')
 
     if render is not None:
         sim_params.render = render
@@ -570,7 +570,7 @@ class AccelSubnetEnv(AccelEnv):
                                  subnet_xmin:subnet_xmax, :]
 
                     # Save a cropped image to current executing directory for debug
-                    plt.imsave('test_subnet_crop.png', next_frame)
+                    # plt.imsave('test_subnet_crop.png', next_frame)
 
 
                     self.frame_buffer.append(next_frame)
