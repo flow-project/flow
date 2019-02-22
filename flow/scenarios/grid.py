@@ -570,21 +570,22 @@ class SimpleGridScenario(Scenario):
         return intersection_edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """See parent class."""
-        row_num = cls.network.grid_array["row_num"]
-        col_num = cls.network.grid_array["col_num"]
+        grid_array = net_params.additional_params["grid_array"]
+        row_num = grid_array["row_num"]
+        col_num = grid_array["col_num"]
         per_edge = int(num_vehicles / (2 * (row_num + col_num)))
         start_positions = []
         d_inc = 10
-        for i in range(cls.network.col_num):
+        for i in range(col_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("right0_{}".format(i), x))
                 start_positions.append(("left{}_{}".format(row_num, i), x))
                 x += d_inc
 
-        for i in range(cls.network.row_num):
+        for i in range(row_num):
             x = 6
             for k in range(per_edge):
                 start_positions.append(("bot{}_0".format(i), x))

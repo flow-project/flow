@@ -68,7 +68,7 @@ class MultiLoopScenario(Scenario):
         return edgestarts
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate uniformly spaced starting positions on each ring.
 
         It is assumed that there are an equal number of vehicles per ring.
@@ -81,8 +81,10 @@ class MultiLoopScenario(Scenario):
          available_edges, initial_config) = \
             cls._get_start_pos_util(initial_config, num_vehicles)
 
+        length = net_params.additional_params["length"]
+        num_rings = net_params.additional_params["num_rings"]
         increment = available_length / num_vehicles
-        vehs_per_ring = num_vehicles / cls.network.num_rings
+        vehs_per_ring = num_vehicles / num_rings
 
         x = x0
         car_count = 0
@@ -98,7 +100,7 @@ class MultiLoopScenario(Scenario):
                 car_count += 1
                 startpositions.append(pos)
                 edge, pos = startpositions[-1]
-                startpositions[-1] = edge, pos % cls.length()
+                startpositions[-1] = edge, pos % length
                 startlanes.append(lane)
 
                 if car_count == num_vehicles:
@@ -110,7 +112,7 @@ class MultiLoopScenario(Scenario):
                 # if we have put in the right number of cars,
                 # move onto the next ring
                 ring_num = int(car_count / vehs_per_ring)
-                x = cls.length() * ring_num + 1e-13
+                x = length * ring_num + 1e-13
 
         # add a perturbation to each vehicle, while not letting the vehicle
         # leave its current edge
