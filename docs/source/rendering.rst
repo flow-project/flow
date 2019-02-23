@@ -24,7 +24,9 @@ An example of an extracted local observation is as follows.
    :align: center
 
 To generate the rendering seen above, use
+
 ::
+
     exp = minicity_example(render='drgb',  # Render in dynamic RGB colors
                            save_render=False,  # Disable saving
                            sight_radius=30,  # Radius of obs.
@@ -33,7 +35,9 @@ To generate the rendering seen above, use
 
 To render in grayscale without observation circles, which is usually desired for
 learning, use
+
 ::
+
    exp = minicity_example(render='gray',  # Render in grayscale
                           save_render=False,  # Disable saving
                           sight_radius=30,  # Radius of obs.
@@ -56,7 +60,9 @@ To save the rendering, set ``save_render=True``. The rendered frames and local
 observations will be saved at ``~/flow_rendering``.
 
 Finally, to compile the rendered frames into a video, install ``ffmpeg`` and run
+
 ::
+
     ffmpeg -i "~/flow_rendering/path_to/frame_%06d.png" -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" replay.mp4
 
 For more information, check the

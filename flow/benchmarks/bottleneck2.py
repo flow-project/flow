@@ -4,11 +4,9 @@ Bottleneck in which the actions are specifying a desired velocity in a segment
 of space for a large bottleneck.
 The autonomous penetration rate in this example is 10%.
 
-Action Dimension: (40, )
-
-Observation Dimension: (281, )
-
-Horizon: 1000 steps
+- **Action Dimension**: (40, )
+- **Observation Dimension**: (281, )
+- **Horizon**: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \

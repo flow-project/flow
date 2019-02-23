@@ -1,10 +1,8 @@
 """Benchmark for grid0.
 
-Action Dimension: (9, )
-
-Observation Dimension: (339, )
-
-Horizon: 400 steps
+- **Action Dimension**: (9, )
+- **Observation Dimension**: (339, )
+- **Horizon**: 400 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \

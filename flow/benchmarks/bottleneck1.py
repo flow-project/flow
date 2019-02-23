@@ -4,11 +4,9 @@ Bottleneck in which the actions are specifying a desired velocity in a segment
 of space. The autonomous penetration rate in this example is 25%.
 Human lane changing is enabled.
 
-Action Dimension: (?, )
-
-Observation Dimension: (?, )
-
-Horizon: 1000 steps
+- **Action Dimension**: (?, )
+- **Observation Dimension**: (?, )
+- **Horizon**: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
