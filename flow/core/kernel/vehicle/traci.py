@@ -95,7 +95,10 @@ class TraCIVehicle(KernelVehicle):
             specifies whether the simulator was reset in the last simulation
             step
         """
-        vehicle_obs = self.kernel_api.vehicle.getSubscriptionResults()
+        vehicle_obs = {}
+        for veh_id in self.__ids:
+            vehicle_obs[veh_id] = \
+                self.kernel_api.vehicle.getSubscriptionResults(veh_id)
         sim_obs = self.kernel_api.simulation.getSubscriptionResults()
 
         # remove exiting vehicles from the vehicles class
