@@ -544,15 +544,14 @@ class TraCIVehicle(KernelVehicle):
     def get_lane_leaders_speed(self, veh_id, error=list()):
         """See parent class."""
         lane_leaders = self.get_lane_leaders(veh_id)
-        return [0 if lane_leader is '' else
-                self.get_speed(lane_leader) for lane_leader in lane_leaders]
+        return [0 if lane_leader == '' else self.get_speed(lane_leader)
+                for lane_leader in lane_leaders]
 
     def get_lane_followers_speed(self, veh_id, error=list()):
         """See parent class."""
         lane_followers = self.get_lane_followers(veh_id)
-        return [0 if lane_follower is '' else
-                self.get_speed(lane_follower) for
-                lane_follower in lane_followers]
+        return [0 if lane_follower == '' else self.get_speed(lane_follower)
+                for lane_follower in lane_followers]
 
     def set_lane_leaders(self, veh_id, lane_leaders):
         """Set the lane leaders of the specified vehicle."""

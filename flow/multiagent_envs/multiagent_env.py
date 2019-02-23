@@ -32,18 +32,18 @@ class MultiEnv(MultiAgentEnv, Env):
 
         Parameters
         ----------
-        rl_actions: numpy ndarray
+        rl_actions : array_like
             an list of actions provided by the rl algorithm
 
         Returns
         -------
-        observation: dict of numpy ndarrays
+        observation : dict of array_like
             agent's observation of the current environment
-        reward: dict of floats
+        reward : dict of floats
             amount of reward associated with the previous state/action pair
-        done: dict of bools
+        done : dict of bool
             indicates whether the episode has ended
-        info: dict
+        info : dict
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
@@ -129,7 +129,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         Returns
         -------
-        observation: dict of numpy ndarrays
+        observation : dict of array_like
             the initial observation of the space. The initial reward is assumed
             to be zero.
         """
@@ -250,12 +250,12 @@ class MultiEnv(MultiAgentEnv, Env):
 
         Parameters
         ----------
-        rl_actions: list or numpy ndarray
+        rl_actions : array_like
             list of actions provided by the RL algorithm
 
         Returns
         -------
-        rl_clipped: np.ndarray (float)
+        rl_clipped : array_like
             The rl_actions clipped according to the box
         """
         # ignore if no actions are issued
@@ -279,7 +279,7 @@ class MultiEnv(MultiAgentEnv, Env):
 
         Parameters
         ----------
-        rl_actions: dict of list or numpy ndarray
+        rl_actions : dict of array_like
             dict of list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued

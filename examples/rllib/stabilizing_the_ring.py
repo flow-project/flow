@@ -106,6 +106,7 @@ def setup_exps():
     config["lambda"] = 0.97
     config["kl_target"] = 0.02
     config["num_sgd_iter"] = 10
+    config['clip_actions'] = False  # FIXME(ev) temporary ray bug
     config["horizon"] = HORIZON
 
     # save the flow params for replay

@@ -2,6 +2,8 @@ import random
 import numpy as np
 import unittest
 import os
+from scipy.optimize import fsolve
+from copy import deepcopy
 from flow.core.params import VehicleParams
 from flow.core.params import NetParams, EnvParams, SumoParams, InFlows
 from flow.controllers import IDMController, RLController
@@ -13,6 +15,7 @@ from flow.scenarios.loop_merge import ADDITIONAL_NET_PARAMS as LM_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
     TestEnv, TwoLoopsMergePOEnv, DesiredVelocityEnv
+from flow.envs.loop.wave_attenuation import v_eq_max_function
 
 
 os.environ["TEST_FLAG"] = "True"
@@ -492,6 +495,43 @@ class TestWaveAttenuationEnv(unittest.TestCase):
         env.reset()
         self.assertEqual(env.k.scenario.length(), 224)
 
+    def test_v_eq_max_function(self):
+        """
+        Tests that the v_eq_max_function returns appropriate values.
+        """
+        # for 230 m ring roads
+        self.assertAlmostEqual(
+            float(fsolve(v_eq_max_function, np.array([4]), args=(22, 230))[0]),
+            3.7136148111012934)
+
+        # for 270 m ring roads
+        self.assertAlmostEqual(
+            float(fsolve(v_eq_max_function, np.array([4]), args=(22, 270))[0]),
+            5.6143732387852054)
+
+    def test_reset_no_same_length(self):
+        """
+        Tests that the reset method uses the original ring length when the
+        range is set to None.
+        """
+        # setup env_params with not range
+        env_params = deepcopy(self.env_params)
+        env_params.additional_params["ring_length"] = None
+
+        # create the environment
+        env = WaveAttenuationEnv(
+            sim_params=self.sim_params,
+            scenario=self.scenario,
+            env_params=env_params
+        )
+
+        # reset the network several times and check its length
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        env.reset()
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+        env.reset()
+        self.assertEqual(env.k.scenario.length(), LOOP_PARAMS["length"])
+
 
 class TestWaveAttenuationPOEnv(unittest.TestCase):
 
@@ -825,9 +865,9 @@ def test_space(gym_space, expected_size, expected_min, expected_max):
         gym space object to be tested
     expected_size : int
         expected size
-    expected_min : float or numpy.ndarray
+    expected_min : float or array_like
         expected minimum value(s)
-    expected_max : float or numpy.ndarray
+    expected_max : float or array_like
         expected maximum value(s)
 
     Returns
@@ -849,7 +889,7 @@ def test_observed(env_class,
 
     Parameters
     ----------
-    env_class : flow.envs.Env type
+    env_class : flow.envs.Env
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
@@ -857,7 +897,7 @@ def test_observed(env_class,
         scenario that works for the environment
     env_params : flow.core.params.EnvParams
         environment-specific parameters
-    expected_observed : list or numpy.ndarray
+    expected_observed : array_like
         expected list of observed vehicles
 
     Returns
