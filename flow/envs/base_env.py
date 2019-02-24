@@ -48,11 +48,12 @@ class Env(*classdef):
     action applicator method, and properties to define the MDP if you
     choose to use it with an rl library (e.g. RLlib). This can be done by
     overloading the following functions in a child class:
-     - action_space
-     - observation_space
-     - apply_rl_action
-     - get_state
-     - compute_reward
+
+    * action_space
+    * observation_space
+    * apply_rl_action
+    * get_state
+    * compute_reward
 
     Attributes
     ----------
