@@ -373,7 +373,6 @@ class BottleneckEnv(Env):
 
     def compute_reward(self, rl_actions, **kwargs):
         """ Outflow rate over last ten seconds normalized to max of 1 """
-
         reward = self.k.vehicle.get_outflow_rate(10 * self.sim_step) / \
             (2000.0 * self.scaling)
         return reward
@@ -418,6 +417,16 @@ class BottleNeckAccelEnv(BottleneckEnv):
 
         super().__init__(env_params, sim_params, scenario, simulator)
         self.add_rl_if_exit = env_params.get_additional_param("add_rl_if_exit")
+        self.num_rl = deepcopy(self.scenario.vehicles.num_rl_vehicles)
+        self.rl_id_list = deepcopy(
+            [veh_id for veh_id in self.scenario.vehicles.ids
+             if self.scenario.vehicles.type_parameters[
+                 self.scenario.vehicles.get_type(veh_id)][
+                 'acceleration_controller'][0] == RLController]
+        )
+        self.max_speed = self.k.scenario.max_speed()
+        self.lane_change_duration = env_params.additional_params[
+            'lane_change_duration']
 
     @property
     def observation_space(self):
@@ -539,6 +548,17 @@ class BottleNeckAccelEnv(BottleneckEnv):
         return (rewards.desired_velocity(self) + rewards.rl_forward_progress(
             self, gain=0.1) - rewards.boolean_action_penalty(
                 lane_change_acts, gain=1.0))
+
+    @property
+    def action_space(self):
+        """See class definition."""
+        max_decel = self.env_params.additional_params["max_decel"]
+        max_accel = self.env_params.additional_params["max_accel"]
+
+        lb = [-abs(max_decel), -1] * self.scenario.vehicles.num_rl_vehicles
+        ub = [max_accel, 1] * self.scenario.vehicles.num_rl_vehicles
+
+        return Box(np.array(lb), np.array(ub), dtype=np.float32)
 
     def _apply_rl_actions(self, actions):
         """
