@@ -78,31 +78,31 @@ def minicity_example(render=None,
               {"duration": "15", "state": "GrrGGGGrrGGG"},
               {"duration": "15", "state": "GrryyyGrryyy"}]
 
-    #merge
+    # merge
     phases_m3 = [{"duration": "15", "state": "GGrG"},
-              {"duration": "5", "state": "yGry"},
-              {"duration": "15", "state": "rGGr"},
-              {"duration": "5", "state": "rGyr"}]
+                 {"duration": "5", "state": "yGry"},
+                 {"duration": "15", "state": "rGGr"},
+                 {"duration": "5", "state": "rGyr"}]
 
-    #top left traffic light
+    # top left traffic light
     phases_2 = [{"duration": "15", "state": "GGGrGG"},
-              {"duration": "5", "state": "yyyryy"},
-              {"duration": "15", "state": "rrGGGr"},
-              {"duration": "5", "state": "rryyyr"}]
+                {"duration": "5", "state": "yyyryy"},
+                {"duration": "15", "state": "rrGGGr"},
+                {"duration": "5", "state": "rryyyr"}]
 
-    #center traffic light
+    # center traffic light
     phases_3 = [{"duration": "15", "state": "GGGGGrrrGGGGGrrr"},
                 {"duration": "5", "state": "yyyyyrrryyyyyrrr"},
                 {"duration": "15", "state": "GrrrGGGGGrrrGGGG"},
                 {"duration": "5", "state": "yrrryyyyyrrryyyy"}]
 
-    #bottom right traffic light
+    # bottom right traffic light
     phases_6 = [{"duration": "15", "state": "GGGGGrr"},
                 {"duration": "5", "state": "yyGGGrr"},
                 {"duration": "15", "state": "GrrrGGG"},
                 {"duration": "5", "state": "Grrryyy"}]
 
-    #top right traffic light
+    # top right traffic light
     phases_8 = [{"duration": "15", "state": "GrrrGGG"},
                 {"duration": "5", "state": "Grrryyy"},
                 {"duration": "15", "state": "GGGGGrr"},
