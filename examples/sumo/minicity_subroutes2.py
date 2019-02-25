@@ -30,12 +30,12 @@ class SubRoute(Enum):
 
 
 
-SUBNETWORK = SubRoute.BOTTOM  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
+SUBNETWORK = SubRoute.ALL  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
                             # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
 
-RENDERER = 'drgb'           # PARAMETER. 
+RENDERER = True   #'drgb'           # PARAMETER. 
                             # Set to True to use default Sumo renderer, 
                             # Set to 'drgb' for Fangyu's renderer
 
@@ -64,7 +64,7 @@ SUBROUTE_EDGES = [
     'e_14': ['e_22', 'e_15'],
     'e_22': 'e_33',
     'e_15': 'e_16',
-    'e_16': 'e_20',
+    # 'e_16': 'e_20',
     'e_20': ['e_47', 'e_48'],
     'e_47': ['e_34', 'e_45', 'e_49'],
     'e_45': 'e_43',
@@ -130,7 +130,7 @@ SUBROUTE_EDGES = [
     'e_7': ['e_8_b', 'e_17'],
     'e_8_b': 'e_8_u',
     'e_17': 'e_28_b',
-    'e_28_b': 'e_36',
+    # 'e_28_b': 'e_36',
     'e_36': 'e_93',
     'e_93': 'e_53',
     'e_53': 'e_64',
@@ -164,7 +164,7 @@ SUBROUTE_EDGES = [
     'e_14': ['e_22', 'e_15'],
     'e_22': 'e_33',
     'e_15': 'e_16',
-    'e_16': 'e_20',
+    # 'e_16': 'e_20',
     'e_20': 'e_47',
     'e_47': ['e_34', 'e_45'],
     'e_45': 'e_43',
@@ -190,7 +190,7 @@ SUBROUTE_EDGES = [
 
     # Top right
     {
-    'e_40': 'e_42',
+    # 'e_40': 'e_42',
     'e_42': 'e_44',
     'e_44': ['e_49', 'e_46'],
     'e_46': 'e_48',
@@ -214,7 +214,7 @@ SUBROUTE_EDGES = [
     'e_50': 'e_60',
     'e_60': 'e_69',
     'e_69': 'e_73',
-    'e_73': ['e_80', 'e_75', 'e_90'],
+    'e_73': ['e_80', 'e_90'], #['e_80', 'e_75', 'e_90'],
     'e_90': 'e_62',
     'e_62': 'e_57',
     'e_57': ['e_58', 'e_59'],
@@ -246,7 +246,7 @@ SUBROUTE_EDGES = [
     'e_7': ['e_8_b', 'e_17'],
     'e_8_b': 'e_8_u',
     'e_17': 'e_28_b',
-    'e_28_b': 'e_36',
+    # 'e_28_b': 'e_36',
     'e_36': 'e_93',
     'e_93': 'e_53',
     'e_53': 'e_64',
@@ -271,7 +271,7 @@ SUBROUTE_EDGES = [
     'e_8_u': 'e_9',
     'e_10': 'e_11',
     'e_11': 'e_25',
-    'e_88': 'e_26',
+    # 'e_88': 'e_26',
     'e_26': 'e_2',
     'e_2': 'e_1',
     'e_1': 'e_7'
@@ -317,9 +317,9 @@ SUBNET_CROP = [
 # If routes are clipped and vehicles can exit subnetwork, requires vehicle inflows
 REQUIRES_INFLOWS = [
     True, # Full network
-    False, # Top-left
-    False, # Top-right
-    False, # Bottom
+    True, # Top-left
+    True, # Top-right
+    True, # Bottom
     True,  # Full-right (Aboudy's)
 ]
 
@@ -489,7 +489,7 @@ def minicity_example(render=None,
         for edge in SUBROUTE_EDGES[SUBNETWORK.value].keys():
             inflow.add(veh_type="idm",
                        edge=edge,
-                       vehs_per_hour=10, # Change this to modify bandwidth/traffic
+                       vehs_per_hour=5, # Change this to modify bandwidth/traffic
                        departLane="free",
                        departSpeed=7.5)
             inflow.add(veh_type="rl",
