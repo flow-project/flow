@@ -7,7 +7,7 @@ import numpy as np
 from numpy import linspace, pi, sin, cos
 
 ADDITIONAL_NET_PARAMS = {}
-SCALING = 40
+SCALING = 100 #40
 
 
 class MiniCityScenario(Scenario):
@@ -443,7 +443,7 @@ class MiniCityScenario(Scenario):
                          'e_32': 12,
                          'e_51': 8,
                          'e_37': 5,
-                         'e_52': 5,
+                         #'e_52': 5,
                          'e_18': 12,
                          'e_24': 12,
                          'e_13': 10,
