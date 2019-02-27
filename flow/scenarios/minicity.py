@@ -56,14 +56,16 @@ class MiniCityScenario(Scenario):
     def specify_nodes(self, net_params):
         """See parent class."""
         nodes = [{'id': 'n_i1', 'x': 0.65, 'y': 2.75},
-                 {'id': 'n_i2', 'x': 0.65, 'y': 4.90, 'type': 'allway_stop'},
+                 {'id': 'n_i2', 'x': 0.65, 'y': 4.90},
+                 {'id': 'n_i2bis', 'x': 1.90, 'y': 4.90},
                  {'id': 'n_i3', 'x': 3.05, 'y': 2.75},
                  {'id': 'n_i4', 'x': 3.05, 'y': 4.90, 'type': 'traffic_light'},
-                 {'id': 'n_i5', 'x': 3.05, 'y': 5.75, 'type': 'allway_stop'},
-                 {'id': 'n_i6', 'x': 5.08, 'y': 2.75, 'type': 'allway_stop'},
+                 {'id': 'n_i4bis', 'x': 2.47, 'y': 4.90},
+                 {'id': 'n_i5', 'x': 3.05, 'y': 5.75},
+                 {'id': 'n_i6', 'x': 5.08, 'y': 2.75},
                  {'id': 'n_i7', 'x': 5.08, 'y': 3.75},
                  {'id': 'n_i8', 'x': 5.08, 'y': 4.90},
-                 {'id': 'n_i9', 'x': 5.08, 'y': 5.75, 'type': 'allway_stop'},
+                 {'id': 'n_i9', 'x': 5.08, 'y': 5.75},
                  {'id': 'n_r1', 'x': 0.30, 'y': 1.15},
                  {'id': 'n_r2', 'x': 0.90, 'y': 0.40},
                  {'id': 'n_r3', 'x': 0.95, 'y': 1.45},
@@ -89,6 +91,7 @@ class MiniCityScenario(Scenario):
                  {'id': 'n_s1', 'x': 0.65, 'y': 1.80},
                  {'id': 'n_s2', 'x': 1.35, 'y': 4.07},
                  {'id': 'n_s3', 'x': 1.67, 'y': 4.52},
+                 {'id': 'n_s3bis', 'x': (2.13 + 0.46 * cos(5 * pi / 8)), 'y': (4.44 + 0.46 * sin(5 * pi / 8))},
                  {'id': 'n_s4', 'x': 2.34, 'y': 1.14},
                  {'id': 'n_s5', 'x': 2.34, 'y': 1.98},
                  {'id': 'n_s6', 'x': 3.05, 'y': 1.15},
@@ -195,15 +198,27 @@ class MiniCityScenario(Scenario):
                   'shape': [(1.89 + 0.54 * cos(t), 0.94 + 0.54 * sin(t))
                             for t in reversed(linspace(1.25*pi, 3*pi/2, res))]
                   },
-                 {'id': 'e_22', 'from': 'n_i2', 'to': 'n_m3', 'length': None,
+                 {'id': 'e_22', 'from': 'n_i2', 'to': 'n_i2bis', 'length': None,
                   'numLanes': 1, 'type': 'edgeType'},
+                 {'id': 'e_22bis', 'from': 'n_i2bis', 'to': 'n_m3', 'length': None,
+                  'numLanes': 1, 'type': 'edgeType'},
+
                  {'id': 'e_23', 'from': 'n_m3', 'to': 'n_i2', 'length': None,
                   'numLanes': 1, 'type': 'edgeType'},
-                 {'id': 'e_24', 'from': 'n_s3', 'to': 'n_m3', 'length': None,
+
+
+                 {'id': 'e_24', 'from': 'n_s3', 'to': 'n_s3bis', 'length': None,
                   'numLanes': 1, 'type': 'edgeType',
                   'shape': [(2.13 + 0.46 * cos(t), 4.44 + 0.46 * sin(t))
-                            for t in reversed(linspace(pi / 2, pi, res))]
+                            for t in reversed(linspace(5*pi/8, pi, res))]
                   },
+                 {'id': 'e_24bis', 'from': 'n_s3bis', 'to': 'n_m3', 'length': None,
+                  'numLanes': 1, 'type': 'edgeType',
+                  'shape': [(2.13 + 0.46 * cos(t), 4.44 + 0.46 * sin(t))
+                            for t in reversed(linspace(pi / 2,5*pi/8 , res))]
+                  },
+
+
                  {'id': 'e_25', 'from': 'n_i1', 'to': 'n_m2', 'length': None,
                   'numLanes': 2, 'type': 'edgeType'},
                  {'id': 'e_26', 'from': 'n_m2', 'to': 'n_i1', 'length': None,
@@ -231,7 +246,9 @@ class MiniCityScenario(Scenario):
                   },
                  {'id': 'e_33', 'from': 'n_m3', 'to': 'n_i4', 'length': None,
                   'numLanes': 1, 'type': 'edgeType'},
-                 {'id': 'e_34', 'from': 'n_i4', 'to': 'n_m3', 'length': None,
+                 {'id': 'e_34', 'from': 'n_i4', 'to': 'n_i4bis', 'length': None,
+                  'numLanes': 1, 'type': 'edgeType'},
+                 {'id': 'e_34bis', 'from': 'n_i4bis', 'to': 'n_m3', 'length': None,
                   'numLanes': 1, 'type': 'edgeType'},
                  {'id': 'e_35', 'from': 'n_i5', 'to': 'n_s13', 'length': None,
                   'numLanes': 1, 'type': 'edgeType'},
@@ -535,8 +552,10 @@ class MiniCityScenario(Scenario):
                'e_20': ['e_20'],
                'e_21': ['e_21'],
                'e_22': ['e_22'],
+               'e_22bis': ['e_22bis'],
                'e_23': ['e_23'],
                'e_24': ['e_24'],
+               'e_24bis': ['e_24bis'],
                'e_25': ['e_25'],
                'e_26': ['e_26'],
                'e_27': ['e_27'],
@@ -547,6 +566,7 @@ class MiniCityScenario(Scenario):
                'e_32': ['e_32'],
                'e_33': ['e_33'],
                'e_34': ['e_34'],
+               'e_34bis': ['e_34bis'],
                'e_35': ['e_35'],
                'e_36': ['e_36'],
                'e_37': ['e_37'],
