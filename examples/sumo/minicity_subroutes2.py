@@ -68,41 +68,6 @@ USE_CNN = False             # Set to True to use Pixel-learning CNN agent
 # 3. If the element is a list of tuples, the specific next edges are chosen
 #    using the weighting specific by the integer second element.
 SUBROUTE_EDGES = [
-    # top left with merge
-    {
-
-    }
-
-    # top center intersection
-    {
-
-    }
-
-    # top right intersection
-    {
-
-    }
-
-    # center intersection
-    {
-
-    }
-
-    # bottom left
-    {
-
-    }
-
-    # bottom right
-    {
-
-    }
-
-
-
-
-
-
     # Full network
     {
     'e_12': ['e_18', 'e_13'],
@@ -202,6 +167,37 @@ SUBROUTE_EDGES = [
     'e_2': 'e_1',
     'e_1': 'e_7'
     },
+
+    # top left with merge
+    {
+        None:None
+    },
+
+    # top center intersection
+    {
+        None:None
+    },
+
+    # top right intersection
+    {
+        None:None
+    },
+
+    # center intersection
+    {
+        None:None
+    },
+
+    # bottom left
+    {
+        None:None
+    },
+
+    # bottom right
+    {
+        None:None
+    },
+
 
     # Top left
     {
@@ -357,12 +353,12 @@ SUBROUTE_EDGES = [
 
 SUBNET_CROP = [
     (0, 5000, 0, 5000), # Full network
-    (0, 5000, 0, 5000) #top left with merge
-    (0, 5000, 0, 5000) # top center intersection
-    (0, 5000, 0, 5000) # top right intersection
-    (0, 5000, 0, 5000) # center intersection
-    (0, 5000, 0, 5000) # bottom left
-    (0, 5000, 0, 5000) # bottom right 
+    (0, 5000, 0, 5000), #top left with merge
+    (0, 5000, 0, 5000), # top center intersection
+    (0, 5000, 0, 5000), # top right intersection
+    (0, 5000, 0, 5000), # center intersection
+    (0, 5000, 0, 5000), # bottom left
+    (0, 5000, 0, 5000), # bottom right 
 
     (0, 920, 0, 1020),  # Top left
     (890, 5000, 0, 1020), # Top right
