@@ -22,11 +22,17 @@ np.random.seed(204)
 # Definitions of subnetworks
 class SubRoute(Enum):
     ALL =  0
-    TOP_LEFT = 1
-    TOP_RIGHT = 2
-    BOTTOM = 3
-    FULL_RIGHT = 4 # Aboudy's
+    SUB1 = 1 # top left with merge
+    SUB2 = 2 # top center intersection
+    SUB3 = 3 # top right intersection
+    SUB4 = 4 # center intersection
+    SUB5 = 5 # bottom left
+    SUB6 = 6 # bottom right
 
+    TOP_LEFT = 7 #previous breakdown
+    TOP_RIGHT = 8 #previous breakdown
+    BOTTOM = 9 #previous breakdown
+    FULL_RIGHT = 10 # Aboudy's
 
 
 SUBNETWORK = SubRoute.ALL  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
@@ -53,6 +59,41 @@ RENDERER = True   #'drgb'           # PARAMETER.
 # 3. If the element is a list of tuples, the specific next edges are chosen
 #    using the weighting specific by the integer second element.
 SUBROUTE_EDGES = [
+    # top left with merge
+    {
+
+    }
+
+    # top center intersection
+    {
+
+    }
+
+    # top right intersection
+    {
+
+    }
+
+    # center intersection
+    {
+
+    }
+
+    # bottom left
+    {
+
+    }
+
+    # bottom right
+    {
+
+    }
+
+
+
+
+
+
     # Full network
     {
     'e_12': ['e_18', 'e_13'],
@@ -306,7 +347,14 @@ SUBROUTE_EDGES = [
 # Contains (minWidth, maxWidth, minHeight, maxHeight) 
 
 SUBNET_CROP = [
-    (0, 5000, 0, 5000), # Full network 
+    (0, 5000, 0, 5000), # Full network
+    (0, 5000, 0, 5000) #top left with merge
+    (0, 5000, 0, 5000) # top center intersection
+    (0, 5000, 0, 5000) # top right intersection
+    (0, 5000, 0, 5000) # center intersection
+    (0, 5000, 0, 5000) # bottom left
+    (0, 5000, 0, 5000) # bottom right 
+
     (0, 920, 0, 1020),  # Top left
     (890, 5000, 0, 1020), # Top right
     (0, 3000, 970, 5000), # Bottom
@@ -316,7 +364,14 @@ SUBNET_CROP = [
 # Whether pre-defined subnetwork is not a self-contained loop.
 # If routes are clipped and vehicles can exit subnetwork, requires vehicle inflows
 REQUIRES_INFLOWS = [
-    True, # Full network
+    False, # Full network
+    True, #top left with merge
+    True, #top center intersection
+    True, #top right intersection
+    True, #center intersection
+    True, #bottom left
+    True, #bottom right
+
     True, # Top-left
     True, # Top-right
     True, # Bottom
