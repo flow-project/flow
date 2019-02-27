@@ -58,7 +58,7 @@ class MiniCityScenario(Scenario):
         nodes = [{'id': 'n_i1', 'x': 0.65, 'y': 2.75},
                  {'id': 'n_i2', 'x': 0.65, 'y': 4.90, 'type': 'allway_stop'},
                  {'id': 'n_i3', 'x': 3.05, 'y': 2.75},
-                 {'id': 'n_i4', 'x': 3.05, 'y': 4.90},
+                 {'id': 'n_i4', 'x': 3.05, 'y': 4.90, 'type': 'traffic_light'},
                  {'id': 'n_i5', 'x': 3.05, 'y': 5.75, 'type': 'allway_stop'},
                  {'id': 'n_i6', 'x': 5.08, 'y': 2.75, 'type': 'allway_stop'},
                  {'id': 'n_i7', 'x': 5.08, 'y': 3.75},

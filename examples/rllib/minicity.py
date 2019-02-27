@@ -28,9 +28,9 @@ from flow.controllers import SumoCarFollowingController, GridRouter
 np.random.seed(204)
 
 # time horizon of a single rollout
-HORIZON = 200
+HORIZON = 10
 # number of rollouts per training iteration
-N_ROLLOUTS = 20
+N_ROLLOUTS = 1
 # number of parallel workers
 N_CPUS = 2
 
@@ -127,7 +127,7 @@ nodes = ["n_i1", 'n_i2', 'n_i3', "n_i4", 'n_i6', 'n_i7', 'n_i8', 'n_m3']
 #     else:
 #         tl_logic.add(node_id, phases=phases,
 #                      tls_type="actuated", programID=1)
-tl_logic.add("n_i4", tls_type="controlled", programID=1)
+#tl_logic.add("n_i4", tls_type="actuated", programID=1)
 env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
 
@@ -146,7 +146,7 @@ net_params = NetParams(
 
 additional_env_params = {
     'target_velocity': 50,
-    'switch_time': 3.0,
+    'switch_time': 7,
     'num_observed': 2,
     'discrete': False,
     'tl_type': 'controlled'
@@ -195,7 +195,7 @@ flow_params = dict(
     # reset (see flow.core.params.InitialConfig)
     initial=initial_config,
 
-    tls=tl_logic,
+    # tls=tl_logic,
 )
 
 
@@ -207,6 +207,8 @@ def setup_exps():
     config = agent_cls._default_config.copy()
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
+    config['sample_batch_size'] = 2
+    config['sgd_minibatch_size'] = 10
     config['gamma'] = 0.999  # discount rate
     config['model'].update({'fcnet_hiddens': [32, 32]})
     config['use_gae'] = True

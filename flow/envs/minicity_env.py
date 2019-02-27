@@ -122,12 +122,12 @@ class MiniCityTrafficLightsEnv(Env):
     @property
     def observation_space(self):
         """See class definition."""
-        height = 100
-        width = 100
+        height = 42
+        width = 42
         return Box(0., 1., [height, width, 5])
 
     def get_state(self):
-        return np.ones(shape=(5, 100, 100))
+        return np.ones(shape=(5, 42, 42))
 
     def _apply_rl_actions(self, rl_actions):
         """See class definition."""
@@ -152,12 +152,12 @@ class MiniCityTrafficLightsEnv(Env):
                 if self.last_change[i, 0] >= self.min_switch_time:
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
-                            node_id='n_i3'.format(i),
+                            node_id='n_i4',
                             state="GGGGGrrrGGGGGrrr",
                             env=self)
                     else:
                         self.traffic_lights.set_state(
-                            node_id='n_i3'.format(i),
+                            node_id='n_i4',
                             state='GrrrGGGGGrrrGGGG',
                             env=self)
                     self.last_change[i, 2] = 1
@@ -165,13 +165,13 @@ class MiniCityTrafficLightsEnv(Env):
                 if action:
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
-                            node_id='center{}'.format(i),
-                            state='yyyrrryyyrrr',
+                            node_id='n_i4',
+                            state='yyyyyrrryyyyyrrr',
                             env=self)
                     else:
                         self.traffic_lights.set_state(
-                            node_id='center{}'.format(i),
-                            state='rrryyyrrryyy',
+                            node_id='n_i4',
+                            state='yrrryyyyyrrryyyy',
                             env=self)
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]
