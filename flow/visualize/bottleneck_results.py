@@ -193,6 +193,15 @@ def bottleneck_visualizer(args):
     _prep = ModelCatalog.get_preprocessor(_env, options={})
     env = _RLlibPreprocessorWrapper(_env, _prep)
 
+    if config['model']['use_lstm']:
+        use_lstm = True
+        state_init = [
+            np.zeros(config['model']['lstm_cell_size'], np.float32),
+            np.zeros(config['model']['lstm_cell_size'], np.float32)
+        ]
+    else:
+        use_lstm = False
+
     if multiagent:
         rets = {}
         # map the agent id to its policy
@@ -214,6 +223,7 @@ def bottleneck_visualizer(args):
     for i in range(len(inflow_grid)):
         for j in range(NUM_TRIALS):
             vel = []
+            hidden_state_keys = {}
             state = env.unwrapped.reset(inflow_grid[i])
             if multiagent:
                 ret = {key: [0] for key in rets.keys()}
@@ -249,8 +259,19 @@ def bottleneck_visualizer(args):
                 if multiagent:
                     action = {}
                     for agent_id in state.keys():
-                        action[agent_id] = agent.compute_action(
-                            state[agent_id], policy_id=policy_map_fn(agent_id))
+                        if use_lstm:
+                            if agent_id not in hidden_state_keys.keys():
+                                hidden_state_keys[agent_id] = [
+                                    np.zeros(config['model']['lstm_cell_size'], np.float32),
+                                    np.zeros(config['model']['lstm_cell_size'], np.float32)
+                                ]
+                            action[agent_id], hidden_state_keys[agent_id],\
+                            logits = agent.compute_action(
+                                state[agent_id], state=hidden_state_keys[agent_id],
+                                policy_id=policy_map_fn(agent_id))
+                        else:
+                            action[agent_id] = agent.compute_action(
+                                state[agent_id], policy_id=policy_map_fn(agent_id))
                 else:
                     action = agent.compute_action(state)
                 state, reward, done, _ = env.step(action)
@@ -306,9 +327,9 @@ def bottleneck_visualizer(args):
         np.savetxt(output_path + speed_name,
                    velocity_arr, delimiter=', ')
     else:
-        np.savetxt(output_path + '/bottleneck_outflow_MA_LC.txt',
+        np.savetxt(output_path + '/bottleneck_outflow_MA_LC_LSTM.txt',
                    outflow_arr, delimiter=', ')
-        np.savetxt(output_path + '/speed_outflow_MA_LC.txt',
+        np.savetxt(output_path + '/speed_outflow_MA_LC_LSTM.txt',
                    velocity_arr, delimiter=', ')
 
     # Plot the inflow results

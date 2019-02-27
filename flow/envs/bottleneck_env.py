@@ -865,6 +865,7 @@ class DesiredVelocityEnv(BottleneckEnv):
                 flow_rate = np.random.uniform(
                     min(inflow_range), max(inflow_range)) * self.scaling
             self.inflow = flow_rate
+            print('New flow rate is ', flow_rate)
             for _ in range(100):
                 try:
                     net_params = self.scenario.net_params

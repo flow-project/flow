@@ -32,8 +32,8 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
-LANE_CHANGING = 'OFF'
-lc_mode = {'OFF': 0, 'ON': 512}
+LANE_CHANGING = 'ON'
+lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -113,7 +113,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsBottleneckOutflow',
+    exp_tag='MultiDecentralObsBottleneckOutflowLCLSTM',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -173,22 +173,23 @@ def setup_exps():
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [100, 50, 25]})
+    config['model'].update({'fcnet_hiddens': [32, 32]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
-    # config['model']['use_lstm'] = True
+    config['model']['use_lstm'] = False
     config['use_centralized_vf'] = tune.grid_search([True, False])
-    config['max_vf_agents'] = 140
+    config['max_vf_agents'] = 100
     config['simple_optimizer'] = True
+    config['vf_clip_param'] = 100
 
     # Grid search things
     config['lr'] = tune.grid_search([5e-4, 5e-5])
     config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
-    # config['model']['use_lstm'] = True
-    # config['model']["max_seq_len"] = tune.grid_search([5, 10])
-    # config['model']["lstm_cell_size"] = 256
+    config['model']['use_lstm'] = True
+    config['model']["max_seq_len"] = tune.grid_search([5, 10])
+    config['model']["lstm_cell_size"] = 64
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -224,7 +225,7 @@ def setup_exps():
 if __name__ == '__main__':
     alg_run, env_name, config = setup_exps()
     ray.init(redis_address='localhost:6379')
-    # ray.init(redirect_output=False)
+    # ray.init(num_cpus = 4, redirect_output=False)
     run_experiments({
         flow_params["exp_tag"]: {
             'run': alg_run,
@@ -235,7 +236,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/2-03-2019/MultiDecentralObsBottleneckOutflow",
+                          "/2-22-2019/MultiDecentralObsBottleneckOutflowLCLSTM",
             'num_samples': 2,
         },
     })

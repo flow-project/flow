@@ -36,7 +36,7 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
 LANE_CHANGING = 'ON'
-lc_mode = {'OFF': 0, 'ON': 512}
+lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
 vehicles.add(
@@ -216,7 +216,7 @@ if __name__ == "__main__":
             },
             "num_samples": 2,
             "upload_dir": "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/1-27-2019/SingleAgentPenaltyLC"
+                          "/2-18-2019/SingleAgentPenaltyLC"
 
         }
     })

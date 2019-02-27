@@ -191,6 +191,15 @@ def visualizer_rllib(args):
     _prep = ModelCatalog.get_preprocessor(_env, options={})
     env = _RLlibPreprocessorWrapper(_env, _prep)
 
+    if config['model']['use_lstm']:
+        use_lstm = True
+        state_init = [
+            np.zeros(config['model']['lstm_cell_size'], np.float32),
+            np.zeros(config['model']['lstm_cell_size'], np.float32)
+        ]
+    else:
+        use_lstm = False
+
     if multiagent:
         rets = {}
         # map the agent id to its policy
@@ -214,8 +223,13 @@ def visualizer_rllib(args):
             if multiagent:
                 action = {}
                 for agent_id in state.keys():
-                    action[agent_id] = agent.compute_action(
-                        state[agent_id], policy_id=policy_map_fn(agent_id))
+                    if use_lstm:
+                        action[agent_id], state_init, logits = agent.compute_action(
+                            state[agent_id], state=state_init, policy_id=policy_map_fn(agent_id))
+                    else:
+                        print('HEY HEY HEY WE ARE HERE')
+                        action[agent_id] = agent.compute_action(
+                            state[agent_id], policy_id=policy_map_fn(agent_id))
             else:
                 action = agent.compute_action(state)
             state, reward, done, _ = env.step(action)
@@ -340,5 +354,5 @@ def create_parser():
 if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
-    ray.init(num_cpus=1)
+    ray.init(num_cpus=1, redirect_output=False)
     visualizer_rllib(args)
