@@ -447,29 +447,6 @@ class MiniCityScenario(Scenario):
                                                     self.nodes[edge['from']]))
 
             # fix junction overlapping issue
-            junctions = {'e_8_b': 2,
-                         'e_17': 18,
-                         'e_8_u': 8,
-                         'e_1': 9.9,
-                         'e_29_u': 13,
-                         'e_21': 5,
-                         'e_91': 5,
-                         'e_63': 26,
-                         'e_65': 5,
-                         'e_66': 30,
-                         'e_32': 12,
-                         'e_51': 8,
-                         'e_37': 5,
-                         #'e_52': 5,
-                         'e_18': 12,
-                         'e_24': 12,
-                         'e_13': 10,
-                         'e_4': 10,
-                         'e_36': 8,
-                         'e_53': 49
-                         }
-            if edge['id'] in junctions:
-                edge['length'] = str(junctions[edge['id']])
 
         return edges
 
