@@ -306,11 +306,9 @@ class TraCIVehicle(KernelVehicle):
     def remove(self, veh_id):
         """See parent class."""
         # remove from sumo
-        try:
+        if veh_id in self.kernel_api.vehicle.getIDList():
             self.kernel_api.vehicle.unsubscribe(veh_id)
             self.kernel_api.vehicle.remove(veh_id)
-        except (FatalTraCIError, TraCIException):
-            pass
 
         try:
             # remove from the vehicles kernel
