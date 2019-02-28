@@ -40,7 +40,7 @@ class SubRoute(Enum):
 #################################################################
 
 
-SUBNETWORK = SubRoute.ALL  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
+SUBNETWORK = SubRoute.SUB1  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
                             # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
@@ -229,10 +229,10 @@ SUBROUTE_EDGES = [
 
     # center intersection
     {
-    'e_11': ['e_25', 'e_12'],
+    'e_11': ['e_12', 'e_25'],
     'e_26': ['e_12', 'e_2'],
     'e_3': ['e_25', 'e_2'],
-    'e_25': ['e_30', 'e_87'],
+    'e_25': 'e_87',
     'e_88': 'e_26',
     'e_45': 'e_43',
     'e_43': 'e_41',
@@ -245,8 +245,11 @@ SUBROUTE_EDGES = [
     'e_50': 'e_60',
     'e_60': 'e_69',
     'e_69': ['e_73', 'e_72'],
-    'e_74': ['e_70', 'e_72'],
-    'e_71': ['e_70', 'e_73'],
+    'e_74': ['e_72', 'e_70'],
+    'e_70': 'e_61',
+    'e_61': 'e_54',
+    'e_71': ['e_73', 'e_70'],
+    'e_52': 'e_38'
     },
 
     # bottom left
@@ -469,7 +472,7 @@ SUBNET_INFLOWS = [
     ['e_49', 'e_73', 'e_48'],
      
     # center intersection
-    ['e_71', 'e_74', 'e_45', 'e_38'],
+    ['e_71', 'e_74', 'e_45', 'e_52', 'e_11', 'e_3', ],
      
     # bottom left
     ['e_2', 'e_29_u', 'e_30'],
@@ -485,16 +488,16 @@ SUBNET_INFLOWS = [
 # How many IDM vehicles to add to subnetwork
 SUBNET_IDM = [
     250, # full network
-    20,  # top left with merge
-    20,  # top center intersection
-    20,  # top right intersection
-    20,  # center intersection
-    20,  # bottom left
-    20,  # bottom right
-    20,  # top left
-    20,  # top right
-    20,  # bottom
-    20   # Aboudy's full-right
+    15,  # top left with merge
+    60,  # top center intersection
+    75,  # top right intersection
+    140,  # center intersection
+    75,  # bottom left
+    90,  # bottom right
+    100,  # top left
+    100,  # top right
+    100,  # bottom
+    100   # Aboudy's full-right
 ]
 
 # How many RL vehicles to add to subnetwork
@@ -684,7 +687,7 @@ def minicity_example(render=None,
             assert edge in SUBROUTE_EDGES[SUBNETWORK.value].keys()
             inflow.add(veh_type="idm",
                            edge=edge,
-                           vehs_per_hour=5, # Change this to modify bandwidth/traffic
+                           vehs_per_hour=1000, # Change this to modify bandwidth/traffic
                            departLane="free",
                            departSpeed=7.5)
             inflow.add(veh_type="rl",
@@ -812,4 +815,4 @@ if __name__ == "__main__":
                            show_radius=True)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 1000, convert_to_csv=True)
+    exp.run(1, 7200, convert_to_csv=True)
