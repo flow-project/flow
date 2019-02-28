@@ -34,6 +34,7 @@ class SubRoute(Enum):
     BOTTOM = 9 #previous breakdown
     FULL_RIGHT = 10 # Aboudy's
 
+
 #################################################################
 # MODIFIABLE PARAMETERS
 #################################################################
@@ -53,6 +54,8 @@ USE_CNN = False             # Set to True to use Pixel-learning CNN agent
                             # Set to False for default vehicle speeds observation space
 
 
+#################################################################
+# SUBNETWORK DEFINITIONS
 #################################################################
 
 
@@ -451,21 +454,69 @@ SUBNET_CROP = [
 
 # Whether pre-defined subnetwork is not a self-contained loop.
 # If routes are clipped and vehicles can exit subnetwork, requires vehicle inflows
-REQUIRES_INFLOWS = [
-    False, # Full network
-    True, #top left with merge
-    True, #top center intersection
-    True, #top right intersection
-    True, #center intersection
-    True, #bottom left
-    True, #bottom right
+# This contains the edges at the border of subnetworks to add inflows to.
+SUBNET_INFLOWS = [
+    # full network. self-contained, no inflows
+    [],
 
-    True, # Top-left
-    True, # Top-right
-    True, # Bottom
-    True,  # Full-right (Aboudy's)
+    # top left with merge
+    ['e_18', 'e_34', 'e_22'],
+
+    # top center intersection
+    ['e_20', 'e_79', 'e_33', 'e_59', 'e_40'],
+     
+    #top right intersection
+    ['e_49', 'e_73', 'e_48'],
+     
+    # center intersection
+    ['e_71', 'e_74', 'e_45', 'e_38'],
+     
+    # bottom left
+    ['e_2', 'e_29_u', 'e_30'],
+     
+    #bottom right
+    ['e_72', 'e_36'],
+
+    # top left/top right/bottom/Aboudy's full-right. All self-contained, no inflows
+    [], [], [], []
 ]
 
+
+# How many IDM vehicles to add to subnetwork
+SUBNET_IDM = [
+    250, # full network
+    20,  # top left with merge
+    20,  # top center intersection
+    20,  # top right intersection
+    20,  # center intersection
+    20,  # bottom left
+    20,  # bottom right
+    20,  # top left
+    20,  # top right
+    20,  # bottom
+    20   # Aboudy's full-right
+]
+
+# How many RL vehicles to add to subnetwork
+SUBNET_RL = [
+    0,  # full network
+    0,  # top left with merge
+    0,  # top center intersection
+    0,  # top right intersection
+    0,  # center intersection
+    0,  # bottom left
+    0,  # bottom right
+    0,  # top left
+    0,  # top right
+    0,  # bottom
+    0   # Aboudy's full-right
+]
+
+
+
+#################################################################
+# Minicity Environment Instantiation Logic
+#################################################################
 
 class MinicityRouter(BaseRouter):
     """A router used to continuously re-route vehicles in minicity scenario.
@@ -606,7 +657,7 @@ def minicity_example(render=None,
         speed_mode="all_checks",
         lane_change_mode="strategic",
         initial_speed=0,
-        num_vehicles=250)
+        num_vehicles=SUBNET_IDM[SUBNETWORK.value])
     vehicles.add(
         veh_id="rl",
         acceleration_controller=(RLController, {}),
@@ -617,7 +668,7 @@ def minicity_example(render=None,
         speed_mode="all_checks",
         lane_change_mode="strategic",
         initial_speed=0,
-        num_vehicles=0)
+        num_vehicles=SUBNET_RL[SUBNETWORK.value])
 
     env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
@@ -626,15 +677,16 @@ def minicity_example(render=None,
     if TRAFFIC_LIGHTS:
         additional_net_params['traffic_lights'] = True
 
-    if REQUIRES_INFLOWS[SUBNETWORK.value]:
-        # Add vehicle inflows to account for clipped subnetworks
+    # Add inflows only on edges at border of subnetwork
+    if len(SUBNET_INFLOWS[SUBNETWORK.value]) > 0:
         inflow = InFlows()
-        for edge in SUBROUTE_EDGES[SUBNETWORK.value].keys():
+        for edge in SUBNET_INFLOWS[SUBNETWORK.value]:
+            assert edge in SUBROUTE_EDGES[SUBNETWORK.value].keys()
             inflow.add(veh_type="idm",
-                       edge=edge,
-                       vehs_per_hour=5, # Change this to modify bandwidth/traffic
-                       departLane="free",
-                       departSpeed=7.5)
+                           edge=edge,
+                           vehs_per_hour=5, # Change this to modify bandwidth/traffic
+                           departLane="free",
+                           departSpeed=7.5)
             inflow.add(veh_type="rl",
                        edge=edge,
                        vehs_per_hour=1, # Change this to modify bandwidth/traffic
@@ -645,7 +697,7 @@ def minicity_example(render=None,
             no_internal_links=False, additional_params=additional_net_params)
     else:
         net_params = NetParams(
-            no_internal_links=False, additional_params=additional_net_params)
+                no_internal_links=False, additional_params=additional_net_params)
 
 
     initial_config = InitialConfig(
