@@ -100,7 +100,7 @@ class TrafficLightGridEnv(Env):
         if self.tl_type != "actuated":
             for i in range(self.rows * self.cols):
                 self.k.traffic_light.set_state(
-                    node_id='center' + str(i), state="GGGrrrGGGrrr")
+                    node_id='center' + str(i), state="GrGr")
                 self.last_change[i, 2] = 1
 
         # # Additional Information for Plotting
