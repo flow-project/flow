@@ -32,7 +32,7 @@ NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = 0.10
-LANE_CHANGING = 'ON'
+LANE_CHANGING = 'OFF'
 lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
@@ -81,7 +81,8 @@ additional_env_params = {
     'start_inflow': flow_rate,
     'congest_penalty': False,
     'communicate': False,
-    "centralized_obs": False
+    "centralized_obs": False,
+    "aggregate_info": False
 }
 
 # percentage of flow coming out of each lane
@@ -113,7 +114,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsBottleneckOutflowLCLSTM',
+    exp_tag='MultiDecentralObsBottleneckOutflowLSTM',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -187,7 +188,7 @@ def setup_exps():
     config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
-    config['model']['use_lstm'] = True
+    config['model']['use_lstm'] = tune.grid_search([True, False])
     config['model']["max_seq_len"] = tune.grid_search([5, 10])
     config['model']["lstm_cell_size"] = 64
 
@@ -236,7 +237,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/2-22-2019/MultiDecentralObsBottleneckOutflowLCLSTM",
+                          "/2-28-2019/MultiDecentralObsBottleneckOutflowLSTM",
             'num_samples': 2,
         },
     })

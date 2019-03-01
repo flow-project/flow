@@ -30,6 +30,8 @@ ADDITIONAL_RL_ENV_PARAMS = {
     "communicate": False,
     # whether the observation space is aggregate counts or local observations
     "centralized_obs": False,
+    # whether to add aggregate info (speed, number of congested vehicles) about some of the edges
+    "aggregate_info": False
 }
 
 
@@ -73,13 +75,23 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
         else:
             if self.env_params.additional_params.get('communicate', False):
                 # eight possible signals if above
-                return Box(low=-1.0, high=1.0,
-                           shape=(6 * MAX_LANES * self.scaling + 17,),
-                           dtype=np.float32)
+                if self.env_params.additional_params.get('aggregate_info'):
+                    return Box(low=-1.0, high=1.0,
+                               shape=(6 * MAX_LANES * self.scaling + 17,),
+                               dtype=np.float32)
+                else:
+                    return Box(low=-1.0, high=1.0,
+                               shape=(6 * MAX_LANES * self.scaling + 11,),
+                               dtype=np.float32)
             else:
-                return Box(low=-1.0, high=1.0,
-                           shape=(6 * MAX_LANES * self.scaling + 9,),
-                           dtype=np.float32)
+                if self.env_params.additional_params.get('aggregate_info'):
+                    return Box(low=-1.0, high=1.0,
+                               shape=(6 * MAX_LANES * self.scaling + 9,),
+                               dtype=np.float32)
+                else:
+                    return Box(low=-1.0, high=1.0,
+                               shape=(6 * MAX_LANES * self.scaling + 3,),
+                               dtype=np.float32)
 
     @property
     def action_space(self):
@@ -115,11 +127,12 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
                 veh_info = {rl_id: np.concatenate((self.state_util(rl_id),
                                                    self.veh_statistics(rl_id)))
                             for rl_id in self.k.vehicle.get_rl_ids()}
-            agg_statistics = self.aggregate_statistics()
-            lead_follow_final = {rl_id: np.concatenate((val, agg_statistics))
-                                 for rl_id, val in veh_info.items()}
+            if self.env_params.additional_params.get('aggregate_info'):
+                agg_statistics = self.aggregate_statistics()
+                veh_info = {rl_id: np.concatenate((val, agg_statistics))
+                                     for rl_id, val in veh_info.items()}
 
-            return lead_follow_final
+            return veh_info
 
     def get_centralized_state(self):
         """See class definition."""
