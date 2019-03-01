@@ -1048,13 +1048,66 @@ class Env(gym.Env, Serializable):
             machine_dynamics.append(
                 self.vehicles.get_speed(id)/max_speed)
 
+        traffic_light_logs = []
+        color_index = {
+            "G": (0,128,0,255),
+            "g": (0,192,0,255),
+            "Y": (255,255,170,255),
+            "y": (255,255,0,255),
+            "R": (128,0,0,255),
+            "r": (255,0,0,255),
+        }
+        for tls_id in self.traci_connection.trafficlight.getIDList():
+            state = \
+                self.traci_connection.trafficlight.\
+                getRedYellowGreenState(tls_id)
+            lane_idlist = self.traci_connection.trafficlight.\
+                getControlledLanes(tls_id)
+            junction_placement = {}
+            points = []
+            for lane_id in lane_idlist:
+                if lane_id not in junction_placement.keys():
+                    position = self.traci_connection.lane.getShape(lane_id)
+                    junction_placement[lane_id] = position
+                    for point in position:
+                        points.append(point)
+            center = np.mean(points, axis=0)
+            for lane_id, position in junction_placement.items():
+                distance = [np.linalg.norm(center-point) 
+                            for point in position]
+                end = np.asarray(position[np.argsort(distance)[0]])
+                # This is a heuristic: it assumes the second closest point is
+                # next to the closest point to the center.
+                next_end = np.asarray(position[np.argsort(distance)[1]])
+                angle = np.arctan((next_end[1] - end[1])/\
+                                  (next_end[0] - end[0]))
+                junction_placement[lane_id] = [end, angle]
+            
+            log = {"traffic_light_id": tls_id}
+            for lane_idx, lane_id in enumerate(lane_idlist):
+                if lane_id not in log.keys():
+                    signal_point = [junction_placement[lane_id][0], 
+                                    color_index[state[lane_idx]]]
+                    log[lane_id] = [signal_point]
+                else:
+                    # Add offset to avoid overlapping.
+                    queue_length = len(log[lane_id])
+                    angle = junction_placement[lane_id][1]
+                    signal_point = [junction_placement[lane_id][0]-\
+                                    3*queue_length*\
+                                    np.asarray([np.cos(angle), np.sin(angle)]), 
+                                    color_index[state[lane_idx]]]
+                    log[lane_id].append(signal_point)
+            traffic_light_logs.append(log)
+
         # step the renderer
         self.frame = self.renderer.render(human_orientations,
                                           machine_orientations,
                                           human_dynamics,
                                           machine_dynamics,
                                           human_logs,
-                                          machine_logs)
+                                          machine_logs,
+                                          traffic_light_logs)
 
         # get local observation of RL vehicles
         self.sights = []

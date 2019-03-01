@@ -176,7 +176,7 @@ if __name__ == "__main__":
     exp = minicity_example(render='drgb',
                            save_render=False,
                            sight_radius=20,
-                           pxpm=3,
+                           pxpm=2,
                            show_radius=False)
 
     # run for a set number of rollouts / time steps

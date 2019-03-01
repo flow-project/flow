@@ -1,0 +1,2 @@
+How to generate videos from png files:
+ffmpeg -i 2019-02-28-213428/frame_%06d.png -pix_fmt yuv420p -vb 20M out.mp4

@@ -108,27 +108,27 @@ class SoftIntersectionEnv(Env):
     # REWARD FUNCTION GOES HERE
     def get_reward(self, **kwargs):
         # safety reward
-        R_total_collisions = self.total_collisions * 1  # TODO: normalize
-        R_min_headway = self.min_headway * 1  # TODO: normalize
-        R_safety = 0.8 * R_total_collisions + 0.2 * R_min_headway
+        #R_total_collisions = self.total_collisions * 1  # TODO: normalize
+        #R_min_headway = self.min_headway * 1  # TODO: normalize
+        #R_safety = 0.8 * R_total_collisions + 0.2 * R_min_headway
         # performance reward
-        R_avg_speed = self.avg_speed * 1  # TODO: normalize
-        R_std_speed = self.std_speed * 1  # TODO: normalize
-        R_performance = 0.8 * R_avg_speed + 0.2 * R_std_speed
+        #R_avg_speed = self.avg_speed * 1  # TODO: normalize
+        #R_std_speed = self.std_speed * 1  # TODO: normalize
+        #R_performance = 0.8 * R_avg_speed + 0.2 * R_std_speed
         # consumption reward
-        R_avg_fuel = self.avg_fuel * 1  # TODO: normalize
-        R_avg_co2 = self.avg_co2 * 1  # TODO: normalize
-        R_consumption = 0.5 * R_avg_fuel + 0.5 * R_avg_co2
+        #R_avg_fuel = self.avg_fuel * 1  # TODO: normalize
+        #R_avg_co2 = self.avg_co2 * 1  # TODO: normalize
+        #R_consumption = 0.5 * R_avg_fuel + 0.5 * R_avg_co2
         # total reward
-        reward = 0.5 * R_safety + 0.4 * R_performance + 0.1 * R_consumption
-        return reward
+        #reward = 0.4 * R_performance + 0.1 * R_consumption
+        return 0
 
     # UTILITY FUNCTION GOES HERE
     def additional_command(self):
         # disable skip to test methods
         self.test_sbc(skip=True)
         self.test_tls(skip=True)
-        self.test_reward(skip=False)
+        self.test_reward(skip=True)
 
     def test_sbc(self, skip=True):
         if self.time_counter > 50 and not skip:

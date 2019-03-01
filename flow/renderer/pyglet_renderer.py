@@ -137,6 +137,7 @@ class PygletRenderer():
                machine_dynamics,
                human_logs,
                machine_logs,
+               traffic_light_logs=[],
                save_render=None,
                sight_radius=None,
                show_radius=None,
@@ -167,6 +168,8 @@ class PygletRenderer():
             machine_logs: list
                 A list contains the timestep (ms), timedelta (ms), and id of
                 all RL vehicles
+            traffic_light_logs: list
+                A list contains the positions and phases of all traffic lights
             save_render: bool
                 Specify whether to Specify whether to save rendering data to
                 disk
@@ -194,6 +197,7 @@ class PygletRenderer():
             _machine_dynamics = copy.deepcopy(machine_dynamics)
             _human_logs = copy.deepcopy(human_logs)
             _machine_logs = copy.deepcopy(machine_logs)
+            _traffic_light_logs = copy.deepcopy(traffic_light_logs)
 
         self.time += 1
         time.sleep(sleep)
@@ -246,6 +250,7 @@ class PygletRenderer():
 
         self.add_vehicle_polys(human_orientations,
                                human_conditions, 0)
+
         if show_radius:
             self.add_vehicle_polys(machine_orientations,
                                    machine_conditions,
@@ -254,6 +259,9 @@ class PygletRenderer():
             self.add_vehicle_polys(machine_orientations,
                                    machine_conditions, 0)
         self.vehicle_batch.draw()
+        self.light_batch = pyglet.graphics.Batch()
+        self.add_light_polys(traffic_light_logs)
+        self.light_batch.draw()
 
         buffer = pyglet.image.get_buffer_manager().get_color_buffer()
         image_data = buffer.get_image_data()
@@ -266,8 +274,8 @@ class PygletRenderer():
             cv2.imwrite("%s/frame_%06d.png" %
                         (self.path, self.time), self.frame)
             self.data.append([_human_orientations, _machine_orientations,
-                              _human_dynamics, _machine_dynamics,
-                              _human_logs, _machine_logs])
+                              _human_dynamics, _machine_dynamics, _human_logs,
+                              _machine_logs, _traffic_light_logs])
         if "gray" in self.mode:
             return self.frame[:, :, 0]
         else:
@@ -449,3 +457,41 @@ class PygletRenderer():
             return True
         else:
             return False
+
+    def add_light_polys(self, traffic_light_logs):
+        """Render traffic light polygons.
+
+            Parameters
+            ----------
+            traffic_lights_logs: list
+                A list contains the positions and states of all traffic lights
+        """
+        if "rgb" in self.mode:
+            for log in traffic_light_logs:
+                for key, value in log.items():
+                    if key == "traffic_light_id":
+                        continue
+                    for item in value:
+                        cx, cy = item[0]
+                        cx = (cx-self.x_shift)*self.x_scale*self.pxpm
+                        cy = (cy-self.y_shift)*self.y_scale*self.pxpm
+                        color = item[1]
+                        radius = self.pxpm
+                        pxpm = int(self.pxpm*50)
+                        vertex_list = []
+                        vertex_color = []
+                        for idx in range(pxpm):
+                            angle = np.radians(float(idx)/pxpm * 360.0)
+                            x = radius*self.x_scale*np.cos(angle) + cx
+                            y = radius*self.y_scale*np.sin(angle) + cy
+                            vertex_list += [x, y]
+                            vertex_color += color
+                        index = [x for x in range(pxpm)]
+                        group = pyglet.graphics.Group()
+                        self.light_batch.add_indexed(
+                            pxpm, pyglet.gl.GL_POLYGON, group, index,
+                            ("v2f", vertex_list), ("c4B", vertex_color))
+
+        else:
+            raise ValueError(
+                "Traffic lights must be rendered in rgb or drgb mode.")

@@ -127,11 +127,11 @@ def intersection_example(render=None,
 
 
 if __name__ == "__main__":
-    exp = intersection_example(render=True,
+    exp = intersection_example(render='drgb',
                                save_render=False,
                                sight_radius=20,
                                pxpm=4,
                                show_radius=False)
 
     # run for a set number of rollouts / time steps
-    exp.run(1, 5000)
+    exp.run(1, 1200)
