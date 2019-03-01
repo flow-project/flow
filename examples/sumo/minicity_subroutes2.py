@@ -488,7 +488,7 @@ SUBNET_INFLOWS = [
 # How many IDM vehicles to add to subnetwork
 SUBNET_IDM = [
     250, # full network
-    15,  # top left with merge
+    18,  # top left with merge
     60,  # top center intersection
     75,  # top right intersection
     140,  # center intersection
