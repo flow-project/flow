@@ -4,6 +4,7 @@ The agents all share a single model.
 """
 import json
 
+import numpy as np
 import ray
 import ray.rllib.agents.ppo as ppo
 from ray import tune
@@ -31,34 +32,48 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-AV_FRAC = 0.10
-LANE_CHANGING = 'OFF'
+AV_FRAC = 0.2
+LANE_CHANGING = 'ON'
 lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
-vehicles.add(
-    veh_id="human",
-    lane_change_controller=(SimLaneChangeController, {}),
-    routing_controller=(ContinuousRouter, {}),
-    car_following_params=SumoCarFollowingParams(
-        speed_mode=9,
-    ),
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode=lc_mode[LANE_CHANGING],
-    ),
-    num_vehicles=1 * SCALING)
-vehicles.add(
-    veh_id="av",
-    acceleration_controller=(RLController, {}),
-    lane_change_controller=(SimLaneChangeController, {}),
-    routing_controller=(ContinuousRouter, {}),
-    car_following_params=SumoCarFollowingParams(
-        speed_mode=9,
-    ),
-    lane_change_params=SumoLaneChangeParams(
-        lane_change_mode=0,
-    ),
-    num_vehicles=1 * SCALING)
+if not np.isclose(AV_FRAC, 1):
+    vehicles.add(
+        veh_id="human",
+        lane_change_controller=(SimLaneChangeController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=9,
+        ),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode=lc_mode[LANE_CHANGING],
+        ),
+        num_vehicles=1 * SCALING)
+    vehicles.add(
+        veh_id="av",
+        acceleration_controller=(RLController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=9,
+        ),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode=0,
+        ),
+        num_vehicles=1 * SCALING)
+else:
+    vehicles.add(
+        veh_id="av",
+        acceleration_controller=(RLController, {}),
+        lane_change_controller=(SimLaneChangeController, {}),
+        routing_controller=(ContinuousRouter, {}),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode=9,
+        ),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode=0,
+        ),
+        num_vehicles=1 * SCALING)
 
 # flow rate
 flow_rate = 1900 * SCALING
@@ -82,23 +97,32 @@ additional_env_params = {
     'congest_penalty': False,
     'communicate': False,
     "centralized_obs": False,
-    "aggregate_info": False
+    "aggregate_info": False,
+    "AV_FRAC": AV_FRAC
 }
 
 # percentage of flow coming out of each lane
 inflow = InFlows()
-inflow.add(
-    veh_type='human',
-    edge='1',
-    vehs_per_hour=flow_rate * (1 - AV_FRAC),
-    departLane='random',
-    departSpeed=10.0)
-inflow.add(
-    veh_type='av',
-    edge='1',
-    vehs_per_hour=flow_rate * AV_FRAC,
-    departLane='random',
-    departSpeed=10.0)
+if not np.isclose(AV_FRAC, 1.0):
+    inflow.add(
+        veh_type='human',
+        edge='1',
+        vehs_per_hour=flow_rate * (1 - AV_FRAC),
+        departLane='random',
+        departSpeed=10.0)
+    inflow.add(
+        veh_type='av',
+        edge='1',
+        vehs_per_hour=flow_rate * AV_FRAC,
+        departLane='random',
+        departSpeed=10.0)
+else:
+    inflow.add(
+        veh_type='av',
+        edge='1',
+        vehs_per_hour=flow_rate,
+        departLane='random',
+        departSpeed=10.0)
 
 traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
@@ -114,7 +138,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsBottleneckOutflowLSTM',
+    exp_tag='MultiDecentralObsBottleneckOutflowLSTMLCp20',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -178,7 +202,7 @@ def setup_exps():
     config['clip_actions'] = False
     config['horizon'] = HORIZON
     config['model']['use_lstm'] = False
-    config['use_centralized_vf'] = tune.grid_search([True, False])
+    # config['use_centralized_vf'] = tune.grid_search([True, False])
     config['max_vf_agents'] = 100
     config['simple_optimizer'] = True
     config['vf_clip_param'] = 100
@@ -188,9 +212,9 @@ def setup_exps():
     config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
-    config['model']['use_lstm'] = tune.grid_search([True, False])
-    config['model']["max_seq_len"] = tune.grid_search([5, 10])
-    config['model']["lstm_cell_size"] = 64
+    # config['model']['use_lstm'] = tune.grid_search([True, False])
+    # # config['model']["max_seq_len"] = tune.grid_search([5, 10])
+    # config['model']["lstm_cell_size"] = 64
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -237,7 +261,7 @@ if __name__ == '__main__':
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/2-28-2019/MultiDecentralObsBottleneckOutflowLSTM",
+                          "/3-01-2019/MultiDecentralObsBottleneckOutflowLSTMLCp20",
             'num_samples': 2,
         },
     })

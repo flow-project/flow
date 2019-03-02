@@ -31,7 +31,8 @@ ADDITIONAL_RL_ENV_PARAMS = {
     # whether the observation space is aggregate counts or local observations
     "centralized_obs": False,
     # whether to add aggregate info (speed, number of congested vehicles) about some of the edges
-    "aggregate_info": False
+    "aggregate_info": False,
+    "AV_FRAC": 0.1
 }
 
 
@@ -258,18 +259,26 @@ class MultiBottleneckEnv(MultiEnv, DesiredVelocityEnv):
             for _ in range(100):
                 try:
                     inflow = InFlows()
-                    inflow.add(
-                        veh_type="av",
-                        edge="1",
-                        vehs_per_hour=flow_rate * .1,
-                        departLane="random",
-                        departSpeed=10.0)
-                    inflow.add(
-                        veh_type="human",
-                        edge="1",
-                        vehs_per_hour=flow_rate * .9,
-                        departLane="random",
-                        departSpeed=10.0)
+                    if not np.isclose(add_params.get("AV_FRAC"), 1.0):
+                        inflow.add(
+                            veh_type="av",
+                            edge="1",
+                            vehs_per_hour=flow_rate * add_params.get("AV_FRAC"),
+                            departLane="random",
+                            departSpeed=10.0)
+                        inflow.add(
+                            veh_type="human",
+                            edge="1",
+                            vehs_per_hour=flow_rate * (1 - add_params.get("AV_FRAC")),
+                            departLane="random",
+                            departSpeed=10.0)
+                    else:
+                        inflow.add(
+                            veh_type="av",
+                            edge="1",
+                            vehs_per_hour=flow_rate,
+                            departLane="random",
+                            departSpeed=10.0)
 
                     additional_net_params = {
                         "scaling": self.scaling,
