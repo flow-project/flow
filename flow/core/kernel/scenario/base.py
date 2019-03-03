@@ -445,6 +445,7 @@ class KernelScenario(object):
         """
         return self.network.gen_custom_start_pos(
             cls=self,
+            net_params=self.network.net_params,
             initial_config=initial_config,
             num_vehicles=num_vehicles,
         )

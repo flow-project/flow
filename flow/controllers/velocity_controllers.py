@@ -3,23 +3,25 @@ import numpy as np
 
 
 class FollowerStopper(BaseController):
+    """Inspired by Dan Work's... work:
+
+    Dissipation of stop-and-go waves via control of autonomous vehicles:
+    Field experiments https://arxiv.org/abs/1705.01693
+
+    Parameters
+    ----------
+    veh_id : str
+        unique vehicle identifier
+    v_des : float, optional
+        desired speed of the vehicles (m/s)
+    """
+
     def __init__(self,
                  veh_id,
                  car_following_params,
                  v_des=15,
                  danger_edges=None):
-        """Inspired by Dan Work's... work:
-
-        Dissipation of stop-and-go waves via control of autonomous vehicles:
-        Field experiments https://arxiv.org/abs/1705.01693
-
-        Parameters
-        ----------
-        veh_id: str
-            unique vehicle identifier
-        v_des: float, optional
-            desired speed of the vehicles (m/s)
-        """
+        """Instantiate FollowerStopper."""
         BaseController.__init__(
             self, veh_id, car_following_params, delay=1.0,
             fail_safe='safe_velocity')
@@ -44,7 +46,7 @@ class FollowerStopper(BaseController):
 
         Parameters
         ----------
-        env: Environment type
+        env : flow.envs.Env
             see flow/envs/base_env.py
 
         Returns
@@ -109,19 +111,21 @@ class FollowerStopper(BaseController):
 
 
 class PISaturation(BaseController):
+    """Inspired by Dan Work's... work:
+
+    Dissipation of stop-and-go waves via control of autonomous vehicles:
+    Field experiments https://arxiv.org/abs/1705.01693
+
+    Parameters
+    ----------
+    veh_id : str
+        unique vehicle identifier
+    car_following_params : flow.core.params.SumoCarFollowingParams
+        object defining sumo-specific car-following parameters
+    """
+
     def __init__(self, veh_id, car_following_params):
-        """Inspired by Dan Work's... work:
-
-        Dissipation of stop-and-go waves via control of autonomous vehicles:
-        Field experiments https://arxiv.org/abs/1705.01693
-
-        Parameters
-        ----------
-        veh_id : str
-            unique vehicle identifier
-        car_following_params : SumoCarFollowingParams
-            object defining sumo-specific car-following parameters
-        """
+        """Instantiate PISaturation."""
         BaseController.__init__(self, veh_id, car_following_params, delay=1.0)
 
         # maximum achievable acceleration by the vehicle

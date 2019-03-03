@@ -149,7 +149,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        list
+        list of (str, float)
             list of intersection names and starting positions,
             ex: [(intersection0, pos0), (intersection1, pos1), ...]
         """
@@ -172,7 +172,7 @@ class Scenario(Serializable):
 
         Returns
         -------
-        list
+        list of (str, float)
             list of internal junction names and starting positions,
             ex: [(internal0, pos0), (internal1, pos1), ...]
         """
@@ -243,7 +243,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params: flow.core.params.NetParams
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
 
         Returns
@@ -267,7 +267,7 @@ class Scenario(Serializable):
 
         Parameters
         ----------
-        net_params: flow.core.params.NetParams
+        net_params : flow.core.params.NetParams
             see flow/core/params.py
 
         Returns
@@ -306,13 +306,15 @@ class Scenario(Serializable):
         raise NotImplementedError
 
     @staticmethod
-    def gen_custom_start_pos(cls, initial_config, num_vehicles):
+    def gen_custom_start_pos(cls, net_params, initial_config, num_vehicles):
         """Generate a user defined set of starting positions.
 
         Parameters
         ----------
         cls : flow.core.kernel.scenario.KernelScenario
             flow scenario kernel, with all the relevant methods implemented
+        net_params : flow.core.params.NetParams
+            network-specific parameters
         initial_config : flow.core.params.InitialConfig
             see flow/core/params.py
         num_vehicles : int

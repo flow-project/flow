@@ -19,6 +19,7 @@ Flow is a work in progress - input is welcome. Available documentation is limite
 
    intro
    flow_setup
+   flow_examples
    tutorials
    multiagent
    rendering

@@ -28,6 +28,13 @@ version = ''
 # The full version, including alpha/beta/rc tags
 release = '0.3.0'
 
+autodoc_mock_imports = [
+    "rllab.core.serializable.Serializable",
+    "AAPI",
+    'PyANGKernel',
+    'AAPI.GKGUISystem',
+    'thread'
+]
 
 # -- General configuration ---------------------------------------------------
 
@@ -44,6 +51,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'numpydoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -179,3 +187,9 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+
+numpydoc_use_plotsv = True
+numpydoc_show_class_members = False
+numpydoc_show_inherited_class_members = True
+numpydoc_class_members_toctree = True
+numpydoc_use_blockquotes = Trueautodoc_mock_imports = ["django"]

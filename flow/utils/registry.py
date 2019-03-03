@@ -28,6 +28,7 @@ def make_create_env(params, version=0, render=None):
     ----------
     params : dict
         flow-related parameters, consisting of the following keys:
+
          - exp_tag: name of the experiment
          - env_name: name of the flow environment the experiment is running on
          - scenario: name of the scenario class the experiment uses
@@ -41,6 +42,7 @@ def make_create_env(params, version=0, render=None):
            upon initialization/reset (see flow.core.params.InitialConfig)
          - tls (optional): traffic lights to be introduced to specific nodes
            (see flow.core.params.TrafficLightParams)
+
     version : int, optional
         environment version number
     render : bool, optional

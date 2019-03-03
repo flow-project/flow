@@ -49,11 +49,11 @@ class Env(*classdef):
     choose to use it with an rl library (e.g. RLlib). This can be done by
     overloading the following functions in a child class:
 
-     * action_space
-     * observation_space
-     * apply_rl_action
-     * get_state
-     * compute_reward
+    * action_space
+    * observation_space
+    * apply_rl_action
+    * get_state
+    * compute_reward
 
     Attributes
     ----------
@@ -200,7 +200,7 @@ class Env(*classdef):
         ----------
         sim_params : flow.core.params.SimParams
             simulation-specific parameters
-        render: bool, optional
+        render : bool, optional
             specifies whether to use the gui
         """
         self.k.close()
@@ -266,18 +266,18 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions: numpy ndarray
+        rl_actions : array_like
             an list of actions provided by the rl algorithm
 
         Returns
         -------
-        observation: numpy ndarray
+        observation : array_like
             agent's observation of the current environment
-        reward: float
+        reward : float
             amount of reward associated with the previous state/action pair
-        done: bool
+        done : bool
             indicates whether the episode has ended
-        info: dict
+        info : dict
             contains other diagnostic information from the previous action
         """
         for _ in range(self.env_params.sims_per_step):
@@ -376,7 +376,7 @@ class Env(*classdef):
 
         Returns
         -------
-        observation: numpy ndarray
+        observation : array_like
             the initial observation of the space. The initial reward is assumed
             to be zero.
         """
@@ -507,12 +507,12 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions : list or numpy ndarray
+        rl_actions : array_like
             list of actions provided by the RL algorithm
 
         Returns
         -------
-        numpy ndarray (float)
+        array_like
             The rl_actions clipped according to the box
         """
         # ignore if no actions are issued
@@ -535,7 +535,7 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions : list or numpy ndarray
+        rl_actions : array_like
             list of actions provided by the RL algorithm
         """
         # ignore if no actions are issued
@@ -555,7 +555,7 @@ class Env(*classdef):
 
         Returns
         -------
-        state: numpy ndarray
+        state : array_like
             information on the state of the vehicles, which is provided to the
             agent
         """
@@ -596,15 +596,15 @@ class Env(*classdef):
 
         Parameters
         ----------
-        rl_actions: numpy ndarray
+        rl_actions : array_like
             actions performed by rl vehicles
-        kwargs: dict
+        kwargs : dict
             other parameters of interest. Contains a "fail" element, which
             is True if a vehicle crashed, and False otherwise
 
         Returns
         -------
-        reward: float or list <float>
+        reward : float or list of float
         """
         return 0
 
@@ -633,9 +633,9 @@ class Env(*classdef):
 
         Parameters
         ----------
-        reset: bool
+        reset : bool
             set to True to reset the buffer
-        buffer_length: int
+        buffer_length : int
             length of the buffer
         """
         if self.sim_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
@@ -656,7 +656,6 @@ class Env(*classdef):
 
     def pyglet_render(self):
         """Render a frame using pyglet."""
-
         # get human and RL simulation status
         human_idlist = self.k.vehicle.get_human_ids()
         machine_idlist = self.k.vehicle.get_rl_ids()
