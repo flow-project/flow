@@ -32,8 +32,8 @@ SCALING = 1
 NUM_LANES = 4 * SCALING  # number of lanes in the widest highway
 DISABLE_TB = True
 DISABLE_RAMP_METER = True
-AV_FRAC = 0.2
-LANE_CHANGING = 'ON'
+AV_FRAC = 0.1
+LANE_CHANGING = 'OFF'
 lc_mode = {'OFF': 0, 'ON': 1621}
 
 vehicles = VehicleParams()
@@ -95,7 +95,7 @@ additional_env_params = {
     'inflow_range': [800, 2000],
     'start_inflow': flow_rate,
     'congest_penalty': False,
-    'communicate': False,
+    'communicate': True,
     "centralized_obs": False,
     "aggregate_info": False,
     "AV_FRAC": AV_FRAC
@@ -138,7 +138,7 @@ net_params = NetParams(
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='MultiDecentralObsBottleneckOutflowLSTMLCp20',
+    exp_tag='MultiDecentralObsBottleneckOutflowLSTMComm',
 
     # name of the flow environment the experiment is running on
     env_name='MultiBottleneckEnv',
@@ -198,23 +198,23 @@ def setup_exps():
     config['num_workers'] = N_CPUS
     config['train_batch_size'] = HORIZON * N_ROLLOUTS
     config['gamma'] = 0.999  # discount rate
-    config['model'].update({'fcnet_hiddens': [32, 32]})
+    config['model'].update({'fcnet_hiddens': [64, 64]})
     config['clip_actions'] = False
     config['horizon'] = HORIZON
-    config['model']['use_lstm'] = False
-    # config['use_centralized_vf'] = tune.grid_search([True, False])
-    config['max_vf_agents'] = 100
+    config['use_centralized_vf'] = tune.grid_search([True, False])
+    config['max_vf_agents'] = 140
     config['simple_optimizer'] = True
     config['vf_clip_param'] = 100
 
     # Grid search things
-    config['lr'] = tune.grid_search([5e-4, 5e-5])
+    config['lr'] = tune.grid_search([5e-5, 5e-4])
     config['num_sgd_iter'] = tune.grid_search([10, 30])
 
     # LSTM Things
-    # config['model']['use_lstm'] = tune.grid_search([True, False])
+    config['model']['use_lstm'] = True
+    #config['model']['use_lstm'] = tune.grid_search([True, False])
     # # config['model']["max_seq_len"] = tune.grid_search([5, 10])
-    # config['model']["lstm_cell_size"] = 64
+    config['model']["lstm_cell_size"] = 64
 
     # save the flow params for replay
     flow_json = json.dumps(
@@ -257,11 +257,11 @@ if __name__ == '__main__':
             'env': env_name,
             'checkpoint_freq': 50,
             'stop': {
-                'training_iteration': 400
+                'training_iteration': 350
             },
             'config': config,
             'upload_dir': "s3://eugene.experiments/itsc_bottleneck_paper"
-                          "/3-01-2019/MultiDecentralObsBottleneckOutflowLSTMLCp20",
+                          "/3-03-2019/MultiDecentralObsBottleneckOutflowLSTMComm",
             'num_samples': 2,
         },
     })
