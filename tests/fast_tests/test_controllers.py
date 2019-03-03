@@ -8,7 +8,7 @@ from flow.core.params import SumoCarFollowingParams
 from flow.controllers.routing_controllers import ContinuousRouter
 from flow.controllers.car_following_models import IDMController, \
     OVMController, BCMController, LinearOVM, CFMController
-from flow.controllers import FollowerStopper, PISaturation
+from flow.controllers import FollowerStopper
 from tests.setup_scripts import ring_road_exp_setup
 import os
 import numpy as np
