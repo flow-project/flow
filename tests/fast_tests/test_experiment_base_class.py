@@ -1,9 +1,12 @@
 import unittest
 import os
+import time
 
-from flow.core.experiment import SumoExperiment
-from flow.core.vehicles import Vehicles
+from flow.core.experiment import Experiment
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter
+from flow.core.params import SumoCarFollowingParams
+from flow.core.params import SumoParams
 
 from tests.setup_scripts import ring_road_exp_setup
 import numpy as np
@@ -21,7 +24,7 @@ class TestNumSteps(unittest.TestCase):
         env, scenario = ring_road_exp_setup()
 
         # instantiate an experiment class
-        self.exp = SumoExperiment(env, scenario)
+        self.exp = Experiment(env)
 
     def tearDown(self):
         # free up used memory
@@ -43,18 +46,18 @@ class TestNumRuns(unittest.TestCase):
         # run the experiment for 1 run and collect the last position of all
         # vehicles
         env, scenario = ring_road_exp_setup()
-        exp = SumoExperiment(env, scenario)
+        exp = Experiment(env)
         exp.run(num_runs=1, num_steps=10)
 
-        vel1 = [exp.env.vehicles.get_speed(exp.env.vehicles.get_ids())]
+        vel1 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
 
         # run the experiment for 2 runs and collect the last position of all
         # vehicles
         env, scenario = ring_road_exp_setup()
-        exp = SumoExperiment(env, scenario)
+        exp = Experiment(env)
         exp.run(num_runs=2, num_steps=10)
 
-        vel2 = [exp.env.vehicles.get_speed(exp.env.vehicles.get_ids())]
+        vel2 = [exp.env.k.vehicle.get_speed(exp.env.k.vehicle.get_ids())]
 
         # check that the final position is the same in both instances
         np.testing.assert_array_almost_equal(vel1, vel2)
@@ -71,25 +74,56 @@ class TestRLActions(unittest.TestCase):
             return [1]  # actions are always an acceleration of 1 for one veh
 
         # create an environment using AccelEnv with 1 RL vehicle
-        vehicles = Vehicles()
+        vehicles = VehicleParams()
         vehicles.add(
             veh_id="rl",
             acceleration_controller=(RLController, {}),
             routing_controller=(ContinuousRouter, {}),
-            speed_mode="aggressive",
+            car_following_params=SumoCarFollowingParams(
+                speed_mode="aggressive",
+            ),
             num_vehicles=1)
 
         env, scenario = ring_road_exp_setup(vehicles=vehicles)
 
-        exp = SumoExperiment(env=env, scenario=scenario)
+        exp = Experiment(env=env)
 
         exp.run(1, 10, rl_actions=rl_actions)
 
         # check that the acceleration of the RL vehicle was that specified by
         # the rl_actions method
-        self.assertAlmostEqual(exp.env.vehicles.get_speed("rl_0"), 1, places=1)
+        self.assertAlmostEqual(exp.env.k.vehicle.get_speed("rl_0"), 1,
+                               places=1)
 
-        pass
+
+class TestConvertToCSV(unittest.TestCase):
+    """
+    Tests that the emission files are converted to csv's if the parameter
+    is requested.
+    """
+
+    def test_convert_to_csv(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        sim_params = SumoParams(emission_path="{}/".format(dir_path))
+        env, scenario = ring_road_exp_setup(sim_params=sim_params)
+        exp = Experiment(env)
+        exp.run(num_runs=1, num_steps=10, convert_to_csv=True)
+
+        time.sleep(0.1)
+
+        # check that both the emission xml and csv files exist
+        self.assertTrue(os.path.isfile(dir_path + "/{}-emission.xml".format(
+            scenario.name)))
+        self.assertTrue(os.path.isfile(dir_path + "/{}-emission.csv".format(
+            scenario.name)))
+
+        time.sleep(0.1)
+
+        # delete the files
+        os.remove(os.path.expanduser(dir_path + "/{}-emission.xml".format(
+            scenario.name)))
+        os.remove(os.path.expanduser(dir_path + "/{}-emission.csv".format(
+            scenario.name)))
 
 
 if __name__ == '__main__':

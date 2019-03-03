@@ -70,7 +70,7 @@ class WaveAttenuationMergePOEnv(Env):
         vehicles collide into one another.
     """
 
-    def __init__(self, env_params, sumo_params, scenario):
+    def __init__(self, env_params, sim_params, scenario, simulator='traci'):
         for p in ADDITIONAL_ENV_PARAMS.keys():
             if p not in env_params.additional_params:
                 raise KeyError(
@@ -86,7 +86,7 @@ class WaveAttenuationMergePOEnv(Env):
         self.leader = []
         self.follower = []
 
-        super().__init__(env_params, sumo_params, scenario)
+        super().__init__(env_params, sim_params, scenario, simulator)
 
     @property
     def action_space(self):
@@ -106,9 +106,9 @@ class WaveAttenuationMergePOEnv(Env):
         """See class definition."""
         for i, rl_id in enumerate(self.rl_veh):
             # ignore rl vehicles outside the network
-            if rl_id not in self.vehicles.get_rl_ids():
+            if rl_id not in self.k.vehicle.get_rl_ids():
                 continue
-            self.apply_acceleration([rl_id], [rl_actions[i]])
+            self.k.vehicle.apply_acceleration([rl_id], [rl_actions[i]])
 
     def get_state(self, rl_id=None, **kwargs):
         """See class definition."""
@@ -116,14 +116,14 @@ class WaveAttenuationMergePOEnv(Env):
         self.follower = []
 
         # normalizing constants
-        max_speed = self.scenario.max_speed
-        max_length = self.scenario.length
+        max_speed = self.k.scenario.max_speed()
+        max_length = self.k.scenario.length()
 
         observation = [0 for _ in range(5 * self.num_rl)]
         for i, rl_id in enumerate(self.rl_veh):
-            this_speed = self.vehicles.get_speed(rl_id)
-            lead_id = self.vehicles.get_leader(rl_id)
-            follower = self.vehicles.get_follower(rl_id)
+            this_speed = self.k.vehicle.get_speed(rl_id)
+            lead_id = self.k.vehicle.get_leader(rl_id)
+            follower = self.k.vehicle.get_follower(rl_id)
 
             if lead_id in ["", None]:
                 # in case leader is not visible
@@ -131,9 +131,10 @@ class WaveAttenuationMergePOEnv(Env):
                 lead_head = max_length
             else:
                 self.leader.append(lead_id)
-                lead_speed = self.vehicles.get_speed(lead_id)
-                lead_head = self.get_x_by_id(lead_id) \
-                    - self.get_x_by_id(rl_id) - self.vehicles.get_length(rl_id)
+                lead_speed = self.k.vehicle.get_speed(lead_id)
+                lead_head = self.k.vehicle.get_x_by_id(lead_id) \
+                    - self.k.vehicle.get_x_by_id(rl_id) \
+                    - self.k.vehicle.get_length(rl_id)
 
             if follower in ["", None]:
                 # in case follower is not visible
@@ -141,8 +142,8 @@ class WaveAttenuationMergePOEnv(Env):
                 follow_head = max_length
             else:
                 self.follower.append(follower)
-                follow_speed = self.vehicles.get_speed(follower)
-                follow_head = self.vehicles.get_headway(follower)
+                follow_speed = self.k.vehicle.get_speed(follower)
+                follow_head = self.k.vehicle.get_headway(follower)
 
             observation[5 * i + 0] = this_speed / max_speed
             observation[5 * i + 1] = (lead_speed - this_speed) / max_speed
@@ -155,7 +156,7 @@ class WaveAttenuationMergePOEnv(Env):
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
         if self.env_params.evaluate:
-            return np.mean(self.vehicles.get_speed(self.vehicles.get_ids()))
+            return np.mean(self.k.vehicle.get_speed(self.k.vehicle.get_ids()))
         else:
             # return a reward of 0 if a collision occurred
             if kwargs["fail"]:
@@ -168,28 +169,18 @@ class WaveAttenuationMergePOEnv(Env):
             cost2 = 0
             t_min = 1  # smallest acceptable time headway
             for rl_id in self.rl_veh:
-                lead_id = self.vehicles.get_leader(rl_id)
+                lead_id = self.k.vehicle.get_leader(rl_id)
                 if lead_id not in ["", None] \
-                        and self.vehicles.get_speed(rl_id) > 0:
+                        and self.k.vehicle.get_speed(rl_id) > 0:
                     t_headway = max(
-                        self.vehicles.get_headway(rl_id) /
-                        self.vehicles.get_speed(rl_id), 0)
+                        self.k.vehicle.get_headway(rl_id) /
+                        self.k.vehicle.get_speed(rl_id), 0)
                     cost2 += min((t_headway - t_min) / t_min, 0)
 
             # weights for cost1, cost2, and cost3, respectively
             eta1, eta2 = 1.00, 0.10
 
             return max(eta1 * cost1 + eta2 * cost2, 0)
-
-    def sort_by_position(self):
-        """See parent class.
-
-        Sorting occurs by the ``get_x_by_id`` method instead of
-        ``get_absolute_position``.
-        """
-        # vehicles are sorted by their get_x_by_id value
-        sorted_ids = sorted(self.vehicles.get_ids(), key=self.get_x_by_id)
-        return sorted_ids, None
 
     def additional_command(self):
         """See parent class.
@@ -204,16 +195,16 @@ class WaveAttenuationMergePOEnv(Env):
           provided with actions from the policy.
         """
         # add rl vehicles that just entered the network into the rl queue
-        for veh_id in self.vehicles.get_rl_ids():
+        for veh_id in self.k.vehicle.get_rl_ids():
             if veh_id not in list(self.rl_queue) + self.rl_veh:
                 self.rl_queue.append(veh_id)
 
         # remove rl vehicles that exited the network
         for veh_id in list(self.rl_queue):
-            if veh_id not in self.vehicles.get_rl_ids():
+            if veh_id not in self.k.vehicle.get_rl_ids():
                 self.rl_queue.remove(veh_id)
         for veh_id in self.rl_veh:
-            if veh_id not in self.vehicles.get_rl_ids():
+            if veh_id not in self.k.vehicle.get_rl_ids():
                 self.rl_veh.remove(veh_id)
 
         # fil up rl_veh until they are enough controlled vehicles
@@ -223,7 +214,7 @@ class WaveAttenuationMergePOEnv(Env):
 
         # specify observed vehicles
         for veh_id in self.leader + self.follower:
-            self.vehicles.set_observed(veh_id)
+            self.k.vehicle.set_observed(veh_id)
 
     def reset(self):
         """See parent class.

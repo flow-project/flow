@@ -1,0 +1,5 @@
+email: kanaad@berkeley.edu
+explanation_link: https://github.com/flow-project/flow/tree/master/flow/benchmarks
+name: Bottleneck - 1
+yt_string: null # TODO: find video
+description: "Maximizing throughput in a bottleneck structure: The goal of this problem is to learn to avoid the capacity drop that is characteristic to bottleneck structures in transportation networks, and maximize the total outflow in a mixed-autonomy setting. <br> 4 lanes, inflow = 1900 veh/hour, 10% CAV penetration, the human drivers follow the standard lane changing model in the simulator, S=(141,), A=(20,), T=1000."
