@@ -1,0 +1,5 @@
+email: kanaad@berkeley.edu
+explanation_link: https://github.com/flow-project/flow/tree/master/flow/benchmarks
+name: Figure Eight - 2
+yt_string: SoA_7fPJEG8 # TODO: need to find video for figureeight2
+description: A toy model of intersection. A portion of vehicles are treated as CAVs with the objective of regulating the flow of vehicles through the intersection of a figure eight in order to improve system-level velocities. <br> 0 human, 14 CAVs, S=(28,), A=(14,), T=1500.

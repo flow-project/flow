@@ -1,0 +1,5 @@
+email: kanaad@berkeley.edu
+explanation_link: https://github.com/flow-project/flow/tree/master/flow/benchmarks
+name: Grid - 1
+yt_string: null # TODO: find video
+description: "Improving traffic signal timing schedules: Traffic lights in a an idealized representation of a city with a grid-like structure such as Manhattan are controlled in intervals of 2 seconds, with the objective of minimizing delays for drivers. <br> 5x5 grid (25 traffic lights), inflow = 300 veh/hour/lane S=(915,), A=(25,), T=400."

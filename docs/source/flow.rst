@@ -13,18 +13,7 @@ Subpackages
     flow.scenarios
     flow.utils
     flow.visualize
-
-Submodules
-----------
-
-flow.config\_default module
----------------------------
-
-.. automodule:: flow.config_default
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+    flow.renderer
 
 Module contents
 ---------------

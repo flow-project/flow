@@ -6,10 +6,10 @@ flow/benchmarks, as well as method for importing neural network controllers
 from rllab and rllib.
 """
 
-from flow.core.experiment import SumoExperiment
+from flow.core.experiment import Experiment
 from flow.core.params import InitialConfig
-from flow.core.traffic_lights import TrafficLights
-from flow.utils.rllib import get_flow_params
+from flow.core.params import TrafficLightParams
+from flow.utils.rllib import get_flow_params, get_rllib_config
 from flow.utils.registry import make_create_env
 
 from flow.benchmarks.grid0 import flow_params as grid0
@@ -29,7 +29,6 @@ from ray.rllib.agent import get_agent_class
 from ray.tune.registry import get_registry, register_env
 import numpy as np
 import joblib
-import json
 
 # number of simulations to execute when computing performance scores
 NUM_RUNS = 10
@@ -48,13 +47,6 @@ AVAILABLE_BENCHMARKS = {
     "merge1": merge1,
     "merge2": merge2
 }
-
-
-def get_rllib_config(path):
-    """Returns the config data from the params.json file created by RLlib."""
-    jsonfile = path + '/params.json'  # params.json is the config file
-    jsondata = json.loads(open(jsonfile).read())
-    return jsondata
 
 
 def evaluate_policy(benchmark, _get_actions, _get_states=None):
@@ -94,13 +86,13 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
     flow_params = AVAILABLE_BENCHMARKS[benchmark]
 
     exp_tag = flow_params["exp_tag"]
-    sumo_params = flow_params["sumo"]
+    sim_params = flow_params["sim"]
     vehicles = flow_params["veh"]
     env_params = flow_params["env"]
     env_params.evaluate = True  # Set to true to get evaluation returns
     net_params = flow_params["net"]
     initial_config = flow_params.get("initial", InitialConfig())
-    traffic_lights = flow_params.get("tls", TrafficLights())
+    traffic_lights = flow_params.get("tls", TrafficLightParams())
 
     # import the environment and scenario classes
     module = __import__("flow.envs", fromlist=[flow_params["env_name"]])
@@ -127,12 +119,12 @@ def evaluate_policy(benchmark, _get_actions, _get_states=None):
         env_class = _env_class
 
     env = env_class(
-        env_params=env_params, sumo_params=sumo_params, scenario=scenario)
+        env_params=env_params, sim_params=sim_params, scenario=scenario)
 
-    # create a SumoExperiment object with the "rl_actions" method as
+    # create a Experiment object with the "rl_actions" method as
     # described in the inputs. Note that the state may not be that which is
     # specified by the environment.
-    exp = SumoExperiment(env=env, scenario=scenario)
+    exp = Experiment(env=env)
 
     # run the experiment and return the reward
     res = exp.run(

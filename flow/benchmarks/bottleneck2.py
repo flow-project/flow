@@ -4,17 +4,15 @@ Bottleneck in which the actions are specifying a desired velocity in a segment
 of space for a large bottleneck.
 The autonomous penetration rate in this example is 10%.
 
-Action Dimension: (40, )
-
-Observation Dimension: (281, )
-
-Horizon: 1000 steps
+- **Action Dimension**: (40, )
+- **Observation Dimension**: (281, )
+- **Horizon**: 1000 steps
 """
 
 from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows
-from flow.core.traffic_lights import TrafficLights
-from flow.core.vehicles import Vehicles
+    InFlows, SumoLaneChangeParams, SumoCarFollowingParams
+from flow.core.params import TrafficLightParams
+from flow.core.params import VehicleParams
 from flow.controllers import RLController, ContinuousRouter
 
 # time horizon of a single rollout
@@ -26,19 +24,27 @@ DISABLE_TB = True
 DISABLE_RAMP_METER = True
 AV_FRAC = .10
 
-vehicles = Vehicles()
+vehicles = VehicleParams()
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(ContinuousRouter, {}),
-    speed_mode=9,
-    lane_change_mode=0,
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 vehicles.add(
     veh_id="human",
-    speed_mode=9,
     routing_controller=(ContinuousRouter, {}),
-    lane_change_mode=0,
+    car_following_params=SumoCarFollowingParams(
+        speed_mode=9,
+    ),
+    lane_change_params=SumoLaneChangeParams(
+        lane_change_mode=0,
+    ),
     num_vehicles=1 * SCALING)
 
 controlled_segments = [("1", 1, False), ("2", 2, True), ("3", 2, True),
@@ -76,13 +82,13 @@ inflow.add(
     departLane="random",
     departSpeed=10)
 
-traffic_lights = TrafficLights()
+traffic_lights = TrafficLightParams()
 if not DISABLE_TB:
     traffic_lights.add(node_id="2")
 if not DISABLE_RAMP_METER:
     traffic_lights.add(node_id="3")
 
-additional_net_params = {"scaling": SCALING}
+additional_net_params = {"scaling": SCALING, "speed_limit": 23}
 net_params = NetParams(
     inflows=inflow,
     no_internal_links=False,
@@ -98,8 +104,11 @@ flow_params = dict(
     # name of the scenario class the experiment is running on
     scenario="BottleneckScenario",
 
+    # simulator that is used by the experiment
+    simulator='traci',
+
     # sumo-related parameters (see flow.core.params.SumoParams)
-    sumo=SumoParams(
+    sim=SumoParams(
         sim_step=0.5,
         render=False,
         print_warnings=False,
@@ -136,6 +145,6 @@ flow_params = dict(
     ),
 
     # traffic lights to be introduced to specific nodes (see
-    # flow.core.traffic_lights.TrafficLights)
+    # flow.core.params.TrafficLightParams)
     tls=traffic_lights,
 )
