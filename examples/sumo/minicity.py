@@ -68,7 +68,7 @@ def minicity_example(render=None,
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
         car_following_params=SumoCarFollowingParams(
-            speed_mode="no_collide",
+            speed_mode="obey_safe_speed",
         ),
         initial_speed=0,
         num_vehicles=10)

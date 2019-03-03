@@ -865,9 +865,9 @@ def test_space(gym_space, expected_size, expected_min, expected_max):
         gym space object to be tested
     expected_size : int
         expected size
-    expected_min : float or numpy.ndarray
+    expected_min : float or array_like
         expected minimum value(s)
-    expected_max : float or numpy.ndarray
+    expected_max : float or array_like
         expected maximum value(s)
 
     Returns
@@ -889,7 +889,7 @@ def test_observed(env_class,
 
     Parameters
     ----------
-    env_class : flow.envs.Env type
+    env_class : flow.envs.Env
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
@@ -897,7 +897,7 @@ def test_observed(env_class,
         scenario that works for the environment
     env_params : flow.core.params.EnvParams
         environment-specific parameters
-    expected_observed : list or numpy.ndarray
+    expected_observed : array_like
         expected list of observed vehicles
 
     Returns

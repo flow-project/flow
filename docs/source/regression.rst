@@ -1,5 +1,5 @@
 Regression Testing in Flow
-================================
+==========================
 
 To ensure that the four benchmarks created in Flow have consistently stable results,
 we have created a set of regression tests for them. The four benchmarks are shown below:
@@ -13,15 +13,21 @@ is to the expected level, we have provided scripts for training all of the bench
 and then visualizing the results and confirming that they are within the expected bounds.
 
 To run the benchmark scripts, run
+
 ::
+
     flow/benchmarks/run_all_benchmarks.sh
+
 **WARNING: This will spin up 11 c4.4xlarge AWS EC2 instances**.
 Note, to do this you must have set up an AWS EC2 account.
 
 Once the benchmarks are done training, pull the results down to a folder on your local machine
 and then run
+
 ::
+
     flow/benchmarks/create_movies.sh <PATH TO TRAINING RESULTS>
+
 This will create movies of all of the trained benchmarks and confirm that they results
 are within 95% of the expected improvements in velocity or outflow.
 

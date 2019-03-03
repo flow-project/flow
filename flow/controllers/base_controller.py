@@ -10,6 +10,23 @@ class BaseController:
     maximum acceleration to the controller. Provides the method
     safe_action to ensure that controls are never made that could
     cause the system to crash.
+
+    Parameters
+    ----------
+    veh_id : str
+        ID of the vehicle this controller is used for
+    car_following_params : flow.core.params.SumoCarFollowingParams
+        The underlying sumo model for car that will be overwritten. A Flow
+        controller will override the behavior this sumo car following
+        model; however, if control is ceded back to sumo, the vehicle will
+        use these params. Ensure that accel / decel parameters that are
+        specified to in this model are as desired.
+    delay : int
+        delay in applying the action (time)
+    fail_safe : str
+        Should be either "instantaneous" or "safe_velocity"
+    noise : double
+        variance of the gaussian from which to sample a noisy acceleration
     """
 
     def __init__(self,
@@ -18,25 +35,7 @@ class BaseController:
                  delay=0,
                  fail_safe=None,
                  noise=0):
-        """Instantiate the base class for acceleration behavior.
-
-        Attributes
-        ----------
-        veh_id: string
-            ID of the vehicle this controller is used for
-        car_following_params: SumoCarFollowingParams
-            The underlying sumo model for car that will be overwritten. A Flow
-            controller will override the behavior this sumo car following
-            model; however, if control is ceded back to sumo, the vehicle will
-            use these params. Ensure that accel / decel parameters that are
-            specified to in this model are as desired.
-        delay: int
-            delay in applying the action (time)
-        fail_safe: string
-            Should be either "instantaneous" or "safe_velocity"
-        noise: double
-            variance of the gaussian from which to sample a noisy acceleration
-        """
+        """Instantiate the base class for acceleration behavior."""
         self.veh_id = veh_id
 
         # magnitude of gaussian noise
@@ -71,14 +70,24 @@ class BaseController:
 
         Parameters
         ----------
-        env: Env Type
+        env : flow.envs.Env
             state of the environment at the current time step
 
         Returns
         -------
-        action: float
+        float
             the modified form of the acceleration
         """
+        # this is to avoid abrupt decelerations when a vehicle has just entered
+        # a network and it's data is still not subscribed
+        if len(env.k.vehicle.get_edge(self.veh_id)) == 0:
+            return None
+
+        # this allows the acceleration behavior of vehicles in a junction be
+        # described by sumo instead of an explicit model
+        if env.k.vehicle.get_edge(self.veh_id)[0] == ":":
+            return None
+
         accel = self.get_accel(env)
 
         # if no acceleration is specified, let sumo take over for the current
@@ -106,15 +115,15 @@ class BaseController:
 
         Parameters
         ----------
-        env: flow.envs.Env
+        env : flow.envs.Env
             current environment, which contains information of the state of the
             network at the current time step
-        action: float
+        action : float
             requested acceleration action
 
         Returns
         -------
-        safe_action: float
+        float
             the requested action if it does not lead to a crash; and a stopping
             action otherwise
         """
@@ -158,15 +167,15 @@ class BaseController:
 
         Parameters
         ----------
-        env: flow.envs.Env
+        env : flow.envs.Env
             current environment, which contains information of the state of the
             network at the current time step
-        action: float
+        action : float
             requested acceleration action
 
         Returns
         -------
-        safe_action: float
+        float
             the requested action clipped by the safe velocity
         """
         if env.k.vehicle.num_vehicles == 1:
@@ -195,13 +204,13 @@ class BaseController:
 
         Parameters
         ----------
-        env: flow.envs.Env
+        env : flow.envs.Env
             current environment, which contains information of the state of the
             network at the current time step
 
         Returns
         -------
-        safe_velocity: float
+        float
             maximum safe velocity given a maximum deceleration and delay in
             performing the breaking action
         """

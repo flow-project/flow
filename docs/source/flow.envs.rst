@@ -35,14 +35,6 @@ flow.envs.green\_wave\_env module
     :undoc-members:
     :show-inheritance:
 
-flow.envs.intersection\_env module
-----------------------------------
-
-.. automodule:: flow.envs.intersection_env
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 flow.envs.merge module
 ----------------------
 

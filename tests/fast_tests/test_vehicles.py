@@ -30,7 +30,7 @@ class TestVehiclesClass(unittest.TestCase):
             "typeA",
             acceleration_controller=(IDMController, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode='no_collide',
+                speed_mode='obey_safe_speed',
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
@@ -86,7 +86,7 @@ class TestVehiclesClass(unittest.TestCase):
             "typeA",
             acceleration_controller=(IDMController, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",
@@ -100,7 +100,7 @@ class TestVehiclesClass(unittest.TestCase):
             "typeA",
             acceleration_controller=(SimCarFollowingController, {}),
             car_following_params=SumoCarFollowingParams(
-                speed_mode="no_collide",
+                speed_mode="obey_safe_speed",
             ),
             lane_change_params=SumoLaneChangeParams(
                 lane_change_mode="no_lat_collide",

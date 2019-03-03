@@ -8,11 +8,11 @@ def deprecation_warning(obj, dep_from, dep_to):
 
     Parameters
     ----------
-    obj: class
+    obj : class
         The class with the deprecated attribute
-    dep_from: str
+    dep_from : str
         old (deprecated) name of the attribute
-    dep_to: str
+    dep_to : str
         new name for the attribute
     """
     warnings.warn(
