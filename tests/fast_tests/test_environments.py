@@ -14,7 +14,8 @@ from flow.scenarios.merge import ADDITIONAL_NET_PARAMS as MERGE_PARAMS
 from flow.scenarios.loop_merge import ADDITIONAL_NET_PARAMS as LM_PARAMS
 from flow.envs import LaneChangeAccelEnv, LaneChangeAccelPOEnv, AccelEnv, \
     WaveAttenuationEnv, WaveAttenuationPOEnv, WaveAttenuationMergePOEnv, \
-    TestEnv, TwoLoopsMergePOEnv, DesiredVelocityEnv
+    TestEnv, TwoLoopsMergePOEnv, DesiredVelocityEnv, BottleneckEnv, \
+    BottleNeckAccelEnv
 from flow.envs.loop.wave_attenuation import v_eq_max_function
 
 
@@ -729,6 +730,159 @@ class TestTestEnv(unittest.TestCase):
         self.assertEqual(self.env.compute_reward([]), 1)
 
 
+class TestBottleneckEnv(unittest.TestCase):
+
+    """Tests the BottleneckEnv environment in flow/envs/bottleneck_env.py"""
+
+    def setUp(self):
+        self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
+
+        vehicles = VehicleParams()
+        vehicles.add(veh_id="human", num_vehicles=10)
+
+        env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "lane_change_duration": 5,
+                "disable_tb": True,
+                "disable_ramp_metering": True,
+            }
+        )
+
+        net_params = NetParams(
+            no_internal_links=False,
+            additional_params={"scaling": 1, "speed_limit": 23})
+
+        self.scenario = BottleneckScenario(
+            name="bay_bridge_toll",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        self.env = BottleneckEnv(env_params, self.sim_params, self.scenario)
+        self.env.reset()
+
+    def tearDown(self):
+        self.env.terminate()
+        del self.env
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=BottleneckEnv,
+                sim_params=self.sim_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 3,
+                    "max_decel": 3,
+                    "lane_change_duration": 5,
+                    "disable_tb": True,
+                    "disable_ramp_metering": True,
+                }
+            )
+        )
+
+    def test_distance_to_bottleneck(self):
+        self.assertEqual(self.env.distance_to_bottleneck('human_0'), 545.0)
+        self.assertEqual(self.env.distance_to_bottleneck('human_9'), -1)
+
+    def test_get_bottleneck_density(self):
+        self.assertEqual(self.env.get_bottleneck_density(), 0)
+
+    def test_get_avg_bottleneck_velocity(self):
+        self.env.step(None)
+        self.assertAlmostEqual(self.env.get_avg_bottleneck_velocity(), 0.5, 1)
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # check the observation space
+        self.assertTrue(test_space(
+            self.env.observation_space,
+            expected_size=1,
+            expected_min=-float('inf'),
+            expected_max=float('inf'))
+        )
+
+        # check the action space
+        self.assertTrue(test_space(
+            self.env.action_space,
+            expected_size=1,
+            expected_min=-float('inf'),
+            expected_max=float('inf'))
+        )
+
+
+class TestBottleneckAccelEnv(unittest.TestCase):
+
+    """Tests BottleneckAccelEnv in flow/envs/bottleneck_env.py."""
+
+    def setUp(self):
+        self.sim_params = SumoParams(sim_step=0.5, restart_instance=True)
+
+        vehicles = VehicleParams()
+        vehicles.add(veh_id="human", num_vehicles=10)
+
+        env_params = EnvParams(
+            additional_params={
+                "max_accel": 3,
+                "max_decel": 3,
+                "lane_change_duration": 5,
+                "disable_tb": True,
+                "disable_ramp_metering": True,
+                "target_velocity": 30,
+                "add_rl_if_exit": True,
+            }
+        )
+
+        net_params = NetParams(
+            no_internal_links=False,
+            additional_params={"scaling": 1, "speed_limit": 23})
+
+        self.scenario = BottleneckScenario(
+            name="bay_bridge_toll",
+            vehicles=vehicles,
+            net_params=net_params)
+
+        self.env = BottleNeckAccelEnv(
+            env_params, self.sim_params, self.scenario)
+        self.env.reset()
+
+    def tearDown(self):
+        self.env.terminate()
+        del self.env
+
+    def test_additional_env_params(self):
+        """Ensures that not returning the correct params leads to an error."""
+        self.assertTrue(
+            test_additional_params(
+                env_class=BottleNeckAccelEnv,
+                sim_params=self.sim_params,
+                scenario=self.scenario,
+                additional_params={
+                    "max_accel": 3,
+                    "max_decel": 3,
+                    "lane_change_duration": 5,
+                    "disable_tb": True,
+                    "disable_ramp_metering": True,
+                    "target_velocity": 30,
+                    "add_rl_if_exit": True,
+                }
+            )
+        )
+
+    def test_observation_action_space(self):
+        """Tests the observation and action spaces upon initialization."""
+        # check the observation space
+        print(self.env.observation_space.shape)
+        self.assertTrue(test_space(
+            self.env.observation_space,
+            expected_size=12,
+            expected_min=0,
+            expected_max=1)
+        )
+
+
 class TestDesiredVelocityEnv(unittest.TestCase):
 
     """Tests the DesiredVelocityEnv environment in flow/envs/bottleneck.py"""
@@ -889,7 +1043,7 @@ def test_observed(env_class,
 
     Parameters
     ----------
-    env_class : flow.envs.Env
+    env_class : flow.envs.Env class
         blank
     sim_params : flow.core.params.SumoParams
         sumo-specific parameters
