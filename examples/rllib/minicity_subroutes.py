@@ -17,7 +17,6 @@ import random
 from flow.envs.minicity_env import MiniCityTrafficLightsEnv, ADDITIONAL_ENV_PARAMS
 #from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
 from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
-from flow.controllers.routing_controllers import MinicityRouter
 from flow.core.traffic_lights import TrafficLights
 import numpy as np
 
@@ -40,14 +39,12 @@ from flow.envs.minicity_env import AccelCNNSubnetEnv
 from matplotlib import pyplot as plt
 
 
-
 # time horizon of a single rollout
 HORIZON = 10
 # number of rollouts per training iteration
 N_ROLLOUTS = 1
 # number of parallel workers
 N_CPUS = 2
-
 
 
 np.random.seed(204)
@@ -90,7 +87,8 @@ class MinicityRouter(BaseRouter):
     def choose_route(self, env):
         """See parent class."""
         next_edge = None
-        edge = env.vehicles.get_edge(self.veh_id)  # modified from env.k.vehicle
+        # modified from env.k.vehicle
+        edge = env.vehicles.get_edge(self.veh_id)
         # if edge[0] == 'e_63':
         #     return ['e_63', 'e_94', 'e_52']
         subnetwork_edges = SUBROUTE_EDGES[SUBNETWORK.value]
@@ -104,7 +102,8 @@ class MinicityRouter(BaseRouter):
             else:
                 # Edge choices weighted by integer.
                 # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices
-                next_edge = random.choice(sum(([edge] * weight for edge, weight in subnetwork_edges), []))
+                next_edge = random.choice(
+                    sum(([edge] * weight for edge, weight in subnetwork_edges), []))
         self.prev_edge = edge
         if next_edge is None:
             return None
@@ -165,10 +164,8 @@ def define_traffic_lights():
     return tl_logic
 
 
-
 pxpm = 1
 sim_params = SumoParams(sim_step=0.25, emission_path='./data/')
-
 
 
 if pxpm is not None:
@@ -202,7 +199,6 @@ vehicles.add(
     num_vehicles=SUBNET_RL[SUBNETWORK.value])
 
 
-
 additional_net_params = ADDITIONAL_NET_PARAMS.copy()
 additional_net_params = {
     'speed_limit': 35,
@@ -210,7 +206,6 @@ additional_net_params = {
     'vertical_lanes': 1,
     'traffic_lights': True
 }
-
 
 
 # Add inflows only on edges at border of subnetwork
@@ -242,24 +237,20 @@ initial_config = InitialConfig(
 )
 
 
-
 additional_env_params = {
     'target_velocity': 50,
     'switch_time': 7,
     'num_observed': 2,
     'discrete': False,
     'tl_type': 'controlled',
-    'subnetwork' : SUBNETWORK.value
+    'subnetwork': SUBNETWORK.value
 }
-
 
 
 initial_config = InitialConfig(
     spacing="random",
     min_gap=5
 )
-
-
 
 
 flow_params = dict(
