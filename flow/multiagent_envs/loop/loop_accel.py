@@ -3,10 +3,10 @@
 import numpy as np
 from flow.core import rewards
 from flow.envs.loop.loop_accel import AccelEnv
-from flow.multiagent_envs.multiagent_env import MultiEnv
+from flow.multiagent_envs.multiagent_env import MultiAgentEnv
 
 
-class MultiAgentAccelEnv(AccelEnv, MultiEnv):
+class MultiAgentAccelEnv(AccelEnv, MultiAgentEnv):
     """Adversarial multi-agent env.
 
     Multi-agent env with an adversarial agent perturbing

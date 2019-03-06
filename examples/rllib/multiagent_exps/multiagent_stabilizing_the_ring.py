@@ -31,7 +31,7 @@ from flow.utils.rllib import FlowParamsEncoder
 # time horizon of a single rollout
 HORIZON = 3000
 # Number of rings
-NUM_RINGS = 1
+NUM_RINGS = 2
 # number of rollouts per training iteration
 N_ROLLOUTS = 20  # int(20/NUM_RINGS)
 # number of parallel workers
@@ -69,7 +69,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sim=SumoParams(
         sim_step=0.1,
-        render=False,
+        render=True,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)

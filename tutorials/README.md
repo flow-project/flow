@@ -41,10 +41,12 @@ testing simulations in the presence of an RLlib/rllab agent.
 
 **Tutorial 7:** Creating custom environments.
 
-**Tutorial 8:** Creating custom controllers.
+**Tutorial 8:** Multiagent environments.
 
-**Tutorial 9:** Traffic lights.
+**Tutorial 9:** Creating custom controllers.
 
-**Tutorial 10:** Running simulations with inflows of vehicles.
+**Tutorial 10:** Traffic lights.
 
-**Tutorial 11:** Running rllab experiments on Amazon EC2 instances.
+**Tutorial 11:** Running simulations with inflows of vehicles.
+
+**Tutorial 12:** Running rllab experiments on Amazon EC2 instances.

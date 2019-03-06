@@ -7,13 +7,13 @@ from gym.spaces import Box
 from traci.exceptions import FatalTraCIError
 from traci.exceptions import TraCIException
 
-from ray.rllib.env import MultiAgentEnv
+from ray.rllib.env import MultiAgentEnv as MultiEnv
 
 from flow.envs.base_env import Env
 from flow.utils.exceptions import FatalFlowError
 
 
-class MultiEnv(MultiAgentEnv, Env):
+class MultiAgentEnv(MultiEnv, Env):
     """Multi-agent version of base env. See parent class for info"""
 
     def step(self, rl_actions):
