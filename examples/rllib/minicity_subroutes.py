@@ -1,43 +1,30 @@
 """Example of modified minicity network with human-driven vehicles."""
-from flow.controllers import IDMController
-from flow.controllers import RLController
-from flow.controllers import BaseRouter
-from flow.core.experiment import SumoExperiment  # Modified from Experiment
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, InFlows
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-# from flow.core.params import VehicleParams
-from flow.core.vehicles import Vehicles  # Modified from VehicleParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
-from flow.core.traffic_lights import TrafficLights
-import numpy as np
+import json
 import random
 
-
-from flow.envs.minicity_env import MiniCityTrafficLightsEnv, ADDITIONAL_ENV_PARAMS
-#from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
-from flow.core.traffic_lights import TrafficLights
 import numpy as np
-
-import json
+from matplotlib import pyplot as plt
 
 import ray
+from flow.controllers import BaseRouter, IDMController, RLController
+from flow.core.experiment import SumoExperiment
+from flow.core.params import (EnvParams, InFlows, InitialConfig, NetParams,
+                              SumoCarFollowingParams, SumoLaneChangeParams,
+                              SumoParams)
+from flow.core.traffic_lights import TrafficLights
+from flow.core.vehicles import Vehicles
+from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS, AccelEnv
+from flow.envs.minicity_env import (ADDITIONAL_ENV_PARAMS, AccelCNNSubnetEnv,
+                                    MiniCityTrafficLightsEnv)
+from flow.scenarios.minicity import ADDITIONAL_NET_PARAMS, MiniCityScenario
+from flow.scenarios.subnetworks import (SUBNET_CROP, SUBNET_IDM,
+                                        SUBNET_INFLOWS, SUBNET_RL,
+                                        SUBROUTE_EDGES, SubRoute)
+from flow.utils.registry import make_create_env
+from flow.utils.rllib import FlowParamsEncoder
 from ray.rllib.agents.agent import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
-
-from flow.utils.registry import make_create_env
-from flow.utils.rllib import FlowParamsEncoder
-from flow.core.params import SumoParams, EnvParams, InitialConfig, NetParams, \
-    InFlows, SumoCarFollowingParams
-from flow.core.vehicles import Vehicles
-
-from flow.scenarios.subnetworks import *
-from flow.envs.minicity_env import AccelCNNSubnetEnv
-
-from matplotlib import pyplot as plt
-
 
 # time horizon of a single rollout
 HORIZON = 10
