@@ -160,7 +160,8 @@ def visualizer_rllib(args):
     checkpoint = checkpoint + '/checkpoint-' + args.checkpoint_num
     agent.restore(checkpoint)
 
-    if hasattr(agent, "local_evaluator") and os.environ["TEST_FLAG"] != 'True':
+    if hasattr(agent, "local_evaluator") and \
+            os.environ.get("TEST_FLAG") != 'True':
         env = agent.local_evaluator.env
     else:
         env = gym.make(env_name)
@@ -192,6 +193,9 @@ def visualizer_rllib(args):
             ]
     else:
         use_lstm = False
+
+    env.restart_simulation(
+        sim_params=sim_params, render=sim_params.render)
 
     final_outflows = []
     mean_speed = []
