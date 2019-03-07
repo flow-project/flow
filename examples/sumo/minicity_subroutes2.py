@@ -27,18 +27,19 @@ np.random.seed(204)
 #################################################################
 
 
-SUBNETWORK = SubRoute.SUB2  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
+SUBNETWORK = SubRoute.SUB4  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
 # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
 
-RENDERER = 'drgb'  # 'drgb'        # PARAMETER.
-# Set to True to use default Sumo renderer,
-# Set to 'drgb' for Fangyu's renderer
 
-USE_CNN = True             # Set to True to use Pixel-learning CNN agent
-# Set to False for default vehicle speeds observation space
+RENDERER = True  #'drgb'        # PARAMETER. 
+                            # Set to True to use default Sumo renderer, 
+                            # Set to 'drgb' for Fangyu's renderer
+
+USE_CNN = False            # Set to True to use Pixel-learning CNN agent
+
 
 
 #################################################################
@@ -53,6 +54,7 @@ class MinicityRouter(BaseRouter):
 
     def __init__(self, veh_id, router_params):
         self.prev_edge = None
+        self.counter = 0 # Number of time steps that vehicle has not moved
         super().__init__(veh_id, router_params)
 
     def choose_route(self, env):
@@ -63,18 +65,23 @@ class MinicityRouter(BaseRouter):
         # if edge[0] == 'e_63':
         #     return ['e_63', 'e_94', 'e_52']
         subnetwork_edges = SUBROUTE_EDGES[SUBNETWORK.value]
-        if edge not in subnetwork_edges or edge == self.prev_edge:
+        if edge not in subnetwork_edges:
             next_edge = None
+        elif edge == self.prev_edge and self.counter < 5:
+            next_edge = None
+            self.counter += 1
+        elif edge == self.prev_edge and self.counter >= 5:
+            if type(subnetwork_edges[edge]) == str:
+                next_edge = subnetwork_edges[edge]
+            else:
+                next_edge = random.choice(subnetwork_edges[edge])
+            self.counter = 0
         elif type(subnetwork_edges[edge]) == str:
             next_edge = subnetwork_edges[edge]
+            self.counter = 0
         elif type(subnetwork_edges[edge]) == list:
-            if type(subnetwork_edges[edge][0]) == str:
-                next_edge = random.choice(subnetwork_edges[edge])
-            else:
-                # Edge choices weighted by integer.
-                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices
-                next_edge = random.choice(
-                    sum(([edge]*weight for edge, weight in subnetwork_edges), []))
+            next_edge = random.choice(subnetwork_edges[edge])
+            self.counter = 0
         self.prev_edge = edge
         if next_edge is None:
             return None
