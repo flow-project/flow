@@ -163,6 +163,7 @@ class Env(gym.Env, Serializable):
         else:
             raise ValueError("Mode %s is not supported!" %
                              self.sumo_params.render)
+ 
         atexit.register(self.terminate)
 
     def restart_sumo(self, sumo_params, render=None):
@@ -502,7 +503,8 @@ class Env(gym.Env, Serializable):
 
         # collect information of the state of the network based on the
         # environment class used
-        self.state = np.asarray(self.get_state()).T
+        self.state = np.asarray(self.get_state()).T    
+
 
         # collect observation new state associated with action
         next_observation = np.copy(self.state)
@@ -994,8 +996,10 @@ class Env(gym.Env, Serializable):
 
             # cache rendering
             if reset:
-                self.frame_buffer = [self.frame.copy() for _ in range(5)]
-                self.sights_buffer = [self.sights.copy() for _ in range(5)]
+                self.frame_buffer = [
+                    self.frame.copy() for _ in range(buffer_length)]
+                self.sights_buffer = [
+                    self.sights.copy() for _ in range(buffer_length)]
             else:
                 if self.step_counter % int(1/self.sim_step) == 0:
                     self.frame_buffer.append(self.frame.copy())

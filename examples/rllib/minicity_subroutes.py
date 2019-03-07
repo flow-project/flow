@@ -440,7 +440,10 @@ def setup_exps():
 
 if __name__ == '__main__':
     alg_run, gym_name, config = setup_exps()
-    ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
+    try:
+        ray.init(num_cpus=N_CPUS + 1)
+    except DeprecationWarning:
+        ray.init(num_cpus=N_CPUS + 1, redirect_output=False)
     trials = run_experiments({
         flow_params['exp_tag']: {
             'run': alg_run,
