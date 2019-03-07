@@ -1,22 +1,23 @@
 """Example of modified minicity network with human-driven vehicles."""
-from flow.controllers import IDMController
-from flow.controllers import RLController
-from flow.controllers import BaseRouter
-from flow.core.experiment import SumoExperiment # Modified from Experiment
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, InFlows
-from flow.core.params import SumoCarFollowingParams, SumoLaneChangeParams
-#from flow.core.params import VehicleParams
-from flow.core.vehicles import Vehicles # Modified from VehicleParams
-from flow.envs.loop.loop_accel import AccelEnv, ADDITIONAL_ENV_PARAMS
-from flow.scenarios.minicity import MiniCityScenario, ADDITIONAL_NET_PARAMS
-from flow.core.traffic_lights import TrafficLights
-import numpy as np
 import random
 
-from flow.scenarios.subnetworks import *
-from flow.envs.minicity_env import AccelCNNSubnetEnv
-
+import numpy as np
 from matplotlib import pyplot as plt
+
+from flow.controllers import BaseRouter, IDMController, RLController
+from flow.core.experiment import SumoExperiment  # Modified from Experiment
+from flow.core.params import (EnvParams, InFlows, InitialConfig, NetParams,
+                              SumoCarFollowingParams, SumoLaneChangeParams,
+                              SumoParams)
+from flow.core.traffic_lights import TrafficLights
+#from flow.core.params import VehicleParams
+from flow.core.vehicles import Vehicles  # Modified from VehicleParams
+from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS, AccelEnv
+from flow.envs.minicity_env import AccelCNNSubnetEnv
+from flow.scenarios.minicity import ADDITIONAL_NET_PARAMS, MiniCityScenario
+from flow.scenarios.subnetworks import (SUBNET_CROP, SUBNET_IDM,
+                                        SUBNET_INFLOWS, SUBNET_RL,
+                                        SUBROUTE_EDGES, SubRoute)
 
 np.random.seed(204)
 
@@ -28,16 +29,16 @@ np.random.seed(204)
 
 SUBNETWORK = SubRoute.SUB2  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
-                            # Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
+# Set it to SubRoute.ALL, SubRoute.TOP_LEFT, etc.
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
 
-RENDERER = 'drgb'  #'drgb'        # PARAMETER. 
-                            # Set to True to use default Sumo renderer, 
-                            # Set to 'drgb' for Fangyu's renderer
+RENDERER = 'drgb'  # 'drgb'        # PARAMETER.
+# Set to True to use default Sumo renderer,
+# Set to 'drgb' for Fangyu's renderer
 
 USE_CNN = True             # Set to True to use Pixel-learning CNN agent
-                            # Set to False for default vehicle speeds observation space
+# Set to False for default vehicle speeds observation space
 
 
 #################################################################
@@ -57,7 +58,8 @@ class MinicityRouter(BaseRouter):
     def choose_route(self, env):
         """See parent class."""
         next_edge = None
-        edge = env.vehicles.get_edge(self.veh_id) # modified from env.k.vehicle
+        # modified from env.k.vehicle
+        edge = env.vehicles.get_edge(self.veh_id)
         # if edge[0] == 'e_63':
         #     return ['e_63', 'e_94', 'e_52']
         subnetwork_edges = SUBROUTE_EDGES[SUBNETWORK.value]
@@ -69,9 +71,10 @@ class MinicityRouter(BaseRouter):
             if type(subnetwork_edges[edge][0]) == str:
                 next_edge = random.choice(subnetwork_edges[edge])
             else:
-                # Edge choices weighted by integer. 
-                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices 
-                next_edge = random.choice(sum(([edge]*weight for edge, weight in subnetwork_edges), []))
+                # Edge choices weighted by integer.
+                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices
+                next_edge = random.choice(
+                    sum(([edge]*weight for edge, weight in subnetwork_edges), []))
         self.prev_edge = edge
         if next_edge is None:
             return None
@@ -88,25 +91,25 @@ def define_traffic_lights():
               {"duration": "20", "state": "GrrGGGGrrGGG"},
               {"duration": "4", "state": "GrryyyGrryyy"}]
 
-    #top left traffic light
+    # top left traffic light
     phases_2 = [{"duration": "20", "state": "GGGrGG"},
-              {"duration": "4", "state": "yyyryy"},
-              {"duration": "10", "state": "rrGGGr"},
-              {"duration": "4", "state": "rryyyr"}]
+                {"duration": "4", "state": "yyyryy"},
+                {"duration": "10", "state": "rrGGGr"},
+                {"duration": "4", "state": "rryyyr"}]
 
-    #center traffic light
+    # center traffic light
     phases_3 = [{"duration": "20", "state": "GGGGGrrrGGGGGrrr"},
                 {"duration": "4", "state": "yyyyyrrryyyyyrrr"},
                 {"duration": "20", "state": "GrrrGGGGGrrrGGGG"},
                 {"duration": "4", "state": "yrrryyyyyrrryyyy"}]
 
-    #bottom right traffic light
+    # bottom right traffic light
     phases_6 = [{"duration": "20", "state": "GGGGGrr"},
                 {"duration": "4", "state": "yyGGGrr"},
                 {"duration": "20", "state": "GrrrGGG"},
                 {"duration": "4", "state": "Grrryyy"}]
 
-    #top right traffic light
+    # top right traffic light
     phases_8 = [{"duration": "20", "state": "GrrrGGG"},
                 {"duration": "4", "state": "Grrryyy"},
                 {"duration": "20", "state": "GGGGGrr"},
@@ -169,7 +172,7 @@ def minicity_example(render=None,
     if show_radius is not None:
         sim_params.show_radius = show_radius
 
-    vehicles = Vehicles() # modified from VehicleParams
+    vehicles = Vehicles()  # modified from VehicleParams
     vehicles.add(
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
@@ -195,7 +198,7 @@ def minicity_example(render=None,
         lane_change_mode="strategic",
         initial_speed=0,
         num_vehicles=SUBNET_RL[SUBNETWORK.value])
-    
+
     additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
     additional_env_params['subnetwork'] = SUBNETWORK.value
     env_params = EnvParams(additional_params=additional_env_params)
@@ -211,13 +214,13 @@ def minicity_example(render=None,
         for edge in SUBNET_INFLOWS[SUBNETWORK.value]:
             assert edge in SUBROUTE_EDGES[SUBNETWORK.value].keys()
             inflow.add(veh_type="idm",
-                           edge=edge,
-                           vehs_per_hour=1000, # Change this to modify bandwidth/traffic
-                           departLane="free",
-                           departSpeed=7.5)
+                       edge=edge,
+                       vehs_per_hour=1000,  # Change this to modify bandwidth/traffic
+                       departLane="free",
+                       departSpeed=7.5)
             inflow.add(veh_type="rl",
                        edge=edge,
-                       vehs_per_hour=1, # Change this to modify bandwidth/traffic
+                       vehs_per_hour=1,  # Change this to modify bandwidth/traffic
                        departLane="free",
                        departSpeed=7.5)
         net_params = NetParams(
@@ -225,8 +228,7 @@ def minicity_example(render=None,
             no_internal_links=False, additional_params=additional_net_params)
     else:
         net_params = NetParams(
-                no_internal_links=False, additional_params=additional_net_params)
-
+            no_internal_links=False, additional_params=additional_net_params)
 
     initial_config = InitialConfig(
         spacing="random",
@@ -248,15 +250,14 @@ def minicity_example(render=None,
             initial_config=initial_config,
             net_params=net_params)
 
-
     if USE_CNN:
         #env = AccelCNNEnv(env_params, sim_params, scenario)
         env = AccelCNNSubnetEnv(env_params, sim_params, scenario)
     else:
         env = AccelEnv(env_params, sim_params, scenario)
 
-    return SumoExperiment(env, scenario) # modified from Experiment(), added scenario param
-
+    # modified from Experiment(), added scenario param
+    return SumoExperiment(env, scenario)
 
 
 if __name__ == "__main__":
