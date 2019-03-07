@@ -13,13 +13,7 @@ from flow.scenarios.subnetworks import *
 from flow.envs.loop.loop_accel import AccelCNNEnv
 
 ADDITIONAL_ENV_PARAMS = {
-    # minimum switch time for each traffic light (in seconds)
-    "switch_time": 2.0,
-    # whether the traffic lights should be actuated by sumo or RL
-    # options are "controlled" and "actuated"
-    "tl_type": "controlled",
-    # determines whether the action space is meant to be discrete or continuous
-    "discrete": False,
+
 }
 
 ADDITIONAL_PO_ENV_PARAMS = {
@@ -74,7 +68,7 @@ class MiniCityTrafficLightsEnv(Env):
                     'Environment parameter "{}" not supplied'.format(p))
 
         self.rows = 1
-        self.cols = 5
+        self.cols = 1
         # self.num_observed = self.grid_array.get("num_observed", 3)
         self.num_traffic_lights = self.rows * self.cols
         self.tl_type = env_params.additional_params.get('tl_type')
@@ -149,7 +143,6 @@ class MiniCityTrafficLightsEnv(Env):
             # the second column indicates the direction that is currently being
             # allowed to flow. 0 is flowing top to bottom, 1 is left to right
             # For third column, 0 signifies yellow and 1 green or red
-
             if self.last_change[i, 2] == 0:  # currently yellow
                 self.last_change[i, 0] += self.sim_step
                 if self.last_change[i, 0] >= self.min_switch_time:
