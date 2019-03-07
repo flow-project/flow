@@ -38,7 +38,7 @@ N_CPUS = 2
 np.random.seed(204)
 
 #################################################################
-# CUSTOM ARCHITECTURE
+# CUSTOM ARCHITECTURE'drgb'
 #################################################################
 from ray.rllib.models import ModelCatalog, Model
 import tensorflow as tf
@@ -171,7 +171,7 @@ SUBNETWORK = SubRoute.SUB2  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
 TRAFFIC_LIGHTS = True  # CHANGE THIS to True to add traffic lights to Minicity
 
-RENDERER = True  # 'drgb'        # PARAMETER.
+RENDERER = 'drgb'  # 'drgb'        # PARAMETER.
 # Set to True to use default Sumo renderer,
 # Set to 'drgb' for Fangyu's renderer
 
