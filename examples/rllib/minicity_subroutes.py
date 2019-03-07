@@ -171,7 +171,7 @@ SUBNETWORK = SubRoute.SUB2  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
 TRAFFIC_LIGHTS = True  # CHANGE THIS to True to add traffic lights to Minicity
 
-RENDERER = 'drgb'  # 'drgb'        # PARAMETER.
+RENDERER = True  # 'drgb'        # PARAMETER.
 # Set to True to use default Sumo renderer,
 # Set to 'drgb' for Fangyu's renderer
 
@@ -289,9 +289,9 @@ vehicles.add(
     veh_id="idm",
     acceleration_controller=(IDMController, {}),
     routing_controller=(MinicityRouter, {}),
-    # car_following_params=SumoCarFollowingParams(
-    #     speed_mode=1,
-    # ),
+    sumo_car_following_params=SumoCarFollowingParams(
+        decel = 4.5,
+    ),
     # lane_change_params=SumoLaneChangeParams(
     #     lane_change_mode="strategic",
     # ),
@@ -303,9 +303,9 @@ vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(MinicityRouter, {}),
-    # car_following_params=SumoCarFollowingParams(
-    #     speed_mode="strategic",
-    # ),
+    sumo_car_following_params=SumoCarFollowingParams(
+        decel = 4.5,
+    ),
     speed_mode="all_checks",
     lane_change_mode="strategic",
     initial_speed=0,

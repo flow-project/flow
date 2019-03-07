@@ -32,11 +32,11 @@ SUBNETWORK = SubRoute.SUB2  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
 
-RENDERER = 'drgb'  #'drgb'        # PARAMETER.
+RENDERER = True  #'drgb'        # PARAMETER.
                             # Set to True to use default Sumo renderer,
                             # Set to 'drgb' for Fangyu's renderer
 
-USE_CNN = True             # Set to True to use Pixel-learning CNN agent
+USE_CNN = False             # Set to True to use Pixel-learning CNN agent
                             # Set to False for default vehicle speeds observation space
 
 
@@ -114,20 +114,15 @@ def define_traffic_lights():
 
     for node_id in nodes:
         if node_id == 'n_i2':
-            tl_logic.add(node_id, phases=phases_2,
-                         tls_type="actuated", programID=1)
+            tl_logic.add(node_id, programID=1)
         elif node_id == 'n_i3':
-            tl_logic.add(node_id, phases=phases_3,
-                         tls_type="actuated", programID=1)
+            tl_logic.add(node_id, programID=1)
         elif node_id == 'n_i6':
-            tl_logic.add(node_id, phases=phases_6,
-                         tls_type="actuated", programID=1)
+            tl_logic.add(node_id, programID=1)
         elif node_id == 'n_i8':
-            tl_logic.add(node_id, phases=phases_8,
-                         tls_type="actuated", programID=1)
+            tl_logic.add(node_id, programID=1)
         else:
-            tl_logic.add(node_id, phases=phases,
-                         tls_type="actuated", programID=1)
+            tl_logic.add(node_id, programID=1)
 
     return tl_logic
 
@@ -174,9 +169,9 @@ def minicity_example(render=None,
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityRouter, {}),
-        # car_following_params=SumoCarFollowingParams(
-        #     speed_mode=1,
-        # ),
+        sumo_car_following_params=SumoCarFollowingParams(
+            decel=4.5,
+        ),
         # lane_change_params=SumoLaneChangeParams(
         #     lane_change_mode="strategic",
         # ),
@@ -188,9 +183,9 @@ def minicity_example(render=None,
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        # car_following_params=SumoCarFollowingParams(
-        #     speed_mode="strategic",
-        # ),
+        sumo_car_following_params=SumoCarFollowingParams(
+            decel=4.5,
+        ),
         speed_mode="all_checks",
         lane_change_mode="strategic",
         initial_speed=0,
@@ -247,7 +242,6 @@ def minicity_example(render=None,
             vehicles=vehicles,
             initial_config=initial_config,
             net_params=net_params)
-
 
     if USE_CNN:
         #env = AccelCNNEnv(env_params, sim_params, scenario)
