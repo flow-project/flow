@@ -122,7 +122,7 @@ class MyModelClass(Model):
         Returns:
             Tensor of size [BATCH_SIZE] for the value function.
         """
-        return tf.reshape(linear(self.last_layer, 1, "value", normc_initializer(1.0)), [-1])
+        return tf.reshape(tf.linear(self.last_layer, 1, "value", tf.normc_initializer(1.0)), [-1])
 
     def custom_loss(self, policy_loss, loss_inputs):
         """Override to customize the loss function used to optimize this model.
