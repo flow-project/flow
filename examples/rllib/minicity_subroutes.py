@@ -22,7 +22,10 @@ from flow.scenarios.subnetworks import (SUBNET_CROP, SUBNET_IDM,
                                         SUBROUTE_EDGES, SubRoute)
 from flow.utils.registry import make_create_env
 from flow.utils.rllib import FlowParamsEncoder
-from ray.rllib.agents.agent import get_agent_class
+try:
+    from ray.rllib.agents.agent import get_agent_class
+except ImportError:
+    from ray.rllib.agents.registry import get_agent_class
 from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
@@ -35,6 +38,130 @@ N_CPUS = 2
 
 
 np.random.seed(204)
+
+#################################################################
+# CUSTOM ARCHITECTURE
+#################################################################
+from ray.rllib.models import ModelCatalog, Model
+import tensorflow as tf
+
+class MyModelClass(Model):
+    def _build_layers_v2(self, input_dict, num_outputs, options):
+        """Define the layers of a custom model.
+
+        Arguments:
+            input_dict (dict): Dictionary of input tensors, including "obs",
+                "prev_action", "prev_reward", "is_training".
+            num_outputs (int): Output tensor must be of size
+                [BATCH_SIZE, num_outputs].
+            options (dict): Model options.
+
+        Returns:
+            (outputs, feature_layer): Tensors of size [BATCH_SIZE, num_outputs]
+                and [BATCH_SIZE, desired_feature_size].
+
+        When using dict or tuple observation spaces, you can access
+        the nested sub-observation batches here as well:
+
+        Examples:
+            >>> print(input_dict)
+            {'prev_actions': <tf.Tensor shape=(?,) dtype=int64>,
+             'prev_rewards': <tf.Tensor shape=(?,) dtype=float32>,
+             'is_training': <tf.Tensor shape=(), dtype=bool>,
+             'obs': OrderedDict([
+                ('sensors', OrderedDict([
+                    ('front_cam', [
+                        <tf.Tensor shape=(?, 10, 10, 3) dtype=float32>,
+                        <tf.Tensor shape=(?, 10, 10, 3) dtype=float32>]),
+                    ('position', <tf.Tensor shape=(?, 3) dtype=float32>),
+                    ('velocity', <tf.Tensor shape=(?, 3) dtype=float32>)]))])}
+        """
+        inputs = input_dict['obs']
+        print(inputs)
+        # Convolutional layer 1
+        conv1 = tf.layers.conv2d(
+          inputs=inputs,
+          filters=16,
+          kernel_size=[4, 4],
+          padding="same",
+          activation=tf.nn.relu)
+        # Pooling layer 1
+        pool1 = tf.layers.max_pooling2d(
+          inputs=conv1,
+          pool_size=[2, 2],
+          strides=2)
+        # Convolutional layer 2
+        conv2 = tf.layers.conv2d(
+          inputs=pool1,
+          filters=16,
+          kernel_size=[4, 4],
+          padding="same",
+          activation=tf.nn.relu)
+        # Pooling layer 2
+        pool2 = tf.layers.max_pooling2d(
+          inputs=conv2,
+          pool_size=[2, 2],
+          strides=2)
+        # Fully connected layer 1
+        flat = tf.contrib.layers.flatten(pool2)
+        fc1 = tf.layers.dense(
+          inputs=flat,
+          units=32,
+          activation=tf.nn.sigmoid)
+        # Fully connected layer 2
+        fc2 = tf.layers.dense(
+          inputs=fc1,
+          units=num_outputs,
+          activation=None)
+        return fc2, fc1
+
+    def value_function(self):
+        """Builds the value function output.
+
+        This method can be overridden to customize the implementation of the
+        value function (e.g., not sharing hidden layers).
+
+        Returns:
+            Tensor of size [BATCH_SIZE] for the value function.
+        """
+        return tf.reshape(
+            linear(self.last_layer, 1, "value", normc_initializer(1.0)), [-1])
+
+    def custom_loss(self, policy_loss, loss_inputs):
+        """Override to customize the loss function used to optimize this model.
+
+        This can be used to incorporate self-supervised losses (by defining
+        a loss over existing input and output tensors of this model), and
+        supervised losses (by defining losses over a variable-sharing copy of
+        this model's layers).
+
+        You can find an runnable example in examples/custom_loss.py.
+
+        Arguments:
+            policy_loss (Tensor): scalar policy loss from the policy graph.
+            loss_inputs (dict): map of input placeholders for rollout data.
+
+        Returns:
+            Scalar tensor for the customized loss for this model.
+        """
+        return policy_loss
+
+    def custom_stats(self):
+        """Override to return custom metrics from your model.
+
+        The stats will be reported as part of the learner stats, i.e.,
+            info:
+                learner:
+                    model:
+                        key1: metric1
+                        key2: metric2
+
+        Returns:
+            Dict of string keys to scalar tensors.
+        """
+        return {}
+
+ModelCatalog.register_custom_model("my_model", MyModelClass)
 
 #################################################################
 # MODIFIABLE PARAMETERS
@@ -253,7 +380,7 @@ flow_params = dict(
     # sumo-related parameters (see flow.core.params.SumoParams)
     sumo=SumoParams(
         sim_step=1,
-        render=False,
+        render=RENDERER,
     ),
 
     # environment related parameters (see flow.core.params.EnvParams)
@@ -295,6 +422,8 @@ def setup_exps():
     config['kl_target'] = 0.02
     config['num_sgd_iter'] = 10
     config['horizon'] = HORIZON
+    config['model']['custom_model'] = "my_model"
+    config['model']['custom_options'] = {}
 
     # save the flow params for replay
     flow_json = json.dumps(

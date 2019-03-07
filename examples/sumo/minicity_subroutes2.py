@@ -32,8 +32,8 @@ SUBNETWORK = SubRoute.SUB2  # CHANGE THIS PARAMETER TO SELECT CURRENT SUBNETWORK
 
 TRAFFIC_LIGHTS = True       # CHANGE THIS to True to add traffic lights to Minicity
 
-RENDERER = 'drgb'  #'drgb'        # PARAMETER. 
-                            # Set to True to use default Sumo renderer, 
+RENDERER = 'drgb'  #'drgb'        # PARAMETER.
+                            # Set to True to use default Sumo renderer,
                             # Set to 'drgb' for Fangyu's renderer
 
 USE_CNN = True             # Set to True to use Pixel-learning CNN agent
@@ -69,8 +69,8 @@ class MinicityRouter(BaseRouter):
             if type(subnetwork_edges[edge][0]) == str:
                 next_edge = random.choice(subnetwork_edges[edge])
             else:
-                # Edge choices weighted by integer. 
-                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices 
+                # Edge choices weighted by integer.
+                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices
                 next_edge = random.choice(sum(([edge]*weight for edge, weight in subnetwork_edges), []))
         self.prev_edge = edge
         if next_edge is None:
@@ -195,7 +195,7 @@ def minicity_example(render=None,
         lane_change_mode="strategic",
         initial_speed=0,
         num_vehicles=SUBNET_RL[SUBNETWORK.value])
-    
+
     additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
     additional_env_params['subnetwork'] = SUBNETWORK.value
     env_params = EnvParams(additional_params=additional_env_params)
@@ -279,7 +279,7 @@ if __name__ == "__main__":
                            save_render=False,
                            sight_radius=30,
                            pxpm=pxpm,
-                           show_radius=True)
+                           show_radius=False)
 
     # run for a set number of rollouts / time steps
     exp.run(1, 7200, convert_to_csv=True)

@@ -207,7 +207,7 @@ class AccelCNNSubnetEnv(AccelCNNEnv):
         if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             # render a frame
             self.pyglet_render()
-            
+
             # cache rendering
             if reset:
                 self.frame_buffer = [self.frame.copy() for _ in range(5)]
@@ -244,12 +244,28 @@ class AccelCNNSubnetEnv(AccelCNNEnv):
 
 class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
 
+    @property
+    def observation_space(self):
+        """See class definition."""
+        height = 1176
+        width = 1182
+        channel = 6
+        return Box(0., 1., [height, width, channel])
+
     # Currently has a bug with "sights_buffer / 255" in original AccelCNNEnv
     # Using cropped frame buffer as state instead
     def get_state(self, **kwargs):
         """See class definition."""
-        cropped_frame_buffer = np.squeeze(np.array(self.frame_buffer))
-        cropped_frame_buffer = np.moveaxis(cropped_frame_buffer, 0, -1).T
+        cropped_frame_buffer = np.array(self.frame_buffer)
+        cropped_frame_buffer = np.dstack((cropped_frame_buffer[0],
+                                          cropped_frame_buffer[1],))
+                                          # cropped_frame_buffer[2],
+                                          # cropped_frame_buffer[3],
+                                          # cropped_frame_buffer[4],))
+        cropped_frame_buffer = cropped_frame_buffer.T
+        # print("DEBUG///////////////////////////////////////////////////////")
+        # print("Observation shape:", np.asarray(self.frame_buffer).shape)
+        # print("///////////////////////////////////////////////////////DEBUG")
         return cropped_frame_buffer / 255.
 
     def render(self, reset=False, buffer_length=5):
@@ -264,7 +280,7 @@ class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
         if self.sumo_params.render in ['gray', 'dgray', 'rgb', 'drgb']:
             # render a frame
             self.pyglet_render()
-            
+
             # cache rendering
             if reset:
                 self.frame_buffer = [self.frame.copy() for _ in range(5)]
