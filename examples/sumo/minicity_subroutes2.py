@@ -2,7 +2,6 @@
 import random
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 from flow.controllers import BaseRouter, IDMController, RLController
 from flow.core.experiment import SumoExperiment  # Modified from Experiment
