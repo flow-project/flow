@@ -323,6 +323,10 @@ class TraCIVehicle(KernelVehicle):
         """Set the speed of the specified vehicle."""
         self.__sumo_obs[veh_id][tc.VAR_SPEED] = speed
 
+    def test_set_edge(self, veh_id, edge):
+        """Set the speed of the specified vehicle."""
+        self.__sumo_obs[veh_id][tc.VAR_ROAD_ID] = edge
+
     def set_follower(self, veh_id, follower):
         """Set the follower of the specified vehicle."""
         self.__vehicles[veh_id]["follower"] = follower
