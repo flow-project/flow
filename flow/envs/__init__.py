@@ -17,7 +17,7 @@ from flow.envs.loop.wave_attenuation import WaveAttenuationEnv, \
 from flow.envs.merge import WaveAttenuationMergePOEnv
 from flow.envs.intersection_env import SoftIntersectionEnv, HardIntersectionEnv
 from flow.envs.test import TestEnv
-from flow.envs.minicity_env import MiniCityTrafficLightsEnv
+from flow.envs.minicity_env import MiniCityTrafficLightsEnv,AccelCNNSubnetTrainingEnv
 
 __all__ = [
     "Env", "AccelEnv", "LaneChangeAccelEnv", "LaneChangeAccelPOEnv",
@@ -27,5 +27,6 @@ __all__ = [
     "PO_TrafficLightGridEnv", "DesiredVelocityEnv", "TestEnv", "BayBridgeEnv",
     "AccelCNNDebugEnv", "AccelCNNEnv", "AccelCNNIDMEnv",
     "WaveAttenuationCNNDebugEnv", "WaveAttenuationCNNEnv",
-    "WaveAttenuationCNNIDMEnv", "SoftIntersectionEnv", "HardIntersectionEnv", "MiniCityTrafficLightsEnv"
+    "WaveAttenuationCNNIDMEnv", "SoftIntersectionEnv", "HardIntersectionEnv", "MiniCityTrafficLightsEnv",
+    'AccelCNNSubnetTrainingEnv'
 ]
