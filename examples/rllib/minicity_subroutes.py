@@ -7,15 +7,13 @@ from matplotlib import pyplot as plt
 
 import ray
 from flow.controllers import BaseRouter, IDMController, RLController
-from flow.core.experiment import SumoExperiment
+
 from flow.core.params import (EnvParams, InFlows, InitialConfig, NetParams,
                               SumoCarFollowingParams, SumoLaneChangeParams,
                               SumoParams)
 from flow.core.traffic_lights import TrafficLights
 from flow.core.vehicles import Vehicles
-from flow.envs.loop.loop_accel import ADDITIONAL_ENV_PARAMS, AccelEnv
-from flow.envs.minicity_env import (ADDITIONAL_ENV_PARAMS, AccelCNNSubnetEnv,
-                                    MiniCityTrafficLightsEnv)
+
 from flow.scenarios.minicity import ADDITIONAL_NET_PARAMS, MiniCityScenario
 from flow.scenarios.subnetworks import (SUBNET_CROP, SUBNET_IDM,
                                         SUBNET_INFLOWS, SUBNET_RL,
@@ -30,9 +28,9 @@ from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 # time horizon of a single rollout
-HORIZON = 10
+HORIZON = 500
 # number of rollouts per training iteration
-N_ROLLOUTS = 1
+N_ROLLOUTS = 10
 # number of parallel workers
 N_CPUS = 2
 
@@ -64,7 +62,7 @@ class MyModelClass(Model):
         the nested sub-observation batches here as well:
 
         Examples:
-            >>> print(input_dict)
+            # >>> print(input_dict)
             {'prev_actions': <tf.Tensor shape=(?,) dtype=int64>,
              'prev_rewards': <tf.Tensor shape=(?,) dtype=float32>,
              'is_training': <tf.Tensor shape=(), dtype=bool>,
@@ -188,14 +186,15 @@ USE_CNN = True  # Set to True to use Pixel-learning CNN agent
 # Minicity Environment Instantiation Logic
 #################################################################
 
+
 class MinicityRouter(BaseRouter):
     """A router used to continuously re-route vehicles in minicity scenario.
-
     This class allows the vehicle to pick a random route at junctions.
     """
 
     def __init__(self, veh_id, router_params):
         self.prev_edge = None
+        self.counter = 0 # Number of time steps that vehicle has not moved
         super().__init__(veh_id, router_params)
 
     def choose_route(self, env):
@@ -205,25 +204,31 @@ class MinicityRouter(BaseRouter):
         edge = env.vehicles.get_edge(self.veh_id)
         # if edge[0] == 'e_63':
         #     return ['e_63', 'e_94', 'e_52']
+
         subnetwork_edges = SUBROUTE_EDGES[SUBNETWORK.value]
-        if edge not in subnetwork_edges or edge == self.prev_edge:
+
+        if edge not in subnetwork_edges:
             next_edge = None
+        elif edge == self.prev_edge and self.counter < 5:
+            next_edge = None
+            self.counter += 1
+        elif edge == self.prev_edge and self.counter >= 5:
+            if type(subnetwork_edges[edge]) == str:
+                next_edge = subnetwork_edges[edge]
+            else:
+                next_edge = random.choice(subnetwork_edges[edge])
+            self.counter = 0
         elif type(subnetwork_edges[edge]) == str:
             next_edge = subnetwork_edges[edge]
+            self.counter = 0
         elif type(subnetwork_edges[edge]) == list:
-            if type(subnetwork_edges[edge][0]) == str:
-                next_edge = random.choice(subnetwork_edges[edge])
-            else:
-                # Edge choices weighted by integer.
-                # Inefficient untested implementation, but doesn't rely on numpy.random.choice or Python >=3.6 random.choices
-                next_edge = random.choice(
-                    sum(([edge] * weight for edge, weight in subnetwork_edges), []))
+            next_edge = random.choice(subnetwork_edges[edge])
+            self.counter = 0
         self.prev_edge = edge
         if next_edge is None:
             return None
         else:
             return [edge, next_edge]
-
 
 def define_traffic_lights():
     tl_logic = TrafficLights(baseline=False)
@@ -278,14 +283,9 @@ def define_traffic_lights():
     return tl_logic
 
 
-pxpm = 1
-sim_params = SumoParams(sim_step=0.25, emission_path='./data/')
-
-
-if pxpm is not None:
-    sim_params.pxpm = pxpm
 
 vehicles = Vehicles()  # modified from VehicleParams
+
 vehicles.add(
     veh_id="idm",
     acceleration_controller=(IDMController, {}),
@@ -344,6 +344,7 @@ else:
     net_params = NetParams(
         no_internal_links=False, additional_params=additional_net_params)
 
+print(SUBROUTE_EDGES[SUBNETWORK.value].keys())
 initial_config = InitialConfig(
     spacing="random",
     min_gap=5,
