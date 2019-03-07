@@ -149,12 +149,12 @@ class MiniCityTrafficLightsEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state="GGGGGrrrGGGGGrrr",
+                            state="GGGrrrGGGrrr",
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state='GrrrGGGGGrrrGGGG',
+                            state='rrrGGGrrrGGG',
                             env=self)
                     self.last_change[i, 2] = 1
             else:
@@ -162,12 +162,12 @@ class MiniCityTrafficLightsEnv(Env):
                     if self.last_change[i, 1] == 0:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state='yyyyyrrryyyyyrrr',
+                            state='rrryyyrrryyy',
                             env=self)
                     else:
                         self.traffic_lights.set_state(
                             node_id='n_i4',
-                            state='yrrryyyyyrrryyyy',
+                            state='yyyrrryyyrrr',
                             env=self)
                     self.last_change[i, 0] = 0.0
                     self.last_change[i, 1] = not self.last_change[i, 1]

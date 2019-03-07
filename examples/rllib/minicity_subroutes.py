@@ -28,7 +28,7 @@ from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 # time horizon of a single rollout
-HORIZON = 500
+HORIZON = 75
 # number of rollouts per training iteration
 N_ROLLOUTS = 10
 # number of parallel workers
@@ -298,7 +298,7 @@ vehicles.add(
     speed_mode="all_checks",
     lane_change_mode="strategic",
     initial_speed=0,
-    num_vehicles=SUBNET_IDM[SUBNETWORK.value])
+    num_vehicles=0)
 vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
@@ -352,7 +352,7 @@ initial_config = InitialConfig(
 
 
 additional_env_params = {
-    'target_velocity': 50,
+    'target_velocity': 15,
     'switch_time': 7,
     'num_observed': 2,
     'discrete': False,
