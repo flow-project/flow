@@ -28,7 +28,7 @@ from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 # time horizon of a single rollout
-HORIZON = 1000
+HORIZON = 50
 # number of rollouts per training iteration
 N_ROLLOUTS = 2
 # number of parallel workers
