@@ -405,7 +405,7 @@ SUBROUTE_EDGES = [
 SUBNET_CROP = [
     (0, 2392, 0, 2404), # Full network
     (0, 5000, 0, 5000), #top left with merge
-    (503, 703, 130, 330), # top center intersection
+    (503, 703, 110, 330), # top center intersection
     (0, 5000, 0, 5000), # top right intersection
     (0, 5000, 0, 5000), # center intersection
     (0, 5000, 0, 5000), # bottom left

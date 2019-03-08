@@ -28,9 +28,9 @@ from ray.tune import run_experiments
 from ray.tune.registry import register_env
 
 # time horizon of a single rollout
-HORIZON = 75
+HORIZON = 1000
 # number of rollouts per training iteration
-N_ROLLOUTS = 10
+N_ROLLOUTS = 2
 # number of parallel workers
 N_CPUS = 2
 
@@ -328,14 +328,14 @@ if len(SUBNET_INFLOWS[SUBNETWORK.value]) > 0:
         assert edge in SUBROUTE_EDGES[SUBNETWORK.value].keys()
         inflow.add(veh_type="idm",
                    edge=edge,
-                   vehs_per_hour=1000,  # Change this to modify bandwidth/traffic
+                   vehs_per_hour=100,  # Change this to modify bandwidth/traffic
                    departLane="free",
-                   departSpeed=7.5)
+                   departSpeed=7)
         inflow.add(veh_type="rl",
                    edge=edge,
                    vehs_per_hour=1,  # Change this to modify bandwidth/traffic
                    departLane="free",
-                   departSpeed=7.5)
+                   departSpeed=7)
     net_params = NetParams(
         inflows=inflow,
         no_internal_links=False, additional_params=additional_net_params)
@@ -352,7 +352,7 @@ initial_config = InitialConfig(
 
 
 additional_env_params = {
-    'target_velocity': 15,
+    'target_velocity': 11,
     'switch_time': 7,
     'num_observed': 2,
     'discrete': False,

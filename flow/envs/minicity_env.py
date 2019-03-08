@@ -173,9 +173,18 @@ class MiniCityTrafficLightsEnv(Env):
                     self.last_change[i, 1] = not self.last_change[i, 1]
                     self.last_change[i, 2] = 0
 
+    # def compute_reward(self, rl_actions, **kwargs):
+    #     """See class definition."""
+    #     return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
+    #     # reward = self.vehicles.get_outflow_rate(10 * self.sim_step) / \
+    #     #          (2000.0 * 100)
+    #     # return reward
+
     def compute_reward(self, rl_actions, **kwargs):
         """See class definition."""
-        return rewards.penalize_tl_changes(rl_actions >= 0.5, gain=1.0)
+        max_speed = self.scenario.max_speed
+        speed = self.vehicles.get_speed(self.vehicles.get_ids())
+        return (0.8*np.mean(speed) - 0.2*np.std(speed))/max_speed
 
 
 class AccelCNNSubnetEnv(AccelCNNEnv):
@@ -298,7 +307,7 @@ class AccelCNNSubnetTrainingEnv(MiniCityTrafficLightsEnv):
                     self.frame_buffer.append(next_frame)
                     self.sights_buffer.append(self.sights.copy())
                     # Save a cropped image to current executing directory for debug
-                    #plt.imsave('test_subnet_crop.png', next_frame)
+                    plt.imsave('test_subnet_crop.png', next_frame)
                     # Do this only when you are debugging (: It's slow.
                 if len(self.frame_buffer) > buffer_length:
                     self.frame_buffer.pop(0)
