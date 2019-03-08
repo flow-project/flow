@@ -38,7 +38,7 @@ N_CPUS = 2
 np.random.seed(204)
 
 #################################################################
-# CUSTOM ARCHITECTURE
+# CUSTOM ARCHITECTURE'drgb'
 #################################################################
 from ray.rllib.models import ModelCatalog, Model
 import tensorflow as tf
@@ -289,9 +289,9 @@ vehicles.add(
     veh_id="idm",
     acceleration_controller=(IDMController, {}),
     routing_controller=(MinicityRouter, {}),
-    # car_following_params=SumoCarFollowingParams(
-    #     speed_mode=1,
-    # ),
+    sumo_car_following_params=SumoCarFollowingParams(
+        decel = 4.5,
+    ),
     # lane_change_params=SumoLaneChangeParams(
     #     lane_change_mode="strategic",
     # ),
@@ -303,9 +303,9 @@ vehicles.add(
     veh_id="rl",
     acceleration_controller=(RLController, {}),
     routing_controller=(MinicityRouter, {}),
-    # car_following_params=SumoCarFollowingParams(
-    #     speed_mode="strategic",
-    # ),
+    sumo_car_following_params=SumoCarFollowingParams(
+        decel = 4.5,
+    ),
     speed_mode="all_checks",
     lane_change_mode="strategic",
     initial_speed=0,

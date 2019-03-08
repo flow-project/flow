@@ -128,7 +128,6 @@ def define_traffic_lights():
         else:
             tl_logic.add(node_id, phases=phases,
                          tls_type="actuated", programID=1)
-
     return tl_logic
 
 
@@ -174,9 +173,9 @@ def minicity_example(render=None,
         veh_id="idm",
         acceleration_controller=(IDMController, {}),
         routing_controller=(MinicityRouter, {}),
-        # car_following_params=SumoCarFollowingParams(
-        #     speed_mode=1,
-        # ),
+        sumo_car_following_params=SumoCarFollowingParams(
+            decel=4.5,
+        ),
         # lane_change_params=SumoLaneChangeParams(
         #     lane_change_mode="strategic",
         # ),
@@ -188,9 +187,9 @@ def minicity_example(render=None,
         veh_id="rl",
         acceleration_controller=(RLController, {}),
         routing_controller=(MinicityRouter, {}),
-        # car_following_params=SumoCarFollowingParams(
-        #     speed_mode="strategic",
-        # ),
+        sumo_car_following_params=SumoCarFollowingParams(
+            decel=4.5,
+        ),
         speed_mode="all_checks",
         lane_change_mode="strategic",
         initial_speed=0,
