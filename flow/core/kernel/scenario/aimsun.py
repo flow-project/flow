@@ -66,9 +66,9 @@ class AimsunKernelScenario(KernelScenario):
             json.dump(output, outfile, sort_keys=True, indent=4)
 
         # path to the Aimsun_Next binary
-        if platform.system() == 'Darwin': # OS X
+        if platform.system() == 'Darwin':  # OS X
             binary_name = 'Aimsun Next'
-        else: # 'Linux' or 'Windows'
+        else:
             binary_name = 'Aimsun_Next'
         aimsun_path = osp.join(osp.expanduser(config.AIMSUN_NEXT_PATH),
                                binary_name)
