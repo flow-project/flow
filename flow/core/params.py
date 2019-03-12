@@ -587,7 +587,7 @@ class EnvParams:
 
     def __init__(self,
                  additional_params=None,
-                 horizon=500,
+                 horizon=float('inf'),
                  warmup_steps=0,
                  sims_per_step=1,
                  evaluate=False):
