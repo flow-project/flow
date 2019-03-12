@@ -575,21 +575,31 @@ class SimpleGridScenario(Scenario):
         grid_array = net_params.additional_params["grid_array"]
         row_num = grid_array["row_num"]
         col_num = grid_array["col_num"]
-        per_edge = int(num_vehicles / (2 * (row_num + col_num)))
+        cars_left = grid_array["cars_left"]
+        cars_right = grid_array["cars_right"]
+        cars_top = grid_array["cars_top"]
+        cars_bot = grid_array["cars_bot"]
+
         start_positions = []
         d_inc = 10
         for i in range(col_num):
             x = 6
-            for k in range(per_edge):
+            for k in range(cars_right):
                 start_positions.append(("right0_{}".format(i), x))
+                x += d_inc
+            x = 6
+            for k in range(cars_left):
                 start_positions.append(("left{}_{}".format(row_num, i), x))
                 x += d_inc
 
         for i in range(row_num):
             x = 6
-            for k in range(per_edge):
-                start_positions.append(("bot{}_0".format(i), x))
+            for k in range(cars_top):
                 start_positions.append(("top{}_{}".format(i, col_num), x))
+                x += d_inc
+            x = 6
+            for k in range(cars_bot):
+                start_positions.append(("bot{}_0".format(i), x))
                 x += d_inc
 
         start_lanes = [0] * len(start_positions)
