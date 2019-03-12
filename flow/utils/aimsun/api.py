@@ -46,7 +46,7 @@ def create_client(port, print_status=False):
             logging.debug('Cannot connect to the server: {}'.format(e))
             time.sleep(1)
 
-        except socket.error as e:
+        except socket.error:
             stop = False
 
     # print the return statement
